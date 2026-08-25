@@ -29,8 +29,8 @@ const COACHES = [
 ];
 
 export default function ProgramWelcomeSheet() {
-  const { program, setProgramIntro, userName, setTour } = useWF();
-  const you = (userName || "").trim().split(" ")[0];
+  const { program, setProgramIntro, firstName, setTour } = useWF();
+  const you = firstName;
   const [step, setStep] = useState(0);
   const Icon = program.icon;
 

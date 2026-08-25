@@ -24,6 +24,10 @@ export function WFProvider({ children, initial = {} }) {
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [userName, setUserName] = useState("");
+  /* Who to greet. Signup fills userName in; anywhere the wireframe starts
+     already signed in there has to be someone to be, so the card is not a
+     template with a hole in it. */
+  const firstName = (userName || "").trim().split(" ")[0] || "Shaheer";
 
   const [activeTab, setActiveTab] = useState(initial.activeTab !== undefined ? initial.activeTab : "home");
   // userState: "free" | "returning" | "device" | "deviceReturning"
@@ -749,7 +753,7 @@ export function WFProvider({ children, initial = {} }) {
   const value = {
     hasTargets, kcalTarget, dailyTargets, dayTotals, mainMealsDone, liveScore, scoreUnlocked,
     activeGoal, MAIN_DIVISIONS,
-    authStep, setAuthStep, phone, setPhone, otp, setOtp, userName, setUserName,
+    authStep, setAuthStep, phone, setPhone, otp, setOtp, userName, setUserName, firstName,
     activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail,
     eatState, setEatState, progressTab, setProgressTab, measureApproach, setMeasureApproach,
     msRange, setMsRange, msDetail, setMsDetail, a1Detail, setA1Detail,

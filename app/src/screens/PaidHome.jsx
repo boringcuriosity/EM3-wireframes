@@ -12,7 +12,7 @@ import CtaArrow from "../components/CtaArrow";
 import NextActionCard from "../components/NextActionCard";
 
 export default function PaidHomePage() {
-  const { setActiveTab, setHomeProgramTab, sessionState, scoreState, setProgramDetail, CARD_W, CARD_GAP, CARD_PAD, CARD_H, SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef, handleCarouselScroll, nextOpen, HOME_CARDS, homeTab } = useWF();
+  const { setActiveTab, setHomeProgramTab, sessionState, scoreState, setProgramDetail, CARD_W, CARD_GAP, CARD_PAD, CARD_H, SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef, handleCarouselScroll, nextOpen, HOME_CARDS, homeTab, firstName } = useWF();
 
   return (
     (
@@ -135,10 +135,9 @@ export default function PaidHomePage() {
                   boxShadow: SH,
                   display: "flex",
                   flexDirection: "column",
-                  justifyContent: "center",
                 }}
               >
-                <div style={{ padding: "0 16px" }}>
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 16px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                       <span style={{ width: 7, height: 7, borderRadius: "50%", background: TEXT }} />
@@ -175,6 +174,32 @@ export default function PaidHomePage() {
                   <div style={{ fontSize: 12, color: MUTED, marginTop: 6 }}>
                     {program.duration} · {program.category}
                   </div>
+                </div>
+
+                {/* Whose program it is. A card about a year of someone's care
+                    should have their name on it, the way a membership does. */}
+                <div
+                  style={{
+                    flexShrink: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    background: BG_ALT,
+                    borderTop: "1px solid " + BORDER,
+                    padding: "9px 16px",
+                  }}
+                >
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700, color: TEXT }}>
+                    {firstName}
+                  </span>
+                  <svg width="15" height="17" viewBox="0 0 22 24" fill="none" aria-hidden>
+                    <path
+                      d="M11 1.2 20.1 6.6v10.8L11 22.8 1.9 17.4V6.6z"
+                      stroke={MUTED}
+                      strokeWidth="1.8"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 </div>
               </div>
               </TourTarget>
