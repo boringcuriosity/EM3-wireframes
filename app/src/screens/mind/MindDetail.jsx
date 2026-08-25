@@ -2,6 +2,7 @@ import React from "react";
 import { useWF } from "../../state";
 import { Moon, Wind } from "lucide-react";
 import PillarScreen from "../../components/PillarScreen";
+import HealthGate from "../../components/HealthGate";
 import LogPrompt from "../../components/LogPrompt";
 import LotusIcon from "../../components/LotusIcon";
 import MindHero from "./MindHero";
@@ -15,8 +16,11 @@ import { GREEN, TEXT, MUTED, BG, BORDER, SH } from "../../tokens";
    to you. So the hero is sleep, the record is the things you can actually do
    about it, and the way in offers both. */
 export default function MindDetail() {
-  const { setMindDetail, mindTab, setMindTab, setLogSleepOpen, setMindTool, sleepMins, mindDone } =
+  const { setMindDetail, mindTab, setMindTab, setLogSleepOpen, setMindTool, sleepMins, mindDone, healthSource } =
     useWF();
+
+  // Same gate as Move, for the same reason: no source, nothing to show.
+  if (healthSource.sleep === null) return <HealthGate signal="sleep" />;
 
   return (
     <PillarScreen

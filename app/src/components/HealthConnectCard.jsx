@@ -12,11 +12,11 @@ import { GREEN, GREEN_DEEP, GREEN_TINT, TEXT, MUTED, BG, BORDER, LINE, SH } from
 const COPY = {
   steps: {
     title: "Where should your steps come from?",
-    line: "Your phone already counts them. Connect it and your movement fills in on its own, no logging needed.",
+    line: "Health Connect has them already. Connect it and your movement fills in on its own.",
   },
   sleep: {
     title: "Where should your sleep come from?",
-    line: "If your phone or watch tracks your nights, connect it. If not, you can tell us when you slept and it works just the same.",
+    line: "If your phone or watch tracks your nights, Health Connect has them. If not, telling us works just the same.",
   },
 };
 
@@ -49,7 +49,7 @@ export default function HealthConnectCard({ signal }) {
           <Check size={12} color={MUTED} strokeWidth={2.6} />
         )}
         <span style={{ flex: 1, minWidth: 0, fontSize: 11, color: MUTED, textAlign: "left" }}>
-          {src === "phone" ? "Synced from your health app, 6 minutes ago" : "You are entering this by hand"}
+          {src === "phone" ? "Synced from Health Connect, 6 minutes ago" : "You are entering this by hand"}
         </span>
         <span style={{ fontSize: 11, fontWeight: 700, color: GREEN }}>Change</span>
       </button>

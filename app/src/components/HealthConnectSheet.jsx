@@ -119,8 +119,8 @@ export default function HealthConnectSheet() {
           <Option
             value="phone"
             Icon={Smartphone}
-            title="Use my phone's health app"
-            line="We read only what is listed here, and nothing else. You can turn it off any time."
+            title="Use Health Connect"
+            line="Your phone already keeps this. We read only what is listed and nothing else."
             chips={s.reads}
             current={current}
             pick={pick}

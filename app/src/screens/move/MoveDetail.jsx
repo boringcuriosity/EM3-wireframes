@@ -2,8 +2,10 @@ import React from "react";
 import { useWF } from "../../state";
 import { Flame } from "lucide-react";
 import PillarScreen from "../../components/PillarScreen";
+import HealthGate from "../../components/HealthGate";
 import LogPrompt from "../../components/LogPrompt";
 import MoveHero from "./MoveHero";
+import MoveIntroCard from "./MoveIntroCard";
 import RoutineList from "./RoutineList";
 import LoggedList from "./LoggedList";
 import VideoList from "./VideoList";
@@ -14,8 +16,13 @@ import { GREEN, TEXT, MUTED, BG, BORDER, SH } from "../../tokens";
    routine and what has been logged. Trend and Learn sit behind the pillar's
    own nav, exactly as they do on Eat. */
 export default function MoveDetail() {
-  const { setMoveDetail, moveTab, setMoveTab, exLogs, setLogExOpen, movePlan, isPaid } = useWF();
+  const { setMoveDetail, moveTab, setMoveTab, exLogs, setLogExOpen, movePlan, isPaid, healthSource } =
+    useWF();
   const mins = dayMinutes(exLogs);
+
+  /* Asked before anything else, once. Move cannot show a step count without
+     knowing where steps come from, so this is a gate rather than a card. */
+  if (healthSource.steps === null) return <HealthGate signal="steps" />;
 
   return (
     <PillarScreen
@@ -27,8 +34,9 @@ export default function MoveDetail() {
     >
       {moveTab === "today" && (
         <>
+          {/* Two states, decided by one fact, exactly as Eat is. */}
           <div style={{ padding: "12px 22px 0" }}>
-            <MoveHero />
+            {movePlan === "assigned" ? <MoveHero /> : <MoveIntroCard />}
           </div>
 
           <LogPrompt

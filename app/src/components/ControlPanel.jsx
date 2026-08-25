@@ -778,6 +778,7 @@ export default function ControlPanel() {
           "from the To-do Move card",
           [
             { id: "off", label: "Closed" },
+            { id: "gate", label: "First open, source not picked" },
             { id: "noplan", label: "No routine, nothing logged" },
             { id: "plan", label: "Coach routine assigned" },
             { id: "logged", label: "One walk logged" },
@@ -792,23 +793,20 @@ export default function ControlPanel() {
               () => {
                 setLogExOpen(v.id === "log");
                 setMoveDetail(v.id !== "off" && v.id !== "log");
+                /* Every state except the gate itself needs a source, or the
+                   gate would swallow the screen you asked for. */
+                setHealthSource({
+                  ...healthSource,
+                  steps: v.id === "gate" ? null : v.id === "steps" ? "phone" : healthSource.steps || "manual",
+                });
+                setMoveTab(v.id === "trend" ? "trend" : v.id === "learn" ? "learn" : "today");
                 if (v.id === "noplan") {
                   setMovePlan(null);
                   setExLogs([]);
-                  setMoveTab("today");
                 } else if (v.id === "plan") {
                   setMovePlan("assigned");
-                  setMoveTab("today");
                 } else if (v.id === "logged") {
                   setExLogs([{ id: "briskwalk", minutes: 25, intensity: "moderate", timeMins: 7 * 60 + 30 }]);
-                  setMoveTab("today");
-                } else if (v.id === "steps") {
-                  setHealthSource({ ...healthSource, steps: "phone" });
-                  setMoveTab("today");
-                } else if (v.id === "trend") {
-                  setMoveTab("trend");
-                } else if (v.id === "learn") {
-                  setMoveTab("learn");
                 }
                 if (v.id === "off") setActiveTab("track");
               }
@@ -1101,7 +1099,7 @@ export default function ControlPanel() {
           "from the To-do Mind card",
           [
             { id: "off", label: "Closed" },
-            { id: "nosleep", label: "No sleep source yet" },
+            { id: "nosleep", label: "First open, source not picked" },
             { id: "manual", label: "One night logged by hand" },
             { id: "phone", label: "Phone health app connected" },
             { id: "tools", label: "Two tools done" },
@@ -1115,15 +1113,23 @@ export default function ControlPanel() {
                 setLogSleepOpen(v.id === "log");
                 setMindDetail(v.id !== "off" && v.id !== "log");
                 setMindTab(v.id === "trend" ? "trend" : "today");
+                setHealthSource({
+                  ...healthSource,
+                  sleep:
+                    v.id === "nosleep"
+                      ? null
+                      : v.id === "phone"
+                      ? "phone"
+                      : v.id === "manual"
+                      ? "manual"
+                      : healthSource.sleep || "manual",
+                });
                 if (v.id === "nosleep") {
-                  setHealthSource({ ...healthSource, sleep: null });
                   setSleepLogs([]);
                   setMindDone([]);
                 } else if (v.id === "manual") {
-                  setHealthSource({ ...healthSource, sleep: "manual" });
                   setSleepLogs([{ bed: 23 * 60 + 40, wake: 6 * 60 + 30 }]);
                 } else if (v.id === "phone") {
-                  setHealthSource({ ...healthSource, sleep: "phone" });
                   setSleepLogs([]);
                 } else if (v.id === "tools") {
                   setMindDone(["mood", "breathing"]);

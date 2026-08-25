@@ -18,7 +18,7 @@ export const PILLAR_SCIENCE = {
   },
 
   move: {
-    tagline: "Keep your body moving through the day.",
+    tagline: "Burn what you take in, a little all day.",
     lede: "Most of what you burn each day",
     ledeAccent: "comes from moving around, not from the gym.",
     sub: "Walking, stairs, standing and chores all count, not just workouts. Doctors call this NEAT, and it is the biggest part of your daily burn.",
@@ -30,7 +30,7 @@ export const PILLAR_SCIENCE = {
   },
 
   mind: {
-    tagline: "Rest and calm are part of the work.",
+    tagline: "Rest is when your body repairs itself.",
     lede: "Keeping sleep and meal times regular",
     ledeAccent: "helps your body handle food better.",
     sub: "Sleep, daylight and meal times are what set your body clock. It runs on repetition, so roughly the same each day beats one perfect night.",
