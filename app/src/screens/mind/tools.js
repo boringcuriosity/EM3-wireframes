@@ -66,3 +66,28 @@ export function fmtDur(mins) {
   const m = mins % 60;
   return h + "h" + (m ? " " + m + "m" : "");
 }
+
+/* Mind's reading list. Sleep, stress and rhythm rather than tools: the tools
+   are on Today, and this is the part that explains why any of them help. */
+export const MIND_ARTICLES = [
+  {
+    title: "Why Your Body Clock Decides How You Handle Sugar",
+    meta: "6 min read . 18 Mar 26",
+  },
+  {
+    title: "One Bad Night, One Hungry Day: What Short Sleep Does to Appetite",
+    meta: "5 min read . 02 Mar 26",
+  },
+  {
+    title: "Winding Down Without a Screen: A Half Hour That Actually Works",
+    meta: "4 min read . 11 Feb 26",
+  },
+  {
+    title: "Stress and Blood Sugar: The Link Nobody Mentions at the Clinic",
+    meta: "8 min read . 27 Jan 26",
+  },
+  {
+    title: "Breathing Slowly, and Why the Long Breath Out Is the One That Counts",
+    meta: "3 min read . 09 Jan 26",
+  },
+];

@@ -9,6 +9,15 @@ import { PILLAR_SCIENCE } from "./pillarScience";
 import { byId, qtyLabel } from "./log/foods";
 import SufficiencyCard from "./log/SufficiencyCard";
 import CtaArrow from "../components/CtaArrow";
+import ArticleList from "../components/ArticleList";
+
+const EAT_ARTICLES = [
+  { title: "Eating Smart: Your Guide to Balanced Nutrition for Weight…", meta: "1 min read . 21 Mar 26" },
+  { title: "Is Ragi Good for Diabetes? A Simple Guide to This Powerfu…", meta: "7 min read . 07 Jan 26" },
+  { title: "Is Jackfruit Good for Diabetes? The Complete Indian Guide t…", meta: "10 min read . 02 Jan 26" },
+  { title: "Drink Smart, Stay Balanced: How Steady Hydration Keeps…", meta: "8 min read . 24 Dec 25" },
+  { title: "Fasting & Gut Reset: How a Simple 16-Hour Pause Can R…", meta: "6 min read . 18 Dec 25" },
+];
 
 // Where the plus on each division drops you on the clock.
 const DIVISION_TIME = {
@@ -330,98 +339,7 @@ export default function EatDetailPage() {
         {/* Scrollable body */}
         <div style={{ flex: 1, overflowY: "auto", background: BG_ALT, padding: "8px 22px 20px" }}>
           {eatTab === "learn" ? (
-            <div style={{ margin: "-8px -22px 0", background: BG }}>
-              {/* Category header */}
-              <div
-                style={{
-                  background: "linear-gradient(180deg,#F2F4F7,#F9FAFB)",
-                  padding: "26px 22px 22px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 30,
-                    lineHeight: 1.15,
-                    fontWeight: 600,
-                    color: "#101828",
-                    fontFamily: "'Playfair Display', Georgia, serif",
-                  }}
-                >
-                  Nutrition &amp; Metabolic Health
-                </div>
-              </div>
-
-              {/* Article list */}
-              <div style={{ padding: "6px 22px 20px" }}>
-                {[
-                  {
-                    title: "Eating Smart: Your Guide to Balanced Nutrition for Weight…",
-                    meta: "1 min read . 21 Mar 26",
-                  },
-                  {
-                    title: "Is Ragi Good for Diabetes? A Simple Guide to This Powerfu…",
-                    meta: "7 min read . 07 Jan 26",
-                  },
-                  {
-                    title: "Is Jackfruit Good for Diabetes? The Complete Indian Guide t…",
-                    meta: "10 min read . 02 Jan 26",
-                  },
-                  {
-                    title: "Drink Smart, Stay Balanced: How Steady Hydration Keeps…",
-                    meta: "8 min read . 24 Dec 25",
-                  },
-                  {
-                    title: "Fasting & Gut Reset: How a Simple 16-Hour Pause Can R…",
-                    meta: "6 min read . 18 Dec 25",
-                  },
-                ].map((a, i, arr) => (
-                  <div key={i}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 16,
-                        padding: "18px 0",
-                      }}
-                    >
-                      {/* Thumbnail placeholder */}
-                      <div
-                        style={{
-                          width: 76,
-                          height: 76,
-                          flexShrink: 0,
-                          borderRadius: 14,
-                          background: BG_ALT,
-                          border: "1px solid " + BORDER,
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <BookOpen size={24} color="#D0D5DD" strokeWidth={1.6} />
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontSize: 15.5,
-                            lineHeight: 1.35,
-                            fontWeight: 600,
-                            color: TEXT,
-                            marginBottom: 12,
-                          }}
-                        >
-                          {a.title}
-                        </div>
-                        <div style={{ fontSize: 12.5, color: MUTED }}>{a.meta}</div>
-                      </div>
-                    </div>
-                    {i < arr.length - 1 && (
-                      <div style={{ height: 1, background: BORDER }} />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+            <ArticleList category="Nutrition & Metabolic Health" items={EAT_ARTICLES} />
           ) : eatTab === "trend" ? (
             <div>
               {/* Element 0 — week selector */}

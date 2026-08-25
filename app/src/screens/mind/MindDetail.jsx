@@ -7,7 +7,8 @@ import LogPrompt from "../../components/LogPrompt";
 import LotusIcon from "../../components/LotusIcon";
 import MindHero from "./MindHero";
 import ToolList from "./ToolList";
-import { SLEEP_GOAL_MIN, fmtDur, MIND_TOOLS } from "./tools";
+import ArticleList from "../../components/ArticleList";
+import { SLEEP_GOAL_MIN, fmtDur, MIND_ARTICLES } from "./tools";
 import { GREEN, TEXT, MUTED, BG, BORDER, SH } from "../../tokens";
 
 /* Mind, on the same shell as Eat and Move.
@@ -57,8 +58,8 @@ export default function MindDetail() {
       )}
 
       {mindTab === "learn" && (
-        <div style={{ padding: "16px 22px 26px" }}>
-          <MindLearn />
+        <div style={{ padding: "8px 22px 20px" }}>
+          <ArticleList category="Rest, Rhythm & Stress" items={MIND_ARTICLES} />
         </div>
       )}
     </PillarScreen>
@@ -159,28 +160,3 @@ function MindTrend({ sleepMins, calm }) {
   );
 }
 
-function MindLearn() {
-  return (
-    <>
-      {MIND_TOOLS.map((t) => (
-        <div
-          key={t.id}
-          style={{
-            background: BG,
-            border: "1px solid " + BORDER,
-            borderRadius: 16,
-            padding: 15,
-            marginBottom: 10,
-            boxShadow: SH,
-          }}
-        >
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: TEXT }}>{t.label}</div>
-          <div style={{ fontSize: 12, color: MUTED, marginTop: 4, lineHeight: 1.55 }}>{t.line}</div>
-          {t.minutes > 0 && (
-            <div style={{ fontSize: 11, color: MUTED, marginTop: 8 }}>About {t.minutes} minutes</div>
-          )}
-        </div>
-      ))}
-    </>
-  );
-}
