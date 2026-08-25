@@ -792,36 +792,29 @@ export default function ControlPanel() {
             },
             { id: "manual", label: "Logging by hand, nothing yet", steps: "manual", logs: [] },
             { id: "handsteps", label: "Steps added by hand", steps: "manual", manual: 4000, logs: [] },
-            { id: "trend", label: "Trend tab", steps: "phone", tab: "trend" },
-            { id: "learn", label: "Learn tab, the videos", steps: "phone", tab: "learn" },
-            { id: "log", label: "Log exercise screen", steps: "phone" },
           ].map((v) =>
             panelChip(
               v.label,
-              v.id === "log"
-                ? logExOpen
-                : moveDetail &&
-                  !logExOpen &&
-                  healthSource.steps === v.steps &&
-                  healthSync === (v.sync || null) &&
-                  moveTab === (v.tab || "today") &&
-                  (v.logs === undefined || exLogs.length === v.logs.length) &&
-                  (v.manual === undefined || manualSteps === v.manual),
+              moveDetail &&
+                !logExOpen &&
+                healthSource.steps === v.steps &&
+                healthSync === (v.sync || null) &&
+                moveTab === "today" &&
+                (v.logs === undefined || exLogs.length === v.logs.length) &&
+                (v.manual === undefined || manualSteps === v.manual),
               () => {
-                setLogExOpen(v.id === "log");
-                setMoveDetail(v.id !== "log");
+                setLogExOpen(false);
+                setMoveDetail(true);
                 setActiveTab("track");
                 setHealthSource({ ...healthSource, steps: v.steps });
                 setHealthSync(v.sync || null);
-                setMoveTab(v.tab || "today");
+                setMoveTab("today");
                 if (v.logs !== undefined) setExLogs(v.logs);
                 setManualSteps(v.manual === undefined ? null : v.manual);
               }
             )
           ),
-          logExOpen
-            ? "Pick an activity, a duration and an intensity. The calorie figure updates live from the MET value."
-            : healthSource.steps === null
+          healthSource.steps === null
             ? "First open. Not skippable, because logging by hand is a real answer and the screen has nothing to show without one."
             : healthSync === "steps"
             ? "Mid-sync. The number is a skeleton rather than a zero, because zero would be a claim."
