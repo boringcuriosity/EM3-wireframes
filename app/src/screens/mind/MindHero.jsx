@@ -2,6 +2,7 @@ import React from "react";
 import { useWF } from "../../state";
 import { Info, Moon } from "lucide-react";
 import HealthConnectCard from "../../components/HealthConnectCard";
+import Skel from "../../components/Skel";
 import { SLEEP_GOAL_MIN, fmtDur } from "./tools";
 import { fmtTime } from "../log/foods";
 import { MIND_C, MIND_T, TEXT, MUTED, FAINT, RULE, BG, BORDER, SH } from "../../tokens";
@@ -13,9 +14,10 @@ import { MIND_C, MIND_T, TEXT, MUTED, FAINT, RULE, BG, BORDER, SH } from "../../
    metabolism. There is no score here: Eat earns its hexagon from targets a
    coach set, and nobody sets a target for how calm you were. */
 export default function MindHero() {
-  const { sleepMins, lastNight, mindDone, mindMood, setPillarInfo, healthSource } = useWF();
+  const { sleepMins, lastNight, mindDone, mindMood, setPillarInfo, healthSource, healthSync } = useWF();
 
   const pct = sleepMins === null ? 0 : Math.min(100, Math.round((sleepMins / SLEEP_GOAL_MIN) * 100));
+  const syncing = healthSync === "sleep";
   const known = sleepMins !== null;
 
   const R = 34;
@@ -66,7 +68,9 @@ export default function MindHero() {
               justifyContent: "center",
             }}
           >
-            {known ? (
+            {syncing ? (
+              <Skel w={54} h={20} />
+            ) : known ? (
               <>
                 <span style={{ fontSize: 20, fontWeight: 800, color: TEXT, lineHeight: 1 }}>
                   {fmtDur(sleepMins)}
@@ -81,10 +85,12 @@ export default function MindHero() {
 
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>
-            {known ? "Last night" : "How did you sleep?"}
+            {syncing ? "Reading your nights" : known ? "Last night" : "How did you sleep?"}
           </div>
           <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.5, marginTop: 4 }}>
-            {!known
+            {syncing
+              ? "Health Connect is handing over what your phone already has. This takes a moment."
+              : !known
               ? "Sleep is the part of Mind that moves your metabolism most. Tell us when you slept and it starts filling in."
               : sleepMins >= SLEEP_GOAL_MIN
               ? "A full night. Your body did most of its repair work while you were out."

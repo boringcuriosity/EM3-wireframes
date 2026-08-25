@@ -2,6 +2,7 @@ import React from "react";
 import { useWF } from "../../state";
 import { Info } from "lucide-react";
 import HealthConnectCard from "../../components/HealthConnectCard";
+import Skel from "../../components/Skel";
 import { dayMinutes, dayBurn, DAILY_GOAL_MIN } from "./exercises";
 import {
   MOVE_C, MOVE_T, TEXT, MUTED, FAINT, RULE, BG, BORDER, SH,
@@ -14,7 +15,7 @@ import {
    logging, so they sit beside it as a reading rather than a score, and they
    read as unknown until a source exists. */
 export default function MoveHero() {
-  const { exLogs, daySteps, setPillarInfo, healthSource, setStepsSheet } = useWF();
+  const { exLogs, daySteps, setPillarInfo, healthSource, setStepsSheet, healthSync } = useWF();
 
   const mins = dayMinutes(exLogs);
   const kcal = dayBurn(exLogs);
@@ -28,9 +29,9 @@ export default function MoveHero() {
   const ownSteps = healthSource.steps === "manual";
   const stats = [
     {
-      v: daySteps === null ? "Add" : daySteps.toLocaleString(),
+      v: healthSync === "steps" ? null : daySteps === null ? "Add" : daySteps.toLocaleString(),
       l: "Steps",
-      onClick: ownSteps ? () => setStepsSheet(true) : undefined,
+      onClick: ownSteps && healthSync !== "steps" ? () => setStepsSheet(true) : undefined,
     },
     { v: String(exLogs.length), l: "Workouts" },
     { v: kcal ? String(kcal) : "—", l: "Kcal burnt" },
@@ -143,7 +144,7 @@ export default function MoveHero() {
                   lineHeight: 1.1,
                 }}
               >
-                {x.v}
+                {x.v === null ? <Skel w={44} h={15} /> : x.v}
               </div>
               <div
                 style={{

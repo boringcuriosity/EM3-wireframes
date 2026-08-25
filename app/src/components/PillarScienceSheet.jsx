@@ -19,7 +19,7 @@ const SIGNAL = { move: "steps", mind: "sleep" };
    so four sheets read as four pages of the same book. */
 export default function PillarScienceSheet() {
   const { pillarInfo, setPillarInfo, pillarExplain, planAssigned, dailyTargets, kcalTarget, setChatsOpen,
-    healthSource, setHealthSource } = useWF();
+    healthSource, pickSource } = useWF();
 
   const p = pillarExplain.find((x) => x.id === pillarInfo);
   const s = PILLAR_SCIENCE[pillarInfo];
@@ -204,9 +204,7 @@ export default function PillarScienceSheet() {
                   return (
                     <button
                       key={o.v}
-                      onClick={() =>
-                        setHealthSource({ ...healthSource, [SIGNAL[pillarInfo]]: o.v })
-                      }
+                      onClick={() => pickSource(SIGNAL[pillarInfo], o.v)}
                       style={{
                         flex: 1,
                         background: on ? GREEN_TINT : BG,

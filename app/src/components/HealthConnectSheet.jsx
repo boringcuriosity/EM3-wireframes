@@ -30,13 +30,13 @@ const SIGNALS = {
 };
 
 export default function HealthConnectSheet() {
-  const { healthSheet, setHealthSheet, healthSource, setHealthSource } = useWF();
+  const { healthSheet, setHealthSheet, healthSource, pickSource } = useWF();
   const s = SIGNALS[healthSheet];
   if (!s) return null;
 
   const current = healthSource[healthSheet];
   const pick = (v) => {
-    setHealthSource({ ...healthSource, [healthSheet]: v });
+    pickSource(healthSheet, v);
     setHealthSheet(null);
   };
 

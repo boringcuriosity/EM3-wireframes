@@ -202,6 +202,20 @@ export function WFProvider({ children, initial = {} }) {
     initial.stepsSheet !== undefined ? initial.stepsSheet : false
   );
   const healthOn = (k) => healthSource[k] === "phone";
+  /* Which signal is mid-sync. Connecting is not instant, and a number that
+     appears the same frame you tapped Connect reads as a fake. */
+  const [healthSync, setHealthSync] = useState(
+    initial.healthSync !== undefined ? initial.healthSync : null
+  );
+  const pickSource = (k, v) => {
+    setHealthSource({ ...healthSource, [k]: v });
+    setHealthSync(v === "phone" ? k : null);
+  };
+  useEffect(() => {
+    if (!healthSync) return;
+    const t = setTimeout(() => setHealthSync(null), 1700);
+    return () => clearTimeout(t);
+  }, [healthSync]);
   // Nights are logged the way meals are: a record, not a counter.
   const [sleepLogs, setSleepLogs] = useState(initial.sleepLogs !== undefined ? initial.sleepLogs : []);
   const [logSleepOpen, setLogSleepOpen] = useState(
@@ -719,9 +733,11 @@ export function WFProvider({ children, initial = {} }) {
   // else the day does or does not have in it.
   /* Steps and sleep are only there once a source exists. Null means unknown,
      which is a different thing from zero and has to read differently. */
-  const daySteps = healthOn("steps") ? 5008 : manualSteps;
+  const daySteps = healthSync === "steps" ? null : healthOn("steps") ? 5008 : manualSteps;
   const lastNight = sleepLogs[sleepLogs.length - 1] || null;
-  const sleepMins = healthOn("sleep")
+  const sleepMins = healthSync === "sleep"
+    ? null
+    : healthOn("sleep")
     ? 5 * 60 + 20
     : lastNight
     ? (lastNight.wake - lastNight.bed + 1440) % 1440
@@ -748,7 +764,7 @@ export function WFProvider({ children, initial = {} }) {
     streakDays, setStreakDays, streakShown,
     moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan,
     healthSource, setHealthSource, healthOn, healthSheet, setHealthSheet,
-    manualSteps, setManualSteps, stepsSheet, setStepsSheet,
+    manualSteps, setManualSteps, stepsSheet, setStepsSheet, healthSync, setHealthSync, pickSource,
     sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen,
     mindTool, setMindTool, mindDone, setMindDone, mindMood, setMindMood, mindDetail, setMindDetail, mindTab, setMindTab,
     exLogs, setExLogs, daySteps, sleepMins, lastNight, logExOpen, setLogExOpen, routineDone, setRoutineDone,

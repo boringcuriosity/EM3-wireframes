@@ -34,9 +34,9 @@ const COPY = {
 };
 
 export default function HealthGate({ signal }) {
-  const { healthSource, setHealthSource } = useWF();
+  const { pickSource } = useWF();
   const c = COPY[signal];
-  const pick = (v) => setHealthSource({ ...healthSource, [signal]: v });
+  const pick = (v) => pickSource(signal, v);
 
   return (
     <div

@@ -2,6 +2,7 @@ import React from "react";
 import { useWF } from "../../state";
 import { Info, Flame, UserRound, Lock } from "lucide-react";
 import HealthConnectCard from "../../components/HealthConnectCard";
+import Skel from "../../components/Skel";
 import { dayMinutes, dayBurn } from "./exercises";
 import {
   MOVE_C, MOVE_T, MOVE_W, TEXT, MUTED, FAINT, BG, BORDER, LINE, RULE, INDIGO, SH,
@@ -28,15 +29,16 @@ const BEATS = [
 ];
 
 export default function MoveIntroCard() {
-  const { exLogs, daySteps, setPillarInfo, healthSource, setStepsSheet } = useWF();
+  const { exLogs, daySteps, setPillarInfo, healthSource, setStepsSheet, healthSync } = useWF();
   const logged = exLogs.length > 0;
 
   const stats = [
     { v: dayMinutes(exLogs) + "m", l: "Moved" },
     {
-      v: daySteps === null ? "Add" : daySteps.toLocaleString(),
+      v: healthSync === "steps" ? null : daySteps === null ? "Add" : daySteps.toLocaleString(),
       l: "Steps",
-      onClick: healthSource.steps === "manual" ? () => setStepsSheet(true) : undefined,
+      onClick:
+        healthSource.steps === "manual" && healthSync !== "steps" ? () => setStepsSheet(true) : undefined,
     },
     { v: dayBurn(exLogs) ? String(dayBurn(exLogs)) : "—", l: "Kcal burnt" },
   ];
@@ -134,7 +136,7 @@ export default function MoveIntroCard() {
                     lineHeight: 1.1,
                   }}
                 >
-                  {x.v}
+                  {x.v === null ? <Skel w={48} h={17} /> : x.v}
                 </div>
                 <div
                   style={{

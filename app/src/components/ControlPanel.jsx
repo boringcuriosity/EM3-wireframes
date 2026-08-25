@@ -191,7 +191,7 @@ const FOCUS_PRESETS = [
 const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, setMindDone, setMindMood, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, setMindDone, setMindMood, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -790,6 +790,7 @@ export default function ControlPanel() {
               logs: [{ id: "briskwalk", minutes: 25, intensity: "moderate", timeMins: 7 * 60 + 30 }],
             },
             { id: "handsteps", label: "Steps added by hand", steps: "manual", manual: 4000 },
+            { id: "syncing", label: "Health Connect syncing", steps: "phone", sync: "steps" },
             { id: "connected", label: "Health Connect connected", steps: "phone" },
             { id: "trend", label: "Trend tab", steps: "manual", tab: "trend" },
             { id: "learn", label: "Learn tab, the videos", steps: "manual", tab: "learn" },
@@ -802,6 +803,7 @@ export default function ControlPanel() {
                 : moveDetail &&
                   !logExOpen &&
                   healthSource.steps === v.steps &&
+                  healthSync === (v.sync || null) &&
                   moveTab === (v.tab || "today") &&
                   (v.logs === undefined || exLogs.length === v.logs.length) &&
                   (v.manual === undefined || manualSteps === v.manual),
@@ -810,6 +812,7 @@ export default function ControlPanel() {
                 setMoveDetail(v.id !== "log");
                 setActiveTab("track");
                 setHealthSource({ ...healthSource, steps: v.steps });
+                setHealthSync(v.sync || null);
                 setMoveTab(v.tab || "today");
                 if (v.logs !== undefined) setExLogs(v.logs);
                 setManualSteps(v.manual === undefined ? null : v.manual);
@@ -820,6 +823,8 @@ export default function ControlPanel() {
             ? "Pick an activity, a duration and an intensity. The calorie figure updates live from the MET value."
             : healthSource.steps === null
             ? "First open. Not skippable, because logging by hand is a real answer and the screen has nothing to show without one."
+            : healthSync === "steps"
+            ? "Mid-sync. The number is a skeleton rather than a zero, because zero would be a claim."
             : healthSource.steps === "manual"
             ? "Steps are yours to enter, so the Steps cell and a second button in the prompt both open the wheel."
             : planAssigned
@@ -1108,7 +1113,8 @@ export default function ControlPanel() {
             { id: "off", label: "Closed" },
             { id: "nosleep", label: "First open, source not picked" },
             { id: "manual", label: "One night logged by hand" },
-            { id: "phone", label: "Phone health app connected" },
+            { id: "syncing", label: "Health Connect syncing" },
+            { id: "phone", label: "Health Connect connected" },
             { id: "tools", label: "Two tools done" },
             { id: "trend", label: "Trend tab" },
             { id: "log", label: "Log sleep screen" },
@@ -1125,18 +1131,19 @@ export default function ControlPanel() {
                   sleep:
                     v.id === "nosleep"
                       ? null
-                      : v.id === "phone"
+                      : v.id === "phone" || v.id === "syncing"
                       ? "phone"
                       : v.id === "manual"
                       ? "manual"
                       : healthSource.sleep || "manual",
                 });
+                setHealthSync(v.id === "syncing" ? "sleep" : null);
                 if (v.id === "nosleep") {
                   setSleepLogs([]);
                   setMindDone([]);
                 } else if (v.id === "manual") {
                   setSleepLogs([{ bed: 23 * 60 + 40, wake: 6 * 60 + 30 }]);
-                } else if (v.id === "phone") {
+                } else if (v.id === "phone" || v.id === "syncing") {
                   setSleepLogs([]);
                 } else if (v.id === "tools") {
                   setMindDone(["mood", "breathing"]);

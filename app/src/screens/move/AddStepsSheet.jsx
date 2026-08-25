@@ -160,7 +160,7 @@ function Wheel({ value, onChange }) {
   };
 
   return (
-    <div style={{ position: "relative", height: WHEEL_H, margin: "16px 0 0" }}>
+    <div style={{ position: "relative", height: WHEEL_H, margin: "16px 0 0", overflow: "hidden" }}>
       {/* The band that says which one counts */}
       <span
         aria-hidden
@@ -199,7 +199,7 @@ function Wheel({ value, onChange }) {
           scrollSnapType: "y mandatory",
           scrollbarWidth: "none",
           padding: ROW * 2 + "px 0",
-          boxSizing: "content-box",
+          boxSizing: "border-box",
         }}
       >
         {VALUES.map((v) => {
@@ -210,7 +210,7 @@ function Wheel({ value, onChange }) {
               onClick={() => onChange(v)}
               style={{
                 height: ROW,
-                scrollSnapAlign: "start",
+                scrollSnapAlign: "center",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

@@ -201,6 +201,8 @@ const MATRIX = [
   ["move:trend",       MoveDetail,       { moveTab: "trend", healthSource: { steps: "manual", sleep: null } }],
   ["move:steps",       MoveDetail,       { moveTab: "today", healthSource: { steps: "phone", sleep: null } }],
   ["move:handsteps",   MoveDetail,       { moveTab: "today", healthSource: { steps: "manual", sleep: null }, manualSteps: 4000 }],
+  ["move:syncing",     MoveDetail,       { moveTab: "today", healthSource: { steps: "phone", sleep: null }, healthSync: "steps" }],
+  ["mind:syncing",     MindDetail,       { mindDetail: true, healthSource: { steps: null, sleep: "phone" }, healthSync: "sleep" }],
   ["move:addsteps",    AddStepsSheet,    { stepsSheet: true }],
   ["move:free",        MoveDetail,       { plan: "free", moveTab: "today", healthSource: { steps: "manual", sleep: null } }],
   ["move:goalmet",     MoveDetail,       { healthSource: { steps: "manual", sleep: null }, moveTab: "today", exLogs: [{ id: "briskwalk", minutes: 25, intensity: "moderate", timeMins: 450 }] }],
