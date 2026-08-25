@@ -84,6 +84,7 @@ export default function TrackHero({ state, onSeeTasks }) {
           gap: 12,
           overflowX: "auto",
           scrollSnapType: "x mandatory",
+          scrollPaddingLeft: 22,
           scrollbarWidth: "none",
           padding: "6px " + HERO_TAIL + "px 14px 22px",
           margin: "-6px -22px",
