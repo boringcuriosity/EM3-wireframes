@@ -28,12 +28,16 @@ const BEATS = [
 ];
 
 export default function MoveIntroCard() {
-  const { exLogs, daySteps, setPillarInfo, healthSource } = useWF();
+  const { exLogs, daySteps, setPillarInfo, healthSource, setStepsSheet } = useWF();
   const logged = exLogs.length > 0;
 
   const stats = [
     { v: dayMinutes(exLogs) + "m", l: "Moved" },
-    { v: daySteps === null ? "—" : daySteps.toLocaleString(), l: "Steps" },
+    {
+      v: daySteps === null ? "Add" : daySteps.toLocaleString(),
+      l: "Steps",
+      onClick: healthSource.steps === "manual" ? () => setStepsSheet(true) : undefined,
+    },
     { v: dayBurn(exLogs) ? String(dayBurn(exLogs)) : "—", l: "Kcal burnt" },
   ];
 
@@ -104,34 +108,50 @@ export default function MoveIntroCard() {
 
       {logged ? (
         <div style={{ display: "flex", padding: "16px 15px 14px" }}>
-          {stats.map((x, i) => (
-            <div
-              key={x.l}
-              style={{
-                flex: 1,
-                minWidth: 0,
-                textAlign: "center",
-                borderLeft: i === 0 ? "none" : "1px solid " + LINE,
-              }}
-            >
-              <div style={{ fontSize: 18, fontWeight: 800, color: x.v === "—" ? FAINT : TEXT, lineHeight: 1.1 }}>
-                {x.v}
-              </div>
-              <div
+          {stats.map((x, i) => {
+            const Cell = x.onClick ? "button" : "div";
+            return (
+              <Cell
+                key={x.l}
+                onClick={x.onClick}
                 style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 8.5,
-                  fontWeight: 600,
-                  letterSpacing: 0.8,
-                  textTransform: "uppercase",
-                  color: MUTED,
-                  marginTop: 4,
+                  flex: 1,
+                  minWidth: 0,
+                  textAlign: "center",
+                  background: "none",
+                  border: "none",
+                  borderLeft: i === 0 ? "none" : "1px solid " + LINE,
+                  padding: 0,
+                  cursor: x.onClick ? "pointer" : "default",
+                  fontFamily: "inherit",
                 }}
               >
-                {x.l}
-              </div>
-            </div>
-          ))}
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 800,
+                    color: x.v === "—" ? FAINT : x.v === "Add" ? MOVE_C : TEXT,
+                    lineHeight: 1.1,
+                  }}
+                >
+                  {x.v}
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'JetBrains Mono', monospace",
+                    fontSize: 8.5,
+                    fontWeight: 600,
+                    letterSpacing: 0.8,
+                    textTransform: "uppercase",
+                    color: MUTED,
+                    marginTop: 4,
+                  }}
+                >
+                  {x.l}
+                </div>
+              </Cell>
+            );
+          })}
         </div>
       ) : (
         <div style={{ padding: "12px 15px 2px", position: "relative" }}>

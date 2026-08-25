@@ -14,7 +14,7 @@ import {
    logging, so they sit beside it as a reading rather than a score, and they
    read as unknown until a source exists. */
 export default function MoveHero() {
-  const { exLogs, daySteps, setPillarInfo, healthSource } = useWF();
+  const { exLogs, daySteps, setPillarInfo, healthSource, setStepsSheet } = useWF();
 
   const mins = dayMinutes(exLogs);
   const kcal = dayBurn(exLogs);
@@ -23,8 +23,15 @@ export default function MoveHero() {
   const R = 34;
   const C = 2 * Math.PI * R;
 
+  /* When steps come from Health Connect they are a reading. When the person
+     enters them they are a control, so the cell has to be tappable. */
+  const ownSteps = healthSource.steps === "manual";
   const stats = [
-    { v: daySteps === null ? "—" : daySteps.toLocaleString(), l: "Steps" },
+    {
+      v: daySteps === null ? "Add" : daySteps.toLocaleString(),
+      l: "Steps",
+      onClick: ownSteps ? () => setStepsSheet(true) : undefined,
+    },
     { v: String(exLogs.length), l: "Workouts" },
     { v: kcal ? String(kcal) : "—", l: "Kcal burnt" },
   ];
@@ -110,34 +117,50 @@ export default function MoveHero() {
 
       {/* The readings behind it */}
       <div style={{ display: "flex", marginTop: 16, paddingTop: 14, borderTop: "1px solid " + BORDER }}>
-        {stats.map((x, i) => (
-          <div
-            key={x.l}
-            style={{
-              flex: 1,
-              minWidth: 0,
-              textAlign: "center",
-              borderLeft: i === 0 ? "none" : "1px solid " + BORDER,
-            }}
-          >
-            <div style={{ fontSize: 16, fontWeight: 700, color: x.v === "—" ? FAINT : TEXT, lineHeight: 1.1 }}>
-              {x.v}
-            </div>
-            <div
+        {stats.map((x, i) => {
+          const Cell = x.onClick ? "button" : "div";
+          return (
+            <Cell
+              key={x.l}
+              onClick={x.onClick}
               style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 8.5,
-                fontWeight: 600,
-                letterSpacing: 0.8,
-                textTransform: "uppercase",
-                color: MUTED,
-                marginTop: 4,
+                flex: 1,
+                minWidth: 0,
+                textAlign: "center",
+                background: "none",
+                border: "none",
+                borderLeft: i === 0 ? "none" : "1px solid " + BORDER,
+                padding: 0,
+                cursor: x.onClick ? "pointer" : "default",
+                fontFamily: "inherit",
               }}
             >
-              {x.l}
-            </div>
-          </div>
-        ))}
+              <div
+                style={{
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: x.v === "—" ? FAINT : x.v === "Add" ? MOVE_C : TEXT,
+                  lineHeight: 1.1,
+                }}
+              >
+                {x.v}
+              </div>
+              <div
+                style={{
+                  fontFamily: "'JetBrains Mono', monospace",
+                  fontSize: 8.5,
+                  fontWeight: 600,
+                  letterSpacing: 0.8,
+                  textTransform: "uppercase",
+                  color: MUTED,
+                  marginTop: 4,
+                }}
+              >
+                {x.l}
+              </div>
+            </Cell>
+          );
+        })}
       </div>
 
       {/* Where the steps come from. Only until it is settled. */}

@@ -9,8 +9,8 @@ import Empty from "./Empty";
    off as it is done. It is the Move equivalent of Eat's meal divisions, so it
    behaves the same way, a plan you work through rather than a page you read. */
 export default function RoutineList() {
-  const { movePlan, routineDone, setRoutineDone, isPaid } = useWF();
-  const hasPlan = movePlan === "assigned";
+  const { planAssigned, routineDone, setRoutineDone, isPaid } = useWF();
+  const hasPlan = planAssigned;
 
   return (
 (hasPlan ? (

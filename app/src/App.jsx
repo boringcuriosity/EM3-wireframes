@@ -32,6 +32,7 @@ import HealthConnectSheet from "./components/HealthConnectSheet";
 import MindDetail from "./screens/mind/MindDetail";
 import LogSleep from "./screens/mind/LogSleep";
 import ToolSheet from "./screens/mind/ToolSheet";
+import AddStepsSheet from "./screens/move/AddStepsSheet";
 import StreakRewardsSheet from "./components/StreakRewardsSheet";
 import ShareStreakSheet from "./components/ShareStreakSheet";
 import MoveDetail from "./screens/move/MoveDetail";
@@ -220,6 +221,7 @@ export default function App() {
             {wf.metricInfo && <MetricInfoSheet />}
             {wf.healthSheet && <HealthConnectSheet />}
             {wf.mindTool && <ToolSheet />}
+            {wf.stepsSheet && <AddStepsSheet />}
           </>
         ) : (
           <>
@@ -250,6 +252,7 @@ export default function App() {
             {wf.metricInfo && <MetricInfoSheet />}
             {wf.healthSheet && <HealthConnectSheet />}
             {wf.mindTool && <ToolSheet />}
+            {wf.stepsSheet && <AddStepsSheet />}
             <Toast />
           </>
         )}

@@ -191,7 +191,7 @@ const FOCUS_PRESETS = [
 const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, mindDetail, setMindDetail, mindTab, setMindTab, setMindDone, setMindMood, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, setMindDone, setMindMood, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -776,49 +776,56 @@ export default function ControlPanel() {
           "move",
           "Move",
           "from the To-do Move card",
+          /* The states Move's own screen can be in, in the order a person
+             meets them. Whether a coach routine exists is not one of them:
+             that is the Care plan toggle at the top, and Move reading it
+             separately is what let the two disagree. */
           [
-            { id: "off", label: "Closed" },
-            { id: "gate", label: "First open, source not picked" },
-            { id: "noplan", label: "No routine, nothing logged" },
-            { id: "plan", label: "Coach routine assigned" },
-            { id: "logged", label: "One walk logged" },
-            { id: "steps", label: "Phone health app connected" },
-            { id: "trend", label: "Trend tab" },
-            { id: "learn", label: "Learn tab, the videos" },
-            { id: "log", label: "Log exercise screen" },
+            { id: "gate", label: "Health Connect permission", steps: null },
+            { id: "none", label: "Nothing logged", steps: "manual", logs: [] },
+            {
+              id: "walk",
+              label: "One walk logged",
+              steps: "manual",
+              logs: [{ id: "briskwalk", minutes: 25, intensity: "moderate", timeMins: 7 * 60 + 30 }],
+            },
+            { id: "handsteps", label: "Steps added by hand", steps: "manual", manual: 4000 },
+            { id: "connected", label: "Health Connect connected", steps: "phone" },
+            { id: "trend", label: "Trend tab", steps: "manual", tab: "trend" },
+            { id: "learn", label: "Learn tab, the videos", steps: "manual", tab: "learn" },
+            { id: "log", label: "Log exercise screen", steps: "manual" },
           ].map((v) =>
             panelChip(
               v.label,
-              v.id === "off" ? !moveDetail && !logExOpen : v.id === "log" ? logExOpen : false,
+              v.id === "log"
+                ? logExOpen
+                : moveDetail &&
+                  !logExOpen &&
+                  healthSource.steps === v.steps &&
+                  moveTab === (v.tab || "today") &&
+                  (v.logs === undefined || exLogs.length === v.logs.length) &&
+                  (v.manual === undefined || manualSteps === v.manual),
               () => {
                 setLogExOpen(v.id === "log");
-                setMoveDetail(v.id !== "off" && v.id !== "log");
-                /* Every state except the gate itself needs a source, or the
-                   gate would swallow the screen you asked for. */
-                setHealthSource({
-                  ...healthSource,
-                  steps: v.id === "gate" ? null : v.id === "steps" ? "phone" : healthSource.steps || "manual",
-                });
-                setMoveTab(v.id === "trend" ? "trend" : v.id === "learn" ? "learn" : "today");
-                if (v.id === "noplan") {
-                  setMovePlan(null);
-                  setExLogs([]);
-                } else if (v.id === "plan") {
-                  setMovePlan("assigned");
-                } else if (v.id === "logged") {
-                  setExLogs([{ id: "briskwalk", minutes: 25, intensity: "moderate", timeMins: 7 * 60 + 30 }]);
-                }
-                if (v.id === "off") setActiveTab("track");
+                setMoveDetail(v.id !== "log");
+                setActiveTab("track");
+                setHealthSource({ ...healthSource, steps: v.steps });
+                setMoveTab(v.tab || "today");
+                if (v.logs !== undefined) setExLogs(v.logs);
+                setManualSteps(v.manual === undefined ? null : v.manual);
               }
             )
           ),
           logExOpen
             ? "Pick an activity, a duration and an intensity. The calorie figure updates live from the MET value."
-            : !moveDetail
-            ? "Closed. Open it from the Move heading on the To-do screen."
-            : movePlan === "assigned"
-            ? "Kaira hands over to the coach routine. Each item can be marked done."
-            : "No routine yet, so Kaira asks for movement first so the coach has something to build from."
+            : healthSource.steps === null
+            ? "First open. Not skippable, because logging by hand is a real answer and the screen has nothing to show without one."
+            : healthSource.steps === "manual"
+            ? "Steps are yours to enter, so the Steps cell and a second button in the prompt both open the wheel."
+            : planAssigned
+            ? "The coach routine is here because the Care plan is assigned. Each exercise can be marked done."
+            : "No routine, because the Care plan is not assigned yet. The opening card asks for movement so the coach has something to build from.",
+          true
         )}
 
         {panelGroup(

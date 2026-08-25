@@ -194,6 +194,13 @@ export function WFProvider({ children, initial = {} }) {
   const [healthSheet, setHealthSheet] = useState(
     initial.healthSheet !== undefined ? initial.healthSheet : null
   );
+  // Steps entered by hand, for anyone who did not connect Health Connect.
+  const [manualSteps, setManualSteps] = useState(
+    initial.manualSteps !== undefined ? initial.manualSteps : null
+  );
+  const [stepsSheet, setStepsSheet] = useState(
+    initial.stepsSheet !== undefined ? initial.stepsSheet : false
+  );
   const healthOn = (k) => healthSource[k] === "phone";
   // Nights are logged the way meals are: a record, not a counter.
   const [sleepLogs, setSleepLogs] = useState(initial.sleepLogs !== undefined ? initial.sleepLogs : []);
@@ -712,7 +719,7 @@ export function WFProvider({ children, initial = {} }) {
   // else the day does or does not have in it.
   /* Steps and sleep are only there once a source exists. Null means unknown,
      which is a different thing from zero and has to read differently. */
-  const daySteps = healthOn("steps") ? 5008 : null;
+  const daySteps = healthOn("steps") ? 5008 : manualSteps;
   const lastNight = sleepLogs[sleepLogs.length - 1] || null;
   const sleepMins = healthOn("sleep")
     ? 5 * 60 + 20
@@ -741,6 +748,7 @@ export function WFProvider({ children, initial = {} }) {
     streakDays, setStreakDays, streakShown,
     moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan,
     healthSource, setHealthSource, healthOn, healthSheet, setHealthSheet,
+    manualSteps, setManualSteps, stepsSheet, setStepsSheet,
     sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen,
     mindTool, setMindTool, mindDone, setMindDone, mindMood, setMindMood, mindDetail, setMindDetail, mindTab, setMindTab,
     exLogs, setExLogs, daySteps, sleepMins, lastNight, logExOpen, setLogExOpen, routineDone, setRoutineDone,

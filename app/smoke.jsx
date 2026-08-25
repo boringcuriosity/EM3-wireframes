@@ -11,6 +11,7 @@ import LogSleep from "./src/screens/mind/LogSleep";
 import ToolSheet from "./src/screens/mind/ToolSheet";
 import HealthConnectSheet from "./src/components/HealthConnectSheet";
 import HealthGate from "./src/components/HealthGate";
+import AddStepsSheet from "./src/screens/move/AddStepsSheet";
 import TrackPage, { TodayFtux } from "./src/screens/Today";
 import CarePage from "./src/screens/Care";
 import MorePage from "./src/screens/More";
@@ -189,13 +190,15 @@ const MATRIX = [
   ["log:result:third", MealLogged,       { mealsLogged: [{ division: "breakfast", timeMins: 510, items: [{ id: "poha", qty: 1 }, { id: "chai", qty: 2 }] }], logResult: { before: 40, after: 62, meal: { division: "breakfast", timeMins: 510, items: [{ id: "poha", qty: 1 }, { id: "chai", qty: 2 }] }, mealCount: 3 } }],
   ["log:result:flat",  MealLogged,       { mealsLogged: [{ division: "breakfast", timeMins: 510, items: [{ id: "poha", qty: 1 }, { id: "chai", qty: 2 }] }], logResult: { before: 21, after: 21, meal: { division: "breakfast", timeMins: 510, items: [{ id: "poha", qty: 1 }, { id: "chai", qty: 2 }] }, mealCount: 2 } }],
   ["log:toast",        Toast,            { toast: { title: "Meal logged", line: "Breakfast at 8:30 AM", coins: 4 } }],
-  ["move:noplan",      MoveDetail,       { moveTab: "today", movePlan: null, healthSource: { steps: "manual", sleep: null } }],
-  ["move:plan",        MoveDetail,       { moveTab: "today", movePlan: "assigned", healthSource: { steps: "manual", sleep: null } }],
+  ["move:noplan",      MoveDetail,       { moveTab: "today", healthSource: { steps: "manual", sleep: null } }],
+  ["move:plan",        MoveDetail,       { moveTab: "today", kcalSource: "coach", movePlan: "assigned", healthSource: { steps: "manual", sleep: null } }],
   ["move:logged:none", MoveDetail,       { moveTab: "today", exLogs: [], healthSource: { steps: "manual", sleep: null } }],
   ["move:logged:two",  MoveDetail,       { healthSource: { steps: "manual", sleep: null }, moveTab: "today", exLogs: [{ id: "briskwalk", minutes: 25, intensity: "moderate", timeMins: 450 }, { id: "yoga", minutes: 45, intensity: "light", timeMins: 1140 }] }],
   ["move:learn",       MoveDetail,       { moveTab: "learn", healthSource: { steps: "manual", sleep: null } }],
   ["move:trend",       MoveDetail,       { moveTab: "trend", healthSource: { steps: "manual", sleep: null } }],
   ["move:steps",       MoveDetail,       { moveTab: "today", healthSource: { steps: "phone", sleep: null } }],
+  ["move:handsteps",   MoveDetail,       { moveTab: "today", healthSource: { steps: "manual", sleep: null }, manualSteps: 4000 }],
+  ["move:addsteps",    AddStepsSheet,    { stepsSheet: true }],
   ["move:free",        MoveDetail,       { plan: "free", moveTab: "today", healthSource: { steps: "manual", sleep: null } }],
   ["move:goalmet",     MoveDetail,       { healthSource: { steps: "manual", sleep: null }, moveTab: "today", exLogs: [{ id: "briskwalk", minutes: 25, intensity: "moderate", timeMins: 450 }] }],
   ["move:logexercise", LogExercise,      {}],

@@ -1,6 +1,6 @@
 import React from "react";
 import { useWF } from "../../state";
-import { Flame } from "lucide-react";
+import { Flame, Footprints } from "lucide-react";
 import PillarScreen from "../../components/PillarScreen";
 import HealthGate from "../../components/HealthGate";
 import LogPrompt from "../../components/LogPrompt";
@@ -16,7 +16,7 @@ import { GREEN, TEXT, MUTED, BG, BORDER, SH } from "../../tokens";
    routine and what has been logged. Trend and Learn sit behind the pillar's
    own nav, exactly as they do on Eat. */
 export default function MoveDetail() {
-  const { setMoveDetail, moveTab, setMoveTab, exLogs, setLogExOpen, movePlan, healthSource } =
+  const { setMoveDetail, moveTab, setMoveTab, exLogs, setLogExOpen, planAssigned, healthSource, setStepsSheet } =
     useWF();
   const mins = dayMinutes(exLogs);
 
@@ -36,18 +36,25 @@ export default function MoveDetail() {
         <>
           {/* Two states, decided by one fact, exactly as Eat is. */}
           <div style={{ padding: "12px 22px 0" }}>
-            {movePlan === "assigned" ? <MoveHero /> : <MoveIntroCard />}
+            {planAssigned ? <MoveHero /> : <MoveIntroCard />}
           </div>
 
+          {/* Steps are a second way in only when nobody else is counting
+              them. Connected, they are not something you do. */}
           <LogPrompt
             line="Anything you did today counts. A walk, the stairs, a full workout."
-            actions={[{ label: "Log exercise", Icon: Flame, onClick: () => setLogExOpen(true) }]}
+            actions={[
+              { label: "Log exercise", Icon: Flame, onClick: () => setLogExOpen(true) },
+              ...(healthSource.steps === "manual"
+                ? [{ label: "Add steps", Icon: Footprints, onClick: () => setStepsSheet(true) }]
+                : []),
+            ]}
           />
 
           <div style={{ padding: "16px 22px 26px" }}>
-            {movePlan === "assigned" && <RoutineList />}
+            {planAssigned && <RoutineList />}
 
-            <div style={{ marginTop: movePlan === "assigned" ? 22 : 0 }}>
+            <div style={{ marginTop: planAssigned ? 22 : 0 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, marginBottom: 10 }}>
                 Logged today
               </div>
