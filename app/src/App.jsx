@@ -39,7 +39,8 @@ import NameEntry from "./screens/auth/NameEntry";
 
 // Pre-app signup. While authStep is set nothing else in the frame renders.
 const AUTH = { splash: Splash, phone: PhoneEntry, otp: OtpEntry, name: NameEntry };
-import { GREEN, GREEN_DEEP, TEXT, MUTED, BG_ALT, BG, BORDER, TABS, SH, SH_XL } from "./tokens";
+import { GREEN, TEXT, MUTED, BG_ALT, BG, BORDER, TABS } from "./tokens";
+import KairaFab from "./components/KairaFab";
 
 // Full-screen takeovers hide the bottom nav. Order matters: the first
 // truthy one wins, exactly as in the original wireframe.
@@ -194,6 +195,12 @@ export default function App() {
         ) : takeover ? (
           <>
             <Takeover />
+            {/* The pillar screens carry their own bottom nav, so Kaira stays
+                reachable there too. The rest of the takeovers are single
+                tasks with nothing to ask her about. */}
+            {(wf.eatDetail || wf.moveDetail) && !wf.logOpen && !wf.logExOpen && !wf.logResult && (
+              <KairaFab bottom={86} />
+            )}
             <Toast />
             {wf.pillarInfo && <PillarScienceSheet />}
             {wf.coinsInfo && <FlipcoinsSheet />}
@@ -214,40 +221,7 @@ export default function App() {
               {activeTab === "home" && (isPaid ? <PaidHome /> : <FreeHome />)}
             </div>
 
-            {/* Kaira FAB — pinned above bottom nav. The mark, not the letter:
-                the hexagon is what she is recognised by everywhere else. */}
-            <button
-              aria-label="Ask Kaira"
-              style={{
-                position: "absolute",
-                right: 18,
-                bottom: 92,
-                // Above the page, below every sheet. Cards inside the scroller
-                // carry their own z-index, so without one here they paint over
-                // the button.
-                zIndex: 20,
-                width: 48,
-                height: 48,
-                borderRadius: "50%",
-                background: "linear-gradient(150deg, " + GREEN + " 0%, " + GREEN_DEEP + " 100%)",
-                border: "none",
-                cursor: "pointer",
-                boxShadow: SH_XL,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 0,
-              }}
-            >
-              <svg width="22" height="24" viewBox="0 0 22 24" fill="none" aria-hidden>
-                <path
-                  d="M11 1.2 20.1 6.6v10.8L11 22.8 1.9 17.4V6.6z"
-                  stroke="#fff"
-                  strokeWidth="1.7"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </button>
+            <KairaFab />
 
             <BottomNav />
 
