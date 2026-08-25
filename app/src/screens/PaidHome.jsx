@@ -133,9 +133,12 @@ export default function PaidHomePage() {
                   overflow: "hidden",
                   cursor: "pointer",
                   boxShadow: SH,
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
                 }}
               >
-                <div style={{ padding: "14px 16px 16px" }}>
+                <div style={{ padding: "0 16px" }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                       <span style={{ width: 7, height: 7, borderRadius: "50%", background: TEXT }} />

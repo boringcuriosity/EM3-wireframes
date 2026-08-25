@@ -29,6 +29,8 @@ export default function NextActionCard() {
     .filter((x) => x.label);
   if (!items.length) return null;
 
+  const left = items.filter((x) => !nextDone.includes(x.id));
+
   const toggle = (id) =>
     setNextDone(nextDone.includes(id) ? nextDone.filter((x) => x !== id) : nextDone.concat(id));
 
@@ -43,10 +45,9 @@ export default function NextActionCard() {
         overflow: "hidden",
         background: "linear-gradient(135deg, " + GOLD_TINT + " 0%, " + BG + " 68%)",
         border: "1px solid " + GOLD_LINE,
-        padding: "14px 14px",
+        padding: "13px 14px 14px",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
         gap: 8,
       }}
     >
@@ -65,6 +66,23 @@ export default function NextActionCard() {
           clipPath: "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
         }}
       />
+
+      {/* What the list is for, said once. Without it three ticked boxes could
+          be anything. */}
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          alignItems: "baseline",
+          gap: 7,
+          marginBottom: 2,
+        }}
+      >
+        <span style={{ fontSize: 13, fontWeight: 700, color: TEXT }}>What to do next</span>
+        <span style={{ fontSize: 11, color: MUTED }}>
+          {left.length} of {items.length} left
+        </span>
+      </div>
 
       {items.map((x, i) => {
         const done = nextDone.includes(x.id);

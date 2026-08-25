@@ -243,12 +243,12 @@ export function WFProvider({ children, initial = {} }) {
   const isPaid = plan === "paid";
 
   // Paid Home carousel — tab selection slides the rail; swiping updates the tab.
-  const CARD_W = 300;
+  const CARD_W = 312;
   const CARD_GAP = 12;
   const CARD_PAD = 22;
   // Both carousel cards are locked to this height so the sessions card does not
   // grow when a session is booked. Content inside each variant must fit.
-  const CARD_H = 128;
+  const CARD_H = 158;
   // Paid Home: set to true to bring back the "Your Program / Upcoming Session(s)"
   // pill switch above the carousel. When false the carousel is swipe only.
   const SHOW_PROGRAM_TABS = true;
