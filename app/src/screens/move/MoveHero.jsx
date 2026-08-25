@@ -1,7 +1,6 @@
 import React from "react";
 import { useWF } from "../../state";
 import { Info } from "lucide-react";
-import HealthConnectCard from "../../components/HealthConnectCard";
 import Skel from "../../components/Skel";
 import { dayMinutes, dayBurn, DAILY_GOAL_MIN } from "./exercises";
 import {
@@ -164,10 +163,6 @@ export default function MoveHero() {
         })}
       </div>
 
-      {/* Where the steps come from. Only until it is settled. */}
-      <div style={{ marginTop: healthSource.steps ? 12 : 14 }}>
-        <HealthConnectCard signal="steps" />
-      </div>
     </div>
   );
 }

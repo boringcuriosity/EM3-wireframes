@@ -1,7 +1,6 @@
 import React from "react";
 import { useWF } from "../../state";
 import { Info, Moon } from "lucide-react";
-import HealthConnectCard from "../../components/HealthConnectCard";
 import Skel from "../../components/Skel";
 import { SLEEP_GOAL_MIN, fmtDur } from "./tools";
 import { fmtTime } from "../log/foods";
@@ -14,7 +13,7 @@ import { MIND_C, MIND_T, TEXT, MUTED, FAINT, RULE, BG, BORDER, SH } from "../../
    metabolism. There is no score here: Eat earns its hexagon from targets a
    coach set, and nobody sets a target for how calm you were. */
 export default function MindHero() {
-  const { sleepMins, lastNight, mindDone, mindMood, setPillarInfo, healthSource, healthSync } = useWF();
+  const { sleepMins, lastNight, mindDone, mindMood, setPillarInfo, healthSync } = useWF();
 
   const pct = sleepMins === null ? 0 : Math.min(100, Math.round((sleepMins / SLEEP_GOAL_MIN) * 100));
   const syncing = healthSync === "sleep";
@@ -150,9 +149,6 @@ export default function MindHero() {
         ))}
       </div>
 
-      <div style={{ marginTop: healthSource.sleep ? 12 : 14 }}>
-        <HealthConnectCard signal="sleep" />
-      </div>
     </div>
   );
 }

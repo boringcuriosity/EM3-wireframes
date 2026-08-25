@@ -1,7 +1,6 @@
 import React from "react";
 import { useWF } from "../../state";
 import { Info, Flame, UserRound, Lock } from "lucide-react";
-import HealthConnectCard from "../../components/HealthConnectCard";
 import Skel from "../../components/Skel";
 import { dayMinutes, dayBurn } from "./exercises";
 import {
@@ -30,17 +29,18 @@ const BEATS = [
 
 export default function MoveIntroCard() {
   const { exLogs, daySteps, setPillarInfo, healthSource, setStepsSheet, healthSync } = useWF();
-  const logged = exLogs.length > 0;
+  const worked = exLogs.length > 0;
+  const hasData = worked || daySteps !== null || healthSync === "steps";
 
   const stats = [
-    { v: dayMinutes(exLogs) + "m", l: "Moved" },
+    { v: worked ? dayMinutes(exLogs) + "m" : "\u2014", l: "Moved" },
     {
       v: healthSync === "steps" ? null : daySteps === null ? "Add" : daySteps.toLocaleString(),
       l: "Steps",
       onClick:
         healthSource.steps === "manual" && healthSync !== "steps" ? () => setStepsSheet(true) : undefined,
     },
-    { v: dayBurn(exLogs) ? String(dayBurn(exLogs)) : "—", l: "Kcal burnt" },
+    { v: worked ? String(dayBurn(exLogs)) : "\u2014", l: "Kcal burnt" },
   ];
 
   return (
@@ -82,11 +82,13 @@ export default function MoveIntroCard() {
               lineHeight: 1.2,
             }}
           >
-            {logged ? "Keep logging." : "Show us how you move."}
+            {hasData ? "Keep logging." : "Show us how you move."}
           </div>
           <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.45, marginTop: 4 }}>
-            {logged
-              ? "The more honest you log, the better your coach can read you. Nothing is judged."
+            {hasData
+              ? worked
+                ? "The more honest you log, the better your coach can read you. Nothing is judged."
+                : "Your steps are in. Log a workout or a walk and the rest fills in."
               : "No routine yet, and nothing to keep up with."}
           </div>
         </div>
@@ -108,7 +110,7 @@ export default function MoveIntroCard() {
         </button>
       </div>
 
-      {logged ? (
+      {hasData ? (
         <div style={{ display: "flex", padding: "16px 15px 14px" }}>
           {stats.map((x, i) => {
             const Cell = x.onClick ? "button" : "div";
@@ -214,11 +216,6 @@ export default function MoveIntroCard() {
           </span>
         </div>
 
-        {healthSource.steps && (
-          <div style={{ marginTop: 11 }}>
-            <HealthConnectCard signal="steps" />
-          </div>
-        )}
       </div>
     </div>
   );

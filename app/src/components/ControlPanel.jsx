@@ -782,19 +782,19 @@ export default function ControlPanel() {
              separately is what let the two disagree. */
           [
             { id: "gate", label: "Health Connect permission", steps: null },
-            { id: "none", label: "Nothing logged", steps: "manual", logs: [] },
+            { id: "syncing", label: "Allowed, syncing", steps: "phone", sync: "steps", logs: [] },
+            { id: "connected", label: "Steps in, nothing logged", steps: "phone", logs: [] },
             {
               id: "walk",
               label: "One walk logged",
-              steps: "manual",
+              steps: "phone",
               logs: [{ id: "briskwalk", minutes: 25, intensity: "moderate", timeMins: 7 * 60 + 30 }],
             },
-            { id: "handsteps", label: "Steps added by hand", steps: "manual", manual: 4000 },
-            { id: "syncing", label: "Health Connect syncing", steps: "phone", sync: "steps" },
-            { id: "connected", label: "Health Connect connected", steps: "phone" },
-            { id: "trend", label: "Trend tab", steps: "manual", tab: "trend" },
-            { id: "learn", label: "Learn tab, the videos", steps: "manual", tab: "learn" },
-            { id: "log", label: "Log exercise screen", steps: "manual" },
+            { id: "manual", label: "Logging by hand, nothing yet", steps: "manual", logs: [] },
+            { id: "handsteps", label: "Steps added by hand", steps: "manual", manual: 4000, logs: [] },
+            { id: "trend", label: "Trend tab", steps: "phone", tab: "trend" },
+            { id: "learn", label: "Learn tab, the videos", steps: "phone", tab: "learn" },
+            { id: "log", label: "Log exercise screen", steps: "phone" },
           ].map((v) =>
             panelChip(
               v.label,
@@ -827,6 +827,8 @@ export default function ControlPanel() {
             ? "Mid-sync. The number is a skeleton rather than a zero, because zero would be a claim."
             : healthSource.steps === "manual"
             ? "Steps are yours to enter, so the Steps cell and a second button in the prompt both open the wheel."
+            : exLogs.length === 0
+            ? "Steps are in from the phone, so the card stops explaining. Minutes and kcal stay blank until something is logged."
             : planAssigned
             ? "The coach routine is here because the Care plan is assigned. Each exercise can be marked done."
             : "No routine, because the Care plan is not assigned yet. The opening card asks for movement so the coach has something to build from.",

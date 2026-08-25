@@ -202,6 +202,7 @@ const MATRIX = [
   ["move:steps",       MoveDetail,       { moveTab: "today", healthSource: { steps: "phone", sleep: null } }],
   ["move:handsteps",   MoveDetail,       { moveTab: "today", healthSource: { steps: "manual", sleep: null }, manualSteps: 4000 }],
   ["move:syncing",     MoveDetail,       { moveTab: "today", healthSource: { steps: "phone", sleep: null }, healthSync: "steps" }],
+  ["move:stepsonly",   MoveDetail,       { moveTab: "today", healthSource: { steps: "phone", sleep: null }, exLogs: [] }],
   ["mind:syncing",     MindDetail,       { mindDetail: true, healthSource: { steps: null, sleep: "phone" }, healthSync: "sleep" }],
   ["move:addsteps",    AddStepsSheet,    { stepsSheet: true }],
   ["move:free",        MoveDetail,       { plan: "free", moveTab: "today", healthSource: { steps: "manual", sleep: null } }],
