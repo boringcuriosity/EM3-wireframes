@@ -74,7 +74,7 @@ export default function MindHero() {
             {syncing
               ? "Health Connect is handing over what your phone already has. This takes a moment."
               : !known
-              ? "Sleep is the part of Mind that moves your metabolism most. Tap the circle and tell us when you slept."
+              ? "Sleep is the part of Mind that moves your metabolism most."
               : sleepMins >= SLEEP_GOAL_MIN
               ? "A full night. Your body did most of its repair work while you were out."
               : "Short of " + fmtDur(SLEEP_GOAL_MIN) + ". A short night pushes hunger up and fullness down the next day."}

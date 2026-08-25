@@ -1,5 +1,6 @@
 import React from "react";
 import { useWF } from "../../state";
+import { Moon } from "lucide-react";
 
 import PillarScreen from "../../components/PillarScreen";
 import HealthGate from "../../components/HealthGate";
@@ -17,7 +18,7 @@ import { GREEN, TEXT, MUTED, BG, BORDER, SH } from "../../tokens";
    to you. So the hero is sleep, the record is the things you can actually do
    about it, and the way in offers both. */
 export default function MindDetail() {
-  const { setMindDetail, mindTab, setMindTab, sleepMins, mindDone, healthSource } =
+  const { setMindDetail, mindTab, setMindTab, setLogSleepOpen, sleepMins, mindDone, healthSource } =
     useWF();
 
   // Same gate as Move, for the same reason: no source, nothing to show.
@@ -40,7 +41,18 @@ export default function MindDetail() {
           {/* No buttons: everything Kaira is asking for is listed directly
               below, and a pair of shortcuts on top of a list is the same list
               twice. */}
-          <LogPrompt line="Work through the list below. A few minutes of it is enough to matter." />
+          <LogPrompt
+            line={
+              healthSource.sleep === "manual"
+                ? "Start with last night, then work through the list below."
+                : "Work through the list below. A few minutes of it is enough to matter."
+            }
+            actions={
+              healthSource.sleep === "manual"
+                ? [{ label: "Log sleep", Icon: Moon, onClick: () => setLogSleepOpen(true) }]
+                : undefined
+            }
+          />
 
           <div style={{ padding: "18px 22px 26px" }}>
             <ToolList />
