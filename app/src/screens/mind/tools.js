@@ -35,12 +35,14 @@ export const MIND_TOOLS = [
     label: "Mood check-in",
     line: "How are you feeling right now?",
     minutes: 0,
+    coins: 2,
   },
   {
     id: "breathing",
     label: "Breathing",
     line: "A guided exercise to settle your body down.",
     minutes: 3,
+    coins: 3,
     coach: true,
   },
   {
@@ -48,12 +50,14 @@ export const MIND_TOOLS = [
     label: "Affirmation",
     line: "One line to carry into the rest of the day.",
     minutes: 1,
+    coins: 1,
   },
   {
     id: "journal",
     label: "Journaling",
     line: "Write it down and it stops going round.",
     minutes: 5,
+    coins: 3,
   },
 ];
 

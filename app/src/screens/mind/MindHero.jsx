@@ -48,13 +48,13 @@ export default function MindHero() {
           pct={pct}
         >
           {syncing ? (
-            <Skel w={54} h={20} />
+            <Skel w={44} h={16} />
           ) : known ? (
             <>
-              <span style={{ fontSize: 20, fontWeight: 800, color: TEXT, lineHeight: 1 }}>
+              <span style={{ fontSize: 16, fontWeight: 800, color: TEXT, lineHeight: 1, letterSpacing: -0.3 }}>
                 {fmtDur(sleepMins)}
               </span>
-              <span style={{ fontSize: 9.5, color: MUTED, marginTop: 3 }}>slept</span>
+              <span style={{ fontSize: 9, color: MUTED, marginTop: 2 }}>slept</span>
             </>
           ) : ownSleep ? (
             <>

@@ -43,9 +43,6 @@ export default function MindDetail() {
           <LogPrompt line="Work through the list below. A few minutes of it is enough to matter." />
 
           <div style={{ padding: "18px 22px 26px" }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, marginBottom: 10 }}>
-              Ways to settle today
-            </div>
             <ToolList />
           </div>
         </>
