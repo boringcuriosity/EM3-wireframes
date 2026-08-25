@@ -3,6 +3,10 @@ import { useWF } from "../state";
 import { X, Check, Lock } from "lucide-react";
 import { GREEN, GREEN_DEEP, GREEN_TINT, TEXT, MUTED, BG, BG_ALT, BORDER, LINE } from "../tokens";
 import { PILLAR_SCIENCE } from "../screens/pillarScience";
+import { DAILY_GOAL_MIN } from "../screens/move/exercises";
+
+// Which health signal each pillar's numbers come from, if any.
+const SIGNAL = { move: "steps", mind: "sleep" };
 
 /* Why a pillar is a pillar. Opened from the concept pill on each EM3 card, so
    the teaching screen stays one line per pillar and the person who wants the
@@ -14,7 +18,8 @@ import { PILLAR_SCIENCE } from "../screens/pillarScience";
    colour for all four: inside a sheet the accent is the brand, not the pillar,
    so four sheets read as four pages of the same book. */
 export default function PillarScienceSheet() {
-  const { pillarInfo, setPillarInfo, pillarExplain, planAssigned, dailyTargets, kcalTarget, setChatsOpen } = useWF();
+  const { pillarInfo, setPillarInfo, pillarExplain, planAssigned, dailyTargets, kcalTarget, setChatsOpen,
+    healthSource, setHealthSource } = useWF();
 
   const p = pillarExplain.find((x) => x.id === pillarInfo);
   const s = PILLAR_SCIENCE[pillarInfo];
@@ -163,31 +168,67 @@ export default function PillarScienceSheet() {
                 ))}
               </div>
 
-              <div style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
-                <Lock size={13} color={GREEN} strokeWidth={2.2} style={{ flexShrink: 0, marginTop: 2 }} />
-                <span style={{ fontSize: 12, color: MUTED, lineHeight: 1.55 }}>
-                  Manya Jain, your nutrition coach, set these after your first consultation.{" "}
-                  <button
-                    onClick={() => {
-                      setPillarInfo(null);
-                      setChatsOpen(true);
-                    }}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      padding: 0,
-                      font: "inherit",
-                      color: GREEN,
-                      fontWeight: 700,
-                      textDecoration: "underline",
-                      textUnderlineOffset: 2,
-                      cursor: "pointer",
-                    }}
-                  >
-                    Message them
-                  </button>{" "}
-                  if they need to change.
+              <CoachNote role="nutrition coach" onChat={() => { setPillarInfo(null); setChatsOpen(true); }} />
+            </>
+          )}
+
+          {/* Move's target, the same way Eat carries its calories: set by a
+              coach, changed by asking them. */}
+          {pillarInfo === "move" && planAssigned && (
+            <>
+              <div style={{ height: 1, background: LINE, margin: "18px 0 14px" }} />
+              <Label>Your target</Label>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 13 }}>
+                <span style={{ fontSize: 22, fontWeight: 800, color: TEXT, lineHeight: 1 }}>
+                  {DAILY_GOAL_MIN}
                 </span>
+                <span style={{ fontSize: 12, color: MUTED }}>minutes of movement a day</span>
+              </div>
+              <CoachNote role="exercise coach" onChat={() => { setPillarInfo(null); setChatsOpen(true); }} />
+            </>
+          )}
+
+          {/* Where the numbers come from, and the way to change it. It lives
+              here because this is the sheet the info dot already opens, and a
+              second place to change one setting is a second place to look. */}
+          {SIGNAL[pillarInfo] && (
+            <>
+              <div style={{ height: 1, background: LINE, margin: "18px 0 14px" }} />
+              <Label>Where this comes from</Label>
+              <div style={{ display: "flex", gap: 8 }}>
+                {[
+                  { v: "phone", label: "Health Connect" },
+                  { v: "manual", label: "I log it myself" },
+                ].map((o) => {
+                  const on = healthSource[SIGNAL[pillarInfo]] === o.v;
+                  return (
+                    <button
+                      key={o.v}
+                      onClick={() =>
+                        setHealthSource({ ...healthSource, [SIGNAL[pillarInfo]]: o.v })
+                      }
+                      style={{
+                        flex: 1,
+                        background: on ? GREEN_TINT : BG,
+                        border: "1px solid " + (on ? GREEN : BORDER),
+                        borderRadius: 12,
+                        padding: "10px 0",
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        color: on ? GREEN : MUTED,
+                        cursor: "pointer",
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      {o.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.5, marginTop: 10 }}>
+                {healthSource[SIGNAL[pillarInfo]] === "phone"
+                  ? "Reading from Health Connect. Switch to logging it yourself any time."
+                  : "You are entering this by hand. Connect Health Connect and it fills in on its own."}
               </div>
             </>
           )}
@@ -232,6 +273,36 @@ function Label({ children }) {
       }}
     >
       {children}
+    </div>
+  );
+}
+
+/* Who set a target and how to get it changed. Both pillars say it the same
+   way, because it is the same relationship. */
+function CoachNote({ role, onChat }) {
+  return (
+    <div style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
+      <Lock size={13} color={GREEN} strokeWidth={2.2} style={{ flexShrink: 0, marginTop: 2 }} />
+      <span style={{ fontSize: 12, color: MUTED, lineHeight: 1.55 }}>
+        Manya Jain, your {role}, set this after your first consultation.{" "}
+        <button
+          onClick={onChat}
+          style={{
+            background: "none",
+            border: "none",
+            padding: 0,
+            font: "inherit",
+            color: GREEN,
+            fontWeight: 700,
+            textDecoration: "underline",
+            textUnderlineOffset: 2,
+            cursor: "pointer",
+          }}
+        >
+          Message them
+        </button>{" "}
+        if it needs to change.
+      </span>
     </div>
   );
 }
