@@ -22,7 +22,7 @@ const PLAN_STRIP = {
 
 export default function TrackPage() {
   const { setEatDetail, setActiveTab, dailyPillars, dailyRepeating,
-          dailyDoneCount, dayFraction, dayComplete, streakShown, streakState, setStreakOpen, taskFill,
+          dailyDoneCount, dayFraction, dayComplete, streakShown, streakState, setStreakOpen, taskFill, setMindDetail,
           flipcoins, setMoveDetail,
           isPaid, kcalSource, movePlan, setPlanInfo, heroState } = useWF();
   // The coach card's only action is "the tasks are down there", so it needs
@@ -145,14 +145,15 @@ export default function TrackPage() {
           const filled = taskFill(p);
           /* Tapping a card here opens the pillar it belongs to. Ticking it
              off in one tap is Home's job; this screen is where the work
-             actually happens. Mind has no screen of its own yet, so its card
-             still completes rather than going nowhere. */
+             actually happens. All three pillars have a screen now, so no card
+             here is a dead end. */
           /* One header per pillar, not per task: Measure can carry two device
              syncs and they belong under one heading. */
           const pid = p.pillar || p.id;
           const firstOfPillar = i === 0 || (arr[i - 1].pillar || arr[i - 1].id) !== pid;
           const go = p.id === "eat" ? () => setEatDetail(true)
                    : p.id === "move" ? () => setMoveDetail(true)
+                   : p.id === "mind" ? () => setMindDetail(true)
                    : pid === "measure" ? () => setActiveTab("med")
                    : undefined;
           return (

@@ -22,12 +22,13 @@ const ALL_DONE = { eat: 3, move: 1, mind: 1, measure: 1 };
 const ALL_GROUPS = [
   "signup", "plan", "welcome", "tour", "move", "hero", "targets",
   "logging", "suff", "streakscreen", "streak", "milestones",
-  "focus", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "measure",
+  "focus", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "mind", "measure",
 ];
 
 const SCREEN_GROUPS = {
   signup: ["signup"],
   move: ["move", "focus"],
+  mind: ["mind", "focus"],
   logging: ["logging", "targets"],
   suff: ["suff", "targets"],
   streakscreen: ["streakscreen", "streak", "milestones", "focus"],
@@ -190,7 +191,7 @@ const FOCUS_PRESETS = [
 const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, mindDetail, setMindDetail, mindTab, setMindTab, setMindDone, setMindMood, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -229,6 +230,7 @@ export default function ControlPanel() {
     score: scoreState,
     measuretasks: measureTasks,
     hero: heroState,
+    mind: mindDetail ? mindTab : "Closed",
     nextaction: nextOpen.length ? nextOpen.length + " left" : "none",
     focus: dailyDoneCount + "/4" + (streakDays ? " · d" + streakDays : ""),
     streak: streakState,
@@ -775,12 +777,14 @@ export default function ControlPanel() {
           "Move",
           "from the To-do Move card",
           [
-            { id: "off", label: "Closed", full: "Not open" },
-            { id: "noplan", label: "No plan", full: "No coach routine yet, nothing logged" },
-            { id: "plan", label: "Coach plan", full: "Coach has assigned a routine" },
-            { id: "logged", label: "Logged", full: "One activity logged today" },
-            { id: "videos", label: "Videos", full: "The videos tab" },
-            { id: "log", label: "Log exercise", full: "The log exercise screen" },
+            { id: "off", label: "Closed" },
+            { id: "noplan", label: "No routine, nothing logged" },
+            { id: "plan", label: "Coach routine assigned" },
+            { id: "logged", label: "One walk logged" },
+            { id: "steps", label: "Phone health app connected" },
+            { id: "trend", label: "Trend tab" },
+            { id: "learn", label: "Learn tab, the videos" },
+            { id: "log", label: "Log exercise screen" },
           ].map((v) =>
             panelChip(
               v.label,
@@ -791,19 +795,23 @@ export default function ControlPanel() {
                 if (v.id === "noplan") {
                   setMovePlan(null);
                   setExLogs([]);
-                  setMoveTab("routine");
+                  setMoveTab("today");
                 } else if (v.id === "plan") {
                   setMovePlan("assigned");
-                  setMoveTab("routine");
+                  setMoveTab("today");
                 } else if (v.id === "logged") {
                   setExLogs([{ id: "briskwalk", minutes: 25, intensity: "moderate", timeMins: 7 * 60 + 30 }]);
-                  setMoveTab("logged");
-                } else if (v.id === "videos") {
-                  setMoveTab("videos");
+                  setMoveTab("today");
+                } else if (v.id === "steps") {
+                  setHealthSource({ ...healthSource, steps: "phone" });
+                  setMoveTab("today");
+                } else if (v.id === "trend") {
+                  setMoveTab("trend");
+                } else if (v.id === "learn") {
+                  setMoveTab("learn");
                 }
                 if (v.id === "off") setActiveTab("track");
-              },
-              v.full
+              }
             )
           ),
           logExOpen
@@ -1084,6 +1092,48 @@ export default function ControlPanel() {
           ),
           (FOCUS_PRESETS.find((v) => v.id === focusPreset) || {}).desc ||
             "A mix the presets do not cover. Tap any preset to land somewhere known.",
+          true
+        )}
+
+        {panelGroup(
+          "mind",
+          "Mind",
+          "from the To-do Mind card",
+          [
+            { id: "off", label: "Closed" },
+            { id: "nosleep", label: "No sleep source yet" },
+            { id: "manual", label: "One night logged by hand" },
+            { id: "phone", label: "Phone health app connected" },
+            { id: "tools", label: "Two tools done" },
+            { id: "trend", label: "Trend tab" },
+            { id: "log", label: "Log sleep screen" },
+          ].map((v) =>
+            panelChip(
+              v.label,
+              v.id === "off" ? !mindDetail && !logSleepOpen : v.id === "log" ? logSleepOpen : false,
+              () => {
+                setLogSleepOpen(v.id === "log");
+                setMindDetail(v.id !== "off" && v.id !== "log");
+                setMindTab(v.id === "trend" ? "trend" : "today");
+                if (v.id === "nosleep") {
+                  setHealthSource({ ...healthSource, sleep: null });
+                  setSleepLogs([]);
+                  setMindDone([]);
+                } else if (v.id === "manual") {
+                  setHealthSource({ ...healthSource, sleep: "manual" });
+                  setSleepLogs([{ bed: 23 * 60 + 40, wake: 6 * 60 + 30 }]);
+                } else if (v.id === "phone") {
+                  setHealthSource({ ...healthSource, sleep: "phone" });
+                  setSleepLogs([]);
+                } else if (v.id === "tools") {
+                  setMindDone(["mood", "breathing"]);
+                  setMindMood("Calm");
+                }
+                if (v.id === "off") setActiveTab("track");
+              }
+            )
+          ),
+          "Sleep is the hero, the tools are the record. Two of them are marked as picked by the coach.",
           true
         )}
 

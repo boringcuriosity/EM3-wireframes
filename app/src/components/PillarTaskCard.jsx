@@ -34,13 +34,13 @@ export default function PillarTaskCard({ pillar: p, fullWidth, onClick }) {
     ? null
     : p.id === "move" && exLogs.length > 0
     ? [
-        { v: daySteps.toLocaleString(), l: "Steps" },
+        { v: daySteps === null ? "\u2014" : daySteps.toLocaleString(), l: "Steps" },
         { v: dayMinutes(exLogs) + "m", l: "Active" },
         { v: String(exLogs.length), l: "Workouts" },
       ]
     : p.id === "mind" && filled > 0
     ? [
-        { v: Math.floor(sleepMins / 60) + "h " + (sleepMins % 60) + "m", l: "Slept" },
+        { v: sleepMins === null ? "\u2014" : Math.floor(sleepMins / 60) + "h " + (sleepMins % 60) + "m", l: "Slept" },
         { v: filled + (filled === 1 ? " break" : " breaks"), l: "Breathing" },
       ]
     : null;

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useWF } from "../../state";
-import { ChevronLeft, ChevronRight, Search, X, Plus, Minus, Check } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, X, Plus, Minus } from "lucide-react";
 import { GREEN, TEXT, MUTED, BG, BG_ALT, BORDER } from "../../tokens";
 import { EXERCISES, byId, INTENSITIES, burnt } from "./exercises";
 import { fmtTime, timeSlots } from "../log/foods";

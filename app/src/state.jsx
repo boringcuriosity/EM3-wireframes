@@ -179,10 +179,35 @@ export function WFProvider({ children, initial = {} }) {
   const [suffFlow, setSuffFlow] = useState(initial.suffFlow !== undefined ? initial.suffFlow : null);
   // ---------- Movement ----------
   const [moveDetail, setMoveDetail] = useState(initial.moveDetail !== undefined ? initial.moveDetail : false);
-  const [moveTab, setMoveTab] = useState(initial.moveTab !== undefined ? initial.moveTab : "routine");
+  const [moveTab, setMoveTab] = useState(initial.moveTab !== undefined ? initial.moveTab : "today");
   // Has a coach assigned a routine yet? null until the consultation happens.
   const [movePlan, setMovePlan] = useState(initial.movePlan !== undefined ? initial.movePlan : null);
   const [exLogs, setExLogs] = useState(initial.exLogs !== undefined ? initial.exLogs : []);
+
+  /* Where steps and sleep come from. Not a switch but a source per signal,
+     because most people here have no wearable and a screen that only works
+     with one is a screen they cannot use. "phone" is the OS health app,
+     "manual" is them telling us, null is not decided yet. */
+  const [healthSource, setHealthSource] = useState(
+    initial.healthSource !== undefined ? initial.healthSource : { steps: null, sleep: null }
+  );
+  const [healthSheet, setHealthSheet] = useState(
+    initial.healthSheet !== undefined ? initial.healthSheet : null
+  );
+  const healthOn = (k) => healthSource[k] === "phone";
+  // Nights are logged the way meals are: a record, not a counter.
+  const [sleepLogs, setSleepLogs] = useState(initial.sleepLogs !== undefined ? initial.sleepLogs : []);
+  const [logSleepOpen, setLogSleepOpen] = useState(
+    initial.logSleepOpen !== undefined ? initial.logSleepOpen : false
+  );
+  // Which Mind tool is open, and what has been done today.
+  const [mindTool, setMindTool] = useState(initial.mindTool !== undefined ? initial.mindTool : null);
+  const [mindDone, setMindDone] = useState(initial.mindDone !== undefined ? initial.mindDone : []);
+  const [mindMood, setMindMood] = useState(initial.mindMood !== undefined ? initial.mindMood : null);
+  const [mindDetail, setMindDetail] = useState(
+    initial.mindDetail !== undefined ? initial.mindDetail : false
+  );
+  const [mindTab, setMindTab] = useState(initial.mindTab !== undefined ? initial.mindTab : "today");
   const [logExOpen, setLogExOpen] = useState(initial.logExOpen !== undefined ? initial.logExOpen : false);
   const [routineDone, setRoutineDone] = useState([]);
 
@@ -502,6 +527,8 @@ export function WFProvider({ children, initial = {} }) {
   const fillWith = (prog, p) =>
     p.id === "eat"
       ? Math.min(p.checks, mainMealsDone)
+      : p.id === "mind"
+      ? Math.min(p.checks, Math.max(mindDone.length, prog[p.id] || 0))
       : Math.min(p.checks, Math.max(p.fill[dailyState], prog[p.id] || 0));
   const taskFill = (p) => fillWith(taskProgress, p);
   const taskIsDone = (p) => taskFill(p) >= p.checks;
@@ -558,8 +585,10 @@ export function WFProvider({ children, initial = {} }) {
     /* Eat keeps no counter of its own, so ticking it off has to put a real
        meal in the day. Otherwise the card would say three meals while Eat
        detail showed an empty one. */
-    const prog = p.id === "eat" ? taskProgress : { ...taskProgress, [p.id]: next };
+    const owned = p.id === "eat" || p.id === "mind";
+    const prog = owned ? taskProgress : { ...taskProgress, [p.id]: next };
     if (p.id === "eat") setMealsLogged(mealsLogged.concat(DEMO_DAY[next - 1]));
+    else if (p.id === "mind") setMindDone(mindDone.concat("breathing"));
     else setTaskProgress(prog);
 
     if (next < p.checks) {
@@ -681,9 +710,15 @@ export function WFProvider({ children, initial = {} }) {
   const dayTotals = sumFoods(mealsLogged);
   // Steps come off the phone, not from logging, so they are there whatever
   // else the day does or does not have in it.
-  const daySteps = 5008;
-  // Last night's sleep, the same way: read from the device, not logged.
-  const sleepMins = 5 * 60 + 20;
+  /* Steps and sleep are only there once a source exists. Null means unknown,
+     which is a different thing from zero and has to read differently. */
+  const daySteps = healthOn("steps") ? 5008 : null;
+  const lastNight = sleepLogs[sleepLogs.length - 1] || null;
+  const sleepMins = healthOn("sleep")
+    ? 5 * 60 + 20
+    : lastNight
+    ? (lastNight.wake - lastNight.bed + 1440) % 1440
+    : null;
   const liveScore = scoreOf(dayTotals, dailyTargets);
   // The number exists either way. Whether it is legible is the gate.
   const scoreUnlocked = hasTargets && mainMealsDone >= 3;
@@ -705,7 +740,10 @@ export function WFProvider({ children, initial = {} }) {
     programIntroSeen, setProgramIntroSeen, todayOnboarded, setTodayOnboarded,
     streakDays, setStreakDays, streakShown,
     moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan,
-    exLogs, setExLogs, daySteps, sleepMins, logExOpen, setLogExOpen, routineDone, setRoutineDone,
+    healthSource, setHealthSource, healthOn, healthSheet, setHealthSheet,
+    sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen,
+    mindTool, setMindTool, mindDone, setMindDone, mindMood, setMindMood, mindDetail, setMindDetail, mindTab, setMindTab,
+    exLogs, setExLogs, daySteps, sleepMins, lastNight, logExOpen, setLogExOpen, routineDone, setRoutineDone,
     logOpen, setLogOpen, logItems, setLogItems, logTime, setLogTime,
     logTimeOpen, setLogTimeOpen, logInfo, setLogInfo, 
      favorites, setFavorites,

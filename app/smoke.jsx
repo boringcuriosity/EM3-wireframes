@@ -6,6 +6,10 @@ import { WFProvider } from "./src/state";
 import App from "./src/App";
 import FreeHome from "./src/screens/FreeHome";
 import PaidHome from "./src/screens/PaidHome";
+import MindDetail from "./src/screens/mind/MindDetail";
+import LogSleep from "./src/screens/mind/LogSleep";
+import ToolSheet from "./src/screens/mind/ToolSheet";
+import HealthConnectSheet from "./src/components/HealthConnectSheet";
 import TrackPage, { TodayFtux } from "./src/screens/Today";
 import CarePage from "./src/screens/Care";
 import MorePage from "./src/screens/More";
@@ -160,6 +164,17 @@ const MATRIX = [
   ["log:timesheet",    TimeSheet,        {}],
   ["suff:science",     PillarScienceSheet, { pillarInfo: "eat" }],
   ["suff:science:plan", PillarScienceSheet, { pillarInfo: "eat", kcalSource: "coach", movePlan: "assigned" }],
+  ["mind:today",       MindDetail,       { mindDetail: true }],
+  ["mind:slept",       MindDetail,       { mindDetail: true, healthSource: { steps: null, sleep: "phone" } }],
+  ["mind:trend",       MindDetail,       { mindDetail: true, mindTab: "trend" }],
+  ["mind:learn",       MindDetail,       { mindDetail: true, mindTab: "learn" }],
+  ["mind:logsleep",    LogSleep,         { logSleepOpen: true }],
+  ["mind:tool:mood",   ToolSheet,        { mindTool: "mood" }],
+  ["mind:tool:breath", ToolSheet,        { mindTool: "breathing" }],
+  ["mind:tool:aff",    ToolSheet,        { mindTool: "affirmation" }],
+  ["mind:tool:journal", ToolSheet,       { mindTool: "journal" }],
+  ["health:steps",     HealthConnectSheet, { healthSheet: "steps" }],
+  ["health:sleep",     HealthConnectSheet, { healthSheet: "sleep" }],
   ["home:next",        PaidHome,         { homeProgramTab: "next" }],
   ["home:next:tick",   PaidHome,         { homeProgramTab: "next", nextDone: ["score", "labs"] }],
   ["home:next:none",   PaidHome,         { homeProgramTab: "next", nextActions: [] }],
@@ -169,13 +184,15 @@ const MATRIX = [
   ["log:result:third", MealLogged,       { mealsLogged: [{ division: "breakfast", timeMins: 510, items: [{ id: "poha", qty: 1 }, { id: "chai", qty: 2 }] }], logResult: { before: 40, after: 62, meal: { division: "breakfast", timeMins: 510, items: [{ id: "poha", qty: 1 }, { id: "chai", qty: 2 }] }, mealCount: 3 } }],
   ["log:result:flat",  MealLogged,       { mealsLogged: [{ division: "breakfast", timeMins: 510, items: [{ id: "poha", qty: 1 }, { id: "chai", qty: 2 }] }], logResult: { before: 21, after: 21, meal: { division: "breakfast", timeMins: 510, items: [{ id: "poha", qty: 1 }, { id: "chai", qty: 2 }] }, mealCount: 2 } }],
   ["log:toast",        Toast,            { toast: { title: "Meal logged", line: "Breakfast at 8:30 AM", coins: 4 } }],
-  ["move:noplan",      MoveDetail,       { moveTab: "routine", movePlan: null }],
-  ["move:plan",        MoveDetail,       { moveTab: "routine", movePlan: "assigned" }],
-  ["move:logged:none", MoveDetail,       { moveTab: "logged", exLogs: [] }],
-  ["move:logged:two",  MoveDetail,       { moveTab: "logged", exLogs: [{ id: "briskwalk", minutes: 25, intensity: "moderate", timeMins: 450 }, { id: "yoga", minutes: 45, intensity: "light", timeMins: 1140 }] }],
-  ["move:videos",      MoveDetail,       { moveTab: "videos" }],
-  ["move:free",        MoveDetail,       { plan: "free", moveTab: "routine" }],
-  ["move:goalmet",     MoveDetail,       { moveTab: "logged", exLogs: [{ id: "briskwalk", minutes: 25, intensity: "moderate", timeMins: 450 }] }],
+  ["move:noplan",      MoveDetail,       { moveTab: "today", movePlan: null }],
+  ["move:plan",        MoveDetail,       { moveTab: "today", movePlan: "assigned" }],
+  ["move:logged:none", MoveDetail,       { moveTab: "today", exLogs: [] }],
+  ["move:logged:two",  MoveDetail,       { moveTab: "today", exLogs: [{ id: "briskwalk", minutes: 25, intensity: "moderate", timeMins: 450 }, { id: "yoga", minutes: 45, intensity: "light", timeMins: 1140 }] }],
+  ["move:learn",       MoveDetail,       { moveTab: "learn" }],
+  ["move:trend",       MoveDetail,       { moveTab: "trend" }],
+  ["move:steps",       MoveDetail,       { moveTab: "today", healthSource: { steps: "phone", sleep: null } }],
+  ["move:free",        MoveDetail,       { plan: "free", moveTab: "today" }],
+  ["move:goalmet",     MoveDetail,       { moveTab: "today", exLogs: [{ id: "briskwalk", minutes: 25, intensity: "moderate", timeMins: 450 }] }],
   ["move:logexercise", LogExercise,      {}],
   ["move:logex:after", LogExercise,      { exLogs: [{ id: "walk", minutes: 20, intensity: "moderate", timeMins: 600 }] }],
   ["move:fromtodo",    App,              { authStep: null, moveDetail: true, programIntro: null }],

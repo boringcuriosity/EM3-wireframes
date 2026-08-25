@@ -28,6 +28,10 @@ import PlanWaitSheet from "./components/PlanWaitSheet";
 import TaskDoneSheet from "./components/TaskDoneSheet";
 import MealItemSheet from "./components/MealItemSheet";
 import MetricInfoSheet from "./components/MetricInfoSheet";
+import HealthConnectSheet from "./components/HealthConnectSheet";
+import MindDetail from "./screens/mind/MindDetail";
+import LogSleep from "./screens/mind/LogSleep";
+import ToolSheet from "./screens/mind/ToolSheet";
 import StreakRewardsSheet from "./components/StreakRewardsSheet";
 import ShareStreakSheet from "./components/ShareStreakSheet";
 import MoveDetail from "./screens/move/MoveDetail";
@@ -45,8 +49,10 @@ import KairaFab from "./components/KairaFab";
 // Full-screen takeovers hide the bottom nav. Order matters: the first
 // truthy one wins, exactly as in the original wireframe.
 function Takeover() {
-  const { logExOpen, moveDetail, logResult, logOpen, suffFlow, streakOpen, onboardingOpen, chatsOpen, programDetail, eatDetail } = useWF();
+  const { logExOpen, logSleepOpen, mindDetail, moveDetail, logResult, logOpen, suffFlow, streakOpen, onboardingOpen, chatsOpen, programDetail, eatDetail } = useWF();
+  if (logSleepOpen) return <LogSleep />;
   if (logExOpen) return <LogExercise />;
+  if (mindDetail) return <MindDetail />;
   if (moveDetail) return <MoveDetail />;
   if (logResult) return <MealLogged />;
   if (logOpen) return <LogMeal />;
@@ -130,6 +136,8 @@ export default function App() {
   const { activeTab, isPaid, todayOnboarded } = wf;
   const Auth = AUTH[wf.authStep];
   const takeover =
+    wf.logSleepOpen ||
+    wf.mindDetail ||
     wf.logExOpen ||
     wf.moveDetail ||
     wf.logResult ||
@@ -198,7 +206,7 @@ export default function App() {
             {/* The pillar screens carry their own bottom nav, so Kaira stays
                 reachable there too. The rest of the takeovers are single
                 tasks with nothing to ask her about. */}
-            {(wf.eatDetail || wf.moveDetail) && !wf.logOpen && !wf.logExOpen && !wf.logResult && (
+            {(wf.eatDetail || wf.moveDetail || wf.mindDetail) && !wf.logOpen && !wf.logExOpen && !wf.logSleepOpen && !wf.logResult && (
               <KairaFab bottom={86} />
             )}
             <Toast />
@@ -210,6 +218,8 @@ export default function App() {
             {wf.taskDone && <TaskDoneSheet />}
             {wf.mealItem && <MealItemSheet />}
             {wf.metricInfo && <MetricInfoSheet />}
+            {wf.healthSheet && <HealthConnectSheet />}
+            {wf.mindTool && <ToolSheet />}
           </>
         ) : (
           <>
@@ -238,6 +248,8 @@ export default function App() {
             {wf.taskDone && <TaskDoneSheet />}
             {wf.mealItem && <MealItemSheet />}
             {wf.metricInfo && <MetricInfoSheet />}
+            {wf.healthSheet && <HealthConnectSheet />}
+            {wf.mindTool && <ToolSheet />}
             <Toast />
           </>
         )}
