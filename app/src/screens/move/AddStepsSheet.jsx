@@ -1,6 +1,7 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { useWF } from "../../state";
 import { X, Footprints } from "lucide-react";
+import Wheel from "../../components/Wheel";
 import { GREEN, GREEN_DEEP, MOVE_C, MOVE_T, TEXT, MUTED, BG, BORDER } from "../../tokens";
 
 const COINS = 1;
@@ -11,9 +12,10 @@ const COINS = 1;
    ever needs to be. */
 const STEP = 500;
 const MAX = 30000;
-const VALUES = Array.from({ length: MAX / STEP }, (_, i) => (i + 1) * STEP);
-const ROW = 42;
-const WHEEL_H = ROW * 5;
+const VALUES = Array.from({ length: MAX / STEP }, (_, i) => {
+  const v = (i + 1) * STEP;
+  return { v, label: v.toLocaleString() };
+});
 
 /* Steps by hand, for anyone who did not connect Health Connect.
 
@@ -108,7 +110,9 @@ export default function AddStepsSheet() {
           </p>
         </div>
 
-        <Wheel value={n} onChange={setN} />
+        <div style={{ marginTop: 16 }}>
+          <Wheel items={VALUES} value={n} onChange={setN} />
+        </div>
 
         <div style={{ padding: "18px 22px 26px" }}>
           <button
@@ -135,100 +139,3 @@ export default function AddStepsSheet() {
   );
 }
 
-function Wheel({ value, onChange }) {
-  const ref = useRef(null);
-  const settle = useRef(null);
-
-  // Land on the current value without animating in from the top.
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    el.scrollTop = (VALUES.indexOf(value) < 0 ? 7 : VALUES.indexOf(value)) * ROW;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const onScroll = (e) => {
-    const top = e.currentTarget.scrollTop;
-    clearTimeout(settle.current);
-    settle.current = setTimeout(() => {
-      const i = Math.max(0, Math.min(VALUES.length - 1, Math.round(top / ROW)));
-      if (VALUES[i] !== value) onChange(VALUES[i]);
-    }, 90);
-  };
-
-  return (
-    <div style={{ position: "relative", height: WHEEL_H, margin: "16px 0 0", overflow: "hidden" }}>
-      {/* The band that says which one counts */}
-      <span
-        aria-hidden
-        style={{
-          position: "absolute",
-          left: 22,
-          right: 22,
-          top: ROW * 2,
-          height: ROW,
-          borderRadius: 12,
-          background: MOVE_T,
-          pointerEvents: "none",
-        }}
-      />
-      {/* Fade at both ends, so the list reads as a wheel rather than a list */}
-      <span
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none",
-          zIndex: 2,
-          background:
-            "linear-gradient(" + BG + " 0%, rgba(255,255,255,0) 34%, rgba(255,255,255,0) 66%, " + BG + " 100%)",
-        }}
-      />
-
-      <div
-        ref={ref}
-        onScroll={onScroll}
-        style={{
-          position: "relative",
-          zIndex: 1,
-          height: "100%",
-          overflowY: "auto",
-          scrollSnapType: "y mandatory",
-          scrollbarWidth: "none",
-          padding: ROW * 2 + "px 0",
-          boxSizing: "border-box",
-        }}
-      >
-        {VALUES.map((v) => {
-          const on = v === value;
-          return (
-            <div
-              key={v}
-              onClick={() => onChange(v)}
-              style={{
-                height: ROW,
-                scrollSnapAlign: "center",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-              }}
-            >
-              <span
-                style={{
-                  fontSize: on ? 26 : 19,
-                  fontWeight: on ? 800 : 500,
-                  color: on ? TEXT : MUTED,
-                  opacity: on ? 1 : 0.6,
-                  transition: "font-size .15s, opacity .15s",
-                }}
-              >
-                {v.toLocaleString()}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}

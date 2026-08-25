@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useWF } from "../../state";
 import { ChevronLeft, ChevronRight, Search, X, Plus, Minus } from "lucide-react";
 import { GREEN, TEXT, MUTED, BG, BG_ALT, BORDER } from "../../tokens";
+import Wheel from "../../components/Wheel";
 import { EXERCISES, byId, INTENSITIES, burnt } from "./exercises";
 import { fmtTime, timeSlots } from "../log/foods";
 
@@ -19,7 +20,7 @@ export default function LogExercise() {
   const [minutes, setMinutes] = useState(20);
   const [intensity, setIntensity] = useState("moderate");
   const [when, setWhen] = useState(NOW);
-  const [adjust, setAdjust] = useState(false);
+  const [adjust, setAdjust] = useState(null);
 
   const q = query.trim().toLowerCase();
   const list = q
@@ -163,30 +164,8 @@ export default function LogExercise() {
             </div>
 
             {/* The two things almost nobody changes, folded into one quiet row */}
-            <button
-              onClick={() => setAdjust(true)}
-              style={{
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                background: BG,
-                border: "1px solid " + BORDER,
-                borderRadius: 14,
-                padding: "13px 15px",
-                marginTop: 12,
-                cursor: "pointer",
-                fontFamily: "inherit",
-                textAlign: "left",
-              }}
-            >
-              <span style={{ flex: 1, fontSize: 12.5, color: TEXT }}>
-                {inten.label} effort · {fmtTime(when)}
-              </span>
-              <span style={{ fontSize: 12, fontWeight: 700, color: MUTED }}>Change</span>
-              <ChevronRight size={15} color={MUTED} />
-            </button>
-
+            <Row label="Effort" value={inten.label} onClick={() => setAdjust("effort")} />
+            <Row label="When" value={fmtTime(when)} onClick={() => setAdjust("time")} />
             <button
               onClick={() => setPicked(null)}
               style={{
@@ -222,102 +201,26 @@ export default function LogExercise() {
         )}
       </div>
 
-      {adjust && (
-        <div
-          onClick={() => setAdjust(false)}
-          style={{
-            position: "absolute", inset: 0, zIndex: 48, background: "rgba(31,38,48,0.42)",
-            display: "flex", alignItems: "flex-end", animation: "scrimIn .24s ease both",
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: "100%", background: BG, borderRadius: "26px 26px 0 0",
-              padding: "10px 0 24px", boxShadow: "0 -12px 40px rgba(31,38,48,0.22)",
-              animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
-            }}
-          >
-            <div style={{ width: 38, height: 4, borderRadius: 2, background: BORDER, margin: "0 auto 16px" }} />
-
-            <div style={{ padding: "0 22px" }}>
-              <Label>HOW HARD WAS IT</Label>
-              <div style={{ display: "flex", gap: 7 }}>
-                {INTENSITIES.map((i) => {
-                  const on = i.id === intensity;
-                  return (
-                    <button
-                      key={i.id}
-                      onClick={() => setIntensity(i.id)}
-                      aria-pressed={on}
-                      style={{
-                        flex: 1,
-                        background: on ? GREEN : BG,
-                        border: "1px solid " + (on ? GREEN : BORDER),
-                        borderRadius: 12,
-                        padding: "11px 0",
-                        fontSize: 12.5,
-                        fontWeight: on ? 700 : 500,
-                        color: on ? "#fff" : TEXT,
-                        cursor: "pointer",
-                        fontFamily: "inherit",
-                      }}
-                    >
-                      {i.label}
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{ fontSize: 11, color: MUTED, marginTop: 9, lineHeight: 1.5 }}>
-                {inten.hint}
-              </div>
-
-              <Label style={{ marginTop: 22 }}>WHEN</Label>
-            </div>
-
-            <div style={{ display: "flex", gap: 8, overflowX: "auto", padding: "0 22px 4px", scrollbarWidth: "none" }}>
-              {timeSlots(NOW).map((t) => {
-                const on = t === when;
-                return (
-                  <button
-                    key={t}
-                    onClick={() => setWhen(t)}
-                    style={{
-                      flexShrink: 0,
-                      background: on ? GREEN : BG,
-                      border: "1px solid " + (on ? GREEN : BORDER),
-                      borderRadius: 12,
-                      padding: "10px 14px",
-                      fontSize: 12.5,
-                      fontWeight: on ? 700 : 500,
-                      color: on ? "#fff" : TEXT,
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    {fmtTime(t)}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div style={{ padding: "18px 22px 0" }}>
-              <button
-                onClick={() => setAdjust(false)}
-                style={{
-                  width: "100%", background: GREEN, border: "none", borderRadius: 14,
-                  padding: "14px 0", color: "#fff", fontSize: 14.5, fontWeight: 700,
-                  cursor: "pointer", fontFamily: "inherit",
-                }}
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
+      {adjust === "effort" && (
+        <Sheet title="How hard was it?" onClose={() => setAdjust(null)} note={inten.hint}>
+          <Wheel
+            items={INTENSITIES.map((i) => ({ v: i.id, label: i.label }))}
+            value={intensity}
+            onChange={setIntensity}
+          />
+        </Sheet>
       )}
+
+      {adjust === "time" && (
+        <Sheet title="When did you do it?" onClose={() => setAdjust(null)}>
+          <Wheel
+            items={timeSlots(NOW).map((t) => ({ v: t, label: fmtTime(t) }))}
+            value={when}
+            onChange={setWhen}
+          />
+        </Sheet>
+      )}
+
     </>
   );
 }
@@ -338,10 +241,92 @@ function Round({ onClick, children, aria }) {
   );
 }
 
-function Label({ children, style }) {
+
+/* One setting, one row. Naming the setting rather than running both values
+   into a sentence is what makes it obvious there are two things here. */
+function Row({ label, value, onClick }) {
   return (
-    <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 0.9, margin: "0 0 10px", ...style }}>
-      {children}
+    <button
+      onClick={onClick}
+      style={{
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
+        background: BG,
+        border: "1px solid " + BORDER,
+        borderRadius: 14,
+        padding: "13px 15px",
+        marginTop: 10,
+        cursor: "pointer",
+        fontFamily: "inherit",
+        textAlign: "left",
+      }}
+    >
+      <span style={{ flex: 1, fontSize: 12.5, color: MUTED }}>{label}</span>
+      <span style={{ fontSize: 12.5, fontWeight: 700, color: TEXT }}>{value}</span>
+      <ChevronRight size={15} color={MUTED} />
+    </button>
+  );
+}
+
+function Sheet({ title, note, onClose, children }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "absolute",
+        inset: 0,
+        zIndex: 48,
+        background: "rgba(31,38,48,0.42)",
+        display: "flex",
+        alignItems: "flex-end",
+        animation: "scrimIn .24s ease both",
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%",
+          background: BG,
+          borderRadius: "26px 26px 0 0",
+          padding: "10px 0 24px",
+          boxShadow: "0 -12px 40px rgba(31,38,48,0.22)",
+          animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
+        }}
+      >
+        <div style={{ width: 38, height: 4, borderRadius: 2, background: BORDER, margin: "0 auto 14px" }} />
+
+        <div style={{ padding: "0 22px 6px", fontSize: 16, fontWeight: 700, color: TEXT }}>{title}</div>
+
+        {children}
+
+        <div style={{ padding: "6px 22px 0", minHeight: 17, fontSize: 11.5, color: MUTED, textAlign: "center" }}>
+          {note}
+        </div>
+
+        <div style={{ padding: "14px 22px 0" }}>
+          <button
+            onClick={onClose}
+            style={{
+              width: "100%",
+              background: GREEN,
+              border: "none",
+              borderRadius: 14,
+              padding: "14px 0",
+              color: "#fff",
+              fontSize: 14.5,
+              fontWeight: 700,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            Done
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
