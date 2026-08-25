@@ -64,6 +64,19 @@ export function WFProvider({ children, initial = {} }) {
   const [nextActions, setNextActions] = useState(
     initial.nextActions !== undefined ? initial.nextActions : ["score", "labs", "bca"]
   );
+  // Which of them are ticked off. They stay on the card struck through, so the
+  // last one is finished against something rather than alone.
+  const [nextDone, setNextDone] = useState(
+    initial.nextDone !== undefined ? initial.nextDone : []
+  );
+  // Set once the card has been let go, so the list clearing does not yank it
+  // out from under the finger that ticked the last box.
+  const [nextGone, setNextGone] = useState(initial.nextGone !== undefined ? initial.nextGone : false);
+  const setNextList = (ids, done = []) => {
+    setNextActions(ids);
+    setNextDone(done);
+    setNextGone(false);
+  };
   // sessionState: "none" | "booked" — second carousel card on paid Home
   const [sessionState, setSessionState] = useState("none");
   // scoreState: MET Score card on Home.
@@ -268,7 +281,16 @@ export function WFProvider({ children, initial = {} }) {
 
   /* The Home rail, in order. The tabs above it are a view of this list, so
      adding a card here is all it takes to add a tab. */
-  const HOME_CARDS = ["program", nextActions.length ? "next" : null, "sessions"].filter(Boolean);
+  const nextOpen = nextActions.filter((id) => !nextDone.includes(id));
+  const nextAllDone = nextActions.length > 0 && nextOpen.length === 0;
+  const showNext = nextActions.length > 0 && !nextGone;
+  // A beat after the last tick, so the strike is seen before the card goes.
+  useEffect(() => {
+    if (!nextAllDone || nextGone) return;
+    const t = setTimeout(() => setNextGone(true), 1100);
+    return () => clearTimeout(t);
+  }, [nextAllDone, nextGone]);
+  const HOME_CARDS = ["program", showNext ? "next" : null, "sessions"].filter(Boolean);
   const cardStep = CARD_W + CARD_GAP;
   // The card the tab is pointing at can stop existing, so fall back rather
   // than leaving no tab lit and the rail out of step.
@@ -698,7 +720,8 @@ export function WFProvider({ children, initial = {} }) {
     chatsOpen, setChatsOpen, openGroups, setOpenGroups,
     flipcoins, isPaid, CARD_W, CARD_GAP, CARD_PAD, CARD_H,
     SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef,
-    nextActions, setNextActions, HOME_CARDS, homeTab,
+    nextActions, nextDone, setNextDone, nextOpen, setNextList,
+    HOME_CARDS, homeTab,
     handleCarouselScroll, isReturning, isDevice, sufficiencyRings, eatDivisions,
     progressTabs, setupTasks, setupDoneCount, metPillars, dailyPillars,
     dailyRepeating, dailyDoneCount, dayFraction, dayComplete, taskFill, taskIsDone,

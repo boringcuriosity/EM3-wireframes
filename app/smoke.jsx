@@ -161,7 +161,7 @@ const MATRIX = [
   ["suff:science",     PillarScienceSheet, { pillarInfo: "eat" }],
   ["suff:science:plan", PillarScienceSheet, { pillarInfo: "eat", kcalSource: "coach", movePlan: "assigned" }],
   ["home:next",        PaidHome,         { homeProgramTab: "next" }],
-  ["home:next:one",    PaidHome,         { homeProgramTab: "next", nextActions: ["bca"] }],
+  ["home:next:tick",   PaidHome,         { homeProgramTab: "next", nextDone: ["score", "labs"] }],
   ["home:next:none",   PaidHome,         { homeProgramTab: "next", nextActions: [] }],
   ["log:foodinfo",     FoodInfoSheet,    { logInfo: "poha" }],
   ["log:foodinfo:hi",  FoodInfoSheet,    { logInfo: "chicken" }],

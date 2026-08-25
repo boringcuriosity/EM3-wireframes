@@ -190,7 +190,7 @@ const FOCUS_PRESETS = [
 const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, nextActions, setNextActions, setHomeProgramTab } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -229,7 +229,7 @@ export default function ControlPanel() {
     score: scoreState,
     measuretasks: measureTasks,
     hero: heroState,
-    nextaction: nextActions.length ? nextActions.length + " left" : "none",
+    nextaction: nextOpen.length ? nextOpen.length + " left" : "none",
     focus: dailyDoneCount + "/4" + (streakDays ? " · d" + streakDays : ""),
     streak: streakState,
   };
@@ -1092,23 +1092,23 @@ export default function ControlPanel() {
           "Next actions card",
           "Home carousel, second card",
           [
-            { id: "all", label: "All three waiting", v: ["score", "labs", "bca"] },
-            { id: "two", label: "Score taken, two left", v: ["labs", "bca"] },
-            { id: "one", label: "Only the BCA left", v: ["bca"] },
-            { id: "none", label: "Nothing pending", v: [] },
+            { id: "all", label: "All three waiting", v: ["score", "labs", "bca"], d: [] },
+            { id: "one", label: "One ticked off", v: ["score", "labs", "bca"], d: ["score"] },
+            { id: "two", label: "Two ticked off", v: ["score", "labs", "bca"], d: ["score", "labs"] },
+            { id: "none", label: "Nothing pending", v: [], d: [] },
           ].map((x) =>
             panelChip(
               x.label,
-              x.v.join() === nextActions.join(),
+              x.v.join() === nextActions.join() && x.d.join() === nextDone.join(),
               () => {
-                setNextActions(x.v);
+                setNextList(x.v, x.d);
                 if (x.v.length) setHomeProgramTab("next");
                 setActiveTab("home");
               }
             )
           ),
           nextActions.length
-            ? "The card is second in the Home rail and the tab wears the count. Each row goes to the screen that does the job."
+            ? "Ticking a row strikes it through. Tick the last one and the card and its tab go, a beat later. The label itself goes to the screen that does the job."
             : "No card and no tab. A tab leading to nothing pending is worse than no tab.",
           true
         )}

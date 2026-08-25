@@ -12,7 +12,7 @@ import CtaArrow from "../components/CtaArrow";
 import NextActionCard from "../components/NextActionCard";
 
 export default function PaidHomePage() {
-  const { setActiveTab, setHomeProgramTab, sessionState, scoreState, setProgramDetail, CARD_W, CARD_GAP, CARD_PAD, CARD_H, SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef, handleCarouselScroll, nextActions, HOME_CARDS, homeTab } = useWF();
+  const { setActiveTab, setHomeProgramTab, sessionState, scoreState, setProgramDetail, CARD_W, CARD_GAP, CARD_PAD, CARD_H, SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef, handleCarouselScroll, nextOpen, HOME_CARDS, homeTab } = useWF();
 
   return (
     (
@@ -44,8 +44,8 @@ export default function PaidHomePage() {
             const badge =
               t.id === "sessions" && sessionState === "booked"
                 ? "1"
-                : t.id === "next" && nextActions.length
-                ? String(nextActions.length)
+                : t.id === "next" && nextOpen.length
+                ? String(nextOpen.length)
                 : null;
             return (
               <button
