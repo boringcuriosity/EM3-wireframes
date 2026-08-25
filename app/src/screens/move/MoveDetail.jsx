@@ -16,7 +16,7 @@ import { GREEN, TEXT, MUTED, BG, BORDER, SH } from "../../tokens";
    routine and what has been logged. Trend and Learn sit behind the pillar's
    own nav, exactly as they do on Eat. */
 export default function MoveDetail() {
-  const { setMoveDetail, moveTab, setMoveTab, exLogs, setLogExOpen, movePlan, isPaid, healthSource } =
+  const { setMoveDetail, moveTab, setMoveTab, exLogs, setLogExOpen, movePlan, healthSource } =
     useWF();
   const mins = dayMinutes(exLogs);
 
@@ -45,28 +45,7 @@ export default function MoveDetail() {
           />
 
           <div style={{ padding: "16px 22px 26px" }}>
-            {movePlan === "assigned" ? (
-              <RoutineList />
-            ) : (
-              <div
-                style={{
-                  background: BG,
-                  border: "1px solid " + BORDER,
-                  borderRadius: 16,
-                  padding: "14px 15px",
-                  boxShadow: SH,
-                  marginBottom: 14,
-                  fontSize: 12.5,
-                  color: MUTED,
-                  lineHeight: 1.55,
-                }}
-              >
-                <span style={{ fontWeight: 700, color: TEXT }}>No routine yet. </span>
-                {isPaid
-                  ? "Your exercise coach wants to see how you already move before writing one. Log whatever you do and it all counts."
-                  : "Log whatever you do and I will start seeing the shape of your week."}
-              </div>
-            )}
+            {movePlan === "assigned" && <RoutineList />}
 
             <div style={{ marginTop: movePlan === "assigned" ? 22 : 0 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, marginBottom: 10 }}>
