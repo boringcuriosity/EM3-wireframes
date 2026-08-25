@@ -1,5 +1,6 @@
 import React from "react";
 import { useWF } from "../../state";
+import ConnectNudge from "../../components/ConnectNudge";
 import { Info, Moon } from "lucide-react";
 import Skel from "../../components/Skel";
 import { SLEEP_GOAL_MIN, fmtDur } from "./tools";
@@ -149,6 +150,7 @@ export default function MindHero() {
         ))}
       </div>
 
+      <ConnectNudge signal="sleep" />
     </div>
   );
 }

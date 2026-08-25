@@ -129,9 +129,6 @@ export default function AddStepsSheet() {
           >
             {(manualSteps === null ? "Add " : "Update to ") + n.toLocaleString() + " steps"}
           </button>
-          <div style={{ fontSize: 11, color: MUTED, textAlign: "center", marginTop: 10 }}>
-            Connect Health Connect and this fills in on its own.
-          </div>
         </div>
       </div>
     </div>

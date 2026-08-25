@@ -1,5 +1,6 @@
 import React from "react";
 import { useWF } from "../../state";
+import ConnectNudge from "../../components/ConnectNudge";
 import { Info, Flame, UserRound, Lock } from "lucide-react";
 import Skel from "../../components/Skel";
 import { dayMinutes, dayBurn } from "./exercises";
@@ -216,6 +217,7 @@ export default function MoveIntroCard() {
           </span>
         </div>
 
+        <ConnectNudge signal="steps" />
       </div>
     </div>
   );

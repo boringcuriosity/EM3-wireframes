@@ -1,5 +1,6 @@
 import React from "react";
 import { useWF } from "../../state";
+import ConnectNudge from "../../components/ConnectNudge";
 import { Info } from "lucide-react";
 import Skel from "../../components/Skel";
 import { dayMinutes, dayBurn, DAILY_GOAL_MIN } from "./exercises";
@@ -163,6 +164,7 @@ export default function MoveHero() {
         })}
       </div>
 
+      <ConnectNudge signal="steps" />
     </div>
   );
 }
