@@ -55,7 +55,14 @@ export function WFProvider({ children, initial = {} }) {
   // plan: "free" | "paid" — paid = enrolled in a Care program
   const [plan, setPlan] = useState(initial.plan !== undefined ? initial.plan : "paid");
   // homeProgramTab: "program" | "sessions" — paid Home carousel
-  const [homeProgramTab, setHomeProgramTab] = useState("program");
+  const [homeProgramTab, setHomeProgramTab] = useState(
+    initial.homeProgramTab !== undefined ? initial.homeProgramTab : "program"
+  );
+  /* Which ask the Next actions card is carrying, or null for nothing pending.
+     One at a time on purpose: a list of six gets none of them done. */
+  const [nextAction, setNextAction] = useState(
+    initial.nextAction !== undefined ? initial.nextAction : "score"
+  );
   // sessionState: "none" | "booked" — second carousel card on paid Home
   const [sessionState, setSessionState] = useState("none");
   // scoreState: MET Score card on Home.
@@ -258,10 +265,15 @@ export function WFProvider({ children, initial = {} }) {
   const carouselLock = useRef(false);
   const carouselTimer = useRef(null);
 
+  /* The Home rail, in order. The tabs above it are a view of this list, so
+     adding a card here is all it takes to add a tab. */
+  const HOME_CARDS = ["program", "next", "sessions"];
+  const cardStep = CARD_W + CARD_GAP;
+
   useEffect(() => {
     const el = carouselRef.current;
     if (!el) return;
-    const target = homeProgramTab === "sessions" ? CARD_W + CARD_GAP : 0;
+    const target = Math.max(0, HOME_CARDS.indexOf(homeProgramTab)) * cardStep;
     if (Math.abs(el.scrollLeft - target) < 4) return;
     carouselLock.current = true;
     clearTimeout(carouselTimer.current);
@@ -277,7 +289,8 @@ export function WFProvider({ children, initial = {} }) {
     const left = e.currentTarget.scrollLeft;
     clearTimeout(carouselTimer.current);
     carouselTimer.current = setTimeout(() => {
-      const next = left > (CARD_W + CARD_GAP) / 2 ? "sessions" : "program";
+      const i = Math.min(HOME_CARDS.length - 1, Math.max(0, Math.round(left / cardStep)));
+      const next = HOME_CARDS[i];
       setHomeProgramTab((prev) => (prev === next ? prev : next));
     }, 130);
   };
@@ -681,6 +694,7 @@ export function WFProvider({ children, initial = {} }) {
     chatsOpen, setChatsOpen, openGroups, setOpenGroups,
     flipcoins, isPaid, CARD_W, CARD_GAP, CARD_PAD, CARD_H,
     SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef,
+    nextAction, setNextAction, HOME_CARDS,
     handleCarouselScroll, isReturning, isDevice, sufficiencyRings, eatDivisions,
     progressTabs, setupTasks, setupDoneCount, metPillars, dailyPillars,
     dailyRepeating, dailyDoneCount, dayFraction, dayComplete, taskFill, taskIsDone,

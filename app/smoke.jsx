@@ -160,6 +160,8 @@ const MATRIX = [
   ["log:timesheet",    TimeSheet,        {}],
   ["suff:science",     PillarScienceSheet, { pillarInfo: "eat" }],
   ["suff:science:plan", PillarScienceSheet, { pillarInfo: "eat", kcalSource: "coach", movePlan: "assigned" }],
+  ["home:next",        PaidHome,         { homeProgramTab: "next" }],
+  ["home:next:none",   PaidHome,         { homeProgramTab: "next", nextAction: null }],
   ["log:foodinfo",     FoodInfoSheet,    { logInfo: "poha" }],
   ["log:foodinfo:hi",  FoodInfoSheet,    { logInfo: "chicken" }],
   ["log:result:first", MealLogged,       { mealsLogged: [{ division: "breakfast", timeMins: 510, items: [{ id: "poha", qty: 1 }, { id: "chai", qty: 2 }] }], logResult: { before: 0, after: 21, meal: { division: "breakfast", timeMins: 510, items: [{ id: "poha", qty: 1 }, { id: "chai", qty: 2 }] }, mealCount: 1 } }],

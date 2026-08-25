@@ -22,7 +22,7 @@ const ALL_DONE = { eat: 3, move: 1, mind: 1, measure: 1 };
 const ALL_GROUPS = [
   "signup", "plan", "welcome", "tour", "move", "hero", "targets",
   "logging", "suff", "streakscreen", "streak", "milestones",
-  "focus", "measuretasks", "score", "sessions", "home", "eat", "measure",
+  "focus", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "measure",
 ];
 
 const SCREEN_GROUPS = {
@@ -35,7 +35,7 @@ const SCREEN_GROUPS = {
   chats: [],
   program: ["welcome"],
   todo: ["hero", "focus", "measuretasks", "streak"],
-  home: ["welcome", "tour", "focus", "measuretasks", "streak"],
+  home: ["welcome", "tour", "nextaction", "focus", "measuretasks", "streak"],
   measure: ["measure"],
   care: [],
   more: [],
@@ -190,7 +190,7 @@ const FOCUS_PRESETS = [
 const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, nextAction, setNextAction, setHomeProgramTab } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -229,6 +229,7 @@ export default function ControlPanel() {
     score: scoreState,
     measuretasks: measureTasks,
     hero: heroState,
+    nextaction: nextAction || "none",
     focus: dailyDoneCount + "/4" + (streakDays ? " · d" + streakDays : ""),
     streak: streakState,
   };
@@ -1083,6 +1084,30 @@ export default function ControlPanel() {
           ),
           (FOCUS_PRESETS.find((v) => v.id === focusPreset) || {}).desc ||
             "A mix the presets do not cover. Tap any preset to land somewhere known.",
+          true
+        )}
+
+        {panelGroup(
+          "nextaction",
+          "Next actions card",
+          "Home carousel, second card",
+          [
+            { id: "score", label: "Take your Metabolic Score" },
+            { id: null, label: "Nothing pending" },
+          ].map((v) =>
+            panelChip(
+              v.label,
+              nextAction === v.id,
+              () => {
+                setNextAction(v.id);
+                setHomeProgramTab("next");
+                setActiveTab("home");
+              }
+            )
+          ),
+          nextAction
+            ? "One ask at a time, with the tab carrying a badge. The card is the second in the Home rail."
+            : "No ask outstanding, so the card says so rather than sitting empty.",
           true
         )}
 

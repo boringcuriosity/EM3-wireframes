@@ -9,9 +9,10 @@ import { GREEN, TEXT, MUTED, BG_ALT, BG, BORDER, SH } from "../tokens";
 import { sectionLabel, coachAvatar } from "../ui";
 import TourTarget from "../components/TourTarget";
 import CtaArrow from "../components/CtaArrow";
+import NextActionCard from "../components/NextActionCard";
 
 export default function PaidHomePage() {
-  const { setActiveTab, homeProgramTab, setHomeProgramTab, sessionState, scoreState, setProgramDetail, CARD_W, CARD_GAP, CARD_PAD, CARD_H, SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef, handleCarouselScroll } = useWF();
+  const { setActiveTab, homeProgramTab, setHomeProgramTab, sessionState, scoreState, setProgramDetail, CARD_W, CARD_GAP, CARD_PAD, CARD_H, SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef, handleCarouselScroll, nextAction, HOME_CARDS } = useWF();
 
   return (
     (
@@ -23,13 +24,27 @@ export default function PaidHomePage() {
 
         {/* Program / Sessions switch — hidden behind SHOW_PROGRAM_TABS */}
         {SHOW_PROGRAM_TABS && (
-        <div style={{ display: "flex", gap: 8, padding: "14px 22px 0" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            overflowX: "auto",
+            scrollbarWidth: "none",
+            padding: "14px 22px 0",
+          }}
+        >
           {[
             { id: "program", label: "Your Program" },
+            { id: "next", label: "Next Action(s)" },
             { id: "sessions", label: "Upcoming Session(s)" },
           ].map((t) => {
             const active = homeProgramTab === t.id;
-            const badge = t.id === "sessions" && sessionState === "booked" ? "1" : null;
+            const badge =
+              t.id === "sessions" && sessionState === "booked"
+                ? "1"
+                : t.id === "next" && nextAction
+                ? "1"
+                : null;
             return (
               <button
                 key={t.id}
@@ -44,10 +59,10 @@ export default function PaidHomePage() {
                   background: active ? BG : BG_ALT,
                   color: active ? GREEN : MUTED,
                   cursor: "pointer",
-                  whiteSpace: "nowrap",
+                  flexShrink: 0,
                 }}
               >
-                {t.label}
+                <span style={{ whiteSpace: "nowrap" }}>{t.label}</span>
                 {badge && (
                   <span
                     style={{
@@ -93,8 +108,12 @@ export default function PaidHomePage() {
             paddingBottom: 20,
           }}
         >
-          {["program", "sessions"].map((card) =>
-            card === "program" ? (
+          {HOME_CARDS.map((card) =>
+            card === "next" ? (
+              <div key="next" style={{ flexShrink: 0, scrollSnapAlign: "start" }}>
+                <NextActionCard />
+              </div>
+            ) : card === "program" ? (
               <TourTarget
                 key="program"
                 id="program"
