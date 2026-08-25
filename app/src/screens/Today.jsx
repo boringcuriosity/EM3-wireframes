@@ -21,8 +21,8 @@ const PLAN_STRIP = {
 };
 
 export default function TrackPage() {
-  const { setEatDetail, setActiveTab, dailyState, dailyPillars, dailyRepeating,
-          dailyDoneCount, dayFraction, dayComplete, streakShown, streakState, setStreakOpen,
+  const { setEatDetail, setActiveTab, dailyPillars, dailyRepeating,
+          dailyDoneCount, dayFraction, dayComplete, streakShown, streakState, setStreakOpen, taskFill,
           flipcoins, setMoveDetail,
           isPaid, kcalSource, movePlan, setPlanInfo, heroState } = useWF();
   // The coach card's only action is "the tasks are down there", so it needs
@@ -142,7 +142,7 @@ export default function TrackPage() {
         )}
 
         {dailyPillars.map((p, i, arr) => {
-          const filled = p.fill[dailyState];
+          const filled = taskFill(p);
           /* Tapping a card here opens the pillar it belongs to. Ticking it
              off in one tap is Home's job; this screen is where the work
              actually happens. Mind has no screen of its own yet, so its card

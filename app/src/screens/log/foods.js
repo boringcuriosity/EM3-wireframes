@@ -132,3 +132,25 @@ export function sufficiency(t, targets) {
   ];
   return Math.round((parts.reduce((a, b) => a + b, 0) / 4) * 100);
 }
+
+/* A day's three main meals, at the times they would really be eaten. Used
+   wherever a demo or a tap needs food to exist rather than a counter to move,
+   so every screen reading mealsLogged agrees with every screen reading the
+   task cards. */
+export const DEMO_DAY = [
+  {
+    division: "breakfast",
+    timeMins: 8 * 60 + 30,
+    items: [{ id: "poha", qty: 1 }, { id: "eggbhurji", qty: 1 }, { id: "chai", qty: 1 }],
+  },
+  {
+    division: "lunch",
+    timeMins: 13 * 60 + 30,
+    items: [{ id: "rice", qty: 2 }, { id: "dal", qty: 1 }, { id: "paneer", qty: 1 }, { id: "curd", qty: 1 }],
+  },
+  {
+    division: "dinner",
+    timeMins: 20 * 60 + 30,
+    items: [{ id: "roti", qty: 3 }, { id: "chicken", qty: 1 }, { id: "rajma", qty: 1 }, { id: "raita", qty: 1 }],
+  },
+];

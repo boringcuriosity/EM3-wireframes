@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from "react";
 import { Home, BarChart3, Utensils, Check, Moon, Droplet, Flame } from "lucide-react";
 import LotusIcon from "./components/LotusIcon";
-import { totals as sumFoods, sufficiency as scoreOf } from "./screens/log/foods";
+import { totals as sumFoods, sufficiency as scoreOf, DEMO_DAY } from "./screens/log/foods";
 import { GOALS, targetsFor } from "./screens/sufficiency/data";
 
 // Snacks are not meals. Only these three count towards unlocking the day.
@@ -452,8 +452,18 @@ export function WFProvider({ children, initial = {} }) {
     (p.pillar || p.id) === "measure" ? planAssigned && shown.includes(p.id) : true
   );
   const dailyRepeating = dailyPillars;
+  // Distinct main meals, so three snacks do not unlock a day's score.
+  const mainMealsDone = new Set(
+    mealsLogged.filter((m) => MAIN_DIVISIONS.includes(m.division)).map((m) => m.division)
+  ).size;
+
+  /* Eat is the one task with a record behind it. Its progress is the meals
+     actually in the day, never a separate counter, so the card, its header and
+     its last-logged line cannot disagree the way they used to. */
   const fillWith = (prog, p) =>
-    Math.min(p.checks, Math.max(p.fill[dailyState], prog[p.id] || 0));
+    p.id === "eat"
+      ? Math.min(p.checks, mainMealsDone)
+      : Math.min(p.checks, Math.max(p.fill[dailyState], prog[p.id] || 0));
   const taskFill = (p) => fillWith(taskProgress, p);
   const taskIsDone = (p) => taskFill(p) >= p.checks;
   const dailyDoneCount = dailyPillars.filter(taskIsDone).length;
@@ -466,12 +476,14 @@ export function WFProvider({ children, initial = {} }) {
   const streakShown = dayComplete ? Math.max(1, streakDays) : streakDays;
 
   /* What the top of To-do shows. Two facts decide it: whether the care plan is
-     in, and how much of today is logged. Nothing else. */
+     in, and how much of today is logged. Both are read from the day itself, so
+     the summary cannot claim an empty day while the Eat card claims a full
+     one. */
   const heroState = !planAssigned
     ? "noplan"
-    : dailyState === "done"
+    : mainMealsDone >= 3
     ? "full"
-    : dailyState === "partial"
+    : mainMealsDone > 0
     ? "partial"
     : "nodata";
   const STREAK_REWARDS = [
@@ -504,8 +516,12 @@ export function WFProvider({ children, initial = {} }) {
   const completeTask = (p) => {
     if (taskIsDone(p)) return;
     const next = taskFill(p) + 1;
-    const prog = { ...taskProgress, [p.id]: next };
-    setTaskProgress(prog);
+    /* Eat keeps no counter of its own, so ticking it off has to put a real
+       meal in the day. Otherwise the card would say three meals while Eat
+       detail showed an empty one. */
+    const prog = p.id === "eat" ? taskProgress : { ...taskProgress, [p.id]: next };
+    if (p.id === "eat") setMealsLogged(mealsLogged.concat(DEMO_DAY[next - 1]));
+    else setTaskProgress(prog);
 
     if (next < p.checks) {
       const thing = p.step || "part";
@@ -516,7 +532,9 @@ export function WFProvider({ children, initial = {} }) {
       return;
     }
 
-    const count = dailyPillars.filter((x) => fillWith(prog, x) >= x.checks).length;
+    const count = dailyPillars.filter((x) =>
+      x.id === p.id ? next >= x.checks : fillWith(prog, x) >= x.checks
+    ).length;
     if (count === dailyPillars.length && dailyDoneCount < dailyPillars.length) {
       setStreakDays(streakDays + 1);
       setStreakState("active");
@@ -627,10 +645,6 @@ export function WFProvider({ children, initial = {} }) {
   const daySteps = 5008;
   // Last night's sleep, the same way: read from the device, not logged.
   const sleepMins = 5 * 60 + 20;
-  // Distinct main meals, so three snacks do not unlock a day's score.
-  const mainMealsDone = new Set(
-    mealsLogged.filter((m) => MAIN_DIVISIONS.includes(m.division)).map((m) => m.division)
-  ).size;
   const liveScore = scoreOf(dayTotals, dailyTargets);
   // The number exists either way. Whether it is legible is the gate.
   const scoreUnlocked = hasTargets && mainMealsDone >= 3;

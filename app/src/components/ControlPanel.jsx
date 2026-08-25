@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useWF } from "../state";
+import { DEMO_DAY } from "../screens/log/foods";
 import { Home } from "lucide-react";
 import { GREEN, TEXT, TABS, SH, SH_MD } from "../tokens";
 import { flame } from "../ui";
@@ -78,38 +79,6 @@ const HERO_STATES = [
   },
 ];
 
-/* A real day's food, sized so three meals actually add up to a good day. The
-   sufficiency score is computed from these, so small demo meals would show a
-   full day scoring in the twenties. */
-const MEALS_UPTO = (n) =>
-  [
-    {
-      division: "breakfast",
-      timeMins: 8 * 60 + 30,
-      items: [{ id: "poha", qty: 1 }, { id: "eggbhurji", qty: 1 }, { id: "chai", qty: 1 }],
-    },
-    {
-      division: "lunch",
-      timeMins: 13 * 60 + 30,
-      items: [
-        { id: "rice", qty: 2 },
-        { id: "dal", qty: 1 },
-        { id: "paneer", qty: 1 },
-        { id: "curd", qty: 1 },
-      ],
-    },
-    {
-      division: "dinner",
-      timeMins: 20 * 60 + 30,
-      items: [
-        { id: "roti", qty: 3 },
-        { id: "chicken", qty: 1 },
-        { id: "rajma", qty: 1 },
-        { id: "raita", qty: 1 },
-      ],
-    },
-  ].slice(0, n);
-
 const SUFF_STATES = [
   {
     id: "await",
@@ -153,14 +122,6 @@ const SUFF_STATES = [
     meals: 3,
     desc: "All three main meals in. The hexagon sharpens and the day has a real score.",
   },
-];
-
-/* Three main meals, as a day would really carry them. Used when a preset says
-   Eat is part way or done, so every screen that reads mealsLogged agrees. */
-const DEMO_MEALS = [
-  { division: "breakfast", timeMins: 8 * 60 + 45, items: [{ id: "poha", qty: 1 }, { id: "chai", qty: 1 }] },
-  { division: "lunch", timeMins: 13 * 60 + 40, items: [{ id: "roti", qty: 2 }, { id: "dal", qty: 1 }, { id: "curd", qty: 1 }] },
-  { division: "dinner", timeMins: 20 * 60 + 30, items: [{ id: "khichdi", qty: 1 }, { id: "salad", qty: 1 }] },
 ];
 
 const DEMO_EXERCISE = [{ id: "walk", minutes: 45, intensity: "moderate", timeMins: 7 * 60 + 15 }];
@@ -868,7 +829,7 @@ export default function ControlPanel() {
                 // The hero and the task cards read the same day, so seed the
                 // food that goes with the state rather than only the summary.
                 setTaskProgress({});
-                setMealsLogged(DEMO_MEALS.slice(0, v.data === "done" ? 3 : v.data === "partial" ? 1 : 0));
+                setMealsLogged(DEMO_DAY.slice(0, v.data === "done" ? 3 : v.data === "partial" ? 1 : 0));
                 setTodayOnboarded(true);
                 setActiveTab("track");
               },
@@ -923,7 +884,7 @@ export default function ControlPanel() {
                 // the target owner it used to have its own switch for.
                 setKcalSource(v.plan ? "coach" : "pending");
                 setMovePlan(v.plan ? "assigned" : null);
-                setMealsLogged(MEALS_UPTO(v.meals));
+                setMealsLogged(DEMO_DAY.slice(0, v.meals));
                 setEatState("ft");
                 setEatDetail(true);
               }
@@ -1106,7 +1067,7 @@ export default function ControlPanel() {
                 // Ticking Eat off has to put food in the day too, or the Eat
                 // card claims meals that Eat detail and the calorie strip know
                 // nothing about.
-                setMealsLogged(DEMO_MEALS.slice(0, v.progress.eat || 0));
+                setMealsLogged(DEMO_DAY.slice(0, v.progress.eat || 0));
                 setExLogs(DEMO_EXERCISE.slice(0, v.progress.move || 0));
                 setStreakDays(v.days);
                 setStreakState(v.days > 0 ? "active" : "new");

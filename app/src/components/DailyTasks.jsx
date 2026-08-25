@@ -5,12 +5,12 @@ import TourTarget from "./TourTarget";
 import PillarTaskCard from "./PillarTaskCard";
 import StreakFlame from "./StreakFlame";
 import StreakWonCard from "./StreakWonCard";
-import { Check } from "lucide-react";
+import { Check, ChevronRight } from "lucide-react";
 import { GREEN, TEXT, MUTED, BG, SH } from "../tokens";
 import { flame } from "../ui";
 
 export default function DailyTasks() {
-  const { dailyState, taskIsDone, streakShown, CARD_W, CARD_GAP, CARD_PAD, program, CARD_TAIL, dailyRepeating, dailyDoneCount, dayFraction, dayComplete, dailyPillars } = useWF();
+  const { dailyState, taskIsDone, streakShown, CARD_W, CARD_GAP, CARD_PAD, program, CARD_TAIL, dailyRepeating, dailyDoneCount, dayFraction, dayComplete, dailyPillars, setActiveTab } = useWF();
 
   return (
     dailyState === "ftux" ? (
@@ -22,11 +22,30 @@ export default function DailyTasks() {
             Today's focus
           </span>
           {/* The count, with the day's flame filling beside it. Same number,
-              two readings: one exact, one you can take in at a glance. */}
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: MUTED }}>
+              two readings: one exact, one you can take in at a glance. The
+              whole thing is the way through to the full list, because the
+              carousel below only shows two cards at a time. */}
+          <button
+            onClick={() => setActiveTab("track")}
+            aria-label="See today's full list"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 11,
+              color: MUTED,
+              background: "none",
+              border: "none",
+              padding: 0,
+              margin: 0,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
             <StreakFlame size={22} fraction={dayFraction} />
             {dailyDoneCount + " of " + dailyRepeating.length}
-          </span>
+            <ChevronRight size={15} color={MUTED} style={{ marginLeft: -1 }} />
+          </button>
         </div>
 
         {dailyState === "done" ? (

@@ -23,6 +23,13 @@ import {
 
 const BAND = 186;
 
+/* The rail runs the full width of the frame rather than sitting inside the
+   page gutter, so a swipe moves edge to edge and the next card shows as a
+   strip rather than being clipped by the padding. Widths are fixed because the
+   frame is: card, then the tail that lets the second one land on the gutter. */
+const HERO_W = 336;
+const HERO_TAIL = 390 - 22 - HERO_W;
+
 const MACROS = {
   partial: [
     { label: "Protein", pct: 24, val: "23/94g", c: GREEN, t: GREEN_TINT },
@@ -78,8 +85,8 @@ export default function TrackHero({ state, onSeeTasks }) {
           overflowX: "auto",
           scrollSnapType: "x mandatory",
           scrollbarWidth: "none",
-          padding: "6px 0 14px",
-          margin: "-6px 0 -6px",
+          padding: "6px " + HERO_TAIL + "px 14px 22px",
+          margin: "-6px -22px",
         }}
       >
         <Card>
@@ -251,8 +258,8 @@ function Card({ children }) {
   return (
     <div
       style={{
-        flex: "0 0 100%",
-        scrollSnapAlign: "center",
+        flex: "0 0 " + HERO_W + "px",
+        scrollSnapAlign: "start",
         display: "flex",
         flexDirection: "column",
         background: BG,
