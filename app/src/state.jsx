@@ -267,13 +267,16 @@ export function WFProvider({ children, initial = {} }) {
 
   /* The Home rail, in order. The tabs above it are a view of this list, so
      adding a card here is all it takes to add a tab. */
-  const HOME_CARDS = ["program", "next", "sessions"];
+  const HOME_CARDS = ["program", nextAction && "next", "sessions"].filter(Boolean);
   const cardStep = CARD_W + CARD_GAP;
+  // The card the tab is pointing at can stop existing, so fall back rather
+  // than leaving no tab lit and the rail out of step.
+  const homeTab = HOME_CARDS.includes(homeProgramTab) ? homeProgramTab : "program";
 
   useEffect(() => {
     const el = carouselRef.current;
     if (!el) return;
-    const target = Math.max(0, HOME_CARDS.indexOf(homeProgramTab)) * cardStep;
+    const target = Math.max(0, HOME_CARDS.indexOf(homeTab)) * cardStep;
     if (Math.abs(el.scrollLeft - target) < 4) return;
     carouselLock.current = true;
     clearTimeout(carouselTimer.current);
@@ -281,7 +284,7 @@ export function WFProvider({ children, initial = {} }) {
     carouselTimer.current = setTimeout(() => {
       carouselLock.current = false;
     }, 500);
-  }, [homeProgramTab, isPaid, activeTab]);
+  }, [homeTab, isPaid, activeTab]);
 
   // Only react once the swipe has settled, so the pill doesn't flicker mid-drag
   const handleCarouselScroll = (e) => {
@@ -694,7 +697,7 @@ export function WFProvider({ children, initial = {} }) {
     chatsOpen, setChatsOpen, openGroups, setOpenGroups,
     flipcoins, isPaid, CARD_W, CARD_GAP, CARD_PAD, CARD_H,
     SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef,
-    nextAction, setNextAction, HOME_CARDS,
+    nextAction, setNextAction, HOME_CARDS, homeTab,
     handleCarouselScroll, isReturning, isDevice, sufficiencyRings, eatDivisions,
     progressTabs, setupTasks, setupDoneCount, metPillars, dailyPillars,
     dailyRepeating, dailyDoneCount, dayFraction, dayComplete, taskFill, taskIsDone,

@@ -12,7 +12,7 @@ import CtaArrow from "../components/CtaArrow";
 import NextActionCard from "../components/NextActionCard";
 
 export default function PaidHomePage() {
-  const { setActiveTab, homeProgramTab, setHomeProgramTab, sessionState, scoreState, setProgramDetail, CARD_W, CARD_GAP, CARD_PAD, CARD_H, SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef, handleCarouselScroll, nextAction, HOME_CARDS } = useWF();
+  const { setActiveTab, setHomeProgramTab, sessionState, scoreState, setProgramDetail, CARD_W, CARD_GAP, CARD_PAD, CARD_H, SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef, handleCarouselScroll, nextAction, HOME_CARDS, homeTab } = useWF();
 
   return (
     (
@@ -37,8 +37,10 @@ export default function PaidHomePage() {
             { id: "program", label: "Your Program" },
             { id: "next", label: "Next Action(s)" },
             { id: "sessions", label: "Upcoming Session(s)" },
-          ].map((t) => {
-            const active = homeProgramTab === t.id;
+          ]
+            .filter((t) => HOME_CARDS.includes(t.id))
+            .map((t) => {
+              const active = homeTab === t.id;
             const badge =
               t.id === "sessions" && sessionState === "booked"
                 ? "1"
@@ -85,9 +87,9 @@ export default function PaidHomePage() {
                     {badge}
                   </span>
                 )}
-              </button>
-            );
-          })}
+                </button>
+              );
+            })}
         </div>
         )}
 
