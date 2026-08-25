@@ -1,154 +1,115 @@
 import React from "react";
 import { useWF } from "../state";
-import { BarChart3 } from "lucide-react";
-import CtaArrow from "./CtaArrow";
+import { BarChart3, FlaskConical, Bluetooth, ChevronRight } from "lucide-react";
 import {
-  GREEN, GREEN_DEEP, GREEN_TINT, TEXT, MUTED, BG,
-  GOLD, GOLD_DEEP, GOLD_TINT, GOLD_LINE,
+  TEXT, MUTED, BG, GOLD, GOLD_DEEP, GOLD_TINT, GOLD_LINE, LINE,
 } from "../tokens";
 
-/* The one thing worth doing next, on Home beside the program card.
+/* The things waiting on the person, on Home beside the program card.
 
-   It is deliberately not a checklist. A person with six things pending will do
-   none of them, so this card holds exactly one ask at a time and the tab
-   badge says how many are waiting behind it. */
+   A short list rather than one hero ask: these are all setup jobs of the same
+   size, and seeing that there are three of them is the point. Capped at three,
+   because a card that scrolls is a screen pretending to be a card. */
 
-const NEXT_ACTIONS = {
-  score: {
-    Icon: BarChart3,
-    eyebrow: "Start here",
-    title: "Take your Metabolic Score",
-    line: "A few questions about your body and your day. It gives your coaches a starting point, and gives you a number you can watch move.",
-    cta: "Take the score",
-  },
+const CATALOGUE = {
+  score: { Icon: BarChart3, label: "Take your Metabolic Score", tab: "med" },
+  labs: { Icon: FlaskConical, label: "Book your lab tests", tab: "care" },
+  bca: { Icon: Bluetooth, label: "Connect your BCA device", tab: "med" },
 };
 
 export default function NextActionCard() {
-  const { CARD_W, CARD_H, nextAction, setActiveTab } = useWF();
-  const a = NEXT_ACTIONS[nextAction];
-
-  const shell = {
-    width: CARD_W,
-    height: CARD_H,
-    boxSizing: "border-box",
-    borderRadius: 18,
-    overflow: "hidden",
-    position: "relative",
-    display: "flex",
-    flexDirection: "column",
-  };
-
-  // Nothing pending. The tab still exists, so it has to say so rather than
-  // showing an empty rectangle.
-  if (!a) {
-    return (
-      <div
-        style={{
-          ...shell,
-          background: GREEN_TINT,
-          border: "1px solid " + BG,
-          padding: "16px 16px",
-          justifyContent: "center",
-        }}
-      >
-        <div style={{ fontSize: 14, fontWeight: 700, color: GREEN_DEEP }}>Nothing pending</div>
-        <div style={{ fontSize: 11.5, color: MUTED, marginTop: 4, lineHeight: 1.45 }}>
-          You are all caught up. Anything your coaches need from you will show up here.
-        </div>
-      </div>
-    );
-  }
+  const { CARD_W, CARD_H, nextActions, setActiveTab } = useWF();
+  const items = nextActions.map((id) => CATALOGUE[id]).filter(Boolean).slice(0, 3);
+  if (!items.length) return null;
 
   return (
     <div
       style={{
-        ...shell,
-        background: "linear-gradient(135deg, " + GOLD_TINT + " 0%, " + BG + " 72%)",
+        width: CARD_W,
+        height: CARD_H,
+        boxSizing: "border-box",
+        borderRadius: 18,
+        position: "relative",
+        overflow: "hidden",
+        background: "linear-gradient(135deg, " + GOLD_TINT + " 0%, " + BG + " 68%)",
         border: "1px solid " + GOLD_LINE,
-        padding: "13px 15px 14px",
+        padding: "14px 14px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        gap: 8,
       }}
     >
-      {/* A quiet hexagon field in the corner, the app's own motif rather than
-          a stock pattern. It gives the card weight without competing. */}
+      {/* The app's own motif, kept faint. It gives the card a warmth the two
+          white ones beside it do not have, without competing with the rows. */}
       <span
         aria-hidden
         style={{
           position: "absolute",
-          right: -26,
-          bottom: -34,
-          width: 132,
-          height: 144,
-          background: GOLD,
-          opacity: 0.13,
-          clipPath: "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
-        }}
-      />
-      <span
-        aria-hidden
-        style={{
-          position: "absolute",
-          right: 42,
-          bottom: -18,
-          width: 62,
-          height: 68,
+          right: -30,
+          bottom: -38,
+          width: 126,
+          height: 138,
           background: GOLD,
           opacity: 0.1,
           clipPath: "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
         }}
       />
 
-      <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 6 }}>
-        <a.Icon size={12} color={GOLD_DEEP} strokeWidth={2.4} />
-        <span
+      {items.map((x, i) => (
+        <button
+          key={x.label}
+          onClick={() => setActiveTab(x.tab)}
           style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: 9,
-            fontWeight: 600,
-            letterSpacing: 1,
-            textTransform: "uppercase",
-            color: GOLD_DEEP,
+            position: "relative",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            width: "100%",
+            height: 28,
+            padding: 0,
+            background: "none",
+            border: "none",
+            borderTop: i === 0 ? "none" : "1px solid " + LINE,
+            paddingTop: i === 0 ? 0 : 8,
+            marginTop: i === 0 ? 0 : -1,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            textAlign: "left",
           }}
         >
-          {a.eyebrow}
-        </span>
-      </div>
-
-      <div
-        style={{
-          position: "relative",
-          fontSize: 14.5,
-          fontWeight: 700,
-          color: TEXT,
-          lineHeight: 1.25,
-          marginTop: 6,
-        }}
-      >
-        {a.title}
-      </div>
-
-      <button
-        onClick={() => setActiveTab("med")}
-        style={{
-          position: "relative",
-          marginTop: "auto",
-          alignSelf: "flex-start",
-          display: "flex",
-          alignItems: "center",
-          fontSize: 11.5,
-          fontWeight: 700,
-          padding: "6px 13px",
-          borderRadius: 999,
-          border: "none",
-          background: GREEN,
-          color: "#fff",
-          cursor: "pointer",
-          fontFamily: "inherit",
-          boxShadow: "0 2px 0 " + GREEN_DEEP,
-        }}
-      >
-        {a.cta}
-        <CtaArrow size={13} />
-      </button>
+          <span
+            style={{
+              width: 22,
+              height: 22,
+              borderRadius: 7,
+              flexShrink: 0,
+              background: GOLD_TINT,
+              border: "1px solid " + GOLD_LINE,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <x.Icon size={12} color={GOLD_DEEP} strokeWidth={2.2} />
+          </span>
+          <span
+            style={{
+              flex: 1,
+              minWidth: 0,
+              fontSize: 12.5,
+              fontWeight: 600,
+              color: TEXT,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {x.label}
+          </span>
+          <ChevronRight size={15} color={MUTED} style={{ flexShrink: 0 }} />
+        </button>
+      ))}
     </div>
   );
 }

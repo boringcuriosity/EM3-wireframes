@@ -190,7 +190,7 @@ const FOCUS_PRESETS = [
 const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, nextAction, setNextAction, setHomeProgramTab } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, nextActions, setNextActions, setHomeProgramTab } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -229,7 +229,7 @@ export default function ControlPanel() {
     score: scoreState,
     measuretasks: measureTasks,
     hero: heroState,
-    nextaction: nextAction || "none",
+    nextaction: nextActions.length ? nextActions.length + " left" : "none",
     focus: dailyDoneCount + "/4" + (streakDays ? " · d" + streakDays : ""),
     streak: streakState,
   };
@@ -1092,22 +1092,24 @@ export default function ControlPanel() {
           "Next actions card",
           "Home carousel, second card",
           [
-            { id: "score", label: "Take your Metabolic Score" },
-            { id: null, label: "Nothing pending" },
-          ].map((v) =>
+            { id: "all", label: "All three waiting", v: ["score", "labs", "bca"] },
+            { id: "two", label: "Score taken, two left", v: ["labs", "bca"] },
+            { id: "one", label: "Only the BCA left", v: ["bca"] },
+            { id: "none", label: "Nothing pending", v: [] },
+          ].map((x) =>
             panelChip(
-              v.label,
-              nextAction === v.id,
+              x.label,
+              x.v.join() === nextActions.join(),
               () => {
-                setNextAction(v.id);
-                setHomeProgramTab("next");
+                setNextActions(x.v);
+                if (x.v.length) setHomeProgramTab("next");
                 setActiveTab("home");
               }
             )
           ),
-          nextAction
-            ? "One ask at a time, with the tab carrying a badge. The card is the second in the Home rail."
-            : "No ask outstanding, so the card says so rather than sitting empty.",
+          nextActions.length
+            ? "The card is second in the Home rail and the tab wears the count. Each row goes to the screen that does the job."
+            : "No card and no tab. A tab leading to nothing pending is worse than no tab.",
           true
         )}
 

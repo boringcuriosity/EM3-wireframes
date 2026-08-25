@@ -58,10 +58,11 @@ export function WFProvider({ children, initial = {} }) {
   const [homeProgramTab, setHomeProgramTab] = useState(
     initial.homeProgramTab !== undefined ? initial.homeProgramTab : "program"
   );
-  /* Which ask the Next actions card is carrying, or null for nothing pending.
-     One at a time on purpose: a list of six gets none of them done. */
-  const [nextAction, setNextAction] = useState(
-    initial.nextAction !== undefined ? initial.nextAction : "score"
+  /* What the Next actions card is carrying. An empty list means the card and
+     its tab are not there at all. Three at most: a card that scrolls is a
+     screen pretending to be a card. */
+  const [nextActions, setNextActions] = useState(
+    initial.nextActions !== undefined ? initial.nextActions : ["score", "labs", "bca"]
   );
   // sessionState: "none" | "booked" — second carousel card on paid Home
   const [sessionState, setSessionState] = useState("none");
@@ -267,7 +268,7 @@ export function WFProvider({ children, initial = {} }) {
 
   /* The Home rail, in order. The tabs above it are a view of this list, so
      adding a card here is all it takes to add a tab. */
-  const HOME_CARDS = ["program", nextAction && "next", "sessions"].filter(Boolean);
+  const HOME_CARDS = ["program", nextActions.length ? "next" : null, "sessions"].filter(Boolean);
   const cardStep = CARD_W + CARD_GAP;
   // The card the tab is pointing at can stop existing, so fall back rather
   // than leaving no tab lit and the rail out of step.
@@ -697,7 +698,7 @@ export function WFProvider({ children, initial = {} }) {
     chatsOpen, setChatsOpen, openGroups, setOpenGroups,
     flipcoins, isPaid, CARD_W, CARD_GAP, CARD_PAD, CARD_H,
     SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef,
-    nextAction, setNextAction, HOME_CARDS, homeTab,
+    nextActions, setNextActions, HOME_CARDS, homeTab,
     handleCarouselScroll, isReturning, isDevice, sufficiencyRings, eatDivisions,
     progressTabs, setupTasks, setupDoneCount, metPillars, dailyPillars,
     dailyRepeating, dailyDoneCount, dayFraction, dayComplete, taskFill, taskIsDone,
