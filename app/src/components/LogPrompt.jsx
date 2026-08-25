@@ -6,8 +6,10 @@ import { GREEN, GREEN_DEEP, INDIGO, MIND_C, TEXT, BG } from "../tokens";
    that makes you choose first. The gradient edge is the only one in the app,
    which is what makes it the thing you look at on the screen.
 
-   `actions` is one or two buttons. The first is filled, the rest outlined, so
-   there is never a question about which one is the ordinary way in. */
+   `actions` is none, one or two buttons. The first is filled, the rest
+   outlined, so there is never a question about which one is the ordinary way
+   in. With none it is just Kaira saying something, which is right where the
+   things to do are already listed underneath. */
 export default function LogPrompt({ line, actions, lit }) {
   return (
     <div style={{ padding: "12px 22px 0" }}>
@@ -36,6 +38,7 @@ export default function LogPrompt({ line, actions, lit }) {
             </div>
           </div>
 
+          {actions && actions.length > 0 && (
           <div style={{ display: "flex", gap: 9, marginTop: 13 }}>
             {actions.map((a, i) => {
               const filled = i === 0;
@@ -67,6 +70,7 @@ export default function LogPrompt({ line, actions, lit }) {
               );
             })}
           </div>
+          )}
         </div>
       </div>
     </div>

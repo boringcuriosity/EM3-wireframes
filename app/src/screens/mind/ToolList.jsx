@@ -12,15 +12,16 @@ import { MIND_C, MIND_T, TEXT, MUTED, RULE, BG, BORDER, SH } from "../../tokens"
 export default function ToolList() {
   const { mindDone, setMindTool } = useWF();
 
-  const picked = MIND_TOOLS.filter((t) => t.coach);
+  const picked = MIND_TOOLS.find((t) => t.coach);
 
   return (
     <div>
-      {picked.length > 0 && (
+      {picked && (
         <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
           <Sparkles size={13} color={MIND_C} strokeWidth={2.2} />
           <span style={{ fontSize: 11.5, color: MUTED }}>
-            <strong style={{ color: TEXT }}>{picked.length} picked for you</strong> by your coach
+            Your coach picked <strong style={{ color: TEXT }}>{picked.label.toLowerCase()}</strong> for
+            you today
           </span>
         </div>
       )}
@@ -90,7 +91,7 @@ export default function ToolList() {
                       padding: "2px 7px",
                     }}
                   >
-                    Your coach
+                    Today\u2019s pick
                   </span>
                 )}
               </span>

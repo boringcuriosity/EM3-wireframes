@@ -174,6 +174,7 @@ const MATRIX = [
   ["gate:steps",       (p) => <HealthGate signal="steps" {...p} />, {}],
   ["gate:sleep",       (p) => <HealthGate signal="sleep" {...p} />, {}],
   ["mind:today",       MindDetail,       { mindDetail: true, healthSource: { steps: null, sleep: "manual" } }],
+  ["mind:phone",       MindDetail,       { mindDetail: true, healthSource: { steps: null, sleep: "phone" } }],
   ["mind:slept",       MindDetail,       { mindDetail: true, healthSource: { steps: null, sleep: "phone" } }],
   ["mind:trend",       MindDetail,       { mindDetail: true, mindTab: "trend", healthSource: { steps: null, sleep: "manual" } }],
   ["mind:learn",       MindDetail,       { mindDetail: true, mindTab: "learn", healthSource: { steps: null, sleep: "manual" } }],

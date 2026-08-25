@@ -2,8 +2,9 @@
    exercise, an affirmation, and somewhere to write. Kept as data so the copy
    can change without touching layout, the same way the pillar science is.
 
-   `coach` marks the ones a coach has picked for this person, which is the one
-   thing that makes a toolbox feel like care rather than a menu. */
+   `coach` marks the one a coach has picked for today. One, not several: four
+   tools with two highlighted is still a menu, and a single recommendation is
+   the thing that makes it feel like care. */
 
 export const MOODS = [
   { id: "happy", label: "Happy", e: "🙂" },
@@ -34,7 +35,6 @@ export const MIND_TOOLS = [
     label: "Mood check-in",
     line: "How are you feeling right now?",
     minutes: 0,
-    coach: true,
   },
   {
     id: "breathing",

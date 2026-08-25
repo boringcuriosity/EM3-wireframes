@@ -190,8 +190,11 @@ const FOCUS_PRESETS = [
 // Which dailyState a preset wants. Presets without one land on a clean day.
 const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 
+// Which source each Mind preset stands for.
+const SLEEP_SRC = { gate: null, syncing: "phone", phone: "phone", manualnone: "manual", manual: "manual", tools: "manual" };
+
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, setMindDone, setMindMood, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindMood, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -238,6 +241,8 @@ export default function ControlPanel() {
 
   const liveGroup = moveDetail || logExOpen
     ? "move"
+    : mindDetail || logSleepOpen
+    ? "mind"
     : logOpen || logResult
     ? "logging"
     : suffFlow
@@ -264,6 +269,8 @@ export default function ControlPanel() {
 
   const screenKey = moveDetail || logExOpen
     ? "move"
+    : mindDetail || logSleepOpen
+    ? "mind"
     : logOpen || logResult
     ? "logging"
     : suffFlow
@@ -296,8 +303,12 @@ export default function ControlPanel() {
 
   const nowShowing = logExOpen
     ? "Move · Log exercise"
+    : logSleepOpen
+    ? "Mind · Log sleep"
     : moveDetail
-    ? "Move · " + ({ routine: "Daily routine", logged: "Exercises", videos: "Videos" }[moveTab] || moveTab)
+    ? "Move · " + ({ today: "Today", trend: "Trend", learn: "Learn" }[moveTab] || moveTab)
+    : mindDetail
+    ? "Mind · " + ({ today: "Today", trend: "Trend", learn: "Learn" }[mindTab] || mindTab)
     : logResult
     ? "Log · Meal logged"
     : logOpen
@@ -1105,50 +1116,38 @@ export default function ControlPanel() {
           "Mind",
           "from the To-do Mind card",
           [
-            { id: "off", label: "Closed" },
-            { id: "nosleep", label: "First open, source not picked" },
+            { id: "gate", label: "Health Connect permission" },
+            { id: "syncing", label: "Allowed, syncing" },
+            { id: "phone", label: "Sleep in from Health Connect" },
+            { id: "manualnone", label: "Logging by hand, no night yet" },
             { id: "manual", label: "One night logged by hand" },
-            { id: "syncing", label: "Health Connect syncing" },
-            { id: "phone", label: "Health Connect connected" },
             { id: "tools", label: "Two tools done" },
-            { id: "trend", label: "Trend tab" },
-            { id: "log", label: "Log sleep screen" },
           ].map((v) =>
             panelChip(
               v.label,
-              v.id === "off" ? !mindDetail && !logSleepOpen : v.id === "log" ? logSleepOpen : false,
+              mindDetail &&
+                !logSleepOpen &&
+                mindTab === "today" &&
+                healthSource.sleep === SLEEP_SRC[v.id] &&
+                healthSync === (v.id === "syncing" ? "sleep" : null) &&
+                (v.id !== "manual") === (sleepLogs.length === 0) &&
+                (v.id === "tools") === (mindDone.length > 0),
               () => {
-                setLogSleepOpen(v.id === "log");
-                setMindDetail(v.id !== "off" && v.id !== "log");
-                setMindTab(v.id === "trend" ? "trend" : "today");
-                setHealthSource({
-                  ...healthSource,
-                  sleep:
-                    v.id === "nosleep"
-                      ? null
-                      : v.id === "phone" || v.id === "syncing"
-                      ? "phone"
-                      : v.id === "manual"
-                      ? "manual"
-                      : healthSource.sleep || "manual",
-                });
+                setLogSleepOpen(false);
+                setMindDetail(true);
+                setActiveTab("track");
+                setMindTab("today");
+                setHealthSource({ ...healthSource, sleep: SLEEP_SRC[v.id] });
                 setHealthSync(v.id === "syncing" ? "sleep" : null);
-                if (v.id === "nosleep") {
-                  setSleepLogs([]);
-                  setMindDone([]);
-                } else if (v.id === "manual") {
-                  setSleepLogs([{ bed: 23 * 60 + 40, wake: 6 * 60 + 30 }]);
-                } else if (v.id === "phone" || v.id === "syncing") {
-                  setSleepLogs([]);
-                } else if (v.id === "tools") {
-                  setMindDone(["mood", "breathing"]);
-                  setMindMood("Calm");
-                }
-                if (v.id === "off") setActiveTab("track");
+                setSleepLogs(v.id === "manual" ? [{ bed: 23 * 60 + 40, wake: 6 * 60 + 30 }] : []);
+                setMindDone(v.id === "tools" ? ["mood", "breathing"] : []);
+                setMindMood(v.id === "tools" ? "Calm" : null);
               }
             )
           ),
-          "Sleep is the hero, the tools are the record. Two of them are marked as picked by the coach.",
+          healthSource.sleep === "manual"
+            ? "Sleep is entered by hand, so the ring is the way in. Connected, it is a reading and the ring is not a button."
+            : "Sleep arrives on its own, so there is nothing to log here. The tools below are the day's work.",
           true
         )}
 
