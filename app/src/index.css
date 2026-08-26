@@ -36,3 +36,14 @@ body { margin: 0; font-family: Roboto, system-ui, sans-serif; }
 /* Waiting on data that is on its way. A sweep rather than a spinner, because
    the shape of what is coming is already known. */
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* A task going done. The line draws itself through the title left to right,
+   then a handful of pieces fly out of the circle and fade. Both are short
+   enough to read as a reaction rather than an interruption, because on a
+   thirteen row day this fires thirteen times. */
+@keyframes strikeIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes confettiOut {
+  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.4); }
+}
+@keyframes rowSettle { 0% { transform: translateX(0); } 35% { transform: translateX(3px); } 100% { transform: translateX(0); } }

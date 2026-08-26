@@ -35,7 +35,7 @@ const SCREEN_GROUPS = {
   eat: ["eat", "targets", "logging"],
   chats: [],
   program: ["welcome"],
-  todo: ["hero", "focus", "measuretasks", "streak"],
+  todo: ["nextaction", "hero", "focus", "measuretasks", "streak"],
   home: ["welcome", "tour", "nextaction", "focus", "measuretasks", "streak"],
   measure: ["measure"],
   care: [],
@@ -295,7 +295,17 @@ export default function ControlPanel() {
     ? "more"
     : "home";
 
-  const onScreen = SCREEN_GROUPS[screenKey] || [];
+  /* To-do is two different screens depending on the care plan, so the rail is
+     too. Without a plan the top is the Start here cards and there is no hero
+     and no device sync to vary; with one, the reverse. The Care plan toggle at
+     the head of the panel is how you cross between them. */
+  const onScreen = (SCREEN_GROUPS[screenKey] || []).filter((g) =>
+    screenKey !== "todo"
+      ? true
+      : planAssigned
+      ? g !== "nextaction"
+      : g !== "hero" && g !== "measuretasks"
+  );
 
   // Is anything open right now, the live group included. Same rule the group
   // headers use, so the label always matches what is on screen.
@@ -1080,7 +1090,7 @@ export default function ControlPanel() {
         {panelGroup(
           "focus",
           "Today's focus",
-          "Home row + To-do stack",
+          "Home row + To-do list",
           FOCUS_PRESETS.map((v) =>
             panelChip(
               v.label,
@@ -1160,8 +1170,8 @@ export default function ControlPanel() {
 
         {panelGroup(
           "nextaction",
-          "Next actions card",
-          "Home carousel, second card",
+          screenKey === "todo" ? "Start here cards" : "Next actions card",
+          screenKey === "todo" ? "To-do, above the list" : "Home carousel, second card",
           [
             { id: "all", label: "All three waiting", v: ["score", "labs", "bca"], d: [] },
             { id: "one", label: "One ticked off", v: ["score", "labs", "bca"], d: ["score"] },
@@ -1174,12 +1184,16 @@ export default function ControlPanel() {
               () => {
                 setNextList(x.v, x.d);
                 if (x.v.length) setHomeProgramTab("next");
-                setActiveTab("home");
+                // The same list is read in two places. Stay on whichever one
+                // is in front of you rather than being thrown to the other.
+                if (activeTab !== "track") setActiveTab("home");
               }
             )
           ),
           nextActions.length
-            ? "Ticking a row strikes it through. Tick the last one and the card and its tab go, a beat later. The label itself goes to the screen that does the job."
+            ? screenKey === "todo"
+              ? "One card each, above the list, with the reason it matters. The same list Home shows as a checklist, so ticking one anywhere clears it in both."
+              : "Ticking a row strikes it through. Tick the last one and the card and its tab go, a beat later. The label itself goes to the screen that does the job."
             : "No card and no tab. A tab leading to nothing pending is worse than no tab.",
           true
         )}

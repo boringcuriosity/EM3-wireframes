@@ -7,6 +7,7 @@ import Em3Strip from "../components/Em3Strip";
 import WeekStrip from "../components/WeekStrip";
 import StreakWonCard from "../components/StreakWonCard";
 import PlanStrip from "../components/PlanStrip";
+import PrereqRail from "../components/PrereqRail";
 import TrackHero from "../components/TrackHero";
 import { GREEN, TEXT, MUTED, BG, BORDER, GOLD, GOLD_TINT, GOLD_LINE, GOLD_DEEP, GREEN_DEEP } from "../tokens";
 import CtaArrow from "../components/CtaArrow";
@@ -15,7 +16,7 @@ import Em3Explainer from "../components/Em3Explainer";
 export default function TrackPage() {
   const { dayRows, dayPhases, dayRowsDone, dayComplete, streakShown, streakState,
           dayFraction, setStreakOpen, flipcoins,
-          isPaid, kcalSource, movePlan, planAssigned, setPlanInfo, heroState } = useWF();
+          kcalSource, movePlan, setPlanInfo, heroState } = useWF();
   // Which phases the person has opened or closed by hand. Anything they have
   // not touched follows the day: open until it is finished.
   const [openPhase, setOpenPhase] = useState({});
@@ -108,23 +109,28 @@ export default function TrackPage() {
           </button>
         </div>
 
-        <TrackHero
-          state={heroState}
-          onSeeTasks={() => focusRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-        />
-
-        {/* One line, and only while the wait is real. Two strips saying the
-            same thing twice is the plan being late twice. */}
-        {isPaid && !planAssigned && (
-          <PlanStrip
-            label={
-              kcalSource !== "coach" && !movePlan
-                ? "Your diet and exercise plans are yet to be assigned"
-                : kcalSource !== "coach"
-                ? "Your diet plan is yet to be assigned"
-                : "Your exercise plan is yet to be assigned"
-            }
-            onInfo={() => setPlanInfo(kcalSource !== "coach" ? "eat" : "move")}
+        {/* Before a plan exists the screen has two jobs: get the
+            prerequisites done, and explain why the list below has no plan
+            behind it. A summary of a day nobody has planned is neither. */}
+        {heroState === "noplan" ? (
+          <>
+            <PrereqRail />
+            <PlanStrip
+              label={
+                kcalSource !== "coach" && !movePlan
+                  ? "Your diet and exercise plans are not assigned yet."
+                  : kcalSource !== "coach"
+                  ? "Your diet plan is not assigned yet."
+                  : "Your exercise plan is not assigned yet."
+              }
+              line="Do the tasks below so your coach can see how your days really go before writing one."
+              onInfo={() => setPlanInfo(kcalSource !== "coach" ? "eat" : "move")}
+            />
+          </>
+        ) : (
+          <TrackHero
+            state={heroState}
+            onSeeTasks={() => focusRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
           />
         )}
 
@@ -142,9 +148,12 @@ export default function TrackPage() {
           }}
         >
           <span style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1 }}>
-            YOUR DAY
+            TODAY'S FOCUS
           </span>
-          <span style={{ fontSize: 11, color: MUTED }}>
+          {/* The count, and the same count as something you can take in
+              without reading. One number, two readings. */}
+          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: MUTED }}>
+            <StreakFlame size={22} fraction={dayRows.length ? dayRowsDone / dayRows.length : 0} />
             {dayRowsDone} of {dayRows.length} done
           </span>
         </div>

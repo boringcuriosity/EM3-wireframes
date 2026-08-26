@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useWF } from "../state";
 import { Check, ChevronRight, Plus } from "lucide-react";
 import Skel from "./Skel";
+import Confetti from "./Confetti";
 import { PILLAR, TEXT, MUTED, FAINT, LINE, BG } from "../tokens";
 
 const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure" };
@@ -17,6 +18,21 @@ const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure"
 export default function DayRow({ row: r, last, compact }) {
   const { openRow } = useWF();
   const c = PILLAR[r.pillar].c;
+
+  /* The moment a row goes done, once. Rows that send you off to another screen
+     come back already ticked, so this fires on the way back in, which is
+     exactly when the person is looking for the reward. */
+  const wasDone = useRef(r.done);
+  const [burst, setBurst] = useState(false);
+  useEffect(() => {
+    if (r.done && !wasDone.current) {
+      wasDone.current = true;
+      setBurst(true);
+      const t = setTimeout(() => setBurst(false), 800);
+      return () => clearTimeout(t);
+    }
+    wasDone.current = r.done;
+  }, [r.done]);
   const bar = r.kind === "target";
   const pct = bar && r.now ? Math.min(100, Math.round((r.now / r.goal) * 100)) : 0;
 
@@ -50,10 +66,12 @@ export default function DayRow({ row: r, last, compact }) {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          position: "relative",
           transition: "background .18s ease",
         }}
       >
         {r.done && <Check size={12} color="#fff" strokeWidth={3.2} />}
+        {burst && <Confetti pillar={r.pillar} />}
       </span>
 
       <span style={{ flex: 1, minWidth: 0 }}>
@@ -66,7 +84,26 @@ export default function DayRow({ row: r, last, compact }) {
             lineHeight: 1.35,
           }}
         >
-          {r.title}
+          <span style={{ position: "relative", display: "inline-block" }}>
+            {r.title}
+            {r.done && (
+              <span
+                aria-hidden
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  top: "54%",
+                  height: 1.5,
+                  borderRadius: 1,
+                  background: MUTED,
+                  transformOrigin: "left center",
+                  transform: burst ? undefined : "scaleX(1)",
+                  animation: burst ? "strikeIn .34s cubic-bezier(.4,0,.2,1) forwards" : undefined,
+                }}
+              />
+            )}
+          </span>
         </span>
 
         {r.tip && !r.done && !compact && (

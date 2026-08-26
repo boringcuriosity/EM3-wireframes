@@ -1,59 +1,49 @@
 import React from "react";
 import { Clock, Info } from "lucide-react";
-import { MUTED, TEXT } from "../tokens";
+import { TEXT, MUTED, BG, BORDER, SH_SM } from "../tokens";
 
-/* One quiet line about what has not arrived yet. It only ever says one thing,
-   that the plan is not here, so it disappears rather than flipping to a done
-   state. */
-export default function PlanStrip({ label, onInfo }) {
+/* Why there is a list below but no plan behind it.
+
+   Two lines and no more: this is context for the tasks, not a task of its own,
+   so it stays shorter than anything it sits above. It only ever says one
+   thing, that the plan has not arrived, so it disappears rather than flipping
+   to a done state. */
+export default function PlanStrip({ label, line, onInfo }) {
   return (
     <div
       style={{
-        position: "relative",
-        zIndex: 0,
-        marginTop: 12,
-        paddingTop: 9,
-        paddingBottom: 9,
-        paddingLeft: 15,
-        paddingRight: 13,
-        borderRadius: 16,
-        background: "#F2F4F7",
-        border: "1px solid #E4E7EC",
         display: "flex",
-        alignItems: "center",
-        gap: 7,
+        alignItems: "flex-start",
+        gap: 10,
+        background: BG,
+        border: "1px solid " + BORDER,
+        borderRadius: 14,
+        padding: "11px 13px",
+        marginTop: 16,
+        boxShadow: SH_SM,
       }}
     >
-      <Clock size={12} color={MUTED} strokeWidth={2.2} />
-      <span
-        style={{
-          flex: 1,
-          minWidth: 0,
-          fontSize: 10.5,
-          fontWeight: 600,
-          color: MUTED,
-          lineHeight: 1.3,
-        }}
-      >
-        {label}
-      </span>
-
-      {/* Dark enough to read against the grey strip on its own, with padding
-          for a finger and a negative margin so it costs no layout. */}
+      <Clock size={14} color={MUTED} strokeWidth={2.2} style={{ flexShrink: 0, marginTop: 1 }} />
+      {/* One paragraph, not a heading over a body. The same words in two
+          stacked blocks run to four lines; here they run to two and a half. */}
+      <p style={{ flex: 1, minWidth: 0, margin: 0, fontSize: 11.5, color: MUTED, lineHeight: 1.5 }}>
+        <span style={{ fontWeight: 700, color: TEXT }}>{label}</span>
+        {line ? " " + line : ""}
+      </p>
       <button
         onClick={onInfo}
-        aria-label={label + ". What this means"}
+        aria-label="Why the wait"
         style={{
           background: "none",
           border: "none",
+          padding: 2,
+          margin: "-2px -2px 0 0",
           cursor: "pointer",
-          padding: 4,
-          margin: -4,
-          display: "flex",
           flexShrink: 0,
+          display: "flex",
         }}
       >
-        <Info size={14} color={TEXT} strokeWidth={2.3} />
+        <Info size={15} color={MUTED} strokeWidth={2} />
       </button>
     </div>
   );
