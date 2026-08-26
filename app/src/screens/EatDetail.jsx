@@ -26,7 +26,7 @@ const DIVISION_TIME = {
 };
 
 export default function EatDetailPage() {
-  const { setEatDetail, eatState, eatTab, setEatTab, eatDivisions, kcalTarget, setLogOpen, setLogTime, mealsLogged, hasTargets, dayTotals, planAssigned, setLogItems, setMealItem, eatFocus, setEatFocus } = useWF();
+  const { setEatDetail, eatState, eatTab, setEatTab, eatDivisions, kcalTarget, setLogOpen, setLogTime, mealsLogged, hasTargets, dayTotals, planAssigned, setLogItems, setMealItem, eatFocus, setEatFocus, planOption, setPlanOption } = useWF();
 
   /* Every route into the logger goes through here. If targets are not set up
      and the pitch has not been seen, it gets made once, first. */
@@ -54,7 +54,6 @@ export default function EatDetailPage() {
     return () => clearTimeout(t);
   }, [eatFocus, setEatFocus]);
 
-  const [planOption, setPlanOption] = useState({});
 
   /* Tapping a plan item's circle opens the logger with that item already in
      the meal. It is not logged until the user presses the button there, which

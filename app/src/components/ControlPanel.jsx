@@ -22,7 +22,7 @@ const ALL_DONE = { eat: 3, move: 1, mind: 1, measure: 1 };
 const ALL_GROUPS = [
   "signup", "plan", "welcome", "tour", "move", "hero", "targets",
   "logging", "suff", "streakscreen", "streak", "milestones",
-  "focus", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "mind", "measure",
+  "focus", "skip", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "mind", "measure",
 ];
 
 const SCREEN_GROUPS = {
@@ -35,7 +35,7 @@ const SCREEN_GROUPS = {
   eat: ["eat", "targets", "logging"],
   chats: [],
   program: ["welcome"],
-  todo: ["nextaction", "hero", "focus", "measuretasks", "streak"],
+  todo: ["nextaction", "hero", "focus", "skip", "measuretasks", "streak"],
   home: ["welcome", "tour", "nextaction", "focus", "measuretasks", "streak"],
   measure: ["measure"],
   care: [],
@@ -194,7 +194,7 @@ const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 const SLEEP_SRC = { gate: null, syncing: "phone", phone: "phone", manualnone: "manual", manual: "manual", tools: "manual" };
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindMood, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab, setWater, setDayTicks, dayRows, dayRowsDone } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindMood, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab, setWater, setDayTicks, dayLive, dayRowsDone, daySkipped, toggleSkip } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -235,7 +235,8 @@ export default function ControlPanel() {
     hero: heroState,
     mind: mindDetail ? mindTab : "Closed",
     nextaction: nextOpen.length ? nextOpen.length + " left" : "none",
-    focus: dayRowsDone + "/" + dayRows.length + (streakDays ? " · d" + streakDays : ""),
+    focus: dayRowsDone + "/" + dayLive.length + (streakDays ? " · d" + streakDays : ""),
+    skip: daySkipped.length ? daySkipped.length + " skipped" : "none",
     streak: streakState,
   };
 
@@ -846,6 +847,31 @@ export default function ControlPanel() {
             : planAssigned
             ? "The coach routine is here because the Care plan is assigned. Each exercise can be marked done."
             : "No routine, because the Care plan is not assigned yet. The opening card asks for movement so the coach has something to build from.",
+          true
+        )}
+
+        {panelGroup(
+          "skip",
+          "Skipped tasks",
+          "turned down for today",
+          [
+            { id: "none", label: "Nothing skipped" },
+            { id: "calm", label: "Calm break skipped" },
+            { id: "meal:eveningsnack", label: "Evening snack skipped" },
+          ].map((v) =>
+            panelChip(
+              v.label,
+              v.id === "none" ? daySkipped.length === 0 : daySkipped.includes(v.id),
+              () => {
+                if (v.id === "none") daySkipped.forEach((x) => toggleSkip(x));
+                else if (!daySkipped.includes(v.id)) toggleSkip(v.id);
+                setActiveTab("track");
+              }
+            )
+          ),
+          daySkipped.length
+            ? "The row dims, its circle goes to a dash, and it leaves the count and the phase total. Nothing reads as missed. Tap its three dots to put it back."
+            : "Every row is in today's count. The three dots on any row is where turning one down lives.",
           true
         )}
 

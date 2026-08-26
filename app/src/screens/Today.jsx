@@ -14,7 +14,7 @@ import CtaArrow from "../components/CtaArrow";
 import Em3Explainer from "../components/Em3Explainer";
 
 export default function TrackPage() {
-  const { dayRows, dayPhases, dayRowsDone, dayComplete, streakShown, streakState,
+  const { dayLive, dayPhases, dayRowsDone, dayComplete, streakShown, streakState,
           dayFraction, setStreakOpen, flipcoins,
           kcalSource, movePlan, setPlanInfo, heroState } = useWF();
   // Which phases the person has opened or closed by hand. Anything they have
@@ -142,8 +142,8 @@ export default function TrackPage() {
           {/* The count, and the same count as something you can take in
               without reading. One number, two readings. */}
           <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: MUTED }}>
-            <StreakFlame size={22} fraction={dayRows.length ? dayRowsDone / dayRows.length : 0} />
-            {dayRowsDone} of {dayRows.length} done
+            <StreakFlame size={22} fraction={dayLive.length ? dayRowsDone / dayLive.length : 0} />
+            {dayRowsDone} of {dayLive.length} done
           </span>
         </div>
 

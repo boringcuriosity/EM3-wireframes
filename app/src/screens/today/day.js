@@ -47,10 +47,12 @@ const MEAL_TIP = {
 export function buildDay(w) {
   const {
     planAssigned, eatDivisions, mealsLogged, exLogs, mindDone,
-    sleepMins, daySteps, water, ticks, measureRows, healthSync, healthSource,
+    sleepMins, daySteps, water, ticks, skipped, planOption, measureRows,
+    healthSync, healthSource,
   } = w;
 
   const logged = new Set(mealsLogged.map((m) => m.division));
+  const itemsIn = (id) => mealsLogged.filter((m) => m.division === id).flatMap((m) => m.items);
   const rows = [];
 
   /* Sleep opens the day because the morning is when you know the answer. It is
@@ -84,16 +86,31 @@ export function buildDay(w) {
     })
   );
 
-  eatDivisions.forEach((d) =>
+  eatDivisions.forEach((d) => {
+    const mine = itemsIn(d.id);
+    const opts = planAssigned ? d.plan || [] : [];
+    /* Which option is showing. Whatever was actually eaten wins over whatever
+       was last tapped, so the row cannot show option two while option one is
+       sitting logged underneath it. */
+    const eaten = opts.findIndex((o) => o.some((it) => mine.some((x) => x.id === it.id)));
+    const picked = planOption[d.id];
+    const oi = Math.max(0, Math.min(eaten >= 0 ? eaten : picked ?? 0, opts.length - 1));
     rows.push({
       id: "meal:" + d.id, pillar: "eat", at: DIVISION_AT[d.id] ?? 13 * 60,
       title: d.name,
       when: planAssigned ? d.time : null,
-      tip: planAssigned ? MEAL_TIP[d.id] : null,
+      // The plan's own food is a better instruction than a general note about
+      // the hour, so the tip only speaks when there is no plan to read.
+      tip: opts.length ? null : planAssigned ? MEAL_TIP[d.id] : null,
+      division: d.id,
+      opts,
+      oi,
+      optionLocked: eaten >= 0,
+      items: mine,
       kind: "go", to: "eat:" + d.id,
       done: logged.has(d.id),
-    })
-  );
+    });
+  });
 
   rows.push({
     id: "water", pillar: "eat", at: 14 * 60,
@@ -147,6 +164,6 @@ export function buildDay(w) {
   });
 
   return rows
-    .map((r) => ({ ...r, phase: phaseOf(r.at) }))
+    .map((r) => ({ ...r, phase: phaseOf(r.at), skipped: skipped.includes(r.id) }))
     .sort((a, b) => a.at - b.at);
 }

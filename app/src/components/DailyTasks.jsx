@@ -16,15 +16,15 @@ import { flame } from "../ui";
    this is the top of it: whatever is open in the part of the day you are in,
    and the four pillars as a way straight into any of them. */
 export default function DailyTasks() {
-  const { dailyState, dayPhases, dayRows, dayRowsDone, dayComplete, streakShown, setActiveTab } = useWF();
+  const { dailyState, dayPhases, dayLive, dayRowsDone, dayComplete, streakShown, setActiveTab } = useWF();
 
   if (dailyState === "ftux") return <FtuxExplainer />;
 
   // The first phase with anything left in it. Once they are all clear the
   // card below takes over, so there is never an empty heading.
   const phase = dayPhases.find((f) => !f.complete);
-  const next = phase ? phase.rows.filter((r) => !r.done).slice(0, 3) : [];
-  const rest = phase ? phase.rows.filter((r) => !r.done).length - next.length : 0;
+  const next = phase ? phase.rows.filter((r) => !r.done && !r.skipped).slice(0, 3) : [];
+  const rest = phase ? phase.rows.filter((r) => !r.done && !r.skipped).length - next.length : 0;
 
   return (
     <TourTarget id="focus" style={{ padding: "4px 0 18px" }}>
@@ -54,8 +54,8 @@ export default function DailyTasks() {
             fontFamily: "inherit",
           }}
         >
-          <StreakFlame size={22} fraction={dayRows.length ? dayRowsDone / dayRows.length : 0} />
-          {dayRowsDone + " of " + dayRows.length}
+          <StreakFlame size={22} fraction={dayLive.length ? dayRowsDone / dayLive.length : 0} />
+          {dayRowsDone + " of " + dayLive.length}
           <ChevronRight size={15} color={MUTED} style={{ marginLeft: -1 }} />
         </button>
       </div>

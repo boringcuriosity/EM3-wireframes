@@ -66,7 +66,7 @@ export default function DayPhase({ phase: f, open, onToggle }) {
           {f.complete ? f.label + " done" : f.label}
         </span>
         <span style={{ fontSize: 11.5, color: MUTED }}>
-          {f.done} of {f.total}
+          {f.total === 0 ? "Not today" : f.done + " of " + f.total}
         </span>
         <ChevronDown
           size={16}

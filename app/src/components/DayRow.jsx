@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useWF } from "../state";
-import { Check, ChevronRight, Plus } from "lucide-react";
+import { Check, ChevronRight, Plus, MoreVertical, Minus } from "lucide-react";
 import Skel from "./Skel";
 import Confetti from "./Confetti";
-import { PILLAR, TEXT, MUTED, FAINT, LINE, BG } from "../tokens";
+import { byId } from "../screens/log/foods";
+import { PILLAR, TEXT, MUTED, FAINT, LINE, BG, BG_ALT, BORDER } from "../tokens";
 
 const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure" };
 
@@ -13,11 +14,14 @@ const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure"
    would be thirteen pills down a screen, and the colour says the same thing in
    none of the space. The name still reaches a screen reader through the label.
 
-   Nothing here is ever struck through. Strike-through is for cancelled, and a
-   meal you have not logged yet is not cancelled. */
+   Nothing is ever struck through until it is genuinely done. Strike-through
+   means finished, not late, and a meal you have not logged yet is neither. */
 export default function DayRow({ row: r, last, compact }) {
-  const { openRow } = useWF();
+  const { openRow, setRowMenu, planOption, setPlanOption } = useWF();
   const c = PILLAR[r.pillar].c;
+  const bar = r.kind === "target";
+  const pct = bar && r.now ? Math.min(100, Math.round((r.now / r.goal) * 100)) : 0;
+  const off = r.skipped;
 
   /* The moment a row goes done, once. Rows that send you off to another screen
      come back already ticked, so this fires on the way back in, which is
@@ -33,25 +37,22 @@ export default function DayRow({ row: r, last, compact }) {
     }
     wasDone.current = r.done;
   }, [r.done]);
-  const bar = r.kind === "target";
-  const pct = bar && r.now ? Math.min(100, Math.round((r.now / r.goal) * 100)) : 0;
 
   return (
-    <button
-      onClick={() => openRow(r)}
-      aria-label={r.title + ", " + PILLAR_NAME[r.pillar] + (r.done ? ", done" : "")}
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={() => !off && openRow(r)}
+      onKeyDown={(e) => e.key === "Enter" && !off && openRow(r)}
+      aria-label={r.title + ", " + PILLAR_NAME[r.pillar] + (off ? ", skipped" : r.done ? ", done" : "")}
       style={{
-        width: "100%",
         display: "flex",
         alignItems: "flex-start",
         gap: 12,
-        textAlign: "left",
-        background: "none",
-        border: "none",
         borderBottom: last ? "none" : "1px solid " + LINE,
         padding: compact ? "9px 0" : "12px 0",
-        cursor: "pointer",
-        fontFamily: "inherit",
+        cursor: off ? "default" : "pointer",
+        opacity: off ? 0.62 : 1,
       }}
     >
       <span
@@ -61,8 +62,8 @@ export default function DayRow({ row: r, last, compact }) {
           borderRadius: "50%",
           flexShrink: 0,
           marginTop: 1,
-          background: r.done ? c : BG,
-          border: "1.8px solid " + (r.done ? c : c + "66"),
+          background: r.done && !off ? c : BG,
+          border: "1.8px solid " + (off ? BORDER : r.done ? c : c + "66"),
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -70,8 +71,12 @@ export default function DayRow({ row: r, last, compact }) {
           transition: "background .18s ease",
         }}
       >
-        {r.done && <Check size={12} color="#fff" strokeWidth={3.2} />}
-        {burst && <Confetti pillar={r.pillar} />}
+        {off ? (
+          <Minus size={11} color={FAINT} strokeWidth={3} />
+        ) : (
+          r.done && <Check size={12} color="#fff" strokeWidth={3.2} />
+        )}
+        {burst && !off && <Confetti pillar={r.pillar} />}
       </span>
 
       <span style={{ flex: 1, minWidth: 0 }}>
@@ -79,14 +84,14 @@ export default function DayRow({ row: r, last, compact }) {
           style={{
             display: "block",
             fontSize: 13.5,
-            fontWeight: r.done ? 600 : 700,
-            color: r.done ? MUTED : TEXT,
+            fontWeight: r.done || off ? 600 : 700,
+            color: r.done || off ? MUTED : TEXT,
             lineHeight: 1.35,
           }}
         >
           <span style={{ position: "relative", display: "inline-block" }}>
             {r.title}
-            {r.done && (
+            {r.done && !off && (
               <span
                 aria-hidden
                 style={{
@@ -104,15 +109,41 @@ export default function DayRow({ row: r, last, compact }) {
               />
             )}
           </span>
+          {/* The hour sits with the name rather than in a column of its own.
+              A right hand column wide enough for "8:00 - 10:00 AM" takes a
+              quarter of the row away from everything underneath it. */}
+          {r.when && !off && (
+            <span
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 9.5,
+                fontWeight: 600,
+                color: FAINT,
+                marginLeft: 7,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {r.when}
+            </span>
+          )}
         </span>
 
-        {r.tip && !r.done && !compact && (
-          <span style={{ display: "block", fontSize: 11.5, color: MUTED, lineHeight: 1.45, marginTop: 3 }}>
-            {r.tip}
-          </span>
+        {off ? (
+          <span style={{ display: "block", fontSize: 11, color: FAINT, marginTop: 3 }}>Not today</span>
+        ) : (
+          <>
+            {r.tip && !r.done && !compact && (
+              <span style={{ display: "block", fontSize: 11.5, color: MUTED, lineHeight: 1.45, marginTop: 3 }}>
+                {r.tip}
+              </span>
+            )}
+            {r.opts?.length > 0 && !compact && (
+              <Plan row={r} onPick={(i) => setPlanOption({ ...planOption, [r.division]: i })} />
+            )}
+          </>
         )}
 
-        {bar && !compact && (
+        {bar && !compact && !off && (
           <span style={{ display: "block", marginTop: 7 }}>
             <span style={{ display: "block", height: 4, borderRadius: 2, background: LINE, overflow: "hidden" }}>
               <span
@@ -137,22 +168,9 @@ export default function DayRow({ row: r, last, compact }) {
         )}
       </span>
 
-      <span style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0, marginTop: 2 }}>
-        {r.when && (
-          <span
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 9.5,
-              fontWeight: 600,
-              color: r.done ? FAINT : MUTED,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {r.when}
-          </span>
-        )}
-        {r.kind === "go" && <ChevronRight size={15} color={FAINT} strokeWidth={2.2} />}
-        {r.add && !r.done && (
+      <span style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0, marginTop: 2 }}>
+        {r.kind === "go" && !off && <ChevronRight size={15} color={FAINT} strokeWidth={2.2} />}
+        {r.add && !r.done && !off && (
           <span
             style={{
               width: 20,
@@ -167,7 +185,100 @@ export default function DayRow({ row: r, last, compact }) {
             <Plus size={12} color={c} strokeWidth={2.6} />
           </span>
         )}
+
+        {/* Skipping lives here rather than on the face of the row. A decline
+            button beside every ask is a decision you are made to take thirteen
+            times a day; a menu is one you can go and find. */}
+        {!compact && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setRowMenu(r.id);
+            }}
+            aria-label={"More for " + r.title}
+            style={{
+              background: "none",
+              border: "none",
+              padding: "2px 0 2px 4px",
+              margin: 0,
+              cursor: "pointer",
+              display: "flex",
+              flexShrink: 0,
+            }}
+          >
+            <MoreVertical size={15} color={FAINT} strokeWidth={2} />
+          </button>
+        )}
       </span>
-    </button>
+    </div>
+  );
+}
+
+/* What the coach put in this meal, on the row that asks for it.
+
+   The options are alternates for the same meal, so only one is ever shown and
+   the pills swap between them. Once something has been eaten the choice is
+   settled, the pills go, and the line becomes a record of what went in. */
+function Plan({ row: r, onPick }) {
+  const c = PILLAR.eat.c;
+  const items = r.done ? r.items : r.opts[r.oi] || [];
+  /* Portion first, name second, the way a plan is written on paper: "1 bowl
+     vegetable poha", not "Vegetable poha 1 bowl". */
+  const line = items
+    .map((it) => {
+      const f = byId(it.id);
+      if (!f) return null;
+      const noun = f.unit.replace(/^\d+\s*/, "");
+      const name = f.name.toLowerCase();
+      // "1 egg" plus "boiled egg" would read "1 egg boiled egg", so when the
+      // name already ends in the unit's noun the noun is dropped.
+      const said = name.endsWith(noun) || name.endsWith(noun.replace(/s$/, ""));
+      return said ? it.qty + " " + name : it.qty + " " + noun + " " + name;
+    })
+    .filter(Boolean)
+    .join(", ");
+
+  return (
+    <span
+      style={{
+        display: "block",
+        background: BG_ALT,
+        border: "1px solid " + LINE,
+        borderRadius: 11,
+        padding: "8px 10px",
+        marginTop: 7,
+      }}
+    >
+      {r.opts.length > 1 && !r.optionLocked && (
+        <span style={{ display: "flex", gap: 5, marginBottom: 7 }}>
+          {r.opts.map((_, i) => (
+            <button
+              key={i}
+              onClick={(e) => {
+                e.stopPropagation();
+                onPick(i);
+              }}
+              style={{
+                background: i === r.oi ? c : BG,
+                border: "1px solid " + (i === r.oi ? c : BORDER),
+                borderRadius: 999,
+                padding: "3px 9px",
+                fontSize: 9.5,
+                fontWeight: 700,
+                color: i === r.oi ? "#fff" : MUTED,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Option {i + 1}
+            </button>
+          ))}
+        </span>
+      )}
+      <span style={{ display: "block", fontSize: 11.5, color: r.done ? MUTED : TEXT, lineHeight: 1.45 }}>
+        {line || "Nothing planned for this one."}
+      </span>
+    </span>
   );
 }

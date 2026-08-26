@@ -255,6 +255,14 @@ export function WFProvider({ children, initial = {} }) {
      is not, and there is nothing to open. Everything else derives its tick
      from the thing it actually made. */
   const [dayTicks, setDayTicks] = useState(initial.dayTicks !== undefined ? initial.dayTicks : []);
+  /* Skipped today. Not a failure and not a tick: the row leaves today's count
+     entirely, which is the whole point of being able to say no to one. */
+  const [daySkipped, setDaySkipped] = useState(initial.daySkipped !== undefined ? initial.daySkipped : []);
+  const [rowMenu, setRowMenu] = useState(initial.rowMenu !== undefined ? initial.rowMenu : null);
+  /* Which option of a planned meal is showing. Lives here rather than inside
+     the Eat screen, because To-do shows the same choice and the two would
+     otherwise drift apart the moment you switched one of them. */
+  const [planOption, setPlanOption] = useState(initial.planOption !== undefined ? initial.planOption : {});
   /* Which meal the Eat screen should land on, set by the row that sent you
      there, so a tap on Lunch does not drop you at the top of the day. */
   const [eatFocus, setEatFocus] = useState(initial.eatFocus !== undefined ? initial.eatFocus : null);
@@ -776,14 +784,22 @@ export function WFProvider({ children, initial = {} }) {
 
   const dayRows = buildDay({
     planAssigned, eatDivisions, mealsLogged, exLogs, mindDone,
-    sleepMins, daySteps, water, ticks: dayTicks, measureRows, healthSync, healthSource,
+    sleepMins, daySteps, water, ticks: dayTicks, skipped: daySkipped, planOption,
+    measureRows, healthSync, healthSource,
   });
-  const dayRowsDone = dayRows.filter((r) => r.done).length;
+  /* Skipped rows come out of the denominator rather than counting against it.
+     A day you chose to make smaller should look smaller, not look failed. */
+  const dayLive = dayRows.filter((r) => !r.skipped);
+  const dayRowsDone = dayLive.filter((r) => r.done).length;
   const dayPhases = PHASES.map((f) => {
     const rows = dayRows.filter((r) => r.phase === f.id);
-    const done = rows.filter((r) => r.done).length;
-    return { ...f, rows, done, total: rows.length, complete: rows.length > 0 && done === rows.length };
-  }).filter((f) => f.total > 0);
+    const live = rows.filter((r) => !r.skipped);
+    const done = live.filter((r) => r.done).length;
+    return { ...f, rows, done, total: live.length, complete: rows.length > 0 && done === live.length };
+  }).filter((f) => f.rows.length > 0);
+
+  const toggleSkip = (id) =>
+    setDaySkipped(daySkipped.includes(id) ? daySkipped.filter((x) => x !== id) : daySkipped.concat(id));
 
   /* One tap, two behaviours, no visual difference: a row either records itself
      here or sends you to the screen that owns the record. Nothing in the diary
@@ -850,7 +866,8 @@ export function WFProvider({ children, initial = {} }) {
     SHARE_COINS, STREAK_REWARDS,
     MILESTONES, milestones, setMilestones, milestoneStatus,
     completeTask, taskProgress, setTaskProgress, taskDone, setTaskDone,
-    dayRows, dayPhases, dayRowsDone, openRow, water, setWater, dayTicks, setDayTicks,
+    dayRows, dayLive, dayPhases, dayRowsDone, openRow, water, setWater, dayTicks, setDayTicks,
+    daySkipped, toggleSkip, rowMenu, setRowMenu, planOption, setPlanOption,
     eatFocus, setEatFocus,
     onbFinish, onbBack, pillarExplain,
   };
