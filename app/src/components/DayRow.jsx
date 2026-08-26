@@ -46,15 +46,17 @@ export default function DayRow({ row: r, last, compact }) {
       onKeyDown={(e) => e.key === "Enter" && !off && openRow(r)}
       aria-label={r.title + ", " + PILLAR_NAME[r.pillar] + (off ? ", skipped" : r.done ? ", done" : "")}
       style={{
-        display: "flex",
-        alignItems: "flex-start",
-        gap: 12,
         borderBottom: last ? "none" : "1px solid " + LINE,
         padding: compact ? "9px 0" : "12px 0",
         cursor: off ? "default" : "pointer",
         opacity: off ? 0.62 : 1,
       }}
     >
+      {/* The name and its controls on one line; everything the row carries
+          underneath, indented to the title and running the full width. Kept
+          inside the content column, a meal's options ended a chevron short of
+          the edge and wrapped a line early for it. */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
       <span
         style={{
           width: 21,
@@ -127,48 +129,9 @@ export default function DayRow({ row: r, last, compact }) {
             </span>
           )}
         </span>
-
-        {off ? (
-          <span style={{ display: "block", fontSize: 11, color: FAINT, marginTop: 3 }}>Not today</span>
-        ) : (
-          <>
-            {r.tip && !r.done && !compact && (
-              <span style={{ display: "block", fontSize: 11.5, color: MUTED, lineHeight: 1.45, marginTop: 3 }}>
-                {r.tip}
-              </span>
-            )}
-            {r.opts?.length > 0 && !compact && (
-              <Plan row={r} onPick={(i) => setPlanOption({ ...planOption, [r.division]: i })} />
-            )}
-          </>
-        )}
-
-        {bar && !compact && !off && (
-          <span style={{ display: "block", marginTop: 7 }}>
-            <span style={{ display: "block", height: 4, borderRadius: 2, background: LINE, overflow: "hidden" }}>
-              <span
-                style={{
-                  display: "block",
-                  height: "100%",
-                  width: pct + "%",
-                  background: c,
-                  borderRadius: 2,
-                  transition: "width .5s cubic-bezier(.32,.72,0,1)",
-                }}
-              />
-            </span>
-            <span style={{ display: "block", fontSize: 10.5, color: MUTED, marginTop: 5 }}>
-              {r.syncing ? (
-                <Skel w={72} h={10} />
-              ) : (
-                (r.now === null ? 0 : r.now).toLocaleString() + " of " + r.goal.toLocaleString() + " " + r.unit
-              )}
-            </span>
-          </span>
-        )}
       </span>
 
-      <span style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0, marginTop: 2 }}>
+      <span style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
         {r.kind === "go" && !off && <ChevronRight size={15} color={FAINT} strokeWidth={2.2} />}
         {r.add && !r.done && !off && (
           <span
@@ -210,9 +173,56 @@ export default function DayRow({ row: r, last, compact }) {
           </button>
         )}
       </span>
+      </div>
+
+      <div style={{ marginLeft: ROW_INDENT }}>
+        {off ? (
+          <span style={{ display: "block", fontSize: 11, color: FAINT, marginTop: 2 }}>Not today</span>
+        ) : (
+          <>
+            {r.tip && !r.done && !compact && (
+              <span style={{ display: "block", fontSize: 11.5, color: MUTED, lineHeight: 1.45, marginTop: 4 }}>
+                {r.tip}
+              </span>
+            )}
+            {r.opts?.length > 0 && !compact && (
+              <Plan row={r} onPick={(i) => setPlanOption({ ...planOption, [r.division]: i })} />
+            )}
+            {bar && !compact && (
+              <div style={{ marginTop: 8 }}>
+                <div style={{ height: 4, borderRadius: 2, background: LINE, overflow: "hidden" }}>
+                  <div
+                    style={{
+                      height: "100%",
+                      width: pct + "%",
+                      background: c,
+                      borderRadius: 2,
+                      transition: "width .5s cubic-bezier(.32,.72,0,1)",
+                    }}
+                  />
+                </div>
+                <div style={{ fontSize: 10.5, color: MUTED, marginTop: 5 }}>
+                  {r.syncing ? (
+                    <Skel w={72} h={10} />
+                  ) : (
+                    (r.now === null ? 0 : r.now).toLocaleString() +
+                    " of " +
+                    r.goal.toLocaleString() +
+                    " " +
+                    r.unit
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
+
+// Circle plus the gap beside it, so anything below a row lines up with its name.
+const ROW_INDENT = 33;
 
 /* What the coach put in this meal, on the row that asks for it.
 
@@ -228,12 +238,16 @@ function Plan({ row: r, onPick }) {
     .map((it) => {
       const f = byId(it.id);
       if (!f) return null;
-      const noun = f.unit.replace(/^\d+\s*/, "");
+      const [, per, rawNoun] = f.unit.match(/^(\d+)?\s*(.*)$/);
+      // A serving can be more than one of a thing: idli comes as "2 pieces",
+      // so two servings is four, not "2 x 2 pieces".
+      const n = (Number(per) || 1) * it.qty;
+      const noun = n > 1 && !rawNoun.endsWith("s") ? rawNoun + "s" : n === 1 ? rawNoun.replace(/s$/, "") : rawNoun;
       const name = f.name.toLowerCase();
       // "1 egg" plus "boiled egg" would read "1 egg boiled egg", so when the
       // name already ends in the unit's noun the noun is dropped.
       const said = name.endsWith(noun) || name.endsWith(noun.replace(/s$/, ""));
-      return said ? it.qty + " " + name : it.qty + " " + noun + " " + name;
+      return said ? n + " " + name : n + " " + noun + " " + name;
     })
     .filter(Boolean)
     .join(", ");
@@ -246,7 +260,7 @@ function Plan({ row: r, onPick }) {
         border: "1px solid " + LINE,
         borderRadius: 11,
         padding: "8px 10px",
-        marginTop: 7,
+        marginTop: 8,
       }}
     >
       {r.opts.length > 1 && !r.optionLocked && (
