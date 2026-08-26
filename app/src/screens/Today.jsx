@@ -20,6 +20,8 @@ export default function TrackPage() {
   // Which phases the person has opened or closed by hand. Anything they have
   // not touched follows the day: open until it is finished.
   const [openPhase, setOpenPhase] = useState({});
+  // The plans still to come, in EM3 order. Empty once both have landed.
+  const waiting = [kcalSource !== "coach" && "eat", !movePlan && "move"].filter(Boolean);
   // The coach card's only action is "the tasks are down there", so it needs
   // somewhere to point at.
   const focusRef = useRef(null);
@@ -109,24 +111,11 @@ export default function TrackPage() {
           </button>
         </div>
 
-        {/* Before a plan exists the screen has two jobs: get the
-            prerequisites done, and explain why the list below has no plan
-            behind it. A summary of a day nobody has planned is neither. */}
+        {/* Before a plan exists the top of the screen has one job: get the
+            prerequisites done. A summary of a day nobody has planned is not
+            one, so the hero waits until there is a plan to summarise. */}
         {heroState === "noplan" ? (
-          <>
-            <PrereqRail />
-            <PlanStrip
-              label={
-                kcalSource !== "coach" && !movePlan
-                  ? "Your diet and exercise plans are not assigned yet."
-                  : kcalSource !== "coach"
-                  ? "Your diet plan is not assigned yet."
-                  : "Your exercise plan is not assigned yet."
-              }
-              line="Do the tasks below so your coach can see how your days really go before writing one."
-              onInfo={() => setPlanInfo(kcalSource !== "coach" ? "eat" : "move")}
-            />
-          </>
+          <PrereqRail />
         ) : (
           <TrackHero
             state={heroState}
@@ -162,6 +151,16 @@ export default function TrackPage() {
           <div style={{ marginBottom: 14 }}>
             <StreakWonCard fullWidth />
           </div>
+        )}
+
+        {/* Why the list below has no plan behind it, sitting on top of the
+            list it is talking about. */}
+        {heroState === "noplan" && waiting.length > 0 && (
+          <PlanStrip
+            pillars={waiting}
+            line="Log the tasks below. The more your coaches can see of a normal day, the better both plans will fit it."
+            onInfo={() => setPlanInfo(waiting.length > 1 ? "both" : waiting[0])}
+          />
         )}
 
         {dayPhases.map((f) => (

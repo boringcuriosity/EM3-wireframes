@@ -1173,10 +1173,9 @@ export default function ControlPanel() {
           screenKey === "todo" ? "Start here cards" : "Next actions card",
           screenKey === "todo" ? "To-do, above the list" : "Home carousel, second card",
           [
-            { id: "all", label: "All three waiting", v: ["score", "labs", "bca"], d: [] },
-            { id: "one", label: "One ticked off", v: ["score", "labs", "bca"], d: ["score"] },
-            { id: "two", label: "Two ticked off", v: ["score", "labs", "bca"], d: ["score", "labs"] },
-            { id: "none", label: "Nothing pending", v: [], d: [] },
+            { id: "all", label: "Both waiting", v: ["score", "labs"], d: [] },
+            { id: "one", label: "Score done", v: ["score", "labs"], d: ["score"] },
+            { id: "none", label: "Nothing pending", v: ["score", "labs"], d: ["score", "labs"] },
           ].map((x) =>
             panelChip(
               x.label,
@@ -1190,11 +1189,9 @@ export default function ControlPanel() {
               }
             )
           ),
-          nextActions.length
-            ? screenKey === "todo"
-              ? "One card each, above the list, with the reason it matters. The same list Home shows as a checklist, so ticking one anywhere clears it in both."
-              : "Ticking a row strikes it through. Tick the last one and the card and its tab go, a beat later. The label itself goes to the screen that does the job."
-            : "No card and no tab. A tab leading to nothing pending is worse than no tab.",
+          nextOpen.length
+            ? "One amber card each, on To-do above the list and on Home inside the carousel. The same two, read off one list, so finishing either finishes it in both places."
+            : "No cards and no tab. A tab leading to nothing pending is worse than no tab.",
           true
         )}
 

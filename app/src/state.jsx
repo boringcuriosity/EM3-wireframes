@@ -67,7 +67,7 @@ export function WFProvider({ children, initial = {} }) {
      its tab are not there at all. Three at most: a card that scrolls is a
      screen pretending to be a card. */
   const [nextActions, setNextActions] = useState(
-    initial.nextActions !== undefined ? initial.nextActions : ["score", "labs", "bca"]
+    initial.nextActions !== undefined ? initial.nextActions : ["score", "labs"]
   );
   // Which of them are ticked off. They stay on the card struck through, so the
   // last one is finished against something rather than alone.
@@ -342,30 +342,40 @@ export function WFProvider({ children, initial = {} }) {
      adding a card here is all it takes to add a tab. */
   const nextOpen = nextActions.filter((id) => !nextDone.includes(id));
   const nextAllDone = nextActions.length > 0 && nextOpen.length === 0;
-  const showNext = nextActions.length > 0 && !nextGone;
+  const showNext = nextOpen.length > 0 && !nextGone;
   // A beat after the last tick, so the strike is seen before the card goes.
   useEffect(() => {
     if (!nextAllDone || nextGone) return;
     const t = setTimeout(() => setNextGone(true), 1100);
     return () => clearTimeout(t);
   }, [nextAllDone, nextGone]);
-  const HOME_CARDS = ["program", showNext ? "next" : null, "sessions"].filter(Boolean);
+  /* The rail is cards; the chips above it are tabs. One prerequisite is one
+     card, so Next actions is a tab covering however many are still open rather
+     than a card holding a list. */
+  const HOME_CARDS = ["program", ...(showNext ? nextOpen.map((id) => "next:" + id) : []), "sessions"];
+  const HOME_TABS = ["program", showNext ? "next" : null, "sessions"].filter(Boolean);
+  const tabOfCard = (c) => (c.startsWith("next:") ? "next" : c);
   const cardStep = CARD_W + CARD_GAP;
   // The card the tab is pointing at can stop existing, so fall back rather
   // than leaving no tab lit and the rail out of step.
-  const homeTab = HOME_CARDS.includes(homeProgramTab) ? homeProgramTab : "program";
+  const homeTab = HOME_TABS.includes(homeProgramTab) ? homeProgramTab : "program";
 
   useEffect(() => {
     const el = carouselRef.current;
     if (!el) return;
-    const target = Math.max(0, HOME_CARDS.indexOf(homeTab)) * cardStep;
+    const target = Math.max(0, HOME_CARDS.findIndex((c) => tabOfCard(c) === homeTab)) * cardStep;
     if (Math.abs(el.scrollLeft - target) < 4) return;
     carouselLock.current = true;
     clearTimeout(carouselTimer.current);
-    el.scrollTo({ left: target, behavior: "smooth" });
+    /* Instant, not smooth. A smooth programmatic scroll on a mandatory snap
+       container gets cancelled the moment the layout moves under it, and the
+       tab chip that was just tapped repaints in the same commit, so the rail
+       used to set off and stop after thirty pixels. Tapping a tab is a jump
+       anyway; there is nothing to follow along the way. */
+    el.scrollTo({ left: target });
     carouselTimer.current = setTimeout(() => {
       carouselLock.current = false;
-    }, 500);
+    }, 250);
   }, [homeTab, isPaid, activeTab]);
 
   // Only react once the swipe has settled, so the pill doesn't flicker mid-drag
@@ -375,7 +385,7 @@ export function WFProvider({ children, initial = {} }) {
     clearTimeout(carouselTimer.current);
     carouselTimer.current = setTimeout(() => {
       const i = Math.min(HOME_CARDS.length - 1, Math.max(0, Math.round(left / cardStep)));
-      const next = HOME_CARDS[i];
+      const next = tabOfCard(HOME_CARDS[i]);
       setHomeProgramTab((prev) => (prev === next ? prev : next));
     }, 130);
   };
@@ -832,7 +842,7 @@ export function WFProvider({ children, initial = {} }) {
     flipcoins, isPaid, CARD_W, CARD_GAP, CARD_PAD, CARD_H,
     SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef,
     nextActions, nextDone, setNextDone, nextOpen, setNextList,
-    HOME_CARDS, homeTab,
+    HOME_CARDS, HOME_TABS, homeTab,
     handleCarouselScroll, isReturning, isDevice, sufficiencyRings, eatDivisions,
     progressTabs, setupTasks, setupDoneCount, metPillars, dailyPillars,
     dailyRepeating, dailyDoneCount, dayFraction, dayComplete, taskFill, taskIsDone,

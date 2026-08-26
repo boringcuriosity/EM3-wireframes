@@ -9,10 +9,10 @@ import { GREEN, TEXT, MUTED, BG_ALT, BG, BORDER, SH } from "../tokens";
 import { sectionLabel, coachAvatar } from "../ui";
 import TourTarget from "../components/TourTarget";
 import CtaArrow from "../components/CtaArrow";
-import NextActionCard from "../components/NextActionCard";
+import PrereqCard from "../components/PrereqCard";
 
 export default function PaidHomePage() {
-  const { setActiveTab, setHomeProgramTab, sessionState, scoreState, setProgramDetail, CARD_W, CARD_GAP, CARD_PAD, CARD_H, SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef, handleCarouselScroll, nextOpen, HOME_CARDS, homeTab, firstName } = useWF();
+  const { setActiveTab, setHomeProgramTab, sessionState, scoreState, setProgramDetail, CARD_W, CARD_GAP, CARD_PAD, CARD_H, SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef, handleCarouselScroll, nextOpen, HOME_CARDS, HOME_TABS, homeTab, firstName } = useWF();
 
   return (
     (
@@ -38,7 +38,7 @@ export default function PaidHomePage() {
             { id: "next", label: "Next Action(s)" },
             { id: "sessions", label: "Upcoming Session(s)" },
           ]
-            .filter((t) => HOME_CARDS.includes(t.id))
+            .filter((t) => HOME_TABS.includes(t.id))
             .map((t) => {
               const active = homeTab === t.id;
             const badge =
@@ -111,10 +111,8 @@ export default function PaidHomePage() {
           }}
         >
           {HOME_CARDS.map((card) =>
-            card === "next" ? (
-              <div key="next" style={{ flexShrink: 0, scrollSnapAlign: "start" }}>
-                <NextActionCard />
-              </div>
+            card.startsWith("next:") ? (
+              <PrereqCard key={card} id={card.slice(5)} width={CARD_W} minHeight={CARD_H} />
             ) : card === "program" ? (
               <TourTarget
                 key="program"

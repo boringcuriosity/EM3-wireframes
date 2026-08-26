@@ -68,6 +68,7 @@ export const OK        = "#039855"; // success-600
 export const OK_TINT   = "#ECFDF3"; // success-50
 export const WARN      = "#DC6803"; // warning-600
 export const WARN_TINT = "#FFFAEB"; // warning-50
+export const WARN_LINE = "#FEDF89"; // warning-200, the hairline that goes with the tint
 export const BAD       = "#D92D20"; // error-600
 export const BAD_TINT  = "#FEF3F2"; // error-50
 

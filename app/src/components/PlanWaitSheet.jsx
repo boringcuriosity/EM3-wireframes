@@ -11,9 +11,27 @@ import { GREEN, GREEN_DEEP, TEXT, MUTED, BG, BORDER, LINE, PILLAR } from "../tok
    a step rather than a delay. */
 
 const PLANS = {
+  /* Both plans are written by two different people off the same logging, so
+     when both are outstanding the sheet says so once rather than making anyone
+     open it twice. */
+  both: {
+    pillar: "eat",
+    chips: [
+      { pillar: "eat", Icon: Utensils, coach: "nutrition coach" },
+      { pillar: "move", Icon: Flame, coach: "exercise coach" },
+    ],
+    lede: "Log how you normally eat and move",
+    ledeAccent: "and both plans get built around it.",
+    sub: "Neither coach has written your plan yet. They want to see how you really eat and how your days actually run, before asking you to change any of it.",
+    steps: [
+      { t: "You log your day", b: "Meals, movement, sleep. On the good days and the bad ones." },
+      { t: "Both coaches read it", b: "They arrive at your consultations already knowing how your days go." },
+      { t: "Your plans come back", b: "Built around your food, your timings and your body, not a template." },
+    ],
+  },
   eat: {
-    Icon: Utensils,
-    coach: "nutrition coach",
+    pillar: "eat",
+    chips: [{ pillar: "eat", Icon: Utensils, coach: "nutrition coach" }],
     lede: "Log how you normally eat",
     ledeAccent: "and your plan gets built around it.",
     sub: "Your nutrition coach has not written your food plan yet. They want to see how you really eat first, not a tidied up version of it.",
@@ -24,8 +42,8 @@ const PLANS = {
     ],
   },
   move: {
-    Icon: Flame,
-    coach: "exercise coach",
+    pillar: "move",
+    chips: [{ pillar: "move", Icon: Flame, coach: "exercise coach" }],
     lede: "Log how you already move",
     ledeAccent: "and your plan starts from there.",
     sub: "Your exercise coach has not written your routine yet. They want to see how your days actually run before asking you to change them.",
@@ -41,7 +59,7 @@ export default function PlanWaitSheet() {
   const { planInfo, setPlanInfo } = useWF();
   const p = PLANS[planInfo];
   if (!p) return null;
-  const hue = PILLAR[planInfo];
+  const hue = PILLAR[p.pillar];
 
   return (
     <div
@@ -75,24 +93,27 @@ export default function PlanWaitSheet() {
         <div style={{ width: 40, height: 4, borderRadius: 2, background: BORDER, margin: "10px auto 0", flexShrink: 0 }} />
 
         <div style={{ flex: 1, overflowY: "auto", padding: "14px 22px 0", minHeight: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                background: hue.t,
-                color: hue.c,
-                borderRadius: 999,
-                padding: "4px 11px 4px 8px",
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: 0.5,
-              }}
-            >
-              <p.Icon size={12} strokeWidth={2.2} />
-              {p.coach.toUpperCase()}
-            </span>
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            {p.chips.map((ch) => (
+              <span
+                key={ch.coach}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: PILLAR[ch.pillar].t,
+                  color: PILLAR[ch.pillar].c,
+                  borderRadius: 999,
+                  padding: "4px 11px 4px 8px",
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: 0.5,
+                }}
+              >
+                <ch.Icon size={12} strokeWidth={2.2} />
+                {ch.coach.toUpperCase()}
+              </span>
+            ))}
             <span style={{ flex: 1 }} />
             <button
               onClick={() => setPlanInfo(null)}
