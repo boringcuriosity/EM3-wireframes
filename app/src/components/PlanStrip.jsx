@@ -2,20 +2,18 @@ import React from "react";
 import { Clock, Info } from "lucide-react";
 import { MUTED, TEXT } from "../tokens";
 
-/* A slim tab that sits behind a pillar's task card and shows only its bottom
-   edge, so the wait is attached to the pillar it belongs to rather than
-   floating as a card of its own. Negative margin pulls the card over it; the
-   padding is what stays visible. It only ever says one thing, that the plan is
-   not here yet, so it disappears rather than flipping to a done state. */
+/* One quiet line about what has not arrived yet. It only ever says one thing,
+   that the plan is not here, so it disappears rather than flipping to a done
+   state. */
 export default function PlanStrip({ label, onInfo }) {
   return (
     <div
       style={{
         position: "relative",
         zIndex: 0,
-        marginTop: -16,
-        paddingTop: 22,
-        paddingBottom: 7,
+        marginTop: 12,
+        paddingTop: 9,
+        paddingBottom: 9,
         paddingLeft: 15,
         paddingRight: 13,
         borderRadius: 16,

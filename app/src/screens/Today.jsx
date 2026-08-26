@@ -1,30 +1,24 @@
-import React, { useRef } from "react";
+import React, { useRef, useState } from "react";
 import { useWF } from "../state";
-import { ChevronRight, Calendar } from "lucide-react";
-import PillarTaskCard from "../components/PillarTaskCard";
+import { Calendar } from "lucide-react";
 import StreakFlame from "../components/StreakFlame";
+import DayPhase from "../components/DayPhase";
+import Em3Strip from "../components/Em3Strip";
+import WeekStrip from "../components/WeekStrip";
 import StreakWonCard from "../components/StreakWonCard";
 import PlanStrip from "../components/PlanStrip";
 import TrackHero from "../components/TrackHero";
-import { GREEN, TEXT, MUTED, BG_ALT, BG, BORDER, GOLD, GOLD_TINT, GOLD_LINE, GOLD_DEEP, SH_SM, GREEN_DEEP } from "../tokens";
+import { GREEN, TEXT, MUTED, BG, BORDER, GOLD, GOLD_TINT, GOLD_LINE, GOLD_DEEP, GREEN_DEEP } from "../tokens";
 import CtaArrow from "../components/CtaArrow";
 import Em3Explainer from "../components/Em3Explainer";
 
-const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure" };
-
-/* The strip exists to say a plan has not landed yet. Once it has, there is
-   nothing left to wait for and it goes. Mind and Measure carry no coach plan,
-   so they never had one. */
-const PLAN_STRIP = {
-  eat: { waiting: (w) => w.kcalSource !== "coach", label: "Your diet plan is yet to be assigned" },
-  move: { waiting: (w) => !w.movePlan, label: "Your exercise plan is yet to be assigned" },
-};
-
 export default function TrackPage() {
-  const { setEatDetail, setActiveTab, dailyPillars, dailyRepeating,
-          dailyDoneCount, dayFraction, dayComplete, streakShown, streakState, setStreakOpen, taskFill, setMindDetail,
-          flipcoins, setMoveDetail,
-          isPaid, kcalSource, movePlan, setPlanInfo, heroState } = useWF();
+  const { dayRows, dayPhases, dayRowsDone, dayComplete, streakShown, streakState,
+          dayFraction, setStreakOpen, flipcoins,
+          isPaid, kcalSource, movePlan, planAssigned, setPlanInfo, heroState } = useWF();
+  // Which phases the person has opened or closed by hand. Anything they have
+  // not touched follows the day: open until it is finished.
+  const [openPhase, setOpenPhase] = useState({});
   // The coach card's only action is "the tasks are down there", so it needs
   // somewhere to point at.
   const focusRef = useRef(null);
@@ -119,137 +113,69 @@ export default function TrackPage() {
           onSeeTasks={() => focusRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
         />
 
-        {/* Today's focus — same four pillars, same data as the Home carousel.
-            Each pillar shows its action card always, and its secondary card
-            only once that pillar has something logged. A first-time user sees
-            four asks and nothing else. */}
-        <div ref={focusRef} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 14, scrollMarginTop: 14 }}>
+        {/* One line, and only while the wait is real. Two strips saying the
+            same thing twice is the plan being late twice. */}
+        {isPaid && !planAssigned && (
+          <PlanStrip
+            label={
+              kcalSource !== "coach" && !movePlan
+                ? "Your diet and exercise plans are yet to be assigned"
+                : kcalSource !== "coach"
+                ? "Your diet plan is yet to be assigned"
+                : "Your exercise plan is yet to be assigned"
+            }
+            onInfo={() => setPlanInfo(kcalSource !== "coach" ? "eat" : "move")}
+          />
+        )}
+
+        {/* The day itself. Morning, afternoon, evening, in the order they
+            happen, with the pillar riding along as the colour of each circle
+            rather than as a heading you have to file things under. */}
+        <div
+          ref={focusRef}
+          style={{
+            display: "flex",
+            alignItems: "baseline",
+            justifyContent: "space-between",
+            margin: "20px 0 12px",
+            scrollMarginTop: 14,
+          }}
+        >
           <span style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1 }}>
-            TODAY'S FOCUS
+            YOUR DAY
           </span>
-          {/* The count, with the day's flame filling beside it. Same number,
-              two readings: one exact, one you can take in at a glance. */}
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: MUTED }}>
-            <StreakFlame size={22} fraction={dayFraction} />
-            {dailyDoneCount + " of " + dailyRepeating.length}
+          <span style={{ fontSize: 11, color: MUTED }}>
+            {dayRowsDone} of {dayRows.length} done
           </span>
         </div>
 
         {dayComplete && (
-          <div style={{ marginBottom: 22 }}>
+          <div style={{ marginBottom: 14 }}>
             <StreakWonCard fullWidth />
           </div>
         )}
 
-        {dailyPillars.map((p, i, arr) => {
-          const filled = taskFill(p);
-          /* Tapping a card here opens the pillar it belongs to. Ticking it
-             off in one tap is Home's job; this screen is where the work
-             actually happens. All three pillars have a screen now, so no card
-             here is a dead end. */
-          /* One header per pillar, not per task: Measure can carry two device
-             syncs and they belong under one heading. */
-          const pid = p.pillar || p.id;
-          const firstOfPillar = i === 0 || (arr[i - 1].pillar || arr[i - 1].id) !== pid;
-          const go = p.id === "eat" ? () => setEatDetail(true)
-                   : p.id === "move" ? () => setMoveDetail(true)
-                   : p.id === "mind" ? () => setMindDetail(true)
-                   : pid === "measure" ? () => setActiveTab("med")
-                   : undefined;
-          return (
-            <div key={p.id} style={{ marginBottom: firstOfPillar && arr[i + 1] && (arr[i + 1].pillar || arr[i + 1].id) === pid ? 10 : 22 }}>
-              {/* Pillar header. The chevron only appears where there is
-                  somewhere to go, so no tap is a dead end. */}
-              {firstOfPillar && (
-              <div
-                onClick={go || undefined}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  marginBottom: 10,
-                  cursor: go ? "pointer" : "default",
-                }}
-              >
-                {/* Name only. The card directly below already carries the
-                    pillar's icon, so a second one is decoration. */}
-                <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 18, fontWeight: 600, color: TEXT }}>
-                  {PILLAR_NAME[pid]}
-                </span>
-                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  {p.checks > 1 && (
-                    <span style={{ fontSize: 11.5, color: MUTED }}>
-                      {filled} of {p.checks}
-                    </span>
-                  )}
-                  {go && <ChevronRight size={18} color={MUTED} />}
-                </span>
-              </div>
-              )}
+        {dayPhases.map((f) => (
+          <DayPhase
+            key={f.id}
+            phase={f}
+            open={openPhase[f.id] !== undefined ? openPhase[f.id] : !f.complete}
+            onToggle={() =>
+              setOpenPhase({
+                ...openPhase,
+                [f.id]: !(openPhase[f.id] !== undefined ? openPhase[f.id] : !f.complete),
+              })
+            }
+          />
+        ))}
 
-              <div style={{ position: "relative", zIndex: 1 }}>
-                <PillarTaskCard pillar={p} fullWidth onClick={go} />
-              </div>
-
-              {/* Only while a program user is still waiting on this pillar's
-                  plan. Once it is written the strip has nothing to say. */}
-              {isPaid && PLAN_STRIP[p.id]?.waiting({ kcalSource, movePlan }) && (
-                <PlanStrip label={PLAN_STRIP[p.id].label} onInfo={() => setPlanInfo(p.id)} />
-              )}
-
-            </div>
-          );
-        })}
-
-
-        {/* Quick values */}
-        <div style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1, marginBottom: 12 }}>
-          QUICK VALUES
+        {/* The same rows read as EM3, and the way into each pillar's screen. */}
+        <div style={{ marginTop: 20 }}>
+          <Em3Strip />
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          {[
-            { v: "74.2", u: "kg", l: "WEIGHT", plus: true },
-            { v: "3", u: "/8", l: "WATER", plus: true },
-          ].map((q) => (
-            <div
-              key={q.l}
-              style={{
-                flex: 1,
-                background: BG,
-                border: "1px solid " + BORDER,
-                borderRadius: 14,
-                padding: 12,
-                boxShadow: SH_SM,
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                <div
-                  style={{
-                    width: 22,
-                    height: 22,
-                    borderRadius: "50%",
-                    background: BG_ALT,
-                    border: "1px solid " + BORDER,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 13,
-                    color: GREEN,
-                    fontWeight: 700,
-                  }}
-                >
-                  {q.plus ? "+" : "›"}
-                </div>
-              </div>
-              <div style={{ marginTop: 10 }}>
-                <span style={{ fontSize: 18, fontWeight: 700, color: TEXT }}>
-                  {q.v}
-                </span>
-                <span style={{ fontSize: 11, color: MUTED }}>{q.u}</span>
-              </div>
-              <div style={{ fontSize: 10, color: MUTED, letterSpacing: 0.5, marginTop: 2 }}>{q.l}</div>
-            </div>
-          ))}
+
+        <div style={{ marginTop: 12 }}>
+          <WeekStrip />
         </div>
       </div>
         );

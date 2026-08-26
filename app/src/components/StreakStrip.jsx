@@ -31,7 +31,11 @@ export default function StreakStrip() {
     ? "Clear today to start again"
     : dayComplete
     ? "Today is in"
-    : dailyDoneCount + " of " + total + " today";
+    /* Named, not just counted. Today's focus right above this is counting the
+       day's rows; the streak counts habits. Two bare numbers reading 0 of 3
+       and 0 of 9 on one screen look like a contradiction, so this one says
+       what it is counting. */
+    : dailyDoneCount + " of " + total + " habits in";
 
   return (
     <div style={{ padding: "10px 22px 0" }}>

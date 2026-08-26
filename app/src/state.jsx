@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from "react";
 import { Home, BarChart3, Utensils, Check, Moon, Droplet, Flame } from "lucide-react";
 import LotusIcon from "./components/LotusIcon";
+import { buildDay, PHASES, WATER_GOAL } from "./screens/today/day";
 import { totals as sumFoods, sufficiency as scoreOf, DEMO_DAY } from "./screens/log/foods";
 import { GOALS, targetsFor } from "./screens/sufficiency/data";
 
@@ -249,6 +250,14 @@ export function WFProvider({ children, initial = {} }) {
   const [favorites, setFavorites] = useState(["poha", "chana", "chai"]);
   // Everything logged today: { division, timeMins, items: [{id, qty}] }
   const [mealsLogged, setMealsLogged] = useState(initial.mealsLogged !== undefined ? initial.mealsLogged : []);
+  const [water, setWater] = useState(initial.water !== undefined ? initial.water : 3);
+  /* Rows with no record anywhere else in the app: a supplement is taken or it
+     is not, and there is nothing to open. Everything else derives its tick
+     from the thing it actually made. */
+  const [dayTicks, setDayTicks] = useState(initial.dayTicks !== undefined ? initial.dayTicks : []);
+  /* Which meal the Eat screen should land on, set by the row that sent you
+     there, so a tap on Lunch does not drop you at the top of the day. */
+  const [eatFocus, setEatFocus] = useState(initial.eatFocus !== undefined ? initial.eatFocus : null);
   // Which logged or planned item the three dot menu is open on.
   const [mealItem, setMealItem] = useState(initial.mealItem !== undefined ? initial.mealItem : null);
   // The celebration after a meal lands, holding before and after numbers.
@@ -566,6 +575,7 @@ export function WFProvider({ children, initial = {} }) {
      how the top bar ended up reading 0 beside a card saying day 1. */
   const streakShown = dayComplete ? Math.max(1, streakDays) : streakDays;
 
+
   /* What the top of To-do shows. Two facts decide it: whether the care plan is
      in, and how much of today is logged. Both are read from the day itself, so
      the summary cannot claim an empty day while the Eat card claims a full
@@ -746,6 +756,41 @@ export function WFProvider({ children, initial = {} }) {
     : lastNight
     ? (lastNight.wake - lastNight.bed + 1440) % 1440
     : null;
+
+  /* Today as a diary. The pillars above are still what the streak counts, so
+     the day cannot get harder just because the list got longer. These rows are
+     the same work written out in the order it happens. */
+  const measureRows = dailyPillars
+    .filter((p) => (p.pillar || p.id) === "measure")
+    .map((p) => ({ id: p.id, title: p.title, tip: p.hint, done: taskIsDone(p) }));
+
+  const dayRows = buildDay({
+    planAssigned, eatDivisions, mealsLogged, exLogs, mindDone,
+    sleepMins, daySteps, water, ticks: dayTicks, measureRows, healthSync, healthSource,
+  });
+  const dayRowsDone = dayRows.filter((r) => r.done).length;
+  const dayPhases = PHASES.map((f) => {
+    const rows = dayRows.filter((r) => r.phase === f.id);
+    const done = rows.filter((r) => r.done).length;
+    return { ...f, rows, done, total: rows.length, complete: rows.length > 0 && done === rows.length };
+  }).filter((f) => f.total > 0);
+
+  /* One tap, two behaviours, no visual difference: a row either records itself
+     here or sends you to the screen that owns the record. Nothing in the diary
+     keeps its own copy of a fact, so it can never disagree with the pillar. */
+  const openRow = (r) => {
+    if (r.kind === "tick") {
+      setDayTicks(dayTicks.includes(r.id) ? dayTicks.filter((x) => x !== r.id) : dayTicks.concat(r.id));
+      return;
+    }
+    if (r.to === "water") return setWater(Math.min(WATER_GOAL, water + 1));
+    if (r.to === "sleep") { setMindDetail(true); if (healthSource.sleep === "manual") setLogSleepOpen(true); return; }
+    if (r.to === "mind") return setMindDetail(true);
+    if (r.to === "move") return setMoveDetail(true);
+    if (r.to === "steps") { setMoveDetail(true); if (healthSource.steps === "manual") setStepsSheet(true); return; }
+    if (r.to === "measure") return setActiveTab("med");
+    if (r.to.startsWith("eat:")) { setEatFocus(r.to.slice(4)); setEatDetail(true); }
+  };
   const liveScore = scoreOf(dayTotals, dailyTargets);
   // The number exists either way. Whether it is legible is the gate.
   const scoreUnlocked = hasTargets && mainMealsDone >= 3;
@@ -795,6 +840,8 @@ export function WFProvider({ children, initial = {} }) {
     SHARE_COINS, STREAK_REWARDS,
     MILESTONES, milestones, setMilestones, milestoneStatus,
     completeTask, taskProgress, setTaskProgress, taskDone, setTaskDone,
+    dayRows, dayPhases, dayRowsDone, openRow, water, setWater, dayTicks, setDayTicks,
+    eatFocus, setEatFocus,
     onbFinish, onbBack, pillarExplain,
   };
   return <WF.Provider value={value}>{children}</WF.Provider>;

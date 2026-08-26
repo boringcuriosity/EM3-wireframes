@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useWF } from "../state";
 import { ChevronRight, ChevronLeft, Utensils, TrendingUp, Gift, Check, Stethoscope, BookOpen, MoreVertical } from "lucide-react";
 import { GREEN, TEXT, MUTED, BG_ALT, BG, BORDER, RULE, LINE, PILLAR, SH, SH_SM } from "../tokens";
@@ -26,7 +26,7 @@ const DIVISION_TIME = {
 };
 
 export default function EatDetailPage() {
-  const { setEatDetail, eatState, eatTab, setEatTab, eatDivisions, kcalTarget, setLogOpen, setLogTime, mealsLogged, hasTargets, dayTotals, planAssigned, setLogItems, setMealItem } = useWF();
+  const { setEatDetail, eatState, eatTab, setEatTab, eatDivisions, kcalTarget, setLogOpen, setLogTime, mealsLogged, hasTargets, dayTotals, planAssigned, setLogItems, setMealItem, eatFocus, setEatFocus } = useWF();
 
   /* Every route into the logger goes through here. If targets are not set up
      and the pitch has not been seen, it gets made once, first. */
@@ -42,6 +42,18 @@ export default function EatDetailPage() {
 
   // Which of the coach's options is showing, per meal. Switching is a read,
   // not a commitment, so it lives here rather than in shared state.
+  /* A meal row on the To-do screen sends you here for one meal in particular.
+     Landing at the top of the day and hunting for it is the thing the tap was
+     meant to save, so the division it named scrolls itself into view and
+     clears the mark once it has. */
+  const focusEl = useRef(null);
+  useEffect(() => {
+    if (!eatFocus) return;
+    focusEl.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const t = setTimeout(() => setEatFocus(null), 1600);
+    return () => clearTimeout(t);
+  }, [eatFocus, setEatFocus]);
+
   const [planOption, setPlanOption] = useState({});
 
   /* Tapping a plan item's circle opens the logger with that item already in
@@ -206,6 +218,7 @@ export default function EatDetailPage() {
       {/* Meal divisions */}
       <div style={{ padding: "16px 22px 20px" }}>
         {eatDivisions.map((div) => {
+          const isFocus = div.id === eatFocus;
           const opts = div.plan || [];
           // Everything really logged into this meal, kept with the index of the
           // meal it came from so the three dot menu can act on it.
@@ -232,7 +245,7 @@ export default function EatDetailPage() {
           const target = Math.round(planItems.reduce((n, it) => n + byId(it.id).kcal * it.qty, 0));
 
           return (
-            <div key={div.id} style={{ background: BG, border: "1px solid " + BORDER, borderRadius: 16, padding: "14px 16px", marginBottom: 10 }}>
+            <div key={div.id} ref={isFocus ? focusEl : null} style={{ scrollMarginTop: 14, background: BG, border: "1px solid " + (isFocus ? GREEN : BORDER), borderRadius: 16, padding: "14px 16px", marginBottom: 10 }}>
               <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>{div.name}</div>
