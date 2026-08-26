@@ -1,14 +1,14 @@
 Frozen snapshot of the wireframe, served at /v0.
 
-Built from the source as it stood on 25 Aug 2026 and committed as-is. It is a
+Built from the source as it stood on 26 Aug 2026 and committed as-is. It is a
 plain static build with base=/v0/, so it shares nothing with the live app and
 is unaffected by any later change to src.
 
-Do not edit these files. To take a new snapshot, make a new folder (public/v1
-and so on) rather than overwriting this one:
+Do not edit these files. To refresh this snapshot to the current source:
 
-  npx vite build --base=/v1/ --outDir dist-v1
-  cp -R dist-v1/. public/v1/ && rm -rf dist-v1 public/v1/v0
+  rm -rf public/v0 dist-v0
+  npx vite build --base=/v0/ --outDir dist-v0
+  mkdir -p public/v0 && cp -R dist-v0/. public/v0/ && rm -rf dist-v0
 
-That last rm matters: public/ is copied into every build, so a snapshot taken
-now would otherwise contain a copy of this one inside itself.
+That first rm matters: public/ is copied into every build, so a snapshot taken
+without it would contain a copy of the old one inside itself.
