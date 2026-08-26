@@ -20,6 +20,7 @@ export default function TrackPage() {
   // Which phases the person has opened or closed by hand. Anything they have
   // not touched follows the day: open until it is finished.
   const [openPhase, setOpenPhase] = useState({});
+  const activePhase = (dayPhases.find((f) => !f.complete) || dayPhases[0] || {}).id;
   // The plans still to come, in EM3 order. Empty once both have landed.
   const waiting = [kcalSource !== "coach" && "eat", !movePlan && "move"].filter(Boolean);
   // The coach card's only action is "the tasks are down there", so it needs
@@ -163,19 +164,21 @@ export default function TrackPage() {
           />
         )}
 
-        {dayPhases.map((f) => (
-          <DayPhase
-            key={f.id}
-            phase={f}
-            open={openPhase[f.id] !== undefined ? openPhase[f.id] : !f.complete}
-            onToggle={() =>
-              setOpenPhase({
-                ...openPhase,
-                [f.id]: !(openPhase[f.id] !== undefined ? openPhase[f.id] : !f.complete),
-              })
-            }
-          />
-        ))}
+        {/* One part of the day open at a time: the earliest one still with
+            something in it. Clearing the morning opens the afternoon by
+            itself, so the list stays the length of what is in front of you
+            rather than the length of the whole day. */}
+        {dayPhases.map((f) => {
+          const open = openPhase[f.id] !== undefined ? openPhase[f.id] : f.id === activePhase;
+          return (
+            <DayPhase
+              key={f.id}
+              phase={f}
+              open={open}
+              onToggle={() => setOpenPhase({ ...openPhase, [f.id]: !open })}
+            />
+          );
+        })}
 
         {/* The same rows read as EM3, and the way into each pillar's screen. */}
         <div style={{ marginTop: 20 }}>

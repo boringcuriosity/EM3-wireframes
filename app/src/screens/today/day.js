@@ -6,7 +6,13 @@
    the pillar ride along as the colour of each row's circle.
 
    Every row carries `at`, the minute of the day it belongs to. The phase falls
-   out of that one number, so there is no second map to keep in step. */
+   out of that one number, so there is no second map to keep in step.
+
+   A row only carries a tip when the tip changes what you do: how to take the
+   supplement, what counts as movement, what is in the session. Why sleep
+   matters is worth knowing and is not worth a line under every task, so that
+   kind of teaching stays in the pillar sheets where someone can go and look
+   for it. */
 
 export const PHASES = [
   { id: "morning", label: "Morning" },
@@ -60,7 +66,6 @@ export function buildDay(w) {
   rows.push({
     id: "sleep", pillar: "mind", at: 0,
     title: "Log last night's sleep",
-    tip: "A short night pushes your hunger up all day.",
     kind: "go", to: "sleep",
     done: sleepMins !== null,
   });
@@ -80,7 +85,6 @@ export function buildDay(w) {
       id: "sync:" + m.id, pillar: "measure", at: 7 * 60 + 30,
       title: m.title,
       when: "7:30 AM",
-      tip: m.tip,
       kind: "go", to: "measure",
       done: m.done,
     })
@@ -146,7 +150,6 @@ export function buildDay(w) {
   rows.push({
     id: "calm", pillar: "mind", at: 21 * 60,
     title: "Take a calm break",
-    tip: "Two minutes of slow breathing brings your stress hormone down.",
     kind: "go", to: "mind",
     done: mindDone.length > 0,
   });

@@ -75,8 +75,13 @@ export default function DayRow({ row: r, last, compact }) {
       >
         {off ? (
           <Minus size={11} color={FAINT} strokeWidth={3} />
+        ) : r.done ? (
+          <Check size={12} color="#fff" strokeWidth={3.2} />
         ) : (
-          r.done && <Check size={12} color="#fff" strokeWidth={3.2} />
+          /* A row you add to says so in the circle it would be ticked in. A
+             second plus off to the right was a second control for the same
+             one action. */
+          r.add && <Plus size={12} color={c} strokeWidth={2.8} />
         )}
         {burst && !off && <Confetti pillar={r.pillar} />}
       </span>
@@ -132,22 +137,11 @@ export default function DayRow({ row: r, last, compact }) {
       </span>
 
       <span style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
-        {r.kind === "go" && !off && <ChevronRight size={15} color={FAINT} strokeWidth={2.2} />}
-        {r.add && !r.done && !off && (
-          <span
-            style={{
-              width: 20,
-              height: 20,
-              borderRadius: "50%",
-              background: PILLAR[r.pillar].t,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Plus size={12} color={c} strokeWidth={2.6} />
-          </span>
-        )}
+        {/* One glyph at the end of a row. A chevron and a three dot sitting
+            three pixels apart read as one smudged control, so the full row
+            keeps the menu and the compact rows on Home, which have no menu,
+            keep the chevron. */}
+        {compact && r.kind === "go" && !off && <ChevronRight size={15} color={FAINT} strokeWidth={2.2} />}
 
         {/* Skipping lives here rather than on the face of the row. A decline
             button beside every ask is a decision you are made to take thirteen
