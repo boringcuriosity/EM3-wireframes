@@ -1,0 +1,984 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>To-do, EM3 and streak · questions</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --ground: #F6F8F6;
+    --surface: #FFFFFF;
+    --surface-2: #FBFCFB;
+    --ink: #101828;
+    --ink-2: #344054;
+    --muted: #667085;
+    --faint: #98A2B3;
+    --rule: #E4E7EC;
+    --rule-soft: #EFF1EF;
+    --eat: #299D6B;
+    --move: #444CE7;
+    --mind: #2DA6A6;
+    --measure: #B08D18;
+    --open: #B54708;
+    --open-bg: #FFFAEB;
+    --open-line: #FEDF89;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: Roboto, system-ui, -apple-system, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 90px; }
+
+  header.top { padding: 60px 0 0; }
+
+  .eyebrow {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--muted); margin: 0 0 16px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(32px, 5vw, 50px);
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+    margin: 0;
+    text-wrap: balance;
+  }
+
+  .standfirst {
+    margin: 18px 0 0; max-width: 62ch; font-size: 16.5px;
+    line-height: 1.6; color: var(--ink-2);
+  }
+
+  /* ---------- Tabs ---------- */
+
+  .tabs {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; gap: 4px;
+    margin: 34px 0 0;
+    padding: 12px 0;
+    background: var(--ground);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .tab {
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: 999px;
+    border: 1px solid var(--rule);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+  }
+
+  .tab[aria-selected="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+  .tab:focus-visible { outline: 2px solid var(--eat); outline-offset: 2px; }
+
+  .panel[hidden] { display: none; }
+
+  /* ---------- Stage ---------- */
+
+  .stage { margin-top: 46px; scroll-margin-top: 70px; }
+
+  .stage-head { padding-left: 0; }
+
+  /* The stage's colour rides on one small mark rather than a bar down the
+     side of the block. */
+  .stage-n {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: 'Roboto Mono', ui-monospace, monospace;
+    font-size: 11.5px; font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  .stage-n::before {
+    content: ""; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--accent, var(--rule));
+  }
+
+  .stage h2 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 23px; font-weight: 600;
+    margin: 2px 0 0; letter-spacing: -0.01em;
+  }
+
+  .stage-note { margin: 5px 0 0; font-size: 13.5px; color: var(--muted); max-width: 76ch; }
+
+  /* ---------- Table ---------- */
+
+  .scroller {
+    margin-top: 16px; overflow-x: auto;
+    border: 1px solid var(--rule); border-radius: 12px; background: var(--surface);
+  }
+
+  table { width: 100%; min-width: 820px; border-collapse: collapse; font-size: 13.5px; }
+
+  thead th {
+    text-align: left;
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); background: var(--surface-2);
+    padding: 11px 16px; border-bottom: 1px solid var(--rule); white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 13px 16px; vertical-align: top;
+    border-bottom: 1px solid var(--rule-soft); color: var(--ink-2);
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface-2); }
+
+  td.moment { width: 27%; color: var(--ink); font-weight: 500; }
+  td.q { width: 38%; }
+  td.now { width: 35%; color: var(--muted); }
+
+  .none {
+    display: inline-block;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--open); background: var(--open-bg);
+    border: 1px solid var(--open-line); border-radius: 6px; padding: 2px 8px;
+  }
+
+  /* ---------- Suggestions ---------- */
+
+  .ideas { margin-top: 16px; display: grid; gap: 12px; }
+
+  .idea {
+    border: 1px solid var(--rule); border-radius: 12px; background: var(--surface);
+    padding: 16px 18px;
+  }
+
+  .idea h3 {
+    margin: 0; font-size: 14.5px; font-weight: 700; color: var(--ink);
+    display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap;
+  }
+
+  .idea p { margin: 6px 0 0; font-size: 13.5px; color: var(--ink-2); max-width: 82ch; }
+
+  .cost {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    border-radius: 5px; padding: 2px 7px;
+    border: 1px solid var(--rule); background: var(--surface-2); color: var(--muted);
+  }
+
+  .cost.small { color: var(--eat); border-color: #BFE8D5; background: #F3FCF8; }
+  .cost.big { color: var(--open); border-color: var(--open-line); background: var(--open-bg); }
+
+  .pick {
+    margin-top: 12px; padding: 12px 14px;
+    border-radius: 10px; background: var(--surface-2);
+    border: 1px dashed var(--rule);
+    font-size: 13px; color: var(--ink-2);
+  }
+
+  .pick b { color: var(--ink); }
+
+  footer {
+    margin-top: 60px; padding-top: 20px;
+    border-top: 1px solid var(--rule);
+    font-size: 12.5px; color: var(--faint);
+  }
+
+  code { font-family: 'Roboto Mono', ui-monospace, monospace; font-size: 0.9em; }
+
+  @media (max-width: 640px) {
+    header.top { padding: 36px 0 0; }
+    .wrap { padding: 0 16px 60px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <p class="eyebrow">GoodFlip EM3 · working notes</p>
+    <h1>To-do, EM3 and the streak</h1>
+    <p class="standfirst">
+      Only the moments that live in these three things, written as questions rather than
+      answers. The middle column is the question the design has to answer. The right column
+      is what happens today, and it is blank wherever we have not decided yet. Ideas for the
+      blanks sit in Suggestions.
+    </p>
+  </header>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tab-s" role="tab" aria-selected="true" aria-controls="panel-s">Scenarios</button>
+    <button class="tab" id="tab-i" role="tab" aria-selected="false" aria-controls="panel-i">Suggestions</button>
+  </div>
+
+  <!-- ==================== SCENARIOS ==================== -->
+  <div class="panel" id="panel-s" role="tabpanel" aria-labelledby="tab-s">
+
+    <!-- 1 -->
+    <section class="stage" style="--accent: var(--muted)">
+      <div class="stage-head">
+        <span class="stage-n">STAGE 01</span>
+        <h2>My first time on To-do</h2>
+        <p class="stage-note">I have joined, nothing has been assigned, and I have never seen this screen.</p>
+      </div>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>The moment</th><th>The question we have to answer</th><th>What happens today</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="moment">I land on To-do and have no idea what it is.</td>
+              <td class="q">What is the one sentence that tells me what this screen is for, and where does it live?</td>
+              <td class="now">A one-time explainer of the four pillars, then the list.</td>
+            </tr>
+            <tr>
+              <td class="moment">I want to know if this list is mine or the app's.</td>
+              <td class="q">Do I understand these are habits chosen for me, not a generic checklist?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I see tasks even though nobody has planned my day.</td>
+              <td class="q">How do I know this is a starter day, not my real plan?</td>
+              <td class="now">A strip above the list says the plans are on the way.</td>
+            </tr>
+            <tr>
+              <td class="moment">I wonder why I should bother before my plan exists.</td>
+              <td class="q">What makes logging now feel worth it, rather than busywork before the real thing?</td>
+              <td class="now">One line: the more the coaches see of a normal day, the better both plans fit.</td>
+            </tr>
+            <tr>
+              <td class="moment">I see two cards at the top.</td>
+              <td class="q">How do I know these are prerequisites and not optional extras?</td>
+              <td class="now">They sit under Start here, in amber, above everything else.</td>
+            </tr>
+            <tr>
+              <td class="moment">I want to know how long the wait is.</td>
+              <td class="q">What do we promise about when the plan lands, and who says it?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I finish my first task ever.</td>
+              <td class="q">What does the very first tick teach me that the tenth one does not need to?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I close the app and come back tomorrow.</td>
+              <td class="q">Does day two of waiting look different from day one, or identical?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section class="stage" style="--accent: var(--eat)">
+      <div class="stage-head">
+        <span class="stage-n">STAGE 02</span>
+        <h2>My plan arrives</h2>
+        <p class="stage-note">The handover moment. It happens while I am somewhere else, or not in the app at all.</p>
+      </div>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>The moment</th><th>The question we have to answer</th><th>What happens today</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="moment">My coach assigns my plan while I am asleep.</td>
+              <td class="q">How do I find out at all? Does the app come to me, or do I have to open it?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I open To-do the morning after.</td>
+              <td class="q">What tells me today is different from yesterday, before I start reading rows?</td>
+              <td class="now">The waiting strip is gone and the list is longer.</td>
+            </tr>
+            <tr>
+              <td class="moment">I want to see what my coach actually decided.</td>
+              <td class="q">Do I get to read the plan as a plan, or only meet it one row at a time?</td>
+              <td class="now">Eat holds the full plan by meal. The day shows it row by row.</td>
+            </tr>
+            <tr>
+              <td class="moment">My diet plan is in but my exercise plan is not.</td>
+              <td class="q">How do we show a half handover without it reading as a mistake?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">There are suddenly food choices under a meal.</td>
+              <td class="q">How do I learn that picking an option is a thing I do, the first time I see one?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">There are new rows I have never seen, like a capsule.</td>
+              <td class="q">How do I tell the new rows from the ones I already know?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">My plan changes two weeks in.</td>
+              <td class="q">How do I know something changed, and what changed?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 3 -->
+    <section class="stage" style="--accent: var(--mind)">
+      <div class="stage-head">
+        <span class="stage-n">STAGE 03</span>
+        <h2>Seeing EM3 inside my day</h2>
+        <p class="stage-note">The list is chronological. EM3 is the frame behind it. These are the questions about making the frame visible without turning the day into four folders.</p>
+      </div>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>The moment</th><th>The question we have to answer</th><th>What happens today</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="moment">I look at a row that says log your breakfast.</td>
+              <td class="q">How do I know this belongs to Eat, and do I need to know it at that moment?</td>
+              <td class="now">The circle carries the pillar colour. Nothing names it.</td>
+            </tr>
+            <tr>
+              <td class="moment">I have never been told what Eat, Move, Mind and Measure mean.</td>
+              <td class="q">When is the right time to teach the frame, and how many times can we say it?</td>
+              <td class="now">Once, in the explainer before the first day.</td>
+            </tr>
+            <tr>
+              <td class="moment">I see four coloured circles down the list.</td>
+              <td class="q">Does colour alone teach the mapping, or does it only work once I already know it?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I reach the bottom of the day.</td>
+              <td class="q">What is the summary of four rings actually for: progress, or teaching the frame?</td>
+              <td class="now">Four rings with counts, and the streak above them.</td>
+            </tr>
+            <tr>
+              <td class="moment">I want to see everything about my food in one place.</td>
+              <td class="q">How do I get from a task to the pillar that owns it, and back?</td>
+              <td class="now">Tapping a row opens the pillar screen. The ring at the bottom does too.</td>
+            </tr>
+            <tr>
+              <td class="moment">Nothing in today's list is a Mind task.</td>
+              <td class="q">Should the frame show a pillar with nothing in it, or quietly leave it out?</td>
+              <td class="now">It says not today rather than showing a zero.</td>
+            </tr>
+            <tr>
+              <td class="moment">I finish all my Eat tasks but nothing else.</td>
+              <td class="q">Is one full pillar worth celebrating on its own, or only the whole day?</td>
+              <td class="now">The ring fills. Nothing else marks it.</td>
+            </tr>
+            <tr>
+              <td class="moment">I want to know why these four and not five.</td>
+              <td class="q">Where does someone go to understand the idea, weeks after the explainer?</td>
+              <td class="now">Each pillar has a short science sheet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section class="stage" style="--accent: var(--move)">
+      <div class="stage-head">
+        <span class="stage-n">STAGE 04</span>
+        <h2>Doing a task from To-do</h2>
+        <p class="stage-note">Some rows finish where they stand. Some send me to another screen and expect me to come back.</p>
+      </div>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>The moment</th><th>The question we have to answer</th><th>What happens today</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="moment">I am about to tap a row.</td>
+              <td class="q">How do I know whether this ticks here or takes me somewhere?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I tick my capsule right on the list.</td>
+              <td class="q">How much reward does a one-second task deserve?</td>
+              <td class="now">The row strikes through, the circle fills, confetti bursts.</td>
+            </tr>
+            <tr>
+              <td class="moment">I tap breakfast and land in Eat.</td>
+              <td class="q">Do I still know which task I came to do once I am on the other screen?</td>
+              <td class="now">Eat opens focused on that meal.</td>
+            </tr>
+            <tr>
+              <td class="moment">I finish logging and come back.</td>
+              <td class="q">How do I see that the thing I went to do is now done?</td>
+              <td class="now">The row plays its strike and confetti when I return.</td>
+            </tr>
+            <tr>
+              <td class="moment">I get distracted and never come back.</td>
+              <td class="q">Does the tick survive, and does anything tell me later?</td>
+              <td class="now">It is recorded either way. A toast says done for today.</td>
+            </tr>
+            <tr>
+              <td class="moment">I log two meals in one visit.</td>
+              <td class="q">Do two finishes get two moments, or one combined one?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">One thing I did closes two tasks.</td>
+              <td class="q">How do we show one action clearing more than one row?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I tick something by mistake.</td>
+              <td class="q">How do I undo it, and does undoing feel safe?</td>
+              <td class="now">Tapping again unticks it and the count goes back.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 5 -->
+    <section class="stage" style="--accent: var(--eat)">
+      <div class="stage-head">
+        <span class="stage-n">STAGE 05</span>
+        <h2>Doing the thing without going through To-do</h2>
+        <p class="stage-note">Most people will log food from Eat, or walk with their phone, and never open the list first. The task still finishes.</p>
+      </div>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>The moment</th><th>The question we have to answer</th><th>What happens today</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="moment">I log lunch from Eat and never open To-do.</td>
+              <td class="q">How do I find out a task got completed, when I never saw the task?</td>
+              <td class="now">A toast: done for today, the task named, and the coins.</td>
+            </tr>
+            <tr>
+              <td class="moment">I see the toast but do not know what a task is yet.</td>
+              <td class="q">Does the toast teach the connection, or assume I already know it?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">My phone syncs my steps and closes a task by itself.</td>
+              <td class="q">Should something I did not do in the app still announce itself?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I open To-do that evening.</td>
+              <td class="q">Do I get any sense of what got done while I was elsewhere?</td>
+              <td class="now">The rows are simply already ticked.</td>
+            </tr>
+            <tr>
+              <td class="moment">I finish my whole day without ever opening To-do.</td>
+              <td class="q">Where does the day's completion moment happen if I am not on that screen?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I am on Home and something finishes.</td>
+              <td class="q">Should Home's Today's focus react in the moment, or just be right next time?</td>
+              <td class="now">The count is right next time I look.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 6 -->
+    <section class="stage" style="--accent: var(--measure)">
+      <div class="stage-head">
+        <span class="stage-n">STAGE 06</span>
+        <h2>Knowing where I stand mid-day</h2>
+        <p class="stage-note">The middle of the day is the longest stretch and the easiest place to lose someone.</p>
+      </div>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>The moment</th><th>The question we have to answer</th><th>What happens today</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="moment">I glance at the app at lunchtime.</td>
+              <td class="q">In one look, what do I need to know: what is left, or how I am doing?</td>
+              <td class="now">A count at the top, and the part of the day I am in is open.</td>
+            </tr>
+            <tr>
+              <td class="moment">I want to know what to do next.</td>
+              <td class="q">Should the app pick the next thing for me, or show me the list and let me choose?</td>
+              <td class="now">Home shows the next one. To-do shows the whole part of the day.</td>
+            </tr>
+            <tr>
+              <td class="moment">I have drunk one glass of water out of two.</td>
+              <td class="q">How does a part-done task read, next to ones that are yes or no?</td>
+              <td class="now">A small bar under the row.</td>
+            </tr>
+            <tr>
+              <td class="moment">It is 4pm and my breakfast row is still open.</td>
+              <td class="q">Does the day ever say a moment has passed, and in whose voice?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I am behind and it is late.</td>
+              <td class="q">What is the difference between a helpful nudge and pressure?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I have done more than usual.</td>
+              <td class="q">Does anything notice a good day before it ends?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 7 -->
+    <section class="stage" style="--accent: var(--mind)">
+      <div class="stage-head">
+        <span class="stage-n">STAGE 07</span>
+        <h2>Saying not today</h2>
+        <p class="stage-note">Skipping is the pressure valve. It only works if people believe it is safe.</p>
+      </div>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>The moment</th><th>The question we have to answer</th><th>What happens today</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="moment">I am not doing something today.</td>
+              <td class="q">How do I say so, and how discoverable should that be?</td>
+              <td class="now">Three dots on the row, then a sheet that asks and offers two buttons.</td>
+            </tr>
+            <tr>
+              <td class="moment">I am about to skip.</td>
+              <td class="q">What do I need to be told before I decide?</td>
+              <td class="now">It will not count as missed, and the coach will see the choice.</td>
+            </tr>
+            <tr>
+              <td class="moment">I skipped something an hour ago.</td>
+              <td class="q">How does a skipped row look, and is it obviously reversible?</td>
+              <td class="now">Faded, with a dash, saying I skipped it today. Tapping reopens the sheet.</td>
+            </tr>
+            <tr>
+              <td class="moment">I skip the same thing every day for a week.</td>
+              <td class="q">At what point does a repeated skip become something the plan should change?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I skip everything today.</td>
+              <td class="q">Is a day of skips a completed day, a lighter day, or a missed day?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I am travelling all week.</td>
+              <td class="q">Is skipping task by task enough, or does a lighter day need to exist as a thing?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="stage" style="--accent: var(--measure)">
+      <div class="stage-head">
+        <span class="stage-n">STAGE 08</span>
+        <h2>Finishing the day</h2>
+        <p class="stage-note">The payoff. It has to feel bigger than a tick without becoming a fireworks show every evening.</p>
+      </div>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>The moment</th><th>The question we have to answer</th><th>What happens today</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="moment">I tick the last thing on my list.</td>
+              <td class="q">How is the last tick different from every other tick?</td>
+              <td class="now">A full screen moment, the streak fills, the week's pips light up.</td>
+            </tr>
+            <tr>
+              <td class="moment">I finish my day but with two things skipped.</td>
+              <td class="q">Does that earn the same moment as a day with nothing skipped?</td>
+              <td class="now">Yes. Skipped rows leave the count.</td>
+            </tr>
+            <tr>
+              <td class="moment">I open the app again after finishing.</td>
+              <td class="q">What does a finished day look like when I come back to it?</td>
+              <td class="now">Four full rings, no counts, and the streak line above them.</td>
+            </tr>
+            <tr>
+              <td class="moment">I finish the day but the day is not over.</td>
+              <td class="q">Can I still do more, and does anything reward it?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I want to tell someone.</td>
+              <td class="q">Is finishing a day worth sharing, or only a milestone?</td>
+              <td class="now">Sharing exists for the streak, not the day.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="stage" style="--accent: var(--eat)">
+      <div class="stage-head">
+        <span class="stage-n">STAGE 09</span>
+        <h2>The streak</h2>
+        <p class="stage-note">Meant to build steadiness. The risk is that it quietly becomes the thing people are afraid of losing.</p>
+      </div>
+      <div class="scroller">
+        <table>
+          <thead><tr><th>The moment</th><th>The question we have to answer</th><th>What happens today</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="moment">I see a flame with a number next to it.</td>
+              <td class="q">What is it counting: days, tasks, or pillars? Can I tell without being told?</td>
+              <td class="now">Days where the whole list was finished. The fill shows today's progress.</td>
+            </tr>
+            <tr>
+              <td class="moment">I am on day one.</td>
+              <td class="q">How do we make one day feel like a beginning rather than a small number?</td>
+              <td class="now">Day 1 of your streak, sitting above the four rings.</td>
+            </tr>
+            <tr>
+              <td class="moment">I have both a streak and four rings on the same screen.</td>
+              <td class="q">Are these two facts or one fact said twice?</td>
+              <td class="now">One block. The streak line sits on top of the rings.</td>
+            </tr>
+            <tr>
+              <td class="moment">I nearly finish, then run out of day.</td>
+              <td class="q">Does almost count for anything, or is it all or nothing?</td>
+              <td class="now">Nothing. The day simply does not count.</td>
+            </tr>
+            <tr>
+              <td class="moment">I miss a day.</td>
+              <td class="q">What do we say, in whose voice, and how quickly do we offer a way back?</td>
+              <td class="now">The streak reads as ended.</td>
+            </tr>
+            <tr>
+              <td class="moment">I am ill for three days.</td>
+              <td class="q">Is there any protection, and does knowing about it change how people behave?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">I reach seven days.</td>
+              <td class="q">What is a week worth, and is the reward the point or the recognition?</td>
+              <td class="now">A milestone becomes claimable, with coins.</td>
+            </tr>
+            <tr>
+              <td class="moment">I have kept it for sixty days.</td>
+              <td class="q">Does the streak keep mattering, or should it hand over to something else?</td>
+              <td class="now"><span class="none">Blank</span></td>
+            </tr>
+            <tr>
+              <td class="moment">My coach adds four more tasks to my day.</td>
+              <td class="q">Is a harder day worth the same one as an easier day?</td>
+              <td class="now">Yes. A day is a day.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- ==================== SUGGESTIONS ==================== -->
+  <div class="panel" id="panel-i" role="tabpanel" aria-labelledby="tab-i" hidden>
+
+    <section class="stage" style="--accent: var(--muted)">
+      <div class="stage-head">
+        <span class="stage-n">FOR STAGE 01</span>
+        <h2>My first time on To-do</h2>
+        <p class="stage-note">The blanks: what this list is, how long the wait is, what the first tick teaches, and whether day two of waiting looks different.</p>
+      </div>
+      <div class="ideas">
+        <div class="idea">
+          <h3>Name the list in the person's own terms <span class="cost small">Small</span></h3>
+          <p>One line under the header, once: these are the habits your coaches will build your plan around. It answers whose list this is without another explainer screen.</p>
+        </div>
+        <div class="idea">
+          <h3>Put a real promise on the waiting card <span class="cost small">Small</span></h3>
+          <p>Instead of on the way, say who and when: your diet plan lands after your coach reads your first three days. A wait with a condition attached feels like progress; an open-ended one feels like being forgotten.</p>
+        </div>
+        <div class="idea">
+          <h3>Make the waiting card count down <span class="cost">Medium</span></h3>
+          <p>Two of three days logged, so the card becomes a progress bar towards the plan. The starter days stop being filler and become the input.</p>
+        </div>
+        <div class="idea">
+          <h3>Teach on the first tick, not before <span class="cost small">Small</span></h3>
+          <p>The first completed task of a person's life in the app gets one extra line: that is one habit in, your coach can see it. After that, nothing.</p>
+        </div>
+        <div class="pick"><b>If we only do one:</b> the waiting card that counts down. It answers the wait, the why and the what next in a single card people already look at.</div>
+      </div>
+    </section>
+
+    <section class="stage" style="--accent: var(--eat)">
+      <div class="stage-head">
+        <span class="stage-n">FOR STAGE 02</span>
+        <h2>My plan arrives</h2>
+        <p class="stage-note">The blanks: how I find out, a half handover, meeting options for the first time, spotting new rows, and later changes.</p>
+      </div>
+      <div class="ideas">
+        <div class="idea">
+          <h3>Treat arrival as an event, not a state change <span class="cost">Medium</span></h3>
+          <p>A push, then a one-time card at the top of To-do: your plan is in. Tapping it opens what your coach set, meal by meal and session by session. It closes for good once read.</p>
+        </div>
+        <div class="idea">
+          <h3>Let the coach say it, not the system <span class="cost">Medium</span></h3>
+          <p>The arrival note comes from the named coach in chat, and the To-do card quotes one line of it. The plan feels handed over by a person, which is the whole point of the program.</p>
+        </div>
+        <div class="idea">
+          <h3>Mark new rows for one day <span class="cost small">Small</span></h3>
+          <p>A quiet new label on rows that were not there yesterday, gone by the next morning. It also covers plan changes later, using the same rule.</p>
+        </div>
+        <div class="idea">
+          <h3>Introduce options on first contact <span class="cost small">Small</span></h3>
+          <p>The first meal row that carries choices explains itself in one line: your coach gave you two ways to eat this, pick the one you had. Once only.</p>
+        </div>
+        <div class="idea">
+          <h3>Say which half arrived <span class="cost small">Small</span></h3>
+          <p>The waiting card already has a diet tag and an exercise tag. Let one go green and one stay waiting, so a half handover reads as progress rather than a bug.</p>
+        </div>
+        <div class="pick"><b>If we only do one:</b> the coach's own arrival message with a card that opens the plan. Everything else here is polish on top of it.</div>
+      </div>
+    </section>
+
+    <section class="stage" style="--accent: var(--mind)">
+      <div class="stage-head">
+        <span class="stage-n">FOR STAGE 03</span>
+        <h2>Seeing EM3 inside my day</h2>
+        <p class="stage-note">The blanks: whether colour alone teaches the mapping, and whether one full pillar is worth anything.</p>
+      </div>
+      <div class="ideas">
+        <div class="idea">
+          <h3>Colour carries it, words teach it once <span class="cost small">Small</span></h3>
+          <p>Keep the coloured circle as the everyday signal, but on the first day only, each pillar's first row says its name beside the time. Four small labels, one day, and the colour is learned for good.</p>
+        </div>
+        <div class="idea">
+          <h3>Make the rings a filter, not just a summary <span class="cost">Medium</span></h3>
+          <p>Tap Eat at the bottom and the day dims to its Eat rows. It teaches the grouping by showing it, keeps the list chronological, and gives the rings a second job.</p>
+        </div>
+        <div class="idea">
+          <h3>Name the pillar on the way in <span class="cost small">Small</span></h3>
+          <p>When a row sends me to Eat, the screen I land on says this is where your food lives. The mapping is taught at the moment it is being used.</p>
+        </div>
+        <div class="idea">
+          <h3>Let a pillar close for the day <span class="cost">Medium</span></h3>
+          <p>When every Eat task is done, the ring fills and says Eat is done for today. Four small wins across a day beat one at the end, and it makes the frame visible without a lecture.</p>
+        </div>
+        <div class="idea">
+          <h3>Say the frame in the weekly read, not the daily one <span class="cost big">Bigger</span></h3>
+          <p>The day stays chronological. The week is where EM3 does the talking: your Move was strong, your Mind was thin. The frame becomes an insight rather than a filing system.</p>
+        </div>
+        <div class="pick"><b>If we only do one:</b> let a pillar close for the day. It rewards partial days, which is most days, and it teaches the frame by using it.</div>
+      </div>
+    </section>
+
+    <section class="stage" style="--accent: var(--move)">
+      <div class="stage-head">
+        <span class="stage-n">FOR STAGE 04</span>
+        <h2>Doing a task from To-do</h2>
+        <p class="stage-note">The blanks: knowing where a tap leads, two finishes at once, and one action closing two rows.</p>
+      </div>
+      <div class="ideas">
+        <div class="idea">
+          <h3>Two shapes, two meanings <span class="cost small">Small</span></h3>
+          <p>Rows that tick in place look like checkboxes. Rows that take me somewhere carry a quiet arrow at the end. One glance tells me whether tapping costs me a screen.</p>
+        </div>
+        <div class="idea">
+          <h3>Scale the celebration to the effort <span class="cost">Medium</span></h3>
+          <p>Three tiers instead of one: a tick fills and strikes, a logged meal or session gets the confetti, the last task of the day gets the full screen. Right now a capsule and a workout get the same fanfare, which flattens both.</p>
+        </div>
+        <div class="idea">
+          <h3>Collect finishes that arrive together <span class="cost">Medium</span></h3>
+          <p>Two meals logged in one visit produce one moment: two things done, six of nine today. Two identical toasts in a row read as a bug.</p>
+        </div>
+        <div class="idea">
+          <h3>Show one action closing two rows <span class="cost">Medium</span></h3>
+          <p>When a walk closes both the session and the step target, say so once: that walk covered two things today. It makes the day feel generous rather than accidental.</p>
+        </div>
+        <div class="pick"><b>If we only do one:</b> scale the celebration. It is the difference between delight and noise, and it costs no new screens.</div>
+      </div>
+    </section>
+
+    <section class="stage" style="--accent: var(--eat)">
+      <div class="stage-head">
+        <span class="stage-n">FOR STAGE 05</span>
+        <h2>Doing the thing without going through To-do</h2>
+        <p class="stage-note">The blanks: whether the toast teaches the link, silent syncs, catching up on what happened while I was away, and finishing a day off-screen.</p>
+      </div>
+      <div class="ideas">
+        <div class="idea">
+          <h3>The toast should name the frame once <span class="cost small">Small</span></h3>
+          <p>The first few times, say done for today, one of your Eat habits. After a week, drop back to the short version. It teaches the connection at the exact moment it happens.</p>
+        </div>
+        <div class="idea">
+          <h3>Make the toast a door <span class="cost small">Small</span></h3>
+          <p>Tapping it opens To-do at that row. People who never visit the list get a reason to, at the moment they are feeling good about it.</p>
+        </div>
+        <div class="idea">
+          <h3>A quiet welcome back line <span class="cost">Medium</span></h3>
+          <p>Opening To-do after things finished elsewhere: two things ticked while you were away. It closes the loop for anyone who lives in Eat and Move.</p>
+        </div>
+        <div class="idea">
+          <h3>Let the day's moment follow me <span class="cost">Medium</span></h3>
+          <p>If the last task finishes inside Eat, the full screen moment plays there. The reward should happen where the person is, not wait on a screen they may not open.</p>
+        </div>
+        <div class="idea">
+          <h3>Stay silent for things I did not do in the app <span class="cost small">Small</span></h3>
+          <p>A step target closed by a background sync gets no toast. Celebrating something the phone noticed, not something I chose, cheapens the ones I earned.</p>
+        </div>
+        <div class="pick"><b>If we only do one:</b> let the day's completion moment follow the person. It is the single biggest payoff in the product and it currently depends on being on the right screen.</div>
+      </div>
+    </section>
+
+    <section class="stage" style="--accent: var(--measure)">
+      <div class="stage-head">
+        <span class="stage-n">FOR STAGE 06</span>
+        <h2>Knowing where I stand mid-day</h2>
+        <p class="stage-note">The blanks: a moment that has passed, nudging without pressure, and noticing a good day early.</p>
+      </div>
+      <div class="ideas">
+        <div class="idea">
+          <h3>Let the hour pass quietly <span class="cost small">Small</span></h3>
+          <p>A row whose time has gone loses its time stamp rather than turning red. Still open, never late. Nothing in a health app should scold someone for eating at three instead of one.</p>
+        </div>
+        <div class="idea">
+          <h3>One nudge a day, from Kaira, with a reason <span class="cost">Medium</span></h3>
+          <p>Not a reminder per task. One line in the evening that knows something: your dinner is the last one today, and it is the meal your coach is watching.</p>
+        </div>
+        <div class="idea">
+          <h3>Notice the good day before it ends <span class="cost">Medium</span></h3>
+          <p>At two thirds done, one line: this is your best day this week. Recognition on the way up is worth more than a summary after the fact.</p>
+        </div>
+        <div class="idea">
+          <h3>Make the count the headline, not the list <span class="cost small">Small</span></h3>
+          <p>For a mid-day glance, four of nine and what is next are the only two facts that matter. Everything else can stay below the fold.</p>
+        </div>
+        <div class="pick"><b>If we only do one:</b> notice the good day early. It is the clearest way to build steadiness without the streak doing the pushing.</div>
+      </div>
+    </section>
+
+    <section class="stage" style="--accent: var(--mind)">
+      <div class="stage-head">
+        <span class="stage-n">FOR STAGE 07</span>
+        <h2>Saying not today</h2>
+        <p class="stage-note">The blanks: a repeated skip, a day of nothing but skips, and travel.</p>
+      </div>
+      <div class="ideas">
+        <div class="idea">
+          <h3>A repeated skip becomes a question, not a warning <span class="cost">Medium</span></h3>
+          <p>The fourth time in a week: you have passed on this most days. Want your coach to swap it for something else? A skip that keeps happening is feedback about the plan, not about the person.</p>
+        </div>
+        <div class="idea">
+          <h3>Give a lighter day a name <span class="cost big">Bigger</span></h3>
+          <p>One tap at the top: make today lighter. It keeps the essentials, drops the rest, and the day can still be completed. Better than fifteen individual skips, and honest about the fact that some days are like that.</p>
+        </div>
+        <div class="idea">
+          <h3>Decide the all-skipped rule and say it out loud <span class="cost small">Small</span></h3>
+          <p>The proposal: a day needs at least one thing actually done to count. Written into the streak guide in one plain line, so nobody has to guess.</p>
+        </div>
+        <div class="idea">
+          <h3>Let a skip carry a reason, optionally <span class="cost">Medium</span></h3>
+          <p>Two or three taps in the sheet: travelling, not well, not today. It gives the coach something real to work with and costs the person almost nothing.</p>
+        </div>
+        <div class="pick"><b>If we only do one:</b> the lighter day. It is the honest answer to travel, illness and bad weeks, and it protects the streak's meaning instead of eroding it.</div>
+      </div>
+    </section>
+
+    <section class="stage" style="--accent: var(--measure)">
+      <div class="stage-head">
+        <span class="stage-n">FOR STAGE 08</span>
+        <h2>Finishing the day</h2>
+        <p class="stage-note">The blanks: doing more after finishing, and whether a finished day is worth sharing.</p>
+      </div>
+      <div class="ideas">
+        <div class="idea">
+          <h3>Let the day stay open after it is done <span class="cost small">Small</span></h3>
+          <p>Extra water, an extra walk: recorded, counted in the pillar, but no second celebration. Finishing should never mean stopping.</p>
+        </div>
+        <div class="idea">
+          <h3>Vary the closing line <span class="cost small">Small</span></h3>
+          <p>The full screen moment says something slightly different on day one, day seven and day thirty. The same sentence every night stops being read by the third one.</p>
+        </div>
+        <div class="idea">
+          <h3>Save sharing for milestones <span class="cost small">Small</span></h3>
+          <p>A finished day is between me and my coach. A week or a month is worth showing someone. Keeping the difference protects both.</p>
+        </div>
+        <div class="idea">
+          <h3>End the day with one thing to carry <span class="cost">Medium</span></h3>
+          <p>One line from Kaira in the closing moment that is about today specifically, not a summary. It is the one place an insight is guaranteed to be read.</p>
+        </div>
+        <div class="pick"><b>If we only do one:</b> vary the closing line. The moment is already built, and repetition is the only thing that will kill it.</div>
+      </div>
+    </section>
+
+    <section class="stage" style="--accent: var(--eat)">
+      <div class="stage-head">
+        <span class="stage-n">FOR STAGE 09</span>
+        <h2>The streak</h2>
+        <p class="stage-note">The blanks: protection when life happens, and what the streak becomes after it has done its job.</p>
+      </div>
+      <div class="ideas">
+        <div class="idea">
+          <h3>Say the rule where the number is <span class="cost small">Small</span></h3>
+          <p>Under the flame, once: finish everything on your day to keep it. Nobody should have to open a guide to learn what a number on their home screen means.</p>
+        </div>
+        <div class="idea">
+          <h3>Earn protection rather than being given it <span class="cost">Medium</span></h3>
+          <p>Every seven days banks one rest day, up to two held at a time. A missed day spends one automatically and tells you it did. Protection you earned is a reward; protection handed out for free removes the meaning.</p>
+        </div>
+        <div class="idea">
+          <h3>Count almost, quietly <span class="cost">Medium</span></h3>
+          <p>A day at eight of nine does not keep the streak, but it is not nothing either. Remember it, and let a week of near misses show up as what it is: a consistent person having a busy week.</p>
+        </div>
+        <div class="idea">
+          <h3>Break it gently and offer the way back in the same breath <span class="cost small">Small</span></h3>
+          <p>Not your streak ended. Rather: you were on eleven days. Today starts the next one. The number that mattered gets remembered, and the next action is right there.</p>
+        </div>
+        <div class="idea">
+          <h3>Let the streak hand over after a month <span class="cost big">Bigger</span></h3>
+          <p>Past thirty days the daily count stops being the story and the pillars take over: your Move has held for six weeks. The streak's job is to build the habit, and then to get out of the way.</p>
+        </div>
+        <div class="idea">
+          <h3>Never let a bigger plan mean a riskier streak <span class="cost small">Small</span></h3>
+          <p>If a coach adds four tasks, the day got harder but the reward did not change. Worth deciding explicitly, because it is the quickest way for a streak to start punishing the people doing the most.</p>
+        </div>
+        <div class="pick"><b>If we only do one:</b> earned rest days. It is the single change that keeps a streak motivating instead of frightening, and it fits the sustainable habits idea rather than fighting it.</div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    GoodFlip EM3 · working notes on To-do, the EM3 frame and the streak · blanks are open
+    decisions, not oversights
+  </footer>
+</div>
+
+<script>
+  var tabs = [
+    { btn: document.getElementById('tab-s'), panel: document.getElementById('panel-s'), hash: '#scenarios' },
+    { btn: document.getElementById('tab-i'), panel: document.getElementById('panel-i'), hash: '#suggestions' }
+  ];
+
+  function show(i, push) {
+    tabs.forEach(function (t, n) {
+      t.btn.setAttribute('aria-selected', n === i ? 'true' : 'false');
+      t.panel.hidden = n !== i;
+    });
+    if (push) history.replaceState(null, '', tabs[i].hash);
+    window.scrollTo({ top: 0 });
+  }
+
+  tabs.forEach(function (t, i) {
+    t.btn.addEventListener('click', function () { show(i, true); });
+  });
+
+  if (location.hash === '#suggestions') show(1, false);
+</script>
+</body>
+</html>

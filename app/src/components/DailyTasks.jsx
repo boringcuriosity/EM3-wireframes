@@ -4,27 +4,255 @@ import FtuxExplainer from "./FtuxExplainer";
 import TourTarget from "./TourTarget";
 import DayRow from "./DayRow";
 import Em3Strip from "./Em3Strip";
-import StreakFlame from "./StreakFlame";
-import { Check, ChevronRight } from "lucide-react";
-import { GREEN, TEXT, MUTED, BG, BORDER, SH } from "../tokens";
-import { flame } from "../ui";
+import LotusIcon from "./LotusIcon";
+import DayStreakBar, { DayDoneCard } from "./DayStreakBar";
+import { ChevronRight, MoreHorizontal, Utensils, Flame, BarChart3 } from "lucide-react";
+import { PILLAR, TEXT, MUTED, FAINT, LINE, BG, BORDER, SH_SM } from "../tokens";
 
-/* Home's job is the next thing, not the whole list.
+/* Home, as one card.
 
-   It used to carry the same four pillar cards the To-do screen carried, which
-   made one of the two screens redundant. Now To-do is the day written out and
-   this is the top of it: whatever is open in the part of the day you are in,
-   and the four pillars as a way straight into any of them. */
+   Three things used to say the day: a streak strip at the top of the screen, a
+   task card in the middle and a pillar card under it. Same day, three places,
+   three denominators. Now it is one card, so the link reads by itself: these
+   tasks feed these four pillars and that is what keeps the streak.
+
+   Three shapes are kept switchable while we decide which one a person reads
+   fastest. They differ only in what sits between the streak line and the
+   rings, because that is the only real question: how much of the list does
+   Home owe you before you go to To-do for the rest. */
 export default function DailyTasks() {
-  const { dailyState, dayPhases, dayLive, dayRowsDone, dayComplete, streakShown, setActiveTab } = useWF();
+  const { dailyState, dayPhases, dayLive, dayComplete, homeCard, setActiveTab,
+          setEatDetail, setMoveDetail, setMindDetail } = useWF();
 
   if (dailyState === "ftux") return <FtuxExplainer />;
 
-  // The first phase with anything left in it. Once they are all clear the
-  // card below takes over, so there is never an empty heading.
+  // The first phase with anything left in it, and what is open inside it.
   const phase = dayPhases.find((f) => !f.complete);
-  const next = phase ? phase.rows.filter((r) => !r.done && !r.skipped).slice(0, 3) : [];
-  const rest = phase ? phase.rows.filter((r) => !r.done && !r.skipped).length - next.length : 0;
+  /* What is still open. The split card looks at the whole day, because the
+     line under it counts what is left today rather than what is left in this
+     part of it. The other shapes stay inside the current phase. */
+  const open =
+    homeCard === "split"
+      ? dayLive.filter((r) => !r.done)
+      : phase
+      ? phase.rows.filter((r) => !r.done && !r.skipped)
+      : [];
+  const shown =
+    homeCard === "phase" ? open.slice(0, 3)
+    : homeCard === "split" ? open.slice(0, 2)
+    : open.slice(0, 1);
+  const one = open[0];
+  const rest = open.length - shown.length;
+
+  const label = homeCard === "phase" && phase ? "This " + phase.label.toLowerCase() : "Up next";
+
+  /* The rows, plus the line that says the list keeps going. Shaped like a row
+     rather than a caption, so it taps like one. */
+  const list = phase && (
+    <div style={{ padding: "0 14px", borderBottom: "1px solid " + LINE }}>
+      <div style={{ padding: "11px 0 2px" }}>
+        <span
+          style={{
+            fontSize: 9,
+            fontWeight: 700,
+            letterSpacing: 1,
+            textTransform: "uppercase",
+            color: MUTED,
+          }}
+        >
+          {label}
+        </span>
+      </div>
+
+      {shown.map((r, i) => (
+        <DayRow key={r.id} row={r} compact last={i === shown.length - 1 && rest === 0} />
+      ))}
+
+      {rest > 0 && (
+        <button
+          onClick={() => setActiveTab("track")}
+          aria-label={"See " + rest + " more today"}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            background: "none",
+            border: "none",
+            padding: "11px 0",
+            cursor: "pointer",
+            fontFamily: "inherit",
+            textAlign: "left",
+          }}
+        >
+          <span
+            style={{
+              width: 21,
+              height: 21,
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <MoreHorizontal size={16} color={FAINT} strokeWidth={2.4} />
+          </span>
+          <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: MUTED }}>
+            {homeCard === "phase"
+              ? rest + " more this " + phase.label.toLowerCase()
+              : rest + " more today"}
+          </span>
+          <ChevronRight size={15} color={FAINT} strokeWidth={2.2} style={{ flexShrink: 0 }} />
+        </button>
+      )}
+    </div>
+  );
+
+  /* The next task named in words, the four pillars under it, and the streak as
+     one slim line at the foot. Nothing on this card is a fraction except the
+     bar, which is the only place today is counted. */
+  const nextTask = one && (
+    <div style={{ padding: "13px 14px 2px", borderBottom: "1px solid " + LINE }}>
+      <span
+        style={{
+          display: "block",
+          fontSize: 9,
+          fontWeight: 700,
+          letterSpacing: 1,
+          textTransform: "uppercase",
+          color: MUTED,
+          marginBottom: 2,
+        }}
+      >
+        Your next task is
+      </span>
+      <DayRow row={one} compact last />
+    </div>
+  );
+
+  /* The four pillars as places to go, not as a score. All four, always: one
+     with nothing due today is still somewhere you might want to look. */
+  const METAB = [
+    { id: "eat", label: "Eat", Icon: Utensils, go: () => setEatDetail(true) },
+    { id: "move", label: "Move", Icon: Flame, go: () => setMoveDetail(true) },
+    { id: "mind", label: "Mind", Icon: LotusIcon, go: () => setMindDetail(true) },
+    { id: "measure", label: "Measure", Icon: BarChart3, go: () => setActiveTab("med") },
+  ];
+
+  const split = (
+    <>
+      {dayComplete ? <DayDoneCard /> : (
+      <div
+        style={{
+          background: BG,
+          border: "1px solid " + BORDER,
+          borderRadius: 18,
+          overflow: "hidden",
+          boxShadow: SH_SM,
+        }}
+      >
+        <DayStreakBar edge="top" />
+        <div style={{ padding: "0 14px" }}>
+          {/* A label, so two rows out of fourteen read as a shortlist rather
+              than as the whole day. */}
+          <span
+            style={{
+              display: "block",
+              fontSize: 9,
+              fontWeight: 700,
+              letterSpacing: 1,
+              textTransform: "uppercase",
+              color: MUTED,
+              padding: "11px 0 1px",
+            }}
+          >
+            Your next tasks
+          </span>
+          {shown.map((r, i) => (
+            <DayRow key={r.id} row={r} compact last={i === shown.length - 1 && rest === 0} />
+          ))}
+          {rest > 0 && (
+            <button
+              onClick={() => setActiveTab("track")}
+              aria-label={"See " + rest + " more today"}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                background: "none",
+                border: "none",
+                padding: "11px 0",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                textAlign: "left",
+              }}
+            >
+              <span
+                style={{
+                  width: 21,
+                  height: 21,
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <MoreHorizontal size={16} color={FAINT} strokeWidth={2.4} />
+              </span>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: MUTED }}>
+                {rest === 1 ? "1 more task left today" : rest + " more tasks left today"}
+              </span>
+              <ChevronRight size={15} color={FAINT} strokeWidth={2.2} style={{ flexShrink: 0 }} />
+            </button>
+          )}
+        </div>
+      </div>
+      )}
+
+      <div style={{ marginTop: 22 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 10 }}>Metabolism</div>
+        <div style={{ display: "flex", gap: 10 }}>
+          {METAB.map((m) => (
+            <button
+              key={m.id}
+              onClick={m.go}
+              aria-label={"Open " + m.label}
+              style={{
+                flex: 1,
+                minWidth: 0,
+                background: "none",
+                border: "none",
+                padding: 0,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                textAlign: "center",
+              }}
+            >
+              <span
+                style={{
+                  display: "flex",
+                  height: 62,
+                  borderRadius: 16,
+                  background: BG,
+                  border: "1px solid " + BORDER,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginBottom: 7,
+                  boxShadow: SH_SM,
+                }}
+              >
+                <m.Icon size={22} color={PILLAR[m.id].c} strokeWidth={1.8} />
+              </span>
+              <span style={{ display: "block", fontSize: 10.5, fontWeight: 600, color: TEXT }}>
+                {m.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  );
 
   return (
     <TourTarget id="focus" style={{ padding: "4px 0 18px" }}>
@@ -54,120 +282,21 @@ export default function DailyTasks() {
             fontFamily: "inherit",
           }}
         >
-          <StreakFlame size={22} fraction={dayLive.length ? dayRowsDone / dayLive.length : 0} />
-          {dayRowsDone + " of " + dayLive.length}
+          {/* The way into the full day. The count it used to carry is said
+              once, on the card below. */}
+          See your day
           <ChevronRight size={15} color={MUTED} style={{ marginLeft: -1 }} />
         </button>
       </div>
 
       <div style={{ padding: "0 22px" }}>
-        {dayComplete || !phase ? (
-          <div
-            style={{
-              background: BG,
-              border: "1px solid " + GREEN,
-              borderRadius: 16,
-              padding: 16,
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              boxShadow: SH,
-            }}
-          >
-            <span
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: "50%",
-                background: GREEN,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              <Check size={19} color="#fff" strokeWidth={3} />
-            </span>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13.5, fontWeight: 700, color: TEXT }}>Today is done. Nice work.</div>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: MUTED,
-                  marginTop: 2,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 5,
-                }}
-              >
-                {flame(14, true)}
-                <span>{streakShown} day streak · come back tomorrow</span>
-              </div>
-            </div>
-          </div>
+        {homeCard === "split" ? (
+          split
+        ) : homeCard === "task" ? (
+          <Em3Strip head={false} top={nextTask} bottom={<DayStreakBar edge="bottom" />} />
         ) : (
-          <div
-            style={{
-              background: BG,
-              border: "1px solid " + BORDER,
-              borderRadius: 18,
-              padding: "3px 16px 4px",
-              boxShadow: SH,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "baseline",
-                justifyContent: "space-between",
-                padding: "11px 0 2px",
-              }}
-            >
-              <span
-                style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: 9,
-                  fontWeight: 600,
-                  letterSpacing: 1,
-                  textTransform: "uppercase",
-                  color: MUTED,
-                }}
-              >
-                This {phase.label.toLowerCase()}
-              </span>
-              <span style={{ fontSize: 11, color: MUTED }}>
-                {phase.done} of {phase.total}
-              </span>
-            </div>
-
-            {next.map((r, i) => (
-              <DayRow key={r.id} row={r} compact last={i === next.length - 1 && rest === 0} />
-            ))}
-
-            {rest > 0 && (
-              <button
-                onClick={() => setActiveTab("track")}
-                style={{
-                  width: "100%",
-                  background: "none",
-                  border: "none",
-                  padding: "10px 0 11px",
-                  fontSize: 11.5,
-                  color: MUTED,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  textAlign: "left",
-                }}
-              >
-                {rest} more this {phase.label.toLowerCase()}
-              </button>
-            )}
-          </div>
+          <Em3Strip top={list} />
         )}
-
-        <div style={{ marginTop: 12 }}>
-          <Em3Strip />
-        </div>
       </div>
     </TourTarget>
   );

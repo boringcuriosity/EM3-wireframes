@@ -1,26 +1,25 @@
 import React, { useRef, useState } from "react";
 import { useWF } from "../state";
 import { Calendar } from "lucide-react";
-import StreakFlame from "../components/StreakFlame";
 import DayPhase from "../components/DayPhase";
-import Em3Strip from "../components/Em3Strip";
-import WeekStrip from "../components/WeekStrip";
-import StreakWonCard from "../components/StreakWonCard";
+import DayStreakBar, { DayDoneCard } from "../components/DayStreakBar";
 import PlanStrip from "../components/PlanStrip";
 import PrereqRail from "../components/PrereqRail";
 import TrackHero from "../components/TrackHero";
-import { GREEN, TEXT, MUTED, BG, BORDER, GOLD, GOLD_TINT, GOLD_LINE, GOLD_DEEP, GREEN_DEEP } from "../tokens";
+import { GREEN, TEXT, MUTED, BG, BORDER, GOLD, GOLD_TINT, GOLD_LINE, GOLD_DEEP, GREEN_DEEP, SH_SM } from "../tokens";
 import CtaArrow from "../components/CtaArrow";
 import Em3Explainer from "../components/Em3Explainer";
 
 export default function TrackPage() {
-  const { dayLive, dayPhases, dayRowsDone, dayComplete, streakShown, streakState,
-          dayFraction, setStreakOpen, flipcoins,
+  const { dayPhases, dayComplete, flipcoins,
           kcalSource, movePlan, setPlanInfo, heroState } = useWF();
   // Which phases the person has opened or closed by hand. Anything they have
   // not touched follows the day: open until it is finished.
   const [openPhase, setOpenPhase] = useState({});
-  const activePhase = (dayPhases.find((f) => !f.complete) || dayPhases[0] || {}).id;
+  /* The part of the day you are in: the earliest one still with something in
+     it. Once they are all cleared none is active, so the whole list folds and
+     the streak card is what is left. */
+  const activePhase = (dayPhases.find((f) => !f.complete) || {}).id;
   // The plans still to come, in EM3 order. Empty once both have landed.
   const waiting = [kcalSource !== "coach" && "eat", !movePlan && "move"].filter(Boolean);
   // The coach card's only action is "the tasks are down there", so it needs
@@ -32,7 +31,9 @@ export default function TrackPage() {
       (() => {
         // No-data vs has-data across the whole Today page, driven by dailyState.
         return (
-      <div style={{ padding: "14px 22px 28px" }}>
+      /* The last 92px are room for Kaira, who floats over the bottom right
+         corner and was sitting on the Measure ring. */
+      <div style={{ padding: "14px 22px 92px" }}>
         {/* Top row: Flipcoins on the left, the day on the right */}
         <div
           style={{
@@ -88,28 +89,6 @@ export default function TrackPage() {
             </span>
             <span style={{ color: BORDER }}>›</span>
           </div>
-          {/* The streak, where the eye already goes at the end of the header */}
-          <button
-            onClick={() => setStreakOpen("guide")}
-            aria-label={"Streak, " + streakShown + " days. See how streaks work"}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              border: "1px solid " + (dayComplete ? GOLD_LINE : BORDER),
-              background: dayComplete ? GOLD_TINT : BG,
-              borderRadius: 999,
-              padding: "5px 11px 5px 8px",
-              fontSize: 13,
-              fontWeight: 700,
-              color: dayComplete ? GOLD_DEEP : TEXT,
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}
-          >
-            <StreakFlame size={16} fraction={streakState === "broken" ? 0 : dayFraction} outline={false} />
-            {streakShown}
-          </button>
         </div>
 
         {/* Before a plan exists the top of the screen has one job: get the
@@ -131,8 +110,9 @@ export default function TrackPage() {
           ref={focusRef}
           style={{
             display: "flex",
-            alignItems: "baseline",
+            alignItems: "center",
             justifyContent: "space-between",
+            gap: 12,
             margin: "20px 0 12px",
             scrollMarginTop: 14,
           }}
@@ -140,19 +120,7 @@ export default function TrackPage() {
           <span style={{ fontSize: 11, fontWeight: 700, color: MUTED, letterSpacing: 1 }}>
             TODAY'S FOCUS
           </span>
-          {/* The count, and the same count as something you can take in
-              without reading. One number, two readings. */}
-          <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: MUTED }}>
-            <StreakFlame size={22} fraction={dayLive.length ? dayRowsDone / dayLive.length : 0} />
-            {dayRowsDone} of {dayLive.length} done
-          </span>
         </div>
-
-        {dayComplete && (
-          <div style={{ marginBottom: 14 }}>
-            <StreakWonCard fullWidth />
-          </div>
-        )}
 
         {/* Why the list below has no plan behind it, sitting on top of the
             list it is talking about. */}
@@ -163,6 +131,20 @@ export default function TrackPage() {
             onInfo={() => setPlanInfo(waiting.length > 1 ? "both" : waiting[0])}
           />
         )}
+
+        {/* The day and the run it belongs to, above the list rather than under
+            it. It is the thing the list is adding up to, so it reads better as
+            the heading of the list than as a summary at the bottom of a screen
+            most people never scroll to. */}
+        <div style={{ marginBottom: 12 }}>
+          {dayComplete ? (
+            <DayDoneCard />
+          ) : (
+            <div style={{ background: BG, border: "1px solid " + BORDER, borderRadius: 14, boxShadow: SH_SM }}>
+              <DayStreakBar />
+            </div>
+          )}
+        </div>
 
         {/* One part of the day open at a time: the earliest one still with
             something in it. Clearing the morning opens the afternoon by
@@ -180,14 +162,6 @@ export default function TrackPage() {
           );
         })}
 
-        {/* The same rows read as EM3, and the way into each pillar's screen. */}
-        <div style={{ marginTop: 20 }}>
-          <Em3Strip />
-        </div>
-
-        <div style={{ marginTop: 12 }}>
-          <WeekStrip />
-        </div>
       </div>
         );
       })()

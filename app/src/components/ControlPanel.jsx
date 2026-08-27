@@ -22,7 +22,7 @@ const ALL_DONE = { eat: 3, move: 1, mind: 1, measure: 1 };
 const ALL_GROUPS = [
   "signup", "plan", "welcome", "tour", "move", "hero", "targets",
   "logging", "suff", "streakscreen", "streak", "milestones",
-  "focus", "skip", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "mind", "measure",
+  "focus", "homecard", "dayWon", "skip", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "mind", "measure",
 ];
 
 const SCREEN_GROUPS = {
@@ -35,8 +35,8 @@ const SCREEN_GROUPS = {
   eat: ["eat", "targets", "logging"],
   chats: [],
   program: ["welcome"],
-  todo: ["nextaction", "hero", "focus", "skip", "measuretasks", "streak"],
-  home: ["welcome", "tour", "nextaction", "focus", "measuretasks", "streak"],
+  todo: ["nextaction", "hero", "focus", "dayWon", "skip", "measuretasks", "streak"],
+  home: ["welcome", "tour", "nextaction", "focus", "homecard", "measuretasks", "streak"],
   measure: ["measure"],
   care: [],
   more: [],
@@ -127,62 +127,53 @@ const SUFF_STATES = [
 
 const DEMO_EXERCISE = [{ id: "walk", minutes: 45, intensity: "moderate", timeMins: 7 * 60 + 15 }];
 
+/* Every shape Today's focus takes, as one tap each.
+
+   The day is a list now, not four pillar cards, so a preset has to leave the
+   records a real day would leave: meals in the log, a capsule ticked, water
+   drunk, a night slept. `seed` is that day; nothing here sets a counter. */
 const FOCUS_PRESETS = [
   {
     id: "ftux",
-    label: "Four habits explainer",
-    progress: {},
-    days: 0,
+    label: "Habits explainer",
     ftux: true,
-    desc: "To-do shows the four habits explainer instead of the task list, ending on Take me to my day.",
-  },
-  {
-    id: "none",
-    label: "Nothing ticked yet",
-    progress: {},
     days: 0,
-    desc: "Four open cards, flame empty, 0 of 4. The day as a returning user finds it.",
+    seed: {},
+    desc: "First run on To-do. The four habits are explained before the day is handed over, the same way onboarding does it.",
   },
   {
-    id: "meal1",
-    label: "1 of 3 meals logged",
-    progress: { eat: 1 },
+    id: "empty",
+    label: "Nothing ticked",
     days: 0,
-    desc: "Eat is part way: one pip filled, hint reads 1 of 3 meals in. Still 0 of 4, because the task is not done.",
+    seed: {},
+    desc: "The whole day open. Morning is expanded, the afternoon and evening are folded away until it is cleared.",
   },
   {
-    id: "eat",
-    label: "All 3 meals logged",
-    progress: { eat: 3 },
+    id: "few",
+    label: "A few ticked",
     days: 0,
-    desc: "Eat struck through with its tick, flame at a quarter, 1 of 4.",
+    seed: { meals: 1, mind: 1, water: 1, ticks: ["note:bittermelon"] },
+    desc: "Four things done across the morning and afternoon: last night's sleep, breakfast, the first capsule and a glass of water. Nothing is complete, so nothing has folded away.",
   },
   {
-    id: "three",
-    label: "Eat, Move and Mind done",
-    progress: { eat: 3, move: 1, mind: 1 },
+    id: "all",
+    label: "Everything ticked",
     days: 0,
-    desc: "Three done and sunk to the back. With a care plan that leaves the Measure sync to clear the day; without one there is no Measure task, so the day is already done.",
+    seed: { every: true },
+    desc: "Every row in the day done. All three parts fold themselves shut, the streak card leads, and the flame is full.",
   },
   {
-    id: "d1",
-    label: "Day 1 streak",
-    progress: ALL_DONE,
-    days: 1,
-    desc: "All four in. The streak card leads the row reading Streak started, flame full.",
-  },
-  {
-    id: "d4",
-    label: "Day 4 streak",
-    progress: ALL_DONE,
-    days: 4,
-    desc: "Card reads 4 day streak. Home strip shows four dots filled.",
+    id: "d2",
+    label: "Day 2 streak",
+    days: 2,
+    seed: { every: true },
+    desc: "Same cleared day, second in a row. The card reads 2 days in a row.",
   },
   {
     id: "d7",
     label: "Day 7 streak",
-    progress: ALL_DONE,
     days: 7,
+    seed: { every: true },
     desc: "A full week. The rewards sheet behind the card is where the 20 coin weekly bonus is explained.",
   },
 ];
@@ -194,7 +185,7 @@ const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 const SLEEP_SRC = { gate: null, syncing: "phone", phone: "phone", manualnone: "manual", manual: "manual", tools: "manual" };
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, dailyDoneCount, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindMood, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab, setWater, setDayTicks, dayLive, dayRowsDone, daySkipped, toggleSkip } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindMood, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab, setWater, setDayTicks, homeCard, setHomeCard, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -204,15 +195,19 @@ export default function ControlPanel() {
     ) || {}
   ).id;
 
-  const progKey = (o) =>
-    ["eat", "move", "mind", "measure"].map((k) => o[k] || 0).join("-");
+  /* Which preset the day matches, read off the records rather than a counter,
+     so a day built by hand still lights the chip it actually looks like. */
+  const doneCount = dayLive.filter((r) => r.done).length;
   const focusPreset = (
-    FOCUS_PRESETS.find(
-      (v) =>
-        focusState(v) === dailyState &&
-        progKey(v.progress) === progKey(taskProgress) &&
-        v.days === streakDays
-    ) || {}
+    FOCUS_PRESETS.find((v) => {
+      if (v.ftux) return dailyState === "ftux";
+      if (dailyState === "ftux") return false;
+      if (v.days !== streakDays) return false;
+      const all = doneCount > 0 && doneCount === dayLive.length;
+      if (v.seed.every) return all;
+      if (v.id === "empty") return doneCount === 0;
+      return doneCount > 0 && !all;
+    }) || {}
   ).id;
 
   const groupValue = {
@@ -235,8 +230,10 @@ export default function ControlPanel() {
     hero: heroState,
     mind: mindDetail ? mindTab : "Closed",
     nextaction: nextOpen.length ? nextOpen.length + " left" : "none",
-    focus: dayRowsDone + "/" + dayLive.length + (streakDays ? " · d" + streakDays : ""),
+    focus: doneCount + "/" + dayLive.length + (streakDays ? " · d" + streakDays : ""),
     skip: daySkipped.length ? daySkipped.length + " skipped" : "none",
+    dayWon: streakBurst ? "showing" : "off",
+
     streak: streakState,
   };
 
@@ -851,6 +848,18 @@ export default function ControlPanel() {
         )}
 
         {panelGroup(
+          "dayWon",
+          "Day won",
+          "the full screen moment",
+          [
+            { id: "on", label: "Show it", v: true },
+            { id: "off", label: "Dismissed", v: false },
+          ].map((x) => panelChip(x.label, streakBurst === x.v, () => setStreakBurst(x.v))),
+          "Plays by itself the moment the last row goes in, once, on the crossing from an open day to a closed one. Tap Everything ticked from a part way day to see it arrive on its own.",
+          true
+        )}
+
+        {panelGroup(
           "skip",
           "Skipped tasks",
           "turned down for today",
@@ -965,6 +974,7 @@ export default function ControlPanel() {
             { id: "search", label: "Search", full: "Log a meal, search and add" },
             { id: "result", label: "Result", full: "Meal logged, sufficiency rising" },
             { id: "toast", label: "Toast", full: "The confirmation toast" },
+            { id: "donetoast", label: "Task done toast", full: "What you see when a diary task finishes on another screen" },
             { id: "reset", label: "Clear day", full: "Wipe everything logged today" },
           ].map((v) =>
             panelChip(
@@ -981,6 +991,10 @@ export default function ControlPanel() {
                 }
                 if (v.id === "toast") {
                   setToast({ title: "Meal logged", line: "Breakfast at 8:30 AM", coins: 4 });
+                  setEatDetail(true);
+                }
+                if (v.id === "donetoast") {
+                  setToast({ title: "Done for today", line: "Breakfast \u00b7 3 of 9 today", coins: 4, task: "eat" });
                   setEatDetail(true);
                 }
                 if (v.id === "reset") {
@@ -1114,6 +1128,26 @@ export default function ControlPanel() {
         )}
 
         {panelGroup(
+          "homecard",
+          "Home card shape",
+          "Home, Today's focus",
+          [
+            { id: "split", label: "Day and pillars", full: "The day in one card, the pillars as their own section" },
+            { id: "next", label: "Up next", full: "One thing next, then the rings" },
+            { id: "phase", label: "This part of day", full: "The open part of the day, then the rings" },
+            { id: "task", label: "Next task", full: "Your next task is, then the pillars, then a slim streak bar" },
+          ].map((v) =>
+            panelChip(v.label, homeCard === v.id, () => { setHomeCard(v.id); setActiveTab("home"); }, v.full)
+          ),
+          {
+            split: "Slim streak, three tasks, then Metabolism as four places to go.",
+            next: "Home summarises, To-do lists. Shortest card.",
+            phase: "Up to three rows of whatever part of the day is open.",
+            task: "One task named, the four pillars, and the streak as a slim line at the foot.",
+          }[homeCard]
+        )}
+
+        {panelGroup(
           "focus",
           "Today's focus",
           "Home row + To-do list",
@@ -1122,21 +1156,31 @@ export default function ControlPanel() {
               v.label,
               focusPreset === v.id,
               () => {
+                const d = v.seed || {};
                 setDailyState(focusState(v));
                 setTodayOnboarded(!v.ftux);
-                setTaskProgress(v.progress);
-                // Ticking Eat off has to put food in the day too, or the Eat
-                // card claims meals that Eat detail and the calorie strip know
-                // nothing about.
-                setMealsLogged(DEMO_DAY.slice(0, v.progress.eat || 0));
-                setExLogs(DEMO_EXERCISE.slice(0, v.progress.move || 0));
-                /* The diary reads records, not counters, so a preset has to
-                   leave the same records behind that a real day would. */
-                setMindDone(v.progress.mind ? ["breathing"] : []);
-                setSleepLogs(v.progress.mind ? [{ bed: 23 * 60, wake: 6 * 60 + 40 }] : []);
-                const allIn = (v.progress.eat || 0) >= 3 && v.progress.move && v.progress.mind;
-                setWater(allIn ? 8 : 3);
-                setDayTicks(allIn ? ["supp"] : []);
+                setTaskProgress(d.every ? ALL_DONE : {});
+                /* Everything ticked means the coach's own first option eaten
+                   at every division, so the six meal rows all close rather
+                   than the three that happen to be in the demo day. */
+                setMealsLogged(
+                  d.every
+                    ? eatDivisions.map((x, i) => ({
+                        division: x.id,
+                        timeMins: 7 * 60 + i * 150,
+                        items: (x.plan || [[]])[0],
+                      }))
+                    : DEMO_DAY.slice(0, d.meals || 0)
+                );
+                setExLogs(DEMO_EXERCISE.slice(0, d.every ? 1 : 0));
+                setMindDone(d.every || d.mind ? ["breathing"] : []);
+                setSleepLogs(d.every || d.mind ? [{ bed: 23 * 60, wake: 6 * 60 + 40 }] : []);
+                setWater(d.every ? 2 : d.water || 0);
+                setDayTicks(d.every ? ["note:bittermelon", "note:fenugreek"] : d.ticks || []);
+                setManualSteps(d.every ? 10200 : null);
+                setHealthSource({ steps: "manual", sleep: "manual" });
+                setHealthSync(null);
+                setDaySkipped([]);
                 setStreakDays(v.days);
                 setStreakState(v.days > 0 ? "active" : "new");
                 setTaskDone(null);

@@ -1,14 +1,18 @@
 import React from "react";
 import { useWF } from "../state";
 import { Minus, RotateCcw, X } from "lucide-react";
-import { TEXT, MUTED, BG, BG_ALT, BORDER, LINE, PILLAR } from "../tokens";
+import { TEXT, MUTED, BG, BG_ALT, BORDER, LINE, GREEN, PILLAR } from "../tokens";
 
 /* The one place a task can be turned down.
 
    Saying no to something is a real answer and the coach needs it, but a
    decline button beside every ask turns thirteen requests into twenty six
-   decisions. So it lives one tap in, and it says what skipping actually means,
-   because "skip" on its own reads like a confession. */
+   decisions. So it lives one tap in.
+
+   It asks a question and offers two buttons rather than listing one choice.
+   A sheet with a single row in it reads like a menu that failed to load, and
+   nothing tells you what happens if you walk away. A question with a yes and
+   a no is the shape people already know. */
 export default function DayRowSheet() {
   const { rowMenu, setRowMenu, dayRows, daySkipped, toggleSkip } = useWF();
   const r = dayRows.find((x) => x.id === rowMenu);
@@ -20,6 +24,8 @@ export default function DayRowSheet() {
     toggleSkip(r.id);
     setRowMenu(null);
   };
+
+  const Icon = off ? RotateCcw : Minus;
 
   return (
     <div
@@ -48,17 +54,24 @@ export default function DayRowSheet() {
       >
         <div style={{ width: 40, height: 4, borderRadius: 2, background: BORDER, margin: "10px auto 0" }} />
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "16px 22px 0" }}>
+        {/* Which task this is about, kept quiet so the question below carries
+            the weight. */}
+        <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "14px 22px 0" }}>
+          <span style={{ width: 7, height: 7, borderRadius: "50%", background: c, flexShrink: 0 }} />
           <span
             style={{
-              width: 9,
-              height: 9,
-              borderRadius: "50%",
-              background: c,
-              flexShrink: 0,
+              flex: 1,
+              minWidth: 0,
+              fontSize: 12,
+              fontWeight: 600,
+              color: MUTED,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
             }}
-          />
-          <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 700, color: TEXT }}>{r.title}</span>
+          >
+            {r.title}
+          </span>
           <button
             onClick={() => setRowMenu(null)}
             aria-label="Close"
@@ -68,27 +81,13 @@ export default function DayRowSheet() {
           </button>
         </div>
 
-        <div style={{ height: 1, background: LINE, margin: "16px 22px 0" }} />
+        <div style={{ height: 1, background: LINE, margin: "14px 0 0" }} />
 
-        <button
-          onClick={act}
-          style={{
-            width: "100%",
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 12,
-            background: "none",
-            border: "none",
-            padding: "16px 22px",
-            cursor: "pointer",
-            fontFamily: "inherit",
-            textAlign: "left",
-          }}
-        >
+        <div style={{ padding: "18px 22px 0", display: "flex", gap: 13 }}>
           <span
             style={{
-              width: 32,
-              height: 32,
+              width: 38,
+              height: 38,
               borderRadius: "50%",
               background: BG_ALT,
               border: "1px solid " + BORDER,
@@ -98,19 +97,56 @@ export default function DayRowSheet() {
               flexShrink: 0,
             }}
           >
-            {off ? <RotateCcw size={15} color={TEXT} /> : <Minus size={16} color={TEXT} strokeWidth={2.4} />}
+            <Icon size={18} color={TEXT} strokeWidth={2.2} />
           </span>
           <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: TEXT }}>
-              {off ? "Put it back on today" : "Not today"}
+            <span style={{ display: "block", fontSize: 16, fontWeight: 700, color: TEXT, letterSpacing: "-0.01em" }}>
+              {off ? "Put this back on today?" : "Not doing this today?"}
             </span>
-            <span style={{ display: "block", fontSize: 12, color: MUTED, lineHeight: 1.5, marginTop: 3 }}>
+            <span style={{ display: "block", fontSize: 12.5, color: MUTED, lineHeight: 1.55, marginTop: 4 }}>
               {off
-                ? "It goes back into today's count and your streak."
-                : "It leaves today's count, so nothing here reads as missed. Your coach sees you chose to, which is worth knowing."}
+                ? "It counts again, so you can still finish the day."
+                : "That's fine. It won't count as missed, and your coach will see you chose to skip it."}
             </span>
           </span>
-        </button>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, padding: "18px 22px 0" }}>
+          <button
+            onClick={() => setRowMenu(null)}
+            style={{
+              flex: 1,
+              height: 46,
+              borderRadius: 14,
+              background: BG,
+              border: "1px solid " + BORDER,
+              color: TEXT,
+              fontSize: 14,
+              fontWeight: 700,
+              fontFamily: "inherit",
+              cursor: "pointer",
+            }}
+          >
+            {off ? "Leave it out" : "Keep it"}
+          </button>
+          <button
+            onClick={act}
+            style={{
+              flex: 1,
+              height: 46,
+              borderRadius: 14,
+              background: off ? GREEN : TEXT,
+              border: "none",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 700,
+              fontFamily: "inherit",
+              cursor: "pointer",
+            }}
+          >
+            {off ? "Put it back" : "Skip today"}
+          </button>
+        </div>
 
         <div style={{ height: 22 }} />
       </div>

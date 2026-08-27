@@ -6,9 +6,13 @@ import { GREEN, TEXT, MUTED, BG, BORDER, SH_SM } from "../tokens";
 /* A part of the day, with its own finish line.
 
    Three reachable endings beat one distant one. Clearing the morning is a real
-   moment at 10am; clearing all thirteen rows is not a moment until nine at
-   night. When a phase is done it folds itself away, so the list gets shorter
-   as the day goes on instead of standing there fully lit. */
+   moment at 10am; clearing the whole list is not a moment until nine at night.
+   When a phase is done it folds itself away, so the list gets shorter as the
+   day goes on instead of standing there fully lit.
+
+   The heading stays the plain name of the part of the day. The green tick and
+   the count beside it already say it is finished, and saying it a third time
+   in the words made three headings read as a report. */
 export default function DayPhase({ phase: f, open, onToggle }) {
   return (
     <div
@@ -63,7 +67,7 @@ export default function DayPhase({ phase: f, open, onToggle }) {
             color: TEXT,
           }}
         >
-          {f.complete ? f.label + " done" : f.label}
+          {f.label}
         </span>
         <span style={{ fontSize: 11.5, color: MUTED }}>
           {f.total === 0 ? "Not today" : f.done + " of " + f.total}

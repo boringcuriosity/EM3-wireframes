@@ -27,15 +27,15 @@ export default function StreakStrip() {
     ? streakShown + " day streak"
     : "Start your streak";
 
+  /* The streak, and only the streak. This used to count habits in while
+     Today's focus counted tasks, so one screen carried 0 of 3 and 0 of 9 and
+     the two looked like a contradiction. Today's arithmetic belongs to the
+     card that owns the day. */
   const tail = broken
     ? "Clear today to start again"
     : dayComplete
     ? "Today is in"
-    /* Named, not just counted. Today's focus right above this is counting the
-       day's rows; the streak counts habits. Two bare numbers reading 0 of 3
-       and 0 of 9 on one screen look like a contradiction, so this one says
-       what it is counting. */
-    : dailyDoneCount + " of " + total + " habits in";
+    : "Finish your day to keep it going";
 
   return (
     <div style={{ padding: "10px 22px 0" }}>

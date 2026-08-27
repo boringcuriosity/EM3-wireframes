@@ -22,7 +22,7 @@ export const PHASES = [
 
 export const phaseOf = (at) => (at < 12 * 60 ? "morning" : at < 17 * 60 ? "afternoon" : "evening");
 
-export const WATER_GOAL = 8;
+export const WATER_GOAL = 2;
 export const STEP_GOAL = 10000;
 
 /* When each meal slot sits in the day. The coach's own times are shown on the
@@ -70,15 +70,22 @@ export function buildDay(w) {
     done: sleepMins !== null,
   });
 
+  /* The parts of the plan that are not food. They come off the meal they hang
+     off rather than being written out here as well, so the day's list and the
+     Eat screen cannot end up asking for different capsules. */
   if (planAssigned)
-    rows.push({
-      id: "supp", pillar: "eat", at: 7 * 60 + 45,
-      title: "Bitter melon capsule",
-      when: "7:45 AM",
-      tip: "With warm water, before you eat anything.",
-      kind: "tick",
-      done: ticks.includes("supp"),
-    });
+    eatDivisions.forEach((d) =>
+      (d.notes || []).forEach((n) =>
+        rows.push({
+          id: n.id, pillar: "eat", at: n.at,
+          title: n.title,
+          when: n.when,
+          tip: n.tip,
+          kind: "tick",
+          done: ticks.includes(n.id),
+        })
+      )
+    );
 
   measureRows.forEach((m) =>
     rows.push({
@@ -102,7 +109,9 @@ export function buildDay(w) {
     rows.push({
       id: "meal:" + d.id, pillar: "eat", at: DIVISION_AT[d.id] ?? 13 * 60,
       title: d.name,
-      when: planAssigned ? d.time : null,
+      // The window, plan or no plan. Knowing roughly when to eat is useful on
+      // day one, and it is the same window the coach will later work from.
+      when: d.time,
       // The plan's own food is a better instruction than a general note about
       // the hour, so the tip only speaks when there is no plan to read.
       tip: opts.length ? null : planAssigned ? MEAL_TIP[d.id] : null,
@@ -119,6 +128,7 @@ export function buildDay(w) {
   rows.push({
     id: "water", pillar: "eat", at: 14 * 60,
     title: "Drink " + WATER_GOAL + " glasses of water",
+    tip: "Avoid drinking water right before you eat.",
     kind: "target", to: "water",
     now: water, goal: WATER_GOAL, unit: "glasses",
     add: true,

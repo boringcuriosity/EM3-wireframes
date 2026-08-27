@@ -3,7 +3,6 @@ import { useWF } from "../state";
 import DailyTasks from "../components/DailyTasks";
 import HomeTopBar from "../components/HomeTopBar";
 import SmartDevices from "../components/SmartDevices";
-import StreakStrip from "../components/StreakStrip";
 import { ChevronRight, Calendar, Hourglass, Heart, Store, FlaskConical } from "lucide-react";
 import { GREEN, TEXT, MUTED, BG_ALT, BG, BORDER, SH } from "../tokens";
 import { sectionLabel, coachAvatar } from "../ui";
@@ -20,7 +19,9 @@ export default function PaidHomePage() {
         {<HomeTopBar />}
 
         {/* Day-streak strip, taps through to the leaderboard */}
-        {<StreakStrip />}
+        {/* The streak used to open Home and Today's focus repeated it a
+            screen later, in a different denominator. One card owns the day
+            now, streak included. */}
 
         {/* Program / Sessions switch — hidden behind SHOW_PROGRAM_TABS */}
         {SHOW_PROGRAM_TABS && (

@@ -63,6 +63,12 @@ export function WFProvider({ children, initial = {} }) {
   const [homeProgramTab, setHomeProgramTab] = useState(
     initial.homeProgramTab !== undefined ? initial.homeProgramTab : "program"
   );
+  /* homeCard: which shape Home's one card takes. Three ways of saying the
+     same day, kept switchable while we decide which one reads fastest.
+     "split" = the day in the card and the pillars in their own section,
+     "next" = the one thing next, "phase" = this part of the day, "task" = one
+     named task over the rings. */
+  const [homeCard, setHomeCard] = useState(initial.homeCard !== undefined ? initial.homeCard : "split");
   /* What the Next actions card is carrying. An empty list means the card and
      its tab are not there at all. Three at most: a card that scrolls is a
      screen pretending to be a card. */
@@ -250,7 +256,7 @@ export function WFProvider({ children, initial = {} }) {
   const [favorites, setFavorites] = useState(["poha", "chana", "chai"]);
   // Everything logged today: { division, timeMins, items: [{id, qty}] }
   const [mealsLogged, setMealsLogged] = useState(initial.mealsLogged !== undefined ? initial.mealsLogged : []);
-  const [water, setWater] = useState(initial.water !== undefined ? initial.water : 3);
+  const [water, setWater] = useState(initial.water !== undefined ? initial.water : 0);
   /* Rows with no record anywhere else in the app: a supplement is taken or it
      is not, and there is nothing to open. Everything else derives its tick
      from the thing it actually made. */
@@ -259,6 +265,16 @@ export function WFProvider({ children, initial = {} }) {
      entirely, which is the whole point of being able to say no to one. */
   const [daySkipped, setDaySkipped] = useState(initial.daySkipped !== undefined ? initial.daySkipped : []);
   const [rowMenu, setRowMenu] = useState(initial.rowMenu !== undefined ? initial.rowMenu : null);
+  /* Which rows have already had their moment. Kept here rather than inside the
+     row, because opening the Eat screen unmounts the whole day: a meal logged
+     in there used to come back silently ticked, which is precisely the tap
+     that most deserved the reward. */
+  const [streakBurst, setStreakBurst] = useState(
+    initial.streakBurst !== undefined ? initial.streakBurst : false
+  );
+  const [celebrated, setCelebrated] = useState(initial.celebrated !== undefined ? initial.celebrated : []);
+  const celebrate = (id) => setCelebrated((c) => (c.includes(id) ? c : c.concat(id)));
+  const uncelebrate = (id) => setCelebrated((c) => c.filter((x) => x !== id));
   /* Which option of a planned meal is showing. Lives here rather than inside
      the Eat screen, because To-do shows the same choice and the two would
      otherwise drift apart the moment you switched one of them. */
@@ -418,7 +434,12 @@ export function WFProvider({ children, initial = {} }) {
 
   /* A coach's plan is a list of options per meal, and each option is a list of
      real foods. Storing food ids rather than names is what lets a plan item be
-     tapped straight into the logger and come back ticked. */
+     tapped straight into the logger and come back ticked.
+
+     `notes` are the parts of a plan that are not food: a supplement, a timing
+     to hold to. They are ticked, not logged, and they belong to the meal they
+     hang off, so the same instruction reaches both the day's list and the Eat
+     screen from one place. */
   const eatDivisionsAll = [
     {
       id: "prebreakfast", name: "Pre Breakfast", time: "6:00 - 7:00 AM",
@@ -429,6 +450,22 @@ export function WFProvider({ children, initial = {} }) {
     },
     {
       id: "breakfast", name: "Breakfast", time: "8:00 - 10:00 AM",
+      notes: [
+        {
+          id: "note:bittermelon",
+          at: 7 * 60 + 45,
+          when: "7:45 AM",
+          title: "Take your bitter melon capsule",
+          tip: "With warm water, before you eat anything.",
+        },
+        {
+          id: "note:fenugreek",
+          at: 10 * 60 + 30,
+          when: "10:30 AM",
+          title: "Take your fenugreek capsule",
+          tip: "An hour after breakfast, not with it.",
+        },
+      ],
       plan: [
         [{ id: "eggs", qty: 1 }, { id: "chilla", qty: 2 }, { id: "chutney", qty: 2 }],
         [{ id: "poha", qty: 1 }, { id: "curd", qty: 1 }],
@@ -592,6 +629,15 @@ export function WFProvider({ children, initial = {} }) {
      from the control panel. Each screen used to patch this for itself, which is
      how the top bar ended up reading 0 beside a card saying day 1. */
   const streakShown = dayComplete ? Math.max(1, streakDays) : streakDays;
+
+  /* The one full screen moment in the app, on the crossing from an open day to
+     a closed one. Landing on an already finished day is not a crossing, so the
+     ref starts where the day is and nothing plays. */
+  const wasComplete = useRef(dayComplete);
+  useEffect(() => {
+    if (dayComplete && !wasComplete.current) setStreakBurst(true);
+    wasComplete.current = dayComplete;
+  }, [dayComplete]);
 
 
   /* What the top of To-do shows. Two facts decide it: whether the care plan is
@@ -798,6 +844,51 @@ export function WFProvider({ children, initial = {} }) {
     return { ...f, rows, done, total: live.length, complete: rows.length > 0 && done === live.length };
   }).filter((f) => f.rows.length > 0);
 
+  /* A task can finish a long way from the row that asked for it. Log a meal
+     inside Eat and the diary row goes done while you are three screens away,
+     so the moment comes to you as a toast instead of waiting on the list.
+
+     Ticking a row on the diary itself already has its own strike, halo and
+     confetti, so that case stays quiet rather than saying the same thing
+     twice. And a finish that lands mid flow waits for the flow to end: the
+     meal result screen is its own celebration and does not need a card
+     dropping over it. */
+  const doneKey = dayLive.filter((r) => r.done).map((r) => r.id).join("|");
+  const wasRowDone = useRef(new Set(doneKey ? doneKey.split("|") : []));
+  const [doneToastFor, setDoneToastFor] = useState(null);
+  useEffect(() => {
+    const now = new Set(doneKey ? doneKey.split("|") : []);
+    const fresh = [...now].filter((id) => !wasRowDone.current.has(id));
+    wasRowDone.current = now;
+    /* One at a time. A whole set of rows arriving done together is a day
+       being seeded, not a task being finished, and nobody wants a toast for
+       that. */
+    if (fresh.length !== 1) return;
+    const onDiary = activeTab === "track" && !eatDetail && !moveDetail && !mindDetail;
+    if (!onDiary) setDoneToastFor(fresh[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doneKey]);
+  useEffect(() => {
+    if (!doneToastFor || logOpen || logResult) return;
+    const r = dayRows.find((x) => x.id === doneToastFor);
+    setDoneToastFor(null);
+    if (!r) return;
+    // Merge, so the coins the logging screen just awarded keep their pill.
+    setToast((t) => ({
+      ...(t || {}),
+      title: "Done for today",
+      line: r.title + " \u00b7 " + dayRowsDone + " of " + dayLive.length + " today",
+      task: r.pillar,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doneToastFor, logOpen, logResult]);
+
+  /* Ticked, not logged. The supplement rows on To-do and the same rows inside
+     the Eat plan both come through here, so a capsule cannot be taken on one
+     screen and still outstanding on the other. */
+  const toggleTick = (id) =>
+    setDayTicks(dayTicks.includes(id) ? dayTicks.filter((x) => x !== id) : dayTicks.concat(id));
+
   const toggleSkip = (id) =>
     setDaySkipped(daySkipped.includes(id) ? daySkipped.filter((x) => x !== id) : daySkipped.concat(id));
 
@@ -805,10 +896,7 @@ export function WFProvider({ children, initial = {} }) {
      here or sends you to the screen that owns the record. Nothing in the diary
      keeps its own copy of a fact, so it can never disagree with the pillar. */
   const openRow = (r) => {
-    if (r.kind === "tick") {
-      setDayTicks(dayTicks.includes(r.id) ? dayTicks.filter((x) => x !== r.id) : dayTicks.concat(r.id));
-      return;
-    }
+    if (r.kind === "tick") return toggleTick(r.id);
     if (r.to === "water") return setWater(Math.min(WATER_GOAL, water + 1));
     if (r.to === "sleep") { setMindDetail(true); if (healthSource.sleep === "manual") setLogSleepOpen(true); return; }
     if (r.to === "mind") return setMindDetail(true);
@@ -830,7 +918,7 @@ export function WFProvider({ children, initial = {} }) {
     msRange, setMsRange, msDetail, setMsDetail, a1Detail, setA1Detail,
     msa2Detail, setMsa2Detail, achieveRange, setAchieveRange, eatTab, setEatTab,
     deviceTab, setDeviceTab, deviceTabConnected, setDeviceTabConnected,
-    plan, setPlan, homeProgramTab, setHomeProgramTab, sessionState, setSessionState,
+    plan, setPlan, homeProgramTab, setHomeProgramTab, homeCard, setHomeCard, sessionState, setSessionState,
     scoreState, setScoreState, setupState, setSetupState, dailyState, setDailyState,
     onboardingOpen, setOnboardingOpen, onboardingStep, setOnboardingStep,
     tour, setTour, tourName, setTourName,
@@ -867,7 +955,8 @@ export function WFProvider({ children, initial = {} }) {
     MILESTONES, milestones, setMilestones, milestoneStatus,
     completeTask, taskProgress, setTaskProgress, taskDone, setTaskDone,
     dayRows, dayLive, dayPhases, dayRowsDone, openRow, water, setWater, dayTicks, setDayTicks,
-    daySkipped, toggleSkip, rowMenu, setRowMenu, planOption, setPlanOption,
+    daySkipped, setDaySkipped, toggleSkip, toggleTick, rowMenu, setRowMenu, planOption, setPlanOption,
+    celebrated, celebrate, uncelebrate, streakBurst, setStreakBurst,
     eatFocus, setEatFocus,
     onbFinish, onbBack, pillarExplain,
   };

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useRef, useEffect } from "react";
 import { useWF } from "../state";
 import { ChevronRight, ChevronLeft, Utensils, TrendingUp, Gift, Check, Stethoscope, BookOpen, MoreVertical } from "lucide-react";
 import { GREEN, TEXT, MUTED, BG_ALT, BG, BORDER, RULE, LINE, PILLAR, SH, SH_SM } from "../tokens";
@@ -26,7 +26,7 @@ const DIVISION_TIME = {
 };
 
 export default function EatDetailPage() {
-  const { setEatDetail, eatState, eatTab, setEatTab, eatDivisions, kcalTarget, setLogOpen, setLogTime, mealsLogged, hasTargets, dayTotals, planAssigned, setLogItems, setMealItem, eatFocus, setEatFocus, planOption, setPlanOption } = useWF();
+  const { setEatDetail, eatState, eatTab, setEatTab, eatDivisions, kcalTarget, setLogOpen, setLogTime, mealsLogged, hasTargets, dayTotals, planAssigned, setLogItems, setMealItem, eatFocus, setEatFocus, planOption, setPlanOption, dayTicks, toggleTick } = useWF();
 
   /* Every route into the logger goes through here. If targets are not set up
      and the pitch has not been seen, it gets made once, first. */
@@ -334,6 +334,36 @@ export default function EatDetailPage() {
                       onMenu={() => setMealItem({ planId: it.id, qty: it.qty })}
                     />
                   ))}
+
+                  {/* The rest of what the coach said about this meal: a
+                      capsule, a timing. Nothing to log, so nothing to search
+                      for. They tick, and they tick in the day's list at the
+                      same moment, because both read the same list.
+
+                      Given their own heading because they are a different kind
+                      of thing from the food above: nothing here goes into the
+                      calorie count, and running them straight on from the meal
+                      would read as more of it. */}
+                  {(div.notes || []).length > 0 && (
+                    <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid " + LINE }}>
+                      <div
+                        style={{
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: 9.5,
+                          fontWeight: 600,
+                          letterSpacing: 0.9,
+                          textTransform: "uppercase",
+                          color: MUTED,
+                          marginBottom: 2,
+                        }}
+                      >
+                        Tips from your coach
+                      </div>
+                      {div.notes.map((n) => (
+                        <NoteRow key={n.id} note={n} done={dayTicks.includes(n.id)} onTick={() => toggleTick(n.id)} />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -834,6 +864,42 @@ export default function EatDetailPage() {
 /* One line of food, whether the plan asked for it or the user added it. The
    circle is the only difference: on a plan item it is a way in to the logger,
    on something logged it is just a tick. */
+/* A coach instruction with nothing to weigh. Same tick as a plan food so the
+   meal reads as one list, but no calories and no menu, because there is
+   nothing to edit about "with warm water". */
+function NoteRow({ note, done, onTick }) {
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: 11, marginTop: 11 }}>
+      <button
+        onClick={onTick}
+        aria-label={note.title + (done ? ", done" : "")}
+        style={{
+          width: 21,
+          height: 21,
+          borderRadius: "50%",
+          flexShrink: 0,
+          marginTop: 1,
+          background: done ? GREEN : BG,
+          border: "1.8px solid " + (done ? GREEN : RULE),
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          padding: 0,
+        }}
+      >
+        {done && <Check size={12} color="#fff" strokeWidth={3.2} />}
+      </button>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 13, fontWeight: done ? 600 : 700, color: done ? MUTED : TEXT, lineHeight: 1.35 }}>
+          {note.title}
+        </div>
+        <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.45, marginTop: 2 }}>{note.tip}</div>
+      </div>
+    </div>
+  );
+}
+
 function ItemRow({ it, done, manual, onTick, onMenu }) {
   const food = byId(it.id);
   return (

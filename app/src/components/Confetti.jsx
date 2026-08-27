@@ -1,41 +1,49 @@
 import React from "react";
-import { PILLAR, GOLD } from "../tokens";
+import { PILLAR, GOLD, GREEN } from "../tokens";
 
-/* Eight pieces out of the circle a task was just ticked in.
+/* Twelve pieces out of the circle a task was just ticked in.
 
-   Deliberately small and deliberately quick. A full screen celebration is
-   right once a day, not thirteen times, so this is the size of a reaction:
-   you see it if you are looking at the row, and it is gone before it can get
-   in the way of the next tap. */
+   They leave in a ring but not evenly, and they carry different sizes, shapes
+   and spins, because a perfectly regular burst reads as a loading spinner. The
+   whole thing is gone in under a second: the reward is meant to be caught out
+   of the corner of your eye, not waited out. */
 const PIECES = [
-  [-16, -14], [0, -20], [16, -14], [22, 2],
-  [16, 16], [0, 21], [-16, 15], [-22, 1],
+  [-30, -18, 8], [-14, -30, 6], [4, -34, 5], [22, -26, 7],
+  [34, -8, 6], [32, 12, 5], [18, 26, 7], [0, 32, 6],
+  [-18, 27, 5], [-32, 10, 7], [-24, -4, 4], [26, -2, 4],
 ];
 
-export default function Confetti({ pillar }) {
+export default function Confetti({ pillar, spread = 1 }) {
   const c = PILLAR[pillar].c;
   return (
-    <span style={{ position: "absolute", inset: 0, pointerEvents: "none" }} aria-hidden>
-      {PIECES.map(([dx, dy], i) => (
-        <span
-          key={i}
-          style={{
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            width: i % 2 ? 3 : 4,
-            height: i % 2 ? 5 : 4,
-            marginLeft: -2,
-            marginTop: -2,
-            borderRadius: i % 2 ? 1 : "50%",
-            background: i % 3 === 0 ? GOLD : c,
-            "--dx": dx + "px",
-            "--dy": dy + "px",
-            animation: "confettiOut .58s cubic-bezier(.22,.7,.3,1) forwards",
-            animationDelay: i * 12 + "ms",
-          }}
-        />
-      ))}
+    <span style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 2 }} aria-hidden>
+      {PIECES.map(([x, y, s], i) => {
+        const bar = i % 3 === 1;
+        const dx = x * spread;
+        const dy = y * spread;
+        const size = s * Math.min(spread, 2.4);
+        return (
+          <span
+            key={i}
+            style={{
+              position: "absolute",
+              left: "50%",
+              top: "50%",
+              width: bar ? size * 0.5 : size * 0.7,
+              height: bar ? size : size * 0.7,
+              marginLeft: -size / 2,
+              marginTop: -size / 2,
+              borderRadius: bar ? 1.5 : "50%",
+              background: i % 4 === 0 ? GOLD : i % 4 === 2 ? GREEN : c,
+              "--dx": dx + "px",
+              "--dy": dy + "px",
+              "--rot": (i % 2 ? 1 : -1) * (120 + i * 22) + "deg",
+              animation: "confettiOut .72s cubic-bezier(.16,.7,.3,1) forwards",
+              animationDelay: (i % 4) * 26 + "ms",
+            }}
+          />
+        );
+      })}
     </span>
   );
 }

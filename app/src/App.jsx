@@ -27,6 +27,7 @@ import FlipcoinsSheet from "./components/FlipcoinsSheet";
 import PlanWaitSheet from "./components/PlanWaitSheet";
 import TaskDoneSheet from "./components/TaskDoneSheet";
 import DayRowSheet from "./components/DayRowSheet";
+import StreakOverlay from "./components/StreakOverlay";
 import MealItemSheet from "./components/MealItemSheet";
 import MetricInfoSheet from "./components/MetricInfoSheet";
 import HealthConnectSheet from "./components/HealthConnectSheet";
@@ -219,6 +220,7 @@ export default function App() {
             {wf.shareOpen && <ShareStreakSheet />}
             {wf.taskDone && <TaskDoneSheet />}
             {wf.rowMenu && <DayRowSheet />}
+            {wf.streakBurst && <StreakOverlay />}
             {wf.mealItem && <MealItemSheet />}
             {wf.metricInfo && <MetricInfoSheet />}
             {wf.healthSheet && <HealthConnectSheet />}
@@ -251,6 +253,7 @@ export default function App() {
             {wf.shareOpen && <ShareStreakSheet />}
             {wf.taskDone && <TaskDoneSheet />}
             {wf.rowMenu && <DayRowSheet />}
+            {wf.streakBurst && <StreakOverlay />}
             {wf.mealItem && <MealItemSheet />}
             {wf.metricInfo && <MetricInfoSheet />}
             {wf.healthSheet && <HealthConnectSheet />}

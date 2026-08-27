@@ -37,13 +37,40 @@ body { margin: 0; font-family: Roboto, system-ui, sans-serif; }
    the shape of what is coming is already known. */
 @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 
-/* A task going done. The line draws itself through the title left to right,
-   then a handful of pieces fly out of the circle and fade. Both are short
-   enough to read as a reaction rather than an interruption, because on a
-   thirteen row day this fires thirteen times. */
+/* A task going done.
+
+   Six things at once, all short: the row washes over in its pillar colour, the
+   circle pops, a ring pushes out of it and fades, the tick draws itself, a
+   handful of pieces fly out, and the line crosses the name. Together it reads
+   as a small event rather than a state change, which is what finishing
+   something should feel like. Under a second, because on a fourteen row day
+   this fires fourteen times. */
 @keyframes strikeIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@keyframes confettiOut {
-  0%   { opacity: 1; transform: translate(0, 0) scale(1); }
-  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(.4); }
+
+@keyframes taskPop {
+  0%   { transform: scale(1); }
+  30%  { transform: scale(1.32); }
+  55%  { transform: scale(.92); }
+  75%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
 }
-@keyframes rowSettle { 0% { transform: translateX(0); } 35% { transform: translateX(3px); } 100% { transform: translateX(0); } }
+
+@keyframes haloOut {
+  0%   { opacity: .5; transform: scale(.65); }
+  100% { opacity: 0; transform: scale(2.6); }
+}
+
+@keyframes checkDraw { to { stroke-dashoffset: 0; } }
+
+@keyframes flashOut {
+  0%   { opacity: .85; }
+  35%  { opacity: .5; }
+  100% { opacity: 0; }
+}
+
+@keyframes confettiOut {
+  0%   { opacity: 0; transform: translate(0, 0) scale(.4) rotate(0deg); }
+  15%  { opacity: 1; }
+  70%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot)); }
+}

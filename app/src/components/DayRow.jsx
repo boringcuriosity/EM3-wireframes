@@ -1,12 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useWF } from "../state";
-import { Check, ChevronRight, Plus, MoreVertical, Minus } from "lucide-react";
+import LotusIcon from "./LotusIcon";
+import { ChevronRight, Plus, MoreVertical, Minus, Utensils, Flame, BarChart3 } from "lucide-react";
 import Skel from "./Skel";
 import Confetti from "./Confetti";
 import { byId } from "../screens/log/foods";
 import { PILLAR, TEXT, MUTED, FAINT, LINE, BG, BG_ALT, BORDER } from "../tokens";
 
 const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure" };
+const PILLAR_ICON = { eat: Utensils, move: Flame, mind: LotusIcon, measure: BarChart3 };
 
 /* One thing to do, at the hour it happens.
 
@@ -17,46 +19,65 @@ const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure"
    Nothing is ever struck through until it is genuinely done. Strike-through
    means finished, not late, and a meal you have not logged yet is neither. */
 export default function DayRow({ row: r, last, compact }) {
-  const { openRow, setRowMenu, planOption, setPlanOption } = useWF();
+  const { openRow, setRowMenu, planOption, setPlanOption, celebrated, celebrate, uncelebrate } = useWF();
   const c = PILLAR[r.pillar].c;
   const bar = r.kind === "target";
   const pct = bar && r.now ? Math.min(100, Math.round((r.now / r.goal) * 100)) : 0;
   const off = r.skipped;
+  const PillarIcon = PILLAR_ICON[r.pillar];
+  const words = r.title.split(" ");
+  const tail = words.length > 1 ? words[words.length - 1] : r.title;
+  const head = words.length > 1 ? words.slice(0, -1).join(" ") + " " : "";
 
-  /* The moment a row goes done, once. Rows that send you off to another screen
-     come back already ticked, so this fires on the way back in, which is
-     exactly when the person is looking for the reward. */
-  const wasDone = useRef(r.done);
+  /* The moment a row goes done, once. Whether it happened here or on the Eat
+     screen this row sent you to, the celebration plays the first time you see
+     it ticked, so the tap that took the most effort is not the one that gets
+     nothing back. Untick it and it can earn the moment again. */
+  const seen = celebrated.includes(r.id);
   const [burst, setBurst] = useState(false);
   useEffect(() => {
-    if (r.done && !wasDone.current) {
-      wasDone.current = true;
+    if (r.done && !seen && !off) {
+      celebrate(r.id);
       setBurst(true);
-      const t = setTimeout(() => setBurst(false), 800);
+      const t = setTimeout(() => setBurst(false), 1100);
       return () => clearTimeout(t);
     }
-    wasDone.current = r.done;
-  }, [r.done]);
+    if (!r.done && seen) uncelebrate(r.id);
+  }, [r.done, seen, off, r.id, celebrate, uncelebrate]);
 
   return (
     <div
       role="button"
       tabIndex={0}
-      onClick={() => !off && openRow(r)}
-      onKeyDown={(e) => e.key === "Enter" && !off && openRow(r)}
+      onClick={() => (off ? setRowMenu(r.id) : openRow(r))}
+      onKeyDown={(e) => e.key === "Enter" && (off ? setRowMenu(r.id) : openRow(r))}
       aria-label={r.title + ", " + PILLAR_NAME[r.pillar] + (off ? ", skipped" : r.done ? ", done" : "")}
       style={{
         borderBottom: last ? "none" : "1px solid " + LINE,
         padding: compact ? "9px 0" : "12px 0",
-        cursor: off ? "default" : "pointer",
+        cursor: "pointer",
         opacity: off ? 0.62 : 1,
+        position: "relative",
       }}
     >
+      {burst && (
+        <span
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: "2px -10px",
+            borderRadius: 12,
+            background: PILLAR[r.pillar].t,
+            animation: "flashOut .9s ease forwards",
+            pointerEvents: "none",
+          }}
+        />
+      )}
       {/* The name and its controls on one line; everything the row carries
           underneath, indented to the title and running the full width. Kept
           inside the content column, a meal's options ended a chevron short of
           the edge and wrapped a line early for it. */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 12 }}>
       <span
         style={{
           width: 21,
@@ -71,12 +92,25 @@ export default function DayRow({ row: r, last, compact }) {
           justifyContent: "center",
           position: "relative",
           transition: "background .18s ease",
+          animation: burst ? "taskPop .55s cubic-bezier(.34,1.56,.64,1) both" : undefined,
         }}
       >
+        {burst && (
+          <span
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: -3,
+              borderRadius: "50%",
+              border: "2px solid " + c,
+              animation: "haloOut .8s cubic-bezier(.22,.7,.3,1) forwards",
+            }}
+          />
+        )}
         {off ? (
           <Minus size={11} color={FAINT} strokeWidth={3} />
         ) : r.done ? (
-          <Check size={12} color="#fff" strokeWidth={3.2} />
+          <Tick draw={burst} />
         ) : (
           /* A row you add to says so in the circle it would be ticked in. A
              second plus off to the right was a second control for the same
@@ -96,8 +130,13 @@ export default function DayRow({ row: r, last, compact }) {
             lineHeight: 1.35,
           }}
         >
+          {/* The last word and the pillar mark travel together, so on a title
+              that wraps the mark lands after the final word instead of alone on
+              a line of its own. */}
           <span style={{ position: "relative", display: "inline-block" }}>
-            {r.title}
+            {head}
+            <span style={{ whiteSpace: "nowrap" }}>
+              {tail}
             {r.done && !off && (
               <span
                 aria-hidden
@@ -110,33 +149,59 @@ export default function DayRow({ row: r, last, compact }) {
                   borderRadius: 1,
                   background: MUTED,
                   transformOrigin: "left center",
-                  transform: burst ? undefined : "scaleX(1)",
-                  animation: burst ? "strikeIn .34s cubic-bezier(.4,0,.2,1) forwards" : undefined,
+                  transform: burst ? "scaleX(0)" : "scaleX(1)",
+                  animation: burst ? "strikeIn .42s cubic-bezier(.4,0,.2,1) .2s forwards" : undefined,
                 }}
               />
             )}
-          </span>
-          {/* The hour sits with the name rather than in a column of its own.
-              A right hand column wide enough for "8:00 - 10:00 AM" takes a
-              quarter of the row away from everything underneath it. */}
-          {r.when && !off && (
+            {/* Which of the four this belongs to, said rather than implied.
+                The circle carries the colour, but colour alone only works once
+                you already know the code, so the mark sits next to the words
+                while it is still being learned. It lives inside the title's own
+                flow, so on a title that wraps it follows the last word rather
+                than floating beside the whole block. Relative, so it paints
+                over the strike rather than under it. */}
             <span
+              aria-hidden
               style={{
-                fontFamily: "'JetBrains Mono', monospace",
-                fontSize: 9.5,
-                fontWeight: 600,
-                color: FAINT,
-                marginLeft: 7,
-                whiteSpace: "nowrap",
+                position: "relative",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 18,
+                height: 18,
+                borderRadius: 999,
+                background: off ? BG_ALT : PILLAR[r.pillar].t,
+                marginLeft: 6,
+                verticalAlign: "middle",
               }}
             >
-              {r.when}
+              <PillarIcon size={10} color={off ? FAINT : c} strokeWidth={2} />
             </span>
-          )}
+            </span>
+          </span>
         </span>
       </span>
 
       <span style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
+        {/* The hour at the end of the row, in line with every other hour, so
+            the column of times reads as a schedule down the page. It can sit
+            here now that a meal's options run underneath rather than beside
+            it. */}
+        {r.when && !off && (
+          <span
+            style={{
+              fontFamily: "'JetBrains Mono', monospace",
+              fontSize: 9.5,
+              fontWeight: 600,
+              color: FAINT,
+              whiteSpace: "nowrap",
+              marginRight: 4,
+            }}
+          >
+            {r.when}
+          </span>
+        )}
         {/* One glyph at the end of a row. A chevron and a three dot sitting
             three pixels apart read as one smudged control, so the full row
             keeps the menu and the compact rows on Home, which have no menu,
@@ -169,9 +234,14 @@ export default function DayRow({ row: r, last, compact }) {
       </span>
       </div>
 
-      <div style={{ marginLeft: ROW_INDENT }}>
+      <div style={{ position: "relative", marginLeft: ROW_INDENT }}>
         {off ? (
-          <span style={{ display: "block", fontSize: 11, color: FAINT, marginTop: 2 }}>Not today</span>
+          /* A skipped row is still a row you might change your mind about, so
+             tapping anywhere on it reopens the sheet that put it here. The line
+             does not need to say so. */
+          <span style={{ display: "block", fontSize: 11.5, color: FAINT, lineHeight: 1.45, marginTop: 3 }}>
+            You skipped this today.
+          </span>
         ) : (
           <>
             {r.tip && !r.done && !compact && (
@@ -212,6 +282,28 @@ export default function DayRow({ row: r, last, compact }) {
         )}
       </div>
     </div>
+  );
+}
+
+/* The tick, drawn rather than dropped in. One stroke, left to right, in step
+   with the circle filling under it. */
+function Tick({ draw }) {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M5 12.5 10.5 18 19 7"
+        stroke="#fff"
+        strokeWidth="3.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        pathLength="1"
+        style={
+          draw
+            ? { strokeDasharray: 1, strokeDashoffset: 1, animation: "checkDraw .34s cubic-bezier(.4,0,.2,1) .12s forwards" }
+            : undefined
+        }
+      />
+    </svg>
   );
 }
 
