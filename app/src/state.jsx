@@ -73,7 +73,7 @@ export function WFProvider({ children, initial = {} }) {
      its tab are not there at all. Three at most: a card that scrolls is a
      screen pretending to be a card. */
   const [nextActions, setNextActions] = useState(
-    initial.nextActions !== undefined ? initial.nextActions : ["score", "labs"]
+    initial.nextActions !== undefined ? initial.nextActions : ["score", "labs", "assess"]
   );
   // Which of them are ticked off. They stay on the card struck through, so the
   // last one is finished against something rather than alone.
@@ -156,7 +156,17 @@ export function WFProvider({ children, initial = {} }) {
   // The Flipcoins explainer, opened from the one pill that names them.
   const [coinsInfo, setCoinsInfo] = useState(initial.coinsInfo !== undefined ? initial.coinsInfo : false);
   // Which pillar's "plan not here yet" explainer is open, by id, or null.
+  // The CGM sync screen, opened from the day's Measure row.
+  const [cgmOpen, setCgmOpen] = useState(initial.cgmOpen !== undefined ? initial.cgmOpen : false);
+  // The body composition sync screen, opened from its own Measure row.
+  const [bcaOpen, setBcaOpen] = useState(initial.bcaOpen !== undefined ? initial.bcaOpen : false);
   const [planInfo, setPlanInfo] = useState(initial.planInfo !== undefined ? initial.planInfo : null);
+  // Which arrivals have been read. Anything not in here is still news.
+  const [planSeen, setPlanSeen] = useState(initial.planSeen !== undefined ? initial.planSeen : []);
+  // Which plan's "what changed" sheet is open.
+  const [planChanged, setPlanChanged] = useState(
+    initial.planChanged !== undefined ? initial.planChanged : null
+  );
   // Program welcome, for a care-program user landing on Home after onboarding.
   // "sheet" is the bottom sheet, "mark" is the coach mark on the program card,
   // null is off. The sheet hands off to the mark, the mark to the daily tour.
@@ -192,6 +202,23 @@ export function WFProvider({ children, initial = {} }) {
   const [moveDetail, setMoveDetail] = useState(initial.moveDetail !== undefined ? initial.moveDetail : false);
   const [moveTab, setMoveTab] = useState(initial.moveTab !== undefined ? initial.moveTab : "today");
   // Has a coach assigned a routine yet? null until the consultation happens.
+  /* How much of a week the two pillars have to read. Eat stages its trend
+     through eatState; these two are their own switch, because a person can be
+     three weeks into logging food and one night into logging sleep. */
+  /* The Sunday read. "off" is any day that is not the end of a week, "ready"
+     is a week Kaira has something to say about, "read" is once it has been
+     opened. Measure, because Measure is the pillar that means knowing. */
+  const [weekInsight, setWeekInsight] = useState(
+    initial.weekInsight !== undefined ? initial.weekInsight : "off"
+  );
+  const [weekOpen, setWeekOpen] = useState(initial.weekOpen !== undefined ? initial.weekOpen : false);
+  /* Two ways to deliver the same week: one sheet that covers all of it, or one
+     read per pillar spread across the day. Kept switchable while we decide. */
+  const [weekMode, setWeekMode] = useState(initial.weekMode !== undefined ? initial.weekMode : "tasks");
+  // Which pillars' weeks have been read, when they arrive one at a time.
+  const [weekReads, setWeekReads] = useState(initial.weekReads !== undefined ? initial.weekReads : []);
+  const [moveWeek, setMoveWeek] = useState(initial.moveWeek !== undefined ? initial.moveWeek : "week");
+  const [mindWeek, setMindWeek] = useState(initial.mindWeek !== undefined ? initial.mindWeek : "week");
   const [movePlan, setMovePlan] = useState(initial.movePlan !== undefined ? initial.movePlan : null);
   const [exLogs, setExLogs] = useState(initial.exLogs !== undefined ? initial.exLogs : []);
 
@@ -431,6 +458,19 @@ export function WFProvider({ children, initial = {} }) {
      happened and have the coaches written the plans. Declared here because the
      meal divisions below already depend on it. */
   const planAssigned = plan === "paid" && kcalSource === "coach" && !!movePlan;
+
+  /* A plan lands while nobody is looking. These are the ones that have landed
+     and have not been read yet, in EM3 order, so the card can announce one now
+     and the other whenever it follows. Two plans arriving on two days is the
+     normal case, not the edge one. */
+  const arrived =
+    plan === "paid"
+      ? ["eat", "move"].filter(
+          (id) =>
+            (id === "eat" ? kcalSource === "coach" : !!movePlan) && !planSeen.includes(id)
+        )
+      : [];
+  const readPlan = (id) => setPlanSeen((s) => (s.includes(id) ? s : s.concat(id)));
 
   /* A coach's plan is a list of options per meal, and each option is a list of
      real foods. Storing food ids rather than names is what lets a plan item be
@@ -828,7 +868,29 @@ export function WFProvider({ children, initial = {} }) {
     .filter((p) => (p.pillar || p.id) === "measure")
     .map((p) => ({ id: p.id, title: p.title, tip: p.hint, done: taskIsDone(p) }));
 
+  /* A pillar's week, opened from its own row or from the sheet. It sets the
+     pillar's trend to a week worth reading first, because sending somebody to
+     a page that says "not enough days yet" is worse than not sending them. */
+  const openWeek = (id) => {
+    setWeekReads((r) => (r.includes(id) ? r : r.concat(id)));
+    setWeekOpen(false);
+    if (id === "eat") { setEatState("wc"); setEatTab("trend"); setEatDetail(true); }
+    if (id === "move") {
+      setMoveWeek("week");
+      setMoveTab("trend");
+      setHealthSource((h) => ({ ...h, steps: "phone" }));
+      setMoveDetail(true);
+    }
+    if (id === "mind") {
+      setMindWeek("week");
+      setMindTab("trend");
+      setHealthSource((h) => ({ ...h, sleep: "phone" }));
+      setMindDetail(true);
+    }
+  };
+
   const dayRows = buildDay({
+    weekInsight, weekMode, weekReads,
     planAssigned, eatDivisions, mealsLogged, exLogs, mindDone,
     sleepMins, daySteps, water, ticks: dayTicks, skipped: daySkipped, planOption,
     measureRows, healthSync, healthSource,
@@ -902,7 +964,17 @@ export function WFProvider({ children, initial = {} }) {
     if (r.to === "mind") return setMindDetail(true);
     if (r.to === "move") return setMoveDetail(true);
     if (r.to === "steps") { setMoveDetail(true); if (healthSource.steps === "manual") setStepsSheet(true); return; }
-    if (r.to === "measure") return setActiveTab("med");
+    /* The glucose sync has a screen of its own: the reading is the whole
+       point of the tap, and Measure is a tab about everything. */
+    /* Each device sync has a screen of its own: the reading is the whole point
+       of the tap, and Measure is a tab about everything. */
+    if (r.to === "week") return setWeekOpen(true);
+    if (r.to.startsWith("week:")) return openWeek(r.to.slice(5));
+    if (r.to === "measure") {
+      if (r.id === "sync:cgm") return setCgmOpen(true);
+      if (r.id === "sync:measure") return setBcaOpen(true);
+      return setActiveTab("med");
+    }
     if (r.to.startsWith("eat:")) { setEatFocus(r.to.slice(4)); setEatDetail(true); }
   };
   const liveScore = scoreOf(dayTotals, dailyTargets);
@@ -922,10 +994,14 @@ export function WFProvider({ children, initial = {} }) {
     scoreState, setScoreState, setupState, setSetupState, dailyState, setDailyState,
     onboardingOpen, setOnboardingOpen, onboardingStep, setOnboardingStep,
     tour, setTour, tourName, setTourName,
-    focusMarkDue, setFocusMarkDue, preparing, setPreparing, tourTargets, pillarInfo, setPillarInfo, coinsInfo, setCoinsInfo, planInfo, setPlanInfo, programIntro, setProgramIntro, armProgramIntro,
+    focusMarkDue, setFocusMarkDue, preparing, setPreparing, tourTargets, pillarInfo, setPillarInfo, coinsInfo, setCoinsInfo, planInfo, setPlanInfo,
+    planSeen, setPlanSeen, planChanged, setPlanChanged, arrived, readPlan, cgmOpen, setCgmOpen, bcaOpen, setBcaOpen, programIntro, setProgramIntro, armProgramIntro,
     programIntroSeen, setProgramIntroSeen, todayOnboarded, setTodayOnboarded,
     streakDays, setStreakDays, streakShown,
     moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan,
+    moveWeek, setMoveWeek, mindWeek, setMindWeek,
+    weekInsight, setWeekInsight, weekOpen, setWeekOpen,
+    weekMode, setWeekMode, weekReads, setWeekReads, openWeek,
     healthSource, setHealthSource, healthOn, healthSheet, setHealthSheet,
     manualSteps, setManualSteps, stepsSheet, setStepsSheet, healthSync, setHealthSync, pickSource,
     sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen,

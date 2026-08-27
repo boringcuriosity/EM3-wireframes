@@ -50,11 +50,30 @@ const MEAL_TIP = {
   bedtime: "Small and warm. It is for sleep, not for hunger.",
 };
 
+/* One read per pillar, each at the hour that pillar is on somebody's mind. */
+const WEEK_READS = [
+  {
+    id: "mind", at: 9 * 60, when: "9:00 AM",
+    title: "Read how you slept this week",
+    tip: "Seven nights, and what the timing of them is doing to you.",
+  },
+  {
+    id: "move", at: 15 * 60, when: "3:00 PM",
+    title: "Read how you moved this week",
+    tip: "Which days you moved on, and where the gaps sit.",
+  },
+  {
+    id: "eat", at: 20 * 60 + 30, when: "8:30 PM",
+    title: "Read how you ate this week",
+    tip: "What held steady across seven days, and the one thing to close.",
+  },
+];
+
 export function buildDay(w) {
   const {
     planAssigned, eatDivisions, mealsLogged, exLogs, mindDone,
     sleepMins, daySteps, water, ticks, skipped, planOption, measureRows,
-    healthSync, healthSource,
+    healthSync, healthSource, weekInsight, weekMode, weekReads,
   } = w;
 
   const logged = new Set(mealsLogged.map((m) => m.division));
@@ -124,6 +143,38 @@ export function buildDay(w) {
       done: logged.has(d.id),
     });
   });
+
+  /* The week, once there is one. An insight nobody finds is an insight nobody
+     has, so it comes to the day rather than waiting to be discovered three
+     taps inside a pillar.
+
+     Two shapes. As one task it is a Measure row in the evening that opens the
+     whole week at once, Measure being the pillar that means knowing. As three
+     it is one read per pillar, each at the hour that pillar is on your mind:
+     sleep in the morning, movement in the afternoon, food after dinner. */
+  if (weekInsight && weekInsight !== "off") {
+    const readAll = weekInsight === "read";
+    if (weekMode === "sheet")
+      rows.push({
+        id: "weekread", pillar: "measure", at: 18 * 60 + 30,
+        title: "Read your week with Kaira",
+        when: "6:30 PM",
+        tip: "Seven days in. What your food, movement and sleep are saying.",
+        kind: "go", to: "week",
+        done: readAll,
+      });
+    else
+      WEEK_READS.forEach((r) =>
+        rows.push({
+          id: "weekread:" + r.id, pillar: r.id, at: r.at,
+          title: r.title,
+          when: r.when,
+          tip: r.tip,
+          kind: "go", to: "week:" + r.id,
+          done: readAll || (weekReads || []).includes(r.id),
+        })
+      );
+  }
 
   rows.push({
     id: "water", pillar: "eat", at: 14 * 60,

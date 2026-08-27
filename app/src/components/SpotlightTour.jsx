@@ -36,7 +36,7 @@ const FOCUS = [
   {
     id: "focus",
     title: "Your day lives here",
-    body: "These four are today's tasks. Each one you finish pays Flipcoins, and finishing all of them keeps your streak going. The longer the streak, the more it pays.",
+    body: "Your next two tasks are always on top. Finish the task list to keep your streak and earn Flipcoins, as you improve your metabolism.",
   },
 ];
 

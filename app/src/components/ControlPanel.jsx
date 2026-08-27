@@ -22,20 +22,20 @@ const ALL_DONE = { eat: 3, move: 1, mind: 1, measure: 1 };
 const ALL_GROUPS = [
   "signup", "plan", "welcome", "tour", "move", "hero", "targets",
   "logging", "suff", "streakscreen", "streak", "milestones",
-  "focus", "homecard", "dayWon", "skip", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "mind", "measure",
+  "focus", "homecard", "planarrive", "weekread", "movetrend", "mindtrend", "dayWon", "skip", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "mind", "measure",
 ];
 
 const SCREEN_GROUPS = {
   signup: ["signup"],
-  move: ["move", "focus"],
-  mind: ["mind", "focus"],
+  move: ["move", "movetrend", "focus"],
+  mind: ["mind", "mindtrend", "focus"],
   logging: ["logging", "targets"],
   suff: ["suff", "targets"],
   streakscreen: ["streakscreen", "streak", "milestones", "focus"],
   eat: ["eat", "targets", "logging"],
   chats: [],
   program: ["welcome"],
-  todo: ["nextaction", "hero", "focus", "dayWon", "skip", "measuretasks", "streak"],
+  todo: ["nextaction", "hero", "focus", "planarrive", "weekread", "dayWon", "skip", "measuretasks", "streak"],
   home: ["welcome", "tour", "nextaction", "focus", "homecard", "measuretasks", "streak"],
   measure: ["measure"],
   care: [],
@@ -185,7 +185,7 @@ const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 const SLEEP_SRC = { gate: null, syncing: "phone", phone: "phone", manualnone: "manual", manual: "manual", tools: "manual" };
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindMood, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab, setWater, setDayTicks, homeCard, setHomeCard, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindMood, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab, setWater, setDayTicks, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, planSeen, setPlanSeen, kcalSource, movePlan, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -265,7 +265,9 @@ export default function ControlPanel() {
 
   const [showAll, setShowAll] = useState(false);
 
-  const screenKey = moveDetail || logExOpen
+  const screenKey = cgmOpen || bcaOpen
+    ? "measure"
+    : moveDetail || logExOpen
     ? "move"
     : mindDetail || logSleepOpen
     ? "mind"
@@ -309,7 +311,11 @@ export default function ControlPanel() {
   // headers use, so the label always matches what is on screen.
   const allOpen = ALL_GROUPS.some((g) => (g === liveGroup) !== openGroups.includes(g));
 
-  const nowShowing = logExOpen
+  const nowShowing = bcaOpen
+    ? "Measure · Body composition sync"
+    : cgmOpen
+    ? "Measure · CGM sync"
+    : logExOpen
     ? "Move · Log exercise"
     : logSleepOpen
     ? "Mind · Log sleep"
@@ -1127,6 +1133,140 @@ export default function ControlPanel() {
           "A dot per milestone: grey is still open, green is earned, red is one that was let go."
         )}
 
+        {isPaid &&
+          panelGroup(
+            "planarrive",
+            "Plan handover",
+            "To-do, the card above the list",
+            [
+              { id: "none", label: "No plans yet", eatIn: false, moveIn: false, seen: [] },
+              { id: "eat", label: "Diet plan in", eatIn: true, moveIn: false, seen: [] },
+              { id: "move", label: "Exercise plan in", eatIn: false, moveIn: true, seen: [] },
+              { id: "both", label: "Both plans in", eatIn: true, moveIn: true, seen: [] },
+              { id: "read", label: "Both read", eatIn: true, moveIn: true, seen: ["eat", "move"] },
+            ].map((v) => {
+              const on =
+                (kcalSource === "coach") === v.eatIn &&
+                !!movePlan === v.moveIn &&
+                planSeen.length === v.seen.length;
+              return panelChip(
+                v.label,
+                on,
+                () => {
+                  setKcalSource(v.eatIn ? "coach" : "pending");
+                  setMovePlan(v.moveIn ? "assigned" : null);
+                  setPlanSeen(v.seen);
+                  setTodayOnboarded(true);
+                  setEatDetail(false);
+                  setMoveDetail(false);
+                  setActiveTab("track");
+                },
+                {
+                  none: "Both chips dashed. The card explains the wait and the info dot opens why.",
+                  eat: "Diet chip fills in, exercise stays dashed. No cross yet, because the card still owes an answer about the other one.",
+                  move: "The mirror of it: exercise in, diet still being written.",
+                  both: "Both chips solid. The cross appears, and the sheet gets tabs for the two plans.",
+                  read: "Card gone. To-do runs normally.",
+                }[v.id]
+              );
+            }),
+            "One card, four states. The chips stay put and fill in as each plan lands."
+          )}
+
+        {panelGroup(
+          "weekread",
+          "Weekly insight",
+          "To-do, an evening row",
+          [
+            { id: "off", label: "Off", d: "Not the end of a week. Nothing in the day about it." },
+            { id: "ready", label: "Ready to read", d: "A row in the evening that opens Kaira's read of the week." },
+            { id: "read", label: "Already read", d: "The row struck through, like any other finished task." },
+          ].map((v) =>
+            panelChip(v.label, weekInsight === v.id, () => {
+              setWeekInsight(v.id);
+              setWeekReads([]);
+              setActiveTab("track");
+              setEatDetail(false);
+              setMoveDetail(false);
+              setMindDetail(false);
+            }, v.d)
+          ).concat(
+            [
+              { id: "tasks", label: "As 3 tasks", d: "One read per pillar: sleep in the morning, movement in the afternoon, food after dinner." },
+              { id: "sheet", label: "As one sheet", d: "A single Measure row in the evening that opens all three at once." },
+            ].map((v) =>
+              panelChip(v.label, weekMode === v.id, () => {
+                setWeekMode(v.id);
+                setWeekReads([]);
+                setActiveTab("track");
+                setEatDetail(false);
+                setMoveDetail(false);
+                setMindDetail(false);
+              }, v.d)
+            )
+          ),
+          {
+            off: "Six days out of seven there is no week to read, so nothing is in the day.",
+            ready:
+              weekMode === "sheet"
+                ? "One Measure task at 6:30 PM, opening the whole week. Opening it is what finishes it."
+                : "Three reads across the day, each opening its own pillar's trend on a week worth reading.",
+            read: "Done for today, and every page still opens if they want it again.",
+          }[weekInsight]
+        )}
+
+        {panelGroup(
+          "movetrend",
+          "Move trend",
+          "Move, the Trend tab",
+          [
+            { id: "none", label: "Nothing yet", d: "The week drawn empty, with the reason for the wait." },
+            { id: "few", label: "Two days in", d: "Two days solid, five dashed. Still too thin to read." },
+            { id: "week", label: "A week to read", d: "Four active days with gaps in the middle, and the one change worth making." },
+            { id: "weeks", label: "Two steady weeks", d: "Six of seven days, nothing to fix, and the deltas turn positive." },
+          ].map((v) =>
+            panelChip(v.label, moveWeek === v.id, () => {
+              setMoveWeek(v.id);
+              setMoveTab("trend");
+              // The permission gate covers the whole screen, so a trend state
+              // that cannot be seen is not a state.
+              setHealthSource({ ...healthSource, steps: "phone" });
+              setMoveDetail(true);
+            }, v.d)
+          ),
+          {
+            none: "No week yet. The page shows what is coming rather than an empty chart.",
+            few: "Two days in, so Kaira holds off reading it.",
+            week: "Minutes a day against the target, the same week as steps, and three numbers under it.",
+            weeks: "The steady version, where the read is to keep going.",
+          }[moveWeek]
+        )}
+
+        {panelGroup(
+          "mindtrend",
+          "Mind trend",
+          "Mind, the Trend tab",
+          [
+            { id: "none", label: "Nothing yet", d: "The week drawn empty, with the reason for the wait." },
+            { id: "few", label: "Two nights in", d: "Too few nights to tell length from timing." },
+            { id: "week", label: "A week to read", d: "Six nights, long enough, but the bed times swing across two and a half hours." },
+            { id: "weeks", label: "A settled week", d: "Seven nights inside half an hour of each other." },
+          ].map((v) =>
+            panelChip(v.label, mindWeek === v.id, () => {
+              setMindWeek(v.id);
+              setMindTab("trend");
+              setHealthSource({ ...healthSource, sleep: "phone" });
+              setMindDetail(true);
+            }, v.d)
+          ),
+          {
+            none: "No week yet. The page shows what is coming rather than an empty chart.",
+            few: "Two nights in, so Kaira holds off reading it.",
+            week: "Hours a night against the target, and under it the hour each night started, where the wobble shows.",
+            weeks: "The settled version: the dots line up and the read is to hold it.",
+          }[mindWeek]
+        )}
+
         {panelGroup(
           "homecard",
           "Home card shape",
@@ -1243,9 +1383,10 @@ export default function ControlPanel() {
           screenKey === "todo" ? "Start here cards" : "Next actions card",
           screenKey === "todo" ? "To-do, above the list" : "Home carousel, second card",
           [
-            { id: "all", label: "Both waiting", v: ["score", "labs"], d: [] },
-            { id: "one", label: "Score done", v: ["score", "labs"], d: ["score"] },
-            { id: "none", label: "Nothing pending", v: ["score", "labs"], d: ["score", "labs"] },
+            { id: "all", label: "All three waiting", v: ["score", "labs", "assess"], d: [] },
+            { id: "one", label: "Score done", v: ["score", "labs", "assess"], d: ["score"] },
+            { id: "two", label: "One left", v: ["score", "labs", "assess"], d: ["score", "labs"] },
+            { id: "none", label: "Nothing pending", v: ["score", "labs", "assess"], d: ["score", "labs", "assess"] },
           ].map((x) =>
             panelChip(
               x.label,
@@ -1260,7 +1401,7 @@ export default function ControlPanel() {
             )
           ),
           nextOpen.length
-            ? "One amber card each, on To-do above the list and on Home inside the carousel. The same two, read off one list, so finishing either finishes it in both places."
+            ? "One amber card each, on To-do above the list and on Home inside the carousel. The same list read in both places, so finishing one finishes it everywhere."
             : "No cards and no tab. A tab leading to nothing pending is worse than no tab.",
           true
         )}

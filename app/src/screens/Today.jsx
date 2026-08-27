@@ -3,7 +3,7 @@ import { useWF } from "../state";
 import { Calendar } from "lucide-react";
 import DayPhase from "../components/DayPhase";
 import DayStreakBar, { DayDoneCard } from "../components/DayStreakBar";
-import PlanStrip from "../components/PlanStrip";
+import PlanCard from "../components/PlanCard";
 import PrereqRail from "../components/PrereqRail";
 import TrackHero from "../components/TrackHero";
 import { GREEN, TEXT, MUTED, BG, BORDER, GOLD, GOLD_TINT, GOLD_LINE, GOLD_DEEP, GREEN_DEEP, SH_SM } from "../tokens";
@@ -11,8 +11,7 @@ import CtaArrow from "../components/CtaArrow";
 import Em3Explainer from "../components/Em3Explainer";
 
 export default function TrackPage() {
-  const { dayPhases, dayComplete, flipcoins,
-          kcalSource, movePlan, setPlanInfo, heroState } = useWF();
+  const { dayPhases, dayComplete, flipcoins, heroState } = useWF();
   // Which phases the person has opened or closed by hand. Anything they have
   // not touched follows the day: open until it is finished.
   const [openPhase, setOpenPhase] = useState({});
@@ -21,7 +20,6 @@ export default function TrackPage() {
      the streak card is what is left. */
   const activePhase = (dayPhases.find((f) => !f.complete) || {}).id;
   // The plans still to come, in EM3 order. Empty once both have landed.
-  const waiting = [kcalSource !== "coach" && "eat", !movePlan && "move"].filter(Boolean);
   // The coach card's only action is "the tasks are down there", so it needs
   // somewhere to point at.
   const focusRef = useRef(null);
@@ -124,13 +122,9 @@ export default function TrackPage() {
 
         {/* Why the list below has no plan behind it, sitting on top of the
             list it is talking about. */}
-        {heroState === "noplan" && waiting.length > 0 && (
-          <PlanStrip
-            pillars={waiting}
-            line="Log the tasks below. The more your coaches can see of a normal day, the better both plans will fit it."
-            onInfo={() => setPlanInfo(waiting.length > 1 ? "both" : waiting[0])}
-          />
-        )}
+        {/* One card for the whole handover: waiting, one plan in, then both.
+            Same slot, same shape, so nothing jumps when a plan lands. */}
+        <PlanCard />
 
         {/* The day and the run it belongs to, above the list rather than under
             it. It is the thing the list is adding up to, so it reads better as

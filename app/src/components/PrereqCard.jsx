@@ -1,6 +1,6 @@
 import React from "react";
 import { useWF } from "../state";
-import { BarChart3, FlaskConical } from "lucide-react";
+import { BarChart3, FlaskConical, MessagesSquare } from "lucide-react";
 import CtaArrow from "./CtaArrow";
 import {
   GREEN, GREEN_DEEP, MUTED, WARN, WARN_TINT, WARN_LINE, SH_SM,
@@ -30,6 +30,16 @@ const PREREQS = {
     title: "Book your diagnostics",
     line: "A blood test at home. Your coach reads the numbers before deciding anything about your food.",
     cta: "Book a slot",
+    tab: "care",
+  },
+  /* The part a lab test cannot answer. Kaira asks it as a conversation
+     because a person will tell a chat what they skip and why, and will not
+     tell a form. */
+  assess: {
+    Icon: MessagesSquare,
+    title: "Take your pre-consultation assessment",
+    line: "Kaira learns how you eat, move and rest, so your coaches know you before they meet you.",
+    cta: "Start the chat",
     tab: "care",
   },
 };
@@ -128,7 +138,7 @@ function Watermark() {
            a pale amber card it turns into a soft warm texture instead of a
            ghost you cannot see. */
         mixBlendMode: "multiply",
-        opacity: 0.45,
+        opacity: 0.28,
         filter: "brightness(.94)",
         pointerEvents: "none",
       }}

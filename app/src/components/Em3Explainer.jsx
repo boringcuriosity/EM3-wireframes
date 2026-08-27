@@ -1,16 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { useWF } from "../state";
 import Confetti from "./Confetti";
+import StreakFlame from "./StreakFlame";
 import { Info } from "lucide-react";
-import { GREEN, GREEN_DEEP, TEXT, MUTED, FAINT, BG, BG_ALT, BORDER, LINE, PILLAR, SH } from "../tokens";
+import {
+  GREEN, GREEN_DEEP, TEXT, MUTED, FAINT, BG, BORDER, LINE, PILLAR, SH,
+  GOLD, GOLD_TINT, GOLD_LINE, GOLD_DEEP,
+} from "../tokens";
 
 /* What the To-do tab is, taught by showing it.
 
    This used to explain the four pillars as an idea, four cards deep, and left
-   the actual question unanswered: what am I going to be asked to do. So it
-   leads with a working miniature of the day instead. One row ticks itself
-   while you read, which is the whole interaction in one glance, and the four
-   pillars stay on as a legend for the colours rather than as the subject.
+   the real question unanswered: what am I going to be asked to do. So it leads
+   with a working miniature of a day. The rows tick themselves one after
+   another, the day closes, and the streak and the coins arrive the way they
+   will tomorrow. Nothing here is described that could be shown.
 
    Rendered in both places it is needed: the onboarding takeover and the To-do
    tab's first run. Two screens telling the same story two ways is how a
@@ -24,32 +28,40 @@ const DEMO = [
   { pillar: "move", title: "Move for 20 minutes", when: "6:00 PM" },
 ];
 
+/* One word each, the same four the splash screen opens with, so the pillars
+   are named the same way everywhere. The science behind each is one tap away
+   for anybody who wants it. */
+const DOES = { eat: "Fuel", move: "Burn", mind: "Calm", measure: "Know" };
+
 export default function Em3Explainer() {
   const { pillarExplain, setPillarInfo } = useWF();
   const icon = Object.fromEntries(pillarExplain.map((p) => [p.id, p.Icon]));
 
-  /* The middle row ticks itself, waits, and resets. It is the one thing a
-     person will do fourteen times tomorrow, so it is worth showing rather
-     than describing. */
-  const [done, setDone] = useState(false);
-  const [burst, setBurst] = useState(false);
+  /* The rows tick one after another, unhurried, and then stay ticked. A loop
+     that resets turns the day into a screensaver: you watch it instead of
+     reading the screen, and the finished state, which is the point, never
+     stays long enough to be seen. */
+  const [done, setDone] = useState(0);
+  const [burst, setBurst] = useState(-1);
   useEffect(() => {
     const timers = [];
-    const cycle = () => {
-      timers.push(setTimeout(() => { setDone(true); setBurst(true); }, 1200));
-      timers.push(setTimeout(() => setBurst(false), 2300));
-      timers.push(setTimeout(() => setDone(false), 4600));
-    };
-    cycle();
-    const loop = setInterval(cycle, 6000);
-    return () => { clearInterval(loop); timers.forEach(clearTimeout); };
+    const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+    DEMO.forEach((_, i) => {
+      at(1600 + i * 1600, () => { setDone(i + 1); setBurst(i); });
+      at(2700 + i * 1600, () => setBurst((b) => (b === i ? -1 : b)));
+    });
+    return () => timers.forEach(clearTimeout);
   }, []);
+
+  const all = done === DEMO.length;
 
   return (
     <>
       {/* Kaira says it. Small mark beside the line rather than a portrait
           above it, because she is the speaker here, not the subject. */}
-      <div style={{ display: "flex", gap: 11, alignItems: "flex-start" }}>
+      {/* Room above the headline. It sat tight under the back button, which
+          made the first thing on the screen feel cramped. */}
+      <div style={{ display: "flex", gap: 11, alignItems: "flex-start", paddingTop: 16 }}>
         <span style={{ position: "relative", display: "inline-flex", flexShrink: 0, marginTop: 3 }}>
           <span
             aria-hidden
@@ -93,26 +105,27 @@ export default function Em3Explainer() {
               letterSpacing: -0.3,
             }}
           >
-            Your day, a few small
+            Every morning, a task
             <br />
-            tasks at a time.
+            list made just for you.
           </h1>
 
-          <p style={{ margin: "9px 0 0", fontSize: 12.5, color: MUTED, lineHeight: 1.6 }}>
-            Your coaches turn your plan into a short list. You tick things off as the day goes.
+          <p style={{ margin: "10px 0 0", fontSize: 12.5, color: MUTED, lineHeight: 1.65 }}>
+            Your coaches understand how your day generally goes, and curate daily tasks around you.
           </p>
         </div>
       </div>
 
-      {/* The day itself, in miniature. */}
+      {/* The day itself, in miniature, doing what it does. */}
       <div
         style={{
           marginTop: 20,
           background: BG,
-          border: "1px solid " + BORDER,
+          border: "1px solid " + (all ? GOLD_LINE : BORDER),
           borderRadius: 18,
           boxShadow: SH,
           overflow: "hidden",
+          transition: "border-color .4s ease",
           animation: "riseIn .45s .06s ease both",
         }}
       >
@@ -126,10 +139,7 @@ export default function Em3Explainer() {
           }}
         >
           <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: MUTED }}>
-            Your day
-          </span>
-          <span style={{ fontSize: 10.5, fontWeight: 600, color: FAINT }}>
-            {done ? "1 of 3 done" : "0 of 3 done"}
+            Today
           </span>
         </div>
 
@@ -137,7 +147,8 @@ export default function Em3Explainer() {
           {DEMO.map((d, i) => {
             const hue = PILLAR[d.pillar];
             const Icon = icon[d.pillar];
-            const on = i === 1 && done;
+            const on = i < done;
+            const pop = burst === i;
             return (
               <div
                 key={d.title}
@@ -162,10 +173,10 @@ export default function Em3Explainer() {
                     alignItems: "center",
                     justifyContent: "center",
                     transition: "background .18s ease",
-                    animation: burst && i === 1 ? "taskPop .55s cubic-bezier(.34,1.56,.64,1) both" : undefined,
+                    animation: pop ? "taskPop .55s cubic-bezier(.34,1.56,.64,1) both" : undefined,
                   }}
                 >
-                  {burst && i === 1 && (
+                  {pop && (
                     <>
                       <span
                         aria-hidden
@@ -192,7 +203,7 @@ export default function Em3Explainer() {
                         strokeLinejoin="round"
                         pathLength="1"
                         style={
-                          burst
+                          pop
                             ? { strokeDasharray: 1, strokeDashoffset: 1, animation: "checkDraw .34s cubic-bezier(.4,0,.2,1) .12s forwards" }
                             : undefined
                         }
@@ -208,6 +219,7 @@ export default function Em3Explainer() {
                       fontSize: 12.5,
                       fontWeight: on ? 600 : 700,
                       color: on ? MUTED : TEXT,
+                      transition: "color .3s ease",
                     }}
                   >
                     {d.title}
@@ -223,7 +235,7 @@ export default function Em3Explainer() {
                           borderRadius: 1,
                           background: MUTED,
                           transformOrigin: "left center",
-                          animation: "strikeIn .42s cubic-bezier(.4,0,.2,1) forwards",
+                          animation: pop ? "strikeIn .42s cubic-bezier(.4,0,.2,1) forwards" : undefined,
                         }}
                       />
                     )}
@@ -260,93 +272,150 @@ export default function Em3Explainer() {
             );
           })}
         </div>
-      </div>
 
-      {/* The colours, explained once, and the way into the science behind each
-          one. Small, because they are a legend here and not the lesson. */}
-      <div style={{ marginTop: 20 }}>
-        <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.6, marginBottom: 10 }}>
-          Every task belongs to one of four habits. Together they are what moves your metabolism.
-        </div>
-
+        {/* The day adding up, filling as the rows go in. The bar is the same
+            one the real card carries, so the thing they will glance at every
+            morning is already familiar by the time they meet it. It leaves
+            once it is full: a finished bar and the reward under it are the
+            same news twice. */}
+        {!all && (
         <div
           style={{
             display: "flex",
+            alignItems: "center",
             gap: 8,
-            background: BG_ALT,
-            border: "1px solid " + LINE,
-            borderRadius: 16,
-            padding: "12px 10px",
+            borderTop: "1px solid " + LINE,
+            padding: "10px 15px 11px",
           }}
         >
-          {pillarExplain.map((p, i) => {
-            const hue = PILLAR[p.id];
-            return (
-              <button
-                key={p.id}
-                onClick={() => setPillarInfo(p.id)}
-                aria-label={"Why " + p.concept + " matters"}
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  background: "none",
-                  border: "none",
-                  padding: 0,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 6,
-                  animation: "riseIn .45s " + (0.1 + i * 0.06) + "s ease both",
-                }}
-              >
-                <span
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: "50%",
-                    background: hue.t,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <p.Icon size={16} color={hue.c} strokeWidth={1.9} />
-                </span>
-                <span style={{ fontSize: 11, fontWeight: 700, color: TEXT }}>{p.label}</span>
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 3,
-                    fontSize: 9,
-                    fontWeight: 600,
-                    color: MUTED,
-                    lineHeight: 1.25,
-                    textAlign: "center",
-                  }}
-                >
-                  {p.concept}
-                  <Info size={9} strokeWidth={2.4} color={FAINT} style={{ flexShrink: 0 }} />
-                </span>
-              </button>
-            );
-          })}
+          <StreakFlame size={13} fraction={all ? 1 : 0} outline={false} />
+          <span style={{ fontSize: 10.5, fontWeight: 700, color: TEXT, flexShrink: 0 }}>Day 1</span>
+          <span
+            aria-hidden
+            style={{ flex: 1, minWidth: 0, height: 4, borderRadius: 2, background: LINE, overflow: "hidden" }}
+          >
+            <span
+              style={{
+                display: "block",
+                height: "100%",
+                width: (done / DEMO.length) * 100 + "%",
+                borderRadius: 2,
+                background: GOLD,
+                transition: "width .5s cubic-bezier(.32,.72,0,1)",
+              }}
+            />
+          </span>
+          <span style={{ fontSize: 10, fontWeight: 600, color: FAINT, flexShrink: 0 }}>
+            {done} of {DEMO.length} done
+          </span>
         </div>
+        )}
+
+        {/* What clearing the list gives back. Shown once the list is clear,
+            because a promise landing at the moment it is earned reads as a
+            reward and the same promise sitting in a paragraph reads as terms
+            and conditions. */}
+        {all && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 9,
+              background: "linear-gradient(120deg, " + GOLD_TINT + " 0%, " + BG + " 100%)",
+              borderTop: "1px solid " + GOLD_LINE,
+              padding: "10px 15px 11px",
+              animation: "popIn .45s cubic-bezier(.32,.72,0,1) both",
+            }}
+          >
+            <StreakFlame size={15} fraction={1} outline={false} />
+            <span style={{ flex: 1, minWidth: 0, fontSize: 11, fontWeight: 600, color: GOLD_DEEP, lineHeight: 1.45 }}>
+              Finish your tasks, keep your streak going, and earn Flipcoins along the way.
+            </span>
+            <span
+              aria-hidden
+              style={{
+                width: 13,
+                height: 13,
+                flexShrink: 0,
+                background: GOLD,
+                clipPath: "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
+              }}
+            />
+          </div>
+        )}
       </div>
 
-      <div
+      {/* The four, as four. Each one a card of its own, because they are four
+          separate parts of a day and not one block of theory. */}
+      <p style={{ margin: "20px 0 10px", fontSize: 12.5, color: MUTED, lineHeight: 1.6 }}>
+        Every task belongs to one of four habits. Keep them steady and your metabolism follows.
+      </p>
+
+      <div style={{ display: "flex", gap: 8 }}>
+        {pillarExplain.map((p, i) => {
+          const hue = PILLAR[p.id];
+          return (
+            <button
+              key={p.id}
+              onClick={() => setPillarInfo(p.id)}
+              aria-label={p.label + ", " + DOES[p.id] + ". Why " + p.concept + " matters"}
+              style={{
+                flex: 1,
+                minWidth: 0,
+                background: BG,
+                border: "1px solid " + BORDER,
+                borderRadius: 15,
+                boxShadow: SH,
+                padding: "13px 5px 13px",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                position: "relative",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 7,
+                animation: "riseIn .45s " + (0.1 + i * 0.06) + "s ease both",
+              }}
+            >
+              <span
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: "50%",
+                  background: hue.t,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <p.Icon size={16} color={hue.c} strokeWidth={1.9} />
+              </span>
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: TEXT }}>{p.label}</span>
+              <span style={{ fontSize: 9.5, color: MUTED, lineHeight: 1.3 }}>{DOES[p.id]}</span>
+              {/* The way to the science, in the corner. As a "Why" link under
+                  the words it competed with the words. */}
+              <Info
+                size={11}
+                strokeWidth={2.2}
+                color={FAINT}
+                style={{ position: "absolute", top: 7, right: 7 }}
+              />
+            </button>
+          );
+        })}
+      </div>
+
+      <p
         style={{
           fontSize: 11.5,
           color: MUTED,
           textAlign: "center",
-          lineHeight: 1.55,
-          margin: "16px 0 8px",
+          lineHeight: 1.6,
+          margin: "18px 0 8px",
         }}
       >
-        Your coaches set the list, and it changes as they get to know you.
-      </div>
+        Your coaches see everything you tick off, and the list keeps changing as they get to know you.
+      </p>
     </>
   );
 }

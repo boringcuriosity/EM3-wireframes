@@ -48,15 +48,21 @@ import NameEntry from "./screens/auth/NameEntry";
 const AUTH = { splash: Splash, phone: PhoneEntry, otp: OtpEntry, name: NameEntry };
 import { GREEN, TEXT, MUTED, BG_ALT, BG, BORDER, TABS } from "./tokens";
 import KairaFab from "./components/KairaFab";
+import PlanChangedSheet from "./components/PlanChangedSheet";
+import CgmSync from "./screens/measure/CgmSync";
+import BcaSync from "./screens/measure/BcaSync";
+import WeekReadSheet from "./components/WeekReadSheet";
 
 // Full-screen takeovers hide the bottom nav. Order matters: the first
 // truthy one wins, exactly as in the original wireframe.
 function Takeover() {
-  const { logExOpen, logSleepOpen, mindDetail, moveDetail, logResult, logOpen, suffFlow, streakOpen, onboardingOpen, chatsOpen, programDetail, eatDetail } = useWF();
+  const { logExOpen, logSleepOpen, mindDetail, moveDetail, logResult, logOpen, suffFlow, streakOpen, onboardingOpen, chatsOpen, programDetail, eatDetail, cgmOpen, bcaOpen } = useWF();
   if (logSleepOpen) return <LogSleep />;
   if (logExOpen) return <LogExercise />;
   if (mindDetail) return <MindDetail />;
   if (moveDetail) return <MoveDetail />;
+  if (cgmOpen) return <CgmSync />;
+  if (bcaOpen) return <BcaSync />;
   if (logResult) return <MealLogged />;
   if (logOpen) return <LogMeal />;
   if (suffFlow) return <SufficiencyFlow />;
@@ -150,7 +156,9 @@ export default function App() {
     wf.onboardingOpen ||
     wf.chatsOpen ||
     wf.programDetail ||
-    wf.eatDetail;
+    wf.eatDetail ||
+    wf.cgmOpen ||
+    wf.bcaOpen;
 
   return (
     <div
@@ -216,6 +224,8 @@ export default function App() {
             {wf.pillarInfo && <PillarScienceSheet />}
             {wf.coinsInfo && <FlipcoinsSheet />}
             {wf.planInfo && <PlanWaitSheet />}
+            {wf.planChanged && <PlanChangedSheet />}
+            {wf.weekOpen && <WeekReadSheet />}
             {wf.streakInfo && <StreakRewardsSheet />}
             {wf.shareOpen && <ShareStreakSheet />}
             {wf.taskDone && <TaskDoneSheet />}
@@ -237,7 +247,10 @@ export default function App() {
               {activeTab === "home" && (isPaid ? <PaidHome /> : <FreeHome />)}
             </div>
 
-            <KairaFab />
+            {/* Not on the To-do first run. That screen is one thing to read
+                and one button to press, and a floating chat button over it is
+                a second offer nobody asked for. */}
+            {!(activeTab === "track" && !todayOnboarded) && <KairaFab />}
 
             <BottomNav />
 
@@ -249,6 +262,8 @@ export default function App() {
             {wf.pillarInfo && <PillarScienceSheet />}
             {wf.coinsInfo && <FlipcoinsSheet />}
             {wf.planInfo && <PlanWaitSheet />}
+            {wf.planChanged && <PlanChangedSheet />}
+            {wf.weekOpen && <WeekReadSheet />}
             {wf.streakInfo && <StreakRewardsSheet />}
             {wf.shareOpen && <ShareStreakSheet />}
             {wf.taskDone && <TaskDoneSheet />}

@@ -130,54 +130,46 @@ export default function DayRow({ row: r, last, compact }) {
             lineHeight: 1.35,
           }}
         >
-          {/* The last word and the pillar mark travel together, so on a title
-              that wraps the mark lands after the final word instead of alone on
-              a line of its own. */}
-          <span style={{ position: "relative", display: "inline-block" }}>
+          {/* The strike runs with the words rather than across the box. As an
+              absolutely positioned bar it drew one long rule through the middle
+              of a title that wrapped; as a background rule cloned per line
+              fragment it follows each line, and the pillar chip's own tint
+              covers the part that would otherwise pass behind it.
+
+              The last word and the mark travel together, so on a wrapped title
+              the mark lands after the final word instead of alone on a line. */}
+          <span
+            style={{
+              display: "inline",
+              WebkitBoxDecorationBreak: "clone",
+              boxDecorationBreak: "clone",
+              backgroundImage: r.done && !off ? "linear-gradient(" + MUTED + ", " + MUTED + ")" : undefined,
+              backgroundRepeat: "no-repeat",
+              backgroundPosition: "0 62%",
+              backgroundSize: r.done && !off ? "100% 1.5px" : "0% 1.5px",
+              animation: burst && r.done && !off ? "strikeWipe .42s cubic-bezier(.4,0,.2,1) .2s both" : undefined,
+            }}
+          >
             {head}
             <span style={{ whiteSpace: "nowrap" }}>
               {tail}
-            {r.done && !off && (
               <span
                 aria-hidden
                 style={{
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  top: "54%",
-                  height: 1.5,
-                  borderRadius: 1,
-                  background: MUTED,
-                  transformOrigin: "left center",
-                  transform: burst ? "scaleX(0)" : "scaleX(1)",
-                  animation: burst ? "strikeIn .42s cubic-bezier(.4,0,.2,1) .2s forwards" : undefined,
+                  position: "relative",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 18,
+                  height: 18,
+                  borderRadius: 999,
+                  background: off ? BG_ALT : PILLAR[r.pillar].t,
+                  marginLeft: 6,
+                  verticalAlign: "middle",
                 }}
-              />
-            )}
-            {/* Which of the four this belongs to, said rather than implied.
-                The circle carries the colour, but colour alone only works once
-                you already know the code, so the mark sits next to the words
-                while it is still being learned. It lives inside the title's own
-                flow, so on a title that wraps it follows the last word rather
-                than floating beside the whole block. Relative, so it paints
-                over the strike rather than under it. */}
-            <span
-              aria-hidden
-              style={{
-                position: "relative",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 18,
-                height: 18,
-                borderRadius: 999,
-                background: off ? BG_ALT : PILLAR[r.pillar].t,
-                marginLeft: 6,
-                verticalAlign: "middle",
-              }}
-            >
-              <PillarIcon size={10} color={off ? FAINT : c} strokeWidth={2} />
-            </span>
+              >
+                <PillarIcon size={10} color={off ? FAINT : c} strokeWidth={2} />
+              </span>
             </span>
           </span>
         </span>

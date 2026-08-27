@@ -47,8 +47,11 @@ export default function PrereqRail() {
           scrollbarWidth: "none",
         }}
       >
+        {/* Wider than the Home carousel's cards. The body copy is three lines
+            at 268 and two at 310, and a shorter card means the list underneath
+            starts higher up the screen. */}
         {nextOpen.map((id) => (
-          <PrereqCard key={id} id={id} width={268} />
+          <PrereqCard key={id} id={id} width={310} />
         ))}
       </div>
     </div>

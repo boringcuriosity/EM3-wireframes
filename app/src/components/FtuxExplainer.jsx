@@ -1,7 +1,7 @@
 import React from "react";
 import { useWF } from "../state";
 import { GREEN, GREEN_DEEP, TEXT, MUTED, PILLAR } from "../tokens";
-import { illustration, ftuxShell, StartCta } from "../ui";
+import { ftuxShell, StartCta } from "../ui";
 import TourTarget from "./TourTarget";
 
 export default function FtuxExplainer() {
@@ -13,9 +13,9 @@ export default function FtuxExplainer() {
         {/* The tour points at what the card teaches, not at its button. The
             button is the tour note's own action. */}
         <TourTarget id="pillars">
-        {/* Figure left, headline + subtext right */}
+        {/* Headline and subtext, full width. The placeholder figure took a
+            third of a small card to say nothing yet. */}
         <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-          {illustration(46, 76)}
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}>
               <span
@@ -45,11 +45,12 @@ export default function FtuxExplainer() {
                   lineHeight: 1.2,
                 }}
               >
-                The four pillars of metabolism
+                Your metabolism runs on four pillars
               </span>
             </div>
             <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.45 }}>
-              Your metabolism is built on these four. Small daily habits in each let you see it and shift it.
+              Small daily tasks in each build the habits that let you see your metabolism, and
+              change it.
             </div>
           </div>
         </div>
