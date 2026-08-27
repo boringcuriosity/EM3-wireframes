@@ -217,6 +217,9 @@ export function WFProvider({ children, initial = {} }) {
   const [weekMode, setWeekMode] = useState(initial.weekMode !== undefined ? initial.weekMode : "tasks");
   // Which pillars' weeks have been read, when they arrive one at a time.
   const [weekReads, setWeekReads] = useState(initial.weekReads !== undefined ? initial.weekReads : []);
+  /* How a task is drawn: the tight row inside a phase container, or one card
+     per task under a plain heading. Three card arrangements while we decide. */
+  const [taskCard, setTaskCard] = useState(initial.taskCard !== undefined ? initial.taskCard : "row");
   const [moveWeek, setMoveWeek] = useState(initial.moveWeek !== undefined ? initial.moveWeek : "week");
   const [mindWeek, setMindWeek] = useState(initial.mindWeek !== undefined ? initial.mindWeek : "week");
   const [movePlan, setMovePlan] = useState(initial.movePlan !== undefined ? initial.movePlan : null);
@@ -898,6 +901,11 @@ export function WFProvider({ children, initial = {} }) {
   /* Skipped rows come out of the denominator rather than counting against it.
      A day you chose to make smaller should look smaller, not look failed. */
   const dayLive = dayRows.filter((r) => !r.skipped);
+  /* The one task in front of you. A layout that expands only this and leaves
+     the rest as lines needs to know which one it is, and it has to be derived
+     from the day rather than tracked, or two screens would disagree about
+     what is next. */
+  const nextRowId = (dayLive.find((r) => !r.done) || {}).id;
   const dayRowsDone = dayLive.filter((r) => r.done).length;
   const dayPhases = PHASES.map((f) => {
     const rows = dayRows.filter((r) => r.phase === f.id);
@@ -1001,7 +1009,7 @@ export function WFProvider({ children, initial = {} }) {
     moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan,
     moveWeek, setMoveWeek, mindWeek, setMindWeek,
     weekInsight, setWeekInsight, weekOpen, setWeekOpen,
-    weekMode, setWeekMode, weekReads, setWeekReads, openWeek,
+    weekMode, setWeekMode, weekReads, setWeekReads, openWeek, taskCard, setTaskCard,
     healthSource, setHealthSource, healthOn, healthSheet, setHealthSheet,
     manualSteps, setManualSteps, stepsSheet, setStepsSheet, healthSync, setHealthSync, pickSource,
     sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen,
@@ -1030,7 +1038,7 @@ export function WFProvider({ children, initial = {} }) {
     SHARE_COINS, STREAK_REWARDS,
     MILESTONES, milestones, setMilestones, milestoneStatus,
     completeTask, taskProgress, setTaskProgress, taskDone, setTaskDone,
-    dayRows, dayLive, dayPhases, dayRowsDone, openRow, water, setWater, dayTicks, setDayTicks,
+    dayRows, dayLive, dayPhases, dayRowsDone, nextRowId, openRow, water, setWater, dayTicks, setDayTicks,
     daySkipped, setDaySkipped, toggleSkip, toggleTick, rowMenu, setRowMenu, planOption, setPlanOption,
     celebrated, celebrate, uncelebrate, streakBurst, setStreakBurst,
     eatFocus, setEatFocus,

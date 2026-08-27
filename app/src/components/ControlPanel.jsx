@@ -22,7 +22,7 @@ const ALL_DONE = { eat: 3, move: 1, mind: 1, measure: 1 };
 const ALL_GROUPS = [
   "signup", "plan", "welcome", "tour", "move", "hero", "targets",
   "logging", "suff", "streakscreen", "streak", "milestones",
-  "focus", "homecard", "planarrive", "weekread", "movetrend", "mindtrend", "dayWon", "skip", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "mind", "measure",
+  "focus", "homecard", "planarrive", "taskcard", "weekread", "movetrend", "mindtrend", "dayWon", "skip", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "mind", "measure",
 ];
 
 const SCREEN_GROUPS = {
@@ -35,7 +35,7 @@ const SCREEN_GROUPS = {
   eat: ["eat", "targets", "logging"],
   chats: [],
   program: ["welcome"],
-  todo: ["nextaction", "hero", "focus", "planarrive", "weekread", "dayWon", "skip", "measuretasks", "streak"],
+  todo: ["nextaction", "hero", "focus", "taskcard", "planarrive", "weekread", "dayWon", "skip", "measuretasks", "streak"],
   home: ["welcome", "tour", "nextaction", "focus", "homecard", "measuretasks", "streak"],
   measure: ["measure"],
   care: [],
@@ -185,7 +185,7 @@ const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 const SLEEP_SRC = { gate: null, syncing: "phone", phone: "phone", manualnone: "manual", manual: "manual", tools: "manual" };
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindMood, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab, setWater, setDayTicks, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, planSeen, setPlanSeen, kcalSource, movePlan, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindMood, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, planSeen, setPlanSeen, kcalSource, movePlan, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -1172,6 +1172,40 @@ export default function ControlPanel() {
             }),
             "One card, four states. The chips stay put and fill in as each plan lands."
           )}
+
+        {panelGroup(
+          "taskcard",
+          "Task layout",
+          "To-do, the day's list",
+          [
+            { id: "row", label: "Rows", d: "Today's list: tight rows inside one card per part of the day." },
+            { id: "stack", label: "Card, badge on top", d: "Pillar mark and pay across the top, the task under them." },
+            { id: "inline", label: "Card, badge inline", d: "Mark, title and pay on one line, the body underneath." },
+            { id: "icon", label: "Card, icon in the circle", d: "The circle carries the pillar until it is ticked. No badge at all." },
+            { id: "timeline", label: "Timeline", d: "One spine down the left, times in a single column, cards hanging off it. A day read as a schedule." },
+            { id: "timeline2", label: "Timeline with now", d: "The same spine, marked where the clock is. Solid behind you, dashed ahead." },
+            { id: "focus", label: "Next one open", d: "The task in front of you is a card. Everything else is a line, so the screen answers what now without hiding the day." },
+            { id: "settle", label: "Done settles", d: "Cards, but a finished task shrinks to one dim line. The list gets shorter as the day goes." },
+          ].map((v) =>
+            panelChip(v.label, taskCard === v.id, () => {
+              setTaskCard(v.id);
+              setActiveTab("track");
+              setEatDetail(false);
+              setMoveDetail(false);
+              setMindDetail(false);
+            }, v.d)
+          ),
+          {
+            row: "The phase container holds the rows. Shortest list, least room per task.",
+            stack: "Tallest of the three, and the easiest to scan by pillar.",
+            inline: "Closest to the rows, with the body given room it never had.",
+            icon: "The quietest. One element carries both the pillar and the state.",
+            timeline: "Times align in one column, so the eye travels down one edge instead of fourteen right margins.",
+            timeline2: "The thread says how far into the day you are. No red, no lateness, just where the clock sits.",
+            focus: "Lowest reading cost: one card, thirteen lines.",
+            settle: "Finished work stops competing for attention.",
+          }[taskCard]
+        )}
 
         {panelGroup(
           "weekread",

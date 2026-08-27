@@ -83,7 +83,7 @@ export function buildDay(w) {
   /* Sleep opens the day because the morning is when you know the answer. It is
      asked first and it is the only row about last night. */
   rows.push({
-    id: "sleep", pillar: "mind", at: 0,
+    id: "sleep", pillar: "mind", at: 0, coins: 5,
     title: "Log last night's sleep",
     kind: "go", to: "sleep",
     done: sleepMins !== null,
@@ -108,7 +108,7 @@ export function buildDay(w) {
 
   measureRows.forEach((m) =>
     rows.push({
-      id: "sync:" + m.id, pillar: "measure", at: 7 * 60 + 30,
+      id: "sync:" + m.id, pillar: "measure", at: 7 * 60 + 30, coins: 10,
       title: m.title,
       when: "7:30 AM",
       kind: "go", to: "measure",
@@ -126,7 +126,7 @@ export function buildDay(w) {
     const picked = planOption[d.id];
     const oi = Math.max(0, Math.min(eaten >= 0 ? eaten : picked ?? 0, opts.length - 1));
     rows.push({
-      id: "meal:" + d.id, pillar: "eat", at: DIVISION_AT[d.id] ?? 13 * 60,
+      id: "meal:" + d.id, pillar: "eat", at: DIVISION_AT[d.id] ?? 13 * 60, coins: 4,
       title: d.name,
       // The window, plan or no plan. Knowing roughly when to eat is useful on
       // day one, and it is the same window the coach will later work from.
@@ -156,7 +156,7 @@ export function buildDay(w) {
     const readAll = weekInsight === "read";
     if (weekMode === "sheet")
       rows.push({
-        id: "weekread", pillar: "measure", at: 18 * 60 + 30,
+        id: "weekread", pillar: "measure", at: 18 * 60 + 30, coins: 5,
         title: "Read your week with Kaira",
         when: "6:30 PM",
         tip: "Seven days in. What your food, movement and sleep are saying.",
@@ -166,7 +166,7 @@ export function buildDay(w) {
     else
       WEEK_READS.forEach((r) =>
         rows.push({
-          id: "weekread:" + r.id, pillar: r.id, at: r.at,
+          id: "weekread:" + r.id, pillar: r.id, at: r.at, coins: 5,
           title: r.title,
           when: r.when,
           tip: r.tip,
@@ -177,7 +177,7 @@ export function buildDay(w) {
   }
 
   rows.push({
-    id: "water", pillar: "eat", at: 14 * 60,
+    id: "water", pillar: "eat", at: 14 * 60, coins: 3,
     title: "Drink " + WATER_GOAL + " glasses of water",
     tip: "Avoid drinking water right before you eat.",
     kind: "target", to: "water",
@@ -192,7 +192,7 @@ export function buildDay(w) {
   rows.push(
     planAssigned
       ? {
-          id: "session", pillar: "move", at: 19 * 60,
+          id: "session", pillar: "move", at: 19 * 60, coins: 10,
           title: "Your exercise session",
           when: "7:00 - 8:00 PM",
           tip: "Six moves, about 40 minutes. Your coach picked them for your knees.",
@@ -200,7 +200,7 @@ export function buildDay(w) {
           done: exLogs.length > 0,
         }
       : {
-          id: "session", pillar: "move", at: 16 * 60,
+          id: "session", pillar: "move", at: 16 * 60, coins: 10,
           title: "Move for 20 minutes",
           tip: "A walk to the shop counts. So do the stairs.",
           kind: "go", to: "move",
@@ -209,14 +209,14 @@ export function buildDay(w) {
   );
 
   rows.push({
-    id: "calm", pillar: "mind", at: 21 * 60,
+    id: "calm", pillar: "mind", at: 21 * 60, coins: 5,
     title: "Take a calm break",
     kind: "go", to: "mind",
     done: mindDone.length > 0,
   });
 
   rows.push({
-    id: "steps", pillar: "move", at: 23 * 60,
+    id: "steps", pillar: "move", at: 23 * 60, coins: 5,
     title: "Finish your step target",
     kind: "target", to: "steps",
     now: daySteps, goal: STEP_GOAL, unit: "steps",

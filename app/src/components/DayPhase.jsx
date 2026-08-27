@@ -1,6 +1,10 @@
 import React from "react";
 import { Check, ChevronDown } from "lucide-react";
 import DayRow from "./DayRow";
+import { useWF } from "../state";
+
+// The clock the wireframe is frozen at, matched to the status bar.
+const NOW_MIN = 9 * 60 + 41;
 import { GREEN, TEXT, MUTED, BG, BORDER, SH_SM } from "../tokens";
 
 /* A part of the day, with its own finish line.
@@ -14,16 +18,28 @@ import { GREEN, TEXT, MUTED, BG, BORDER, SH_SM } from "../tokens";
    the count beside it already say it is finished, and saying it a third time
    in the words made three headings read as a report. */
 export default function DayPhase({ phase: f, open, onToggle }) {
+  const { taskCard } = useWF();
+  /* With a card per task the container would be a card holding cards, so the
+     heading goes flush and the cards stand on the page. */
+  const cards = taskCard !== "row";
+  // The timeline draws its own spine per row, so the phase gives it no padding
+  // to fight with.
+  const flush = taskCard === "timeline" || taskCard === "focus";
+
   return (
     <div
-      style={{
-        background: BG,
-        border: "1px solid " + BORDER,
-        borderRadius: 18,
-        padding: "4px 16px 6px",
-        marginBottom: 12,
-        boxShadow: SH_SM,
-      }}
+      style={
+        cards
+          ? { marginBottom: flush ? 18 : 14 }
+          : {
+              background: BG,
+              border: "1px solid " + BORDER,
+              borderRadius: 18,
+              padding: "4px 16px 6px",
+              marginBottom: 12,
+              boxShadow: SH_SM,
+            }
+      }
     >
       <button
         onClick={onToggle}
@@ -35,7 +51,7 @@ export default function DayPhase({ phase: f, open, onToggle }) {
           gap: 9,
           background: "none",
           border: "none",
-          padding: "12px 0 11px",
+          padding: cards ? "4px 2px 10px" : "12px 0 11px",
           cursor: "pointer",
           fontFamily: "inherit",
           textAlign: "left",
@@ -80,7 +96,14 @@ export default function DayPhase({ phase: f, open, onToggle }) {
       </button>
 
       {open &&
-        f.rows.map((r, i) => <DayRow key={r.id} row={r} last={i === f.rows.length - 1} />)}
+        (() => {
+          /* Where the clock sits inside this part of the day: the first task
+             still ahead of it carries the marker. */
+          const nowAt = taskCard === "timeline2" ? f.rows.findIndex((r) => r.at > NOW_MIN) : -1;
+          return f.rows.map((r, i) => (
+            <DayRow key={r.id} row={r} last={i === f.rows.length - 1} now={i === nowAt} />
+          ));
+        })()}
     </div>
   );
 }
