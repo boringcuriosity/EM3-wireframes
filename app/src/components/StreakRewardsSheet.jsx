@@ -41,13 +41,13 @@ export default function StreakRewardsSheet() {
           width: "100%",
           background: BG,
           borderRadius: "26px 26px 0 0",
+          overflow: "hidden",
           boxShadow: "0 -12px 40px rgba(16,24,40,0.22)",
           animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
         }}
       >
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: BORDER, margin: "10px auto 0" }} />
 
-        <div style={{ display: "flex", justifyContent: "flex-end", padding: "4px 18px 0" }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "12px 18px 0" }}>
           <button
             onClick={() => setStreakInfo(false)}
             aria-label="Close"
@@ -73,9 +73,8 @@ export default function StreakRewardsSheet() {
             <span
               id="streak-title"
               style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
                 fontSize: 44,
-                fontWeight: 600,
+                fontWeight: 800,
                 color: TEXT,
                 lineHeight: 1,
                 letterSpacing: -1,

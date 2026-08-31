@@ -220,16 +220,16 @@ export default function ProgramWelcomeSheet() {
           width: "100%",
           background: BG,
           borderRadius: "26px 26px 0 0",
+          overflow: "hidden",
           boxShadow: "0 -12px 40px rgba(16,24,40,0.22)",
           maxHeight: "88%",
           overflowY: "auto",
           animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
         }}
       >
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: BORDER, margin: "10px auto 0" }} />
 
         {/* Kaira speaks. The mark, a live pulse behind it, then her line. */}
-        <div style={{ padding: "16px 22px 0" }}>
+        <div style={{ padding: "22px 22px 0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
             {/* Kaira narrates every beat, so her mark never leaves the header. */}
             {(
@@ -256,8 +256,7 @@ export default function ProgramWelcomeSheet() {
                     justifyContent: "center",
                     color: "#fff",
                     fontSize: 13,
-                    fontWeight: 600,
-                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontWeight: 800,
                   }}
                 >
                   K
@@ -306,12 +305,11 @@ export default function ProgramWelcomeSheet() {
               id="welcome-title"
               style={{
                 margin: "14px 0 0",
-                fontFamily: "'Playfair Display', Georgia, serif",
                 fontSize: 24,
-                fontWeight: 600,
+                fontWeight: 800,
                 color: TEXT,
                 lineHeight: 1.22,
-                letterSpacing: -0.2,
+                letterSpacing: -0.5,
                 whiteSpace: "pre-line",
                 animation: "riseIn .4s ease both",
               }}

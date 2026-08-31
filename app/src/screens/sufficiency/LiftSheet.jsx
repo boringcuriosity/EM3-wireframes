@@ -45,6 +45,7 @@ export default function LiftSheet() {
           flexDirection: "column",
           background: BG,
           borderRadius: "26px 26px 0 0",
+          overflow: "hidden",
           boxShadow: "0 -12px 40px rgba(31,38,48,0.22)",
           animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
         }}

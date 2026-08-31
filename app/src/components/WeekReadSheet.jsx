@@ -75,6 +75,7 @@ export default function WeekReadSheet() {
           width: "100%",
           background: BG,
           borderRadius: "26px 26px 0 0",
+          overflow: "hidden",
           boxShadow: "0 -12px 40px rgba(16,24,40,0.22)",
           maxHeight: "88%",
           display: "flex",
@@ -82,9 +83,8 @@ export default function WeekReadSheet() {
           animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
         }}
       >
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: BORDER, margin: "10px auto 0", flexShrink: 0 }} />
 
-        <div style={{ flex: 1, overflowY: "auto", padding: "14px 22px 0", minHeight: 0 }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "22px 22px 0", minHeight: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
             <span
               style={{
@@ -97,8 +97,7 @@ export default function WeekReadSheet() {
                 justifyContent: "center",
                 color: "#fff",
                 fontSize: 13,
-                fontWeight: 600,
-                fontFamily: "'Playfair Display', Georgia, serif",
+                fontWeight: 800,
                 flexShrink: 0,
               }}
             >
@@ -119,9 +118,9 @@ export default function WeekReadSheet() {
           <h2
             style={{
               margin: "13px 0 0",
-              fontFamily: "'Playfair Display', Georgia, serif",
               fontSize: 21,
-              fontWeight: 600,
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
               color: TEXT,
               lineHeight: 1.25,
             }}

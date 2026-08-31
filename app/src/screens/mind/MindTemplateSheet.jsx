@@ -101,13 +101,13 @@ export default function MindTemplateSheet() {
           height: "88%",
           background: BG,
           borderRadius: "26px 26px 0 0",
+          overflow: "hidden",
           boxShadow: "0 -12px 40px rgba(16,24,40,0.22)",
           display: "flex",
           flexDirection: "column",
           animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
         }}
       >
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: BORDER, margin: "10px auto 0", flexShrink: 0 }} />
 
         <div
           style={{
@@ -115,7 +115,7 @@ export default function MindTemplateSheet() {
             display: "flex",
             alignItems: "flex-start",
             gap: 10,
-            padding: "12px 22px 12px",
+            padding: "20px 22px 12px",
             borderBottom: "1px solid " + LINE,
           }}
         >

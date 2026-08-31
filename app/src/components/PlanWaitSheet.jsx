@@ -1,7 +1,7 @@
 import React from "react";
 import { useWF } from "../state";
 import { X, Utensils, Flame } from "lucide-react";
-import { GREEN, GREEN_DEEP, TEXT, MUTED, BG, BORDER, LINE, PILLAR } from "../tokens";
+import { GREEN, GREEN_DEEP, TEXT, MUTED, BG, LINE, PILLAR } from "../tokens";
 
 /* Why there is no plan yet. Opened from the info dot on the waiting strip.
 
@@ -83,6 +83,7 @@ export default function PlanWaitSheet() {
           width: "100%",
           background: BG,
           borderRadius: "26px 26px 0 0",
+          overflow: "hidden",
           boxShadow: "0 -12px 40px rgba(16,24,40,0.22)",
           maxHeight: "88%",
           display: "flex",
@@ -90,9 +91,8 @@ export default function PlanWaitSheet() {
           animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
         }}
       >
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: BORDER, margin: "10px auto 0", flexShrink: 0 }} />
 
-        <div style={{ flex: 1, overflowY: "auto", padding: "14px 22px 0", minHeight: 0 }}>
+        <div style={{ flex: 1, overflowY: "auto", padding: "22px 22px 0", minHeight: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             {p.chips.map((ch) => (
               <span
@@ -128,9 +128,9 @@ export default function PlanWaitSheet() {
             id="planwait-title"
             style={{
               margin: "13px 0 0",
-              fontFamily: "'Playfair Display', Georgia, serif",
               fontSize: 21,
-              fontWeight: 600,
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
               color: TEXT,
               lineHeight: 1.3,
             }}

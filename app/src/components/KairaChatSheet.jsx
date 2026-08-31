@@ -80,13 +80,13 @@ export default function KairaChatSheet() {
           height: "82%",
           background: BG,
           borderRadius: "26px 26px 0 0",
+          overflow: "hidden",
           boxShadow: "0 -12px 40px rgba(16,24,40,0.22)",
           display: "flex",
           flexDirection: "column",
           animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
         }}
       >
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: BORDER, margin: "10px auto 0", flexShrink: 0 }} />
 
         {/* Who you are talking to. Her own mark rather than an avatar, because
             that hexagon is what she is recognised by everywhere else. */}
@@ -96,7 +96,7 @@ export default function KairaChatSheet() {
             display: "flex",
             alignItems: "center",
             gap: 10,
-            padding: "12px 22px 12px",
+            padding: "20px 22px 12px",
             borderBottom: "1px solid " + LINE,
           }}
         >
@@ -242,8 +242,7 @@ export function Mark({ size }) {
         justifyContent: "center",
         color: "#fff",
         fontSize: size * 0.42,
-        fontWeight: 600,
-        fontFamily: "'Playfair Display', Georgia, serif",
+        fontWeight: 800,
       }}
     >
       K

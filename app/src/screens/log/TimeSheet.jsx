@@ -40,12 +40,12 @@ export default function TimeSheet() {
           width: "100%",
           background: BG,
           borderRadius: "26px 26px 0 0",
-          padding: "10px 0 24px",
+          overflow: "hidden",
+          padding: "22px 0 24px",
           boxShadow: "0 -12px 40px rgba(31,38,48,0.22)",
           animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
         }}
       >
-        <div style={{ width: 38, height: 4, borderRadius: 2, background: BORDER, margin: "0 auto 16px" }} />
 
         <div style={{ padding: "0 22px" }}>
           <div id="time-title" style={{ fontSize: 18, fontWeight: 700, color: TEXT }}>

@@ -37,12 +37,12 @@ export default function MacroSheet() {
           width: "100%",
           background: BG,
           borderRadius: "26px 26px 0 0",
-          padding: "10px 22px 24px",
+          overflow: "hidden",
+          padding: "22px 22px 24px",
           boxShadow: "0 -12px 40px rgba(31,38,48,0.22)",
           animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
         }}
       >
-        <div style={{ width: 38, height: 4, borderRadius: 2, background: BORDER, margin: "0 auto 16px" }} />
 
         <div id="macro-title" style={{ fontSize: 20, fontWeight: 700, color: TEXT }}>
           {info.label}

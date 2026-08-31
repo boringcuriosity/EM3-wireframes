@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useWF } from "../state";
 import { DEMO_DAY } from "../screens/log/foods";
+import { MIND_TEMPLATES } from "../screens/mind/tools";
 import { Home, Bell, MessageCircle, CalendarPlus } from "lucide-react";
 import { GREEN, TEXT, TABS, SH, SH_MD } from "../tokens";
 import { flame } from "../ui";
@@ -1554,7 +1555,19 @@ export default function ControlPanel() {
                 setMindDone(d.every || d.mind ? ["breathing"] : []);
                 setSleepLogs(d.every || d.mind ? [{ bed: 23 * 60, wake: 6 * 60 + 40 }] : []);
                 setWater(d.every ? 2 : d.water || 0);
-                setDayTicks(d.every ? ["note:methi", "note:sun", "note:almonds"] : d.ticks || []);
+                /* Both lists are read off the day the plan actually builds
+                   rather than written out here. A hand written list stays
+                   right until the plan grows one more capsule or the
+                   psychologist adds one more worksheet, and then Everything
+                   ticked quietly stops meaning everything. */
+                setDayTicks(
+                  d.every
+                    ? eatDivisions.flatMap((x) => (x.notes || []).map((n) => n.id))
+                    : d.ticks || []
+                );
+                setTemplateKept(
+                  d.every ? Object.fromEntries(MIND_TEMPLATES.map((t) => [t.id, true])) : {}
+                );
                 setManualSteps(d.every ? 10200 : null);
                 setHealthSource({ steps: "manual", sleep: "manual" });
                 setHealthSync(null);

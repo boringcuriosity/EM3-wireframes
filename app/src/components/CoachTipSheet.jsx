@@ -45,16 +45,16 @@ export default function CoachTipSheet() {
           width: "100%",
           background: BG,
           borderRadius: "26px 26px 0 0",
+          overflow: "hidden",
           boxShadow: "0 -12px 40px rgba(16,24,40,0.22)",
           animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
         }}
       >
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: BORDER, margin: "10px auto 0" }} />
 
         {/* Which tip, kept quiet so the explanation below carries the weight.
             Same header the row menu uses, so two sheets opening off the same
             row read as two pages of one thing. */}
-        <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "14px 22px 0" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "22px 22px 0" }}>
           <span style={{ width: 7, height: 7, borderRadius: "50%", background: c, flexShrink: 0 }} />
           <span
             style={{

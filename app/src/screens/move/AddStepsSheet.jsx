@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useWF } from "../../state";
 import { X, Footprints } from "lucide-react";
 import Wheel from "../../components/Wheel";
-import { GREEN, GREEN_DEEP, MOVE_C, MOVE_T, TEXT, MUTED, BG, BORDER } from "../../tokens";
+import { GREEN, GREEN_DEEP, MOVE_C, MOVE_T, TEXT, MUTED, BG } from "../../tokens";
 
 const COINS = 1;
 
@@ -57,13 +57,13 @@ export default function AddStepsSheet() {
           width: "100%",
           background: BG,
           borderRadius: "26px 26px 0 0",
+          overflow: "hidden",
           boxShadow: "0 -12px 40px rgba(16,24,40,0.22)",
           animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
         }}
       >
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: BORDER, margin: "10px auto 0" }} />
 
-        <div style={{ padding: "14px 22px 0", display: "flex", alignItems: "center", gap: 9 }}>
+        <div style={{ padding: "22px 22px 0", display: "flex", alignItems: "center", gap: 9 }}>
           <span
             style={{
               display: "inline-flex",
@@ -96,9 +96,9 @@ export default function AddStepsSheet() {
           <h2
             style={{
               margin: 0,
-              fontFamily: "'Playfair Display', Georgia, serif",
               fontSize: 20,
-              fontWeight: 600,
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
               color: TEXT,
               lineHeight: 1.3,
             }}

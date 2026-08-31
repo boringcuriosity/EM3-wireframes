@@ -107,10 +107,17 @@ export function bmr({ kg, cm, age }) {
   return Math.round(88.362 + 13.397 * kg + 4.799 * cm - 5.677 * age);
 }
 
-export const BODY = { kg: 74.2, cm: 174, age: 42 };
-export const BMR = bmr(BODY);                                   // 1679
-export const TDEE = Math.round((BMR * ACTIVITY.factor) / 50) * 50;  // 2300
+export const BODY = { kg: 74.2, cm: 174, age: 56 };
+export const BMR = bmr(BODY);                                   // 1600
+export const TDEE = Math.round((BMR * ACTIVITY.factor) / 50) * 50;  // 2200
 export const BMI = +(BODY.kg / (BODY.cm / 100) ** 2).toFixed(1); // 24.5
+
+/* The figures the To-do hero stages, kept beside TDEE rather than inside the
+   card, because the sheets that explain those numbers have to show the same
+   ones. A sheet quoting a different total from the orb it opened out of is
+   worse than no sheet. */
+export const HERO_GOAL = 1885;
+export const HERO_EATEN = { nodata: 0, partial: 640, full: 1785 };
 
 export function bmiBand(v) {
   if (v < 18.5) return "Underweight";

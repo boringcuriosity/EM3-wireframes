@@ -73,6 +73,7 @@ export default function FlipcoinsSheet() {
           width: "100%",
           background: BG,
           borderRadius: "26px 26px 0 0",
+          overflow: "hidden",
           boxShadow: "0 -12px 40px rgba(16,24,40,0.22)",
           maxHeight: "90%",
           display: "flex",
@@ -80,9 +81,8 @@ export default function FlipcoinsSheet() {
           animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
         }}
       >
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: BORDER, margin: "10px auto 0", flexShrink: 0 }} />
 
-        <div style={{ flexShrink: 0, padding: "14px 22px 0" }}>
+        <div style={{ flexShrink: 0, padding: "22px 22px 0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
             <span
               style={{

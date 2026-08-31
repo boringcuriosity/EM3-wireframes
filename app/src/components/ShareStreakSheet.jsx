@@ -4,7 +4,7 @@ import { X, Share2, AtSign } from "lucide-react";
 import StreakFlame from "./StreakFlame";
 import {
   GREEN, GREEN_DEEP, GREEN_TINT, GOLD, GOLD_TINT, GOLD_LINE, GOLD_DEEP,
-  TEXT, MUTED, BG, BG_ALT, BORDER, LINE, RULE,
+  TEXT, MUTED, BG, BG_ALT, LINE, RULE,
 } from "../tokens";
 
 /* Share the streak, once for coins and after that for the fun of it. The
@@ -61,6 +61,7 @@ export default function ShareStreakSheet() {
           width: "100%",
           background: BG,
           borderRadius: "26px 26px 0 0",
+          overflow: "hidden",
           boxShadow: "0 -12px 40px rgba(16,24,40,0.22)",
           maxHeight: "90%",
           display: "flex",
@@ -68,9 +69,8 @@ export default function ShareStreakSheet() {
           animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
         }}
       >
-        <div style={{ width: 40, height: 4, borderRadius: 2, background: BORDER, margin: "10px auto 0", flexShrink: 0 }} />
 
-        <div style={{ flexShrink: 0, padding: "14px 22px 0" }}>
+        <div style={{ flexShrink: 0, padding: "22px 22px 0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
             <span
               style={{
@@ -133,9 +133,9 @@ export default function ShareStreakSheet() {
             <StreakFlame size={54} fraction={1} outline={false} />
             <div
               style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
                 fontSize: 22,
-                fontWeight: 600,
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
                 color: TEXT,
                 marginTop: 10,
               }}
@@ -147,9 +147,8 @@ export default function ShareStreakSheet() {
             </div>
             <div
               style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 800,
                 color: GREEN,
                 marginTop: 12,
                 letterSpacing: 0.3,

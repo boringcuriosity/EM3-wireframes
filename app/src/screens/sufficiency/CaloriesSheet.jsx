@@ -45,12 +45,12 @@ export default function CaloriesSheet() {
           flexDirection: "column",
           background: BG,
           borderRadius: "26px 26px 0 0",
+          overflow: "hidden",
           boxShadow: "0 -12px 40px rgba(31,38,48,0.22)",
           animation: "sheetUp .42s cubic-bezier(.32,.72,0,1) both",
         }}
       >
-        <div style={{ padding: "10px 22px 0", flexShrink: 0 }}>
-          <div style={{ width: 38, height: 4, borderRadius: 2, background: BORDER, margin: "0 auto 16px" }} />
+        <div style={{ padding: "22px 22px 0", flexShrink: 0 }}>
           <div id="kcal-title" style={{ fontSize: 18, fontWeight: 700, color: TEXT }}>
             Daily calories
           </div>

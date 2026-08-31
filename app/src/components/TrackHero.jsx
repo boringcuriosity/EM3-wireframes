@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useWF } from "../state";
-import { Lock, Info } from "lucide-react";
+import { Lock, Info, ArrowRight } from "lucide-react";
 import CoachHandoffCard from "./CoachHandoffCard";
-import { TDEE } from "../screens/sufficiency/data";
+import { TDEE, HERO_GOAL, HERO_EATEN } from "../screens/sufficiency/data";
 import {
   GREEN, GREEN_DEEP, GREEN_TINT, GREEN_WASH, GOLD_DEEP, GOLD_TINT,
   MOVE_C, MOVE_T, MIND_C, MIND_T, MEASURE_C, MEASURE_T,
@@ -52,13 +52,23 @@ const MACROS = {
 };
 const SCORE = { nodata: 0, partial: 53, full: 85 };
 
-/* The day's calories. Eaten is the only figure entered; the deficit falls out
-   of it, so the three orbs can never disagree with each other. */
-const GOAL = 1885;
-const EATEN = { nodata: null, partial: 640, full: 1785 };
+/* The day's calories. Eaten is the only figure entered; the balance falls out
+   of it, so the three orbs can never disagree with each other. They live in
+   data.js beside TDEE, because the sheets that explain them show them too. */
+const GOAL = HERO_GOAL;
+const EATEN = { ...HERO_EATEN, nodata: null };
 
 export default function TrackHero({ state, onSeeTasks }) {
-  const { setPillarInfo, setMetricInfo, mealsIn } = useWF();
+  const { setPillarInfo, setMetricInfo, mealsIn, setEatDetail, setEatTab } = useWF();
+
+  /* Eat, not a logger opened on a division nobody chose. From an empty card
+     the ask is the whole of eating today, so it hands over to the screen that
+     holds the day's meals and lets the person pick which one they are
+     logging. Today's tab, because that is the one with the meals in it. */
+  const openEat = () => {
+    setEatTab("today");
+    setEatDetail(true);
+  };
   // The demo's part-way state stages two meals; a real session counts its own.
   const shownMeals = Math.min(3, mealsIn || 2);
   const [page, setPage] = useState(0);
@@ -168,10 +178,61 @@ export default function TrackHero({ state, onSeeTasks }) {
       /* Not a row. Eaten is the number of the day, so it sits large on the
          left and the other two hang off it on a diagonal. */
       <div style={{ position: "relative", width: "100%", height: BAND }}>
+        {/* Empty, the biggest orb stops reporting and starts asking. A dash
+            over a target was the one blank on a card whose other two orbs read
+            confidently, so it looked like a figure that had failed to arrive
+            rather than one waiting on you.
+
+            The whole circle is the button, not a pill inside it: the orb is
+            already the thing the eye lands on, and a second target drawn
+            inside a target is two places to aim at one job.
+
+            It is a button laid under the circle rather than wrapped around it,
+            because the info icon has to stay its own control and a button
+            inside a button is not a thing the browser will honour. The label
+            and the ask let clicks through to it; the icon takes its own. */}
         <Orb size={150} from={GREEN_TINT} to={GREEN_WASH} at={{ left: 26, top: 26 }}>
-          <Cap onInfo={() => setMetricInfo("eaten")}>Eaten</Cap>
-          <Big color={empty ? RULE : GREEN_DEEP}>{empty ? "—" : eaten.toLocaleString()}</Big>
-          <Sub>of {GOAL.toLocaleString()} kcal</Sub>
+          {empty ? (
+            <>
+              <button
+                onClick={openEat}
+                aria-label="Log today's first meal"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  borderRadius: "50%",
+                  background: "none",
+                  border: "none",
+                  padding: 0,
+                  cursor: "pointer",
+                }}
+              />
+              <Cap onInfo={() => setMetricInfo("eaten")}>Eaten</Cap>
+              {/* The arrow rides the last word rather than sitting under the
+                  text, so it reads as one phrase going somewhere instead of a
+                  label with a control parked beneath it. */}
+              <span
+                style={{
+                  fontSize: 15,
+                  fontWeight: 700,
+                  color: GREEN_DEEP,
+                  lineHeight: 1.3,
+                  textAlign: "center",
+                  padding: "4px 18px 0",
+                  pointerEvents: "none",
+                }}
+              >
+                Log today's first meal{" "}
+                <ArrowRight size={14} strokeWidth={2.6} style={{ verticalAlign: -2 }} />
+              </span>
+            </>
+          ) : (
+            <>
+              <Cap onInfo={() => setMetricInfo("eaten")}>Eaten</Cap>
+              <Big color={GREEN_DEEP}>{eaten.toLocaleString()}</Big>
+              <Sub>of {GOAL.toLocaleString()} kcal</Sub>
+            </>
+          )}
         </Orb>
 
         <Orb size={92} from={MOVE_T} to="#F5F8FF" at={{ right: 26, top: 0 }}>
@@ -181,17 +242,19 @@ export default function TrackHero({ state, onSeeTasks }) {
           </span>
         </Orb>
 
+        {/* Either way round. It was hardcoded to Deficit with a minus glued to
+            the front, so a day spent over TDEE would have printed a double
+            sign and called a surplus a deficit.
+
+            Real from the first moment, unlike Eaten. An empty day is not a
+            missing balance: you have burned a day's worth and eaten none of it
+            back, which is exactly where the day starts. */}
         <Orb size={80} from={GOLD_TINT} to="#FFFDF5" at={{ right: 26, bottom: 0 }}>
-          <Cap small onInfo={() => setMetricInfo("deficit")}>Deficit</Cap>
-          <span
-            style={{
-              fontSize: 19,
-              fontWeight: 800,
-              color: empty ? RULE : GOLD_DEEP,
-              lineHeight: 1.2,
-            }}
-          >
-            {empty ? "—" : "−" + (TDEE - eaten).toLocaleString()}
+          <Cap small onInfo={() => setMetricInfo("balance")}>
+            {eaten > TDEE ? "Surplus" : "Deficit"}
+          </Cap>
+          <span style={{ fontSize: 19, fontWeight: 800, color: GOLD_DEEP, lineHeight: 1.2 }}>
+            {(eaten > TDEE ? "+" : "−") + Math.abs(eaten - TDEE).toLocaleString()}
           </span>
         </Orb>
       </div>
@@ -327,9 +390,13 @@ function Orb({ size, from, to, at, children }) {
 }
 
 /* The label on an orb. Each of these three is a term the person did not
-   choose, so each carries a way to ask what it means. */
+   choose, so each carries a way to ask what it means.
+
+   Transparent to the pointer apart from its icon, so it can sit over a tap
+   target without eating the taps. The word and the gap beside it were never
+   clickable anyway; the icon opts itself back in. */
 const Cap = ({ children, small, onInfo }) => (
-  <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+  <span style={{ display: "inline-flex", alignItems: "center", gap: 3, pointerEvents: "none" }}>
     <span style={{ fontSize: small ? 10 : 11, color: MUTED }}>{children}</span>
     <button
       onClick={(e) => {
@@ -344,6 +411,8 @@ const Cap = ({ children, small, onInfo }) => (
         margin: -2,
         display: "flex",
         cursor: "pointer",
+        pointerEvents: "auto",
+        position: "relative",
       }}
     >
       <Info size={small ? 11 : 12} color={FAINT} strokeWidth={2.2} />

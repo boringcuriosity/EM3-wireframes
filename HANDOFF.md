@@ -112,6 +112,14 @@ The `--scope` flag is required: `app/.vercel/project.json` records a team org id
 project actually lives under the personal scope. Live at
 **https://em3-wireframes.vercel.app**. Repo: `boringcuriosity/EM3-wireframes`, branch `main`.
 
+**Pushing does not deploy.** There is no GitHub integration on this project: a push updates the
+repo and leaves production exactly as it was. The site only changes when the command above is
+run. On 31 Aug that gap left `/` serving the previous build and `/v2` and `/v3` returning 404
+while both sat committed on main.
+
+Check a deploy rather than assuming it: `curl -s -o /dev/null -w "%{http_code}" <url>` on each
+of the six paths, and compare the bundle hash at `/` against `app/dist/assets/`.
+
 **Do not push or deploy unless asked.** The user batches changes and says when.
 
 ---
@@ -210,6 +218,11 @@ Groups that hold live design decisions rather than data states:
 
 Fonts: **Playfair Display** for display type, **Roboto** for everything else, both loaded in
 `index.css`. They are the product's own faces; do not swap them.
+
+**Bottom sheets are Roboto only.** No Playfair inside a sheet: titles carry their weight with
+size and `fontWeight: 800` instead. Sheets also have no drag handle at the top, and their panel
+carries `overflow: "hidden"` so a first child with its own background cannot paint over the
+26px top corners.
 
 Colours live in `tokens.js`. Green `#299D6B` is the brand and the primary action. The four
 pillars each own a hue: Eat green, Move indigo `#444CE7`, Mind teal `#2DA6A6`, Measure gold
