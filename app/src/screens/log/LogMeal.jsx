@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useWF } from "../../state";
-import { ChevronLeft, Search, Heart, Plus, Minus, X, Clock, Info } from "lucide-react";
+import { ChevronLeft, Search, Heart, Plus, Minus, X, Clock, Info, Camera, Mic } from "lucide-react";
 import { GREEN, TEXT, MUTED, BG, BG_ALT, BORDER } from "../../tokens";
 import { GOALS, targetsFor } from "../sufficiency/data";
 import { FOODS, byId, divisionForTime, DIVISION_LABEL, fmtTime, totals, sufficiency } from "./foods";
@@ -14,15 +14,27 @@ export default function LogMeal() {
   const {
     setLogOpen, logItems, setLogItems, logTime, setLogTimeOpen, logTimeOpen,
     favorites, setFavorites, mealsLogged, setMealsLogged, setLogResult, logInfo, setLogInfo,
-    suffGoal, suffKcal,
+    suffGoal, suffKcal, logPlan, eatDivisions, setKairaLog,
   } = useWF();
 
-  const [tab, setTab] = useState("fav");
+  /* What the coach picked for this meal, when the logger was opened on a plan.
+     Favourites and Frequent know nothing about a plan, so arriving from a meal
+     row used to mean searching for your own breakfast by name. */
+  const planFoods = logPlan
+    ? (((eatDivisions.find((d) => d.id === logPlan.division) || {}).plan || [])[logPlan.oi] || [])
+        .map((it) => byId(it.id))
+        .filter(Boolean)
+    : [];
+
+  // Land on the plan when there is one. It is the reason this screen opened.
+  const [tab, setTab] = useState(planFoods.length ? "plan" : "fav");
   const [query, setQuery] = useState("");
 
   const q = query.trim().toLowerCase();
   const list = q
     ? FOODS.filter((x) => x.name.toLowerCase().includes(q))
+    : tab === "plan"
+    ? planFoods
     : tab === "fav"
     ? FOODS.filter((x) => favorites.includes(x.id))
     : FOODS.filter((x) => x.tags.includes("freq"));
@@ -124,7 +136,16 @@ export default function LogMeal() {
                 color: TEXT,
               }}
             />
-            {query && (
+            {/* Two ways in that are not typing, which is the difference
+                between logging once and logging on a Tuesday. Both hand to
+                Kaira: reading a plate and hearing a sentence are the two
+                things she is for.
+
+                They stand down while there is a query, the way the tabs below
+                do. Somebody who has started typing has chosen their way in,
+                and a clear button plus two offers is three controls in the
+                space of one. */}
+            {query ? (
               <button
                 onClick={() => setQuery("")}
                 aria-label="Clear search"
@@ -132,6 +153,30 @@ export default function LogMeal() {
               >
                 <X size={15} color={MUTED} />
               </button>
+            ) : (
+              <span style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+                <span aria-hidden style={{ width: 1, height: 18, background: BORDER, marginRight: 6 }} />
+                {[
+                  { id: "snap", Icon: Camera, label: "Log with a photo" },
+                  { id: "voice", Icon: Mic, label: "Log by speaking" },
+                ].map((b) => (
+                  <button
+                    key={b.id}
+                    onClick={() => setKairaLog(b.id)}
+                    aria-label={b.label}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      padding: 4,
+                      margin: 0,
+                      cursor: "pointer",
+                      display: "flex",
+                    }}
+                  >
+                    <b.Icon size={17} color={TEXT} strokeWidth={2} />
+                  </button>
+                ))}
+              </span>
             )}
           </div>
         </div>
@@ -140,6 +185,9 @@ export default function LogMeal() {
         {!q && (
           <div style={{ flexShrink: 0, display: "flex", gap: 10, padding: "0 22px 8px" }}>
             {[
+              // Only when a plan sent you here. A tab leading to nothing is
+              // worse than no tab.
+              ...(planFoods.length ? [{ id: "plan", label: "Your plan" }] : []),
               { id: "fav", label: "Favourites" },
               { id: "freq", label: "Frequent" },
             ].map((t) => (
@@ -152,7 +200,7 @@ export default function LogMeal() {
                   border: "1px solid " + (tab === t.id ? TEXT : BORDER),
                   borderRadius: 999,
                   padding: "10px 0",
-                  fontSize: 13,
+                  fontSize: 12.5,
                   fontWeight: 700,
                   color: tab === t.id ? "#fff" : MUTED,
                   cursor: "pointer",
@@ -170,11 +218,19 @@ export default function LogMeal() {
           {list.length === 0 ? (
             <div style={{ padding: "40px 16px", textAlign: "center" }}>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: TEXT }}>
-                {q ? "Nothing matches “" + query + "”" : tab === "fav" ? "No favourites yet" : "Nothing frequent yet"}
+                {q
+                  ? "Nothing matches “" + query + "”"
+                  : tab === "plan"
+                  ? "Nothing planned for this one"
+                  : tab === "fav"
+                  ? "No favourites yet"
+                  : "Nothing frequent yet"}
               </div>
               <div style={{ fontSize: 11.5, color: MUTED, marginTop: 6, lineHeight: 1.55 }}>
                 {q
                   ? "Try a shorter word, or the name of one ingredient rather than the whole dish."
+                  : tab === "plan"
+                  ? "Your coach has not written food for this meal yet. Search for what you ate and it still counts."
                   : tab === "fav"
                   ? "Tap the heart on anything you eat often and it will wait here for you."
                   : "Once you have logged a few days, the things you eat most will show up here."}

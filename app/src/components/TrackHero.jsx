@@ -58,9 +58,9 @@ const GOAL = 1885;
 const EATEN = { nodata: null, partial: 640, full: 1785 };
 
 export default function TrackHero({ state, onSeeTasks }) {
-  const { setPillarInfo, setMetricInfo, mainMealsDone } = useWF();
+  const { setPillarInfo, setMetricInfo, mealsIn } = useWF();
   // The demo's part-way state stages two meals; a real session counts its own.
-  const mealsIn = Math.min(3, mainMealsDone || 2);
+  const shownMeals = Math.min(3, mealsIn || 2);
   const [page, setPage] = useState(0);
 
   if (state === "noplan") {
@@ -138,7 +138,7 @@ export default function TrackHero({ state, onSeeTasks }) {
             {state === "full" ? (
               <Kaira>All three main meals in and a strong day. Protein is the one still worth a look.</Kaira>
             ) : (
-              <Meals done={state === "nodata" ? 0 : mealsIn} />
+              <Meals done={state === "nodata" ? 0 : shownMeals} />
             )}
         </Card>
       </div>

@@ -1,7 +1,7 @@
 import React from "react";
 import { useWF } from "../../state";
-import { Play, Check } from "lucide-react";
-import { GREEN, TEXT, MUTED, BG, BG_ALT, BORDER } from "../../tokens";
+import RoutineExercise from "./RoutineExercise";
+import { GREEN, TEXT, MUTED, BG } from "../../tokens";
 import { COACH_ROUTINE } from "./exercises";
 import Empty from "./Empty";
 
@@ -9,8 +9,9 @@ import Empty from "./Empty";
    off as it is done. It is the Move equivalent of Eat's meal divisions, so it
    behaves the same way, a plan you work through rather than a page you read. */
 export default function RoutineList() {
-  const { planAssigned, routineDone, setRoutineDone, isPaid } = useWF();
+  const { planAssigned, routineDone, isPaid, openMoveLog, exLogs, routineFeel, setFeel, clearFeel } = useWF();
   const hasPlan = planAssigned;
+  const logged = exLogs.some((l) => l.id === "routine");
 
   return (
 (hasPlan ? (
@@ -35,85 +36,46 @@ export default function RoutineList() {
               </span>
 
               <div style={{ marginTop: 14 }}>
-                {COACH_ROUTINE.items.map((it) => {
-                  const done = routineDone.includes(it.id);
-                  return (
-                    <div
-                      key={it.id}
-                      style={{
-                        background: BG,
-                        border: "1px solid " + (done ? GREEN : BORDER),
-                        borderRadius: 16,
-                        padding: 14,
-                        marginBottom: 10,
-                        opacity: done ? 0.85 : 1,
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: TEXT }}>
-                          {it.name}
-                        </span>
-                        <button
-                          onClick={() =>
-                            setRoutineDone(
-                              done ? routineDone.filter((x) => x !== it.id) : routineDone.concat(it.id)
-                            )
-                          }
-                          aria-pressed={done}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 6,
-                            background: done ? GREEN : BG,
-                            border: "1px solid " + (done ? GREEN : BORDER),
-                            borderRadius: 999,
-                            padding: "6px 13px",
-                            fontSize: 11.5,
-                            fontWeight: 700,
-                            color: done ? "#fff" : MUTED,
-                            cursor: "pointer",
-                            flexShrink: 0,
-                            fontFamily: "inherit",
-                          }}
-                        >
-                          {done && <Check size={12} color="#fff" strokeWidth={3} />}
-                          {done ? "Done" : "Mark done"}
-                        </button>
-                      </div>
-
-                      <div
-                        style={{
-                          height: 96,
-                          borderRadius: 12,
-                          background: BG_ALT,
-                          border: "1px dashed " + BORDER,
-                          margin: "11px 0",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 34, height: 34, borderRadius: "50%", background: BG,
-                            border: "1px solid " + BORDER, display: "flex",
-                            alignItems: "center", justifyContent: "center",
-                          }}
-                        >
-                          <Play size={14} color={TEXT} fill={TEXT} />
-                        </span>
-                      </div>
-
-                      <div style={{ fontSize: 11, color: MUTED }}>
-                        {it.sets} sets · {it.reps} reps · {it.rest} rest
-                      </div>
-                      <div style={{ fontSize: 11.5, color: MUTED, marginTop: 5, lineHeight: 1.5 }}>
-                        {it.note}
-                      </div>
-                    </div>
-                  );
-                })}
+                {COACH_ROUTINE.items.map((it) => (
+                  <RoutineExercise
+                    key={it.id}
+                    item={it}
+                    feel={routineFeel[it.id]}
+                    onPick={setFeel}
+                    onClear={clearFeel}
+                  />
+                ))}
               </div>
+
+              {/* Ticking the exercises is working through them; this is saying
+                  the session happened, which is the part the rest of the app
+                  was never being told. It opens the logger on the routine, so
+                  the minutes and the effort are still the person's to confirm
+                  rather than numbers we made up for them. */}
+              {!logged && (
+                <button
+                  onClick={() => openMoveLog("routine")}
+                  style={{
+                    width: "100%",
+                    marginTop: 2,
+                    background: BG,
+                    border: "1px solid " + GREEN,
+                    borderRadius: 14,
+                    padding: "12px 0",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: GREEN,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  {routineDone.length === COACH_ROUTINE.items.length
+                    ? "Log this session"
+                    : routineDone.length > 0
+                    ? "Log what you did"
+                    : "Log this session"}
+                </button>
+              )}
             </>
           ) : (
             <Empty

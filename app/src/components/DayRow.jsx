@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useWF } from "../state";
 import LotusIcon from "./LotusIcon";
-import { ChevronRight, Plus, MoreVertical, Minus, Utensils, Flame, BarChart3 } from "lucide-react";
+import { ChevronRight, Plus, MoreVertical, Minus, Info, Utensils, Flame, BarChart3 } from "lucide-react";
 import Skel from "./Skel";
 import Confetti from "./Confetti";
 import { byId } from "../screens/log/foods";
-import { PILLAR, TEXT, MUTED, FAINT, LINE, BG, BG_ALT, BORDER, GOLD, GOLD_TINT, GOLD_LINE, GOLD_DEEP, SH_SM } from "../tokens";
+import { PILLAR, TEXT, TEXT_2, MUTED, FAINT, LINE, BG, BG_ALT, BORDER, GOLD, GOLD_TINT, GOLD_LINE, GOLD_DEEP, SH_SM } from "../tokens";
 
 const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure" };
 const PILLAR_ICON = { eat: Utensils, move: Flame, mind: LotusIcon, measure: BarChart3 };
@@ -38,7 +38,7 @@ const startTime = (when) => {
    Nothing is ever struck through until it is genuinely done. Strike-through
    means finished, not late, and a meal you have not logged yet is neither. */
 export default function DayRow({ row: r, last, compact, now }) {
-  const { openRow, setRowMenu, planOption, setPlanOption, celebrated, celebrate, uncelebrate, taskCard, nextRowId } = useWF();
+  const { openRow, setRowMenu, setTipInfo, planOption, setPlanOption, celebrated, celebrate, uncelebrate, taskCard, nextRowId } = useWF();
   const c = PILLAR[r.pillar].c;
   const bar = r.kind === "target";
   const pct = bar && r.now ? Math.min(100, Math.round((r.now / r.goal) * 100)) : 0;
@@ -170,6 +170,56 @@ export default function DayRow({ row: r, last, compact, now }) {
         {r.coins}
       </span>
     </span>
+  );
+
+  /* What tells a tip apart from everything else on the list.
+
+     Every other row is finished by a record landing somewhere: a meal in Eat,
+     a session in Move, a reading off a device. A tip is finished by doing it
+     and ticking it, with no screen behind it, and on a list where the two sit
+     side by side that difference was invisible. The bulb is the mark for it,
+     and it opens the reason the coach asked.
+
+     Neutral, and deliberately so. All four hues in this app are spoken for by
+     a pillar, and this mark sits next to one of them: in gold it read as a
+     Measure mark on an Eat row. The rest of the palette is no better, amber
+     means something needs attention and red means something is wrong, and a
+     tip is neither. So the mark is the shape, not the colour, and grey is the
+     one thing on a row that claims nothing.
+
+     It rides with the pillar mark rather than off at the end of the row: the
+     two together are what the row is, its habit and its kind, and a control
+     parked beside the three dots read as another way to open the menu.
+
+     Bare, where the pillar chip beside it is filled. The glyph already draws
+     its own circle, so putting it inside another one turned an 18px mark into
+     a bullseye. It dims when done exactly as the coin pill does, because a
+     finished tip is still a tip. Inline flex, so the same element works as a
+     flex child in the card layouts and sits on the text baseline inside a
+     wrapping title. */
+  const info = r.kind === "tick" && !off && (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        setTipInfo(r.id);
+      }}
+      aria-label={"Why your coach asked: " + r.title}
+      style={{
+        flexShrink: 0,
+        padding: 2,
+        margin: 0,
+        marginLeft: 3,
+        verticalAlign: "middle",
+        background: "none",
+        border: "none",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+      }}
+    >
+      <Info size={14} color={r.done ? FAINT : TEXT_2} strokeWidth={2.2} />
+    </button>
   );
 
   const when = r.when && !off && (
@@ -424,6 +474,7 @@ export default function DayRow({ row: r, last, compact, now }) {
           )}
           <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 7 }}>
             {badge}
+            {info}
             <span style={{ flex: 1, minWidth: 0 }}>{titleText(13)}</span>
             {coin}
             {menu}
@@ -487,6 +538,7 @@ export default function DayRow({ row: r, last, compact, now }) {
           {r.title}
         </span>
         <PillarIcon size={11} color={off ? FAINT : c} strokeWidth={2} style={{ flexShrink: 0 }} />
+        {info}
         {when}
       </div>
     );
@@ -595,6 +647,7 @@ export default function DayRow({ row: r, last, compact, now }) {
           <>
             <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 7 }}>
               {badgeNamed}
+              {info}
               {coin}
               <span style={{ flex: 1 }} />
               {when}
@@ -618,6 +671,7 @@ export default function DayRow({ row: r, last, compact, now }) {
             <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
               {tick}
               {badge}
+              {info}
               <span style={{ flex: 1, minWidth: 0 }}>{titleText(13.5)}</span>
               {coin}
               {when}
@@ -668,6 +722,7 @@ export default function DayRow({ row: r, last, compact, now }) {
               {burst && !off && <Confetti pillar={r.pillar} />}
             </span>
 
+            {info}
             <span style={{ flex: 1, minWidth: 0 }}>{titleText(13.5)}</span>
             {coin}
             {when}
@@ -805,12 +860,29 @@ export default function DayRow({ row: r, last, compact, now }) {
               >
                 <PillarIcon size={10} color={off ? FAINT : c} strokeWidth={2} />
               </span>
+              {info}
             </span>
           </span>
         </span>
       </span>
 
-      <span style={{ display: "flex", alignItems: "center", gap: 3, flexShrink: 0 }}>
+      {/* Pinned to the first line rather than to the middle of the block.
+
+          A title that wraps used to drag the hour down with it, so on a list
+          where some titles run to two lines the times stopped sharing an edge
+          and the column of hours came apart. The padding is what sits the
+          small mono type optically on the first line rather than flush with
+          the top of it. */}
+      <span
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 3,
+          flexShrink: 0,
+          alignSelf: "flex-start",
+          paddingTop: 2,
+        }}
+      >
         {/* The hour at the end of the row, in line with every other hour, so
             the column of times reads as a schedule down the page. It can sit
             here now that a meal's options run underneath rather than beside

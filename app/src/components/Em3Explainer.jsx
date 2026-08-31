@@ -24,7 +24,7 @@ import {
    uses. Not the live day: on first run there is nothing in it yet. */
 const DEMO = [
   { pillar: "mind", title: "Log last night's sleep", when: "7:00 AM" },
-  { pillar: "eat", title: "Breakfast", when: "8:00 - 10:00 AM" },
+  { pillar: "eat", title: "Log breakfast", when: "8:00 - 10:00 AM" },
   { pillar: "move", title: "Move for 20 minutes", when: "6:00 PM" },
 ];
 

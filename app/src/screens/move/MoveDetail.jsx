@@ -16,7 +16,7 @@ import { TEXT } from "../../tokens";
    routine and what has been logged. Trend and Learn sit behind the pillar's
    own nav, exactly as they do on Eat. */
 export default function MoveDetail() {
-  const { setMoveDetail, moveTab, setMoveTab, setLogExOpen, planAssigned, healthSource, setStepsSheet } =
+  const { setMoveDetail, moveTab, setMoveTab, openMoveLog, planAssigned, healthSource, setStepsSheet } =
     useWF();
 
   /* Asked before anything else, once. Move cannot show a step count without
@@ -43,7 +43,7 @@ export default function MoveDetail() {
           <LogPrompt
             line="Anything you did today counts. A walk, the stairs, a full workout."
             actions={[
-              { label: "Log exercise", Icon: Flame, onClick: () => setLogExOpen(true) },
+              { label: "Log exercise", Icon: Flame, onClick: () => openMoveLog() },
               ...(healthSource.steps === "manual"
                 ? [{ label: "Add steps", Icon: Footprints, onClick: () => setStepsSheet(true) }]
                 : []),

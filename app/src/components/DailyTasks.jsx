@@ -44,7 +44,10 @@ export default function DailyTasks() {
   const one = open[0];
   const rest = open.length - shown.length;
 
-  const label = homeCard === "phase" && phase ? "This " + phase.label.toLowerCase() : "Up next";
+  /* The phase carries its own wording rather than having "This " glued to its
+     heading. Three of the four take it and the fourth does not: nobody says
+     "this night", they say tonight. */
+  const label = homeCard === "phase" && phase ? phase.when : "Up next";
 
   /* The rows, plus the line that says the list keeps going. Shaped like a row
      rather than a caption, so it taps like one. */
@@ -99,7 +102,7 @@ export default function DailyTasks() {
           </span>
           <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: MUTED }}>
             {homeCard === "phase"
-              ? rest + " more this " + phase.label.toLowerCase()
+              ? rest + " more " + phase.when
               : rest + " more today"}
           </span>
           <ChevronRight size={15} color={FAINT} strokeWidth={2.2} style={{ flexShrink: 0 }} />

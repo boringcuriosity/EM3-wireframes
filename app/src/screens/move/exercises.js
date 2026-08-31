@@ -4,7 +4,21 @@
 
 const e = (id, name, met, tags = []) => ({ id, name, met, tags });
 
+/* Named once, because the routine is both a plan you work through and a thing
+   you log, and the two must not end up calling it different names. */
+const ROUTINE_NAME = "Starter mobility plan";
+
 export const EXERCISES = [
+  /* The coach's routine, as one more activity.
+
+     It is one thing you did, not four. The four exercises are its contents the
+     way a meal's items are the contents of a meal, so the session is what gets
+     logged and everything downstream, the minutes, the burn, the hero, the
+     trend, the day's row, works with no special case for it.
+
+     Mobility work sits near yoga on the MET scale, a little under stretching
+     held still, because the sets keep you moving between the holds. */
+  e("routine", ROUTINE_NAME, 2.8, ["coach"]),
   e("walk", "Walking", 4.3, ["common"]),
   e("briskwalk", "Brisk walking", 5.0, ["common"]),
   e("treadmill", "Treadmill walking", 4.5),
@@ -67,11 +81,17 @@ export function dayBurn(logs, kg) {
 /* A routine a coach has assigned. Same shape whether or not one exists, so the
    empty case is a real state rather than a missing screen. */
 export const COACH_ROUTINE = {
-  name: "Starter mobility plan",
+  name: ROUTINE_NAME,
   by: "Manya Jain",
   from: "18 Aug 2026",
   to: "14 Sep 2026",
   block: "Routine 1",
+  /* How long the routine takes, set with the routine rather than asked for.
+
+     A meal's portions are the person's to state; a routine's length is the
+     coach's. Four exercises at two sets each is a prescribed duration, so
+     asking "how long?" makes somebody do arithmetic the plan already did. */
+  minutes: 20,
   items: [
     {
       id: "neck",

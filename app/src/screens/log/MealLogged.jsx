@@ -1,69 +1,56 @@
 import React, { useEffect, useState } from "react";
 import { useWF } from "../../state";
-import { Check, ArrowUp, Lock } from "lucide-react";
-import { GREEN, TEXT, MUTED, BG, BG_ALT, BORDER, LINE } from "../../tokens";
-import { GOALS, targetsFor, NUTRIENTS } from "../sufficiency/data";
-import { byId, totals, DIVISION_LABEL, fmtTime } from "./foods";
+import { Check, Lock } from "lucide-react";
+import MacroRings from "../../components/MacroRings";
+import CaloriesStrip from "../../components/CaloriesStrip";
+import { byId, DIVISION_LABEL, fmtTime } from "./foods";
+import {
+  GREEN, GREEN_DEEP, TEXT, MUTED, FAINT, BG, BG_ALT, BORDER, LINE, RULE,
+} from "../../tokens";
 
 const COINS_PER_MEAL = 4;
 
-/* What that meal did. The number counts up rather than appearing, and the bars
-   grow from where they were, so the point lands as movement instead of a fact.
-   Nothing here is a reward for its own sake: every figure is the meal's. */
+/* What that meal did, in four beats and nothing else.
+
+   It used to say the same day in five ways: a score, a line under it counting
+   meals, a per macro delta beside a per macro total, and a Kaira card at the
+   bottom explaining the lock a second time. The screen after logging a meal was
+   longer than the screen that logged it.
+
+   Four things now, in the order somebody wants them:
+
+     1. which meal landed and when
+     2. the score, or the count of meals that opens it, under the same hexagon
+     3. the four macros and the day's calories
+     4. what was actually in the meal
+
+   The bar goes once the score is real, because the score is the answer and a
+   full bar beside it is the question restated. */
 export default function MealLogged() {
   const {
-    logResult, setLogResult, mealsLogged, suffGoal, suffKcal,
-    flipcoins, setFlipcoins, setToast, setEatDetail,
-    hasTargets, scoreUnlocked, mainMealsDone,
+    logResult, setLogResult, flipcoins, setFlipcoins, setToast, setEatDetail, logReturn,
+    hasTargets, scoreUnlocked, mealsIn, dayTotals, kcalTarget,
   } = useWF();
 
-  const [shown, setShown] = useState(logResult.before);
-  const [grown, setGrown] = useState(false);
+  const [shown, setShown] = useState(logResult ? logResult.before : 0);
 
-  const goal = GOALS.find((g) => g.id === suffGoal) || GOALS[0];
-  const targets = targetsFor(suffGoal, suffKcal ?? goal.kcal);
-  const now = totals(mealsLogged);
-  const meal = logResult.meal;
-
-  // What this one meal contributed, and where the day sits after it.
-  const gave = meal.items.reduce(
-    (a, it) => {
-      const f = byId(it.id);
-      a.p += f.p * it.qty;
-      a.c += f.c * it.qty;
-      a.f += f.f * it.qty;
-      a.fibre += f.fibre * it.qty;
-      a.kcal += f.kcal * it.qty;
-      return a;
-    },
-    { p: 0, c: 0, f: 0, fibre: 0, kcal: 0 }
-  );
-
-  const rows = [
-    { id: "protein", label: "Protein", have: now.p, gain: gave.p },
-    { id: "carbs", label: "Carbs", have: now.c, gain: gave.c },
-    { id: "fats", label: "Fats", have: now.f, gain: gave.f },
-    { id: "fibre", label: "Fibre", have: now.fibre, gain: gave.fibre },
-  ].map((r) => {
-    const t = targets.find((x) => x.id === r.id).target;
-    return { ...r, target: t, pct: Math.min(100, (r.have / t) * 100), was: Math.min(100, ((r.have - r.gain) / t) * 100), tone: NUTRIENTS.find((n) => n.id === r.id).tone };
-  });
-
-  // Count the score up to its new value, then let the bars grow.
+  /* Counted up rather than printed. A number that arrives already correct is a
+     result; one that climbs is something you did. */
   useEffect(() => {
-    const t0 = setTimeout(() => setGrown(true), 260);
+    if (!logResult) return;
     const span = Math.max(1, logResult.after - logResult.before);
     let i = 0;
-    const step = setInterval(() => {
+    const t = setInterval(() => {
       i += 1;
       setShown(logResult.before + Math.round((span * i) / 24));
-      if (i >= 24) clearInterval(step);
+      if (i >= 24) clearInterval(t);
     }, 26);
-    return () => {
-      clearTimeout(t0);
-      clearInterval(step);
-    };
+    return () => clearInterval(t);
   }, [logResult]);
+
+  if (!logResult) return null;
+  const meal = logResult.meal;
+  const left = Math.max(0, 3 - mealsIn);
 
   const done = () => {
     setFlipcoins(flipcoins + COINS_PER_MEAL);
@@ -73,305 +60,250 @@ export default function MealLogged() {
       coins: COINS_PER_MEAL,
     });
     setLogResult(null);
-    setEatDetail(true);
+    if (logReturn === "eat") setEatDetail(true);
   };
-
 
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", background: BG, minHeight: 0 }}>
       <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>
-        {/* The rise */}
+        {/* 1. It landed. */}
         <div
           style={{
-            padding: "26px 22px 26px",
+            padding: hasTargets ? "24px 22px 26px" : "24px 22px 22px",
             background: BG_ALT,
             borderBottom: "1px solid " + BORDER,
             textAlign: "center",
           }}
         >
+          {/* Which meal and when, said once. It was a caps badge reading MEAL
+              LOGGED with the same fact repeated as a line under the food, so
+              the badge became the sentence and the line went. */}
           <span
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: 6,
+              gap: 7,
               background: BG,
               border: "1px solid " + BORDER,
               borderRadius: 999,
-              padding: "5px 12px",
-              fontSize: 11,
+              padding: "6px 14px 6px 11px",
+              fontSize: 12.5,
               fontWeight: 700,
-              color: MUTED,
-              letterSpacing: 0.6,
-              marginBottom: 16,
+              color: TEXT,
             }}
           >
-            <Check size={12} color={GREEN} strokeWidth={3} /> LOGGED
+            <Check size={13} color={GREEN} strokeWidth={3} />
+            {DIVISION_LABEL[meal.division]} logged at {fmtTime(meal.timeMins)}
           </span>
 
-          {hasTargets ? (
+          {/* The score, or the reason there is not one yet. Without targets no
+              hexagon appears at all: a locked one would promise that meals
+              unlock it, and what unlocks it is targets. */}
+          {hasTargets && (
             <>
-              <div style={{ display: "flex", justifyContent: "center", position: "relative" }}>
+              <div style={{ display: "flex", justifyContent: "center", marginTop: 18 }}>
                 <div
                   style={{
-                    width: 138,
-                    height: 150,
-                    background: GREEN,
-                    clipPath: "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
+                    position: "relative",
+                    width: 132,
+                    height: 144,
                     display: "flex",
-                    flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    filter: scoreUnlocked ? "none" : "blur(9px)",
-                    animation: "petalIn .45s ease both",
-                    transition: "filter .6s ease",
                   }}
                 >
-                  <span style={{ fontSize: 42, fontWeight: 800, color: "#fff", lineHeight: 1 }}>
-                    {shown}%
-                  </span>
-                  <span style={{ fontSize: 9, fontWeight: 700, color: "#fff", letterSpacing: 1.2, opacity: 0.85, marginTop: 3 }}>
-                    SUFFICIENCY
-                  </span>
-                </div>
-                {!scoreUnlocked && (
-                  <span
+                  <div
                     style={{
                       position: "absolute",
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      width: 40,
-                      height: 40,
-                      borderRadius: "50%",
-                      background: BG,
-                      border: "1px solid " + BORDER,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
+                      inset: 0,
+                      background: "linear-gradient(150deg, " + GREEN + " 0%, " + GREEN_DEEP + " 100%)",
+                      clipPath: "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
+                      filter: scoreUnlocked ? "none" : "blur(10px)",
+                      animation: "popIn .5s cubic-bezier(.32,.72,0,1) both",
+                      transition: "filter .7s ease",
                     }}
-                  >
-                    <Lock size={18} color={MUTED} />
-                  </span>
-                )}
+                  />
+                  {scoreUnlocked ? (
+                    <span style={{ position: "relative", textAlign: "center" }}>
+                      <span style={{ display: "block", fontSize: 40, fontWeight: 800, color: "#fff", lineHeight: 1 }}>
+                        {shown}%
+                      </span>
+                      <span
+                        style={{
+                          display: "block",
+                          fontSize: 8.5,
+                          fontWeight: 700,
+                          color: "#fff",
+                          letterSpacing: 1.2,
+                          opacity: 0.85,
+                          marginTop: 4,
+                        }}
+                      >
+                        SUFFICIENCY
+                      </span>
+                    </span>
+                  ) : (
+                    <span
+                      style={{
+                        position: "relative",
+                        width: 42,
+                        height: 42,
+                        borderRadius: "50%",
+                        background: BG,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Lock size={18} color={GREEN_DEEP} strokeWidth={2.4} />
+                    </span>
+                  )}
+                </div>
               </div>
 
-              <div style={{ marginTop: 14 }}>
-                {scoreUnlocked ? (
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 5,
-                      background: GREEN,
-                      borderRadius: 999,
-                      padding: "6px 14px",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      color: "#fff",
-                    }}
-                  >
-                    <ArrowUp size={13} color="#fff" strokeWidth={3} />
-                    {logResult.after - logResult.before} points from this meal
-                  </span>
-                ) : (
-                  <span style={{ fontSize: 12, color: MUTED, lineHeight: 1.55 }}>
-                    {mainMealsDone} of 3 main meals in.
-                    <br />
-                    The score unblurs once the third one lands.
-                  </span>
-                )}
-              </div>
+              {/* One slot under the hexagon, two states. Locked, it is the
+                  count that opens it; unlocked, it is what the number means.
+                  The card used to sit below the macros, which put the
+                  explanation of the lock two sections away from the lock. */}
+              {scoreUnlocked ? (
+                <div style={{ fontSize: 12.5, color: MUTED, marginTop: 14, lineHeight: 1.55 }}>
+                  Three meals in, so your score is ready. Log the rest of the day to see where it
+                  really lands.
+                </div>
+              ) : (
+                <div
+                  style={{
+                    background: BG,
+                    border: "1px solid " + GREEN + "26",
+                    borderRadius: 16,
+                    padding: "13px 14px",
+                    marginTop: 16,
+                    textAlign: "left",
+                  }}
+                >
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {[0, 1, 2].map((i) => (
+                      <span
+                        key={i}
+                        style={{
+                          flex: 1,
+                          height: 6,
+                          borderRadius: 3,
+                          background: i < mealsIn ? GREEN : BG_ALT,
+                          border: "1px solid " + (i < mealsIn ? GREEN : RULE),
+                          transition: "background .45s cubic-bezier(.32,.72,0,1) " + i * 0.08 + "s",
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <div style={{ fontSize: 12.5, color: TEXT, fontWeight: 700, marginTop: 11 }}>
+                    {left === 1 ? "One more meal" : left + " more meals"} to unlock your score
+                  </div>
+                  <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.5, marginTop: 3 }}>
+                    Any meal counts, whichever ones your day is made of.
+                  </div>
+                </div>
+              )}
             </>
-          ) : (
-            /* No targets, so no percentage. The meal is still a fact, and the
-               fact is what gets shown. Nothing here asks for anything. */
-            <div>
-              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 6 }}>
-                <span style={{ fontSize: 40, fontWeight: 800, color: TEXT, lineHeight: 1, letterSpacing: -1 }}>
-                  {gave.kcal}
-                </span>
-                <span style={{ fontSize: 15, color: MUTED }}>kcal</span>
-              </div>
-              <div style={{ fontSize: 12, color: MUTED, marginTop: 7 }}>
-                {DIVISION_LABEL[meal.division]} at {fmtTime(meal.timeMins)}
-              </div>
-            </div>
           )}
         </div>
 
-        {/* What was in it */}
+        {/* 3. The four macros and the day's calories. Rings and a bar against a
+               coach's targets, plain numbers without one, which MacroRings and
+               CaloriesStrip already decide for themselves. */}
         <div style={{ padding: "20px 22px 0" }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 0.9, marginBottom: 10 }}>
-            WHAT WAS IN THIS MEAL
+          <Label>Where your day stands</Label>
+          <div
+            style={{
+              background: BG,
+              border: "1px solid " + BORDER,
+              borderRadius: 18,
+              padding: "16px 12px",
+            }}
+          >
+            <MacroRings />
           </div>
+
+          <div style={{ marginTop: 10 }}>
+            <CaloriesStrip kcal={dayTotals.kcal} target={hasTargets ? kcalTarget : null} />
+          </div>
+        </div>
+
+        {/* 4. What was actually in it. */}
+        <div style={{ padding: "20px 22px 20px" }}>
+          <Label>What you logged</Label>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 7 }}>
             {meal.items.map((it) => {
-              const f = byId(it.id);
+              const food = byId(it.id);
+              if (!food) return null;
               return (
                 <span
                   key={it.id}
                   style={{
                     display: "inline-flex",
-                    alignItems: "center",
+                    alignItems: "baseline",
                     gap: 6,
                     background: BG,
                     border: "1px solid " + BORDER,
                     borderRadius: 999,
                     padding: "7px 12px",
-                    fontSize: 11.5,
+                    fontSize: 12,
                     color: TEXT,
                   }}
                 >
-                  {it.qty > 1 && <strong>{it.qty}</strong>} {f.name}
-                  <span style={{ color: MUTED }}>{f.kcal * it.qty} kcal</span>
+                  {/* The food, not the portion. qtyLabel says "2 x 1 piece",
+                      which is the helping rather than the thing eaten. */}
+                  <span style={{ fontWeight: 600 }}>
+                    {it.qty > 1 ? it.qty + " " : ""}
+                    {food.name}
+                  </span>
+                  <span style={{ fontSize: 10.5, color: FAINT }}>
+                    {Math.round(food.kcal * it.qty)} kcal
+                  </span>
                 </span>
               );
             })}
           </div>
-          {hasTargets && (
-            <div style={{ fontSize: 11, color: MUTED, marginTop: 10 }}>
-              {DIVISION_LABEL[meal.division]} at {fmtTime(meal.timeMins)} · {gave.kcal} kcal total
-            </div>
-          )}
         </div>
-
-        {/* Where the day now stands. With targets that is a bar; without one
-            it is four numbers, because a bar with no end means nothing. */}
-        <div style={{ padding: "20px 22px 0" }}>
-          <div style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 0.9, marginBottom: 12 }}>
-            {hasTargets ? "WHAT IT ADDED" : "IN THIS MEAL"}
-          </div>
-
-          {!hasTargets ? (
-            <div style={{ display: "flex", gap: 8 }}>
-              {rows.map((r) => (
-                <div
-                  key={r.id}
-                  style={{
-                    flex: 1,
-                    background: BG_ALT,
-                    border: "1px solid " + LINE,
-                    borderRadius: 14,
-                    padding: "12px 4px 10px",
-                    textAlign: "center",
-                  }}
-                >
-                  <div style={{ fontSize: 17, fontWeight: 800, color: TEXT, letterSpacing: -0.3 }}>
-                    {Math.round(r.gain)}
-                    <span style={{ fontSize: 11, fontWeight: 600, color: MUTED }}>g</span>
-                  </div>
-                  <div style={{ fontSize: 10.5, color: MUTED, marginTop: 3 }}>{r.label}</div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            rows.map((r, i) => (
-              <div key={r.id} style={{ marginBottom: 14 }}>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: 12.5, fontWeight: 700, color: TEXT, flex: 1 }}>{r.label}</span>
-                  {r.gain > 0 && (
-                    <span style={{ fontSize: 11.5, fontWeight: 700, color: GREEN }}>+{r.gain}g</span>
-                  )}
-                  <span style={{ fontSize: 11, color: MUTED }}>
-                    {Math.round(r.have)} of {r.target}g
-                  </span>
-                </div>
-                <div style={{ height: 7, borderRadius: 4, background: "#F2F4F7", overflow: "hidden" }}>
-                  <div
-                    style={{
-                      height: "100%",
-                      width: (grown ? r.pct : r.was) + "%",
-                      background: r.tone,
-                      borderRadius: 4,
-                      transition: "width .9s cubic-bezier(.32,.72,0,1) " + i * 0.08 + "s",
-                    }}
-                  />
-                </div>
-              </div>
-            ))
-          )}
-
-          {!hasTargets && (
-            <div style={{ fontSize: 11, color: MUTED, lineHeight: 1.5, marginTop: 11 }}>
-              Today so far: {Math.round(now.p)}g protein, {Math.round(now.c)}g carbs,{" "}
-              {Math.round(now.f)}g fats, {Math.round(now.fibre)}g fibre.
-            </div>
-          )}
-        </div>
-
-        {/* What happens next */}
-        {hasTargets && (
-        <div style={{ padding: "8px 22px 24px" }}>
-          <div
-            style={{
-              display: "flex",
-              gap: 11,
-              background: BG_ALT,
-              border: "1px solid " + BORDER,
-              borderRadius: 14,
-              padding: "13px 14px",
-            }}
-          >
-            <span
-              style={{
-                width: 22,
-                height: 24,
-                flexShrink: 0,
-                background: GREEN,
-                clipPath: "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#fff",
-                fontSize: 11,
-                fontWeight: 600,
-                fontFamily: "'Playfair Display', Georgia, serif",
-              }}
-            >
-              K
-            </span>
-            <span style={{ fontSize: 12, color: TEXT, lineHeight: 1.6 }}>
-              {!hasTargets ? (
-                <>
-                  Logged either way, and your coach can see it. Set up your targets and every meal
-                  after this one starts building a real score.
-                </>
-              ) : scoreUnlocked ? (
-                <>
-                  All 3 main meals are in, so today's score is a real one. Anything else you log
-                  today still counts towards it.
-                </>
-              ) : (
-                <>
-                  That is {mainMealsDone} of your 3 main meals. A percentage from half a day would
-                  read worse than your day actually is, so I am holding it until the third one.
-                </>
-              )}
-            </span>
-          </div>
-        </div>
-        )}
-
       </div>
 
-      <div style={{ flexShrink: 0, padding: "12px 22px 26px", borderTop: "1px solid " + BORDER }}>
+      <div style={{ flexShrink: 0, borderTop: "1px solid " + LINE, padding: "12px 22px 24px" }}>
         <button
           onClick={done}
           style={{
             width: "100%",
+            height: 50,
             background: GREEN,
             border: "none",
             borderRadius: 14,
-            padding: "14px 0",
             color: "#fff",
-            fontSize: 14.5,
+            fontSize: 15,
             fontWeight: 700,
             cursor: "pointer",
             fontFamily: "inherit",
+            boxShadow: "0 2px 0 " + GREEN_DEEP,
           }}
         >
           Done
         </button>
       </div>
+    </div>
+  );
+}
+
+function Label({ children }) {
+  return (
+    <div
+      style={{
+        fontSize: 11,
+        fontWeight: 700,
+        letterSpacing: 0.9,
+        textTransform: "uppercase",
+        color: FAINT,
+        marginBottom: 9,
+      }}
+    >
+      {children}
     </div>
   );
 }

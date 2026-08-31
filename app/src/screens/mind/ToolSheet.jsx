@@ -12,7 +12,7 @@ const COINS = 2;
    a way to answer it, and a button that closes the loop and ticks the row. */
 export default function ToolSheet() {
   const {
-    mindTool, setMindTool, mindDone, setMindDone, setMindMood,
+    mindTool, setMindTool, mindDone, setMindDone, setMindMood, keepMind,
     flipcoins, setFlipcoins, setToast,
   } = useWF();
 
@@ -27,6 +27,10 @@ export default function ToolSheet() {
 
   const finish = () => {
     if (mindTool === "mood" && mood) setMindMood(MOODS.find((m) => m.id === mood).label);
+    /* The line they kept and the words they wrote, held past the sheet, so the
+       card behind it can say what was done rather than only that it was. */
+    if (mindTool === "affirmation") keepMind("affirmation", AFFIRMATIONS[affirmation]);
+    if (mindTool === "journal") keepMind("journal", JOURNAL_PROMPTS[prompt]);
     if (!mindDone.includes(mindTool)) {
       setMindDone(mindDone.concat(mindTool));
       setFlipcoins(flipcoins + COINS);

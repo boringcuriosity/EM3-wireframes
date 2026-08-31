@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useWF } from "../state";
 import { DEMO_DAY } from "../screens/log/foods";
-import { Home } from "lucide-react";
+import { Home, Bell, MessageCircle, CalendarPlus } from "lucide-react";
 import { GREEN, TEXT, TABS, SH, SH_MD } from "../tokens";
 import { flame } from "../ui";
 
@@ -22,7 +22,7 @@ const ALL_DONE = { eat: 3, move: 1, mind: 1, measure: 1 };
 const ALL_GROUPS = [
   "signup", "plan", "welcome", "tour", "move", "hero", "targets",
   "logging", "suff", "streakscreen", "streak", "milestones",
-  "focus", "homecard", "planarrive", "taskcard", "weekread", "movetrend", "mindtrend", "dayWon", "skip", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "mind", "measure",
+  "focus", "homecard", "planarrive", "dayparts", "coachtip", "taskcard", "weekread", "movetrend", "mindtrend", "dayWon", "skip", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "mind", "measure",
 ];
 
 const SCREEN_GROUPS = {
@@ -32,11 +32,13 @@ const SCREEN_GROUPS = {
   logging: ["logging", "targets"],
   suff: ["suff", "targets"],
   streakscreen: ["streakscreen", "streak", "milestones", "focus"],
-  eat: ["eat", "targets", "logging"],
+  eat: ["eat", "targets", "logging", "coachtip"],
   chats: [],
   program: ["welcome"],
-  todo: ["nextaction", "hero", "focus", "taskcard", "planarrive", "weekread", "dayWon", "skip", "measuretasks", "streak"],
-  home: ["welcome", "tour", "nextaction", "focus", "homecard", "measuretasks", "streak"],
+  todo: ["nextaction", "hero", "focus", "dayparts", "coachtip", "taskcard", "planarrive", "weekread", "dayWon", "skip", "measuretasks", "streak"],
+  // Home's "This part of day" card reads the same phases, so the split is a
+  // control on both screens rather than a To-do one that quietly moves Home.
+  home: ["welcome", "tour", "nextaction", "focus", "homecard", "dayparts", "measuretasks", "streak"],
   measure: ["measure"],
   care: [],
   more: [],
@@ -152,7 +154,7 @@ const FOCUS_PRESETS = [
     id: "few",
     label: "A few ticked",
     days: 0,
-    seed: { meals: 1, mind: 1, water: 1, ticks: ["note:bittermelon"] },
+    seed: { meals: 1, mind: 1, water: 1, ticks: ["note:methi"] },
     desc: "Four things done across the morning and afternoon: last night's sleep, breakfast, the first capsule and a glass of water. Nothing is complete, so nothing has folded away.",
   },
   {
@@ -185,13 +187,13 @@ const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 const SLEEP_SRC = { gate: null, syncing: "phone", phone: "phone", manualnone: "manual", manual: "manual", tools: "manual" };
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, hasTargets, scoreUnlocked, mainMealsDone, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindMood, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, planSeen, setPlanSeen, kcalSource, movePlan, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, logPlan, openMealLog, kairaLog, setKairaLog, planNotif, setPlanNotif, hasTargets, scoreUnlocked, mealsIn, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, logExPick, openMoveLog, moveResult, setMoveResult, setRoutineFeel, setRoutineDone, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindKept, mindTemplate, setMindTemplate, setTemplateKept, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, phaseMode, setPhaseMode, tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira, planSeen, setPlanSeen, kcalSource, movePlan, mindPlan, setMindPlan, bookOpen, setBookOpen, bookWith, setBookWith, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
       (v) =>
         v.plan === planAssigned &&
-        (v.plan ? v.meals === mainMealsDone : (v.meals > 0) === (mealsLogged.length > 0))
+        (v.plan ? v.meals === mealsIn : (v.meals > 0) === (mealsLogged.length > 0))
     ) || {}
   ).id;
 
@@ -211,9 +213,9 @@ export default function ControlPanel() {
   ).id;
 
   const groupValue = {
-    move: logExOpen ? "Log" : moveDetail ? moveTab : "Closed",
-    targets: hasTargets ? (scoreUnlocked ? "Unlocked" : mainMealsDone + "/3 meals") : "No targets",
-    logging: logResult ? "Result" : logOpen ? "Search" : mealsLogged.length + " logged",
+    move: moveResult ? "Result" : logExOpen ? (logExPick === "routine" ? "Routine" : "Log") : moveDetail ? moveTab : "Closed",
+    targets: hasTargets ? (scoreUnlocked ? "Unlocked" : mealsIn + "/3 meals") : "No targets",
+    logging: logResult ? "Result" : kairaLog ? "Kaira " + kairaLog : logOpen ? (logPlan ? "On plan" : "Search") : mealsLogged.length + " logged",
     suff: suffFlow || "Off",
     streakscreen: streakOpen || "Strip",
     milestones: milestones.earned.length + " earned",
@@ -228,10 +230,13 @@ export default function ControlPanel() {
     score: scoreState,
     measuretasks: measureTasks,
     hero: heroState,
-    mind: mindDetail ? mindTab : "Closed",
+    mind: mindTemplate ? "Worksheet" : mindDetail ? mindTab : "Closed",
     nextaction: nextOpen.length ? nextOpen.length + " left" : "none",
     focus: doneCount + "/" + dayLive.length + (streakDays ? " · d" + streakDays : ""),
     skip: daySkipped.length ? daySkipped.length + " skipped" : "none",
+    planarrive: bookOpen ? "booking" : planNotif || undefined,
+    dayparts: phaseMode === 4 ? "with night" : "no night",
+    coachtip: kairaAsk ? "Kaira" : tipInfo ? "explainer" : "closed",
     dayWon: streakBurst ? "showing" : "off",
 
     streak: streakState,
@@ -389,11 +394,12 @@ export default function ControlPanel() {
       }[measureApproach] || "")
     : TABS.find((t) => t.id === activeTab)?.label;
 
-  const panelChip = (label, active, onClick, title, expanded, sub) => (
+  const panelChip = (label, active, onClick, title, expanded, sub, Icon) => (
     <button
       key={label}
       onClick={onClick}
       title={title}
+      aria-label={Icon ? label : undefined}
       style={{
         fontSize: 11,
         fontWeight: 600,
@@ -410,7 +416,9 @@ export default function ControlPanel() {
         gap: 7,
       }}
     >
-      {sub ? (
+      {Icon ? (
+        <Icon size={15} strokeWidth={2.2} />
+      ) : sub ? (
         <>
           <span style={{ flexShrink: 0 }}>{label}</span>
           <span style={{ flex: 1, minWidth: 0, fontWeight: 500, fontSize: 10, textAlign: "right", opacity: active ? 0.8 : 0.7, overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -635,10 +643,14 @@ export default function ControlPanel() {
               <button
                 key={v.label}
                 onClick={() => {
-                  // One switch for the whole handover: targets, routine, meal
-                  // slots and the waiting strips all follow from it.
+                  /* One switch for the whole handover: targets, routine, meal
+                     slots, the psychologist's worksheets and the waiting strips
+                     all follow from it. A consultation produces three plans, so
+                     "assigned" means three, not the two it used to mean while
+                     Mind quietly stayed behind. */
                   setKcalSource(v.on ? "coach" : "pending");
                   setMovePlan(v.on ? "assigned" : null);
+                  setMindPlan(v.on ? "assigned" : null);
                   setTodayOnboarded(true);
                   if (!eatDetail && !moveDetail && activeTab !== "track") {
                     setActiveTab("track");
@@ -816,11 +828,18 @@ export default function ControlPanel() {
               logs: [{ id: "briskwalk", minutes: 25, intensity: "moderate", timeMins: 7 * 60 + 30 }],
             },
             { id: "manual", label: "Logging by hand, nothing yet", steps: "manual", logs: [] },
+            { id: "logroutine", label: "The coach's session, in the logger", steps: "phone", logs: [], pick: "routine" },
+            { id: "sessiondone", label: "Session logged, the result screen", steps: "phone", logs: [], result: true },
             { id: "handsteps", label: "Steps added by hand", steps: "manual", manual: 4000, logs: [] },
           ].map((v) =>
             panelChip(
               v.label,
-              moveDetail &&
+              v.result
+                ? !!moveResult
+                : v.pick
+                ? logExOpen && logExPick === v.pick && !moveResult
+                : !moveResult &&
+                  moveDetail &&
                 !logExOpen &&
                 healthSource.steps === v.steps &&
                 healthSync === (v.sync || null) &&
@@ -831,11 +850,29 @@ export default function ControlPanel() {
                 setLogExOpen(false);
                 setMoveDetail(true);
                 setActiveTab("track");
-                setHealthSource({ ...healthSource, steps: v.steps });
+                setHealthSource(v.steps === null ? { steps: null, sleep: null } : { ...healthSource, steps: v.steps });
                 setHealthSync(v.sync || null);
                 setMoveTab("today");
                 if (v.logs !== undefined) setExLogs(v.logs);
                 setManualSteps(v.manual === undefined ? null : v.manual);
+                setMoveResult(null);
+                /* The routine's answers go with the logs. A preset that
+                   leaves yesterday's Easy and Difficult behind is a state
+                   nobody can demo from the top. */
+                setRoutineFeel({});
+                setRoutineDone([]);
+                if (v.pick) {
+                  setKcalSource("coach");
+                  setMovePlan("assigned");
+                  openMoveLog(v.pick);
+                }
+                if (v.result) {
+                  setKcalSource("coach");
+                  setMovePlan("assigned");
+                  const entry = { id: "routine", minutes: 20, intensity: "light", timeMins: 18 * 60 + 40 };
+                  setExLogs([entry]);
+                  setMoveResult({ entry, before: 0, after: 20, count: 4, total: 4 });
+                }
               }
             )
           ),
@@ -847,8 +884,10 @@ export default function ControlPanel() {
             ? "Steps are yours to enter, so the Steps cell and a second button in the prompt both open the wheel."
             : exLogs.length === 0
             ? "Steps are in from the phone, so the card stops explaining. Minutes and kcal stay blank until something is logged."
+            : logExOpen && logExPick === "routine"
+            ? "The routine is one activity, not four, so the session is what gets logged and the minutes, the burn, the hero and the day's row all follow from it."
             : planAssigned
-            ? "The coach routine is here because the Care plan is assigned. Each exercise can be marked done."
+            ? "The coach routine is here because the Care plan is assigned. Work through the exercises, then Log this session tells the rest of the app it happened."
             : "No routine, because the Care plan is not assigned yet. The opening card asks for movement so the coach has something to build from.",
           true
         )}
@@ -886,7 +925,7 @@ export default function ControlPanel() {
           ),
           daySkipped.length
             ? "The row dims, its circle goes to a dash, and it leaves the count and the phase total. Nothing reads as missed. Tap its three dots to put it back."
-            : "Every row is in today's count. The three dots on any row is where turning one down lives.",
+            : "Every row is in today's count. The three dots is where turning one down lives, and once a row is done it offers undo or the way to the record instead.",
           true
         )}
 
@@ -978,6 +1017,9 @@ export default function ControlPanel() {
           [
             { id: "off", label: "Off", full: "Nothing open" },
             { id: "search", label: "Search", full: "Log a meal, search and add" },
+            { id: "onplan", label: "On the plan", full: "Opened from a meal row, breakfast option 1 already picked" },
+            { id: "snap", label: "Photo", full: "Kaira reading a photo of the plate" },
+            { id: "voice", label: "Voice", full: "Kaira hearing what you ate" },
             { id: "result", label: "Result", full: "Meal logged, sufficiency rising" },
             { id: "toast", label: "Toast", full: "The confirmation toast" },
             { id: "donetoast", label: "Task done toast", full: "What you see when a diary task finishes on another screen" },
@@ -985,9 +1027,18 @@ export default function ControlPanel() {
           ].map((v) =>
             panelChip(
               v.label,
-              v.id === "search" ? logOpen : v.id === "result" ? !!logResult : v.id === "off" && !logOpen && !logResult,
+              v.id === "snap" || v.id === "voice"
+                ? kairaLog === v.id
+                : v.id === "search"
+                ? logOpen && !logPlan && !kairaLog
+                : v.id === "onplan"
+                ? logOpen && !!logPlan
+                : v.id === "result"
+                ? !!logResult
+                : v.id === "off" && !logOpen && !logResult,
               () => {
-                setLogOpen(v.id === "search");
+                setLogOpen(v.id === "search" || v.id === "snap" || v.id === "voice");
+                setKairaLog(v.id === "snap" || v.id === "voice" ? v.id : null);
                 setLogResult(null);
                 setToast(null);
                 if (v.id === "result") {
@@ -1009,12 +1060,26 @@ export default function ControlPanel() {
                   setEatDetail(true);
                 }
                 if (v.id === "search" || v.id === "off") setEatDetail(v.id === "off");
+                /* The route a meal row takes: a plan has to be in for the
+                   coach to have written an option to open on. */
+                if (v.id === "onplan") {
+                  setKcalSource("coach");
+                  setMovePlan("assigned");
+                  setTodayOnboarded(true);
+                  setEatDetail(false);
+                  setActiveTab("track");
+                  openMealLog("breakfast", 0);
+                }
               },
               v.full
             )
           ),
           logResult
             ? "The score counts up from where it was and the four bars grow. Done pays Flipcoins and fires the toast."
+            : kairaLog
+            ? "The camera and the mic beside the search box, both hers. She hands back items rather than prose, and the logger's own button still does the recording, so a wrong guess is fixed before it is a record."
+            : logOpen && logPlan
+            ? "Opened on the coach's option, so Your plan is the tab you land on and its food is already in the meal. Nothing is recorded until Log."
             : logOpen
             ? "Favourites and Frequent, live search, heart to favourite, stepper on anything added. The time pill decides which division it lands in."
             : mealsLogged.length + " meal(s) logged today. They appear in Eat under the division their time falls in."
@@ -1139,15 +1204,16 @@ export default function ControlPanel() {
             "Plan handover",
             "To-do, the card above the list",
             [
-              { id: "none", label: "No plans yet", eatIn: false, moveIn: false, seen: [] },
-              { id: "eat", label: "Diet plan in", eatIn: true, moveIn: false, seen: [] },
-              { id: "move", label: "Exercise plan in", eatIn: false, moveIn: true, seen: [] },
-              { id: "both", label: "Both plans in", eatIn: true, moveIn: true, seen: [] },
-              { id: "read", label: "Both read", eatIn: true, moveIn: true, seen: ["eat", "move"] },
+              { id: "none", label: "No plans yet", eatIn: false, moveIn: false, mindIn: false, seen: [] },
+              { id: "eat", label: "Diet plan in", eatIn: true, moveIn: false, mindIn: false, seen: [] },
+              { id: "move", label: "Exercise plan in", eatIn: false, moveIn: true, mindIn: false, seen: [] },
+              { id: "mind", label: "Mind plan in", eatIn: false, moveIn: false, mindIn: true, seen: [] },
+              { id: "both", label: "All three in", eatIn: true, moveIn: true, mindIn: true, seen: [] },
             ].map((v) => {
               const on =
                 (kcalSource === "coach") === v.eatIn &&
                 !!movePlan === v.moveIn &&
+                !!mindPlan === v.mindIn &&
                 planSeen.length === v.seen.length;
               return panelChip(
                 v.label,
@@ -1155,6 +1221,7 @@ export default function ControlPanel() {
                 () => {
                   setKcalSource(v.eatIn ? "coach" : "pending");
                   setMovePlan(v.moveIn ? "assigned" : null);
+                  setMindPlan(v.mindIn ? "assigned" : null);
                   setPlanSeen(v.seen);
                   setTodayOnboarded(true);
                   setEatDetail(false);
@@ -1162,16 +1229,153 @@ export default function ControlPanel() {
                   setActiveTab("track");
                 },
                 {
-                  none: "Both chips dashed. The card explains the wait and the info dot opens why.",
-                  eat: "Diet chip fills in, exercise stays dashed. No cross yet, because the card still owes an answer about the other one.",
-                  move: "The mirror of it: exercise in, diet still being written.",
-                  both: "Both chips solid. The cross appears, and the sheet gets tabs for the two plans.",
-                  read: "Card gone. To-do runs normally.",
+                  none: "All three chips dashed, and the card says plainly that plans come after the first consultation. The info dot opens why.",
+                  eat: "Diet chip fills in, the other two stay dashed. No cross yet, because the card still owes an answer about the rest.",
+                  move: "The same with exercise, and the copy turns plural for the two still being written.",
+                  mind: "The psychologist's, which also turns Mind's worksheets on. They are gated on her plan rather than on the other two.",
+                  both: "All three solid. The cross appears, and the sheet gets tabs.",
                 }[v.id]
               );
-            }),
-            "One card, four states. The chips stay put and fill in as each plan lands."
+            }).concat(
+              /* What arrives before any of the above. The plan is written while
+                 the person is somewhere else, so these are the first things
+                 they read about it, and neither one is a screen in this app. */
+              [
+                {
+                  id: "booking",
+                  label: "Book a consultation",
+                  Icon: CalendarPlus,
+                  d: "The screen the plan card's sheet now points at. Three coaches, then a week with the free days dotted. Booking one writes the session card on Home.",
+                },
+                {
+                  id: "push",
+                  label: "Push notification",
+                  Icon: Bell,
+                  d: "Push notification. The one that lands face up on a table. Two lines and a name, because a glance is all it gets.",
+                },
+                {
+                  id: "whatsapp",
+                  label: "WhatsApp messages",
+                  Icon: MessageCircle,
+                  d: "WhatsApp messages. Both exactly as they go out today, diet and exercise, so a rewrite has the real thing to be argued against.",
+                },
+              ].map((v) =>
+                panelChip(
+                  v.label,
+                  v.id === "booking" ? bookOpen : planNotif === v.id,
+                  () => {
+                    setTodayOnboarded(true);
+                    setEatDetail(false);
+                    setMoveDetail(false);
+                    setActiveTab("track");
+                    if (v.id === "booking") {
+                      /* Nobody books a consultation they have already had, so
+                         this lands on the state that owns the screen. */
+                      setKcalSource("pending");
+                      setMovePlan(null);
+                      setMindPlan(null);
+                      setPlanNotif(null);
+                      setBookWith(null);
+                      setBookOpen(true);
+                      return;
+                    }
+                    setKcalSource("coach");
+                    setPlanSeen([]);
+                    setBookOpen(false);
+                    setPlanNotif(v.id);
+                  },
+                  v.d,
+                  undefined,
+                  undefined,
+                  v.Icon
+                )
+              )
+            ),
+            bookOpen
+              ? "Reachable from the plan card's sheet, which explained the wait and then left the one thing anybody could do about it off the screen."
+              : planNotif === "push"
+              ? "Two lines and a name. No date and no duration: the long version has those, and a push that lists them spends its one glance on arithmetic."
+              : planNotif === "whatsapp"
+              ? "Verbatim, em dashes and all. Reachable from here alone, because it is not a screen in this app."
+              : "One card, four states. The chips stay put and fill in as each plan lands."
           )}
+
+        {panelGroup(
+          "coachtip",
+          "Coach tip",
+          "the bulb on a tip row",
+          [
+            { id: null, label: "Closed", d: "The day as it sits. Tip rows carry a grey info mark beside their pillar chip." },
+            { id: "note:methi", label: "Warm water with methi", d: "The explainer for the morning tip: what a tip is, the coach's own line, and the way to Kaira." },
+            { id: "note:sun", label: "10 minutes of morning sun", d: "The same sheet on the Mind nudge, so the pillar wording follows the row." },
+            { id: "ask", label: "Kaira answering", d: "The chat, opened on the question already sent. She thinks for a beat, then answers in two parts." },
+          ].map((v) =>
+            panelChip(
+              v.label,
+              v.id === "ask" ? !!kairaAsk : v.id === null ? !tipInfo && !kairaAsk : tipInfo === v.id && !kairaAsk,
+              () => {
+                setActiveTab("track");
+                setEatDetail(false);
+                setMoveDetail(false);
+                setMindDetail(false);
+                // Both need a plan: the nudges are part of what a coach wrote.
+                setKcalSource("coach");
+                setMovePlan("assigned");
+                setTodayOnboarded(true);
+                if (v.id === "ask") { setTipInfo(null); askKaira("note:methi"); }
+                else { setKairaAsk(null); setTipInfo(v.id); }
+              },
+              v.d
+            )
+          ),
+          kairaAsk
+            ? "Reading it is not doing it, so the chat pays nothing and leaves the row open. Closing it puts you back on the day."
+            : tipInfo
+            ? "One sheet for every tip. What it says about the pillar and the coach's line both come off the row, so a new nudge needs no new copy."
+            : "A grey info mark beside the pillar chip. Every hue belongs to a pillar, so the one mark that belongs to none of them claims no colour at all.",
+          true
+        )}
+
+        {panelGroup(
+          "dayparts",
+          "Parts of the day",
+          "To-do headings, and Home's part of day card",
+          [
+            {
+              id: 4,
+              label: "Four parts",
+              sub: "Evening 4 to 7",
+              d: "Morning, afternoon, evening, night. An Indian day has four names for itself: subah, dopahar, shaam, raat. Morning from 5 AM, afternoon from noon, evening from 4 PM, night from 7 PM.",
+            },
+            {
+              id: 3,
+              label: "Three parts",
+              sub: "Evening 5 onwards",
+              d: "Morning, afternoon, evening, the way it was built. Evening runs from 5 PM to the end of the day and carries dinner, the calm break and the bedtime snack.",
+            },
+          ].map((v) =>
+            panelChip(
+              v.label,
+              phaseMode === v.id,
+              () => {
+                setPhaseMode(v.id);
+                setEatDetail(false);
+                setMoveDetail(false);
+                setMindDetail(false);
+                // Both screens read these phases, so stay on whichever one is
+                // in front of you rather than being thrown to the other.
+                if (activeTab !== "home") setActiveTab("track");
+              },
+              v.d,
+              undefined,
+              v.sub
+            )
+          ),
+          phaseMode === 4
+            ? "Dinner, the calm break and the bedtime snack move under Night, so the last stretch of the day gets a finish line of its own."
+            : "One evening from 5 PM to bedtime, holding roughly half the list.",
+          true
+        )}
 
         {panelGroup(
           "taskcard",
@@ -1350,7 +1554,7 @@ export default function ControlPanel() {
                 setMindDone(d.every || d.mind ? ["breathing"] : []);
                 setSleepLogs(d.every || d.mind ? [{ bed: 23 * 60, wake: 6 * 60 + 40 }] : []);
                 setWater(d.every ? 2 : d.water || 0);
-                setDayTicks(d.every ? ["note:bittermelon", "note:fenugreek"] : d.ticks || []);
+                setDayTicks(d.every ? ["note:methi", "note:sun", "note:almonds"] : d.ticks || []);
                 setManualSteps(d.every ? 10200 : null);
                 setHealthSource({ steps: "manual", sleep: "manual" });
                 setHealthSync(null);
@@ -1377,6 +1581,9 @@ export default function ControlPanel() {
           "Mind",
           "from the To-do Mind card",
           [
+            { id: "smart", label: "A worksheet, open", tpl: "smart" },
+            { id: "worry", label: "The worry tree, open", tpl: "worry" },
+            { id: "tracker", label: "The week tracker, open", tpl: "tracker" },
             { id: "gate", label: "Health Connect permission" },
             { id: "syncing", label: "Allowed, syncing" },
             { id: "phone", label: "Sleep in from Health Connect" },
@@ -1386,27 +1593,46 @@ export default function ControlPanel() {
           ].map((v) =>
             panelChip(
               v.label,
-              mindDetail &&
-                !logSleepOpen &&
-                mindTab === "today" &&
-                healthSource.sleep === SLEEP_SRC[v.id] &&
-                healthSync === (v.id === "syncing" ? "sleep" : null) &&
-                (v.id !== "manual") === (sleepLogs.length === 0) &&
-                (v.id === "tools") === (mindDone.length > 0),
+              v.tpl
+                ? mindTemplate === v.tpl
+                : !mindTemplate &&
+                  mindDetail &&
+                  !logSleepOpen &&
+                  mindTab === "today" &&
+                  healthSource.sleep === SLEEP_SRC[v.id] &&
+                  healthSync === (v.id === "syncing" ? "sleep" : null) &&
+                  (v.id !== "manual") === (sleepLogs.length === 0) &&
+                  (v.id === "tools") === (mindDone.length > 0),
               () => {
                 setLogSleepOpen(false);
-                setMindDetail(true);
                 setActiveTab("track");
                 setMindTab("today");
-                setHealthSource({ ...healthSource, sleep: SLEEP_SRC[v.id] });
+                /* A worksheet only exists once a psychologist has set one, and
+                   it opens over whatever is in front of you rather than on
+                   Mind, the way the day's own row opens it. */
+                if (v.tpl) {
+                  setKcalSource("coach");
+                  setMovePlan("assigned");
+                  setMindPlan("assigned");
+                  setTodayOnboarded(true);
+                  setMindDetail(false);
+                  setTemplateKept({});
+                  setMindTemplate(v.tpl);
+                  return;
+                }
+                setMindTemplate(null);
+                setMindDetail(true);
+                setHealthSource(SLEEP_SRC[v.id] === null ? { steps: null, sleep: null } : { ...healthSource, sleep: SLEEP_SRC[v.id] });
                 setHealthSync(v.id === "syncing" ? "sleep" : null);
                 setSleepLogs(v.id === "manual" ? [{ bed: 23 * 60 + 40, wake: 6 * 60 + 30 }] : []);
                 setMindDone(v.id === "tools" ? ["mood", "breathing"] : []);
-                setMindMood(v.id === "tools" ? "Calm" : null);
+                setMindKept(v.id === "tools" ? { mood: "Calm" } : {});
               }
             )
           ),
-          healthSource.sleep === "manual"
+          mindTemplate
+            ? "A psychologist's worksheet, opened from its card on Mind or from the row on the day. What somebody writes is the record, so filling it is what finishes it."
+            : healthSource.sleep === "manual"
             ? "Sleep is entered by hand, so the ring is the way in. Connected, it is a reading and the ring is not a button."
             : "Sleep arrives on its own, so there is nothing to log here. The tools below are the day's work.",
           true

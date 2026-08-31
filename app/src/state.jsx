@@ -1,12 +1,18 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from "react";
 import { Home, BarChart3, Utensils, Check, Moon, Droplet, Flame } from "lucide-react";
 import LotusIcon from "./components/LotusIcon";
-import { buildDay, PHASES, WATER_GOAL } from "./screens/today/day";
-import { totals as sumFoods, sufficiency as scoreOf, DEMO_DAY } from "./screens/log/foods";
+import { buildDay, taskTitle, phasesFor, WATER_GOAL } from "./screens/today/day";
+import { totals as sumFoods, sufficiency as scoreOf, DEMO_DAY, DIVISION_TIME } from "./screens/log/foods";
 import { GOALS, targetsFor } from "./screens/sufficiency/data";
 
-// Snacks are not meals. Only these three count towards unlocking the day.
-const MAIN_DIVISIONS = ["breakfast", "lunch", "dinner"];
+
+/* Who is actually on this person's care team. Above the provider because the
+   next session derives from it, and the program page names the same three. */
+const CARE_TEAM = [
+  { id: "eat", role: "Your nutritionist", name: "Sahana Chandra" },
+  { id: "move", role: "Your physiotherapist", name: "Sahana Physio" },
+  { id: "success", role: "Your success coach", name: "Manya Jain" },
+];
 import { GREEN, TEXT, EAT_C, MOVE_C, MIND_C, MEASURE_C, EAT_T, MOVE_T, MIND_T, MEASURE_T } from "./tokens";
 
 // ponytail: one fat context holding every wireframe toggle. Split it when a
@@ -220,9 +226,17 @@ export function WFProvider({ children, initial = {} }) {
   /* How a task is drawn: the tight row inside a phase container, or one card
      per task under a plain heading. Three card arrangements while we decide. */
   const [taskCard, setTaskCard] = useState(initial.taskCard !== undefined ? initial.taskCard : "row");
+  /* How many parts the day is cut into: four with a night of its own, or the
+     three it was built with. Four is the default, because dinner, the calm
+     break and the bedtime snack are night, not evening. */
+  const [phaseMode, setPhaseMode] = useState(initial.phaseMode !== undefined ? initial.phaseMode : 4);
   const [moveWeek, setMoveWeek] = useState(initial.moveWeek !== undefined ? initial.moveWeek : "week");
   const [mindWeek, setMindWeek] = useState(initial.mindWeek !== undefined ? initial.mindWeek : "week");
   const [movePlan, setMovePlan] = useState(initial.movePlan !== undefined ? initial.movePlan : null);
+  /* The psychologist's plan, which is a third thing a consultation produces and
+     was missing from the handover entirely. It gates Mind's worksheets rather
+     than planAssigned, because worksheets need the person who writes them. */
+  const [mindPlan, setMindPlan] = useState(initial.mindPlan !== undefined ? initial.mindPlan : null);
   const [exLogs, setExLogs] = useState(initial.exLogs !== undefined ? initial.exLogs : []);
 
   /* Where steps and sleep come from. Not a switch but a source per signal,
@@ -248,8 +262,22 @@ export function WFProvider({ children, initial = {} }) {
   const [healthSync, setHealthSync] = useState(
     initial.healthSync !== undefined ? initial.healthSync : null
   );
+  /* Health Connect is one permission, not two.
+
+     Granting it in Move hands over steps, workouts and sleep in the same
+     breath, so asking again in Mind is asking the person for something their
+     phone has already given. The other signal fills in behind them and that
+     screen's gate never appears.
+
+     Only when nobody has decided it, though. Somebody who chose to log steps by
+     hand made a choice, and connecting later for sleep does not quietly undo
+     it. And declining is per signal on purpose: saying you will count your own
+     steps is not saying anything about your nights, so Mind still gets to ask
+     once. */
   const pickSource = (k, v) => {
-    setHealthSource({ ...healthSource, [k]: v });
+    const other = k === "steps" ? "sleep" : "steps";
+    const spread = v === "phone" && healthSource[other] === null;
+    setHealthSource({ ...healthSource, [k]: v, ...(spread ? { [other]: "phone" } : {}) });
     setHealthSync(v === "phone" ? k : null);
   };
   useEffect(() => {
@@ -265,17 +293,93 @@ export function WFProvider({ children, initial = {} }) {
   // Which Mind tool is open, and what has been done today.
   const [mindTool, setMindTool] = useState(initial.mindTool !== undefined ? initial.mindTool : null);
   const [mindDone, setMindDone] = useState(initial.mindDone !== undefined ? initial.mindDone : []);
-  const [mindMood, setMindMood] = useState(initial.mindMood !== undefined ? initial.mindMood : null);
+  /* What each Mind tool left behind, so a finished card can say what was
+     actually done rather than "Done today". The mood keeps its own name
+     because the hero and the panel already read it, but it is the same object:
+     one place, three records. */
+  const [mindKept, setMindKept] = useState(
+    initial.mindKept !== undefined ? initial.mindKept : initial.mindMood ? { mood: initial.mindMood } : {}
+  );
+  const mindMood = mindKept.mood || null;
+  const setMindMood = (v) => setMindKept((k) => ({ ...k, mood: v }));
+  const keepMind = (id, what) => setMindKept((k) => ({ ...k, [id]: what }));
+  /* Which worksheet is open, and what has been written in each. A template is
+     finished by what somebody put in it, so the writing is the record rather
+     than a tick beside it. */
+  const [mindTemplate, setMindTemplate] = useState(
+    initial.mindTemplate !== undefined ? initial.mindTemplate : null
+  );
+  const [templateKept, setTemplateKept] = useState(
+    initial.templateKept !== undefined ? initial.templateKept : {}
+  );
   const [mindDetail, setMindDetail] = useState(
     initial.mindDetail !== undefined ? initial.mindDetail : false
   );
   const [mindTab, setMindTab] = useState(initial.mindTab !== undefined ? initial.mindTab : "today");
   const [logExOpen, setLogExOpen] = useState(initial.logExOpen !== undefined ? initial.logExOpen : false);
-  const [routineDone, setRoutineDone] = useState([]);
+  /* Which activity the movement logger opens already picked. The coach's
+     routine is one of them, so a tap on the day's session row lands on the
+     confirm rather than on a list the person has to find their own plan in. */
+  const [logExPick, setLogExPick] = useState(initial.logExPick !== undefined ? initial.logExPick : null);
+  const [routineDone, setRoutineDone] = useState(
+    initial.routineDone !== undefined ? initial.routineDone : []
+  );
+  /* How each exercise felt, by id. The physio needs one thing back from a
+     routine, whether it was pitched right, and this is the half of that loop
+     that has to come from the person. It is answered instead of a tick rather
+     than after one, so nobody spends a tap saying only that they did it. */
+  const [routineFeel, setRoutineFeel] = useState(
+    initial.routineFeel !== undefined ? initial.routineFeel : {}
+  );
+  /* Answering is what marks an exercise done, so the two move together. */
+  const setFeel = (id, feel) => {
+    setRoutineFeel((f) => ({ ...f, [id]: feel }));
+    setRoutineDone((d) => (d.includes(id) ? d : d.concat(id)));
+  };
+  const clearFeel = (id) => {
+    setRoutineFeel((f) => {
+      const next = { ...f };
+      delete next[id];
+      return next;
+    });
+    setRoutineDone((d) => d.filter((x) => x !== id));
+  };
+  /* What the session just logged did, held for the screen that says so. Move's
+     twin of logResult, so finishing a session lands somewhere rather than
+     leaving on a toast. */
+  const [moveResult, setMoveResult] = useState(
+    initial.moveResult !== undefined ? initial.moveResult : null
+  );
+  /* Where the movement logger was opened from, so the result screen puts the
+     person back. Move's twin of logReturn, and it exists for the same reason:
+     landing everybody on Move sent somebody who tapped a row on their day to a
+     permission gate about steps, straight after logging an exercise. */
+  const [moveReturn, setMoveReturn] = useState(
+    initial.moveReturn !== undefined ? initial.moveReturn : "move"
+  );
 
   // ---------- Food logging ----------
   // logOpen is the Log a meal takeover. logItems is the meal being built.
   const [logOpen, setLogOpen] = useState(initial.logOpen !== undefined ? initial.logOpen : false);
+  /* Which of the coach's options the logger was opened on, as { division, oi }.
+     The logger's own list is Favourites and Frequent, neither of which knows
+     what a coach planned, so arriving from a meal row used to mean hunting for
+     your own plan by name. This is what puts it on screen. */
+  const [logPlan, setLogPlan] = useState(initial.logPlan !== undefined ? initial.logPlan : null);
+  /* Logging without typing: "snap" is a photo of the plate, "voice" is saying
+     what you ate. Both are Kaira's, because reading a plate and hearing a
+     sentence are the two things she is for, and typing a meal is the reason
+     most people log once and never again. */
+  const [kairaLog, setKairaLog] = useState(initial.kairaLog !== undefined ? initial.kairaLog : null);
+  /* The WhatsApp message that lands when a plan is assigned, by pillar id.
+     Not a screen in the app: it is what arrives before anybody opens it, and
+     it is reachable from the control panel alone. */
+  const [planNotif, setPlanNotif] = useState(initial.planNotif !== undefined ? initial.planNotif : null);
+  /* Where the logger was opened from, so the result screen can put the person
+     back. It used to land everybody on Eat, which is right for somebody who
+     started there and wrong for somebody who tapped a row on their day and
+     wants the list back with that row struck. */
+  const [logReturn, setLogReturn] = useState(initial.logReturn !== undefined ? initial.logReturn : "eat");
   const [logItems, setLogItems] = useState([]);
   const [logTime, setLogTime] = useState(13 * 60 + 30); // minutes past midnight
   const [logTimeOpen, setLogTimeOpen] = useState(false);
@@ -295,6 +399,18 @@ export function WFProvider({ children, initial = {} }) {
      entirely, which is the whole point of being able to say no to one. */
   const [daySkipped, setDaySkipped] = useState(initial.daySkipped !== undefined ? initial.daySkipped : []);
   const [rowMenu, setRowMenu] = useState(initial.rowMenu !== undefined ? initial.rowMenu : null);
+  /* Which coach tip is being explained, by row id.
+
+     A tip and a meal sit on the same list and look the same, and they are not
+     the same kind of ask: a meal is finished by a record going in somewhere, a
+     tip is finished by doing it and saying so. The bulb on the row is what
+     tells them apart, and this is what it opens. */
+  const [tipInfo, setTipInfo] = useState(initial.tipInfo !== undefined ? initial.tipInfo : null);
+  /* A question put to Kaira, by row id. The chat opens with it already sent,
+     because the button that opened it was the question. */
+  const [kairaAsk, setKairaAsk] = useState(initial.kairaAsk !== undefined ? initial.kairaAsk : null);
+  // One hop, so the explainer hands over rather than stacking under the chat.
+  const askKaira = (id) => { setTipInfo(null); setKairaAsk(id); };
   /* Which rows have already had their moment. Kept here rather than inside the
      row, because opening the Eat screen unmounts the whole day: a meal logged
      in there used to come back silently ticked, which is precisely the tap
@@ -355,6 +471,7 @@ export function WFProvider({ children, initial = {} }) {
 
   const isPaid = plan === "paid";
 
+
   // Paid Home carousel — tab selection slides the rail; swiping updates the tab.
   const CARD_W = 312;
   const CARD_GAP = 12;
@@ -377,13 +494,38 @@ export function WFProvider({ children, initial = {} }) {
     category: "Diabetes Care",
   };
 
-  // Booked session shown on the second card when sessionState === "booked".
-  const bookedSession = {
-    role: "Your Success Coach",
-    coach: "Manya Jain",
-    date: "17 Aug, 2026",
-    time: "10:15 AM",
-    cta: "Join Your Zoom Session",
+  /* Who is actually on this person's care team. Lives here because the program
+     page names them, and now a plan notification signs itself with one of them:
+     a message from "Team GoodFlip" about work a named person did is the system
+     taking credit for the relationship. */
+  const careTeam = CARE_TEAM;
+
+  /* What has been booked, by coach. Three consultations rather than one,
+     because three people write three plans and each needs their own hour. */
+  const [bookings, setBookings] = useState(initial.bookings !== undefined ? initial.bookings : {});
+  /* Booking a consultation. `bookWith` is which of the care team, null while
+     the list is showing, so one screen carries both steps the way the movement
+     logger carries picking and confirming. */
+  /* The one session Home shows: the soonest of whatever is booked. Derived
+     rather than stored beside the bookings, so the card and the booking screen
+     cannot end up disagreeing about what is next. The fallback is what the
+     panel's own Booked chip demonstrates, for a session nobody walked through
+     the flow to make. */
+  const nextSession = (() => {
+    const made = Object.entries(bookings).sort((a, b) => a[1].day - b[1].day);
+    if (!made.length) {
+      return { role: "Your Success Coach", coach: "Manya Jain", date: "17 Aug, 2026", time: "10:15 AM", cta: "Join Your Zoom Session" };
+    }
+    const [id, b] = made[0];
+    const who = CARE_TEAM.find((c) => c.id === id);
+    return { role: who.role, coach: who.name, date: b.full, time: b.time, cta: "Join Your Zoom Session" };
+  })();
+  const [bookOpen, setBookOpen] = useState(initial.bookOpen !== undefined ? initial.bookOpen : false);
+  const [bookWith, setBookWith] = useState(initial.bookWith !== undefined ? initial.bookWith : null);
+  const openBooking = () => {
+    setBookWith(null);
+    setPlanInfo(null);
+    setBookOpen(true);
   };
   // Trailing space so the second card can actually reach the left edge.
   // Without it max scrollLeft < the snap target and the rail springs back.
@@ -466,13 +608,9 @@ export function WFProvider({ children, initial = {} }) {
      and have not been read yet, in EM3 order, so the card can announce one now
      and the other whenever it follows. Two plans arriving on two days is the
      normal case, not the edge one. */
+  const PLAN_IN = { eat: () => kcalSource === "coach", move: () => !!movePlan, mind: () => !!mindPlan };
   const arrived =
-    plan === "paid"
-      ? ["eat", "move"].filter(
-          (id) =>
-            (id === "eat" ? kcalSource === "coach" : !!movePlan) && !planSeen.includes(id)
-        )
-      : [];
+    plan === "paid" ? ["eat", "move", "mind"].filter((id) => PLAN_IN[id]() && !planSeen.includes(id)) : [];
   const readPlan = (id) => setPlanSeen((s) => (s.includes(id) ? s : s.concat(id)));
 
   /* A coach's plan is a list of options per meal, and each option is a list of
@@ -493,20 +631,23 @@ export function WFProvider({ children, initial = {} }) {
     },
     {
       id: "breakfast", name: "Breakfast", time: "8:00 - 10:00 AM",
+      /* The coach's nudges. Small, free, and doable with what is already in
+         the house: a bottle nobody has bought yet is not a habit. */
       notes: [
         {
-          id: "note:bittermelon",
-          at: 7 * 60 + 45,
-          when: "7:45 AM",
-          title: "Take your bitter melon capsule",
-          tip: "With warm water, before you eat anything.",
+          id: "note:methi",
+          at: 6 * 60 + 30,
+          when: "6:30 AM",
+          verb: "Drink", name: "Warm water with methi",
+          tip: "Soak a spoon of seeds overnight. Drink the water first thing.",
         },
         {
-          id: "note:fenugreek",
-          at: 10 * 60 + 30,
-          when: "10:30 AM",
-          title: "Take your fenugreek capsule",
-          tip: "An hour after breakfast, not with it.",
+          id: "note:sun",
+          at: 7 * 60 + 15,
+          when: "7:15 AM",
+          pillar: "mind",
+          verb: "Get", name: "10 minutes of morning sun",
+          tip: "Balcony or terrace, before nine. It sets your body clock for the day.",
         },
       ],
       plan: [
@@ -538,6 +679,15 @@ export function WFProvider({ children, initial = {} }) {
     },
     {
       id: "bedtime", name: "Bed time", time: "10:00 - 11:00 PM",
+      notes: [
+        {
+          id: "note:almonds",
+          at: 22 * 60 + 30,
+          when: "10:30 PM",
+          verb: "Soak", name: "5 almonds for tomorrow",
+          tip: "In a small bowl of water, before bed. Peel them in the morning.",
+        },
+      ],
       plan: [
         [{ id: "walnut", qty: 2 }, { id: "chamomile", qty: 1 }],
       ],
@@ -548,9 +698,14 @@ export function WFProvider({ children, initial = {} }) {
      a bedtime snack, so those slots are noise. Four meals is the day as a
      person would describe it; the plan is what adds the rest. */
   const CORE_DIVISIONS = ["breakfast", "lunch", "eveningsnack", "dinner"];
-  const eatDivisions = planAssigned
+  const eatDivisions = (planAssigned
     ? eatDivisionsAll
-    : eatDivisionsAll.filter((d) => CORE_DIVISIONS.includes(d.id));
+    : eatDivisionsAll.filter((d) => CORE_DIVISIONS.includes(d.id))
+  ).map((d) =>
+    // A nudge is asked for on Eat and on the day's list, so it composes its
+    // ask here, once, and both screens read the same words.
+    d.notes ? { ...d, notes: d.notes.map((n) => ({ ...n, title: taskTitle(n) })) } : d
+  );
 
 
   const progressTabs = [
@@ -583,7 +738,7 @@ export function WFProvider({ children, initial = {} }) {
     {
       id: "eat",
       Icon: Utensils,
-      title: "Log your 3 main meals",
+      cat: "record", name: "Your 3 main meals",
       checks: 3,
       step: "meal",
       // filled checks by state
@@ -594,7 +749,7 @@ export function WFProvider({ children, initial = {} }) {
     {
       id: "move",
       Icon: Flame,
-      title: "Move for 20 minutes",
+      cat: "record", name: "20 minutes of movement",
       checks: 1,
       fill: { ftux: 0, empty: 0, partial: 0, done: 1 },
       hint: "Log whatever you did. Even a walk to the shop counts.",
@@ -603,7 +758,7 @@ export function WFProvider({ children, initial = {} }) {
     {
       id: "mind",
       Icon: LotusIcon,
-      title: "Take a breathing break",
+      cat: "habit", name: "A breathing break",
       checks: 1,
       fill: { ftux: 0, empty: 0, partial: 0, done: 1 },
       hint: "A short breather to lower stress. Calm counts too.",
@@ -612,7 +767,7 @@ export function WFProvider({ children, initial = {} }) {
     {
       id: "measure",
       Icon: BarChart3,
-      title: "Sync your BCA",
+      cat: "device", name: "Your BCA",
       checks: 1,
       fill: { ftux: 0, empty: 0, partial: 0, done: 1 },
       hint: "See how your muscle and fat are changing.",
@@ -626,7 +781,7 @@ export function WFProvider({ children, initial = {} }) {
       // Same mark as the BCA task: both are Measure, and the pillar is what
       // the icon names.
       Icon: BarChart3,
-      title: "Sync your CGM",
+      cat: "device", name: "Your CGM",
       checks: 1,
       fill: { ftux: 0, empty: 0, partial: 0, done: 1 },
       hint: "See how each meal moves your glucose, as it happens.",
@@ -644,21 +799,24 @@ export function WFProvider({ children, initial = {} }) {
      dailyPillars rather than a hard-coded number. */
   const MEASURE_SHOWN = { bca: ["measure"], cgm: ["cgm"], both: ["measure", "cgm"] };
   const shown = MEASURE_SHOWN[measureTasks] || MEASURE_SHOWN.bca;
-  const dailyPillars = dailyPillarsAll.filter((p) =>
-    (p.pillar || p.id) === "measure" ? planAssigned && shown.includes(p.id) : true
-  );
+  const dailyPillars = dailyPillarsAll
+    .filter((p) => ((p.pillar || p.id) === "measure" ? planAssigned && shown.includes(p.id) : true))
+    // The same composer the day's list uses, so a card and its row cannot
+    // end up asking for the same work in two different words.
+    .map((p) => ({ ...p, title: taskTitle(p) }));
   const dailyRepeating = dailyPillars;
-  // Distinct main meals, so three snacks do not unlock a day's score.
-  const mainMealsDone = new Set(
-    mealsLogged.filter((m) => MAIN_DIVISIONS.includes(m.division)).map((m) => m.division)
-  ).size;
+  /* Three distinct meals, whichever three. It used to count breakfast, lunch
+     and dinner alone, which told somebody whose day is a pre-breakfast tea, a
+     4pm snack and a late dinner that they had eaten once. Any three slots is
+     three readings of a day, and that is what a score needs. */
+  const mealsIn = new Set(mealsLogged.map((m) => m.division)).size;
 
   /* Eat is the one task with a record behind it. Its progress is the meals
      actually in the day, never a separate counter, so the card, its header and
      its last-logged line cannot disagree the way they used to. */
   const fillWith = (prog, p) =>
     p.id === "eat"
-      ? Math.min(p.checks, mainMealsDone)
+      ? Math.min(p.checks, mealsIn)
       : p.id === "mind"
       ? Math.min(p.checks, Math.max(mindDone.length, prog[p.id] || 0))
       : Math.min(p.checks, Math.max(p.fill[dailyState], prog[p.id] || 0));
@@ -689,9 +847,9 @@ export function WFProvider({ children, initial = {} }) {
      one. */
   const heroState = !planAssigned
     ? "noplan"
-    : mainMealsDone >= 3
+    : mealsIn >= 3
     ? "full"
-    : mainMealsDone > 0
+    : mealsIn > 0
     ? "partial"
     : "nodata";
   const STREAK_REWARDS = [
@@ -752,7 +910,8 @@ export function WFProvider({ children, initial = {} }) {
     if (p.coins) setFlipcoins(flipcoins + p.coins);
     setTaskDone({
       id: p.id,
-      title: p.title,
+      // What was done, not what was asked. The ask is in the past by now.
+      title: p.name || p.title,
       coins: p.coins || 0,
       before: dailyDoneCount / dailyPillars.length,
       after: count / dailyPillars.length,
@@ -760,7 +919,7 @@ export function WFProvider({ children, initial = {} }) {
       total: dailyPillars.length,
     });
     if (p.coins) {
-      setToast({ title: "+" + p.coins + " Flipcoins earned", line: p.title, coins: p.coins });
+      setToast({ title: "+" + p.coins + " Flipcoins earned", line: p.name || p.title, coins: p.coins });
     }
   };
 
@@ -869,7 +1028,7 @@ export function WFProvider({ children, initial = {} }) {
      the same work written out in the order it happens. */
   const measureRows = dailyPillars
     .filter((p) => (p.pillar || p.id) === "measure")
-    .map((p) => ({ id: p.id, title: p.title, tip: p.hint, done: taskIsDone(p) }));
+    .map((p) => ({ id: p.id, name: p.name, tip: p.hint, done: taskIsDone(p) }));
 
   /* A pillar's week, opened from its own row or from the sheet. It sets the
      pillar's trend to a week worth reading first, because sending somebody to
@@ -896,7 +1055,7 @@ export function WFProvider({ children, initial = {} }) {
     weekInsight, weekMode, weekReads,
     planAssigned, eatDivisions, mealsLogged, exLogs, mindDone,
     sleepMins, daySteps, water, ticks: dayTicks, skipped: daySkipped, planOption,
-    measureRows, healthSync, healthSource,
+    measureRows, healthSync, healthSource, phaseMode, templateKept, mindPlan,
   });
   /* Skipped rows come out of the denominator rather than counting against it.
      A day you chose to make smaller should look smaller, not look failed. */
@@ -907,7 +1066,7 @@ export function WFProvider({ children, initial = {} }) {
      what is next. */
   const nextRowId = (dayLive.find((r) => !r.done) || {}).id;
   const dayRowsDone = dayLive.filter((r) => r.done).length;
-  const dayPhases = PHASES.map((f) => {
+  const dayPhases = phasesFor(phaseMode).map((f) => {
     const rows = dayRows.filter((r) => r.phase === f.id);
     const live = rows.filter((r) => !r.skipped);
     const done = live.filter((r) => r.done).length;
@@ -947,7 +1106,7 @@ export function WFProvider({ children, initial = {} }) {
     setToast((t) => ({
       ...(t || {}),
       title: "Done for today",
-      line: r.title + " \u00b7 " + dayRowsDone + " of " + dayLive.length + " today",
+      line: (r.name || r.title) + " \u00b7 " + dayRowsDone + " of " + dayLive.length + " today",
       task: r.pillar,
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -962,6 +1121,55 @@ export function WFProvider({ children, initial = {} }) {
   const toggleSkip = (id) =>
     setDaySkipped(daySkipped.includes(id) ? daySkipped.filter((x) => x !== id) : daySkipped.concat(id));
 
+  /* Every route into the logger goes through here, so where somebody came from
+     is recorded once rather than guessed at the far end. */
+  const openLog = (atMins, plan = null) => {
+    if (atMins !== undefined) setLogTime(atMins);
+    setLogPlan(plan);
+    setLogReturn(eatDetail ? "eat" : "track");
+    setLogOpen(true);
+  };
+
+  /* The logger, opened on a coach's option with the food already picked.
+
+     Three doors lead here and they all want the same thing: the meal row on
+     the day's list, the Log all button under an option in Eat, and the circle
+     beside a single line of that option. `only` is that last case; without it
+     the whole option goes in, minus anything already logged, so a half eaten
+     option offers the rest rather than asking for it twice.
+
+     Nothing is recorded yet. The logger's own button is still what logs a
+     meal, which keeps one meaning for the word across the app and leaves room
+     to drop the thing you did not actually eat. */
+  const openMealLog = (division, oi = 0, only) => {
+    const d = eatDivisions.find((x) => x.id === division);
+    const opts = planAssigned ? (d && d.plan) || [] : [];
+    const already = new Set(
+      mealsLogged.filter((m) => m.division === division).flatMap((m) => m.items.map((i) => i.id))
+    );
+    const pick = only ? [only] : (opts[oi] || []).filter((it) => !already.has(it.id));
+    setLogItems(pick.map((it) => ({ id: it.id, qty: it.qty })));
+    openLog(DIVISION_TIME[division], opts.length ? { division, oi } : null);
+  };
+
+  /* The movement logger, opened on what the person is most likely recording.
+
+     Two doors: the session row on the day's list, and Log this session under
+     the routine in Move. Both pass the routine, because both are somebody
+     saying they did the coach's work. Passing nothing opens the pick list,
+     which is what the free day's row and the Log exercise prompt want. */
+  const openMoveLog = (id = null) => {
+    setLogExPick(id);
+    setMoveReturn(moveDetail ? "move" : "track");
+    /* Deliberately does not open Move. The logger already wins over it in the
+       takeover order, so leaving Move alone is what puts somebody back where
+       they started: the day's list if they tapped the session row, Move if
+       they tapped Log this session inside it. Forcing Move open sent a person
+       who had never answered the steps question to a permission gate about
+       steps, straight after logging an exercise. */
+    setLogExOpen(true);
+  };
+
   /* One tap, two behaviours, no visual difference: a row either records itself
      here or sends you to the screen that owns the record. Nothing in the diary
      keeps its own copy of a fact, so it can never disagree with the pillar. */
@@ -969,8 +1177,15 @@ export function WFProvider({ children, initial = {} }) {
     if (r.kind === "tick") return toggleTick(r.id);
     if (r.to === "water") return setWater(Math.min(WATER_GOAL, water + 1));
     if (r.to === "sleep") { setMindDetail(true); if (healthSource.sleep === "manual") setLogSleepOpen(true); return; }
+    /* Straight to the sheet the row names. Opening Mind and leaving somebody
+       to find the breathing exercise is the work the tap was meant to save. */
+    if (r.to.startsWith("mind:")) return setMindTool(r.to.slice(5));
+    if (r.to.startsWith("tpl:")) return setMindTemplate(r.to.slice(4));
     if (r.to === "mind") return setMindDetail(true);
-    if (r.to === "move") return setMoveDetail(true);
+    /* Straight to the logger, on the coach's routine when there is one. The
+       session row names a thing that was done; landing on Move and hunting for
+       where to say so is the work the tap was meant to save. */
+    if (r.to === "move") return openMoveLog(planAssigned ? "routine" : null);
     if (r.to === "steps") { setMoveDetail(true); if (healthSource.steps === "manual") setStepsSheet(true); return; }
     /* The glucose sync has a screen of its own: the reading is the whole
        point of the tap, and Measure is a tab about everything. */
@@ -983,15 +1198,32 @@ export function WFProvider({ children, initial = {} }) {
       if (r.id === "sync:measure") return setBcaOpen(true);
       return setActiveTab("med");
     }
-    if (r.to.startsWith("eat:")) { setEatFocus(r.to.slice(4)); setEatDetail(true); }
+    /* Straight to the logger, on the option the row was showing. Landing on
+       Eat and hunting for the meal you just named is the work the tap was
+       meant to save. */
+    if (r.to.startsWith("eat:")) return openMealLog(r.to.slice(4), r.oi ?? 0);
+  };
+
+  /* Where a finished task was filed, which is a different question from how to
+     do it. An unfinished meal opens the logger; asking where a logged one went
+     opens Eat, because there is nothing left to log. */
+  const goToRecord = (r) => {
+    if (r.to && r.to.startsWith("eat:")) {
+      setEatFocus(r.to.slice(4));
+      setEatDetail(true);
+      return;
+    }
+    // Same split on Move: the row's tap logs, the menu shows where it landed.
+    if (r.to === "move") return setMoveDetail(true);
+    openRow(r);
   };
   const liveScore = scoreOf(dayTotals, dailyTargets);
   // The number exists either way. Whether it is legible is the gate.
-  const scoreUnlocked = hasTargets && mainMealsDone >= 3;
+  const scoreUnlocked = hasTargets && mealsIn >= 3;
 
   const value = {
-    hasTargets, kcalTarget, dailyTargets, dayTotals, mainMealsDone, liveScore, scoreUnlocked,
-    activeGoal, MAIN_DIVISIONS,
+    hasTargets, kcalTarget, dailyTargets, dayTotals, mealsIn, liveScore, scoreUnlocked,
+    activeGoal,
     authStep, setAuthStep, phone, setPhone, otp, setOtp, userName, setUserName, firstName,
     activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail,
     eatState, setEatState, progressTab, setProgressTab, measureApproach, setMeasureApproach,
@@ -1007,15 +1239,21 @@ export function WFProvider({ children, initial = {} }) {
     programIntroSeen, setProgramIntroSeen, todayOnboarded, setTodayOnboarded,
     streakDays, setStreakDays, streakShown,
     moveDetail, setMoveDetail, moveTab, setMoveTab, movePlan, setMovePlan,
-    moveWeek, setMoveWeek, mindWeek, setMindWeek,
+    moveWeek, setMoveWeek, mindWeek, setMindWeek, mindPlan, setMindPlan,
     weekInsight, setWeekInsight, weekOpen, setWeekOpen,
     weekMode, setWeekMode, weekReads, setWeekReads, openWeek, taskCard, setTaskCard,
+    phaseMode, setPhaseMode,
     healthSource, setHealthSource, healthOn, healthSheet, setHealthSheet,
     manualSteps, setManualSteps, stepsSheet, setStepsSheet, healthSync, setHealthSync, pickSource,
     sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen,
     mindTool, setMindTool, mindDone, setMindDone, mindMood, setMindMood, mindDetail, setMindDetail, mindTab, setMindTab,
+    mindKept, setMindKept, keepMind, mindTemplate, setMindTemplate, templateKept, setTemplateKept,
     exLogs, setExLogs, daySteps, sleepMins, lastNight, logExOpen, setLogExOpen, routineDone, setRoutineDone,
+    logExPick, setLogExPick, openMoveLog, routineFeel, setRoutineFeel, setFeel, clearFeel, moveResult, setMoveResult,
+    moveReturn, setMoveReturn,
     logOpen, setLogOpen, logItems, setLogItems, logTime, setLogTime,
+    logPlan, setLogPlan, logReturn, setLogReturn, openLog, openMealLog, goToRecord,
+    kairaLog, setKairaLog, planNotif, setPlanNotif, careTeam,
     logTimeOpen, setLogTimeOpen, logInfo, setLogInfo, 
      favorites, setFavorites,
     mealsLogged, setMealsLogged, mealItem, setMealItem, metricInfo, setMetricInfo, logResult, setLogResult, toast, setToast,
@@ -1028,7 +1266,8 @@ export function WFProvider({ children, initial = {} }) {
     programDetail, setProgramDetail, programSub, setProgramSub,
     chatsOpen, setChatsOpen, openGroups, setOpenGroups,
     flipcoins, isPaid, CARD_W, CARD_GAP, CARD_PAD, CARD_H,
-    SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef,
+    SHOW_PROGRAM_TABS, program, bookedSession: nextSession, CARD_TAIL, carouselRef,
+    bookOpen, setBookOpen, bookWith, setBookWith, openBooking, bookings, setBookings,
     nextActions, nextDone, setNextDone, nextOpen, setNextList,
     HOME_CARDS, HOME_TABS, homeTab,
     handleCarouselScroll, isReturning, isDevice, sufficiencyRings, eatDivisions,
@@ -1040,6 +1279,7 @@ export function WFProvider({ children, initial = {} }) {
     completeTask, taskProgress, setTaskProgress, taskDone, setTaskDone,
     dayRows, dayLive, dayPhases, dayRowsDone, nextRowId, openRow, water, setWater, dayTicks, setDayTicks,
     daySkipped, setDaySkipped, toggleSkip, toggleTick, rowMenu, setRowMenu, planOption, setPlanOption,
+    tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira,
     celebrated, celebrate, uncelebrate, streakBurst, setStreakBurst,
     eatFocus, setEatFocus,
     onbFinish, onbBack, pillarExplain,

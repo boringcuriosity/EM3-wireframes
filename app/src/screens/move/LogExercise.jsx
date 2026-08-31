@@ -1,44 +1,100 @@
 import React, { useState } from "react";
 import { useWF } from "../../state";
 import { ChevronLeft, ChevronRight, Search, X, Plus, Minus } from "lucide-react";
-import { GREEN, TEXT, MUTED, BG, BG_ALT, BORDER } from "../../tokens";
+import { GREEN, TEXT, MUTED, FAINT, BG, BG_ALT, BG_SUNK, BORDER } from "../../tokens";
 import Wheel from "../../components/Wheel";
-import { EXERCISES, byId, INTENSITIES, burnt } from "./exercises";
+import { EXERCISES, byId, INTENSITIES, burnt, dayMinutes, COACH_ROUTINE } from "./exercises";
+import RoutineExercise from "./RoutineExercise";
 import { fmtTime, timeSlots } from "../log/foods";
 
 const NOW = 13 * 60 + 30;
-const COINS = 2;
 
-/* Log exercise, in one decision. Picking the activity is the only thing asked
+/* Log movement, in one decision. Picking the activity is the only thing asked
    for; duration, effort and time all arrive with sensible defaults and stay out
-   of the way until someone wants them. */
+   of the way until someone wants them.
+
+   One screen for both kinds of movement. Move used to have two ways to record
+   the same thing: this, which wrote a real log, and a Mark done pill on each of
+   the coach's four exercises, which wrote to a list nothing else in the app
+   read. Somebody could do exactly what their coach asked, tick all four, and
+   watch the day's row stay open and the hero say nought minutes.
+
+   The fix is not a second logger, it is admitting the routine is one thing you
+   did rather than four. The four exercises are its contents the way a meal's
+   items are the contents of a meal, so the session is what gets logged and the
+   whole pipeline behind this screen handles it with no special case. */
 export default function LogExercise() {
-  const { setLogExOpen, exLogs, setExLogs, flipcoins, setFlipcoins, setToast } = useWF();
+  const {
+    setLogExOpen, exLogs, setExLogs,
+    planAssigned, routineDone, routineFeel, setFeel, clearFeel,
+    logExPick, setLogExPick, setMoveResult,
+  } = useWF();
 
   const [query, setQuery] = useState("");
-  const [picked, setPicked] = useState(null);
+  /* Two sources, two tabs, the way Eat's logger has them. "Your plan" is the
+     coach's session; "On your own" is everything you did without being asked.
+     The pair names the real split rather than labelling one of them as the
+     ordinary case. The plan tab only exists when a plan does. */
+  const [tab, setTab] = useState(logExPick === "routine" ? "plan" : "own");
+  // Opened on something, when the door in already knew what was done.
+  const [picked, setPicked] = useState(logExPick === "routine" ? null : logExPick);
   const [minutes, setMinutes] = useState(20);
-  const [intensity, setIntensity] = useState("moderate");
+  // Mobility work is light by design, so the routine says so rather than
+  // making somebody correct a default that was never right for it.
+  const [intensity, setIntensity] = useState(logExPick === "routine" ? "light" : "moderate");
   const [when, setWhen] = useState(NOW);
   const [adjust, setAdjust] = useState(null);
 
   const q = query.trim().toLowerCase();
+  /* The routine is pinned rather than listed, so it is never something you
+     scroll past. Without a plan it is not an activity anybody can do, so it
+     leaves the list entirely. */
+  const routine = planAssigned ? byId("routine") : null;
+  const notCoach = (x) => !x.tags.includes("coach");
   const list = q
-    ? EXERCISES.filter((x) => x.name.toLowerCase().includes(q))
-    : EXERCISES.filter((x) => x.tags.includes("common"));
+    ? EXERCISES.filter((x) => notCoach(x) && x.name.toLowerCase().includes(q))
+    : EXERCISES.filter((x) => notCoach(x) && x.tags.includes("common"));
+  const total = COACH_ROUTINE.items.length;
+  /* What was marked, and nothing more. The bar used to treat nothing marked as
+     everything, which made one button mean two things and made it lie about a
+     single exercise routine: "Mark 1 done" about the one thing already done.
+     Marking is the card's job now and the bar only logs, so this is a count
+     rather than an assumption. */
+  const ticked = routineDone.length;
+  const doing = ticked;
+  // Pro rata, because logging the full twenty for half the work is a number
+  // the trend has to live with afterwards.
+  const routineMins = Math.max(5, Math.round((COACH_ROUTINE.minutes * doing) / total));
 
   const ex = picked ? byId(picked) : null;
   const inten = INTENSITIES.find((i) => i.id === intensity);
   const kcal = ex ? burnt({ met: ex.met, minutes, factor: inten.factor }) : 0;
 
+  const close = () => {
+    setLogExPick(null);
+    setLogExOpen(false);
+  };
+
+  const logSession = () => {
+    /* The session's own reading, from what they said on the way through.
+       Everything marked has an answer, because answering is what marks it. */
+    const votes = routineDone.map((id) => routineFeel[id]).filter(Boolean);
+    const hard = votes.filter((v) => v === "hard").length;
+    const sessionFeel = votes.length ? (hard * 2 >= votes.length ? "hard" : "easy") : null;
+    const entry = { id: "routine", minutes: routineMins, intensity: "light", timeMins: when };
+    const before = dayMinutes(exLogs);
+    setExLogs(exLogs.concat(entry));
+    setMoveResult({ entry, before, after: before + routineMins, count: doing, total, feel: sessionFeel });
+    setLogExPick(null);
+    setLogExOpen(false);
+  };
+
   const submit = () => {
-    setExLogs(exLogs.concat({ id: picked, minutes, intensity, timeMins: when }));
-    setFlipcoins(flipcoins + COINS);
-    setToast({
-      title: "Movement logged",
-      line: ex.name + " · " + minutes + " min · about " + kcal + " kcal",
-      coins: COINS,
-    });
+    const entry = { id: picked, minutes, intensity, timeMins: when };
+    const before = dayMinutes(exLogs);
+    setExLogs(exLogs.concat(entry));
+    setMoveResult({ entry, before, after: before + minutes });
+    setLogExPick(null);
     setLogExOpen(false);
   };
 
@@ -47,7 +103,7 @@ export default function LogExercise() {
       <div style={{ flex: 1, display: "flex", flexDirection: "column", background: BG, minHeight: 0 }}>
         <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: 10, padding: "6px 22px 14px" }}>
           <button
-            onClick={() => (picked ? setPicked(null) : setLogExOpen(false))}
+            onClick={() => (picked ? setPicked(null) : close())}
             aria-label="Back"
             style={{
               width: 34, height: 34, borderRadius: "50%", background: BG_ALT,
@@ -63,7 +119,48 @@ export default function LogExercise() {
           <span style={{ width: 34 }} />
         </div>
 
-        {!picked ? (
+        {/* Two sources, the way Eat's logger names its own. Only when there is
+            a plan: a tab leading to nothing is worse than no tab. */}
+        {!picked && routine && (
+          <div style={{ flexShrink: 0, display: "flex", gap: 10, padding: "0 22px 12px" }}>
+            {[
+              { id: "plan", label: "Your plan" },
+              { id: "own", label: "Log other exercise" },
+            ].map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                style={{
+                  flex: 1,
+                  background: tab === t.id ? TEXT : BG_ALT,
+                  border: "1px solid " + (tab === t.id ? TEXT : BORDER),
+                  borderRadius: 999,
+                  padding: "10px 0",
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  color: tab === t.id ? "#fff" : MUTED,
+                  whiteSpace: "nowrap",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {!picked && routine && tab === "plan" ? (
+          <PlanTab
+            ticked={ticked}
+            total={total}
+            mins={routineMins}
+            onLog={logSession}
+            feel={routineFeel}
+            onFeel={setFeel}
+            onClear={clearFeel}
+          />
+        ) : !picked ? (
           /* One job: name the activity. */
           <div style={{ flex: 1, overflowY: "auto", padding: "0 22px 20px", minHeight: 0 }}>
             <div
@@ -142,6 +239,13 @@ export default function LogExercise() {
               }}
             >
               <div style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{ex.name}</div>
+              {/* What was in it, so the session being logged is recognisably
+                  the work that was done rather than a name and a number. */}
+              {picked === "routine" && (
+                <div style={{ fontSize: 11.5, color: MUTED, marginTop: 5, lineHeight: 1.5 }}>
+                  {COACH_ROUTINE.items.map((it) => it.name).join(", ")}
+                </div>
+              )}
 
               <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 22, marginTop: 18 }}>
                 <Round onClick={() => setMinutes(Math.max(5, minutes - 5))} aria="Five minutes less">
@@ -221,6 +325,86 @@ export default function LogExercise() {
         </Sheet>
       )}
 
+    </>
+  );
+}
+
+/* The coach's session, done here rather than recorded here.
+
+   This is the tab you land on when a plan exists, and it holds the work: every
+   exercise with its video, its sets and its reps, and a tick. Ticking is how
+   you keep your place while you go, so somebody can open this, work down it and
+   press the button at the end.
+
+   The button says the same thing whether nothing is ticked or everything is,
+   because in both cases it logs the whole session. Arriving and pressing it
+   straight away is the common path: most people open this having just finished.
+   It only counts when some were left out. */
+function PlanTab({ ticked, total, mins, onLog, feel, onFeel, onClear }) {
+  const kcal = burnt({ met: byId("routine").met, minutes: mins, factor: 0.8 });
+
+  return (
+    <>
+      <div style={{ flex: 1, overflowY: "auto", padding: "0 22px 16px", minHeight: 0 }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{COACH_ROUTINE.name}</div>
+        <div style={{ fontSize: 11.5, color: MUTED, marginTop: 3 }}>
+          Set by {COACH_ROUTINE.by} · about {COACH_ROUTINE.minutes} minutes
+        </div>
+
+        <div style={{ marginTop: 14 }}>
+          {COACH_ROUTINE.items.map((it) => (
+            <RoutineExercise
+              key={it.id}
+              item={it}
+              feel={feel[it.id]}
+              onPick={onFeel}
+              onClear={onClear}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* What is about to be recorded, above the button that records it, so the
+          minutes are never a surprise on the screen afterwards. */}
+      <div style={{ flexShrink: 0, borderTop: "1px solid " + BORDER, padding: "12px 22px 24px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 11 }}>
+          <span style={{ flex: 1, minWidth: 0, fontSize: 12, color: MUTED }}>
+            {ticked === 0
+              ? "Mark what you did"
+              : total === 1
+              ? "1 exercise"
+              : ticked === total
+              ? "All " + total + " exercises"
+              : ticked + " of " + total + " exercises"}
+          </span>
+          {ticked > 0 && (
+            <span style={{ fontSize: 12, fontWeight: 700, color: TEXT, flexShrink: 0 }}>
+              {mins} min · about {kcal} kcal
+            </span>
+          )}
+        </div>
+        {/* One job. The cards say what was done, this records it, and the two
+            are never the same button in two places, which is what a routine of
+            a single exercise made obvious. */}
+        <button
+          onClick={onLog}
+          disabled={ticked === 0}
+          style={{
+            width: "100%",
+            background: ticked === 0 ? BG_SUNK : GREEN,
+            border: "none",
+            borderRadius: 14,
+            padding: "14px 0",
+            color: ticked === 0 ? FAINT : "#fff",
+            fontSize: 14.5,
+            fontWeight: 700,
+            cursor: ticked === 0 ? "default" : "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          Log
+        </button>
+      </div>
     </>
   );
 }

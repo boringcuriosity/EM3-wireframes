@@ -1,12 +1,12 @@
 import React, { useRef, useEffect } from "react";
 import { useWF } from "../state";
-import { ChevronRight, ChevronLeft, Utensils, TrendingUp, Gift, Check, Stethoscope, BookOpen, MoreVertical } from "lucide-react";
-import { GREEN, TEXT, MUTED, BG_ALT, BG, BORDER, RULE, LINE, PILLAR, SH, SH_SM } from "../tokens";
+import { ChevronRight, ChevronLeft, Utensils, TrendingUp, Gift, Check, Stethoscope, BookOpen, MoreVertical, Info } from "lucide-react";
+import { GREEN, TEXT, TEXT_2, MUTED, FAINT, BG_ALT, BG, BORDER, RULE, LINE, PILLAR, SH, SH_SM } from "../tokens";
 import LogMealPrompt from "../components/LogMealPrompt";
 import CaloriesStrip from "../components/CaloriesStrip";
 import LogWithoutJudgementCard from "../components/LogWithoutJudgementCard";
 import { PILLAR_SCIENCE } from "./pillarScience";
-import { byId, qtyLabel } from "./log/foods";
+import { byId, qtyLabel, DIVISION_TIME } from "./log/foods";
 import SufficiencyCard from "./log/SufficiencyCard";
 import CtaArrow from "../components/CtaArrow";
 import ArticleList from "../components/ArticleList";
@@ -20,25 +20,13 @@ const EAT_ARTICLES = [
 ];
 
 // Where the plus on each division drops you on the clock.
-const DIVISION_TIME = {
-  prebreakfast: 6 * 60 + 30, breakfast: 8 * 60 + 30, lunch: 13 * 60 + 30,
-  eveningsnack: 17 * 60 + 30, dinner: 20 * 60 + 30, bedtime: 22 * 60 + 30,
-};
-
 export default function EatDetailPage() {
-  const { setEatDetail, eatState, eatTab, setEatTab, eatDivisions, kcalTarget, setLogOpen, setLogTime, mealsLogged, hasTargets, dayTotals, planAssigned, setLogItems, setMealItem, eatFocus, setEatFocus, planOption, setPlanOption, dayTicks, toggleTick } = useWF();
+  const { setEatDetail, eatState, eatTab, setEatTab, eatDivisions, kcalTarget, mealsLogged, hasTargets, dayTotals, planAssigned, setMealItem, eatFocus, setEatFocus, planOption, setPlanOption, dayTicks, toggleTick, setTipInfo, openLog, openMealLog } = useWF();
 
-  /* Every route into the logger goes through here. If targets are not set up
-     and the pitch has not been seen, it gets made once, first. */
   /* Straight to the logger. There used to be a sheet in front of a first log
      asking the user to set their targets up first, which is the wrong ask for
      a program user whose coach sets them, and a second ask for everyone else
      when the card above already offers it. */
-  const openLog = (atMins) => {
-    if (atMins !== undefined) setLogTime(atMins);
-    setLogOpen(true);
-  };
-
 
   // Which of the coach's options is showing, per meal. Switching is a read,
   // not a commitment, so it lives here rather than in shared state.
@@ -58,10 +46,7 @@ export default function EatDetailPage() {
   /* Tapping a plan item's circle opens the logger with that item already in
      the meal. It is not logged until the user presses the button there, which
      keeps one meaning for "logged" across the whole app. */
-  const logPlanItem = (divId, it) => {
-    setLogItems([{ id: it.id, qty: it.qty }]);
-    openLog(DIVISION_TIME[divId]);
-  };
+  const logPlanItem = (divId, oi, it) => openMealLog(divId, oi, it);
 
 
   const eatTodayView = (
@@ -330,10 +315,45 @@ export default function EatDetailPage() {
                       key={it.id}
                       it={it}
                       done={loggedIds.has(it.id)}
-                      onTick={closed ? undefined : () => logPlanItem(div.id, it)}
+                      onTick={closed ? undefined : () => logPlanItem(div.id, oi, it)}
                       onMenu={() => setMealItem({ planId: it.id, qty: it.qty })}
                     />
                   ))}
+
+                  {/* The whole option in one go. Logging a three item breakfast
+                      one circle at a time meant three trips through the logger
+                      and three records for one meal, and the plan is written as
+                      a meal rather than as three separate asks.
+
+                      Only when there is more than one thing left to do: with a
+                      single item outstanding the circle beside it already is
+                      this button. */}
+                  {!closed && (() => {
+                    const left = planItems.filter((it) => !loggedIds.has(it.id));
+                    if (left.length < 2) return null;
+                    return (
+                      <button
+                        onClick={() => openMealLog(div.id, oi)}
+                        style={{
+                          width: "100%",
+                          marginTop: 11,
+                          background: BG,
+                          border: "1px solid " + GREEN,
+                          borderRadius: 12,
+                          padding: "10px 0",
+                          fontSize: 12.5,
+                          fontWeight: 700,
+                          color: GREEN,
+                          cursor: "pointer",
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        {left.length === planItems.length
+                          ? "Log all " + left.length
+                          : "Log the other " + left.length}
+                      </button>
+                    );
+                  })()}
 
                   {/* The rest of what the coach said about this meal: a
                       capsule, a timing. Nothing to log, so nothing to search
@@ -360,7 +380,13 @@ export default function EatDetailPage() {
                         Tips from your coach
                       </div>
                       {div.notes.map((n) => (
-                        <NoteRow key={n.id} note={n} done={dayTicks.includes(n.id)} onTick={() => toggleTick(n.id)} />
+                        <NoteRow
+                          key={n.id}
+                          note={n}
+                          done={dayTicks.includes(n.id)}
+                          onTick={() => toggleTick(n.id)}
+                          onWhy={() => setTipInfo(n.id)}
+                        />
                       ))}
                     </div>
                   )}
@@ -867,7 +893,7 @@ export default function EatDetailPage() {
 /* A coach instruction with nothing to weigh. Same tick as a plan food so the
    meal reads as one list, but no calories and no menu, because there is
    nothing to edit about "with warm water". */
-function NoteRow({ note, done, onTick }) {
+function NoteRow({ note, done, onTick, onWhy }) {
   return (
     <div style={{ display: "flex", alignItems: "flex-start", gap: 11, marginTop: 11 }}>
       <button
@@ -893,6 +919,27 @@ function NoteRow({ note, done, onTick }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: 13, fontWeight: done ? 600 : 700, color: done ? MUTED : TEXT, lineHeight: 1.35 }}>
           {note.title}
+          {/* The same mark in the same place as the day's list: beside the name,
+              not under the tip. A worded button was a third line on a row whose
+              own heading already says these are tips. */}
+          <button
+            onClick={onWhy}
+            aria-label={"Why your coach asked: " + note.title}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              verticalAlign: "middle",
+              background: "none",
+              border: "none",
+              padding: 2,
+              margin: 0,
+              marginLeft: 3,
+              cursor: "pointer",
+            }}
+          >
+            <Info size={14} color={done ? FAINT : TEXT_2} strokeWidth={2.2} />
+          </button>
         </div>
         <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.45, marginTop: 2 }}>{note.tip}</div>
       </div>

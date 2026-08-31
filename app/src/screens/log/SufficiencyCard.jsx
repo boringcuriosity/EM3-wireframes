@@ -1,23 +1,24 @@
 import React from "react";
 import { useWF } from "../../state";
 import { Info, Lock } from "lucide-react";
-import { GREEN, TEXT, MUTED, BG, BG_ALT, BORDER, SH } from "../../tokens";
-import { DIVISION_LABEL } from "./foods";
+import { GREEN, TEXT, MUTED, BG, BORDER, SH } from "../../tokens";
 import MacroRings from "../../components/MacroRings";
 
 /* The hero on Eat, once targets exist. The number is real from the first meal,
-   but stays blurred until all three main meals are in, because a percentage of
-   a day you have only half told me about invites the wrong conclusion. Macros
-   are never hidden: grams are true whatever the day looks like. */
+   but stays blurred until three are in, because a percentage of a day you have
+   only half told me about invites the wrong conclusion. Macros are never
+   hidden: grams are true whatever the day looks like.
 
-const MAIN = ["breakfast", "lunch", "dinner"];
+   Any three slots, not breakfast, lunch and dinner in particular. Naming which
+   ones were missing told somebody whose day runs on a pre-breakfast tea and a
+   late snack that their real meals did not count. */
 
 export default function SufficiencyCard() {
   const {
-    liveScore, scoreUnlocked, mainMealsDone, mealsLogged, setPillarInfo,
+    liveScore, scoreUnlocked, mealsIn, mealsLogged, setPillarInfo,
   } = useWF();
 
-  const missing = MAIN.filter((d) => !mealsLogged.some((m) => m.division === d));
+  const left = Math.max(0, 3 - mealsIn);
   const anyLogged = mealsLogged.length > 0;
 
   return (
@@ -83,15 +84,13 @@ export default function SufficiencyCard() {
           </div>
           <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.5, marginTop: 4 }}>
             {scoreUnlocked ? (
-              <>All 3 main meals are in, so this is a real read of your day.</>
+              <>Three meals are in, so this is a real read of your day.</>
             ) : anyLogged ? (
               <>
-                {mainMealsDone} of 3 main meals. Log{" "}
-                {missing.map((d) => DIVISION_LABEL[d].toLowerCase()).join(" and ")} to reveal today's
-                score.
+                {mealsIn} of 3 meals in. Log {left} more to reveal today's score.
               </>
             ) : (
-              <>Your targets are set. Log your 3 main meals and today's score appears here.</>
+              <>Your targets are set. Log three meals and today's score appears here.</>
             )}
           </div>
         </div>
@@ -117,30 +116,24 @@ export default function SufficiencyCard() {
         </button>
       </div>
 
-      {/* Progress towards each main meal */}
+      {/* Three meals, counted rather than named. Naming them told somebody
+          whose day runs on a tea and two snacks that their real meals were the
+          wrong ones. */}
       {!scoreUnlocked && (
         <div style={{ display: "flex", gap: 6, marginTop: 14 }}>
-          {MAIN.map((d) => {
-            const done = mealsLogged.some((m) => m.division === d);
-            return (
-              <span
-                key={d}
-                style={{
-                  flex: 1,
-                  textAlign: "center",
-                  background: done ? BG_ALT : "transparent",
-                  border: "1px " + (done ? "solid " + GREEN : "dashed " + BORDER),
-                  borderRadius: 999,
-                  padding: "5px 0",
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  color: done ? TEXT : MUTED,
-                }}
-              >
-                {DIVISION_LABEL[d]}
-              </span>
-            );
-          })}
+          {[0, 1, 2].map((i) => (
+            <span
+              key={i}
+              style={{
+                flex: 1,
+                height: 6,
+                borderRadius: 3,
+                background: i < mealsIn ? GREEN : "transparent",
+                border: "1px solid " + (i < mealsIn ? GREEN : BORDER),
+                transition: "background .45s cubic-bezier(.32,.72,0,1) " + i * 0.08 + "s",
+              }}
+            />
+          ))}
         </div>
       )}
 

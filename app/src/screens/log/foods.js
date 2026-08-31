@@ -70,6 +70,21 @@ export function divisionForTime(mins) {
   return "bedtime";
 }
 
+/* The hour a meal defaults to when it is opened from a plan rather than typed
+   in by hand. Half an hour into the window the coach set, so the record lands
+   in the right division without claiming a precision nobody entered.
+
+   Lives here rather than in the Eat screen because the day's list opens the
+   logger too, and two copies of these six numbers would drift. */
+export const DIVISION_TIME = {
+  prebreakfast: 6 * 60 + 30,
+  breakfast: 8 * 60 + 30,
+  lunch: 13 * 60 + 30,
+  eveningsnack: 17 * 60 + 30,
+  dinner: 20 * 60 + 30,
+  bedtime: 22 * 60 + 30,
+};
+
 export const DIVISION_LABEL = {
   prebreakfast: "Pre Breakfast",
   breakfast: "Breakfast",

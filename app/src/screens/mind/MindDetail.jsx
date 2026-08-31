@@ -38,21 +38,15 @@ export default function MindDetail() {
             <MindHero />
           </div>
 
-          {/* No buttons: everything Kaira is asking for is listed directly
-              below, and a pair of shortcuts on top of a list is the same list
-              twice. */}
-          <LogPrompt
-            line={
-              healthSource.sleep === "manual"
-                ? "Start with last night, then work through the list below."
-                : "Work through the list below. A few minutes of it is enough to matter."
-            }
-            actions={
-              healthSource.sleep === "manual"
-                ? [{ label: "Log sleep", Icon: Moon, onClick: () => setLogSleepOpen(true) }]
-                : undefined
-            }
-          />
+          {/* Only when it has something to offer. Where sleep comes off the
+              phone this was a sentence telling somebody to read the list they
+              were already looking at, in a bordered box, above the list. */}
+          {healthSource.sleep === "manual" && (
+            <LogPrompt
+              line="Start with last night, then work through the list below."
+              actions={[{ label: "Log sleep", Icon: Moon, onClick: () => setLogSleepOpen(true) }]}
+            />
+          )}
 
           <div style={{ padding: "18px 22px 26px" }}>
             <ToolList />

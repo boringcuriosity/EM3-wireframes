@@ -25,8 +25,8 @@ const PLANS = {
     sub: "Neither coach has written your plan yet. They want to see how you really eat and how your days actually run, before asking you to change any of it.",
     steps: [
       { t: "You log your day", b: "Meals, movement, sleep. On the good days and the bad ones." },
-      { t: "Both coaches read it", b: "They arrive at your consultations already knowing how your days go." },
-      { t: "Your plans come back", b: "Built around your food, your timings and your body, not a template." },
+      { t: "You book your consultations", b: "One with each coach. They come to it having already read how your days go." },
+      { t: "Your plans come back", b: "Built around your food, your timings and your body, written at those sessions." },
     ],
   },
   eat: {
@@ -37,8 +37,8 @@ const PLANS = {
     sub: "Your nutrition coach has not written your food plan yet. They want to see how you really eat first, not a tidied up version of it.",
     steps: [
       { t: "You log your meals", b: "Everything, on the good days and the bad ones. Even chai and papad." },
-      { t: "Your coach reads it", b: "They arrive at your consultation already knowing how you eat and when." },
-      { t: "Your plan comes back", b: "Built around your food, your timings and your home, not a template." },
+      { t: "You book your consultation", b: "Your coach comes to it having already read how you eat and when." },
+      { t: "Your plan comes back", b: "Written at that session, around your food, your timings and your home." },
     ],
   },
   move: {
@@ -49,14 +49,14 @@ const PLANS = {
     sub: "Your exercise coach has not written your routine yet. They want to see how your days actually run before asking you to change them.",
     steps: [
       { t: "You log your movement", b: "Anything counts. A short walk, the stairs, an hour of housework." },
-      { t: "Your coach reads it", b: "They arrive at your consultation already knowing what your days allow." },
-      { t: "Your plan comes back", b: "Built around your days and your body, not a template." },
+      { t: "You book your consultation", b: "Your coach comes to it having already read what your days allow." },
+      { t: "Your plan comes back", b: "Written at that session, around your days and your body." },
     ],
   },
 };
 
 export default function PlanWaitSheet() {
-  const { planInfo, setPlanInfo } = useWF();
+  const { planInfo, setPlanInfo, openBooking } = useWF();
   const p = PLANS[planInfo];
   if (!p) return null;
   const hue = PILLAR[p.pillar];
@@ -198,6 +198,45 @@ export default function PlanWaitSheet() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* The step everything above waits on, named and bookable. The sheet
+              explained the sequence and then left the one thing a person could
+              actually do about it off the screen. */}
+          <div
+            style={{
+              marginTop: 18,
+              paddingTop: 16,
+              borderTop: "1px solid " + LINE,
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, lineHeight: 1.4 }}>
+              Step two is the one waiting on you
+            </div>
+            <div style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.55, marginTop: 4 }}>
+              Your plans are written at that consultation, so booking it is what starts them.
+            </div>
+            <button
+              onClick={openBooking}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                background: "none",
+                border: "none",
+                padding: "10px 0 0",
+                margin: 0,
+                fontSize: 13,
+                fontWeight: 700,
+                color: GREEN,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                textDecoration: "underline",
+                textUnderlineOffset: 3,
+              }}
+            >
+              Book your consultation
+            </button>
           </div>
         </div>
 

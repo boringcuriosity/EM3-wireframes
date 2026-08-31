@@ -7,7 +7,7 @@ import { sectionLabel, coachAvatar } from "../ui";
 import CtaArrow from "../components/CtaArrow";
 
 export default function ProgramDetailPage() {
-  const { setEatDetail, setProgramDetail, programSub, setProgramSub, setChatsOpen, program } = useWF();
+  const { setEatDetail, setProgramDetail, programSub, setProgramSub, setChatsOpen, program, careTeam } = useWF();
 
   return (
     (
@@ -159,11 +159,7 @@ export default function ProgramDetailPage() {
                   <span style={{ fontSize: 11.5, color: MUTED }}>Book your first session now</span>
                 </div>
 
-                {[
-                  { role: "Your nutritionist", name: "Sahana Chandra" },
-                  { role: "Your physiotherapist", name: "Sahana Physio" },
-                  { role: "Your success coach", name: "Manya Jain" },
-                ].map((c) => (
+                {careTeam.map((c) => (
                   <div
                     key={c.name}
                     style={{

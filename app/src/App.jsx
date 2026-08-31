@@ -8,6 +8,9 @@ import MorePage from "./screens/More";
 import EatDetailPage from "./screens/EatDetail";
 import OnboardingPage from "./screens/Onboarding";
 import ChatsPage from "./screens/Chats";
+import PlanNotification from "./screens/PlanNotification";
+import BookAppointment from "./screens/BookAppointment";
+import PushNotification from "./screens/PushNotification";
 import ProgramDetailPage from "./screens/ProgramDetail";
 import ProgressPage from "./screens/measure/ProgressPage";
 import MsPage from "./screens/measure/MsPage";
@@ -27,6 +30,9 @@ import FlipcoinsSheet from "./components/FlipcoinsSheet";
 import PlanWaitSheet from "./components/PlanWaitSheet";
 import TaskDoneSheet from "./components/TaskDoneSheet";
 import DayRowSheet from "./components/DayRowSheet";
+import CoachTipSheet from "./components/CoachTipSheet";
+import KairaChatSheet from "./components/KairaChatSheet";
+import KairaLogSheet from "./components/KairaLogSheet";
 import StreakOverlay from "./components/StreakOverlay";
 import MealItemSheet from "./components/MealItemSheet";
 import MetricInfoSheet from "./components/MetricInfoSheet";
@@ -34,11 +40,13 @@ import HealthConnectSheet from "./components/HealthConnectSheet";
 import MindDetail from "./screens/mind/MindDetail";
 import LogSleep from "./screens/mind/LogSleep";
 import ToolSheet from "./screens/mind/ToolSheet";
+import MindTemplateSheet from "./screens/mind/MindTemplateSheet";
 import AddStepsSheet from "./screens/move/AddStepsSheet";
 import StreakRewardsSheet from "./components/StreakRewardsSheet";
 import ShareStreakSheet from "./components/ShareStreakSheet";
 import MoveDetail from "./screens/move/MoveDetail";
 import LogExercise from "./screens/move/LogExercise";
+import MoveLogged from "./screens/move/MoveLogged";
 import Splash from "./screens/auth/Splash";
 import PhoneEntry from "./screens/auth/PhoneEntry";
 import OtpEntry from "./screens/auth/OtpEntry";
@@ -56,8 +64,15 @@ import WeekReadSheet from "./components/WeekReadSheet";
 // Full-screen takeovers hide the bottom nav. Order matters: the first
 // truthy one wins, exactly as in the original wireframe.
 function Takeover() {
-  const { logExOpen, logSleepOpen, mindDetail, moveDetail, logResult, logOpen, suffFlow, streakOpen, onboardingOpen, chatsOpen, programDetail, eatDetail, cgmOpen, bcaOpen } = useWF();
+  const { logExOpen, logSleepOpen, mindDetail, moveDetail, logResult, logOpen, suffFlow, streakOpen, onboardingOpen, chatsOpen, programDetail, eatDetail, cgmOpen, bcaOpen, planNotif, moveResult, bookOpen } = useWF();
+  /* First, because neither is our app. Nothing of ours belongs over a message
+     somebody is reading on a lock screen or in WhatsApp. */
+  if (planNotif === "push") return <PushNotification />;
+  if (planNotif) return <PlanNotification />;
+  if (bookOpen) return <BookAppointment />;
   if (logSleepOpen) return <LogSleep />;
+  // The result outranks the logger, exactly as a meal's does.
+  if (moveResult) return <MoveLogged />;
   if (logExOpen) return <LogExercise />;
   if (mindDetail) return <MindDetail />;
   if (moveDetail) return <MoveDetail />;
@@ -145,6 +160,9 @@ export default function App() {
   const { activeTab, isPaid, todayOnboarded } = wf;
   const Auth = AUTH[wf.authStep];
   const takeover =
+    wf.planNotif ||
+    wf.moveResult ||
+    wf.bookOpen ||
     wf.logSleepOpen ||
     wf.mindDetail ||
     wf.logExOpen ||
@@ -230,11 +248,15 @@ export default function App() {
             {wf.shareOpen && <ShareStreakSheet />}
             {wf.taskDone && <TaskDoneSheet />}
             {wf.rowMenu && <DayRowSheet />}
+            {wf.tipInfo && <CoachTipSheet />}
+            {wf.kairaAsk && <KairaChatSheet key={wf.kairaAsk} />}
+            {wf.kairaLog && <KairaLogSheet key={wf.kairaLog} />}
             {wf.streakBurst && <StreakOverlay />}
             {wf.mealItem && <MealItemSheet />}
             {wf.metricInfo && <MetricInfoSheet />}
             {wf.healthSheet && <HealthConnectSheet />}
             {wf.mindTool && <ToolSheet />}
+            {wf.mindTemplate && <MindTemplateSheet />}
             {wf.stepsSheet && <AddStepsSheet />}
           </>
         ) : (
@@ -268,11 +290,15 @@ export default function App() {
             {wf.shareOpen && <ShareStreakSheet />}
             {wf.taskDone && <TaskDoneSheet />}
             {wf.rowMenu && <DayRowSheet />}
+            {wf.tipInfo && <CoachTipSheet />}
+            {wf.kairaAsk && <KairaChatSheet key={wf.kairaAsk} />}
+            {wf.kairaLog && <KairaLogSheet key={wf.kairaLog} />}
             {wf.streakBurst && <StreakOverlay />}
             {wf.mealItem && <MealItemSheet />}
             {wf.metricInfo && <MetricInfoSheet />}
             {wf.healthSheet && <HealthConnectSheet />}
             {wf.mindTool && <ToolSheet />}
+            {wf.mindTemplate && <MindTemplateSheet />}
             {wf.stepsSheet && <AddStepsSheet />}
             <Toast />
           </>
