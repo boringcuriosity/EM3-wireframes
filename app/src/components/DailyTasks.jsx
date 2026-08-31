@@ -6,6 +6,7 @@ import DayRow from "./DayRow";
 import Em3Strip from "./Em3Strip";
 import LotusIcon from "./LotusIcon";
 import DayStreakBar, { DayDoneCard } from "./DayStreakBar";
+import MetabolismCards from "./MetabolismCards";
 import { ChevronRight, MoreHorizontal, Utensils, Flame, BarChart3 } from "lucide-react";
 import { PILLAR, TEXT, MUTED, FAINT, LINE, BG, BORDER, SH_SM } from "../tokens";
 
@@ -21,7 +22,7 @@ import { PILLAR, TEXT, MUTED, FAINT, LINE, BG, BORDER, SH_SM } from "../tokens";
    rings, because that is the only real question: how much of the list does
    Home owe you before you go to To-do for the rest. */
 export default function DailyTasks() {
-  const { dailyState, dayPhases, dayLive, dayComplete, homeCard, setActiveTab,
+  const { dailyState, dayPhases, dayLive, dayComplete, homeCard, metabCard, setActiveTab,
           setEatDetail, setMoveDetail, setMindDetail } = useWF();
 
   if (dailyState === "ftux") return <FtuxExplainer />;
@@ -213,6 +214,7 @@ export default function DailyTasks() {
       </div>
       )}
 
+      {metabCard !== "tiles" ? <MetabolismCards /> : (
       <div style={{ marginTop: 22 }}>
         <div style={{ fontSize: 13, fontWeight: 600, color: TEXT, marginBottom: 10 }}>Metabolism</div>
         <div style={{ display: "flex", gap: 10 }}>
@@ -254,6 +256,7 @@ export default function DailyTasks() {
           ))}
         </div>
       </div>
+      )}
     </>
   );
 

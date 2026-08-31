@@ -40,7 +40,8 @@ const startTime = (when) => {
 export default function DayRow({ row: r, last, compact, now }) {
   const { openRow, setRowMenu, setTipInfo, planOption, setPlanOption, celebrated, celebrate, uncelebrate, taskCard, nextRowId } = useWF();
   const c = PILLAR[r.pillar].c;
-  const bar = r.kind === "target";
+  // A target with nothing to count towards has no bar to draw.
+  const bar = r.kind === "target" && r.goal != null;
   const pct = bar && r.now ? Math.min(100, Math.round((r.now / r.goal) * 100)) : 0;
   const off = r.skipped;
   const PillarIcon = PILLAR_ICON[r.pillar];
@@ -304,10 +305,16 @@ export default function DayRow({ row: r, last, compact, now }) {
             <div
               style={{
                 height: "100%",
-                width: pct + "%",
+                width: "100%",
                 background: c,
                 borderRadius: 2,
-                transition: "width .5s cubic-bezier(.32,.72,0,1)",
+                /* Scaled rather than widened, so filling the bar does not make
+                   the row lay itself out again on every frame. The track
+                   already clips, and a 2px cap on a 4px bar is not something a
+                   horizontal scale can visibly bend. */
+                transformOrigin: "left",
+                transform: "scaleX(" + pct / 100 + ")",
+                transition: "transform .5s cubic-bezier(.32,.72,0,1)",
               }}
             />
           </div>
@@ -712,7 +719,11 @@ export default function DayRow({ row: r, last, compact, now }) {
                   }}
                 />
               )}
-              {off ? (
+              {/* Home shows what To-do shows. A row that names a meal and then hides
+            the two things you might eat is asking you to go somewhere else to
+            find out what it meant, which is the opposite of a shortlist. What
+            still differs between the two is the menu, not the detail. */}
+        {off ? (
                 <Minus size={12} color={FAINT} strokeWidth={3} />
               ) : r.done ? (
                 <Tick draw={burst} />
@@ -943,24 +954,27 @@ export default function DayRow({ row: r, last, compact, now }) {
           </span>
         ) : (
           <>
-            {r.tip && !r.done && !compact && (
+            {r.tip && !r.done && (
               <span style={{ display: "block", fontSize: 11.5, color: MUTED, lineHeight: 1.45, marginTop: 4 }}>
                 {r.tip}
               </span>
             )}
-            {r.opts?.length > 0 && !compact && (
+            {r.opts?.length > 0 && (
               <Plan row={r} onPick={(i) => setPlanOption({ ...planOption, [r.division]: i })} />
             )}
-            {bar && !compact && (
+            {bar && (
               <div style={{ marginTop: 8 }}>
                 <div style={{ height: 4, borderRadius: 2, background: LINE, overflow: "hidden" }}>
                   <div
                     style={{
                       height: "100%",
-                      width: pct + "%",
+                      width: "100%",
                       background: c,
                       borderRadius: 2,
-                      transition: "width .5s cubic-bezier(.32,.72,0,1)",
+                      // Same reason as the bar on the timeline row above.
+                      transformOrigin: "left",
+                      transform: "scaleX(" + pct / 100 + ")",
+                      transition: "transform .5s cubic-bezier(.32,.72,0,1)",
                     }}
                   />
                 </div>

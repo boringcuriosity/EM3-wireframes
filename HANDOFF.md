@@ -189,7 +189,7 @@ Three pieces make it up:
 
 - `ALL_GROUPS` — every group, in order.
 - `SCREEN_GROUPS` — which groups matter on which screen, so the panel filters itself to what
-  you are looking at. The toggle at the top switches between "This screen" and "All controls".
+  you are looking at. A line at the foot of the panel switches between the current screen's controls and all of them.
 - `panelGroup(id, title, appliesTo, chips, caption, stack)` and
   `panelChip(label, active, onClick, title, expanded, sub)` — the two helpers everything is
   built from. `appliesTo` is the human note under the group title ("To-do, the day's list").
@@ -295,7 +295,7 @@ design as it stands.
 ### Four parts of the day, on Indian hours
 
 `PHASE_MODES` in `day.js` holds both splits and `phasesFor(mode)` picks one; `phaseMode` in
-state is 3 or 4 and defaults to 4. **Parts of the day** in the panel switches them, on To-do
+state is 3 or 4 and defaults to 4. **Evening vs Night** in the panel switches them, on To-do
 and on Home, because Home's "This part of day" card reads the same phases.
 
 The four are the four an Indian day already has names for: subah, dopahar, shaam, raat.
@@ -322,7 +322,7 @@ The planned day comes out 6 / 2 / 2 / 5, the free day 2 / 2 / 2 / 3.
 ### Eight ways to draw a day, all live in the panel
 
 How a task should look is **an open decision the user is still making**. Rather than argue it
-in prose, all eight candidates are built and switchable from **Task layout** in the panel.
+in prose, all eight candidates are built and switchable from **To-do layout** in the panel.
 Nothing here is dead code to delete: it is the comparison itself.
 
 | Chip | The idea |
@@ -374,7 +374,7 @@ screensaver.
 
 It starts before the app. A plan is written while the person is somewhere else, so the first
 things they ever read about it are a push and a WhatsApp message, and neither had been looked
-at beside the screens they introduce. Both live under **Plan handover** in the panel as
+at beside the screens they introduce. Both live under **Plan assignment** in the panel as
 two icon chips, a bell and a speech bubble, and are reachable from nowhere else, because
 neither is a screen in this app. `panelChip` takes an optional icon for the handful of chips
 whose label runs longer than the thing it names; the label stays as the key and the accessible
@@ -431,7 +431,7 @@ settled stretch.
 ### The weekly read
 
 A trend nobody finds is a trend nobody has, so the week comes to the day. Two shapes, both in
-the panel under **Weekly insight**: three reads spread across the day (sleep in the morning,
+the panel under **Weekly trend insight**: three reads spread across the day (sleep in the morning,
 movement in the afternoon, food after dinner), or one Measure row in the evening that opens
 `WeekReadSheet` covering all three. Either way `openWeek()` in `state.jsx` is the single
 opener, and it sets the pillar's trend to a week worth reading before navigating, because
@@ -948,14 +948,14 @@ The smoke test proves it renders; only the screen proves it is right.
 Committed through `38a575c` ("Seven ways to draw a day, switchable from the panel"). Nothing
 after that is pushed, and nothing should be until the user says so.
 
-**Uncommitted in the working tree:**
+**Recently landed** (everything below is committed; the list is here as a change log, not as a to-do):
 
 - the state-aware row menu in `DayRowSheet.jsx` (skip / back / undo / less / open) and the
   "Go to Eat" wording
 - the three coach nudges replacing the two capsule reminders, in `state.jsx`, plus `pillar` on
   a note so morning sun files under Mind (`screens/today/day.js`)
 - the panel captions and presets that reference them
-- the four-part day (`PHASE_MODES`, `phasesFor`, `phaseMode`), the **Parts of the day** panel
+- the four-part day (`PHASE_MODES`, `phasesFor`, `phaseMode`), the **Evening vs Night** panel
   toggle, the sleep row's hour, and the phase `when` wording on Home
 - the coach's session at 6:30 PM for 30 minutes, with generic subtext
 - the one tap meal log: `openMealLog`, `logPlan`, `logReturn`, `goToRecord`, the logger's
@@ -970,10 +970,24 @@ after that is pushed, and nothing should be until the user says so.
   `RoutineList`
 - the plan assignment notifications: `screens/PlanNotification.jsx` (both WhatsApp messages
   verbatim), `screens/PushNotification.jsx`, `planNotif`, `careTeam` lifted into state, and the
-  **Push notification** and **WhatsApp messages** chips under Plan handover
+  **Push notification** and **WhatsApp messages** chips under Plan assignment
 - the tip bulb, `CoachTipSheet.jsx`, `KairaChatSheet.jsx`, `askAbout()`, and the **Coach tip**
   panel group
-- `app/public/v2/`, untracked, the ring snapshot
+- `app/public/v2/`, the ring snapshot
+- every bottom sheet without its drag handle or its serif, and all 25 sheet panels clipping to
+  their own 26px corners (`overflow: hidden`)
+- TDEE at 2,200, reached through the persona so the sheet's worked example still adds up, and
+  the empty Eaten orb as the way in to Eat
+- `MetabolismCards.jsx`: the four pillars as slim score cards in a swipe rail, four layouts
+  behind the **Metabolism strip** panel group, `pillarScores` derived in `state.jsx`. Every
+  lock comes off the real day; Momentum and Wellbeing's figures are staged in one place because
+  neither has a formula yet. **Gauge is the default**, so Home shows scores rather than tiles
+  out of the box
+- a quieter panel: no NOW SHOWING card, the scope switch moved to a line at the foot, Care plan
+  as a real switch, and Day won / Skipped tasks / Coach tip / Streak strip off the screen lists
+  but still reachable under Show all controls
+- water as one tick rather than a counter with a bar, and both `DayRow` progress bars animating
+  `transform` instead of `width`
 
 **Waiting on the user, in order:**
 

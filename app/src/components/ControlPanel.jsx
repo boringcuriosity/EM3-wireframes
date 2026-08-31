@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { useWF } from "../state";
 import { DEMO_DAY } from "../screens/log/foods";
 import { MIND_TEMPLATES } from "../screens/mind/tools";
-import { Home, Bell, MessageCircle, CalendarPlus } from "lucide-react";
-import { GREEN, TEXT, TABS, SH, SH_MD } from "../tokens";
+import { Home, Bell, MessageCircle } from "lucide-react";
+import { GREEN, TEXT, SH, SH_MD } from "../tokens";
 import { flame } from "../ui";
 
 /* Every state Today's focus can be in, as one tap each. `progress` is the real
@@ -23,7 +23,7 @@ const ALL_DONE = { eat: 3, move: 1, mind: 1, measure: 1 };
 const ALL_GROUPS = [
   "signup", "plan", "welcome", "tour", "move", "hero", "targets",
   "logging", "suff", "streakscreen", "streak", "milestones",
-  "focus", "homecard", "planarrive", "dayparts", "coachtip", "taskcard", "weekread", "movetrend", "mindtrend", "dayWon", "skip", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "mind", "measure",
+  "focus", "homecard", "metabcard", "planarrive", "dayparts", "coachtip", "taskcard", "weekread", "movetrend", "mindtrend", "dayWon", "skip", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "mind", "measure",
 ];
 
 const SCREEN_GROUPS = {
@@ -32,14 +32,14 @@ const SCREEN_GROUPS = {
   mind: ["mind", "mindtrend", "focus"],
   logging: ["logging", "targets"],
   suff: ["suff", "targets"],
-  streakscreen: ["streakscreen", "streak", "milestones", "focus"],
+  streakscreen: ["streakscreen", "milestones", "focus"],
   eat: ["eat", "targets", "logging", "coachtip"],
   chats: [],
   program: ["welcome"],
-  todo: ["nextaction", "hero", "focus", "dayparts", "coachtip", "taskcard", "planarrive", "weekread", "dayWon", "skip", "measuretasks", "streak"],
+  todo: ["nextaction", "hero", "focus", "dayparts", "taskcard", "planarrive", "weekread", "measuretasks"],
   // Home's "This part of day" card reads the same phases, so the split is a
   // control on both screens rather than a To-do one that quietly moves Home.
-  home: ["welcome", "tour", "nextaction", "focus", "homecard", "dayparts", "measuretasks", "streak"],
+  home: ["welcome", "tour", "nextaction", "focus", "homecard", "metabcard", "dayparts", "measuretasks"],
   measure: ["measure"],
   care: [],
   more: [],
@@ -188,7 +188,7 @@ const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 const SLEEP_SRC = { gate: null, syncing: "phone", phone: "phone", manualnone: "manual", manual: "manual", tools: "manual" };
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, eatTab, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, programSub, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, logPlan, openMealLog, kairaLog, setKairaLog, planNotif, setPlanNotif, hasTargets, scoreUnlocked, mealsIn, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, logExPick, openMoveLog, moveResult, setMoveResult, setRoutineFeel, setRoutineDone, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindKept, mindTemplate, setMindTemplate, setTemplateKept, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, phaseMode, setPhaseMode, tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira, planSeen, setPlanSeen, kcalSource, movePlan, mindPlan, setMindPlan, bookOpen, setBookOpen, bookWith, setBookWith, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, logPlan, openMealLog, kairaLog, setKairaLog, planNotif, setPlanNotif, hasTargets, scoreUnlocked, mealsIn, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, logExPick, openMoveLog, moveResult, setMoveResult, setRoutineFeel, setRoutineDone, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindKept, mindTemplate, setMindTemplate, setTemplateKept, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, metabCard, setMetabCard, phaseMode, setPhaseMode, tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira, planSeen, setPlanSeen, kcalSource, movePlan, mindPlan, setMindPlan, bookOpen, setBookOpen, bookWith, setBookWith, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -237,6 +237,7 @@ export default function ControlPanel() {
     skip: daySkipped.length ? daySkipped.length + " skipped" : "none",
     planarrive: bookOpen ? "booking" : planNotif || undefined,
     dayparts: phaseMode === 4 ? "with night" : "no night",
+    metabcard: metabCard,
     coachtip: kairaAsk ? "Kaira" : tipInfo ? "explainer" : "closed",
     dayWon: streakBurst ? "showing" : "off",
 
@@ -302,7 +303,7 @@ export default function ControlPanel() {
     : "home";
 
   /* To-do is two different screens depending on the care plan, so the rail is
-     too. Without a plan the top is the Start here cards and there is no hero
+     too. Without a plan the top is the Prerequisites cards and there is no hero
      and no device sync to vary; with one, the reverse. The Care plan toggle at
      the head of the panel is how you cross between them. */
   const onScreen = (SCREEN_GROUPS[screenKey] || []).filter((g) =>
@@ -317,83 +318,6 @@ export default function ControlPanel() {
   // headers use, so the label always matches what is on screen.
   const allOpen = ALL_GROUPS.some((g) => (g === liveGroup) !== openGroups.includes(g));
 
-  const nowShowing = bcaOpen
-    ? "Measure · Body composition sync"
-    : cgmOpen
-    ? "Measure · CGM sync"
-    : logExOpen
-    ? "Move · Log exercise"
-    : logSleepOpen
-    ? "Mind · Log sleep"
-    : moveDetail
-    ? "Move · " + ({ today: "Today", trend: "Trend", learn: "Learn" }[moveTab] || moveTab)
-    : mindDetail
-    ? "Mind · " + ({ today: "Today", trend: "Trend", learn: "Learn" }[mindTab] || mindTab)
-    : logResult
-    ? "Log · Meal logged"
-    : logOpen
-    ? "Log · Search and add"
-    : suffFlow
-    ? "Sufficiency · " +
-      ({
-        learn: "What it is",
-        profile: "Your targets",
-        meals: "Your usual day",
-        computing: "Kaira reading",
-        result: "Your score",
-        computing2: "Kaira reading",
-        lifted: "Score lifted",
-      }[suffFlow] || suffFlow)
-    : streakOpen
-    ? "Streak · " + (streakOpen === "guide" ? "How it works" : "Invite friends")
-    : authStep
-    ? "Signup · " +
-      ({
-        splash: "Splash",
-        phone: "Mobile number",
-        otp: "OTP",
-        name: "Your name",
-      }[authStep] || authStep)
-    : chatsOpen
-    ? "Chats"
-    : programDetail
-    ? programSub === "progress"
-      ? "Program · Progress"
-      : "Program detail"
-    : eatDetail
-    ? "Eat detail · " +
-      eatTab +
-      " · " +
-      eatState.toUpperCase() +
-      " " +
-      ({
-        ft: "First time",
-        fad: "First activity done",
-        kg: "Knowledge gap",
-        wc: "Week completed",
-        w2: "Week two",
-        cg: "Capability gap",
-      }[eatState] || "")
-    : tour !== null && activeTab === "home" && isPaid
-    ? "Home · Guided tour · step " + (tour + 1) + " of 3"
-    : programIntro && activeTab === "home" && isPaid
-    ? "Home · Program welcome · bottom sheet"
-    : activeTab === "home"
-    ? isPaid
-      ? "Home · Program user · " +
-        (sessionState === "booked" ? "Session booked" : "No sessions")
-      : "Home · " + userState
-    : activeTab === "med"
-    ? "Measure · " +
-      measureApproach.toUpperCase() +
-      " " +
-      ({
-        a0: "Achieve",
-        ms: "Metabolic score",
-        a1: "Reflection first",
-        msa2: "Refined score",
-      }[measureApproach] || "")
-    : TABS.find((t) => t.id === activeTab)?.label;
 
   const panelChip = (label, active, onClick, title, expanded, sub, Icon) => (
     <button
@@ -572,53 +496,6 @@ export default function ControlPanel() {
           </button>
         </div>
 
-        <div
-          style={{
-            marginTop: 12,
-            background: "#FFFFFF",
-            border: "1px solid #E4E7EC",
-            borderRadius: 10,
-            padding: "8px 10px",
-          }}
-        >
-          <div style={{ fontSize: 9.5, color: "#98A2B3", letterSpacing: 0.6, fontWeight: 700 }}>
-            NOW SHOWING
-          </div>
-          <div style={{ fontSize: 12, fontWeight: 600, color: TEXT, marginTop: 2 }}>{nowShowing}</div>
-        </div>
-
-        {/* The rail follows you: it carries the controls for the screen you are
-            on, and everything else folds behind one switch. */}
-        <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
-          {[
-            { on: false, label: "This screen", n: onScreen.length },
-            { on: true, label: "All controls", n: ALL_GROUPS.length },
-          ].map((v) => (
-            <button
-              key={v.label}
-              onClick={() => setShowAll(v.on)}
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 5,
-                fontSize: 10.5,
-                fontWeight: 700,
-                padding: "6px 0",
-                borderRadius: 8,
-                border: "1px solid " + (showAll === v.on ? GREEN : "#D0D5DD"),
-                background: showAll === v.on ? GREEN : "#FFFFFF",
-                color: showAll === v.on ? "#fff" : "#475467",
-                cursor: "pointer",
-              }}
-            >
-              {v.label}
-              <span style={{ opacity: 0.6, fontWeight: 500 }}>{v.n}</span>
-            </button>
-          ))}
-        </div>
-
         {/* The one switch that changes the most across the app, so it stays out
             of the accordion and in reach on every screen. */}
         {isPaid && (
@@ -637,41 +514,58 @@ export default function ControlPanel() {
             <span style={{ flex: 1, fontSize: 11, fontWeight: 700, color: "#1D2939" }}>
               Care plan
             </span>
-            {[
-              { on: false, label: "Not yet" },
-              { on: true, label: "Assigned" },
-            ].map((v) => (
-              <button
-                key={v.label}
-                onClick={() => {
-                  /* One switch for the whole handover: targets, routine, meal
-                     slots, the psychologist's worksheets and the waiting strips
-                     all follow from it. A consultation produces three plans, so
-                     "assigned" means three, not the two it used to mean while
-                     Mind quietly stayed behind. */
-                  setKcalSource(v.on ? "coach" : "pending");
-                  setMovePlan(v.on ? "assigned" : null);
-                  setMindPlan(v.on ? "assigned" : null);
-                  setTodayOnboarded(true);
-                  if (!eatDetail && !moveDetail && activeTab !== "track") {
-                    setActiveTab("track");
-                  }
-                }}
+            <span style={{ fontSize: 10.5, color: "#667085", fontWeight: 600 }}>
+              {planAssigned ? "Assigned" : "Not yet"}
+            </span>
+            <button
+              role="switch"
+              aria-checked={planAssigned}
+              aria-label="Care plan assigned"
+              onClick={() => {
+                /* One switch for the whole handover: targets, routine, meal
+                   slots, the psychologist's worksheets and the waiting strips
+                   all follow from it. A consultation produces three plans, so
+                   assigned means three, not the two it used to mean while Mind
+                   quietly stayed behind. */
+                const on = !planAssigned;
+                setKcalSource(on ? "coach" : "pending");
+                setMovePlan(on ? "assigned" : null);
+                setMindPlan(on ? "assigned" : null);
+                setTodayOnboarded(true);
+                if (!eatDetail && !moveDetail && activeTab !== "track") {
+                  setActiveTab("track");
+                }
+              }}
+              style={{
+                width: 34,
+                height: 20,
+                flexShrink: 0,
+                borderRadius: 999,
+                border: "none",
+                padding: 0,
+                background: planAssigned ? GREEN : "#D0D5DD",
+                cursor: "pointer",
+                transition: "background .2s ease",
+                position: "relative",
+              }}
+            >
+              <span
                 style={{
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  padding: "5px 11px",
-                  borderRadius: 999,
-                  border: "1px solid " + (planAssigned === v.on ? GREEN : "#D0D5DD"),
-                  background: planAssigned === v.on ? GREEN : "#FFFFFF",
-                  color: planAssigned === v.on ? "#fff" : "#475467",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
+                  position: "absolute",
+                  top: 2,
+                  left: 2,
+                  width: 16,
+                  height: 16,
+                  borderRadius: "50%",
+                  background: "#fff",
+                  boxShadow: "0 1px 2px rgba(16,24,40,0.2)",
+                  // Slid rather than re-laid-out, so the knob does not make the
+                  // panel measure itself again on every flick.
+                  transform: planAssigned ? "translateX(14px)" : "none",
+                  transition: "transform .2s cubic-bezier(.32,.72,0,1)",
                 }}
-              >
-                {v.label}
-              </button>
-            ))}
+              />
+            </button>
           </div>
         )}
 
@@ -753,7 +647,7 @@ export default function ControlPanel() {
         {isPaid &&
           panelGroup(
             "welcome",
-            "Program welcome",
+            "Welcome bottomsheet",
             "Home, after onboarding",
             [
               { id: "sheet", label: "Sheet", full: "Bottom sheet" },
@@ -780,7 +674,7 @@ export default function ControlPanel() {
         {isPaid &&
           panelGroup(
             "tour",
-            "Guided tour",
+            "Coachmarks tour",
             "spotlight over Home",
             [
               { id: 0, label: "1 Program", full: "Program card" },
@@ -1202,7 +1096,7 @@ export default function ControlPanel() {
         {isPaid &&
           panelGroup(
             "planarrive",
-            "Plan handover",
+            "Plan assignment",
             "To-do, the card above the list",
             [
               { id: "none", label: "No plans yet", eatIn: false, moveIn: false, mindIn: false, seen: [] },
@@ -1242,12 +1136,6 @@ export default function ControlPanel() {
                  the person is somewhere else, so these are the first things
                  they read about it, and neither one is a screen in this app. */
               [
-                {
-                  id: "booking",
-                  label: "Book a consultation",
-                  Icon: CalendarPlus,
-                  d: "The screen the plan card's sheet now points at. Three coaches, then a week with the free days dotted. Booking one writes the session card on Home.",
-                },
                 {
                   id: "push",
                   label: "Push notification",
@@ -1339,7 +1227,7 @@ export default function ControlPanel() {
 
         {panelGroup(
           "dayparts",
-          "Parts of the day",
+          "Evening vs Night",
           "To-do headings, and Home's part of day card",
           [
             {
@@ -1380,7 +1268,7 @@ export default function ControlPanel() {
 
         {panelGroup(
           "taskcard",
-          "Task layout",
+          "To-do layout",
           "To-do, the day's list",
           [
             { id: "row", label: "Rows", d: "Today's list: tight rows inside one card per part of the day." },
@@ -1414,7 +1302,7 @@ export default function ControlPanel() {
 
         {panelGroup(
           "weekread",
-          "Weekly insight",
+          "Weekly trend insight",
           "To-do, an evening row",
           [
             { id: "off", label: "Off", d: "Not the end of a week. Nothing in the day about it." },
@@ -1527,6 +1415,28 @@ export default function ControlPanel() {
         )}
 
         {panelGroup(
+          "metabcard",
+          "Metabolism strip",
+          "Home, under the day",
+          [
+            { id: "tiles", label: "Four tiles", full: "Icon and name only, four ways in" },
+            { id: "gauge", label: "Gauge", full: "A bar along the foot showing where the score sits" },
+            { id: "peek", label: "Hexagon", full: "Solid hexagon, a third of it past the edge" },
+            { id: "medal", label: "Medal", full: "Upright and narrow, the badge over the name" },
+            { id: "headline", label: "Headline", full: "The figure large, the pillar named beside it" },
+          ].map((v) =>
+            panelChip(v.label, metabCard === v.id, () => { setMetabCard(v.id); setActiveTab("home"); }, v.full)
+          ),
+          {
+            tiles: "The four squares as they are today. The same four words whatever the day did.",
+            peek: "Each pillar's score in its own colour, the number in white, the shape running off the card. Loudest of the four.",
+            medal: "A shelf rather than a queue. Narrow enough that more than one is readable without swiping.",
+            gauge: "The only one that says whether the number is good. 62 out of 100 means nothing until you see how far along it sits.",
+            headline: "Four figures and whose they are, and nothing else. The explaining happens on the screen it opens.",
+          }[metabCard]
+        )}
+
+        {panelGroup(
           "focus",
           "Today's focus",
           "Home row + To-do list",
@@ -1572,6 +1482,8 @@ export default function ControlPanel() {
                 setHealthSource({ steps: "manual", sleep: "manual" });
                 setHealthSync(null);
                 setDaySkipped([]);
+                if (weekInsight !== "off") setWeekInsight(d.every ? "read" : "ready");
+                if (!d.every) setWeekReads([]);
                 setStreakDays(v.days);
                 setStreakState(v.days > 0 ? "active" : "new");
                 setTaskDone(null);
@@ -1653,7 +1565,7 @@ export default function ControlPanel() {
 
         {panelGroup(
           "nextaction",
-          screenKey === "todo" ? "Start here cards" : "Next actions card",
+          screenKey === "todo" ? "Prerequisites" : "Next actions card",
           screenKey === "todo" ? "To-do, above the list" : "Home carousel, second card",
           [
             { id: "all", label: "All three waiting", v: ["score", "labs", "assess"], d: [] },
@@ -1919,6 +1831,31 @@ export default function ControlPanel() {
             current && current.desc
           );
         })()}
+
+        {/* The scope switch, put where a setting belongs rather than at the
+            top where it competed with the controls it filters. */}
+        <button
+          onClick={() => setShowAll(!showAll)}
+          style={{
+            display: "block",
+            width: "100%",
+            marginTop: 14,
+            padding: "8px 0 2px",
+            background: "none",
+            border: "none",
+            borderTop: "1px solid #E4E7EC",
+            fontSize: 10.5,
+            fontWeight: 600,
+            color: "#98A2B3",
+            cursor: "pointer",
+            fontFamily: "inherit",
+            textAlign: "center",
+          }}
+        >
+          {showAll
+            ? "Showing all " + ALL_GROUPS.length + " controls \u00b7 show this screen only"
+            : "Show all controls \u00b7 " + ALL_GROUPS.length}
+        </button>
       </aside>
     )
   );

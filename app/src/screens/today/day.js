@@ -262,9 +262,10 @@ export function buildDay(w) {
     id: "water", pillar: "eat", at: 14 * 60, coins: 3,
     verb: "Drink", name: WATER_GOAL + " glasses of water",
     tip: "Avoid drinking water right before you eat.",
+    /* Two glasses is one ask, not a counter to fill. A plus and a bar made a
+       row you tick into a row you visit twice, and a half full bar said less
+       than the sentence above it already does. */
     kind: "target", to: "water",
-    now: water, goal: WATER_GOAL, unit: "glasses",
-    add: true,
     done: water >= WATER_GOAL,
   });
 

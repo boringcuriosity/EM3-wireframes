@@ -276,7 +276,7 @@ export default function App() {
 
             <BottomNav />
 
-            {/* Program welcome, over the whole frame including the nav */}
+            {/* Welcome bottomsheet, over the whole frame including the nav */}
             {wf.programIntro === "sheet" && activeTab === "home" && isPaid && (
               <ProgramWelcomeSheet />
             )}

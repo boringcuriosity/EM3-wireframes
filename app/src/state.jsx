@@ -75,6 +75,13 @@ export function WFProvider({ children, initial = {} }) {
      "next" = the one thing next, "phase" = this part of the day, "task" = one
      named task over the rings. */
   const [homeCard, setHomeCard] = useState(initial.homeCard !== undefined ? initial.homeCard : "split");
+
+  /* What the Metabolism strip under the day is made of. "tiles" is the four
+     squares that are only a way in; the rest are the same four as slim cards
+     carrying each pillar's score, drawn a few ways while we pick one. The
+     gauge leads because it is the only one that says whether the number it
+     shows is any good. */
+  const [metabCard, setMetabCard] = useState(initial.metabCard !== undefined ? initial.metabCard : "gauge");
   /* What the Next actions card is carrying. An empty list means the card and
      its tab are not there at all. Three at most: a card that scrolls is a
      screen pretending to be a card. */
@@ -140,7 +147,7 @@ export function WFProvider({ children, initial = {} }) {
   // than asking late.
   const [onboardingOpen, setOnboardingOpen] = useState(false);
   const [onboardingStep, setOnboardingStep] = useState(0);
-  // Guided tour of Home. null is off, otherwise the index of the step being
+  // Coachmarks tour of Home. null is off, otherwise the index of the step being
   // spotlit. Steps and copy live in SpotlightTour; the elements they point at
   // register themselves here by wrapping in <TourTarget>.
   const [tour, setTour] = useState(initial.tour !== undefined ? initial.tour : null);
@@ -173,7 +180,7 @@ export function WFProvider({ children, initial = {} }) {
   const [planChanged, setPlanChanged] = useState(
     initial.planChanged !== undefined ? initial.planChanged : null
   );
-  // Program welcome, for a care-program user landing on Home after onboarding.
+  // Welcome bottomsheet, for a care-program user landing on Home after onboarding.
   // "sheet" is the bottom sheet, "mark" is the coach mark on the program card,
   // null is off. The sheet hands off to the mark, the mark to the daily tour.
   // Off by default: it is a welcome, so it is armed by signing up or by
@@ -215,12 +222,12 @@ export function WFProvider({ children, initial = {} }) {
      is a week Kaira has something to say about, "read" is once it has been
      opened. Measure, because Measure is the pillar that means knowing. */
   const [weekInsight, setWeekInsight] = useState(
-    initial.weekInsight !== undefined ? initial.weekInsight : "off"
+    initial.weekInsight !== undefined ? initial.weekInsight : "ready"
   );
   const [weekOpen, setWeekOpen] = useState(initial.weekOpen !== undefined ? initial.weekOpen : false);
   /* Two ways to deliver the same week: one sheet that covers all of it, or one
      read per pillar spread across the day. Kept switchable while we decide. */
-  const [weekMode, setWeekMode] = useState(initial.weekMode !== undefined ? initial.weekMode : "tasks");
+  const [weekMode, setWeekMode] = useState(initial.weekMode !== undefined ? initial.weekMode : "sheet");
   // Which pillars' weeks have been read, when they arrive one at a time.
   const [weekReads, setWeekReads] = useState(initial.weekReads !== undefined ? initial.weekReads : []);
   /* How a task is drawn: the tight row inside a phase container, or one card
@@ -1175,7 +1182,7 @@ export function WFProvider({ children, initial = {} }) {
      keeps its own copy of a fact, so it can never disagree with the pillar. */
   const openRow = (r) => {
     if (r.kind === "tick") return toggleTick(r.id);
-    if (r.to === "water") return setWater(Math.min(WATER_GOAL, water + 1));
+    if (r.to === "water") return setWater(water >= WATER_GOAL ? 0 : WATER_GOAL);
     if (r.to === "sleep") { setMindDetail(true); if (healthSource.sleep === "manual") setLogSleepOpen(true); return; }
     /* Straight to the sheet the row names. Opening Mind and leaving somebody
        to find the breathing exercise is the work the tap was meant to save. */
@@ -1221,8 +1228,57 @@ export function WFProvider({ children, initial = {} }) {
   // The number exists either way. Whether it is legible is the gate.
   const scoreUnlocked = hasTargets && mealsIn >= 3;
 
+  /* One score per pillar, as the metabolism cards read them.
+
+     Every lock comes off the day rather than a flag, so a card cannot show a
+     number the day has not earned. Two of the figures are real: Eat's is
+     today's sufficiency and Measure's is the score the Home card already
+     carries. Momentum and Wellbeing have no formula yet, so they are staged
+     here in one place rather than written into the card. Inventing a formula
+     would make a product decision look settled that has not been made.
+
+     `need` is why it is shut, and there are two kinds of shut. A countdown
+     opens by itself if the day carries on. An act does not: no amount of
+     logging produces a metabolic score, somebody has to take the check. Same
+     lock, so the card draws them the same; opposite instruction, so the words
+     are what tell them apart.
+
+     No reading of the number here. "Light on protein" is a true thing to say
+     and the wrong place to say it: a strip you swipe past has room for what a
+     score is, not for what today's happens to mean. */
+  const mealsLeft = Math.max(0, 3 - mealsIn);
+  const pillarScores = [
+    {
+      id: "eat", name: "Eat", score: "Nutrition sufficiency score",
+      open: scoreUnlocked,
+      value: liveScore, out: "%",
+      need: hasTargets
+        ? (mealsLeft === 1 ? "1 more meal" : mealsLeft + " more meals") + " to open this"
+        : "Your coach sets your targets first",
+    },
+    {
+      id: "move", name: "Move", score: "Momentum score",
+      open: exLogs.length > 0 || (daySteps || 0) > 0,
+      value: 62, out: "/100",
+      need: "Walk or log a session to open this",
+    },
+    {
+      id: "mind", name: "Mind", score: "Wellbeing score",
+      open: sleepLogs.length > 0 || mindDone.length > 0,
+      value: 74, out: "/100",
+      need: "Log last night's sleep to open this",
+    },
+    {
+      id: "measure", name: "Measure", score: "Metabolic score",
+      open: scoreState !== "locked",
+      value: 68, out: "/100",
+      need: "Find your Metabolic score in 5 min",
+    },
+  ];
+
   const value = {
     hasTargets, kcalTarget, dailyTargets, dayTotals, mealsIn, liveScore, scoreUnlocked,
+    pillarScores, metabCard, setMetabCard,
     activeGoal,
     authStep, setAuthStep, phone, setPhone, otp, setOtp, userName, setUserName, firstName,
     activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail,
