@@ -49,11 +49,12 @@ npm run build        # production build
 `npm run smoke` is the one that catches real breakage. It walks the control panel's own state
 list, so if you add a state, add it to the panel and smoke covers it for free.
 
-### The five URLs
+### The six URLs
 
 | Path | What it is |
 |---|---|
 | `/` | the live wireframe, where all work happens |
+| `/v3` | a **frozen snapshot** of the three part day: Morning, Afternoon and Evening, Eat's logger with no plan tab, Move recording the routine as four ticks nothing read, no Mind plan, two plans in the handover. Built from commit `38a575c`. Served from `app/public/v3/`. Its README carries one caveat: it is the last **committed** state, and the morning of 31 Aug also held uncommitted work that is absent here. |
 | `/v2` | a **frozen snapshot** of the ring design: the four pillars in one strip with a progress circle round each icon and "2 of 5" under it, on Home's Today's focus card and again at the foot of To-do. Built from commit `1bd3859`. Served from `app/public/v2/`. |
 | `/v1` | a **frozen snapshot** of the diary design: chronological To-do, one card on Home, the plan handover card, the two device syncs, the weekly read. Served from `app/public/v1/`. |
 | `/v0` | a **frozen snapshot** of the older pillar-grouped To-do, from before the diary rewrite. Served from `app/public/v0/`. |
@@ -61,7 +62,13 @@ list, so if you add a state, add it to the panel and smoke covers it for free.
 
 The snapshots are in age order: `/v0` groups the day by pillar, `/v1` turns it into a diary,
 `/v2` sits between them in spirit, holding the moment the four rings still carried the day's
-numbers. `/v2` is the one to open when somebody asks where the progress circles went.
+numbers, and `/v3` is the day before it gained a Night. `/v2` is the one to open when somebody
+asks where the progress circles went; `/v3` is the one for anything about the four part day, the
+pillar loggers or the three plan handover.
+
+A snapshot that is not committed is not deployed. `app/public/v2/` sat untracked for days, so
+the live site served nothing at `/v2` while the folder existed happily on one laptop. Check
+`git status --short app/public` after building one.
 
 **Never change a snapshot as a side effect of anything.** Refresh one only when explicitly
 asked. Each carries a `README.txt` with its own recipe; they look like this:
