@@ -188,7 +188,7 @@ const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 const SLEEP_SRC = { gate: null, syncing: "phone", phone: "phone", manualnone: "manual", manual: "manual", tools: "manual" };
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, logPlan, openMealLog, kairaLog, setKairaLog, planNotif, setPlanNotif, hasTargets, scoreUnlocked, mealsIn, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, logExPick, openMoveLog, moveResult, setMoveResult, setRoutineFeel, setRoutineDone, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindKept, mindTemplate, setMindTemplate, setTemplateKept, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, metabCard, setMetabCard, phaseMode, setPhaseMode, tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira, planSeen, setPlanSeen, kcalSource, movePlan, mindPlan, setMindPlan, bookOpen, setBookOpen, bookWith, setBookWith, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, logPlan, openMealLog, kairaLog, setKairaLog, planNotif, setPlanNotif, hasTargets, scoreUnlocked, mealsIn, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, logExPick, openMoveLog, moveResult, setMoveResult, setRoutineFeel, setRoutineDone, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindKept, mindTemplate, setMindTemplate, setTemplateKept, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, prereqHidden, setPrereqHidden, prereqAsk, setPrereqAsk, prereqExpanded, setPrereqOpen, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, metabCard, setMetabCard, phaseMode, setPhaseMode, tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira, planSeen, setPlanSeen, kcalSource, movePlan, mindPlan, setMindPlan, bookOpen, setBookOpen, bookWith, setBookWith, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -303,16 +303,19 @@ export default function ControlPanel() {
     : "home";
 
   /* To-do is two different screens depending on the care plan, so the rail is
-     too. Without a plan the top is the Prerequisites cards and there is no hero
-     and no device sync to vary; with one, the reverse. The Care plan toggle at
-     the head of the panel is how you cross between them. */
-  const onScreen = (SCREEN_GROUPS[screenKey] || []).filter((g) =>
-    screenKey !== "todo"
-      ? true
-      : planAssigned
-      ? g !== "nextaction"
-      : g !== "hero" && g !== "measuretasks"
-  );
+     too. Without a plan the top is the Prerequisites cards and there is no
+     hero; with one, the hero leads and the prerequisites shut to a strip
+     underneath it. The Care plan toggle at the head of the panel crosses
+     between them. */
+  const onScreen = (SCREEN_GROUPS[screenKey] || []).filter((g) => {
+    if (screenKey !== "todo") return true;
+    /* Without a plan there is no hero and no device sync to vary. The
+       prerequisites used to be dropped from this list once a plan arrived,
+       which was right while a plan arriving deleted them from the screen.
+       They shut to a strip instead now, so they are still there and their
+       controls have to be too. */
+    return planAssigned || (g !== "hero" && g !== "measuretasks");
+  });
 
   // Is anything open right now, the live group included. Same rule the group
   // headers use, so the label always matches what is on screen.
@@ -1578,14 +1581,59 @@ export default function ControlPanel() {
               x.v.join() === nextActions.join() && x.d.join() === nextDone.join(),
               () => {
                 setNextList(x.v, x.d);
+                setPrereqOpen(null);
                 if (x.v.length) setHomeProgramTab("next");
                 // The same list is read in two places. Stay on whichever one
                 // is in front of you rather than being thrown to the other.
                 if (activeTab !== "track") setActiveTab("home");
               }
             )
+          ).concat(
+            panelChip(
+              "Collapsed strip",
+              !prereqHidden && !prereqExpanded,
+              () => {
+                setPrereqHidden(false);
+                setPrereqOpen(false);
+                setActiveTab("track");
+              },
+              "The shut state: one line with what is left and how far along. What a plan arriving now leaves behind."
+            ),
+            panelChip(
+              "Expanded cards",
+              !prereqHidden && prereqExpanded,
+              () => {
+                setPrereqHidden(false);
+                setPrereqOpen(true);
+                setActiveTab("track");
+              },
+              "The open state: heading, reason and the cards themselves."
+            ),
+            panelChip(
+              "Where they went",
+              prereqAsk,
+              () => {
+                setPrereqHidden(false);
+                setActiveTab("track");
+                setPrereqAsk(true);
+              },
+              "The sheet the Hide button opens: what these are and where to find them once they are put away."
+            ),
+            panelChip(
+              "Hidden on To-do",
+              prereqHidden,
+              () => {
+                setPrereqHidden(true);
+                setActiveTab("track");
+              },
+              "Put away from the top of the day. The work is still open and still on Home."
+            )
           ),
-          nextOpen.length
+          prereqAsk
+            ? "Hiding asks before it acts. These two are what the whole program waits on, so a section that vanished on one tap would read as something broken."
+            : prereqHidden
+            ? "Let go from the top of To-do. Still on Home under Next actions, because hiding the reminder does not finish the work."
+            : nextOpen.length
             ? "One amber card each, on To-do above the list and on Home inside the carousel. The same list read in both places, so finishing one finishes it everywhere."
             : "No cards and no tab. A tab leading to nothing pending is worse than no tab.",
           true

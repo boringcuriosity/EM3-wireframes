@@ -30,7 +30,17 @@ for (const p of files) {
   let body = src;
   for (const b of blocks) body = body.replace(b[0], "");
   body = body
-    .replace(/>[^<>{}]+</g, "><")        // JSX text nodes are prose, not code
+    // JSX text is prose, not code. Interpolation splits a run of text into
+    // segments that no longer start at ">" or end at "<", so each boundary
+    // pair has to be swept: ">text<", "}text<", ">text{" and "}text{".
+    .replace(/>[^<>{}=;()]+</g, "><")
+    // All four exclude "=;()" so they can only ever eat prose. Without that
+    // they run from an unrelated ">" or "}" earlier in the file to the first
+    // "<" of the return, taking real statements with them: the ">" of an arrow
+    // function was enough to hide every use between it and the JSX.
+    .replace(/\}[^<>{}=;()]+</g, "}<")
+    .replace(/>[^<>{}=;()]+\{/g, ">{")
+    .replace(/\}[^<>{}=;()]+\{/g, "}{")
     .replace(/\/\*[\s\S]*?\*\//g, " ")
     .replace(/\/\/[^\n]*/g, " ")
     .replace(/"(?:[^"\\]|\\.)*"/g, '""')

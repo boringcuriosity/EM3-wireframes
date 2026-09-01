@@ -36,6 +36,7 @@ import KairaLogSheet from "./components/KairaLogSheet";
 import StreakOverlay from "./components/StreakOverlay";
 import MealItemSheet from "./components/MealItemSheet";
 import MetricInfoSheet from "./components/MetricInfoSheet";
+import PrereqHideSheet from "./components/PrereqHideSheet";
 import HealthConnectSheet from "./components/HealthConnectSheet";
 import MindDetail from "./screens/mind/MindDetail";
 import LogSleep from "./screens/mind/LogSleep";
@@ -254,6 +255,7 @@ export default function App() {
             {wf.streakBurst && <StreakOverlay />}
             {wf.mealItem && <MealItemSheet />}
             {wf.metricInfo && <MetricInfoSheet />}
+            {wf.prereqAsk && <PrereqHideSheet />}
             {wf.healthSheet && <HealthConnectSheet />}
             {wf.mindTool && <ToolSheet />}
             {wf.mindTemplate && <MindTemplateSheet />}
@@ -296,6 +298,7 @@ export default function App() {
             {wf.streakBurst && <StreakOverlay />}
             {wf.mealItem && <MealItemSheet />}
             {wf.metricInfo && <MetricInfoSheet />}
+            {wf.prereqAsk && <PrereqHideSheet />}
             {wf.healthSheet && <HealthConnectSheet />}
             {wf.mindTool && <ToolSheet />}
             {wf.mindTemplate && <MindTemplateSheet />}

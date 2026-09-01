@@ -80,3 +80,18 @@ body { margin: 0; font-family: Roboto, system-ui, sans-serif; }
   70%  { opacity: 1; }
   100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot)); }
 }
+
+/* Home's carousel, swiped one card along to Next actions, in the hide sheet.
+   Transform and opacity only, so the loop never asks for a layout pass. */
+@keyframes prereqSwipe {
+  0%, 16%   { transform: translateX(0); }
+  44%, 86%  { transform: translateX(-104px); }
+  100%      { transform: translateX(0); }
+}
+@keyframes prereqDrag {
+  0%, 10%   { transform: translateX(0) scale(.5);    opacity: 0; }
+  18%       { transform: translateX(0) scale(1);     opacity: 1; }
+  44%       { transform: translateX(-62px) scale(1); opacity: 1; }
+  54%       { transform: translateX(-62px) scale(.5); opacity: 0; }
+  100%      { transform: translateX(-62px) scale(.5); opacity: 0; }
+}

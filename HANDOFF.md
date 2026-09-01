@@ -988,6 +988,12 @@ after that is pushed, and nothing should be until the user says so.
   but still reachable under Show all controls
 - water as one tick rather than a counter with a bar, and both `DayRow` progress bars animating
   `transform` instead of `width`
+- the Start here section as one card that opens and shuts (`PrereqRail.jsx`), shut by default
+  once a plan lands rather than deleted from the screen: `prereqOpen` is tri-state, null meaning
+  follow the plan. `PrereqHideSheet.jsx` says where they go before they go
+- `check-state.mjs` no longer reads JSX prose as code. Its text sweep started at any `>`,
+  including the one in `=>`, so every use between an arrow function and the JSX was invisible
+  to it; the sweeps now exclude `=;()` and were tested in both directions
 
 **Waiting on the user, in order:**
 

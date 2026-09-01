@@ -96,10 +96,26 @@ export function WFProvider({ children, initial = {} }) {
   // Set once the card has been let go, so the list clearing does not yank it
   // out from under the finger that ticked the last box.
   const [nextGone, setNextGone] = useState(initial.nextGone !== undefined ? initial.nextGone : false);
+
+  /* Put away from the top of the day, which is a different thing from being
+     finished. The work is still open and still on Home; what has been let go
+     is the reminder sitting above today's list. `prereqAsk` is the sheet that
+     says where they went, because a section that vanishes without telling you
+     where to find it again reads as one you broke. */
+  const [prereqHidden, setPrereqHidden] = useState(initial.prereqHidden !== undefined ? initial.prereqHidden : false);
+  const [prereqAsk, setPrereqAsk] = useState(initial.prereqAsk !== undefined ? initial.prereqAsk : false);
+
+  /* Open or shut. null means nobody has said, so it follows the day: with no
+     plan these are the job and the section leads; once a plan lands the day
+     leads and they compress to a strip. A tap sets it either way and that
+     answer then outranks the default. */
+  const [prereqOpen, setPrereqOpen] = useState(initial.prereqOpen !== undefined ? initial.prereqOpen : null);
   const setNextList = (ids, done = []) => {
     setNextActions(ids);
     setNextDone(done);
     setNextGone(false);
+    setPrereqHidden(false);
+    setPrereqOpen(null);
   };
   // sessionState: "none" | "booked" — second carousel card on paid Home
   const [sessionState, setSessionState] = useState("none");
@@ -610,6 +626,9 @@ export function WFProvider({ children, initial = {} }) {
      happened and have the coaches written the plans. Declared here because the
      meal divisions below already depend on it. */
   const planAssigned = plan === "paid" && kcalSource === "coach" && !!movePlan;
+  /* Shut by default once there is a plan, open before that, unless somebody
+     has said otherwise. */
+  const prereqExpanded = prereqOpen === null ? !planAssigned : prereqOpen;
 
   /* A plan lands while nobody is looking. These are the ones that have landed
      and have not been read yet, in EM3 order, so the card can announce one now
@@ -1325,6 +1344,8 @@ export function WFProvider({ children, initial = {} }) {
     SHOW_PROGRAM_TABS, program, bookedSession: nextSession, CARD_TAIL, carouselRef,
     bookOpen, setBookOpen, bookWith, setBookWith, openBooking, bookings, setBookings,
     nextActions, nextDone, setNextDone, nextOpen, setNextList,
+    prereqHidden, setPrereqHidden, prereqAsk, setPrereqAsk,
+    prereqOpen, setPrereqOpen, prereqExpanded,
     HOME_CARDS, HOME_TABS, homeTab,
     handleCarouselScroll, isReturning, isDevice, sufficiencyRings, eatDivisions,
     progressTabs, setupTasks, setupDoneCount, metPillars, dailyPillars,

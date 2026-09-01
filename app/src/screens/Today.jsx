@@ -91,14 +91,23 @@ export default function TrackPage() {
 
         {/* Before a plan exists the top of the screen has one job: get the
             prerequisites done. A summary of a day nobody has planned is not
-            one, so the hero waits until there is a plan to summarise. */}
+            one, so the hero waits until there is a plan to summarise.
+
+            Once there is, both belong, with the shut card above the summary.
+            These two used to be either/or, which meant a plan arriving deleted
+            the prerequisites from the day even with the labs still unbooked.
+            The card shuts itself instead, so it costs one line and the work
+            stays in front of somebody. */}
         {heroState === "noplan" ? (
           <PrereqRail />
         ) : (
-          <TrackHero
-            state={heroState}
-            onSeeTasks={() => focusRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-          />
+          <>
+            <PrereqRail />
+            <TrackHero
+              state={heroState}
+              onSeeTasks={() => focusRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+            />
+          </>
         )}
 
         {/* The day itself. Morning, afternoon, evening, in the order they
