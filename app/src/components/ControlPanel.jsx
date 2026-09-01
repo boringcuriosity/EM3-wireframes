@@ -36,10 +36,10 @@ const SCREEN_GROUPS = {
   eat: ["eat", "targets", "logging", "coachtip"],
   chats: [],
   program: ["welcome"],
-  todo: ["nextaction", "hero", "focus", "dayparts", "taskcard", "planarrive", "weekread", "measuretasks"],
+  todo: ["nextaction", "hero", "focus", "taskcard", "planarrive", "weekread", "measuretasks"],
   // Home's "This part of day" card reads the same phases, so the split is a
   // control on both screens rather than a To-do one that quietly moves Home.
-  home: ["welcome", "tour", "nextaction", "focus", "homecard", "metabcard", "dayparts", "measuretasks"],
+  home: ["welcome", "tour", "nextaction", "focus", "homecard", "metabcard", "measuretasks"],
   measure: ["measure"],
   care: [],
   more: [],
@@ -785,7 +785,7 @@ export default function ControlPanel() {
             : logExOpen && logExPick === "routine"
             ? "The routine is one activity, not four, so the session is what gets logged and the minutes, the burn, the hero and the day's row all follow from it."
             : planAssigned
-            ? "The coach routine is here because the Care plan is assigned. Work through the exercises, then Log this session tells the rest of the app it happened."
+            ? "The coach routine is here because the Care plan is assigned. Work through the exercises here; Log exercise at the top of the screen is what tells the rest of the app the session happened."
             : "No routine, because the Care plan is not assigned yet. The opening card asks for movement so the coach has something to build from.",
           true
         )}
@@ -1424,8 +1424,8 @@ export default function ControlPanel() {
           [
             { id: "tiles", label: "Four tiles", full: "Icon and name only, four ways in" },
             { id: "gauge", label: "Gauge", full: "A bar along the foot showing where the score sits" },
-            { id: "peek", label: "Hexagon", full: "Solid hexagon, a third of it past the edge" },
             { id: "medal", label: "Medal", full: "Upright and narrow, the badge over the name" },
+            { id: "peek", label: "Hexagon", full: "Solid hexagon, a third of it past the edge" },
             { id: "headline", label: "Headline", full: "The figure large, the pillar named beside it" },
           ].map((v) =>
             panelChip(v.label, metabCard === v.id, () => { setMetabCard(v.id); setActiveTab("home"); }, v.full)

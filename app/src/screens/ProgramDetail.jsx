@@ -5,6 +5,7 @@ import { ChevronRight, ChevronLeft, TrendingUp, Info, Stethoscope, MessageCircle
 import { GREEN, TEXT, MUTED, BG_ALT, BG, BORDER, SH, SH_SM } from "../tokens";
 import { sectionLabel, coachAvatar } from "../ui";
 import CtaArrow from "../components/CtaArrow";
+import PrereqRail from "../components/PrereqRail";
 
 export default function ProgramDetailPage() {
   const { setEatDetail, setProgramDetail, programSub, setProgramSub, setChatsOpen, program, careTeam } = useWF();
@@ -149,6 +150,13 @@ export default function ProgramDetailPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              {/* What the program is still waiting on, above the people who
+                  are waiting on it. The same card as To-do, sharing its state,
+                  so opening or putting it away here does the same there. */}
+              <div style={{ padding: "24px 22px 0" }}>
+                <PrereqRail />
               </div>
 
               {/* Care team */}

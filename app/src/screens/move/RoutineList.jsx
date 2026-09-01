@@ -1,17 +1,21 @@
 import React from "react";
 import { useWF } from "../../state";
 import RoutineExercise from "./RoutineExercise";
-import { GREEN, TEXT, MUTED, BG } from "../../tokens";
+import { TEXT, MUTED } from "../../tokens";
 import { COACH_ROUTINE } from "./exercises";
 import Empty from "./Empty";
 
 /* The coach's plan for the body: a list of video exercises, each one ticked
    off as it is done. It is the Move equivalent of Eat's meal divisions, so it
-   behaves the same way, a plan you work through rather than a page you read. */
+   behaves the same way, a plan you work through rather than a page you read.
+
+   Working through them is all this does. Saying the session happened is Log
+   exercise at the top of the screen, which was already there: two CTAs one
+   scroll apart, both opening the same logger, made the screen look like it
+   wanted two different things. */
 export default function RoutineList() {
-  const { planAssigned, routineDone, isPaid, openMoveLog, exLogs, routineFeel, setFeel, clearFeel } = useWF();
+  const { planAssigned, isPaid, routineFeel, setFeel, clearFeel } = useWF();
   const hasPlan = planAssigned;
-  const logged = exLogs.some((l) => l.id === "routine");
 
   return (
 (hasPlan ? (
@@ -47,35 +51,6 @@ export default function RoutineList() {
                 ))}
               </div>
 
-              {/* Ticking the exercises is working through them; this is saying
-                  the session happened, which is the part the rest of the app
-                  was never being told. It opens the logger on the routine, so
-                  the minutes and the effort are still the person's to confirm
-                  rather than numbers we made up for them. */}
-              {!logged && (
-                <button
-                  onClick={() => openMoveLog("routine")}
-                  style={{
-                    width: "100%",
-                    marginTop: 2,
-                    background: BG,
-                    border: "1px solid " + GREEN,
-                    borderRadius: 14,
-                    padding: "12px 0",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: GREEN,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  {routineDone.length === COACH_ROUTINE.items.length
-                    ? "Log this session"
-                    : routineDone.length > 0
-                    ? "Log what you did"
-                    : "Log this session"}
-                </button>
-              )}
             </>
           ) : (
             <Empty

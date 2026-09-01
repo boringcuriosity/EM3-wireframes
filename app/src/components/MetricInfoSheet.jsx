@@ -1,7 +1,7 @@
 import React from "react";
 import { useWF } from "../state";
 import { X } from "lucide-react";
-import { TDEE, BMR, ACTIVITY, HERO_GOAL, HERO_EATEN } from "../screens/sufficiency/data";
+import { TDEE, BMR, ACTIVITY, HERO_EATEN } from "../screens/sufficiency/data";
 import {
   GREEN, GREEN_DEEP, GREEN_TINT, GREEN_WASH, TEXT, TEXT_2, MUTED, BG, BORDER, LINE,
   MOVE_C, MOVE_T, MOVE_W, GOLD_DEEP, GOLD_TINT, GOLD_LINE,
@@ -18,7 +18,7 @@ import {
    quoting 500 next to an orb reading 640 teaches somebody to distrust both. */
 
 export default function MetricInfoSheet() {
-  const { metricInfo, setMetricInfo, heroState } = useWF();
+  const { metricInfo, setMetricInfo, heroState, kcalTarget } = useWF();
 
   const eaten = HERO_EATEN[heroState] ?? 0;
   const balance = eaten - TDEE;
@@ -34,7 +34,7 @@ export default function MetricInfoSheet() {
       /* The dash the card shows, not a zero. A sheet reading 0 beside an orb
          reading — is the same disagreement in the other direction. */
       chipBig: heroState === "nodata" ? "—" : eaten.toLocaleString(),
-      chipSub: "of " + HERO_GOAL.toLocaleString() + " kcal",
+      chipSub: "of " + kcalTarget.toLocaleString() + " kcal",
       head: "What this is",
       body: "Everything you have logged today, food and drink together. It counts towards your daily target, which is the amount your coach set for you to aim at.",
     },

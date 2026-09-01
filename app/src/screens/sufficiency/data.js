@@ -112,11 +112,9 @@ export const BMR = bmr(BODY);                                   // 1600
 export const TDEE = Math.round((BMR * ACTIVITY.factor) / 50) * 50;  // 2200
 export const BMI = +(BODY.kg / (BODY.cm / 100) ** 2).toFixed(1); // 24.5
 
-/* The figures the To-do hero stages, kept beside TDEE rather than inside the
-   card, because the sheets that explain those numbers have to show the same
-   ones. A sheet quoting a different total from the orb it opened out of is
-   worse than no sheet. */
-export const HERO_GOAL = 1885;
+/* What the To-do hero stages. The goal it measures against is not here: that
+   is kcalTarget, which follows whichever goal is active, and a second copy of
+   it went stale at 1,885 while Eat carried 2,200. */
 export const HERO_EATEN = { nodata: 0, partial: 640, full: 1785 };
 
 export function bmiBand(v) {

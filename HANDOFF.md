@@ -260,7 +260,8 @@ itself, and a **category**, which is what finishes the task. The category decide
 | `habit` | **Take** | done in the moment, with nothing to file | the calm break, the breathing break |
 
 A row sets `verb` directly for the handful of asks that are their own action, where nothing is
-filed afterwards: **Drink** 2 glasses of water, **Walk** 10,000 steps, and the coach's three
+filed afterwards: **Drink** 2 glasses of water, **Walk** 10,000 steps (only once a plan sets
+that number), and the coach's three
 nudges, **Drink** warm water with methi, **Get** 10 minutes of morning sun, **Soak** 5 almonds
 for tomorrow.
 
@@ -295,8 +296,8 @@ design as it stands.
 ### Four parts of the day, on Indian hours
 
 `PHASE_MODES` in `day.js` holds both splits and `phasesFor(mode)` picks one; `phaseMode` in
-state is 3 or 4 and defaults to 4. **Evening vs Night** in the panel switches them, on To-do
-and on Home, because Home's "This part of day" card reads the same phases.
+state is 3 or 4 and defaults to 4. **Evening vs Night** switches them; it is off both screen
+lists now and lives under **Show all controls**, because it is a decision that gets made once.
 
 The four are the four an Indian day already has names for: subah, dopahar, shaam, raat.
 Morning from 5 AM, afternoon from noon, **evening from 4 PM**, night from 7 PM. Shaam starts
@@ -597,8 +598,10 @@ Around that:
 - **`routineDone` finally does work.** Tick two of the four inside Move and the plan card in
   the logger reads "2 of 4 ticked off", so working through the exercises is visibly part of
   logging the session rather than a parallel list.
-- **RoutineList gained Log this session**, the same button Eat puts under an option. It reads
-  "Log what you did" when only some are ticked, and it goes once the session is logged.
+- **RoutineList used to carry Log this session.** It has gone: **Log exercise** already sits at
+  the top of the same screen and opens the same logger, and two CTAs one scroll apart made the
+  screen look like it wanted two different things. Working through the exercises is all the list
+  does now; the one-tap route to the coach's routine is the session row on To-do.
 
 One thing that bit twice while building, worth keeping: nothing in Move should open Move by
 itself. `openMoveLog` leaves `moveDetail` alone, because `logExOpen` already wins over it in
@@ -784,8 +787,11 @@ is one, since notes are for a particular hour rather than for the idea of a next
 cadence is `session`, which is neither daily nor one-off, so they never land on the day's list.
 
 `cadence` is the word the live version is missing. "Fill 1 time" says how often but never when,
-and how often is what decides whether a worksheet is on today's list. `MindTemplateSheet.jsx`
-opens one, from its card on Mind or straight from the row on the day.
+and how often is what decides where a worksheet appears. `MindTemplateSheet.jsx` opens one from
+its card on Mind. **Worksheets are not rows on the day**: a SMART goal is filled once and a
+motivation check-in comes back every night, and between them they put two more Mind asks on a
+day that already has sleep and the calm break. They are a plan artefact, so they live on Mind
+where `ToolList` lists them and shows which are filled.
 
 Each worksheet carries its own `Icon`, its own `save` label and its own `task` label, so the
 button names the thing rather than the person (**Save SMART goal**) and the day's row says it
@@ -991,6 +997,13 @@ after that is pushed, and nothing should be until the user says so.
 - the Start here section as one card that opens and shuts (`PrereqRail.jsx`), shut by default
   once a plan lands rather than deleted from the screen: `prereqOpen` is tri-state, null meaning
   follow the plan. `PrereqHideSheet.jsx` says where they go before they go
+- one calorie goal, not two. The To-do hero carried a hardcoded 1,885 while Eat carried the
+  coach's 2,200, so the app answered "what should I eat today" differently depending on which
+  screen you asked. Both read `kcalTarget` now and `HERO_GOAL` is gone
+- Mind gives at most two rows a day: sleep and the calm break. The psychologist's worksheets
+  came out of `buildDay`, and the `tpl:` routing in `openRow` went with them
+- the step goal waits for a coach, and the Start here card appears on the program page too,
+  above Care team, sharing To-do's collapse and cross
 - `check-state.mjs` no longer reads JSX prose as code. Its text sweep started at any `>`,
   including the one in `=>`, so every use between an arrow function and the JSX was invisible
   to it; the sweeps now exclude `=;()` and were tested in both directions

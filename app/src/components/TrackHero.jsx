@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useWF } from "../state";
 import { Lock, Info, ArrowRight } from "lucide-react";
 import CoachHandoffCard from "./CoachHandoffCard";
-import { TDEE, HERO_GOAL, HERO_EATEN } from "../screens/sufficiency/data";
+import { TDEE, HERO_EATEN } from "../screens/sufficiency/data";
 import {
   GREEN, GREEN_DEEP, GREEN_TINT, GREEN_WASH, GOLD_DEEP, GOLD_TINT,
   MOVE_C, MOVE_T, MIND_C, MIND_T, MEASURE_C, MEASURE_T,
@@ -53,13 +53,15 @@ const MACROS = {
 const SCORE = { nodata: 0, partial: 53, full: 85 };
 
 /* The day's calories. Eaten is the only figure entered; the balance falls out
-   of it, so the three orbs can never disagree with each other. They live in
-   data.js beside TDEE, because the sheets that explain them show them too. */
-const GOAL = HERO_GOAL;
+   of it, so the three orbs can never disagree with each other. */
 const EATEN = { ...HERO_EATEN, nodata: null };
 
 export default function TrackHero({ state, onSeeTasks }) {
-  const { setPillarInfo, setMetricInfo, mealsIn, setEatDetail, setEatTab } = useWF();
+  const { setPillarInfo, setMetricInfo, mealsIn, setEatDetail, setEatTab, kcalTarget } = useWF();
+  /* The coach's target, not a number of this card's own. It carried 1,885
+     while Eat carried 2,200, so the app answered "what should I eat today"
+     two different ways depending on which screen you asked. */
+  const GOAL = kcalTarget;
 
   /* Eat, not a logger opened on a division nobody chose. From an empty card
      the ask is the whole of eating today, so it hands over to the screen that

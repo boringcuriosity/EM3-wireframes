@@ -1,5 +1,3 @@
-import { MIND_TEMPLATES } from "../mind/tools";
-
 /* Today, as a day rather than as a filing system.
 
    The old To-do screen grouped by pillar: Eat, Move, Mind, Measure. That is
@@ -149,7 +147,7 @@ export function buildDay(w) {
   const {
     planAssigned, eatDivisions, mealsLogged, exLogs, mindDone,
     sleepMins, daySteps, water, ticks, skipped, planOption, measureRows,
-    healthSync, healthSource, weekInsight, weekMode, weekReads, phaseMode, templateKept, mindPlan,
+    healthSync, healthSource, weekInsight, weekMode, weekReads, phaseMode,
   } = w;
 
   const logged = new Set(mealsLogged.map((m) => m.division));
@@ -305,43 +303,29 @@ export function buildDay(w) {
     done: mindDone.length > 0,
   });
 
-  /* The psychologist's worksheets, at the cadence she set. A worksheet to fill
-     once stays on the day until it is filled; a daily one comes back. Both are
-     Mind, and both open their own sheet rather than the pillar screen. */
-  if (mindPlan)
-    MIND_TEMPLATES.forEach((t) => {
-      const kept = !!(templateKept || {})[t.id];
-      /* Only what today actually asks for: the daily ones, and a one-off until
-         it is filled. A weekly worksheet and the session notes are open all
-         week, so a row for them every morning would be nagging. */
-      if (!(t.cadence === "day" || (t.cadence === "once" && !kept))) return;
-      rows.push({
-        id: "tpl:" + t.id,
-        pillar: "mind",
-        at: t.cadence === "once" ? 9 * 60 + 30 : 21 * 60 + 30,
-        coins: 3,
-        verb: "Fill",
-        name: t.task,
-        tip: t.line,
-        kind: "go",
-        to: "tpl:" + t.id,
-        done: kept,
-      });
-    });
+  /* The psychologist's worksheets are not here on purpose. They are a plan
+     artefact rather than a daily task: one is filled once and one comes back
+     every night, and between them they put two more Mind rows on a day that
+     already has sleep, the sun nudge and the calm break. They live on Mind,
+     where ToolList lists them and shows which are filled. */
 
-  rows.push({
-    id: "steps", pillar: "move", at: 23 * 60, coins: 5,
-    // The walk, not the target. A target is the app's word for it; walking
-    // ten thousand steps is the thing the person actually does.
-    verb: "Walk", name: STEP_GOAL.toLocaleString("en-IN") + " steps",
-    kind: "target", to: "steps",
-    now: daySteps, goal: STEP_GOAL, unit: "steps",
-    // Only the person keeping their own count can add to it. Connected, the
-    // number is a reading and a plus sign on it would be a lie.
-    add: healthSource.steps === "manual",
-    syncing: healthSync === "steps",
-    done: (daySteps || 0) >= STEP_GOAL,
-  });
+  /* A step target is a coach's number, so it waits for a coach. Without a
+     plan the day asks for movement without putting a figure on it, because
+     ten thousand is a thing somebody decided for you and nobody has yet. */
+  if (planAssigned)
+    rows.push({
+      id: "steps", pillar: "move", at: 23 * 60, coins: 5,
+      // The walk, not the target. A target is the app's word for it; walking
+      // ten thousand steps is the thing the person actually does.
+      verb: "Walk", name: STEP_GOAL.toLocaleString("en-IN") + " steps",
+      kind: "target", to: "steps",
+      now: daySteps, goal: STEP_GOAL, unit: "steps",
+      // Only the person keeping their own count can add to it. Connected, the
+      // number is a reading and a plus sign on it would be a lie.
+      add: healthSource.steps === "manual",
+      syncing: healthSync === "steps",
+      done: (daySteps || 0) >= STEP_GOAL,
+    });
 
   return rows
     .map((r) => ({ ...r, title: taskTitle(r), phase: phaseOf(r.at, phaseMode), skipped: skipped.includes(r.id) }))

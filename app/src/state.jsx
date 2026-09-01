@@ -79,9 +79,8 @@ export function WFProvider({ children, initial = {} }) {
   /* What the Metabolism strip under the day is made of. "tiles" is the four
      squares that are only a way in; the rest are the same four as slim cards
      carrying each pillar's score, drawn a few ways while we pick one. The
-     gauge leads because it is the only one that says whether the number it
-     shows is any good. */
-  const [metabCard, setMetabCard] = useState(initial.metabCard !== undefined ? initial.metabCard : "gauge");
+     medal leads while it is the one being shown around. */
+  const [metabCard, setMetabCard] = useState(initial.metabCard !== undefined ? initial.metabCard : "medal");
   /* What the Next actions card is carrying. An empty list means the card and
      its tab are not there at all. Three at most: a card that scrolls is a
      screen pretending to be a card. */
@@ -1081,7 +1080,7 @@ export function WFProvider({ children, initial = {} }) {
     weekInsight, weekMode, weekReads,
     planAssigned, eatDivisions, mealsLogged, exLogs, mindDone,
     sleepMins, daySteps, water, ticks: dayTicks, skipped: daySkipped, planOption,
-    measureRows, healthSync, healthSource, phaseMode, templateKept, mindPlan,
+    measureRows, healthSync, healthSource, phaseMode,
   });
   /* Skipped rows come out of the denominator rather than counting against it.
      A day you chose to make smaller should look smaller, not look failed. */
@@ -1180,7 +1179,8 @@ export function WFProvider({ children, initial = {} }) {
 
   /* The movement logger, opened on what the person is most likely recording.
 
-     Two doors: the session row on the day's list, and Log this session under
+     Two doors: the session row on the day's list, and the logger's Your plan
+     tab under
      the routine in Move. Both pass the routine, because both are somebody
      saying they did the coach's work. Passing nothing opens the pick list,
      which is what the free day's row and the Log exercise prompt want. */
@@ -1190,7 +1190,7 @@ export function WFProvider({ children, initial = {} }) {
     /* Deliberately does not open Move. The logger already wins over it in the
        takeover order, so leaving Move alone is what puts somebody back where
        they started: the day's list if they tapped the session row, Move if
-       they tapped Log this session inside it. Forcing Move open sent a person
+       they tapped the routine inside it. Forcing Move open sent a person
        who had never answered the steps question to a permission gate about
        steps, straight after logging an exercise. */
     setLogExOpen(true);
@@ -1206,7 +1206,6 @@ export function WFProvider({ children, initial = {} }) {
     /* Straight to the sheet the row names. Opening Mind and leaving somebody
        to find the breathing exercise is the work the tap was meant to save. */
     if (r.to.startsWith("mind:")) return setMindTool(r.to.slice(5));
-    if (r.to.startsWith("tpl:")) return setMindTemplate(r.to.slice(4));
     if (r.to === "mind") return setMindDetail(true);
     /* Straight to the logger, on the coach's routine when there is one. The
        session row names a thing that was done; landing on Move and hunting for

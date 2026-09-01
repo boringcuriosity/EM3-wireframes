@@ -21,6 +21,10 @@ import { TEXT, MUTED, BG, BORDER, WARN, WARN_TINT, WARN_LINE, SH_SM } from "../t
    They used to vanish outright at that point, so somebody whose labs were
    still unbooked got a To-do screen that never mentioned them again.
 
+   The same card on To-do and on the program page, with the same collapse and
+   the same cross: one list, one set of controls, and putting it away in one
+   place puts it away in both.
+
    Read off the same list as the Home carousel, so finishing one anywhere
    finishes it everywhere and the card empties itself. */
 export default function PrereqRail() {
@@ -32,12 +36,85 @@ export default function PrereqRail() {
   const total = nextActions.length;
   const done = total - nextOpen.length;
 
+  const head = (
+    <>
+      <span
+        style={{
+          width: 28,
+          height: 28,
+          flexShrink: 0,
+          borderRadius: 9,
+          background: WARN_TINT,
+          border: "1px solid " + WARN_LINE,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <ListChecks size={15} color={WARN} strokeWidth={2.2} />
+      </span>
+
+      <span style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ display: "block", fontSize: 14, fontWeight: 800, color: TEXT, letterSpacing: -0.2 }}>
+          Start here
+        </span>
+        {/* The only subtext. There were two saying overlapping things, and this
+            line said the count a second time next to "0 of 3" on the right.
+            What is left is the count; why it matters is this. "First steps"
+            rather than "prerequisites", which is a word for a project plan and
+            not for a person.
+
+            Sized to hold one line, because a shut card is supposed to cost a
+            line: at 11.5 this wrapped and the card grew by a third. */}
+        <span style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 1.5 }}>
+          Important first steps before your consultation
+        </span>
+      </span>
+
+      <span
+        style={{
+          flexShrink: 0,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 3,
+          fontSize: 11,
+          fontWeight: 700,
+          color: WARN,
+        }}
+      >
+        {done} of {total}
+        <ChevronDown
+          size={15}
+          strokeWidth={2.4}
+          style={{
+            transform: prereqExpanded ? "rotate(180deg)" : "none",
+            transition: "transform .25s ease",
+          }}
+        />
+      </span>
+    </>
+  );
+
+  const headStyle = {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    gap: 10,
+    padding: "12px 12px",
+    textAlign: "left",
+    boxSizing: "border-box",
+    background: "none",
+    border: "none",
+    cursor: "pointer",
+    fontFamily: "inherit",
+  };
+
   return (
     <div style={{ position: "relative", marginBottom: 18 }}>
       {/* Half off the corner rather than inside the header. Within it, a cross
           sits beside the chevron and the two argue: one shuts the card, one
-          puts it away for the day. Out on the edge it belongs to the whole
-          card instead of to the row it is standing in, which is the thing it
+          puts it away for the day. Out on the edge it belongs to the whole card
+          instead of to the row it is standing in, which is the thing it
           actually does. It opens the sheet first; nothing goes on one tap. */}
       <button
         onClick={() => setPrereqAsk(true)}
@@ -75,74 +152,9 @@ export default function PrereqRail() {
         <button
           onClick={() => setPrereqOpen(!prereqExpanded)}
           aria-expanded={prereqExpanded}
-          style={{
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "12px 12px",
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            fontFamily: "inherit",
-            textAlign: "left",
-            boxSizing: "border-box",
-          }}
+          style={headStyle}
         >
-          <span
-            style={{
-              width: 28,
-              height: 28,
-              flexShrink: 0,
-              borderRadius: 9,
-              background: WARN_TINT,
-              border: "1px solid " + WARN_LINE,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <ListChecks size={15} color={WARN} strokeWidth={2.2} />
-          </span>
-
-          <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: "block", fontSize: 14, fontWeight: 800, color: TEXT, letterSpacing: -0.2 }}>
-              Start here
-            </span>
-            {/* The only subtext. There were two saying overlapping things,
-                and this line said the count a second time next to "0 of 3"
-                on the right. What is left is the count; why it matters is
-                this. "First steps" rather than "prerequisites", which is a
-                word for a project plan and not for a person.
-
-                Sized to hold one line, because a shut card is supposed to cost
-                a line: at 11.5 this wrapped and the card grew by a third. */}
-            <span style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 1.5 }}>
-              Important first steps before your consultation
-            </span>
-          </span>
-
-          <span
-            style={{
-              flexShrink: 0,
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 3,
-              fontSize: 11,
-              fontWeight: 700,
-              color: WARN,
-            }}
-          >
-            {done} of {total}
-            <ChevronDown
-              size={15}
-              strokeWidth={2.4}
-              style={{
-                transform: prereqExpanded ? "rotate(180deg)" : "none",
-                transition: "transform .25s ease",
-              }}
-            />
-          </span>
+          {head}
         </button>
 
         {/* Progress, and the divider when the card is open. */}
@@ -166,8 +178,8 @@ export default function PrereqRail() {
         {prereqExpanded && (
           <div style={{ paddingTop: 13 }}>
             {/* The rail reaches the card's own edges rather than stopping at its
-                padding, so a card at rest sits flush and the next one shows as a
-                strip you can see there is more of. */}
+                padding, so a card at rest sits flush and the next one shows as
+                a strip you can see there is more of. */}
             <div
               style={{
                 display: "flex",
