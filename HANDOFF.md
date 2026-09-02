@@ -49,11 +49,12 @@ npm run build        # production build
 `npm run smoke` is the one that catches real breakage. It walks the control panel's own state
 list, so if you add a state, add it to the panel and smoke covers it for free.
 
-### The six URLs
+### The seven URLs
 
 | Path | What it is |
 |---|---|
 | `/` | the live wireframe, where all work happens |
+| `/v4` | a **frozen snapshot** of the four part day: Morning, Afternoon, Evening and Night on Indian hours, one logger per pillar, three plans in the handover, the pillar scores under Home's day and the metabolic score as a five step walkthrough. Built from commit `cb7b7e4`, which was also the working tree, so nothing is missing from it. Served from `app/public/v4/`. |
 | `/v3` | a **frozen snapshot** of the three part day: Morning, Afternoon and Evening, Eat's logger with no plan tab, Move recording the routine as four ticks nothing read, no Mind plan, two plans in the handover. Built from commit `38a575c`. Served from `app/public/v3/`. Its README carries one caveat: it is the last **committed** state, and the morning of 31 Aug also held uncommitted work that is absent here. |
 | `/v2` | a **frozen snapshot** of the ring design: the four pillars in one strip with a progress circle round each icon and "2 of 5" under it, on Home's Today's focus card and again at the foot of To-do. Built from commit `1bd3859`. Served from `app/public/v2/`. |
 | `/v1` | a **frozen snapshot** of the diary design: chronological To-do, one card on Home, the plan handover card, the two device syncs, the weekly read. Served from `app/public/v1/`. |
@@ -62,9 +63,10 @@ list, so if you add a state, add it to the panel and smoke covers it for free.
 
 The snapshots are in age order: `/v0` groups the day by pillar, `/v1` turns it into a diary,
 `/v2` sits between them in spirit, holding the moment the four rings still carried the day's
-numbers, and `/v3` is the day before it gained a Night. `/v2` is the one to open when somebody
-asks where the progress circles went; `/v3` is the one for anything about the four part day, the
-pillar loggers or the three plan handover.
+numbers, `/v3` is the day before it gained a Night, and `/v4` is the day after. `/v2` is the one
+to open when somebody asks where the progress circles went; `/v3` is the one for anything about
+the three part day or the two plan handover; `/v4` is the whole of the cycle that followed, and
+is the closest snapshot to wherever `/` has since gone.
 
 A snapshot that is not committed is not deployed. `app/public/v2/` sat untracked for days, so
 the live site served nothing at `/v2` while the folder existed happily on one laptop. Check
@@ -97,7 +99,7 @@ rm -rf public/v2/v0 public/v2/v1 public/v2/scenarios
 git worktree remove /tmp/wt-v2 --force
 ```
 
-In dev, `/v0/`, `/v1/`, `/v2/` and `/scenarios/` need the explicit `index.html` (Vite's SPA
+In dev, `/v0/`, `/v1/`, `/v2/`, `/v3/`, `/v4/` and `/scenarios/` need the explicit `index.html` (Vite's SPA
 fallback answers the bare directory with the live app). On the deployed site the bare paths
 work.
 
@@ -996,7 +998,7 @@ The smoke test proves it renders; only the screen proves it is right.
   a piece of layout, because the layout itself is readable. Keep that.
 - **Verify visually.** Run the dev server, drive the control panel, look at the screen. The
   smoke test proves it renders, not that it is right.
-- **Do not touch `/v0`, `/v1` or `/v2`.** They are frozen for comparison. Check
+- **Do not touch `/v0` through `/v4`.** They are frozen for comparison. Check
   `git status --short app/public` before you finish: a stray diff there means a build leaked
   into a snapshot.
 - **Do not push or deploy until asked.**
@@ -1005,8 +1007,9 @@ The smoke test proves it renders; only the screen proves it is right.
 
 ## 9. In flight right now
 
-Committed through `38a575c` ("Seven ways to draw a day, switchable from the panel"). Nothing
-after that is pushed, and nothing should be until the user says so.
+Committed and deployed through `cb7b7e4` ("The metabolic score becomes a walkthrough"), which
+is also what `/v4` freezes. The standing rule still holds for whatever comes next: batch the
+work and wait to be told when to push.
 
 **Recently landed** (everything below is committed; the list is here as a change log, not as a to-do):
 
