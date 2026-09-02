@@ -254,7 +254,7 @@ export default function Play() {
   const remove = (id) => { own(); setTasks((ts) => ts.filter((t) => t.id !== id)); };
   const add = (part, pillar) => {
     own();
-    setTasks((ts) => ts.concat({ id: nextId++, part, pillar, name: "New " + pillar + " task" + pillar + " task", done: false }));
+    setTasks((ts) => ts.concat({ id: nextId++, part, pillar, name: "New " + pillar + " task", done: false }));
   };
   const play = (x) => {
     setScen(x.id);
