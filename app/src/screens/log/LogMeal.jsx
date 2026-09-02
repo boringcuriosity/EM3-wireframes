@@ -3,7 +3,8 @@ import { useWF } from "../../state";
 import { ChevronLeft, Search, Heart, Plus, Minus, X, Clock, Info, Camera, Mic } from "lucide-react";
 import { GREEN, TEXT, MUTED, BG, BG_ALT, BORDER } from "../../tokens";
 import { GOALS, targetsFor } from "../sufficiency/data";
-import { FOODS, byId, divisionForTime, DIVISION_LABEL, fmtTime, totals, sufficiency } from "./foods";
+import { FOODS, byId, divisionForTime, DIVISION_LABEL, fmtTime, totals, sufficiency, frequentFrom, SUGGESTED } from "./foods";
+import LogEmpty, { SuggestHead } from "./LogEmpty";
 import TimeSheet from "./TimeSheet";
 import FoodInfoSheet from "./FoodInfoSheet";
 
@@ -14,8 +15,7 @@ export default function LogMeal() {
   const {
     setLogOpen, logItems, setLogItems, logTime, setLogTimeOpen, logTimeOpen,
     favorites, setFavorites, mealsLogged, setMealsLogged, setLogResult, logInfo, setLogInfo,
-    suffGoal, suffKcal, logPlan, eatDivisions, setKairaLog,
-  } = useWF();
+    suffGoal, suffKcal, logPlan, eatDivisions, setKairaLog, logEditing, setLogEditing,} = useWF();
 
   /* What the coach picked for this meal, when the logger was opened on a plan.
      Favourites and Frequent know nothing about a plan, so arriving from a meal
@@ -26,18 +26,34 @@ export default function LogMeal() {
         .filter(Boolean)
     : [];
 
-  // Land on the plan when there is one. It is the reason this screen opened.
-  const [tab, setTab] = useState(planFoods.length ? "plan" : "fav");
+  /* Land on the plan when there is one, since it is the reason this screen
+     opened. Failing that, land on the tab that has something in it: on a first
+     run Favourites is empty by definition, and opening on a tab with nothing
+     to add is a dead end at the exact moment somebody is trying to log their
+     first meal. */
+  const [tab, setTab] = useState(planFoods.length ? "plan" : favorites.length ? "fav" : "freq");
   const [query, setQuery] = useState("");
 
   const q = query.trim().toLowerCase();
+
+  /* What you eat most, counted off your own meals rather than off a tag. On a
+     first run there is nothing to count, so the tab offers a few common meals
+     under a heading that says what they are. */
+  const frequent = frequentFrom(mealsLogged);
+  const suggesting = !q && tab === "freq" && frequent.length === 0;
+  // Favourites is the one tab that stays empty until somebody fills it, since
+  // the only thing that belongs in it is a choice they made.
+  const emptyFav = !q && tab === "fav" && !favorites.length;
+
   const list = q
     ? FOODS.filter((x) => x.name.toLowerCase().includes(q))
     : tab === "plan"
     ? planFoods
     : tab === "fav"
     ? FOODS.filter((x) => favorites.includes(x.id))
-    : FOODS.filter((x) => x.tags.includes("freq"));
+    : frequent.length
+    ? frequent
+    : SUGGESTED;
 
   const qtyOf = (id) => logItems.find((x) => x.id === id)?.qty || 0;
   const count = logItems.reduce((n, x) => n + x.qty, 0);
@@ -60,13 +76,17 @@ export default function LogMeal() {
     const targets = targetsFor(suffGoal, suffKcal ?? goal.kcal);
     const before = sufficiency(totals(mealsLogged), targets);
     const meal = { division, timeMins: logTime, items: logItems };
-    const next = mealsLogged.concat(meal);
+    /* Editing replaces that slot rather than adding to it, so a correction
+       leaves one meal in the day instead of two. */
+    const kept = logEditing ? mealsLogged.filter((m) => m.division !== logEditing) : mealsLogged;
+    const next = kept.concat(meal);
     const after = sufficiency(totals(next), targets);
 
     setMealsLogged(next);
     setLogItems([]);
     setLogOpen(false);
-    setLogResult({ before, after, meal, mealCount: next.length });
+    setLogEditing(null);
+    setLogResult({ before, after, meal, mealCount: next.length, edited: !!logEditing, fresh: true });
   };
 
   return (
@@ -215,25 +235,26 @@ export default function LogMeal() {
 
         {/* Results */}
         <div style={{ flex: 1, overflowY: "auto", padding: "4px 22px 8px", minHeight: 0 }}>
-          {list.length === 0 ? (
+          {/* An empty Frequent still has something to offer, so it says its
+              piece and the suggestions run underneath it. */}
+          {suggesting && (
+            <>
+              <LogEmpty tab="freq" />
+              <SuggestHead />
+            </>
+          )}
+
+          {emptyFav ? (
+            <LogEmpty tab="fav" />
+          ) : list.length === 0 ? (
             <div style={{ padding: "40px 16px", textAlign: "center" }}>
               <div style={{ fontSize: 13.5, fontWeight: 700, color: TEXT }}>
-                {q
-                  ? "Nothing matches “" + query + "”"
-                  : tab === "plan"
-                  ? "Nothing planned for this one"
-                  : tab === "fav"
-                  ? "No favourites yet"
-                  : "Nothing frequent yet"}
+                {q ? "Nothing matches “" + query + "”" : "Nothing planned for this one"}
               </div>
               <div style={{ fontSize: 11.5, color: MUTED, marginTop: 6, lineHeight: 1.55 }}>
                 {q
                   ? "Try a shorter word, or the name of one ingredient rather than the whole dish."
-                  : tab === "plan"
-                  ? "Your coach has not written food for this meal yet. Search for what you ate and it still counts."
-                  : tab === "fav"
-                  ? "Tap the heart on anything you eat often and it will wait here for you."
-                  : "Once you have logged a few days, the things you eat most will show up here."}
+                  : "Your coach has not written food for this meal yet. Search for what you ate and it still counts."}
               </div>
             </div>
           ) : (

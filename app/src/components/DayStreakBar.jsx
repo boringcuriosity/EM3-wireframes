@@ -10,7 +10,7 @@ import { TEXT, MUTED, LINE, BG, GOLD, GOLD_TINT, GOLD_LINE, GOLD_DEEP, SH_SM } f
    a flame in one header, a gold card at the foot of the other, a count in
    between. One piece now, used in both places, so the same day cannot read
    two ways on two screens. */
-export default function DayStreakBar({ edge }) {
+export default function DayStreakBar({ edge, compact }) {
   const { dayLive, dayRowsDone, streakShown, streakState, setStreakInfo } = useWF();
   const day = Math.max(1, streakShown);
 
@@ -59,9 +59,16 @@ export default function DayStreakBar({ edge }) {
         />
       </span>
       {/* A bare 0 of 14 beside an empty bar reads as a score. Naming what is
-          being counted turns it back into a statement about the day. */}
+          being counted turns it back into a statement about the day.
+
+          Compact drops the naming and keeps the figure, for the one place this
+          sits beside a button rather than alone: there is no room for the
+          sentence there, and the button next to it is already about the
+          tasks. */}
       <span style={{ fontSize: 11, fontWeight: 600, color: MUTED, flexShrink: 0 }}>
-        {dayRowsDone === 0
+        {compact
+          ? dayRowsDone + "/" + dayLive.length
+          : dayRowsDone === 0
           ? "0 of " + dayLive.length + " tasks done"
           : dayRowsDone + " of " + dayLive.length}
       </span>

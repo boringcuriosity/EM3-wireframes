@@ -22,7 +22,7 @@ const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure"
 export default function DayRowSheet() {
   const {
     rowMenu, setRowMenu, dayRows, daySkipped, toggleSkip, toggleTick, goToRecord,
-    water, setWater,
+    water, setWater, editMeal, undoMeal,
   } = useWF();
   const r = dayRows.find((x) => x.id === rowMenu);
   if (!r) return null;
@@ -32,15 +32,35 @@ export default function DayRowSheet() {
   const owned = r.done && !off && r.kind === "tick";
   const isWater = r.done && !off && r.to === "water" && r.now > 0;
   const elsewhere = r.done && !off && r.kind === "go";
+  /* A logged meal is the one record you can change from here. Everything else
+     that finishes elsewhere is a reading or a session, where undoing means
+     deleting something the person did rather than something they typed. */
+  const isMeal = r.done && !off && !!r.division;
+  /* Part of a coach's option is in and part is not, which is the one row with
+     three honest answers rather than two: change what went in, take it back
+     off, or call the rest of the plan done with. */
+  const isPartial = !r.done && !off && !!r.division && (r.loggedIds || []).length > 0;
 
-  const mode = off ? "back" : owned ? "undo" : isWater ? "less" : elsewhere ? "open" : "skip";
+  const mode = off
+    ? "back"
+    : isPartial
+    ? "partial"
+    : isMeal
+    ? "meal"
+    : owned
+    ? "undo"
+    : isWater
+    ? "less"
+    : elsewhere
+    ? "open"
+    : "skip";
 
   const COPY = {
     skip: {
       Icon: Minus,
       head: "Not doing this today?",
       line: "That's fine. It won't count as missed, and your coach will see you chose to skip it.",
-      no: "Keep it",
+      no: null,
       yes: "Skip today",
       tone: TEXT,
     },
@@ -48,7 +68,7 @@ export default function DayRowSheet() {
       Icon: RotateCcw,
       head: "Put this back on today?",
       line: "It counts again, so you can still finish the day.",
-      no: "Leave it out",
+      no: null,
       yes: "Put it back",
       tone: GREEN,
     },
@@ -56,7 +76,7 @@ export default function DayRowSheet() {
       Icon: RotateCcw,
       head: "Mark this as not done?",
       line: "It goes back on today's list. Nothing else changes.",
-      no: "Leave it done",
+      no: null,
       yes: "Mark as not done",
       tone: TEXT,
     },
@@ -64,9 +84,30 @@ export default function DayRowSheet() {
       Icon: Minus,
       head: "Take one off?",
       line: "One glass comes off today's count. Tap the circle to put it back.",
-      no: "Leave it",
+      no: null,
       yes: "Take one off",
       tone: TEXT,
+    },
+    partial: {
+      Icon: SquarePen,
+      head: "Part of " + r.name.toLowerCase() + " is logged",
+      line: "You have some of it in and the rest still on the list. Change what went in, take it back off, or leave the rest for today.",
+      /* Three, stacked. Two side by side would have made one of them look like
+         the answer, and none of these is. */
+      actions: [
+        { label: "Edit what I logged", run: () => editMeal(r.division), primary: true },
+        { label: "Undo log", run: () => undoMeal(r.division) },
+        { label: "Skip the rest today", run: () => toggleSkip(r.id) },
+      ],
+      tone: GREEN,
+    },
+    meal: {
+      Icon: SquarePen,
+      head: r.name + " is logged",
+      line: "Change what went in, or take the log off today and put the task back on your list.",
+      no: "Undo log",
+      yes: "Edit what I logged",
+      tone: GREEN,
     },
     open: {
       Icon: SquarePen,
@@ -85,6 +126,7 @@ export default function DayRowSheet() {
     else if (mode === "undo") toggleTick(r.id);
     else if (mode === "less") setWater(Math.max(0, water - 1));
     setRowMenu(null);
+    if (mode === "meal") return editMeal(r.division);
     /* The way to the record, which is not the same as the way to do the task.
        This row is already done, so the logger has nothing left to ask. */
     if (mode === "open") goToRecord(r);
@@ -174,10 +216,39 @@ export default function DayRowSheet() {
           </span>
         </div>
 
+        {COPY.actions ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "18px 22px 0" }}>
+            {COPY.actions.map((a) => (
+              <button
+                key={a.label}
+                onClick={() => {
+                  setRowMenu(null);
+                  a.run();
+                }}
+                style={{
+                  height: 46,
+                  borderRadius: 14,
+                  background: a.primary ? COPY.tone : BG,
+                  border: a.primary ? "none" : "1px solid " + BORDER,
+                  color: a.primary ? "#fff" : TEXT,
+                  fontSize: 14,
+                  fontWeight: 700,
+                  fontFamily: "inherit",
+                  cursor: "pointer",
+                }}
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
+        ) : (
         <div style={{ display: "flex", gap: 10, padding: "18px 22px 0" }}>
           {COPY.no && (
             <button
-              onClick={() => setRowMenu(null)}
+              onClick={() => {
+                setRowMenu(null);
+                if (mode === "meal") undoMeal(r.division);
+              }}
               style={{
                 flex: 1,
                 height: 46,
@@ -212,6 +283,7 @@ export default function DayRowSheet() {
             {COPY.yes}
           </button>
         </div>
+        )}
 
         <div style={{ height: 22 }} />
       </div>

@@ -6,7 +6,7 @@ import { TDEE, HERO_EATEN } from "../screens/sufficiency/data";
 import {
   GREEN, GREEN_DEEP, GREEN_TINT, GREEN_WASH, GOLD_DEEP, GOLD_TINT,
   MOVE_C, MOVE_T, MIND_C, MIND_T, MEASURE_C, MEASURE_T,
-  TEXT, MUTED, FAINT, BG, BG_ALT, BORDER, LINE, RULE, SH,
+  TEXT, MUTED, FAINT, BG, BORDER, LINE, RULE, SH,
 } from "../tokens";
 
 /* The top of the To-do screen, in four states. Two facts decide it: whether
@@ -57,7 +57,7 @@ const SCORE = { nodata: 0, partial: 53, full: 85 };
 const EATEN = { ...HERO_EATEN, nodata: null };
 
 export default function TrackHero({ state, onSeeTasks }) {
-  const { setPillarInfo, setMetricInfo, mealsIn, setEatDetail, setEatTab, kcalTarget } = useWF();
+  const { setPillarInfo, setMetricInfo, setEatDetail, setEatTab, kcalTarget } = useWF();
   /* The coach's target, not a number of this card's own. It carried 1,885
      while Eat carried 2,200, so the app answered "what should I eat today"
      two different ways depending on which screen you asked. */
@@ -72,7 +72,6 @@ export default function TrackHero({ state, onSeeTasks }) {
     setEatDetail(true);
   };
   // The demo's part-way state stages two meals; a real session counts its own.
-  const shownMeals = Math.min(3, mealsIn || 2);
   const [page, setPage] = useState(0);
 
   if (state === "noplan") {
@@ -107,23 +106,27 @@ export default function TrackHero({ state, onSeeTasks }) {
           <Band>
             <Numbers empty={state === "nodata"} />
           </Band>
+          {/* This card draws energy, so this line is about energy. What the
+              food was made of belongs on the sufficiency card next to it,
+              where the macros are. */}
           <Kaira>
             {state === "nodata" ? (
               <>
-                Finish today's tasks below and I can start telling you what your day is doing to
-                your metabolism.
+                Your body spends about <strong>2,200</strong> on an ordinary day whether you eat
+                or not. Everything you log today is measured against that, which is where the
+                deficit comes from.
               </>
             ) : state === "partial" ? (
               <>
-                Your breakfast was mostly poha and chai, so it leaned on carbs with very little
-                <strong> protein</strong>, the part of food that keeps hunger away for hours.
-                Without it you will probably be looking for a snack well before lunch.
+                A deficit this size before lunch is mostly the day not having happened yet. What
+                decides your weight is where this number lands by <strong>bedtime</strong>, so
+                there is nothing to read into it at ten in the morning.
               </>
             ) : (
               <>
-                Rice, roti and khichdi carried most of today, so your energy came mainly from
-                carbs. A little more <strong>protein at dinner</strong> would keep you full
-                overnight and protect your muscle while the weight comes off.
+                A day about <strong>500 under</strong> is the one that holds. Much deeper and
+                your body starts spending muscle alongside fat, which is the weight you least
+                want to lose.
               </>
             )}
           </Kaira>
@@ -144,13 +147,32 @@ export default function TrackHero({ state, onSeeTasks }) {
               Today's sufficiency
             </Head>
             <Band h={118}>
-              <Score locked={state !== "full"} pct={SCORE[state] ?? 0} />
+              {/* Shut only while nothing is logged. It waited for three meals
+                  when the score did; the score reads from the first one now, so
+                  a lock past that would hide a number somebody has earned. */}
+              <Score locked={state === "nodata"} pct={SCORE[state] ?? 0} />
             </Band>
             <Macros set={MACROS[state] || MACROS.partial} />
-            {state === "full" ? (
-              <Kaira>All three main meals in and a strong day. Protein is the one still worth a look.</Kaira>
+            {/* What the food was made of, beside the macros it is about. It
+                used to sit on the summary card, one card away from the four
+                numbers it was explaining. */}
+            {state === "nodata" ? (
+              <Kaira>
+                Nothing is logged yet, so there is nothing to read. Your sufficiency starts on
+                your <strong>first meal</strong> and climbs with every one you add after it.
+              </Kaira>
+            ) : state === "partial" ? (
+              <Kaira>
+                Your breakfast was mostly poha and chai, so it leaned on carbs with very little
+                <strong> protein</strong>, the part of food that keeps hunger away for hours.
+                Without it you will probably be looking for a snack well before lunch.
+              </Kaira>
             ) : (
-              <Meals done={state === "nodata" ? 0 : shownMeals} />
+              <Kaira>
+                Rice, roti and khichdi carried most of today, so your energy came mainly from
+                carbs. A little more <strong>protein at dinner</strong> would keep you full
+                overnight and protect your muscle while the weight comes off.
+              </Kaira>
             )}
         </Card>
       </div>
@@ -483,51 +505,6 @@ function Ring({ pct, color, track }) {
   );
 }
 
-/* The gate, drawn as the three meals it is waiting on rather than described in
-   a sentence. */
-function Meals({ done }) {
-  const NAMES = ["Breakfast", "Lunch", "Dinner"];
-  return (
-    <div
-      style={{
-        background: BG_ALT,
-        border: "1px solid " + LINE,
-        borderRadius: 13,
-        padding: "11px 12px",
-        marginTop: "auto",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 8 }}>
-        <span style={{ fontSize: 11.5, fontWeight: 700, color: TEXT }}>{done} of 3 main meals</span>
-        <span style={{ fontSize: 10.5, color: MUTED }}>unlocks your score</span>
-      </div>
-      <div style={{ display: "flex", gap: 6 }}>
-        {NAMES.map((n, i) => (
-          <div key={n} style={{ flex: 1 }}>
-            <div
-              style={{
-                height: 5,
-                borderRadius: 3,
-                background: i < done ? GREEN : LINE,
-                transition: "background .4s ease " + i * 0.08 + "s",
-              }}
-            />
-            <div
-              style={{
-                fontSize: 9.5,
-                color: i < done ? TEXT : MUTED,
-                marginTop: 4,
-                textAlign: "center",
-              }}
-            >
-              {n}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 
 function Kaira({ children }) {

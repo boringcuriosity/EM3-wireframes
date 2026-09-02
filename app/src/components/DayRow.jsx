@@ -223,19 +223,11 @@ export default function DayRow({ row: r, last, compact, now }) {
     </button>
   );
 
-  const when = r.when && !off && (
-    <span
-      style={{
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: 9.5,
-        fontWeight: 600,
-        color: FAINT,
-        whiteSpace: "nowrap",
-      }}
-    >
-      {r.when}
-    </span>
-  );
+  /* No clock on a row. The hours belong to the part of the day, which says
+     them once in its heading, and a column of times down the list was the same
+     fact repeated on every line. A meal's own window is still in its plan
+     block, where it is the coach's instruction rather than a timestamp. */
+  const when = null;
 
   const menu = (
     <button
@@ -296,7 +288,18 @@ export default function DayRow({ row: r, last, compact, now }) {
           {r.tip}
         </span>
       )}
-      {r.opts?.length > 0 && (
+      {/* What the task actually came back with, where the tip used to be. A
+          row that says only "done" throws away the one number the sync went
+          and got. While the reading is on its way it shimmers in that spot, so
+          the answer lands where the wait was rather than somewhere else. */}
+      {r.syncing ? (
+        <span style={{ display: "block", marginTop: 5 }}>
+          <Skel w={96} h={11} />
+        </span>
+      ) : (
+        r.result && r.done && <Result r={r} />
+      )}
+      {(r.opts?.length > 0 || (r.done && r.items?.length > 0)) && (
         <Plan row={r} onPick={(i) => setPlanOption({ ...planOption, [r.division]: i })} />
       )}
       {bar && (
@@ -894,24 +897,10 @@ export default function DayRow({ row: r, last, compact, now }) {
           paddingTop: 2,
         }}
       >
-        {/* The hour at the end of the row, in line with every other hour, so
-            the column of times reads as a schedule down the page. It can sit
-            here now that a meal's options run underneath rather than beside
-            it. */}
-        {r.when && !off && (
-          <span
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 9.5,
-              fontWeight: 600,
-              color: FAINT,
-              whiteSpace: "nowrap",
-              marginRight: 4,
-            }}
-          >
-            {r.when}
-          </span>
-        )}
+        {/* No hour at the end of the row. The column of times down the page
+            was the same fact restated on every line, and the part of the day
+            now says it once in its own heading. The Timeline layouts keep
+            theirs, because a spine of hours is the whole of what they are. */}
         {/* One glyph at the end of a row. A chevron and a three dot sitting
             three pixels apart read as one smudged control, so the full row
             keeps the menu and the compact rows on Home, which have no menu,
@@ -959,7 +948,14 @@ export default function DayRow({ row: r, last, compact, now }) {
                 {r.tip}
               </span>
             )}
-            {r.opts?.length > 0 && (
+            {r.syncing ? (
+              <span style={{ display: "block", marginTop: 5 }}>
+                <Skel w={96} h={11} />
+              </span>
+            ) : (
+              r.result && r.done && <Result r={r} />
+            )}
+            {(r.opts?.length > 0 || (r.done && r.items?.length > 0)) && (
               <Plan row={r} onPick={(i) => setPlanOption({ ...planOption, [r.division]: i })} />
             )}
             {bar && (
@@ -1023,33 +1019,78 @@ function Tick({ draw }) {
 // Circle plus the gap beside it, so anything below a row lines up with its name.
 const ROW_INDENT = 33;
 
-/* What the coach put in this meal, on the row that asks for it.
+/* The reading a finished task came back with: hours slept, the mood you
+   picked. Set in the same plain line the tip uses, because it is read the same
+   way and a chip would make one row's subtext louder than every other. */
+function Result({ r }) {
+  return (
+    <span style={{ display: "block", fontSize: 11.5, color: MUTED, lineHeight: 1.45, marginTop: 4 }}>
+      {r.result}
+    </span>
+  );
+}
 
-   The options are alternates for the same meal, so only one is ever shown and
-   the pills swap between them. Once something has been eaten the choice is
-   settled, the pills go, and the line becomes a record of what went in. */
+/* What is in this meal, on the row that asks for it.
+
+   Before it is logged that is the coach's options, alternates for the same
+   meal, so only one shows and the pills swap between them. Once something has
+   been eaten the choice is settled, the pills go, and the line becomes a
+   record of what actually went in.
+
+   That record does not need a plan behind it. Somebody logging their own
+   breakfast with no coach yet has just as much right to see it on the row, and
+   the block used to appear only where a plan had put options there. */
 function Plan({ row: r, onPick }) {
   const c = PILLAR.eat.c;
-  const items = r.done ? r.items : r.opts[r.oi] || [];
+  const opts = r.opts || [];
+  /* Finished, the record of what went in. Still open with a plan behind it,
+     the coach's whole option, so the items still owed stay on screen beside
+     the ones already struck. */
+  const items = r.done ? r.items : opts[r.oi] || [];
+  if (!items.length) return null;
   /* Portion first, name second, the way a plan is written on paper: "1 bowl
      vegetable poha", not "Vegetable poha 1 bowl". */
-  const line = items
-    .map((it) => {
-      const f = byId(it.id);
-      if (!f) return null;
-      const [, per, rawNoun] = f.unit.match(/^(\d+)?\s*(.*)$/);
-      // A serving can be more than one of a thing: idli comes as "2 pieces",
-      // so two servings is four, not "2 x 2 pieces".
-      const n = (Number(per) || 1) * it.qty;
-      const noun = n > 1 && !rawNoun.endsWith("s") ? rawNoun + "s" : n === 1 ? rawNoun.replace(/s$/, "") : rawNoun;
-      const name = f.name.toLowerCase();
-      // "1 egg" plus "boiled egg" would read "1 egg boiled egg", so when the
-      // name already ends in the unit's noun the noun is dropped.
-      const said = name.endsWith(noun) || name.endsWith(noun.replace(/s$/, ""));
-      return said ? n + " " + name : n + " " + noun + " " + name;
-    })
-    .filter(Boolean)
-    .join(", ");
+  const said = (it) => {
+    const f = byId(it.id);
+    if (!f) return null;
+    const [, per, rawNoun] = f.unit.match(/^(\d+)?\s*(.*)$/);
+    // A serving can be more than one of a thing: idli comes as "2 pieces",
+    // so two servings is four, not "2 x 2 pieces".
+    const n = (Number(per) || 1) * it.qty;
+    const noun = n > 1 && !rawNoun.endsWith("s") ? rawNoun + "s" : n === 1 ? rawNoun.replace(/s$/, "") : rawNoun;
+    const name = f.name.toLowerCase();
+    // "1 egg" plus "boiled egg" would read "1 egg boiled egg", so when the
+    // name already ends in the unit's noun the noun is dropped.
+    const ends = name.endsWith(noun) || name.endsWith(noun.replace(/s$/, ""));
+    return ends ? n + " " + name : n + " " + noun + " " + name;
+  };
+
+  /* Each item on its own, so a coach's option can be half done. Logging two of
+     three used to leave the whole line unstruck, which said nothing about
+     which one was still owed. The ones already in are struck; the rest are
+     what the row is still asking for. */
+  const inAlready = new Set(r.loggedIds || []);
+  const parts = items
+    .map((it) => ({ key: it.id, text: said(it), on: r.done || inAlready.has(it.id) }))
+    .filter((x) => x.text);
+  const line = (
+    <>
+      {parts.map((x, i) => (
+        <span key={x.key}>
+          <span
+            style={
+              x.on && !r.done
+                ? { textDecoration: "line-through", textDecorationColor: c, color: FAINT }
+                : undefined
+            }
+          >
+            {x.text}
+          </span>
+          {i < parts.length - 1 ? ", " : ""}
+        </span>
+      ))}
+    </>
+  );
 
   return (
     <span
@@ -1062,9 +1103,9 @@ function Plan({ row: r, onPick }) {
         marginTop: 8,
       }}
     >
-      {r.opts.length > 1 && !r.optionLocked && (
+      {opts.length > 1 && !r.optionLocked && (
         <span style={{ display: "flex", gap: 5, marginBottom: 7 }}>
-          {r.opts.map((_, i) => (
+          {opts.map((_, i) => (
             <button
               key={i}
               onClick={(e) => {

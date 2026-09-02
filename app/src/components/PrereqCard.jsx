@@ -2,8 +2,9 @@ import React from "react";
 import { useWF } from "../state";
 import { BarChart3, FlaskConical, MessagesSquare } from "lucide-react";
 import CtaArrow from "./CtaArrow";
+import { coachAvatar } from "../ui";
 import {
-  GREEN, MUTED, WARN, WARN_TINT, WARN_LINE, SH_SM,
+  GREEN, TEXT, MUTED, WARN, WARN_TINT, WARN_LINE, SH_SM,
 } from "../tokens";
 
 /* One thing the care program cannot start without.
@@ -18,6 +19,16 @@ import {
    changes, because the two rails are different widths. */
 
 const PREREQS = {
+  /* First, because it is the only one of the four that anybody else is waiting
+     on. The other three make the consultation better and none of them gates
+     it, so a slot gets booked while the preparation happens around it. */
+  /* One per coach, because a consultation is with a person and three of them
+     get booked in one sitting. They sit at the end of the rail: the three
+     above are what a coach reads on the way in, and these are the hour that
+     turns all of it into a plan. */
+  "book:eat": { book: "eat" },
+  "book:move": { book: "move" },
+  "book:mind": { book: "mind" },
   score: {
     Icon: BarChart3,
     title: "Take your metabolic score",
@@ -44,10 +55,15 @@ const PREREQS = {
   },
 };
 
+/* The plan each consultation produces, named the way the handover names it. */
+const PLAN_OF = { eat: "Eat plan", move: "Move plan", mind: "Mind plan" };
+
 export default function PrereqCard({ id, width, minHeight }) {
-  const { setActiveTab, nextDone, setNextDone, setScoreFlow, setScoreStep } = useWF();
+  const { setActiveTab, nextDone, setNextDone, setScoreFlow, setScoreStep, openBooking, careTeam } = useWF();
   const x = PREREQS[id];
   if (!x) return null;
+  // The coach cards are their own shape: a person rather than a task.
+  const who = x.book ? careTeam.find((m) => m.pillar === x.book) : null;
 
   /* Tapping through is what finishes the two that hand off to another screen:
      nobody books a lab test and then also ticks a box to say so.
@@ -61,6 +77,10 @@ export default function PrereqCard({ id, width, minHeight }) {
       setScoreFlow("intro");
       return;
     }
+    /* Booking marks itself off the booking, never off the tap. `bookings`
+       already records the slot, so a tick of our own would be the same fact
+       kept twice and the two would part company the moment a slot moved. */
+    if (x.book) return openBooking(who ? who.id : null);
     if (!nextDone.includes(id)) setNextDone(nextDone.concat(id));
     setActiveTab(x.tab);
   };
@@ -85,24 +105,54 @@ export default function PrereqCard({ id, width, minHeight }) {
       }}
     >
       <Watermark />
-      <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 8 }}>
-        <x.Icon size={15} color={WARN} strokeWidth={2.2} />
-        <span style={{ fontSize: 14.5, fontWeight: 700, color: WARN, lineHeight: 1.3 }}>
-          {x.title}
-        </span>
-      </div>
-      <div
-        style={{
-          position: "relative",
-          flex: 1,
-          fontSize: 11.5,
-          color: MUTED,
-          lineHeight: 1.5,
-          margin: "7px 0 13px",
-        }}
-      >
-        {x.line}
-      </div>
+      {who ? (
+        <>
+          {/* The ask first, in the same amber the rail uses, so it reads as
+              one of the blocking jobs rather than as an offer. */}
+          <div style={{ position: "relative", fontSize: 14.5, fontWeight: 700, color: WARN, lineHeight: 1.3 }}>
+            Book your first consultation
+          </div>
+
+          {/* Then the person, because that is what a consultation is with.
+              Name over role, since the program is people rather than a
+              directory. */}
+          <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 10, margin: "11px 0 10px" }}>
+            {coachAvatar(38)}
+            <span style={{ minWidth: 0 }}>
+              <span style={{ display: "block", fontSize: 11, color: MUTED, lineHeight: 1.3 }}>{who.coach}</span>
+              <span style={{ display: "block", fontSize: 14, fontWeight: 800, color: TEXT, letterSpacing: -0.2, lineHeight: 1.3 }}>
+                {who.name}
+              </span>
+            </span>
+          </div>
+
+          {/* Why it blocks, said once. */}
+          <div style={{ position: "relative", flex: 1, fontSize: 11.5, color: MUTED, lineHeight: 1.5, marginBottom: 13 }}>
+            Your {PLAN_OF[x.book]} is assigned only after your first consultation.
+          </div>
+        </>
+      ) : (
+        <>
+          <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 8 }}>
+            <x.Icon size={15} color={WARN} strokeWidth={2.2} />
+            <span style={{ fontSize: 14.5, fontWeight: 700, color: WARN, lineHeight: 1.3 }}>
+              {x.title}
+            </span>
+          </div>
+          <div
+            style={{
+              position: "relative",
+              flex: 1,
+              fontSize: 11.5,
+              color: MUTED,
+              lineHeight: 1.5,
+              margin: "7px 0 13px",
+            }}
+          >
+            {x.line}
+          </div>
+        </>
+      )}
       <button
         onClick={go}
         /* The same pill the session cards use. These sit in the same Home rail
@@ -127,7 +177,7 @@ export default function PrereqCard({ id, width, minHeight }) {
           fontFamily: "inherit",
         }}
       >
-        {x.cta}
+        {who ? "Book a time" : x.cta}
         <CtaArrow />
       </button>
     </div>

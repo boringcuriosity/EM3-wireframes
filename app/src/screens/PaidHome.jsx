@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useWF } from "../state";
 import DailyTasks from "../components/DailyTasks";
 import HomeTopBar from "../components/HomeTopBar";
@@ -8,10 +8,54 @@ import { GREEN, GREEN_DEEP, GREEN_TINT, GREEN_WASH, TEXT, MUTED, BG_ALT, BG, BOR
 import { sectionLabel, coachAvatar } from "../ui";
 import TourTarget from "../components/TourTarget";
 import CtaArrow from "../components/CtaArrow";
+import PrereqRail from "../components/PrereqRail";
 import PrereqCard from "../components/PrereqCard";
 
 export default function PaidHomePage() {
-  const { setActiveTab, setHomeProgramTab, sessionState, scoreState, setProgramDetail, CARD_W, CARD_GAP, CARD_PAD, CARD_H, SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef, handleCarouselScroll, nextOpen, HOME_CARDS, HOME_TABS, homeTab, firstName, liveSession, openBooking } = useWF();
+  const { setActiveTab, setHomeProgramTab, sessionState, scoreState, setProgramDetail, CARD_W, CARD_GAP, CARD_PAD, CARD_H, SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef, handleCarouselScroll, nextOpen, HOME_CARDS, HOME_TABS, homeTab, firstName, liveSession, openBooking, nextScrollDue, setNextScrollDue } = useWF();
+
+  /* Somebody who put the first steps away on To-do and asked to be shown
+     where they went arrives here. Take them to the rail rather than ringing
+     the strip they just shut. */
+  const railRef = useRef(null);
+  useEffect(() => {
+    if (!nextScrollDue) return;
+    setNextScrollDue(false);
+    /* One scroll, once the screen has settled. Measured off the offset chain
+       rather than off rectangles, because a rectangle read mid-animation
+       measures where the page is passing through rather than where it sits.
+
+       Not scrollIntoView either: the page inside the phone frame is one
+       scroller among several and the browser picks the outermost, which moves
+       the frame rather than the screen. */
+    const absTop = (node) => {
+      let t = 0;
+      for (let n = node; n; n = n.offsetParent) t += n.offsetTop;
+      return t;
+    };
+    setTimeout(() => {
+      const el = railRef.current;
+      if (!el) return;
+      let sc = el.parentElement;
+      while (sc && sc.scrollHeight <= sc.clientHeight + 1) sc = sc.parentElement;
+      if (!sc) return;
+      /* Hand-rolled rather than behavior: "smooth", which this scroller
+         ignores. Quarter of a second of ease-out is enough to read as
+         movement rather than as a jump cut. */
+      const from = sc.scrollTop;
+      const to = Math.min(
+        sc.scrollHeight - sc.clientHeight,
+        Math.max(0, absTop(el) - absTop(sc) - 8)
+      );
+      const t0 = performance.now();
+      const step = (now) => {
+        const k = Math.min(1, (now - t0) / 420);
+        sc.scrollTop = from + (to - from) * (1 - Math.pow(1 - k, 3));
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }, 300);
+  }, [nextScrollDue]);
 
   return (
     (
@@ -24,6 +68,26 @@ export default function PaidHomePage() {
             now, streak included. */}
 
         {/* Program / Sessions switch — hidden behind SHOW_PROGRAM_TABS */}
+        {/* What has to happen before a coach can write anything. It opens the
+            screen now rather than riding in the carousel: it is the only thing
+            here that blocks everything else, and a card you have to swipe to is
+            a poor place for the one thing somebody has to do first. */}
+        <div style={{ padding: "14px 22px 0" }}>
+          <PrereqRail keep />
+        </div>
+
+
+        {/* Today's tasks — the daily engine, replaces the one-time setup card */}
+        {<DailyTasks />}
+
+        {/* Smart Devices — shared with free Home, same block */}
+        {/* Devices carries no bottom padding of its own, so the rail below it
+            used to sit right against the card. */}
+        <TourTarget id="devices" style={{ paddingBottom: 22 }}>{<SmartDevices />}</TourTarget>
+        {/* Your program, the bookings and any live session. Below the day and
+            the devices now: it is the standing context around the program
+            rather than the thing to do this morning. */}
+        <div ref={railRef} style={{ scrollMarginTop: 8 }}>
         {SHOW_PROGRAM_TABS && (
         <div
           style={{
@@ -116,6 +180,9 @@ export default function PaidHomePage() {
         >
           {HOME_CARDS.map((card) =>
             card.startsWith("next:") ? (
+              /* One first step to a card, the same card the To-do rail draws.
+                 They live in the Start here strip at the top of Home too; this
+                 is where somebody browsing their program finds them. */
               <PrereqCard key={card} id={card.slice(5)} width={CARD_W} minHeight={CARD_H} />
             ) : card === "live" ? (
               /* Live sessions. Not a consultation: nobody books it, it is not
@@ -403,12 +470,7 @@ export default function PaidHomePage() {
           )}
 
         </div>
-
-        {/* Today's tasks — the daily engine, replaces the one-time setup card */}
-        {<DailyTasks />}
-
-        {/* Smart Devices — shared with free Home, same block */}
-        <TourTarget id="devices">{<SmartDevices />}</TourTarget>
+        </div>
 
         {/* MET Score */}
         <TourTarget id="score" style={{ padding: "20px 22px 0" }}>

@@ -7,6 +7,7 @@ import Em3Strip from "./Em3Strip";
 import LotusIcon from "./LotusIcon";
 import DayStreakBar, { DayDoneCard } from "./DayStreakBar";
 import MetabolismCards from "./MetabolismCards";
+import HomeToday from "./HomeToday";
 import { ChevronRight, MoreHorizontal, Utensils, Flame, BarChart3 } from "lucide-react";
 import { PILLAR, TEXT, MUTED, FAINT, LINE, BG, BORDER, SH_SM } from "../tokens";
 
@@ -26,6 +27,15 @@ export default function DailyTasks() {
           setEatDetail, setMoveDetail, setMindDetail } = useWF();
 
   if (dailyState === "ftux") return <FtuxExplainer />;
+
+  /* The bubbles shape is a section rather than a card, and it owns its own
+     heading, so it returns before any of the shared card machinery below. */
+  if (homeCard === "bubbles")
+    return (
+      <TourTarget id="focus" style={{ padding: "4px 22px 18px" }}>
+        <HomeToday />
+      </TourTarget>
+    );
 
   // The first phase with anything left in it, and what is open inside it.
   const phase = dayPhases.find((f) => !f.complete);

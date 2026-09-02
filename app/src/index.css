@@ -95,3 +95,21 @@ body { margin: 0; font-family: Roboto, system-ui, sans-serif; }
   54%       { transform: translateX(-62px) scale(.5); opacity: 0; }
   100%      { transform: translateX(-62px) scale(.5); opacity: 0; }
 }
+
+/* The EM3 bubbles at rest. Four pixels over eight seconds sits below the
+   threshold where motion competes for attention: you register that the cluster
+   is alive without ever catching it moving. Each bubble runs this at its own
+   period with a negative delay, set where it is used, because four things
+   drifting in step are an animation and four out of step are objects. */
+@keyframes drift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -4px, 0); }
+}
+
+/* The drift is the one thing here that moves without being asked to, so it is
+   the one thing that stops. The size change on a handover stays, because a
+   bubble that teleports between seats is harder to follow than one that takes
+   half a second to get there. */
+@media (prefers-reduced-motion: reduce) {
+  [aria-label="Your four pillars"] span { animation: none !important; }
+}

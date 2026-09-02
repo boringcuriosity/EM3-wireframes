@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import { useWF } from "../state";
 import { Calendar } from "lucide-react";
 import DayPhase from "../components/DayPhase";
@@ -10,11 +10,15 @@ import { GREEN, TEXT, MUTED, BG, BORDER, GOLD, GOLD_TINT, GOLD_LINE, GOLD_DEEP, 
 import CtaArrow from "../components/CtaArrow";
 import Em3Explainer from "../components/Em3Explainer";
 
+/* Survives the unmount, because that is the whole point of it. */
+const trackScroll = { current: 0 };
+
 export default function TrackPage() {
-  const { dayPhases, dayComplete, flipcoins, heroState } = useWF();
-  // Which phases the person has opened or closed by hand. Anything they have
-  // not touched follows the day: open until it is finished.
-  const [openPhase, setOpenPhase] = useState({});
+  const { dayPhases, dayComplete, flipcoins, heroState, openPhase, setOpenPhase } = useWF();
+  /* Which phases the person has opened or closed by hand, held in state rather
+     than here: logging is a takeover, so this screen unmounts and a local copy
+     would come back empty. Anything untouched follows the day, open until it
+     is finished. */
   /* The part of the day you are in: the earliest one still with something in
      it. Once they are all cleared none is active, so the whole list folds and
      the streak card is what is left. */
@@ -24,6 +28,40 @@ export default function TrackPage() {
   // somewhere to point at.
   const focusRef = useRef(null);
 
+  /* Where the person was reading, held across a takeover.
+
+     Logging a meal unmounts this screen, so coming back used to drop them at
+     the top of the day with the task they had just finished somewhere below
+     the fold. The scroller belongs to the app frame rather than to this page,
+     so the root reaches up for it and puts it back where it was. */
+  const rootRef = useRef(null);
+  useLayoutEffect(() => {
+    const el = rootRef.current && rootRef.current.parentElement;
+    if (!el) return;
+    const want = trackScroll.current;
+    /* Twice: once now, and once on the next frame. The first assignment can
+       clamp to zero because the list is still shorter than where they were,
+       and the phases finish laying out a frame later. */
+    let raf = 0;
+    if (want) {
+      el.scrollTop = want;
+      raf = requestAnimationFrame(() => {
+        el.scrollTop = want;
+      });
+    }
+    const save = () => {
+      trackScroll.current = el.scrollTop;
+    };
+    el.addEventListener("scroll", save, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      // Read straight off the node: the listener may not have fired for the
+      // last few pixels of a flick.
+      trackScroll.current = el.scrollTop;
+      el.removeEventListener("scroll", save);
+    };
+  }, []);
+
   return (
     (
       (() => {
@@ -31,7 +69,7 @@ export default function TrackPage() {
         return (
       /* The last 92px are room for Kaira, who floats over the bottom right
          corner and was sitting on the Measure ring. */
-      <div style={{ padding: "14px 22px 92px" }}>
+      <div ref={rootRef} style={{ padding: "14px 22px 92px" }}>
         {/* Top row: Flipcoins on the left, the day on the right */}
         <div
           style={{
@@ -99,9 +137,11 @@ export default function TrackPage() {
             The card shuts itself instead, so it costs one line and the work
             stays in front of somebody. */}
         {heroState === "noplan" ? (
-          <PrereqRail />
+          <PrereqRail startOpen />
         ) : (
           <>
+            {/* A plan is in, so the day leads and these compress to a strip.
+                Before one lands they are the job, so they stand open. */}
             <PrereqRail />
             <TrackHero
               state={heroState}

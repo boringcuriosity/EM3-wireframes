@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import { useWF } from "../state";
-import { ChevronRight, ChevronLeft, Utensils, TrendingUp, Gift, Check, Stethoscope, BookOpen, MoreVertical, Info } from "lucide-react";
-import { GREEN, TEXT, TEXT_2, MUTED, FAINT, BG_ALT, BG, BORDER, RULE, LINE, PILLAR, SH, SH_SM } from "../tokens";
+import { ChevronRight, ChevronLeft, Utensils, TrendingUp, Gift, Check, Stethoscope, BookOpen, MoreVertical, Info, Droplet } from "lucide-react";
+import { GREEN, TEXT, TEXT_2, MUTED, FAINT, BG_ALT, BG, BORDER, RULE, LINE, PILLAR, EAT_C, EAT_T, SH, SH_SM } from "../tokens";
 import LogMealPrompt from "../components/LogMealPrompt";
 import CaloriesStrip from "../components/CaloriesStrip";
 import LogWithoutJudgementCard from "../components/LogWithoutJudgementCard";
@@ -21,7 +21,7 @@ const EAT_ARTICLES = [
 
 // Where the plus on each division drops you on the clock.
 export default function EatDetailPage() {
-  const { setEatDetail, eatState, eatTab, setEatTab, eatDivisions, kcalTarget, mealsLogged, hasTargets, dayTotals, planAssigned, setMealItem, eatFocus, setEatFocus, planOption, setPlanOption, dayTicks, toggleTick, setTipInfo, openLog, openMealLog } = useWF();
+  const { setEatDetail, eatState, eatTab, setEatTab, eatDivisions, kcalTarget, mealsLogged, hasTargets, dayTotals, planAssigned, setMealItem, eatFocus, setEatFocus, planOption, setPlanOption, dayTicks, toggleTick, setTipInfo, openLog, openMealLog, water, setWaterSheet } = useWF();
 
   /* Straight to the logger. There used to be a sheet in front of a first log
      asking the user to set their targets up first, which is the wrong ask for
@@ -396,6 +396,49 @@ export default function EatDetailPage() {
             </div>
           );
         })}
+
+        {/* Water, at the foot of the day's food, because that is where it
+            belongs: it is the one thing you drink rather than eat, and giving
+            it a meal slot of its own would have put it in the middle of the
+            hours. One card, the count and the way to change it. */}
+        <button
+          onClick={() => setWaterSheet(true)}
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            background: BG,
+            border: "1px solid " + BORDER,
+            borderRadius: 18,
+            padding: "14px 16px",
+            marginTop: 12,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            textAlign: "left",
+            boxShadow: SH_SM,
+          }}
+        >
+          <span
+            style={{
+              width: 34, height: 34, borderRadius: 11, flexShrink: 0,
+              background: EAT_T, display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            <Droplet size={16} color={EAT_C} strokeWidth={2.2} fill={water > 0 ? EAT_C : "none"} />
+          </span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: TEXT }}>Water</span>
+            <span style={{ display: "block", fontSize: 11.5, color: MUTED, marginTop: 1 }}>
+              {water === 0
+                ? "Nothing logged yet"
+                : water + (water === 1 ? " glass" : " glasses") + " today, about " + water * 250 + "ml"}
+            </span>
+          </span>
+          <span style={{ flexShrink: 0, fontSize: 12, fontWeight: 700, color: GREEN }}>
+            {water === 0 ? "Log" : "Change"}
+          </span>
+        </button>
       </div>
     </div>
   )

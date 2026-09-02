@@ -1,7 +1,7 @@
 import React from "react";
 import { useWF } from "../../state";
 import { Info, Lock } from "lucide-react";
-import { GREEN, TEXT, MUTED, BG, BORDER, SH } from "../../tokens";
+import { GREEN, GREEN_DEEP, GREEN_WASH, GREEN_TINT, TEXT, MUTED, BG, BORDER, SH } from "../../tokens";
 import MacroRings from "../../components/MacroRings";
 
 /* The hero on Eat, once targets exist. The number is real from the first meal,
@@ -15,10 +15,10 @@ import MacroRings from "../../components/MacroRings";
 
 export default function SufficiencyCard() {
   const {
-    liveScore, scoreUnlocked, mealsIn, mealsLogged, setPillarInfo,
+    liveScore, scoreUnlocked, mealsIn, mealSlots, mealsLeft, mealsLogged, weakestMacro, setPillarInfo,
   } = useWF();
 
-  const left = Math.max(0, 3 - mealsIn);
+
   const anyLogged = mealsLogged.length > 0;
 
   return (
@@ -82,15 +82,19 @@ export default function SufficiencyCard() {
           <div style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>
             {scoreUnlocked ? "Today's sufficiency" : anyLogged ? "Today so far" : "Nothing logged yet"}
           </div>
+          {/* The count, then what logging the rest does to it. The score is
+              honest about being partial by saying how much of the day it has
+              read, rather than by hiding until the day is over. */}
           <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.5, marginTop: 4 }}>
             {scoreUnlocked ? (
-              <>Three meals are in, so this is a real read of your day.</>
-            ) : anyLogged ? (
               <>
-                {mealsIn} of 3 meals in. Log {left} more to reveal today's score.
+                {mealsIn} of {mealSlots} meals logged.{" "}
+                {mealsLeft > 0
+                  ? "Your sufficiency increases as you log the rest of your meals."
+                  : "That is your whole day read."}
               </>
             ) : (
-              <>Your targets are set. Log three meals and today's score appears here.</>
+              <>Your targets are set. Log your first meal and today's score appears here.</>
             )}
           </div>
         </div>
@@ -116,24 +120,39 @@ export default function SufficiencyCard() {
         </button>
       </div>
 
-      {/* Three meals, counted rather than named. Naming them told somebody
-          whose day runs on a tea and two snacks that their real meals were the
-          wrong ones. */}
-      {!scoreUnlocked && (
-        <div style={{ display: "flex", gap: 6, marginTop: 14 }}>
-          {[0, 1, 2].map((i) => (
-            <span
-              key={i}
-              style={{
-                flex: 1,
-                height: 6,
-                borderRadius: 3,
-                background: i < mealsIn ? GREEN : "transparent",
-                border: "1px solid " + (i < mealsIn ? GREEN : BORDER),
-                transition: "background .45s cubic-bezier(.32,.72,0,1) " + i * 0.08 + "s",
-              }}
-            />
-          ))}
+
+      {/* The one thing worth doing something about, named. Sufficiency is the
+          mean of four capped ratios, so the lowest of them is arithmetically
+          the biggest gap there is, and a nutrient named without its mechanism
+          is a scold rather than a reason. */}
+      {weakestMacro && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 9,
+            background: GREEN_WASH,
+            border: "1px solid " + GREEN_TINT,
+            borderRadius: 13,
+            padding: "10px 12px",
+            marginTop: 14,
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              width: 18,
+              height: 19.6,
+              flexShrink: 0,
+              marginTop: 1,
+              background: "linear-gradient(150deg, " + GREEN + " 0%, " + GREEN_DEEP + " 100%)",
+              clipPath: "polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%)",
+            }}
+          />
+          <span style={{ fontSize: 11.5, color: TEXT, lineHeight: 1.5 }}>
+            <strong>{weakestMacro.label}</strong> is the one furthest from where it should be, at{" "}
+            {weakestMacro.have}g of {weakestMacro.target}g. It is {weakestMacro.why}.
+          </span>
         </div>
       )}
 

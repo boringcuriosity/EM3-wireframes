@@ -5,7 +5,7 @@ import { useWF } from "../state";
 
 // The clock the wireframe is frozen at, matched to the status bar.
 const NOW_MIN = 9 * 60 + 41;
-import { GREEN, TEXT, MUTED, BG, BORDER, SH_SM } from "../tokens";
+import { GREEN, TEXT, MUTED, BG, BORDER, SH_SM, FAINT} from "../tokens";
 
 /* A part of the day, with its own finish line.
 
@@ -73,17 +73,22 @@ export default function DayPhase({ phase: f, open, onToggle }) {
             <Check size={11} color="#fff" strokeWidth={3.2} />
           </span>
         )}
-        <span
-          style={{
-            flex: 1,
-            minWidth: 0,
-            fontFamily: "'Playfair Display', Georgia, serif",
-            fontSize: 17,
-            fontWeight: 600,
-            color: TEXT,
-          }}
-        >
-          {f.label}
+        {/* The hours belong to the part of the day rather than to each task
+            in it. Every row carried its own clock while the headings said
+            none, which meant reading eight times to learn what one heading
+            could say once. */}
+        <span style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", gap: 7 }}>
+          <span
+            style={{
+              fontFamily: "'Playfair Display', Georgia, serif",
+              fontSize: 17,
+              fontWeight: 600,
+              color: TEXT,
+            }}
+          >
+            {f.label}
+          </span>
+          <span style={{ fontSize: 10.5, color: FAINT, whiteSpace: "nowrap" }}>{f.span}</span>
         </span>
         <span style={{ fontSize: 11.5, color: MUTED }}>
           {f.total === 0 ? "Not today" : f.done + " of " + f.total}

@@ -217,7 +217,7 @@ export default function Result({ lifted }) {
               fontWeight: 600,
             }}
           >
-            Log your 3 main meals and today's score comes into focus. Until then I keep it blurred, because half a day reads worse than your day really is.
+            Your score appears the moment you log your first meal, and it climbs as the rest of the day goes in. Log everything you eat and it ends up a true read of your day.
           </div>
         )}
       </div>

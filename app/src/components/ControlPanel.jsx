@@ -22,7 +22,7 @@ const ALL_DONE = { eat: 3, move: 1, mind: 1, measure: 1 };
    rather than in the way on every screen. */
 const ALL_GROUPS = [
   "signup", "plan", "welcome", "tour", "move", "hero", "targets",
-  "logging", "suff", "streakscreen", "streak", "milestones",
+  "logging", "loghistory", "suff", "streakscreen", "streak", "milestones",
   "focus", "homecard", "metabcard", "planarrive", "dayparts", "coachtip", "taskcard", "weekread", "movetrend", "mindtrend", "dayWon", "skip", "measuretasks", "score", "scoreflow", "sessions", "live", "nextaction", "home", "eat", "mind", "measure",
 ];
 
@@ -30,10 +30,10 @@ const SCREEN_GROUPS = {
   signup: ["signup"],
   move: ["move", "movetrend", "focus"],
   mind: ["mind", "mindtrend", "focus"],
-  logging: ["logging", "targets"],
+  logging: ["logging", "loghistory", "targets"],
   suff: ["suff", "targets"],
   streakscreen: ["streakscreen", "milestones", "focus"],
-  eat: ["eat", "targets", "logging", "coachtip"],
+  eat: ["eat", "targets", "logging", "loghistory", "coachtip"],
   chats: [],
   program: ["welcome"],
   todo: ["nextaction", "scoreflow", "hero", "focus", "taskcard", "planarrive", "weekread", "measuretasks"],
@@ -188,7 +188,7 @@ const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 const SLEEP_SRC = { gate: null, syncing: "phone", phone: "phone", manualnone: "manual", manual: "manual", tools: "manual" };
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, scoreFlow, setScoreFlow, setScoreStep, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, logPlan, openMealLog, kairaLog, setKairaLog, planNotif, setPlanNotif, hasTargets, scoreUnlocked, mealsIn, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, logExPick, openMoveLog, moveResult, setMoveResult, setRoutineFeel, setRoutineDone, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindKept, mindTemplate, setMindTemplate, setTemplateKept, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, prereqHidden, setPrereqHidden, prereqAsk, setPrereqAsk, prereqExpanded, setPrereqOpen, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, metabCard, setMetabCard, phaseMode, setPhaseMode, tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira, planSeen, setPlanSeen, kcalSource, movePlan, mindPlan, setMindPlan, bookOpen, setBookOpen, bookWith, setBookWith, liveState, setLiveState, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, scoreFlow, setScoreFlow, setScoreStep, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, waterSheet, setWaterSheet, setToast, mealsLogged, setMealsLogged, setLogItems, logPlan, openMealLog, favorites, setFavorites, kairaLog, setKairaLog, planNotif, setPlanNotif, hasTargets, scoreUnlocked, mealsIn, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, logExPick, openMoveLog, moveResult, setMoveResult, setRoutineFeel, setRoutineDone, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindKept, mindTemplate, setMindTemplate, setTemplateKept, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, prereqHidden, setPrereqHidden, prereqAsk, setPrereqAsk, prereqExpanded, setPrereqOpen, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, metabCard, setMetabCard, phaseMode, setPhaseMode, tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira, planSeen, setPlanSeen, kcalSource, movePlan, mindPlan, setMindPlan, bookOpen, setBookOpen, bookWith, setBookWith, liveState, setLiveState, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -215,7 +215,7 @@ export default function ControlPanel() {
 
   const groupValue = {
     move: moveResult ? "Result" : logExOpen ? (logExPick === "routine" ? "Routine" : "Log") : moveDetail ? moveTab : "Closed",
-    targets: hasTargets ? (scoreUnlocked ? "Unlocked" : mealsIn + "/3 meals") : "No targets",
+    targets: hasTargets ? (scoreUnlocked ? mealsIn + " logged" : "No meals yet") : "No targets",
     logging: logResult ? "Result" : kairaLog ? "Kaira " + kairaLog : logOpen ? (logPlan ? "On plan" : "Search") : mealsLogged.length + " logged",
     suff: suffFlow || "Off",
     streakscreen: streakOpen || "Strip",
@@ -921,6 +921,7 @@ export default function ControlPanel() {
             { id: "result", label: "Result", full: "Meal logged, sufficiency rising" },
             { id: "toast", label: "Toast", full: "The confirmation toast" },
             { id: "donetoast", label: "Task done toast", full: "What you see when a diary task finishes on another screen" },
+            { id: "water", label: "Water sheet", full: "Logging glasses of water, with the time it happened" },
             { id: "reset", label: "Clear day", full: "Wipe everything logged today" },
           ].map((v) =>
             panelChip(
@@ -933,8 +934,12 @@ export default function ControlPanel() {
                 ? logOpen && !!logPlan
                 : v.id === "result"
                 ? !!logResult
-                : v.id === "off" && !logOpen && !logResult,
+                : v.id === "water"
+                ? !!waterSheet
+                : v.id === "off" && !logOpen && !logResult && !waterSheet,
               () => {
+                setWaterSheet(v.id === "water");
+                if (v.id === "water") { setEatDetail(false); setActiveTab("track"); }
                 setLogOpen(v.id === "search" || v.id === "snap" || v.id === "voice");
                 setKairaLog(v.id === "snap" || v.id === "voice" ? v.id : null);
                 setLogResult(null);
@@ -981,6 +986,54 @@ export default function ControlPanel() {
             : logOpen
             ? "Favourites and Frequent, live search, heart to favourite, stepper on anything added. The time pill decides which division it lands in."
             : mealsLogged.length + " meal(s) logged today. They appear in Eat under the division their time falls in."
+        )}
+
+        {/* What the logger knows about you, which is a different question from
+            what it is doing. Favourites is a choice somebody made and Frequent
+            is counted off their own meals, so both are empty on day one and
+            both need a way to be seen full. */}
+        {panelGroup(
+          "loghistory",
+          "Log history",
+          "Log a meal, the Favourites and Frequent tabs",
+          [
+            {
+              id: "new",
+              label: "First time",
+              full: "Nothing hearted, nothing logged, Frequent offering common meals",
+              go: () => {
+                setFavorites([]);
+                setMealsLogged([]);
+              },
+            },
+            {
+              id: "used",
+              label: "Been logging",
+              full: "Three favourites, and a Frequent list counted off a real day",
+              go: () => {
+                setFavorites(["poha", "chana", "chai"]);
+                setMealsLogged(DEMO_DAY);
+              },
+            },
+          ].map((v) =>
+            panelChip(
+              v.label,
+              // Read off the same two facts the screen reads, so the chip
+              // cannot claim a state the logger is not in.
+              v.id === "new" ? !favorites.length && !mealsLogged.length : favorites.length > 0,
+              () => {
+                v.go();
+                setLogItems([]);
+                setLogOpen(true);
+                setKairaLog(null);
+                setLogResult(null);
+              },
+              v.full
+            )
+          ),
+          favorites.length || mealsLogged.length
+            ? "Favourites has " + favorites.length + " in it and Frequent is counted off " + mealsLogged.length + " logged meal(s), most eaten first."
+            : "Day one. Favourites teaches the heart that fills it, and Frequent offers a few common meals under a heading saying they are suggestions."
         )}
 
         {panelGroup(
@@ -1103,8 +1156,8 @@ export default function ControlPanel() {
             "To-do, the card above the list",
             [
               { id: "none", label: "No plans yet", eatIn: false, moveIn: false, mindIn: false, seen: [] },
-              { id: "eat", label: "Diet plan in", eatIn: true, moveIn: false, mindIn: false, seen: [] },
-              { id: "move", label: "Exercise plan in", eatIn: false, moveIn: true, mindIn: false, seen: [] },
+              { id: "eat", label: "Eat plan in", eatIn: true, moveIn: false, mindIn: false, seen: [] },
+              { id: "move", label: "Move plan in", eatIn: false, moveIn: true, mindIn: false, seen: [] },
               { id: "mind", label: "Mind plan in", eatIn: false, moveIn: false, mindIn: true, seen: [] },
               { id: "both", label: "All three in", eatIn: true, moveIn: true, mindIn: true, seen: [] },
             ].map((v) => {
@@ -1402,6 +1455,7 @@ export default function ControlPanel() {
           "Home card shape",
           "Home, Today's focus",
           [
+            { id: "bubbles", label: "Score bubbles", full: "Scores, Kaira, the next tasks, then the streak and the way into the rest" },
             { id: "split", label: "Day and pillars", full: "The day in one card, the pillars as their own section" },
             { id: "next", label: "Up next", full: "One thing next, then the rings" },
             { id: "phase", label: "This part of day", full: "The open part of the day, then the rings" },
@@ -1410,6 +1464,7 @@ export default function ControlPanel() {
             panelChip(v.label, homeCard === v.id, () => { setHomeCard(v.id); setActiveTab("home"); }, v.full)
           ),
           {
+            bubbles: "The new shape. Scores on top, Kaira joining them to the work, two tasks, then the streak beside the way into the day. The bubbles and her line are held space while their logic is written.",
             split: "Slim streak, three tasks, then Metabolism as four places to go.",
             next: "Home summarises, To-do lists. Shortest card.",
             phase: "Up to three rows of whatever part of the day is open.",
@@ -1571,10 +1626,10 @@ export default function ControlPanel() {
           screenKey === "todo" ? "Prerequisites" : "Next actions card",
           screenKey === "todo" ? "To-do, above the list" : "Home carousel, second card",
           [
-            { id: "all", label: "All three waiting", v: ["score", "labs", "assess"], d: [] },
-            { id: "one", label: "Score done", v: ["score", "labs", "assess"], d: ["score"] },
-            { id: "two", label: "One left", v: ["score", "labs", "assess"], d: ["score", "labs"] },
-            { id: "none", label: "Nothing pending", v: ["score", "labs", "assess"], d: ["score", "labs", "assess"] },
+            { id: "all", label: "All six waiting", v: ["score", "labs", "assess", "book:eat", "book:move", "book:mind"], d: [] },
+            { id: "one", label: "Score done", v: ["score", "labs", "assess", "book:eat", "book:move", "book:mind"], d: ["score"] },
+            { id: "two", label: "Only the coaches left", v: ["score", "labs", "assess", "book:eat", "book:move", "book:mind"], d: ["score", "labs", "assess"] },
+            { id: "none", label: "Nothing pending", v: ["score", "labs", "assess", "book:eat", "book:move", "book:mind"], d: ["score", "labs", "assess", "book:eat", "book:move", "book:mind"] },
           ].map((x) =>
             panelChip(
               x.label,

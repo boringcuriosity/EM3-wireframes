@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import { useWF } from "../../state";
-import { X, Moon, Sun } from "lucide-react";
+import { X, Moon, Sun, HeartPulse } from "lucide-react";
 import { fmtTime } from "../log/foods";
 import { fmtDur } from "./tools";
-import { GREEN, GREEN_DEEP, MIND_C, MIND_T, TEXT, MUTED, BG, BG_ALT, BORDER, LINE } from "../../tokens";
+import CtaArrow from "../../components/CtaArrow";
+import { GREEN, GREEN_DEEP, MIND_C, MIND_T, MIND_W, TEXT, MUTED, BG, BG_ALT, BORDER, LINE } from "../../tokens";
 
 const COINS = 2;
 
@@ -13,7 +14,7 @@ const COINS = 2;
    answer would be a guess. Two times they do know, and the number falls out.
    It also gives us the part that matters for the body clock: when. */
 export default function LogSleep() {
-  const { setLogSleepOpen, sleepLogs, setSleepLogs, flipcoins, setFlipcoins, setToast } = useWF();
+  const { setLogSleepOpen, sleepLogs, setSleepLogs, flipcoins, setFlipcoins, setToast, setHealthSheet } = useWF();
 
   const [bed, setBed] = useState(23 * 60);
   const [wake, setWake] = useState(6 * 60 + 40);
@@ -100,6 +101,39 @@ export default function LogSleep() {
         <div style={{ padding: "16px 22px 0", fontSize: 11.5, color: MUTED, lineHeight: 1.5 }}>
           Roughly is fine. Your coach is looking at the pattern across the week, not the exact minute.
         </div>
+
+        {/* The offer stays on the screen whatever was chosen before, and
+            whether or not a plan is in. Somebody who said they would tell us
+            themselves in week one often has a watch by week three, and the
+            only way back used to be a settings row nobody goes looking for. */}
+        <button
+          onClick={() => setHealthSheet("sleep")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            width: "calc(100% - 44px)",
+            margin: "16px 22px 0",
+            background: MIND_W,
+            border: "1px solid " + MIND_T,
+            borderRadius: 14,
+            padding: "12px 13px",
+            cursor: "pointer",
+            fontFamily: "inherit",
+            textAlign: "left",
+          }}
+        >
+          <HeartPulse size={16} color={MIND_C} strokeWidth={2.2} style={{ flexShrink: 0 }} />
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: TEXT }}>
+              Let Health Connect fill this in
+            </span>
+            <span style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 1, lineHeight: 1.4 }}>
+              If your phone or watch tracks your nights, it already has them.
+            </span>
+          </span>
+          <CtaArrow size={13} style={{ color: MIND_C }} />
+        </button>
       </div>
 
       <div style={{ flexShrink: 0, padding: "14px 22px 24px" }}>
@@ -127,6 +161,15 @@ export default function LogSleep() {
 }
 
 function Rail({ slots, value, onPick }) {
+  /* The chosen hour starts centred rather than wherever the rail happens to
+     begin. A row of times that opens on 8 PM when the answer is 10:30 asks
+     somebody to go looking for their own selection. */
+  const pick = useRef(null);
+  useLayoutEffect(() => {
+    const el = pick.current;
+    if (el) el.scrollIntoView({ block: "nearest", inline: "center" });
+  }, []);
+
   return (
     <div style={{ display: "flex", gap: 8, overflowX: "auto", padding: "10px 22px 2px", scrollbarWidth: "none" }}>
       {slots.map((t) => {
@@ -134,6 +177,7 @@ function Rail({ slots, value, onPick }) {
         return (
           <button
             key={t}
+            ref={on ? pick : null}
             onClick={() => onPick(t)}
             style={{
               flexShrink: 0,

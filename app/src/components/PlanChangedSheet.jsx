@@ -11,9 +11,11 @@ import { GREEN, GREEN_DEEP, TEXT, MUTED, FAINT, BG, BG_ALT, BORDER, LINE, PILLAR
    closes the card for good, so reading it and dismissing it are the same
    action. */
 
+/* Named off the pillars, the same as the handover card and the waiting sheet.
+   One vocabulary across the three surfaces that talk about a plan. */
 const HEAD = {
-  eat: { Icon: Utensils, coach: "nutrition coach", title: "Your food, meal by meal" },
-  move: { Icon: Flame, coach: "exercise coach", title: "Your session, and your steps" },
+  eat: { Icon: Utensils, coach: "Eat coach", title: "Your food, meal by meal" },
+  move: { Icon: Flame, coach: "Move coach", title: "Your session, and your steps" },
 
 };
 
@@ -155,7 +157,7 @@ export default function PlanChangedSheet() {
                   }}
                 >
                   {React.createElement(HEAD[t].Icon, { size: 12.5, strokeWidth: 2.2 })}
-                  {t === "eat" ? "Diet plan" : "Exercise plan"}
+                  {t === "eat" ? "Eat plan" : "Move plan"}
                 </button>
               ))}
             </div>

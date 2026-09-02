@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Move — Concept One-Pager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand:#299D6B; --brand-700:#2A805A; --brand-100:#E6FAF1; --brand-50:#F3FCF8; --brand-200:#CBF0E0;
+    --text:#344054; --ink:#101828; --muted:#667085;
+    --bg:#F9FAFB; --bg2:#F2F4F7; --card:#FFFFFF; --border:#E4E7EC;
+    --indigo:#444CE7; --indigo-50:#EEF4FF;
+    --shadow-card:0 1px 3px rgba(0,0,0,.10),0 1px 2px -1px rgba(0,0,0,.10);
+    --shadow-raise:0 10px 15px -3px rgba(0,0,0,.10),0 4px 6px -4px rgba(0,0,0,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Roboto',system-ui,sans-serif;color:var(--text);background:var(--bg);letter-spacing:.25px;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,.serif{font-family:'Playfair Display',Georgia,serif;color:var(--ink);font-weight:600}
+  .hl{color:var(--brand)}
+  a{color:inherit;text-decoration:none}
+
+  .progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--brand);z-index:60}
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:14px 40px;font-size:12px;font-weight:600;letter-spacing:1px;color:var(--muted)}
+  .topbar b{color:var(--brand)}
+
+  html{scroll-snap-type:y mandatory;scroll-padding-top:46px;scroll-behavior:smooth}
+  section{min-height:100vh;scroll-snap-align:start;scroll-snap-stop:always;display:flex;align-items:center;padding:80px 40px 56px}
+  .wrap{max-width:1040px;margin:auto;width:100%}
+  .band{background:#fff;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .hero{background:linear-gradient(160deg,var(--brand-50),#fff 70%);border-bottom:1px solid var(--border)}
+
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--brand);margin-bottom:16px}
+  h1{font-size:60px;line-height:1.03;margin-bottom:16px}
+  h2{font-size:36px;line-height:1.12;margin-bottom:20px}
+  h3{font-size:20px}
+  .lead{font-size:19px;line-height:1.62;color:var(--text);max-width:760px}
+  .small{font-size:13px;color:var(--muted)}
+  .chip{display:inline-flex;align-items:center;gap:8px;background:var(--brand-100);color:var(--brand-700);font-weight:600;font-size:12px;padding:6px 13px;border-radius:999px;letter-spacing:.3px}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow-card)}
+  .grid{display:grid;gap:16px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:1fr 1fr}
+  @media(max-width:820px){.g3,.g2{grid-template-columns:1fr}}
+
+  .quote{font-family:'Playfair Display',serif;font-size:40px;line-height:1.18;color:var(--ink)}
+  .strike{position:relative;color:var(--muted)}
+  .strike:after{content:"";position:absolute;left:0;right:0;top:52%;height:3px;background:var(--brand)}
+
+  ul.points{list-style:none;display:flex;flex-direction:column;gap:16px;margin-top:8px}
+  ul.points li{display:flex;gap:14px;align-items:flex-start}
+  ul.points .num{width:32px;height:32px;border-radius:999px;background:var(--brand-100);color:var(--brand-700);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px;flex:0 0 auto;margin-top:1px}
+  ul.points .dotm{width:9px;height:9px;border-radius:999px;background:var(--brand);flex:0 0 auto;margin-top:8px}
+  ul.points b{color:var(--ink)}
+  ul.points .d{color:var(--muted);font-size:14px;margin-top:2px}
+
+  /* tappable study cards */
+  .tappable{position:relative;display:block;transition:.15s;cursor:pointer}
+  .tappable:hover{border-color:var(--brand);box-shadow:var(--shadow-raise);transform:translateY(-3px)}
+  .tappable .arrow{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:999px;background:var(--brand-100);color:var(--brand-700);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700}
+  .tappable h3{margin:12px 0 6px}
+  .studylink{display:inline-block;margin-top:12px;font-size:12px;font-weight:600;color:var(--brand)}
+
+  /* formula */
+  .formula{background:var(--ink);color:#fff;border-radius:16px;padding:28px;font-size:22px;line-height:1.6;text-align:center;font-weight:500}
+  .formula .op{color:#98A2B3;margin:0 4px}
+  .formula .ex{color:#79CCA8;font-weight:700}
+  .formula .sp{color:#A4BCFD;font-weight:700}
+  .spreadcard{margin-top:16px}
+  .spreadrow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 12px}
+  .spreadrow div{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 8px;text-align:center;font-size:13px;color:var(--muted);font-weight:600}
+  .spreadrow div b{display:block;font-family:'Playfair Display',serif;font-size:24px;color:var(--brand);margin-top:4px}
+
+  /* calculator */
+  .calc{display:grid;grid-template-columns:1.1fr .9fr;gap:24px}
+  @media(max-width:820px){.calc{grid-template-columns:1fr}}
+  .slider{margin-bottom:18px}
+  .slider label{display:flex;justify-content:space-between;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:6px}
+  .slider label span{color:var(--brand);font-variant-numeric:tabular-nums}
+  input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:999px;background:var(--bg2);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:999px;background:var(--brand);cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.2);border:3px solid #fff}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:999px;background:var(--brand);cursor:pointer;border:3px solid #fff}
+  .parts{display:flex;gap:8px;margin:6px 0 4px}
+  .part{flex:1;text-align:center;font-size:12px;font-weight:600;padding:10px 4px;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;transition:.15s;user-select:none}
+  .part.on{background:var(--brand-100);border-color:var(--brand);color:var(--brand-700)}
+  .calcscore{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:center}
+  .bigring{position:relative;width:180px;height:180px}
+  .bigring .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .bigring .val .n{font-family:'Playfair Display',serif;font-size:52px;color:var(--ink);line-height:1}
+  .bigring .val .l{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-top:2px}
+  .presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .presets button{font-family:inherit;font-size:12px;font-weight:600;border:1px solid var(--border);background:#fff;color:var(--text);padding:8px 12px;border-radius:999px;cursor:pointer;transition:.15s}
+  .presets button:hover{border-color:var(--brand);color:var(--brand)}
+  .breakdown{width:100%;margin-top:16px}
+  .brk{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--border)}
+  .brk b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+  /* why it holds */
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:14px;margin-top:6px}
+  ul.clean li{display:flex;gap:12px;align-items:flex-start}
+  ul.clean .tick{width:24px;height:24px;border-radius:999px;background:var(--brand-100);color:var(--brand-700);display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:13px;font-weight:700;margin-top:1px}
+  ul.clean b{color:var(--ink)}
+  ul.clean .d{color:var(--muted);font-size:14px}
+
+  /* phones */
+  .phones{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+  .phone{width:236px;flex:0 0 auto;background:#fff;border:8px solid #101828;border-radius:34px;padding:14px 12px 18px;box-shadow:var(--shadow-raise)}
+  .phone .notch{width:74px;height:5px;background:#101828;border-radius:999px;margin:2px auto 12px;opacity:.85}
+  .pcap{text-align:center;font-size:12px;color:var(--muted);margin-top:10px;max-width:236px}
+  .pcardhdr{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+  .ring-wrap{display:flex;flex-direction:column;align-items:center}
+  .ringnum{font-family:'Playfair Display',serif;font-size:30px;color:var(--ink)}
+  .ringlbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .dayparts{display:flex;gap:6px;margin-top:14px}
+  .dp{flex:1;text-align:center}
+  .dp .bar{height:34px;border-radius:8px;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
+  .dp .fill{width:100%;background:var(--brand);border-radius:6px}
+  .dp.on .bar{border-color:var(--brand)}
+  .dp .lbl{font-size:9px;color:var(--muted);margin-top:4px;font-weight:600}
+  .dp.on .lbl{color:var(--brand-700)}
+  .contrib{display:flex;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px solid var(--border)}
+  .contrib:last-child{border-bottom:0}
+  .contrib b{color:var(--ink)}
+  .nudge{background:var(--indigo-50);border:1px solid #C7D7FE;border-radius:14px;padding:12px 13px;font-size:12px;line-height:1.5;color:var(--text)}
+  .nudge .kai{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--indigo);margin-bottom:5px;font-size:11px;letter-spacing:.5px;text-transform:uppercase}
+  .dot{width:14px;height:14px;border-radius:4px;background:linear-gradient(135deg,#444CE7,#44E7E7)}
+  .delta{color:var(--brand);font-weight:700}
+  .btn3d{position:relative;display:block;text-align:center;background:var(--brand);color:#fff;font-weight:600;font-size:14px;padding:12px;border-radius:12px;box-shadow:0 6px 0 var(--brand-700);margin-top:14px}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="topbar"><b>GoodFlip</b> · Eat · Move · Mind · Measure</div>
+
+<!-- 1 MOVE STORY -->
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">The Move pillar</div>
+    <h1>The story of <span class="hl">Move</span></h1>
+    <p class="lead">We help people improve their metabolism, and every pillar needs a habit story that fits into a real day. For Move, the objective is simple: build a story that motivates people to keep moving, feels achievable in daily life, and keeps the coach at the center of it. This one-pager walks through that story, a glimpse of the experience, and the math that powers the score.</p>
+  </div>
+</section>
+
+<!-- 2 INSIGHT -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">The insight</div>
+    <h2>The belief we need to break.</h2>
+    <p class="quote" style="margin-bottom:20px"><span class="strike">One good workout</span> redeems the day.</p>
+    <p class="lead">It doesn't. A workout followed by ten hours of sitting is metabolically worse than the same movement spread out. What shapes your metabolism is not the one hour you train, it is what you do throughout the day. The day is the thing that matters, not the single session inside it.</p>
+  </div>
+</section>
+
+<!-- 3 CONCEPT -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">The concept</div>
+    <h1 style="font-size:64px"><span class="hl">Momentum</span></h1>
+    <p class="quote" style="margin:14px 0 22px">"Moving once isn't the answer.<br>Moving often is."</p>
+    <p class="lead" style="margin-bottom:6px">Momentum is not a type of movement. It is a lens on the whole day. It reads everything through one question: did you keep moving from morning to night. That means it reads three things together:</p>
+    <ul class="points">
+      <li><span class="dotm"></span><div><b>The coach's workout,</b> your exercise for the day</div></li>
+      <li><span class="dotm"></span><div><b>Your steps</b> across the day</div></li>
+      <li><span class="dotm"></span><div>The small movements in between <b>(NEAT)</b></div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 4 SCIENCE -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Credibility</div>
+    <h2>Fresh name, serious backbone.</h2>
+    <div class="grid g3" style="margin-top:8px">
+      <a class="card tappable" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6377291/" target="_blank" rel="noopener">
+        <span class="arrow">↗</span>
+        <span class="chip">Paradigm</span>
+        <h3>24-Hour Movement</h3>
+        <p class="small">A published shift in the field: the whole day matters, not the isolated workout. This is Momentum's parent.</p>
+        <span class="studylink">Read the study</span>
+      </a>
+      <a class="card tappable" href="https://health.clevelandclinic.org/non-exercise-activity-thermogenesis-neat-exercise" target="_blank" rel="noopener">
+        <span class="arrow">↗</span>
+        <span class="chip">Established</span>
+        <h3>NEAT</h3>
+        <p class="small">Coined at Mayo Clinic by Dr. James Levine. The movement between, now one part of the picture, not the whole.</p>
+        <span class="studylink">Read the study</span>
+      </a>
+      <a class="card tappable" href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6368227/" target="_blank" rel="noopener">
+        <span class="arrow">↗</span>
+        <span class="chip">Measured</span>
+        <h3>Activity Fragmentation</h3>
+        <p class="small">Distribution across the day is a real, measured variable. "Spread beats one big bout" is science, not a slogan.</p>
+        <span class="studylink">Read the study</span>
+      </a>
+    </div>
+    <p class="small" style="margin-top:20px">"Momentum" is unclaimed as a name, yet grounded in all three. Ownable and defensible at once. Tap any card to open the source.</p>
+  </div>
+</section>
+
+<!-- 5 HOW IT WORKS -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">How it works</div>
+    <h2>What builds your Momentum.</h2>
+    <ul class="points" style="max-width:760px">
+      <li><span class="num">1</span><div><b>Exercise, the hero</b><div class="d">The coach's prescribed session, or a logged substitute. Weighted highest, because it bridges coach and user.</div></div></li>
+      <li><span class="num">2</span><div><b>Steps</b><div class="d">Your everyday locomotion against a target, captured automatically from Health.</div></div></li>
+      <li><span class="num">3</span><div><b>NEAT</b><div class="d">Small coach-assigned actions across the day: take the stairs, walk after lunch, a stretch at night.</div></div></li>
+      <li><span class="num">4</span><div><b>Spread across the day</b><div class="d">The moat. Movement in Morning, Afternoon, Evening and Night beats the same effort crammed into one block.</div></div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 6 MATH -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">The logic</div>
+    <h2>The math, in one line.</h2>
+    <div class="formula">
+      Momentum <span class="op">=</span> <span class="ex">Exercise (40)</span> <span class="op">+</span> Steps (10) <span class="op">+</span> NEAT (10) <span class="op">+</span> <span class="sp">Spread (40)</span>
+    </div>
+    <div class="card spreadcard">
+      <p style="font-weight:600;color:var(--ink)">The Spread (40) is earned across each part of the day</p>
+      <div class="spreadrow">
+        <div>Morning<b>10</b></div>
+        <div>Afternoon<b>10</b></div>
+        <div>Evening<b>10</b></div>
+        <div>Night<b>10</b></div>
+      </div>
+      <p class="small">Stay active in a part of the day and it adds 10%. Move across all four and the full 40% is yours. That is how staying active throughout the day, not just once, earns the score.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7 CALCULATOR -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">Play with it</div>
+    <h2>Test it yourself.</h2>
+    <div class="calc">
+      <div class="card">
+        <div class="slider"><label>Exercise done <span id="exv">100%</span></label><input type="range" id="ex" min="0" max="100" value="100"></div>
+        <div class="slider"><label>Steps vs target <span id="stv">100%</span></label><input type="range" id="st" min="0" max="100" value="100"></div>
+        <div class="slider"><label>NEAT tasks done <span id="nev">100%</span></label><input type="range" id="ne" min="0" max="100" value="100"></div>
+        <label style="font-size:14px;font-weight:600;color:var(--ink);display:block;margin-bottom:2px">Active parts of the day</label>
+        <div class="parts">
+          <div class="part on">Morning</div>
+          <div class="part on">Afternoon</div>
+          <div class="part on">Evening</div>
+          <div class="part on">Night</div>
+        </div>
+        <div class="presets">
+          <button data-preset="100,100,100,4">Perfect day</button>
+          <button data-preset="100,75,75,3">Balanced day</button>
+          <button data-preset="100,100,0,1">Crammed workout</button>
+          <button data-preset="100,20,0,1">Exercise then sat</button>
+          <button data-preset="0,100,75,3">Skipped workout, active</button>
+        </div>
+      </div>
+      <div class="calcscore">
+        <div class="bigring">
+          <svg width="180" height="180" viewBox="0 0 180 180">
+            <circle cx="90" cy="90" r="78" fill="none" stroke="#E4E7EC" stroke-width="12"/>
+            <circle id="ring" cx="90" cy="90" r="78" fill="none" stroke="#299D6B" stroke-width="12" stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="0" transform="rotate(-90 90 90)" style="transition:stroke-dashoffset .35s ease"/>
+          </svg>
+          <div class="val"><div class="n" id="score">100</div><div class="l">Momentum</div></div>
+        </div>
+        <div class="breakdown">
+          <div class="brk"><span>Exercise</span><b id="bex">40.0</b></div>
+          <div class="brk"><span>Steps</span><b id="bst">10.0</b></div>
+          <div class="brk"><span>NEAT</span><b id="bne">10.0</b></div>
+          <div class="brk"><span>Spread</span><b id="bsp">40.0</b></div>
+        </div>
+      </div>
+    </div>
+    <p class="small" style="margin-top:14px">Move any slider or toggle a part of the day. The score reacts live. Try "Exercise then sat" versus "Balanced day" to feel why distribution wins.</p>
+  </div>
+</section>
+
+<!-- 8 WHY IT HOLDS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Robustness</div>
+    <h2>Why it holds up.</h2>
+    <ul class="clean">
+      <li><span class="tick">✓</span><div><b>It rewards a day, not an hour.</b> <span class="d">A workout crammed into one block scores lower than the same effort spread out. The concept is built into the math.</span></div></li>
+      <li><span class="tick">✓</span><div><b>It cannot be faked with one workout.</b> <span class="d">"Do the session then sit all day" lands around 52%, a visibly incomplete day, not a pass.</span></div></li>
+      <li><span class="tick">✓</span><div><b>Over-achievers get coached, not ignored.</b> <span class="d">Extra effort past target is celebrated and redirected: "put it in your afternoon and your score climbs."</span></div></li>
+      <li><span class="tick">✓</span><div><b>The coach stays the hero.</b> <span class="d">Exercise carries the most weight, so the plan the coach sets is always the biggest lever the user can pull.</span></div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 9 GLIMPSE (last) -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">The experience</div>
+    <h2>A glimpse of the experience.</h2>
+    <div class="phones">
+      <div>
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="pcardhdr"><span>Momentum</span><span>Today</span></div>
+          <div class="card" style="padding:16px">
+            <div class="ring-wrap">
+              <svg width="120" height="120" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="52" fill="none" stroke="#E4E7EC" stroke-width="8"/>
+                <circle cx="60" cy="60" r="52" fill="none" stroke="#299D6B" stroke-width="8" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="124" transform="rotate(-90 60 60)"/>
+              </svg>
+              <div style="margin-top:-78px"><div class="ringnum">62%</div><div class="ringlbl">Momentum</div></div>
+              <div style="height:26px"></div>
+            </div>
+            <div class="dayparts">
+              <div class="dp on"><div class="bar"><div class="fill" style="height:80%"></div></div><div class="lbl">M</div></div>
+              <div class="dp on"><div class="bar"><div class="fill" style="height:50%"></div></div><div class="lbl">A</div></div>
+              <div class="dp"><div class="bar"><div class="fill" style="height:0"></div></div><div class="lbl">E</div></div>
+              <div class="dp"><div class="bar"><div class="fill" style="height:0"></div></div><div class="lbl">N</div></div>
+            </div>
+          </div>
+        </div>
+        <p class="pcap">Builds live through the day as you move.</p>
+      </div>
+
+      <div>
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="pcardhdr"><span>Contributors</span><span>·</span></div>
+          <div class="card" style="padding:14px">
+            <div class="contrib"><span>Exercise</span><b>40 / 40</b></div>
+            <div class="contrib"><span>Steps</span><b>8 / 10</b></div>
+            <div class="contrib"><span>NEAT</span><b>7 / 10</b></div>
+            <div class="contrib"><span>Spread · 2 of 4</span><b>20 / 40</b></div>
+          </div>
+          <div class="btn3d">Log a movement</div>
+        </div>
+        <p class="pcap">The four inputs, plain and honest.</p>
+      </div>
+
+      <div>
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="pcardhdr"><span>Nudge</span><span>2:40 pm</span></div>
+          <div class="nudge">
+            <span class="kai"><span class="dot"></span> Kaira</span>
+            Strong drive today. You did 15 minutes more than your plan. Shift some of it into your afternoon or evening and your Momentum climbs from <b>52%</b> to <b class="delta">62%</b>. Moving often does more for you than moving once.
+          </div>
+          <div class="btn3d" style="background:#101828;box-shadow:0 6px 0 #000">Show my afternoon moves</div>
+        </div>
+        <p class="pcap">Effort is coached, not silently capped.</p>
+      </div>
+    </div>
+    <p class="small" style="text-align:center;margin-top:16px">Directional, not the final experience.</p>
+  </div>
+</section>
+
+<script>
+  // scroll progress
+  window.addEventListener('scroll',()=>{
+    const h=document.documentElement;
+    const s=h.scrollTop/(h.scrollHeight-h.clientHeight||1);
+    document.getElementById('progress').style.width=(s*100)+'%';
+  });
+
+  // calculator
+  const ex=document.getElementById('ex'), st=document.getElementById('st'), ne=document.getElementById('ne');
+  const exv=document.getElementById('exv'), stv=document.getElementById('stv'), nev=document.getElementById('nev');
+  const parts=[...document.querySelectorAll('.part')];
+  const ring=document.getElementById('ring'), scoreEl=document.getElementById('score');
+  const C=490;
+  function activeParts(){return parts.filter(p=>p.classList.contains('on')).length;}
+  function calc(){
+    const e=+ex.value, s=+st.value, n=+ne.value, p=activeParts();
+    exv.textContent=e+'%'; stv.textContent=s+'%'; nev.textContent=n+'%';
+    const bex=e*0.40, bst=s*0.10, bne=n*0.10, bsp=p*10;
+    const score=Math.round((bex+bst+bne+bsp)*10)/10;
+    document.getElementById('bex').textContent=bex.toFixed(1);
+    document.getElementById('bst').textContent=bst.toFixed(1);
+    document.getElementById('bne').textContent=bne.toFixed(1);
+    document.getElementById('bsp').textContent=bsp.toFixed(1);
+    scoreEl.textContent=Math.round(score);
+    ring.style.strokeDashoffset=C*(1-score/100);
+    const col = score>=75?'#299D6B':score>=50?'#F79009':'#F04438';
+    ring.setAttribute('stroke',col);
+    scoreEl.style.color = score>=50?'#101828':'#912018';
+  }
+  [ex,st,ne].forEach(el=>el.addEventListener('input',calc));
+  parts.forEach(p=>p.addEventListener('click',()=>{p.classList.toggle('on');calc();}));
+  document.querySelectorAll('.presets button').forEach(b=>{
+    b.onclick=()=>{
+      const [e,s,n,pc]=b.dataset.preset.split(',').map(Number);
+      ex.value=e; st.value=s; ne.value=n;
+      parts.forEach((p,x)=>p.classList.toggle('on',x<pc));
+      calc();
+    };
+  });
+  calc();
+</script>
+</body>
+</html>

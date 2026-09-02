@@ -44,6 +44,7 @@ import LogSleep from "./screens/mind/LogSleep";
 import ToolSheet from "./screens/mind/ToolSheet";
 import MindTemplateSheet from "./screens/mind/MindTemplateSheet";
 import AddStepsSheet from "./screens/move/AddStepsSheet";
+import AddWaterSheet from "./screens/log/AddWaterSheet";
 import StreakRewardsSheet from "./components/StreakRewardsSheet";
 import ShareStreakSheet from "./components/ShareStreakSheet";
 import MoveDetail from "./screens/move/MoveDetail";
@@ -263,6 +264,7 @@ export default function App() {
             {wf.mindTool && <ToolSheet />}
             {wf.mindTemplate && <MindTemplateSheet />}
             {wf.stepsSheet && <AddStepsSheet />}
+            {wf.waterSheet && <AddWaterSheet />}
           </>
         ) : (
           <>
@@ -306,6 +308,7 @@ export default function App() {
             {wf.mindTool && <ToolSheet />}
             {wf.mindTemplate && <MindTemplateSheet />}
             {wf.stepsSheet && <AddStepsSheet />}
+            {wf.waterSheet && <AddWaterSheet />}
             <Toast />
           </>
         )}

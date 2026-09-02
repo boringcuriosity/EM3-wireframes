@@ -2,7 +2,6 @@ import React from "react";
 import { useWF } from "../state";
 import { X, Info, Check, Utensils, Flame } from "lucide-react";
 import LotusIcon from "./LotusIcon";
-import CtaArrow from "./CtaArrow";
 import { GREEN, GREEN_WASH, TEXT, MUTED, PILLAR, SH } from "../tokens";
 
 /* One card in the one place a person watches for their plan.
@@ -18,21 +17,24 @@ import { GREEN, GREEN_WASH, TEXT, MUTED, PILLAR, SH } from "../tokens";
    answer anywhere. */
 
 /* Three plans, because a consultation produces three. The Mind one was missing
-   from the handover entirely, so somebody waiting on their psychologist had
+   from the handover entirely, so somebody waiting on their third coach had
    nothing on this card telling them it was coming.
 
-   "Wellbeing plan" rather than "Mind plan": the pillar name is what the app
-   teaches, but a plan is a thing somebody receives, and wellbeing is the word
-   for what this one is trying to move. */
+   Named off the pillars: Eat plan, Move plan, Mind plan, from your Eat coach,
+   Move coach and Mind coach. The app teaches Eat, Move, Mind and Measure on
+   the splash screen, in the explainer, on every task row and in the score
+   bubbles, so a handover that switched to diet, exercise and wellbeing made
+   somebody learn a second set of words for the four things they already knew.
+   One vocabulary, taught once. */
 const CHIP = {
-  eat: { Icon: Utensils, label: "Diet plan", coach: "nutrition coach" },
-  move: { Icon: Flame, label: "Exercise plan", coach: "exercise coach" },
-  mind: { Icon: LotusIcon, label: "Wellbeing plan", coach: "psychologist" },
+  eat: { Icon: Utensils, label: "Eat plan", coach: "Eat coach" },
+  move: { Icon: Flame, label: "Move plan", coach: "Move coach" },
+  mind: { Icon: LotusIcon, label: "Mind plan", coach: "Mind coach" },
 };
 const ALL = ["eat", "move", "mind"];
 
 export default function PlanCard() {
-  const { plan, kcalSource, movePlan, mindPlan, planSeen, readPlan, setPlanChanged, setPlanInfo, openBooking } = useWF();
+  const { plan, kcalSource, movePlan, mindPlan, planSeen, readPlan, setPlanChanged, setPlanInfo } = useWF();
   if (plan !== "paid") return null;
 
   const IN = { eat: kcalSource === "coach", move: !!movePlan, mind: !!mindPlan };
@@ -52,7 +54,10 @@ export default function PlanCard() {
     ? "Your plans are in"
     : inList.length === 0
     ? "Your plans start with a consultation"
-    : "Your " + CHIP[inList[0]].label.toLowerCase() + " is in";
+    /* The label keeps its capital. Eat, Move and Mind are proper names
+       everywhere else in the app, so lowering the first letter here would
+       print "Your eat plan is in" against a chip reading "Eat plan". */
+    : "Your " + CHIP[inList[0]].label + " is in";
 
   const line = both
     ? "Your coaches set your meals, your session and your worksheets, at the hours that suit your day."
@@ -105,7 +110,7 @@ export default function PlanCard() {
           </button>
         ) : (
           <button
-            onClick={(e) => { e.stopPropagation(); setPlanInfo(waiting.length > 1 ? "both" : waiting[0]); }}
+            onClick={(e) => { e.stopPropagation(); setPlanInfo(waiting.length > 1 ? "all" : waiting[0]); }}
             aria-label="Why the wait"
             style={{ background: "none", border: "none", padding: 2, margin: -2, cursor: "pointer", display: "flex", flexShrink: 0 }}
           >
@@ -147,33 +152,10 @@ export default function PlanCard() {
 
       <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.5, marginTop: 9 }}>{line}</div>
 
-      {/* The card was inert in the one state where something was blocking, so
-          the fix sat two taps away behind an info dot. */}
-      {inList.length === 0 && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            openBooking();
-          }}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            background: "none",
-            border: "none",
-            padding: "9px 0 0",
-            margin: 0,
-            fontSize: 12.5,
-            fontWeight: 700,
-            color: GREEN,
-            cursor: "pointer",
-            fontFamily: "inherit",
-          }}
-        >
-          Book your consultation
-          <CtaArrow size={13} />
-        </button>
-      )}
+      {/* Booking used to sit here as well. It is the first card in Start here
+          now, which is on this same screen and is where every other blocking
+          job already lives, so the card is back to explaining what is coming
+          and why half the day looks thin. */}
     </div>
   );
 }

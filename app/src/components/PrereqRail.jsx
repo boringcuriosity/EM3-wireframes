@@ -27,11 +27,21 @@ import { TEXT, MUTED, BG, BORDER, WARN, WARN_TINT, WARN_LINE, SH_SM } from "../t
 
    Read off the same list as the Home carousel, so finishing one anywhere
    finishes it everywhere and the card empties itself. */
-export default function PrereqRail() {
+/* `startOpen` is the resting state where this appears rather than a state of
+   its own. On To-do these are the day's blocking work and the screen is a list,
+   so they stand open. On Home they are a strip above the day, and a strip that
+   arrives unfolded pushes today below the fold on the one screen that should
+   open on it. Either way a tap outranks the default, for both. */
+/* `keep` is the surface that holds on to these after they have been put away.
+   Dismissing means taking them off the day, which is To-do, and the sheet that
+   explains it promises they are still on Home. If Home honoured the dismissal
+   too, that promise would be a lie and there would be no way back to them. */
+export default function PrereqRail({ startOpen = false, keep = false }) {
   const {
-    nextActions, nextOpen, prereqHidden, prereqExpanded, setPrereqOpen, setPrereqAsk,
+    nextActions, nextOpen, prereqHidden, prereqOpen, setPrereqOpen, setPrereqAsk,
   } = useWF();
-  if (!nextOpen.length || prereqHidden) return null;
+  const expanded = prereqOpen === null ? startOpen : prereqOpen;
+  if (!nextOpen.length || (prereqHidden && !keep)) return null;
 
   const total = nextActions.length;
   const done = total - nextOpen.length;
@@ -87,7 +97,7 @@ export default function PrereqRail() {
           size={15}
           strokeWidth={2.4}
           style={{
-            transform: prereqExpanded ? "rotate(180deg)" : "none",
+            transform: expanded ? "rotate(180deg)" : "none",
             transition: "transform .25s ease",
           }}
         />
@@ -150,8 +160,8 @@ export default function PrereqRail() {
         }}
       >
         <button
-          onClick={() => setPrereqOpen(!prereqExpanded)}
-          aria-expanded={prereqExpanded}
+          onClick={() => setPrereqOpen(!expanded)}
+          aria-expanded={expanded}
           style={headStyle}
         >
           {head}
@@ -175,7 +185,7 @@ export default function PrereqRail() {
           />
         </span>
 
-        {prereqExpanded && (
+        {expanded && (
           <div style={{ paddingTop: 13 }}>
             {/* The rail reaches the card's own edges rather than stopping at its
                 padding, so a card at rest sits flush and the next one shows as

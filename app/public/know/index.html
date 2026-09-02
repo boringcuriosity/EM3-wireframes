@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home: what we say every day, and every hour</title>
+<link rel="icon" href="/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Roboto:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand:#299D6B; --brand-700:#2A805A; --brand-100:#E6FAF1; --brand-50:#F3FCF8;
+    --eat:#299D6B; --move:#444CE7; --mind:#2DA6A6; --measure:#CDA935;
+    --eat-t:#E6FAF1; --move-t:#E0EAFF; --mind-t:#E0FFFF; --measure-t:#FFF8E0;
+    --eat-w:#F3FCF8; --move-w:#F5F8FF; --mind-w:#F5FFFF; --measure-w:#FFFDF5;
+    --ink:#101828; --text:#344054; --muted:#667085; --faint:#98A2B3;
+    --bg:#F9FAFB; --bg2:#F2F4F7; --card:#FFFFFF; --border:#E4E7EC; --rule:#D0D5DD;
+    --sh:0 1px 3px rgba(0,0,0,.10),0 1px 2px -1px rgba(0,0,0,.10);
+    --sh-lg:0 10px 15px -3px rgba(0,0,0,.10),0 4px 6px -4px rgba(0,0,0,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Roboto',system-ui,sans-serif;color:var(--text);background:var(--bg);letter-spacing:.2px;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,.serif{font-family:'Playfair Display',Georgia,serif;color:var(--ink);font-weight:600}
+  .hl{color:var(--brand)}
+
+  .progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--brand);z-index:60}
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:14px 40px;font-size:12px;font-weight:600;letter-spacing:1px;color:var(--muted)}
+  .topbar b{color:var(--brand)}
+
+  html{scroll-snap-type:y proximity;scroll-padding-top:46px;scroll-behavior:smooth}
+  section{min-height:100vh;scroll-snap-align:start;display:flex;align-items:center;padding:74px 40px 50px}
+  @media(max-width:700px){section{padding:52px 20px 38px;min-height:auto}}
+  .wrap{max-width:1000px;margin:auto;width:100%}
+  .band{background:#fff;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .hero{background:linear-gradient(160deg,var(--brand-50),#fff 68%);border-bottom:1px solid var(--border)}
+
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--brand);margin-bottom:16px}
+  h1{font-size:58px;line-height:1.04;margin-bottom:18px}
+  h2{font-size:34px;line-height:1.14;margin-bottom:18px}
+  h3{font-size:18px;margin-bottom:6px}
+  @media(max-width:700px){h1{font-size:36px}h2{font-size:26px}}
+  .lead{font-size:18px;line-height:1.62;max-width:740px}
+  .small{font-size:13.5px;color:var(--muted);line-height:1.6}
+  .quote{font-family:'Playfair Display',serif;font-size:34px;line-height:1.22;color:var(--ink)}
+  .strike{position:relative;color:var(--muted)}
+  .strike:after{content:"";position:absolute;left:0;right:0;top:52%;height:3px;background:var(--brand)}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--sh)}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:860px){.g2,.g3{grid-template-columns:1fr}}
+
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:8px}
+  @media(max-width:860px){.split{grid-template-columns:1fr}}
+  .half{border-radius:16px;padding:24px;border:1px solid var(--border)}
+  .half .tag{font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:10px}
+  .half .big{font-family:'Playfair Display',serif;font-size:30px;color:var(--ink);margin-bottom:8px}
+
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:0 10px 9px;border-bottom:1px solid var(--border)}
+  td{padding:11px 10px;border-bottom:1px solid var(--bg2);vertical-align:top}
+  td b{color:var(--ink)}
+  tr:last-child td{border-bottom:0}
+  .num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tblwrap{overflow-x:auto}
+
+  ul.points{list-style:none;display:flex;flex-direction:column;gap:15px;margin-top:6px}
+  ul.points li{display:flex;gap:14px;align-items:flex-start}
+  ul.points .n{width:30px;height:30px;border-radius:999px;background:var(--brand-100);color:var(--brand-700);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:13px;flex:0 0 auto}
+  ul.points b{color:var(--ink)}
+  ul.points .d{color:var(--muted);font-size:14px;margin-top:2px;line-height:1.5}
+
+  .sum{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;background:var(--ink);border-radius:16px;padding:26px 22px;color:#fff;text-align:center}
+  .sum .box{min-width:150px}
+  .sum .lb{font-size:12px;font-weight:600;letter-spacing:.4px;color:#98A2B3;margin-bottom:4px}
+  .sum .vl{font-family:'Playfair Display',serif;font-size:21px;line-height:1.25}
+  .sum .op{font-size:24px;color:#667085}
+  .sum .box.out .vl{color:#79CCA8}
+
+  /* bubbles */
+  .stage{position:relative;width:346px;height:236px;margin:0 auto;flex:0 0 auto}
+  .bub{position:absolute;left:0;top:0;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;
+       transition:transform .5s cubic-bezier(.32,.72,0,1),width .5s cubic-bezier(.32,.72,0,1),height .5s cubic-bezier(.32,.72,0,1),left .5s cubic-bezier(.32,.72,0,1),top .5s cubic-bezier(.32,.72,0,1)}
+  .bub .in{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;animation:none}
+  .bub .nm{font-size:11px;font-weight:700;color:var(--ink)}
+  .bub.h .nm{font-family:'Playfair Display',serif;font-size:16px;font-weight:500}
+  .bub .fg{font-family:'Playfair Display',serif;font-size:16px;color:var(--ink);line-height:1.1;margin-top:1px}
+  .bub.h .fg{font-size:34px;margin-top:2px}
+  .bub .fg i{font-style:normal;font-size:.5em;color:var(--muted)}
+  .bub .ln{font-size:9.5px;color:var(--muted);line-height:1.35;padding:0 14px;margin-top:5px;max-width:120px}
+  .bub .fill{position:absolute;left:0;right:0;bottom:0;z-index:1;transition:height .6s cubic-bezier(.32,.72,0,1)}
+  @keyframes drift{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-4px,0)}}
+  .bub{animation:drift 8s ease-in-out infinite}
+  .bub[data-p="move"]{animation-duration:9.4s;animation-delay:-2.6s}
+  .bub[data-p="mind"]{animation-duration:7.2s;animation-delay:-4.1s}
+  .bub[data-p="measure"]{animation-duration:8.7s;animation-delay:-1.3s}
+  .bub.h{animation-duration:9.5s}
+  @media(prefers-reduced-motion:reduce){.bub{animation:none}}
+
+  .clock{text-align:center;font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin-top:2px}
+  .clock b{color:var(--brand)}
+
+  /* calculator */
+  .calc{display:grid;grid-template-columns:1fr 372px;gap:22px;align-items:start}
+  @media(max-width:940px){.calc{grid-template-columns:1fr}}
+  .phases{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+  .ph{font-family:inherit;font-size:12.5px;font-weight:600;padding:8px 13px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;transition:.15s}
+  .ph.on{background:var(--brand-100);border-color:var(--brand);color:var(--brand-700)}
+  .scene{font-size:13.5px;line-height:1.6;color:var(--text);background:var(--bg2);border-radius:12px;padding:13px 15px;margin:14px 0 4px}
+  .scene b{color:var(--ink)}
+  .prow{display:grid;grid-template-columns:70px 1fr 46px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--bg2)}
+  .prow:last-child{border-bottom:0}
+  .pname{font-size:13px;font-weight:700}
+  .pval{font-size:12.5px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+  input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:999px;background:var(--bg2);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:19px;height:19px;border-radius:999px;background:var(--brand);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.25);border:3px solid #fff}
+  input[type=range]::-moz-range-thumb{width:19px;height:19px;border-radius:999px;background:var(--brand);cursor:pointer;border:3px solid #fff}
+  .rank{margin-top:14px}
+  .rkhd{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .rk{display:grid;grid-template-columns:12px 1fr auto;gap:10px;align-items:center;font-size:13px;padding:8px 0;border-bottom:1px dashed var(--border)}
+  .rk:last-child{border-bottom:0}
+  .rk .dot{width:10px;height:10px;border-radius:999px}
+  .rk .mth{color:var(--muted);font-size:12px}
+  .rk b{font-variant-numeric:tabular-nums;color:var(--ink);font-size:14px}
+  .verdict{background:var(--brand-50);border:1px solid var(--brand-100);border-radius:14px;padding:14px 15px;margin-top:14px;font-size:13.5px;line-height:1.6}
+  .verdict b{color:var(--ink)}
+  .kai{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-top:10px;font-size:13px;line-height:1.6;display:flex;gap:10px;align-items:flex-start}
+  .kmark{width:18px;height:19.6px;flex:0 0 auto;background:linear-gradient(150deg,var(--brand) 0%,var(--brand-700) 100%);clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;font-weight:800;margin-top:1px}
+
+  .wr{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin-bottom:12px;background:#fff}
+  @media(max-width:860px){.wr{grid-template-columns:1fr}}
+  .wr>div{padding:15px 17px;font-size:14px;line-height:1.55}
+  .wr .x{background:#FEF3F2;border-right:1px solid var(--border);color:var(--muted)}
+  .wr .v{color:var(--ink)}
+  .wr .lb{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;display:block;margin-bottom:6px}
+  .wr .x .lb{color:#B42318}
+  .wr .v .lb{color:var(--brand)}
+
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:13px;margin-top:4px}
+  ul.clean li{display:flex;gap:12px;align-items:flex-start}
+  ul.clean .tick{width:22px;height:22px;border-radius:999px;background:var(--brand-100);color:var(--brand-700);display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:12px;font-weight:700;margin-top:2px}
+  ul.clean b{color:var(--ink)}
+  ul.clean .d{color:var(--muted);font-size:14px;line-height:1.5}
+
+  .chip{display:inline-flex;align-items:center;gap:7px;background:var(--brand-100);color:var(--brand-700);font-weight:600;font-size:11.5px;padding:5px 12px;border-radius:999px}
+  .note{background:#FFFAEB;border:1px solid #FEDF89;border-radius:14px;padding:15px 17px;font-size:14px;line-height:1.6}
+  .note b{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="topbar"><b>GoodFlip</b> &middot; Home &middot; Eat &middot; Move &middot; Mind &middot; Measure</div>
+
+<!-- 1 -->
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">The Home screen</div>
+    <h1>What do we say to you<br>every day, and <span class="hl">every hour</span>?</h1>
+    <p class="lead">Somebody opens GoodFlip before breakfast, again at four o'clock, again after dinner. Each of those is a chance to say one true thing about that hour. Today the screen answers all three the same way, with a card about the program that has said the same sentence since the day they joined. This is the work to change that.</p>
+  </div>
+</section>
+
+<!-- 2 -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">The insight</div>
+    <h2>We built one half of the loop.</h2>
+    <p class="lead" style="margin-bottom:26px">To-do works. It lists the day in the order it happens and a person works down it. What it gives us is adherence: the tasks get done. The half still missing is the reason to want to, and that is what the four pillars were always for.</p>
+    <div class="split">
+      <div class="half" style="background:var(--bg2)">
+        <div class="tag" style="color:var(--muted)">To-do</div>
+        <div class="big">Adherence</div>
+        <p class="small">The day as a list. What is on it, when it happens, what is left. A person who works down it is doing the program.</p>
+      </div>
+      <div class="half" style="background:var(--brand-50);border-color:var(--brand-100)">
+        <div class="tag" style="color:var(--brand)">EM3</div>
+        <div class="big hl">Motivation</div>
+        <p class="small">The four pillars as four scores. Where you stand, which one needs you right now, and what doing it is worth.</p>
+      </div>
+    </div>
+    <p class="small" style="margin-top:22px">Every Home decision from here gets judged against this split. Something that helps a person do the task belongs to To-do. Something that makes them want to belongs to EM3.</p>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">What was in the way</div>
+    <h2>The screen opened on a card about the year.</h2>
+    <p class="quote" style="margin-bottom:22px"><span class="strike">Your program, every time you open the app.</span></p>
+    <p class="lead">The program carousel took about a third of the first screen and said the same words in the morning as at midnight. It is real information and it belongs on Home, as background rather than as the opening line. It now sits below the day. The room it leaves at the top is where the four pillars go.</p>
+  </div>
+</section>
+
+<!-- 4 CONCEPT, the auto demo -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">The concept</div>
+    <h1 style="font-size:54px">Four <span class="hl">bubbles</span></h1>
+    <p class="quote" style="margin:12px 0 24px">One of them is bigger,<br>and the hour decides which.</p>
+    <div class="grid g2" style="align-items:center">
+      <div>
+        <ul class="points">
+          <li><span class="n">1</span><div><b>The big one is the pillar that needs you now.</b><div class="d">It sits in the middle with its score and one short line about what to do.</div></div></li>
+          <li><span class="n">2</span><div><b>The other three stay where they are.</b><div class="d">Mind is always top left, Move top right, Measure bottom right, Eat bottom left. Only the big one moves, so the screen looks the same every time you open it.</div></div></li>
+          <li><span class="n">3</span><div><b>Tap any bubble to open that pillar.</b><div class="d">One tap, one meaning, whatever size it happens to be today.</div></div></li>
+          <li><span class="n">4</span><div><b>Kaira sits underneath and joins them up.</b><div class="d">The scores say where you stand and the tasks say what to do. She is the only thing that can say which task moves which score.</div></div></li>
+        </ul>
+      </div>
+      <div class="card" style="padding:16px 14px 12px">
+        <div class="stage" id="demoStage"></div>
+        <div class="clock" id="demoClock"></div>
+      </div>
+    </div>
+    <p class="small" style="margin-top:20px;text-align:center">Watch it move through a day on its own. The bubbles drift a little at rest, so the cluster feels alive rather than printed.</p>
+  </div>
+</section>
+
+<!-- 5 THE RULE, plain -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">The rule</div>
+    <h2>Two things decide which one grows.</h2>
+    <div class="sum" style="margin-bottom:20px">
+      <div class="box"><div class="lb">How far the score has to go</div><div class="vl">100 &minus; the score</div></div>
+      <div class="op">+</div>
+      <div class="box"><div class="lb">What is waiting right now</div><div class="vl">the tasks still open<br>in this part of the day</div></div>
+      <div class="op">=</div>
+      <div class="box out"><div class="lb">Needs you</div><div class="vl">the highest one<br>takes the middle</div></div>
+    </div>
+    <div class="grid g2">
+      <div class="card">
+        <h3>How far the score has to go</h3>
+        <p class="small">A score sitting at 35 has 65 to gain. A score at 80 has 20. The one further from full has more to win today, which is the whole reason a low score should be the one you see biggest.</p>
+      </div>
+      <div class="card">
+        <h3>What is waiting right now</h3>
+        <p class="small">Only the tasks open in the part of the day you are in, counted by what each one pays in Flipcoins. The coach's session pays 10, a meal pays 4, a nudge pays nothing. Those figures were set task by task across the whole app, so they already say how much each one matters.</p>
+      </div>
+    </div>
+    <div class="note" style="margin-top:18px">
+      <b>One rule before all of it.</b> A pillar can only take the middle if it actually has something waiting in this part of the day. That is what keeps the big bubble agreeing with the task list right underneath it.
+    </div>
+  </div>
+</section>
+
+<!-- 6 TIES -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">When two are close</div>
+    <h2>What breaks a tie.</h2>
+    <ul class="points" style="max-width:740px">
+      <li><span class="n">1</span><div><b>More tasks waiting wins.</b><div class="d">A night with three Eat tasks is more of an Eat night than one with a single Move task.</div></div></li>
+      <li><span class="n">2</span><div><b>Then whichever is due soonest.</b><div class="d">This comes last on purpose. At four o'clock the snack is sooner and the coach's session is the bigger thing, so the session takes the evening.</div></div></li>
+      <li><span class="n">3</span><div><b>Then Eat, Move, Mind, Measure.</b><div class="d">The order the app already teaches. It means the answer is always the same on the same day, so the bubbles can never flicker between two pillars.</div></div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 7 CALCULATOR -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">Play with it</div>
+    <h2>Test it yourself.</h2>
+    <p class="small" style="margin-bottom:18px;max-width:720px">Pick a moment in the day. The tasks waiting at that hour load with it, taken from a real planned day. Then move the scores and watch which bubble takes the middle.</p>
+    <div class="calc">
+      <div class="card">
+        <div class="phases" id="phases">
+          <button class="ph on" data-p="morning">Morning</button>
+          <button class="ph" data-p="afternoon">Afternoon</button>
+          <button class="ph" data-p="evening">Evening</button>
+          <button class="ph" data-p="night">Night</button>
+          <button class="ph" data-p="done">Day finished</button>
+        </div>
+        <div class="scene" id="scene"></div>
+        <div id="rows"></div>
+        <p class="small" style="margin-top:10px;font-size:12.5px">Drag a score and the middle can change. Try dropping Move to 20 in the evening, or lifting Eat to 90 in the morning.</p>
+        <div class="rank" id="rank"></div>
+      </div>
+      <div>
+        <div class="card" style="padding:16px 14px 10px">
+          <div class="stage" id="stage"></div>
+        </div>
+        <div class="verdict" id="verdict"></div>
+        <div class="kai"><span class="kmark">K</span><span id="kaira"></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 8 DAY -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">A planned day</div>
+    <h2>Hour by hour.</h2>
+    <div class="card tblwrap">
+      <table>
+        <thead><tr><th>Hour</th><th>What is waiting</th><th>Bigger bubble</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td><b>6am</b></td><td>Three meals, last night's sleep, morning sun, the body scan</td><td><b style="color:var(--eat)">Eat</b></td><td>The score is at 35 and the day holds all three meals that lift it. The strongest call the whole day produces.</td></tr>
+          <tr><td><b>9am</b></td><td>Morning sun, the body scan</td><td><b style="color:var(--measure)">Measure</b></td><td>Eat has nothing left this morning, so it goes back to its corner. The scan is what is still waiting.</td></tr>
+          <tr><td><b>1pm</b></td><td>Lunch, water</td><td><b style="color:var(--eat)">Eat</b></td><td>Lunch is the meal that moves the score most, and it is the only real thing open.</td></tr>
+          <tr><td><b>4pm</b></td><td>The evening snack, the coach's session</td><td><b style="color:var(--move)">Move</b></td><td>The interesting one. The snack comes sooner and the session is worth more, so the session wins.</td></tr>
+          <tr><td><b>7pm</b></td><td>Dinner, a bedtime snack, almonds, the calm break, steps</td><td><b style="color:var(--eat)">Eat</b></td><td>Three Eat tasks outweigh one each of Mind and Move.</td></tr>
+          <tr><td><b>10pm</b></td><td>A bedtime snack, almonds, steps</td><td><b style="color:var(--move)">Move</b></td><td>Close, and steps is the last thing with real room. Kaira has to be gentle here, since ten thousand steps at ten o'clock is a lot to ask.</td></tr>
+          <tr><td><b>after</b></td><td>Nothing</td><td><b>None</b></td><td>All four go back to the same size with their final scores. Nobody is behind on a day they have finished.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 9 KAIRA -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">The line underneath</div>
+    <h2>Being specific is what makes it warm.</h2>
+    <p class="lead" style="margin-bottom:24px">A greeting that would work for any person on any day is what makes a line feel like a machine being friendly. Something only a system that was paying attention could say is warm on its own, and it tells you something at the same time. Kaira gets her warmth from three things and none of them is a pleasantry: <b>she names the coach who chose it</b>, <b>she uses numbers that are only yours</b>, and <b>she assumes the best of you</b>.</p>
+    <div class="wr">
+      <div class="x"><span class="lb">Friendly, and empty</span>Good morning Shaheer, it is good to see you here. It is time to start your day, log your breakfast.</div>
+      <div class="v"><span class="lb">Friendly, and worth reading</span>Morning, Shaheer. Fibre is the one of your four that usually runs short by evening, and breakfast is the cheapest place to bank it. Sahana's chilla option carries 6 grams of the 30 you need.</div>
+    </div>
+    <div class="wr">
+      <div class="x"><span class="lb">Reading the screen back</span>You have 10 tasks left today, and breakfast is next.</div>
+      <div class="v"><span class="lb">Telling you something new</span>You are at 44 of 110 grams of protein with two meals in. Sahana's evening chana is 9 of those on its own, which is the cheapest 9 left in your day.</div>
+    </div>
+    <div class="wr">
+      <div class="x"><span class="lb">The streak as a threat</span>Do not break your 11 day streak now.</div>
+      <div class="v"><span class="lb">Gentle beats strict</span>Eleven days. What changes around two weeks is that your averages settle, and settled averages are what Sahana writes the next plan from.</div>
+    </div>
+    <p class="small" style="margin-top:18px">She always talks about the pillar in the big bubble, because a card whose two halves disagree is worse than a card that says less. A greeting earns its place about once a day, on the first open of the morning. By the afternoon it is a machine marking time.</p>
+  </div>
+</section>
+
+<!-- 10 MOTION -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">How they behave</div>
+    <h2>Alive, and worth meeting every hour.</h2>
+    <div class="grid g3">
+      <div class="card">
+        <span class="chip">At rest</span>
+        <h3 style="margin-top:12px">A small drift</h3>
+        <p class="small">Four pixels over eight seconds, each bubble on its own timing so they never move together. Small enough that you never catch it moving, and enough that the cluster feels alive.</p>
+      </div>
+      <div class="card">
+        <span class="chip">When it changes</span>
+        <h3 style="margin-top:12px">The old one leaves first</h3>
+        <p class="small">Half a second, with the outgoing bubble stepping back before the new one comes forward. Both moving at once looks like a glitch. One after the other looks like it meant to. It happens about four times a day.</p>
+      </div>
+      <div class="card">
+        <span class="chip">If you ask for less</span>
+        <h3 style="margin-top:12px">Less motion, never a jump</h3>
+        <p class="small">With reduced motion on, the drift stops completely and the handover stays, just quicker. Taking the movement out entirely would replace it with a jump, which is harder to follow.</p>
+      </div>
+    </div>
+    <p class="small" style="margin-top:20px;max-width:760px">The bubble fills from the bottom to its own score, so four pillars can be compared at a glance without reading four numbers. That is what answers "is 62 any good" with nothing else on the screen.</p>
+  </div>
+</section>
+
+<!-- 11 OPEN -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">Honest list</div>
+    <h2>What this still needs.</h2>
+    <ul class="clean">
+      <li><span class="tick">1</span><div><b>Which of the four nutrients is short.</b> <span class="d">The Eat score is already the average of protein, carbs, fats and fibre, so the lowest of the four is the biggest thing to fix. Two lines of code, and it turns "Eat 35" into "fibre is the gap". Nothing else on this list buys as much.</span></div></li>
+      <li><span class="tick">2</span><div><b>What each planned meal is worth.</b> <span class="d">The nutrition and the coach's options both exist, and nothing yet adds one up into "Sahana's chilla option carries 6 grams". That is the useful half of most of Kaira's best lines.</span></div></li>
+      <li><span class="tick">3</span><div><b>Move's score needs two more inputs.</b> <span class="d">The Momentum working is settled and lives at <a href="/move/" style="color:var(--brand);font-weight:600">/move</a>. It needs the coach's small daily nudges as real tasks, and movement recorded against the part of the day it happened in.</span></div></li>
+      <li><span class="tick">4</span><div><b>Mind's score needs a working.</b> <span class="d">Sleep, the calm break and the psychologist's worksheets are all there. What they add up to is the piece to write next.</span></div></li>
+      <li><span class="tick">5</span><div><b>Knowing it is your first open today.</b> <span class="d">Nothing knows whether this is the first visit of the day, so nothing can decide whether the greeting has earned its place.</span></div></li>
+      <li><span class="tick">6</span><div><b>A version for somebody with no coach yet.</b> <span class="d">With no plan there are no real scores, and four empty bubbles is a worse answer than four pillars carrying today's work.</span></div></li>
+    </ul>
+  </div>
+</section>
+
+<script>
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  document.getElementById('progress').style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight||1)*100)+'%';
+});
+
+const C={x:173,y:118}, HERO=150;
+const P=[
+  {id:'eat',    name:'Eat',    seat:{x:80, y:180}, d:74, c:'#299D6B', t:'#E6FAF1', w:'#F3FCF8'},
+  {id:'move',   name:'Move',   seat:{x:266,y:56},  d:76, c:'#444CE7', t:'#E0EAFF', w:'#F5F8FF'},
+  {id:'mind',   name:'Mind',   seat:{x:80, y:56},  d:72, c:'#2DA6A6', t:'#E0FFFF', w:'#F5FFFF'},
+  {id:'measure',name:'Measure',seat:{x:266,y:180}, d:70, c:'#CDA935', t:'#FFF8E0', w:'#FFFDF5'},
+];
+const ORDER=['eat','move','mind','measure'];
+
+/* What is still open in each part of a real planned day, and what each task
+   pays. Straight off the day the app already builds: a meal is 4, water 3,
+   sleep 5, the calm break 5, steps 5, the coach's session 10, a body scan 10,
+   and a coach's nudge pays nothing. */
+const PHASE={
+  morning:{when:'this morning', at:'6:00 AM',
+    scene:'It is early and nothing has happened yet. Three meals, last night’s sleep, ten minutes of sun and the body scan are all still ahead.',
+    rows:{eat:[4,0,4], mind:[5,0], measure:[10]}, score:{eat:35,move:62,mind:74,measure:68}},
+  afternoon:{when:'this afternoon', at:'1:00 PM',
+    scene:'Breakfast and sleep are logged and the morning is clear. Lunch and water are what is left.',
+    rows:{eat:[4,3]}, score:{eat:44,move:62,mind:74,measure:68}},
+  evening:{when:'this evening', at:'4:00 PM',
+    scene:'Lunch is in, so the Eat score has climbed. The evening snack and the coach’s session are both ahead.',
+    rows:{eat:[4], move:[10]}, score:{eat:61,move:62,mind:74,measure:68}},
+  night:{when:'tonight', at:'7:00 PM',
+    scene:'The session is logged. Dinner, a bedtime snack, the almonds, the calm break and the step target are what remain.',
+    rows:{eat:[4,4,0], mind:[5], move:[5]}, score:{eat:61,move:70,mind:74,measure:68}},
+  done:{when:'', at:'Day finished',
+    scene:'Everything on the day is done. Nothing is competing for the middle any more.',
+    rows:{}, score:{eat:78,move:76,mind:80,measure:68}},
+};
+const SOON={morning:{eat:360,mind:300,measure:450},afternoon:{eat:780},evening:{eat:1020,move:1110},night:{eat:1200,mind:1260,move:1380}};
+
+const LINES={
+  eat:'Two more meals lifts this',
+  move:'Your session is today’s big one',
+  mind:'Last night sets the whole day',
+  measure:'Five minutes for your score',
+};
+const KAIRA={
+  eat:'Fibre is the one of your four that usually runs short by evening, and breakfast is the cheapest place to bank it. Sahana’s chilla option carries 6 grams of the 30 you need.',
+  move:'Your session is the biggest single thing left in today. Twenty minutes at half past six lands it before dinner, which is when the moves Sahana Physio picked do the most for your glucose.',
+  mind:'Your body clock is set in the first hour you are awake, so ten minutes of sun at 7:15 does more for tonight’s sleep than anything you do at bedtime.',
+  measure:'The body scan is the one reading here that logging will not give you. It takes two minutes, and it is what Manya builds your next three months from.',
+  done:'Everything is in. Today shows up in the week Manya reads on Sunday, and four days like this is what turns into something she can act on.',
+};
+
+const state={phase:'morning', score:{...PHASE.morning.score}};
+
+/* Two things, added. How far the score has to go, plus what the open tasks in
+   this part of the day pay. Nothing else. */
+function rank(phase, score){
+  const ph=PHASE[phase];
+  return P.map(p=>{
+    const rows=ph.rows[p.id]||[];
+    const waiting=rows.reduce((n,c)=>n+c,0);
+    const togo=100-score[p.id];
+    return {...p, rows, waiting, togo, need:togo+waiting,
+            has:rows.length>0,
+            soon:(SOON[phase]&&SOON[phase][p.id])||Infinity};
+  }).sort((a,b)=>
+    (b.has-a.has)||(b.need-a.need)||(b.rows.length-a.rows.length)||
+    (a.soon-b.soon)||(ORDER.indexOf(a.id)-ORDER.indexOf(b.id)));
+}
+
+/* Satellites keep their own seat and their own size, so a person who opens
+   Home eight times a day reads the same shape every time. Only the middle one
+   changes, and it leans a little out of the corner it came from. */
+function drawStage(el, ranked, settled, score){
+  const seen={};
+  [...el.children].forEach(c=>{seen[c.dataset.p]=c;});
+  ranked.forEach((p,i)=>{
+    const hero=!settled&&i===0;
+    const d=hero?HERO:p.d;
+    const c=hero?{x:C.x+0.13*(p.seat.x-C.x), y:C.y+0.13*(p.seat.y-C.y)}:p.seat;
+    let b=seen[p.id];
+    if(!b){ b=document.createElement('div'); b.dataset.p=p.id; el.appendChild(b); }
+    b.className='bub'+(hero?' h':'');
+    b.style.width=d+'px'; b.style.height=d+'px';
+    b.style.left=(c.x-d/2)+'px'; b.style.top=(c.y-d/2)+'px';
+    b.style.background=p.w;
+    b.style.border='1.5px solid '+p.c;
+    b.innerHTML='<div class="fill" style="height:'+score[p.id]+'%;background:'+p.t+'"></div>'+
+      '<div class="in"><div class="nm">'+p.name+'</div>'+
+      '<div class="fg">'+score[p.id]+'<i>%</i></div>'+
+      (hero?'<div class="ln">'+LINES[p.id]+'</div>':'')+'</div>';
+  });
+}
+
+function render(){
+  const settled=state.phase==='done';
+  const ranked=rank(state.phase, state.score);
+  drawStage(document.getElementById('stage'), ranked, settled, state.score);
+  document.getElementById('scene').innerHTML='<b>'+PHASE[state.phase].at+'.</b> '+PHASE[state.phase].scene;
+
+  document.getElementById('rank').innerHTML='<div class="rkhd">Who needs you most</div>'+
+    ranked.map(p=>'<div class="rk"><span class="dot" style="background:'+p.c+'"></span>'+
+      '<span>'+p.name+' <span class="mth">'+(p.has
+        ? p.togo+' to go, plus '+p.waiting+' waiting'
+        : 'nothing waiting '+(PHASE[state.phase].when||'today'))+'</span></span>'+
+      '<b>'+(p.has?p.need:'')+'</b></div>').join('');
+
+  const v=document.getElementById('verdict'), k=document.getElementById('kaira');
+  if(settled){
+    v.innerHTML='<b>Nobody is behind on a day they have finished.</b> All four go back to the same size with the scores they ended on.';
+    k.textContent=KAIRA.done;
+  }else{
+    const h=ranked[0];
+    v.innerHTML='<b>'+h.name+' takes the middle.</b> It has '+h.togo+' to go and '+h.waiting+' waiting across '+
+      h.rows.length+(h.rows.length===1?' task ':' tasks ')+PHASE[state.phase].when+', which adds up to '+h.need+'.';
+    k.textContent=KAIRA[h.id];
+  }
+}
+
+function buildRows(){
+  document.getElementById('rows').innerHTML=P.map(p=>
+    '<div class="prow"><span class="pname" style="color:'+p.c+'">'+p.name+'</span>'+
+    '<input type="range" min="0" max="100" value="'+state.score[p.id]+'" data-s="'+p.id+'">'+
+    '<span class="pval" data-v="'+p.id+'"></span></div>').join('');
+  document.querySelectorAll('input[data-s]').forEach(i=>i.addEventListener('input',e=>{
+    state.score[e.target.dataset.s]=+e.target.value; syncVals(); render();
+  }));
+  syncVals();
+}
+function syncVals(){
+  P.forEach(p=>{ document.querySelector('[data-v="'+p.id+'"]').textContent=state.score[p.id]; });
+}
+
+document.getElementById('phases').addEventListener('click',e=>{
+  const b=e.target.closest('.ph'); if(!b) return;
+  document.querySelectorAll('.ph').forEach(x=>x.classList.toggle('on',x===b));
+  state.phase=b.dataset.p;
+  // The scores move with the hour, so the sliders and the story always agree.
+  state.score={...PHASE[state.phase].score};
+  document.querySelectorAll('input[data-s]').forEach(i=>{i.value=state.score[i.dataset.s];});
+  syncVals(); render();
+});
+
+buildRows();
+render();
+
+/* The concept demo walks a day by itself, because the idea is easier to watch
+   than to read. It runs while it is on screen and stops when it is not, so it
+   is never animating somewhere nobody is looking. */
+(function demo(){
+  const el=document.getElementById('demoStage'), clock=document.getElementById('demoClock');
+  const steps=['morning','afternoon','evening','night','done'];
+  let i=0, timer=null;
+  const step=()=>{
+    const ph=steps[i], sc=PHASE[ph].score;
+    drawStage(el, rank(ph,sc), ph==='done', sc);
+    const r=rank(ph,sc)[0];
+    clock.innerHTML=PHASE[ph].at+(ph==='done'?'':' &middot; <b>'+r.name+'</b> needs you');
+    i=(i+1)%steps.length;
+  };
+  step();
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{
+      if(e.isIntersecting && !timer) timer=setInterval(step,2600);
+      else if(!e.isIntersecting && timer){ clearInterval(timer); timer=null; }
+    });
+  },{threshold:.3});
+  io.observe(el);
+})();
+</script>
+</body>
+</html>

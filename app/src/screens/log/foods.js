@@ -41,7 +41,8 @@ export const FOODS = [
 
   // Foods a coach's diet plan draws on. Same shape as everything above, so a
   // plan item and a logged item are the same thing to the rest of the app.
-  f("blacktea", "Black tea with cinnamon", "1 cup", 0, 0.5, 0, 0),
+  // 2.5g of carbs, which is the 10 kcal a cup with a little cinnamon comes to.
+  f("blacktea", "Black tea with cinnamon", "1 cup", 0, 2.5, 0, 0),
   f("jeerawater", "Jeera water", "1 glass", 0, 0.7, 0, 0),
   f("eggs", "Boiled egg", "1 egg", 6, 1, 5, 0),
   f("chilla", "Lauki oats besan chilla", "1 piece", 3.5, 10, 2.5, 2),
@@ -169,3 +170,34 @@ export const DEMO_DAY = [
     items: [{ id: "roti", qty: 3 }, { id: "chicken", qty: 1 }, { id: "rajma", qty: 1 }, { id: "raita", qty: 1 }],
   },
 ];
+
+/* What you eat most, counted from what you have actually eaten.
+
+   Frequent used to be a `freq` tag sitting on four foods, which meant the tab
+   showed the same paratha and dal to somebody on their first day as to
+   somebody a year in, and it never once changed because of anything they did.
+   It is a real count now: how many separate meals a food has appeared in,
+   most first. A food eaten twice today counts once, because a tab about what
+   you usually eat should be about days rather than helpings.
+
+   On day one this is empty, which is the honest answer and is also the point:
+   an empty Frequent is what makes room for the suggestions below. */
+export const frequentFrom = (mealsLogged) => {
+  const seen = new Map();
+  mealsLogged.forEach((m) => {
+    // A Set per meal, so three rotis in one dinner is one appearance.
+    new Set(m.items.map((i) => i.id)).forEach((id) => seen.set(id, (seen.get(id) || 0) + 1));
+  });
+  return [...seen.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .map(([id]) => byId(id))
+    .filter(Boolean);
+};
+
+/* Common Indian meals, offered while there is nothing of your own to show.
+
+   They are a starting point rather than a claim about this person, so the
+   screen labels them as suggestions and they step aside the moment a real
+   count exists. The list is the food's own `freq` tag, which is where it
+   already lived. */
+export const SUGGESTED = FOODS.filter((x) => x.tags.includes("freq"));

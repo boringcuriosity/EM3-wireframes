@@ -1,17 +1,22 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from "react";
 import { Home, BarChart3, Utensils, Check, Moon, Droplet, Flame } from "lucide-react";
 import LotusIcon from "./components/LotusIcon";
-import { buildDay, taskTitle, phasesFor, WATER_GOAL } from "./screens/today/day";
+import { buildDay, taskTitle, phasesFor, WATER_GOAL, STEP_GOAL } from "./screens/today/day";
 import { totals as sumFoods, sufficiency as scoreOf, DEMO_DAY, DIVISION_TIME } from "./screens/log/foods";
 import { GOALS, targetsFor } from "./screens/sufficiency/data";
+import { MOODS } from "./screens/mind/tools";
 
 
 /* Who is actually on this person's care team. Above the provider because the
    next session derives from it, and the program page names the same three. */
+/* `role` is the professional one, which is what the program page and the
+   booking screen show. `coach` is the same person said in the language the
+   plans use, because somebody waiting on an Eat plan is waiting on their Eat
+   coach rather than on a job title. `pillar` is what ties the two together. */
 const CARE_TEAM = [
-  { id: "eat", role: "Your nutritionist", name: "Sahana Chandra" },
-  { id: "move", role: "Your physiotherapist", name: "Sahana Physio" },
-  { id: "success", role: "Your success coach", name: "Manya Jain" },
+  { id: "eat", pillar: "eat", coach: "Your Eat coach", role: "Your nutritionist", name: "Sahana Chandra" },
+  { id: "move", pillar: "move", coach: "Your Move coach", role: "Your physiotherapist", name: "Sahana Physio" },
+  { id: "success", pillar: "mind", coach: "Your Mind coach", role: "Your success coach", name: "Manya Jain" },
 ];
 import { GREEN, TEXT, EAT_C, MOVE_C, MIND_C, MEASURE_C, EAT_T, MOVE_T, MIND_T, MEASURE_T } from "./tokens";
 
@@ -74,7 +79,7 @@ export function WFProvider({ children, initial = {} }) {
      "split" = the day in the card and the pillars in their own section,
      "next" = the one thing next, "phase" = this part of the day, "task" = one
      named task over the rings. */
-  const [homeCard, setHomeCard] = useState(initial.homeCard !== undefined ? initial.homeCard : "split");
+  const [homeCard, setHomeCard] = useState(initial.homeCard !== undefined ? initial.homeCard : "bubbles");
 
   /* What the Metabolism strip under the day is made of. "tiles" is the four
      squares that are only a way in; the rest are the same four as slim cards
@@ -85,7 +90,7 @@ export function WFProvider({ children, initial = {} }) {
      its tab are not there at all. Three at most: a card that scrolls is a
      screen pretending to be a card. */
   const [nextActions, setNextActions] = useState(
-    initial.nextActions !== undefined ? initial.nextActions : ["score", "labs", "assess"]
+    initial.nextActions !== undefined ? initial.nextActions : ["score", "labs", "assess", "book:eat", "book:move", "book:mind"]
   );
   // Which of them are ticked off. They stay on the card struck through, so the
   // last one is finished against something rather than alone.
@@ -94,7 +99,6 @@ export function WFProvider({ children, initial = {} }) {
   );
   // Set once the card has been let go, so the list clearing does not yank it
   // out from under the finger that ticked the last box.
-  const [nextGone, setNextGone] = useState(initial.nextGone !== undefined ? initial.nextGone : false);
 
   /* Put away from the top of the day, which is a different thing from being
      finished. The work is still open and still on Home; what has been let go
@@ -112,7 +116,6 @@ export function WFProvider({ children, initial = {} }) {
   const setNextList = (ids, done = []) => {
     setNextActions(ids);
     setNextDone(done);
-    setNextGone(false);
     setPrereqHidden(false);
     setPrereqOpen(null);
   };
@@ -173,6 +176,9 @@ export function WFProvider({ children, initial = {} }) {
   // until they actually open Home.
   // The beat between finishing the EM3 explainer and landing on To-do.
   const [preparing, setPreparing] = useState(initial.preparing !== undefined ? initial.preparing : false);
+  /* Set when somebody asks to be shown where their first steps went. Home
+     reads it once on arrival and scrolls the program rail into view. */
+  const [nextScrollDue, setNextScrollDue] = useState(false);
   const [focusMarkDue, setFocusMarkDue] = useState(
     initial.focusMarkDue !== undefined ? initial.focusMarkDue : false
   );
@@ -296,6 +302,8 @@ export function WFProvider({ children, initial = {} }) {
   const [manualSteps, setManualSteps] = useState(
     initial.manualSteps !== undefined ? initial.manualSteps : null
   );
+  // Glasses of water, logged in a sheet of their own.
+  const [waterSheet, setWaterSheet] = useState(initial.waterSheet !== undefined ? initial.waterSheet : false);
   const [stepsSheet, setStepsSheet] = useState(
     initial.stepsSheet !== undefined ? initial.stepsSheet : false
   );
@@ -422,6 +430,10 @@ export function WFProvider({ children, initial = {} }) {
      back. It used to land everybody on Eat, which is right for somebody who
      started there and wrong for somebody who tapped a row on their day and
      wants the list back with that row struck. */
+  /* The meal being edited, by division, or null for a new one. Editing reopens
+     the same logger rather than building a second screen, because changing a
+     meal and recording one are the same job: say what you ate. */
+  const [logEditing, setLogEditing] = useState(initial.logEditing !== undefined ? initial.logEditing : null);
   const [logReturn, setLogReturn] = useState(initial.logReturn !== undefined ? initial.logReturn : "eat");
   const [logItems, setLogItems] = useState([]);
   const [logTime, setLogTime] = useState(13 * 60 + 30); // minutes past midnight
@@ -430,7 +442,10 @@ export function WFProvider({ children, initial = {} }) {
   const [logInfo, setLogInfo] = useState(initial.logInfo !== undefined ? initial.logInfo : null);
   // Stands in front of the first log when targets do not exist yet.
   // Has the setup pitch been put in front of them at least once?
-  const [favorites, setFavorites] = useState(["poha", "chana", "chai"]);
+  /* Empty on a first run, because a heart is a choice somebody makes and the
+     screen has no business claiming three of them before they have opened it
+     once. The panel stages a returning day where they exist. */
+  const [favorites, setFavorites] = useState(initial.favorites !== undefined ? initial.favorites : []);
   // Everything logged today: { division, timeMins, items: [{id, qty}] }
   const [mealsLogged, setMealsLogged] = useState(initial.mealsLogged !== undefined ? initial.mealsLogged : []);
   const [water, setWater] = useState(initial.water !== undefined ? initial.water : 0);
@@ -441,6 +456,12 @@ export function WFProvider({ children, initial = {} }) {
   /* Skipped today. Not a failure and not a tick: the row leaves today's count
      entirely, which is the whole point of being able to say no to one. */
   const [daySkipped, setDaySkipped] = useState(initial.daySkipped !== undefined ? initial.daySkipped : []);
+  /* Which parts of the day the person has opened or shut by hand. It lives
+     here rather than in the screen because logging a meal is a takeover: To-do
+     unmounts, and a local copy came back empty, so somebody who left from the
+     afternoon returned to a folded afternoon and had to go looking for the
+     tick they had just earned. */
+  const [openPhase, setOpenPhase] = useState(initial.openPhase !== undefined ? initial.openPhase : {});
   const [rowMenu, setRowMenu] = useState(initial.rowMenu !== undefined ? initial.rowMenu : null);
   /* Which coach tip is being explained, by row id.
 
@@ -579,8 +600,10 @@ export function WFProvider({ children, initial = {} }) {
 
   const [bookOpen, setBookOpen] = useState(initial.bookOpen !== undefined ? initial.bookOpen : false);
   const [bookWith, setBookWith] = useState(initial.bookWith !== undefined ? initial.bookWith : null);
-  const openBooking = () => {
-    setBookWith(null);
+  const openBooking = (withId = null) => {
+    // Landing on the picker with that coach already chosen, when the card that
+    // sent you named one. Without it the list opens as it always did.
+    setBookWith(withId);
     setPlanInfo(null);
     setBookOpen(true);
   };
@@ -593,26 +616,38 @@ export function WFProvider({ children, initial = {} }) {
 
   /* The Home rail, in order. The tabs above it are a view of this list, so
      adding a card here is all it takes to add a tab. */
-  const nextOpen = nextActions.filter((id) => !nextDone.includes(id));
-  const nextAllDone = nextActions.length > 0 && nextOpen.length === 0;
-  const showNext = nextOpen.length > 0 && !nextGone;
-  // A beat after the last tick, so the strike is seen before the card goes.
-  useEffect(() => {
-    if (!nextAllDone || nextGone) return;
-    const t = setTimeout(() => setNextGone(true), 1100);
-    return () => clearTimeout(t);
-  }, [nextAllDone, nextGone]);
-  /* The rail is cards; the chips above it are tabs. One prerequisite is one
-     card, so Next actions is a tab covering however many are still open rather
-     than a card holding a list. */
+  /* Booking is finished by a booking existing, which `bookings` already holds,
+     rather than by anything ticking it. Everything else is ticked on the tap
+     that hands off to another screen. */
+  /* A booking is finished by a booking existing, which `bookings` already
+     holds, rather than by anything ticking it. Everything else is ticked on
+     the tap that hands off to another screen. */
+  const COACH_OF = { eat: "eat", move: "move", mind: "success" };
+  const nextIsDone = (id) =>
+    nextDone.includes(id) ||
+    (id.startsWith("book:") && !!bookings[COACH_OF[id.slice(5)]]);
+  const nextOpen = nextActions.filter((id) => !nextIsDone(id));
+  /* The prerequisites left the carousel and became the strip at the top of
+     Home, which is `PrereqRail`, the same one To-do and the program page draw.
+     They were the one thing on this screen blocking everything else, and a
+     card somebody has to swipe sideways to find is a poor place for it.
+
+     They read off `nextOpen` directly, so this rail is now the program, the
+     bookings and any live session: the standing context rather than the work. */
   const HOME_CARDS = [
     "program",
-    ...(showNext ? nextOpen.map((id) => "next:" + id) : []),
+    ...nextOpen.map((id) => "next:" + id),
     "sessions",
     ...(liveSession ? ["live"] : []),
   ];
-  // A tab leading to nothing scheduled is worse than no tab, same as Next.
-  const HOME_TABS = ["program", showNext ? "next" : null, "sessions", liveSession ? "live" : null].filter(Boolean);
+  // A tab leading to nothing scheduled is worse than no tab.
+  const HOME_TABS = [
+    "program",
+    nextOpen.length ? "next" : null,
+    "sessions",
+    liveSession ? "live" : null,
+  ].filter(Boolean);
+  // One tab, several cards: the first steps ride the rail one to a card.
   const tabOfCard = (c) => (c.startsWith("next:") ? "next" : c);
   const cardStep = CARD_W + CARD_GAP;
   // The card the tab is pointing at can stop existing, so fall back rather
@@ -666,9 +701,13 @@ export function WFProvider({ children, initial = {} }) {
      happened and have the coaches written the plans. Declared here because the
      meal divisions below already depend on it. */
   const planAssigned = plan === "paid" && kcalSource === "coach" && !!movePlan;
-  /* Shut by default once there is a plan, open before that, unless somebody
-     has said otherwise. */
-  const prereqExpanded = prereqOpen === null ? !planAssigned : prereqOpen;
+  /* Shut by default, wherever it appears, unless somebody has opened it. It
+     used to stand open before a plan landed, which made sense while it was a
+     section on To-do. It is the strip at the top of Home now, and a strip that
+     arrives already unfolded pushes the day itself below the fold on the one
+     screen that is supposed to open on today. The header still says how many
+     are left, so nothing is hidden by shutting it. */
+  const prereqExpanded = prereqOpen === null ? false : prereqOpen;
 
   /* A plan lands while nobody is looking. These are the ones that have landed
      and have not been read yet, in EM3 order, so the card can announce one now
@@ -1117,11 +1156,15 @@ export function WFProvider({ children, initial = {} }) {
     }
   };
 
+  /* The mood said in words rather than as an id, so the day's list can print
+     what was actually felt without keeping its own copy of the moods. */
+  const moodLabel = (MOODS.find((m) => m.id === mindMood) || {}).label || null;
+
   const dayRows = buildDay({
     weekInsight, weekMode, weekReads,
-    planAssigned, eatDivisions, mealsLogged, exLogs, mindDone,
+    planAssigned, eatDivisions, mealsLogged, exLogs,
     sleepMins, daySteps, water, ticks: dayTicks, skipped: daySkipped, planOption,
-    measureRows, healthSync, healthSource, phaseMode,
+    measureRows, healthSync, healthSource, phaseMode, moodLabel,
   });
   /* Skipped rows come out of the denominator rather than counting against it.
      A day you chose to make smaller should look smaller, not look failed. */
@@ -1192,7 +1235,39 @@ export function WFProvider({ children, initial = {} }) {
   const openLog = (atMins, plan = null) => {
     if (atMins !== undefined) setLogTime(atMins);
     setLogPlan(plan);
+    setLogEditing(null);
     setLogReturn(eatDetail ? "eat" : "track");
+    setLogOpen(true);
+  };
+
+  /* Take a logged meal back off the day. It puts the task back on the list and
+     the food back out of the totals, which is what somebody means when they
+     say they logged the wrong thing. */
+  const undoMeal = (division) => {
+    setMealsLogged((ms) => ms.filter((m) => m.division !== division));
+    setToast({ title: "Log removed", line: "Back on today's list" });
+  };
+
+  /* Reopen a meal already logged, with everything that went into it already in
+     the basket. Saving replaces that meal rather than adding a second one, so
+     a correction stays one meal in the day. */
+  const editMeal = (division) => {
+    const mine = mealsLogged.filter((m) => m.division === division);
+    if (!mine.length) return;
+    // Merged, because one slot can hold more than one entry from the old days
+    // before editing existed.
+    const items = [];
+    mine.flatMap((m) => m.items).forEach((it) => {
+      const at = items.findIndex((x) => x.id === it.id);
+      if (at === -1) items.push({ ...it });
+      else items[at].qty += it.qty;
+    });
+    setLogItems(items);
+    setLogTime(mine[mine.length - 1].timeMins ?? DIVISION_TIME[division] ?? 13 * 60);
+    setLogPlan(null);
+    setLogEditing(division);
+    setLogReturn(eatDetail ? "eat" : "track");
+    setLogResult(null);
     setLogOpen(true);
   };
 
@@ -1241,9 +1316,30 @@ export function WFProvider({ children, initial = {} }) {
      here or sends you to the screen that owns the record. Nothing in the diary
      keeps its own copy of a fact, so it can never disagree with the pillar. */
   const openRow = (r) => {
+    /* Hold the part of the day this came from open. Finishing the last task in
+       a phase would otherwise fold it on the way back, which hides the tick at
+       the exact moment it is worth seeing. */
+    if (r.phase) setOpenPhase((p) => ({ ...p, [r.phase]: true }));
     if (r.kind === "tick") return toggleTick(r.id);
-    if (r.to === "water") return setWater(water >= WATER_GOAL ? 0 : WATER_GOAL);
-    if (r.to === "sleep") { setMindDetail(true); if (healthSource.sleep === "manual") setLogSleepOpen(true); return; }
+    /* Water opens its own sheet rather than toggling on the row. Two glasses
+       was one ask while a coach set the number; without one it is a record,
+       and a record needs somewhere to say how much and when. */
+    if (r.to === "water") return setWaterSheet(true);
+    /* Once the night is synced there is nothing left to do with it, so the
+       row stops navigating. Opening Mind to show somebody a reading they can
+       already see on the row is a trip for nothing. The three dot menu still
+       carries the way to the record for anybody who wants it. */
+    if (r.to === "sleep") {
+      if (r.done) return;
+      /* Nobody has said where nights come from yet, so ask here rather than on
+         Mind. Granting Health Connect is a permission, not a screen, and
+         sending somebody two screens away to give it means they come back to a
+         different place than they left. The row shows the reading arriving. */
+      if (healthSource.sleep === null) return setHealthSheet("sleep");
+      if (healthSource.sleep === "manual") { setMindDetail(true); setLogSleepOpen(true); return; }
+      setMindDetail(true);
+      return;
+    }
     /* Straight to the sheet the row names. Opening Mind and leaving somebody
        to find the breathing exercise is the work the tap was meant to save. */
     if (r.to.startsWith("mind:")) return setMindTool(r.to.slice(5));
@@ -1267,7 +1363,13 @@ export function WFProvider({ children, initial = {} }) {
     /* Straight to the logger, on the option the row was showing. Landing on
        Eat and hunting for the meal you just named is the work the tap was
        meant to save. */
-    if (r.to.startsWith("eat:")) return openMealLog(r.to.slice(4), r.oi ?? 0);
+    /* A meal already logged has nothing left to ask for, so the tap opens the
+       choice instead: change what went in, or take the log off. A meal half
+       logged still opens the logger, carrying only what is still outstanding. */
+    if (r.to.startsWith("eat:")) {
+      if (r.done) return setRowMenu(r.id);
+      return openMealLog(r.to.slice(4), r.oi ?? 0);
+    }
   };
 
   /* Where a finished task was filed, which is a different question from how to
@@ -1283,9 +1385,44 @@ export function WFProvider({ children, initial = {} }) {
     if (r.to === "move") return setMoveDetail(true);
     openRow(r);
   };
+  /* The macro furthest from where it should be. Sufficiency is the mean of the
+     four capped ratios, so the lowest ratio is arithmetically the biggest thing
+     anybody could fix today. It is what turns "Eat 35" into "fibre is the gap",
+     which is the difference between a number and something to do about it.
+
+     `why` is the mechanism, because a nutrient named without one is a scold. */
+  const MACRO_KEY = { protein: "p", carbs: "c", fats: "f", fibre: "fibre" };
+  const MACRO_WHY = {
+    protein: "the part of food that keeps hunger away for hours",
+    carbs: "your steadiest source of energy through the afternoon",
+    fats: "what your body needs to absorb half its vitamins",
+    fibre: "what slows the rise after a meal and feeds your gut",
+  };
+  const weakestMacro =
+    mealsIn === 0
+      ? null
+      : dailyTargets
+          .map((t) => ({
+            ...t,
+            have: Math.round(dayTotals[MACRO_KEY[t.id]] || 0),
+            why: MACRO_WHY[t.id],
+            ratio: (dayTotals[MACRO_KEY[t.id]] || 0) / (t.target || 1),
+          }))
+          .sort((a, b) => a.ratio - b.ratio)[0];
+
   const liveScore = scoreOf(dayTotals, dailyTargets);
   // The number exists either way. Whether it is legible is the gate.
-  const scoreUnlocked = hasTargets && mealsIn >= 3;
+  /* The score opens on the first meal, not the third.
+
+     It used to wait for three on the reasoning that half a day reads worse
+     than the day really is. That is true of a day's verdict and wrong for a
+     number somebody is trying to move: a score that ignores the meal you just
+     logged teaches that logging does nothing. It reads what is in so far and
+     says how many slots are still to come, so the figure is honest about being
+     partial without being hidden. */
+  const scoreUnlocked = hasTargets && mealsIn > 0;
+  // How many meal slots the day has, which is six with a plan and four without.
+  const mealSlots = eatDivisions.length;
 
   /* One score per pillar, as the metabolism cards read them.
 
@@ -1305,39 +1442,229 @@ export function WFProvider({ children, initial = {} }) {
      No reading of the number here. "Light on protein" is a true thing to say
      and the wrong place to say it: a strip you swipe past has room for what a
      score is, not for what today's happens to mean. */
-  const mealsLeft = Math.max(0, 3 - mealsIn);
+  const mealsLeft = Math.max(0, mealSlots - mealsIn);
+  /* Momentum, the way the Move deck sets it out:
+
+       Exercise 40  +  Steps 10  +  NEAT 10  +  Spread 40
+
+     The coach's session carries most of it because it is the biggest lever the
+     plan gives anybody. The small movements are the NEAT tenth, which is what
+     makes the stairs and standing through a meeting count for something rather
+     than being advice nobody can act on. Spread is ten a part of the day, so
+     movement scattered across a day beats the same effort crammed into one
+     block, which is the whole argument of the pillar.
+
+     All four come off the day's own rows, so ticking one moves the bubble. */
+  const moveRows = dayLive.filter((r) => r.pillar === "move");
+  const neatRows = moveRows.filter((r) => r.kind === "tick");
+  const neatDone = neatRows.filter((r) => r.done).length;
+  const moveParts = new Set(moveRows.filter((r) => r.done).map((r) => r.phase)).size;
+  const momentum = Math.round(
+    (exLogs.length > 0 ? 40 : 0) +
+      Math.min(1, (daySteps || 0) / STEP_GOAL) * 10 +
+      (neatRows.length ? (neatDone / neatRows.length) * 10 : 0) +
+      Math.min(40, moveParts * 10)
+  );
+  // Something has to have moved before there is a reading to show.
+  const moveStarted = exLogs.length > 0 || (daySteps || 0) > 0 || neatDone > 0;
+
   const pillarScores = [
     {
-      id: "eat", name: "Eat", score: "Nutrition sufficiency score",
+      id: "eat", name: "Eat", score: "Nutrition sufficiency score", daily: true,
       open: scoreUnlocked,
       value: liveScore, out: "%",
-      need: hasTargets
-        ? (mealsLeft === 1 ? "1 more meal" : mealsLeft + " more meals") + " to open this"
-        : "Your coach sets your targets first",
+      need: hasTargets ? "Log a meal to open this" : "Your coach sets your targets first",
     },
     {
-      id: "move", name: "Move", score: "Momentum score",
-      open: exLogs.length > 0 || (daySteps || 0) > 0,
-      value: 62, out: "/100",
-      need: "Walk or log a session to open this",
+      id: "move", name: "Move", score: "Momentum score", daily: true,
+      open: moveStarted,
+      value: momentum, out: "/100",
+      need: "Move something to open this",
     },
     {
-      id: "mind", name: "Mind", score: "Wellbeing score",
+      id: "mind", name: "Mind", score: "Wellbeing score", daily: true,
       open: sleepLogs.length > 0 || mindDone.length > 0,
       value: 74, out: "/100",
       need: "Log last night's sleep to open this",
     },
     {
-      id: "measure", name: "Measure", score: "Metabolic score",
+      /* The one score the day does not move. Eat, Move and Mind are earned
+         by what you log today; a metabolic score comes from a check you go and
+         take, so a day that has not touched it is not a day behind on it. */
+      id: "measure", name: "Measure", score: "Metabolic score", daily: false,
       open: scoreState !== "locked",
       value: 68, out: "/100",
       need: "Find your Metabolic score in 5 min",
     },
   ];
 
+  /* ---------- EM3, as four bubbles ----------
+
+     To-do is adherence: the day as a list, in the order it happens. This is
+     the other half. One pillar is drawn large, and it is the one worth a
+     minute of somebody's attention right now.
+
+     The rule, in order: whatever is due in this part of the day comes first,
+     then anything left today at all, then the lowest score, then whoever owns
+     the hour. Score leads over the clock on purpose, because being behind is
+     a better reason to be looked at than being next.
+
+     A pillar with no score yet shows the ask to go and log instead of a
+     nought, since a percentage of nothing is a figure nobody has earned. */
+
+  /* Whose hour it is, when nothing else separates them. Four pillars level on
+     score is a real tie and each part of the day has one it belongs to:
+     breakfast sets the morning, a reading suits the flat middle, the session
+     goes before dinner, and the night is for winding down. */
+  const SLOT_OWNER = { morning: "eat", afternoon: "measure", evening: "move", night: "mind" };
+
+  /* What the big one says. Mind is the only one that changes through the day,
+     because easing into a morning and winding down at night are opposite ends
+     of the same pillar. */
+  const NUDGE = {
+    eat: { any: "Time to eat" },
+    move: { any: "Time to move" },
+    mind: { morning: "Ease into your day", night: "Time to wind down", any: "Take a breather" },
+    measure: { any: "Time for a reading" },
+  };
+  const FIRST_ASK = {
+    eat: "Log your first meal",
+    move: "Log your first movement",
+    mind: "Log last night's sleep",
+    measure: "Take your first reading",
+  };
+
+  // The part of the day in front of you, the same one Home's card already reads.
+  const bubblePhase = dayPhases.find((f) => !f.complete) || null;
+
+  const bubbleRanked = pillarScores
+    .map((p) => {
+      const mine = dayLive.filter((r) => r.pillar === p.id);
+      const openNow = bubblePhase
+        ? mine.filter((r) => r.phase === bubblePhase.id && !r.done).sort((a, b) => a.at - b.at)
+        : [];
+      const done = mine.filter((r) => r.done).length;
+      return {
+        id: p.id,
+        name: p.name,
+        /* The pillar's own score, and only once it has one. Eat's is today's
+           sufficiency, Measure's is the metabolic score, and Move and Mind are
+           staged until their formulas land. */
+        score: p.open ? p.value : null,
+        started: p.open,
+        /* Whether anything has gone in for this pillar today, which is a
+           different question from whether the score has opened. Eat's opens on
+           the first meal now, so the two agree there, but Measure's waits on a
+           check nobody has taken and Mind's on a formula, so a pillar can have
+           work done and still have no number. */
+        logged: done > 0,
+        total: mine.length,
+        done,
+        left: mine.filter((r) => !r.done).length,
+        /* How full to draw it. The score once there is one, and how much of
+           the pillar's day is in before that, so logging always moves
+           something even while the number is still shut. */
+        fill: p.open ? p.value : mine.length ? Math.round((done / mine.length) * 100) : 0,
+        can: openNow.length > 0,
+        daily: p.daily,
+        nudge: (NUDGE[p.id] || {})[bubblePhase ? bubblePhase.id : ""] || (NUDGE[p.id] || {}).any,
+        first: FIRST_ASK[p.id],
+        // Why it is still shut, in the words `pillarScores` already wrote.
+        need: p.need,
+      };
+    })
+    .sort((a, b) => {
+      const owner = bubblePhase ? SLOT_OWNER[bubblePhase.id] : null;
+      /* Ranking value. A daily score nobody has opened yet sits at nought,
+         because the whole of it is still to win today. A standing score with
+         no figure sits out of the running instead: no amount of logging moves
+         a metabolic score, so leading with it would point somebody at the one
+         thing today cannot change. */
+      const sc = (x) => (x.score !== null ? x.score : x.daily ? 0 : 101);
+      return (
+        b.can - a.can ||
+        (b.left > 0) - (a.left > 0) ||
+        /* Nothing logged sorts lowest of all, because a pillar nobody has
+           started has the whole of itself still to win. */
+        sc(a) - sc(b) ||
+        (b.id === owner) - (a.id === owner) ||
+        b.openNow - a.openNow ||
+        0
+      );
+    });
+
+  /* Only a finished day flattens the four. An hour with nothing due still has
+     a pillar worth pointing at, and four identical circles would say the day
+     had no shape at all. */
+  const bubblesSettled = !bubblePhase;
+  const bubbles = bubbleRanked.map((p, i) => ({
+    ...p,
+    hero: !bubblesSettled && i === 0 && p.left > 0,
+  }));
+  // The one Kaira has to talk about, so the two halves of the card agree.
+  const bubbleHero = bubbles[0] && bubbles[0].hero ? bubbles[0] : null;
+
+  /* What Kaira says under the bubbles.
+
+     Two parts, always. A READ, the one true thing about where this pillar
+     stands, and a LEVER, the specific act that moves it, with a real quantity
+     or a real mechanism, named to the coach who chose it.
+
+     She talks about the pillar in the big bubble and never another one,
+     because a card whose halves disagree is worse than a card saying less.
+     She never reads the number above her or the list below her back: both are
+     already on screen, and repeating them costs her the only slot she has.
+
+     Written out per state rather than composed, because the warmth is in the
+     specifics and a sentence assembled from parts loses exactly that. */
+  const KAIRA_LINE = {
+    eat: {
+      fresh: "Your Eat score is built from the meals you log, so it has nothing to work with yet. Log your first meal, whatever was actually on the plate, and the number appears.",
+      morning: "Fibre usually runs short by the evening, and breakfast is the cheapest place to get ahead of it. The chilla option has 6 grams of the 30 you need today, so eat that one and log it.",
+      afternoon: "You are at 44 grams of the 110 grams of protein you need today. The evening chana carries 9 grams on its own, which is the easiest 9 left, so make that your next meal and log it.",
+      evening: "Your fibre is at 11 grams of 30 with dinner still to come. The multigrain roti option has 6 of them, so choosing that one and logging it closes most of tonight's gap.",
+      night: "Finishing dinner two hours before bed gives your body the whole night for repair instead of digestion. The khichdi option is the lighter of the two, so pick that one and log it.",
+    },
+    move: {
+      fresh: "Nothing has been logged for Move today, and sitting for long stretches quietly undoes the meals in between. Get ten minutes on your feet after your next meal and log it.",
+      part: "Your session is the biggest single thing left in your day. Twenty minutes of it moves your score more than anything else you could do right now, so do it and log it.",
+      any: "Your session does the most for your glucose when it lands before dinner. Half past six gives you the time, so get it done and log it.",
+      night: "Walking after a meal does more for your glucose than walking before one. Take ten minutes after dinner and log the steps, and they count double.",
+    },
+    mind: {
+      fresh: "Your body clock is set by the light you get in the first hour after waking. Ten minutes of sun before nine does more for tonight's sleep than anything you do at bedtime, so go out and tick it off.",
+      part: "Sleep is the half of Mind a device can read, and how the day felt is the half only you can. Sync last night and log your mood, and both halves are in.",
+      morning: "Ten minutes of sun before nine sets your body clock for the whole day, and that does more for tonight's sleep than anything you do at bedtime. Step outside and tick it off.",
+      any: "How a day felt is the half of Mind no device can read for you. Log your mood in one tap and the pattern behind your weeks starts to show.",
+      night: "A bedtime you keep every night does more for your glucose than the number of hours you get. Wind down now and mark it done, because the rhythm matters more than the total.",
+    },
+    measure: {
+      fresh: "A body reading is the one number here that logging cannot give you. Take two minutes on the scale and sync it, because the next three months get built on what it says.",
+      any: "A body reading is the one number here that logging cannot give you. Take two minutes on the scale and sync it, because the next three months get built on what it says.",
+    },
+  };
+
+  const kairaLine = (() => {
+    /* Nothing from her until a plan is in. Her whole job is joining a score to
+       the work that moves it, and before a coach has written anything there is
+       no plan to point at: the lines would be general nutrition advice from a
+       companion who does not yet know anything about this person. The four
+       cards above already say what the pillars are, which is all there is to
+       say at that stage. */
+    if (!planAssigned) return null;
+    if (dayComplete)
+      return "Everything on today's list is logged. Days like this are what turn into a pattern, and four of them in a week is when it starts to show.";
+    if (!bubbleHero) return null;
+    const set = KAIRA_LINE[bubbleHero.id] || {};
+    if (!bubbleHero.logged) return set.fresh;
+    if (!bubbleHero.started) return set.part || set.fresh;
+    return set[bubblePhase ? bubblePhase.id : ""] || set.any || set.fresh;
+  })();
+
   const value = {
-    hasTargets, kcalTarget, dailyTargets, dayTotals, mealsIn, liveScore, scoreUnlocked,
+    hasTargets, kcalTarget, dailyTargets, dayTotals, mealsIn, mealSlots, mealsLeft, liveScore, scoreUnlocked, weakestMacro,
     pillarScores, metabCard, setMetabCard,
+    bubbles, bubbleHero, bubblePhase, bubblesSettled, kairaLine,
     activeGoal,
     authStep, setAuthStep, phone, setPhone, otp, setOtp, userName, setUserName, firstName,
     activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail,
@@ -1349,7 +1676,7 @@ export function WFProvider({ children, initial = {} }) {
     scoreState, setScoreState, setupState, setSetupState, dailyState, setDailyState,
     onboardingOpen, setOnboardingOpen, onboardingStep, setOnboardingStep,
     tour, setTour, tourName, setTourName,
-    focusMarkDue, setFocusMarkDue, preparing, setPreparing, tourTargets, pillarInfo, setPillarInfo, coinsInfo, setCoinsInfo, planInfo, setPlanInfo,
+    focusMarkDue, setFocusMarkDue, nextScrollDue, setNextScrollDue, preparing, setPreparing, tourTargets, pillarInfo, setPillarInfo, coinsInfo, setCoinsInfo, planInfo, setPlanInfo,
     planSeen, setPlanSeen, planChanged, setPlanChanged, arrived, readPlan, cgmOpen, setCgmOpen, bcaOpen, setBcaOpen, programIntro, setProgramIntro, armProgramIntro,
     programIntroSeen, setProgramIntroSeen, todayOnboarded, setTodayOnboarded,
     streakDays, setStreakDays, streakShown,
@@ -1359,7 +1686,7 @@ export function WFProvider({ children, initial = {} }) {
     weekMode, setWeekMode, weekReads, setWeekReads, openWeek, taskCard, setTaskCard,
     phaseMode, setPhaseMode,
     healthSource, setHealthSource, healthOn, healthSheet, setHealthSheet,
-    manualSteps, setManualSteps, stepsSheet, setStepsSheet, healthSync, setHealthSync, pickSource,
+    manualSteps, setManualSteps, stepsSheet, setStepsSheet, waterSheet, setWaterSheet, healthSync, setHealthSync, pickSource,
     sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen,
     mindTool, setMindTool, mindDone, setMindDone, mindMood, setMindMood, mindDetail, setMindDetail, mindTab, setMindTab,
     mindKept, setMindKept, keepMind, mindTemplate, setMindTemplate, templateKept, setTemplateKept,
@@ -1368,6 +1695,7 @@ export function WFProvider({ children, initial = {} }) {
     moveReturn, setMoveReturn,
     logOpen, setLogOpen, logItems, setLogItems, logTime, setLogTime,
     logPlan, setLogPlan, logReturn, setLogReturn, openLog, openMealLog, goToRecord,
+    logEditing, setLogEditing, editMeal, undoMeal,
     kairaLog, setKairaLog, planNotif, setPlanNotif, careTeam,
     logTimeOpen, setLogTimeOpen, logInfo, setLogInfo, 
      favorites, setFavorites,
@@ -1399,6 +1727,7 @@ export function WFProvider({ children, initial = {} }) {
     completeTask, taskProgress, setTaskProgress, taskDone, setTaskDone,
     dayRows, dayLive, dayPhases, dayRowsDone, nextRowId, openRow, water, setWater, dayTicks, setDayTicks,
     daySkipped, setDaySkipped, toggleSkip, toggleTick, rowMenu, setRowMenu, planOption, setPlanOption,
+    openPhase, setOpenPhase,
     tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira,
     celebrated, celebrate, uncelebrate, streakBurst, setStreakBurst,
     eatFocus, setEatFocus,

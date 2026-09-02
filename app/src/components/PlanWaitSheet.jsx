@@ -1,65 +1,68 @@
 import React from "react";
 import { useWF } from "../state";
 import { X, Utensils, Flame } from "lucide-react";
-import { GREEN, GREEN_DEEP, TEXT, MUTED, BG, LINE, PILLAR } from "../tokens";
+import LotusIcon from "./LotusIcon";
+import { GREEN, GREEN_DEEP, TEXT, MUTED, BG, PILLAR } from "../tokens";
 
 /* Why there is no plan yet. Opened from the info dot on the waiting strip.
 
-   The honest answer is a sequence, not a fact, so the sheet shows it as one:
-   you log, your coach reads it, your plan comes back built around it. Seeing
-   where their own logging sits in that chain is what makes the wait feel like
-   a step rather than a delay. */
+   One answer, said once: your coaches curate your full day at your first
+   consultation, and here is where to book it. It walked through a numbered
+   sequence for a while, with a booking button under it and a second one on the
+   card behind. Three tellings of one fact, and the sheet was longer than the
+   thing it was explaining. The heading says what waits on what, the paragraph
+   says what arrives and where it comes from, and the last line says where to
+   go. Nothing else. */
 
+/* Named off the pillars, the same as the handover card and the plan sheet:
+   Eat coach, Move coach, Mind coach, writing an Eat plan, a Move plan and a
+   Mind plan. The app teaches those four words everywhere else, so a handover
+   that switched to diet, exercise and wellbeing asked somebody to learn a
+   second vocabulary for the four things they already knew.
+
+   `all` covers any combination of more than one still outstanding. It was
+   called `both` while a consultation produced two plans, which quietly became
+   wrong the day it produced three.
+
+   `mind` was missing entirely. `PlanCard` opens this sheet with whichever
+   single plan is waiting, so a person whose Eat and Move plans had landed and
+   whose Mind plan had not tapped the info dot and got a blank screen. */
 const PLANS = {
-  /* Both plans are written by two different people off the same logging, so
-     when both are outstanding the sheet says so once rather than making anyone
-     open it twice. */
-  both: {
+  all: {
     pillar: "eat",
     chips: [
-      { pillar: "eat", Icon: Utensils, coach: "nutrition coach" },
-      { pillar: "move", Icon: Flame, coach: "exercise coach" },
+      { pillar: "eat", Icon: Utensils, coach: "Eat coach" },
+      { pillar: "move", Icon: Flame, coach: "Move coach" },
+      { pillar: "mind", Icon: LotusIcon, coach: "Mind coach" },
     ],
-    lede: "Log how you normally eat and move",
-    ledeAccent: "and both plans get built around it.",
-    sub: "Neither coach has written your plan yet. They want to see how you really eat and how your days actually run, before asking you to change any of it.",
-    steps: [
-      { t: "You log your day", b: "Meals, movement, sleep. On the good days and the bad ones." },
-      { t: "You book your consultations", b: "One with each coach. They come to it having already read how your days go." },
-      { t: "Your plans come back", b: "Built around your food, your timings and your body, written at those sessions." },
-    ],
+    head: "Your plans start with a consultation",
+    body: "Your Eat, Move and Mind coaches will curate a full personalised day for you: tasks that improve your metabolism, built on EM3, the habit building framework. All of it is assigned once your first consultation is done.",
   },
   eat: {
     pillar: "eat",
-    chips: [{ pillar: "eat", Icon: Utensils, coach: "nutrition coach" }],
-    lede: "Log how you normally eat",
-    ledeAccent: "and your plan gets built around it.",
-    sub: "Your nutrition coach has not written your food plan yet. They want to see how you really eat first, not a tidied up version of it.",
-    steps: [
-      { t: "You log your meals", b: "Everything, on the good days and the bad ones. Even chai and papad." },
-      { t: "You book your consultation", b: "Your coach comes to it having already read how you eat and when." },
-      { t: "Your plan comes back", b: "Written at that session, around your food, your timings and your home." },
-    ],
+    chips: [{ pillar: "eat", Icon: Utensils, coach: "Eat coach" }],
+    head: "Your Eat plan starts with a consultation",
+    body: "Your Eat coach will curate your meals for the day: what to eat and when, built on EM3, the habit building framework. It is assigned once your first consultation is done.",
   },
   move: {
     pillar: "move",
-    chips: [{ pillar: "move", Icon: Flame, coach: "exercise coach" }],
-    lede: "Log how you already move",
-    ledeAccent: "and your plan starts from there.",
-    sub: "Your exercise coach has not written your routine yet. They want to see how your days actually run before asking you to change them.",
-    steps: [
-      { t: "You log your movement", b: "Anything counts. A short walk, the stairs, an hour of housework." },
-      { t: "You book your consultation", b: "Your coach comes to it having already read what your days allow." },
-      { t: "Your plan comes back", b: "Written at that session, around your days and your body." },
-    ],
+    chips: [{ pillar: "move", Icon: Flame, coach: "Move coach" }],
+    head: "Your Move plan starts with a consultation",
+    body: "Your Move coach will curate your movement for the day: the session and the small things around it, built on EM3, the habit building framework. It is assigned once your first consultation is done.",
+  },
+  mind: {
+    pillar: "mind",
+    chips: [{ pillar: "mind", Icon: LotusIcon, coach: "Mind coach" }],
+    head: "Your Mind plan starts with a consultation",
+    body: "Your Mind coach will curate your sleep and your worksheets, built on EM3, the habit building framework. It is assigned once your first consultation is done.",
   },
 };
 
+
 export default function PlanWaitSheet() {
-  const { planInfo, setPlanInfo, openBooking } = useWF();
+  const { planInfo, setPlanInfo } = useWF();
   const p = PLANS[planInfo];
   if (!p) return null;
-  const hue = PILLAR[p.pillar];
 
   return (
     <div
@@ -93,7 +96,11 @@ export default function PlanWaitSheet() {
       >
 
         <div style={{ flex: 1, overflowY: "auto", padding: "22px 22px 0", minHeight: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+          {/* Wraps, because three coaches at 10px uppercase plus the close
+              button come within a few pixels of the frame. The chips take the
+              flexible column and the close button keeps its corner. */}
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 7 }}>
+            <div style={{ flex: 1, minWidth: 0, display: "flex", flexWrap: "wrap", gap: 7 }}>
             {p.chips.map((ch) => (
               <span
                 key={ch.coach}
@@ -114,7 +121,7 @@ export default function PlanWaitSheet() {
                 {ch.coach.toUpperCase()}
               </span>
             ))}
-            <span style={{ flex: 1 }} />
+            </div>
             <button
               onClick={() => setPlanInfo(null)}
               aria-label="Close"
@@ -135,109 +142,18 @@ export default function PlanWaitSheet() {
               lineHeight: 1.3,
             }}
           >
-            {p.lede} <span style={{ color: hue.c }}>{p.ledeAccent}</span>
+            {p.head}
           </h2>
-          <p style={{ margin: "10px 0 0", fontSize: 13, color: MUTED, lineHeight: 1.55 }}>{p.sub}</p>
+          <p style={{ margin: "10px 0 0", fontSize: 13, color: MUTED, lineHeight: 1.55 }}>{p.body}</p>
 
-          <div style={{ height: 1, background: LINE, margin: "18px 0 14px" }} />
-
-          <div
-            style={{
-              fontFamily: "'JetBrains Mono', monospace",
-              fontSize: 10,
-              fontWeight: 600,
-              letterSpacing: 1,
-              textTransform: "uppercase",
-              color: MUTED,
-              marginBottom: 14,
-            }}
-          >
-            How it happens
-          </div>
-
-          {/* One rail through all three, so it reads as a sequence rather than
-              three separate promises. */}
-          <div style={{ position: "relative" }}>
-            <span
-              aria-hidden
-              style={{
-                position: "absolute",
-                left: 12,
-                top: 16,
-                bottom: 22,
-                width: 1.5,
-                borderRadius: 1,
-                background: LINE,
-              }}
-            />
-            {p.steps.map((x, i) => (
-              <div key={x.t} style={{ display: "flex", gap: 12, marginBottom: i < p.steps.length - 1 ? 16 : 0 }}>
-                <span
-                  style={{
-                    width: 25,
-                    height: 25,
-                    borderRadius: "50%",
-                    flexShrink: 0,
-                    background: hue.t,
-                    color: hue.c,
-                    fontSize: 11.5,
-                    fontWeight: 800,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    position: "relative",
-                    zIndex: 1,
-                    boxShadow: "0 0 0 4px " + BG,
-                  }}
-                >
-                  {i + 1}
-                </span>
-                <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, lineHeight: 1.35 }}>{x.t}</div>
-                  <div style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.5, marginTop: 2 }}>{x.b}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* The step everything above waits on, named and bookable. The sheet
-              explained the sequence and then left the one thing a person could
-              actually do about it off the screen. */}
-          <div
-            style={{
-              marginTop: 18,
-              paddingTop: 16,
-              borderTop: "1px solid " + LINE,
-            }}
-          >
-            <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, lineHeight: 1.4 }}>
-              Step two is the one waiting on you
-            </div>
-            <div style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.55, marginTop: 4 }}>
-              Your plans are written at that consultation, so booking it is what starts them.
-            </div>
-            <button
-              onClick={openBooking}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                background: "none",
-                border: "none",
-                padding: "10px 0 0",
-                margin: 0,
-                fontSize: 13,
-                fontWeight: 700,
-                color: GREEN,
-                cursor: "pointer",
-                fontFamily: "inherit",
-                textDecoration: "underline",
-                textUnderlineOffset: 3,
-              }}
-            >
-              Book your consultation
-            </button>
-          </div>
+          {/* Where booking lives, said in words rather than as a button. The
+              consultation has one home now, the first card in Start here on
+              this same screen, and a second door to it here would be the same
+              ask in two places. */}
+          <p style={{ margin: "14px 0 0", fontSize: 12.5, color: MUTED, lineHeight: 1.55 }}>
+            If you have not booked your consultation yet, you can do it from{" "}
+            <span style={{ color: TEXT, fontWeight: 700 }}>Next actions</span>.
+          </p>
         </div>
 
         <div style={{ flexShrink: 0, padding: "18px 22px 26px" }}>

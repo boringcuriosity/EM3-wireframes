@@ -33,15 +33,15 @@
    Three parts is kept switchable while the split is being shown around. */
 export const PHASE_MODES = {
   4: [
-    { id: "morning",   label: "Morning",   when: "this morning",   from:  5 * 60 },
-    { id: "afternoon", label: "Afternoon", when: "this afternoon", from: 12 * 60 },
-    { id: "evening",   label: "Evening",   when: "this evening",   from: 16 * 60 },
-    { id: "night",     label: "Night",     when: "tonight",        from: 19 * 60 },
+    { id: "morning",   label: "Morning",   hindi: "Subah",   span: "5 AM to 12 PM", when: "this morning",   from:  5 * 60 },
+    { id: "afternoon", label: "Afternoon", hindi: "Dopahar", span: "12 PM to 4 PM", when: "this afternoon", from: 12 * 60 },
+    { id: "evening",   label: "Evening",   hindi: "Shaam",   span: "4 PM to 7 PM",  when: "this evening",   from: 16 * 60 },
+    { id: "night",     label: "Night",     hindi: "Raat",    span: "7 PM to 5 AM",  when: "tonight",        from: 19 * 60 },
   ],
   3: [
-    { id: "morning",   label: "Morning",   when: "this morning",   from:  5 * 60 },
-    { id: "afternoon", label: "Afternoon", when: "this afternoon", from: 12 * 60 },
-    { id: "evening",   label: "Evening",   when: "this evening",   from: 17 * 60 },
+    { id: "morning",   label: "Morning",   hindi: "Subah",   span: "5 AM to 12 PM", when: "this morning",   from:  5 * 60 },
+    { id: "afternoon", label: "Afternoon", hindi: "Dopahar", span: "12 PM to 5 PM", when: "this afternoon", from: 12 * 60 },
+    { id: "evening",   label: "Evening",   hindi: "Shaam",   span: "5 PM to 5 AM",  when: "this evening",   from: 17 * 60 },
   ],
 };
 
@@ -59,6 +59,9 @@ export const phaseOf = (at, mode) => {
 };
 
 export const WATER_GOAL = 2;
+
+// "7h 40m", the way anybody says a night's sleep out loud.
+export const hoursMins = (m) => Math.floor(m / 60) + "h " + String(m % 60).padStart(2, "0") + "m";
 export const STEP_GOAL = 10000;
 
 /* When each meal slot sits in the day. The coach's own times are shown on the
@@ -90,7 +93,7 @@ const DIVISION_AT = {
    where nothing is filed afterwards: drinking the water, walking the steps,
    and the coach's own nudges. */
 export const TASK_VERB = {
-  record: "Log",   // a record goes in: meals, sleep, the exercise session
+  record: "Log",   // a record goes in: meals, the exercise session, your mood
   device: "Sync",  // a reading arrives from a device
   insight: "Read", // Kaira has written the week up
   habit: "Take",   // done in the moment, with nothing to file
@@ -124,6 +127,26 @@ const MEAL_TIP = {
   bedtime: "Small and warm. It is for sleep, not for hunger.",
 };
 
+/* The physio's small asks, the ones that need no gym, no change of clothes and
+   no half hour. This is the NEAT half of Momentum: the movement between the
+   sessions, which adds up to more across a day than the session does.
+
+   They sit here rather than hanging off a meal the way the coach's food nudges
+   do, because a meal is not what they belong to and Eat's own tips section
+   would have ended up listing the stairs. */
+const MOVE_NOTES = [
+  {
+    id: "note:stairs", at: 9 * 60 + 30,
+    verb: "Take", name: "The stairs on your way in",
+    tip: "Two or three floors is enough. It is the easiest movement of the day to get.",
+  },
+  {
+    id: "note:standup", at: 15 * 60,
+    verb: "Stand", name: "For one meeting this afternoon",
+    tip: "Long sitting is what quietly undoes a good lunch. Standing through one call breaks it up.",
+  },
+];
+
 /* One read per pillar, each at the hour that pillar is on somebody's mind. */
 const WEEK_READS = [
   {
@@ -145,12 +168,11 @@ const WEEK_READS = [
 
 export function buildDay(w) {
   const {
-    planAssigned, eatDivisions, mealsLogged, exLogs, mindDone,
-    sleepMins, daySteps, water, ticks, skipped, planOption, measureRows,
+    planAssigned, eatDivisions, mealsLogged, exLogs,
+    sleepMins, daySteps, water, ticks, skipped, planOption, measureRows, moodLabel,
     healthSync, healthSource, weekInsight, weekMode, weekReads, phaseMode,
   } = w;
 
-  const logged = new Set(mealsLogged.map((m) => m.division));
   const itemsIn = (id) => mealsLogged.filter((m) => m.division === id).flatMap((m) => m.items);
   const rows = [];
 
@@ -161,11 +183,19 @@ export function buildDay(w) {
        started at midnight. It does not survive a day that turns over at five:
        midnight is the night still running, so the row about last night filed
        itself under tonight. It opens the morning instead, which is the hour
-       somebody actually knows the answer. */
+       somebody actually knows the answer.
+
+       A device reads it rather than the person writing it down, so it is a
+       sync like the body scan and the glucose monitor. Once the reading lands
+       the row shows it: a task that says only "done" throws away the one
+       number the sync went and got. */
     id: "sleep", pillar: "mind", at: 5 * 60, coins: 5,
-    cat: "record", name: "Last night's sleep",
+    cat: "device", name: "Last night's sleep",
     kind: "go", to: "sleep",
     done: sleepMins !== null,
+    // The reading is on its way in, so the row says so where it will land.
+    syncing: healthSync === "sleep",
+    result: sleepMins === null ? null : hoursMins(sleepMins) + " last night",
   });
 
   /* The parts of the plan that are not food. They come off the meal they hang
@@ -184,6 +214,11 @@ export function buildDay(w) {
           done: ticks.includes(n.id),
         })
       )
+    );
+
+  if (planAssigned)
+    MOVE_NOTES.forEach((n) =>
+      rows.push({ ...n, pillar: "move", kind: "tick", done: ticks.includes(n.id) })
     );
 
   measureRows.forEach((m) =>
@@ -205,6 +240,11 @@ export function buildDay(w) {
     const eaten = opts.findIndex((o) => o.some((it) => mine.some((x) => x.id === it.id)));
     const picked = planOption[d.id];
     const oi = Math.max(0, Math.min(eaten >= 0 ? eaten : picked ?? 0, opts.length - 1));
+    const optIds = (opts[oi] || []).map((x) => x.id);
+    const mineIds = new Set(mine.map((x) => x.id));
+    // What the coach asked for that has not gone in yet.
+    const outstanding = optIds.filter((id) => !mineIds.has(id));
+    const fromPlan = optIds.some((id) => mineIds.has(id));
     rows.push({
       id: "meal:" + d.id, pillar: "eat", at: DIVISION_AT[d.id] ?? 13 * 60, coins: 4,
       cat: "record", name: MEAL_NAME[d.id] || d.name,
@@ -219,8 +259,20 @@ export function buildDay(w) {
       oi,
       optionLocked: eaten >= 0,
       items: mine,
+      // Which of the coach's items are already in, so the block can strike
+      // them one at a time rather than all at once.
+      loggedIds: mine.map((x) => x.id),
+      outstanding,
       kind: "go", to: "eat:" + d.id,
-      done: logged.has(d.id),
+      /* Half a coach's option is half a meal. Logging two of three used to
+         close the whole row, which told somebody they had eaten a thing they
+         had not, and hid the third item behind a struck title.
+
+         So the row finishes when nothing the coach asked for is still
+         outstanding. Somebody who ate their own food instead finishes it too:
+         they have logged a meal, and holding the row open over a plan they
+         chose not to follow would be the app arguing with them. */
+      done: mine.length > 0 && (!optIds.length || outstanding.length === 0 || !fromPlan),
     });
   });
 
@@ -256,15 +308,26 @@ export function buildDay(w) {
       );
   }
 
+  /* Two glasses is one ask, not a counter to fill. A plus and a bar made a row
+     you tick into a row you visit twice, and a half full bar said less than the
+     sentence above it already does.
+
+     How much to drink is a number somebody sets for you, so without a coach
+     there is no target to ask for. It becomes a record instead: drink what you
+     drink and say so, and the figure arrives with the plan. */
   rows.push({
     id: "water", pillar: "eat", at: 14 * 60, coins: 3,
-    verb: "Drink", name: WATER_GOAL + " glasses of water",
-    tip: "Avoid drinking water right before you eat.",
-    /* Two glasses is one ask, not a counter to fill. A plus and a bar made a
-       row you tick into a row you visit twice, and a half full bar said less
-       than the sentence above it already does. */
+    ...(planAssigned
+      ? {
+          verb: "Drink", name: WATER_GOAL + " glasses of water",
+          tip: "Avoid drinking water right before you eat.",
+          done: water >= WATER_GOAL,
+        }
+      : {
+          verb: "Log", name: "Your water intake",
+          done: water > 0,
+        }),
     kind: "target", to: "water",
-    done: water >= WATER_GOAL,
   });
 
   /* With a plan this is the coach's session at their hour. Without one it is
@@ -295,12 +358,16 @@ export function buildDay(w) {
         }
   );
 
+  /* How the day felt, which is the half of Mind no device reads. It asked for
+     a calm break for a while, which is a thing to do rather than a thing to
+     record, and left the app with nothing to show for it. A mood is one tap
+     and it is the reading the psychologist actually wants. */
   rows.push({
     id: "calm", pillar: "mind", at: 21 * 60, coins: 5,
-    cat: "habit", name: "A calm break",
-    // The breathing exercise itself, rather than the screen it sits on.
-    kind: "go", to: "mind:breathing",
-    done: mindDone.length > 0,
+    cat: "record", name: "Your mood",
+    kind: "go", to: "mind:mood",
+    done: !!moodLabel,
+    result: moodLabel ? "You felt " + moodLabel.toLowerCase() : null,
   });
 
   /* The psychologist's worksheets are not here on purpose. They are a plan

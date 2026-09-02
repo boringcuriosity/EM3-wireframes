@@ -10,6 +10,42 @@ import {
 
 const COINS_PER_MEAL = 4;
 
+/* The beat between pressing the button and the answer.
+
+   It says what is being worked out rather than spinning silently, because the
+   wait is short and a label makes it read as work rather than as lag. */
+function Working({ label, edited }) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 14,
+        background: BG,
+        minHeight: 0,
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          width: 34,
+          height: 34,
+          borderRadius: "50%",
+          border: "2.5px solid " + LINE,
+          borderTopColor: GREEN,
+          animation: "spin .7s linear infinite",
+        }}
+      />
+      <span role="status" style={{ fontSize: 13.5, color: MUTED }}>
+        {edited ? "Updating your " + label.toLowerCase() : "Working out what that did"}
+      </span>
+    </div>
+  );
+}
+
 /* What that meal did, in four beats and nothing else.
 
    It used to say the same day in five ways: a score, a line under it counting
@@ -29,15 +65,34 @@ const COINS_PER_MEAL = 4;
 export default function MealLogged() {
   const {
     logResult, setLogResult, flipcoins, setFlipcoins, setToast, setEatDetail, logReturn,
-    hasTargets, scoreUnlocked, mealsIn, dayTotals, kcalTarget,
+    hasTargets, scoreUnlocked, mealsIn, mealSlots, mealsLeft, dayTotals, kcalTarget, editMeal,
   } = useWF();
 
   const [shown, setShown] = useState(logResult ? logResult.before : 0);
+  /* A beat before the answer. A screen that resolves the instant you press the
+     button reads as a form submitting; the same screen after a moment of work
+     reads as something having been worked out. It is short on purpose: long
+     enough to feel like an answer, short enough that nobody waits for it. */
+  /* Only a result that has just been committed gets the beat. A result staged
+     from the panel is somebody wanting to look at the screen, and making them
+     watch a spinner first would be a wait with nothing behind it. It also
+     keeps the smoke test rendering the body rather than the spinner.
+
+     Initialised rather than set inside the effect, because editing clears the
+     result and reopens the logger, so this screen unmounts between meals and
+     never has to reset itself while it is up. */
+  const [working, setWorking] = useState(!!(logResult && logResult.fresh));
+  useEffect(() => {
+    if (!working) return;
+    const t = setTimeout(() => setWorking(false), 900);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* Counted up rather than printed. A number that arrives already correct is a
      result; one that climbs is something you did. */
   useEffect(() => {
-    if (!logResult) return;
+    if (!logResult || working) return;
     const span = Math.max(1, logResult.after - logResult.before);
     let i = 0;
     const t = setInterval(() => {
@@ -46,11 +101,14 @@ export default function MealLogged() {
       if (i >= 24) clearInterval(t);
     }, 26);
     return () => clearInterval(t);
-  }, [logResult]);
+  }, [logResult, working]);
 
   if (!logResult) return null;
   const meal = logResult.meal;
-  const left = Math.max(0, 3 - mealsIn);
+  const label = DIVISION_LABEL[meal.division];
+
+  if (working) return <Working label={label} edited={logResult.edited} />;
+
 
   const done = () => {
     setFlipcoins(flipcoins + COINS_PER_MEAL);
@@ -75,26 +133,47 @@ export default function MealLogged() {
             textAlign: "center",
           }}
         >
-          {/* Which meal and when, said once. It was a caps badge reading MEAL
-              LOGGED with the same fact repeated as a line under the food, so
-              the badge became the sentence and the line went. */}
+          {/* The moment, drawn rather than stated. A tick in a ring that pops
+              in is the difference between a screen confirming a form and a
+              screen telling somebody they did a thing. */}
           <span
+            aria-hidden
             style={{
               display: "inline-flex",
+              width: 46,
+              height: 46,
+              borderRadius: "50%",
+              background: GREEN,
               alignItems: "center",
-              gap: 7,
-              background: BG,
-              border: "1px solid " + BORDER,
-              borderRadius: 999,
-              padding: "6px 14px 6px 11px",
-              fontSize: 12.5,
-              fontWeight: 700,
-              color: TEXT,
+              justifyContent: "center",
+              boxShadow: "0 0 0 7px " + GREEN + "1A",
+              animation: "taskPop .5s cubic-bezier(.32,.72,0,1) both",
             }}
           >
-            <Check size={13} color={GREEN} strokeWidth={3} />
-            {DIVISION_LABEL[meal.division]} logged at {fmtTime(meal.timeMins)}
+            <Check size={24} color="#fff" strokeWidth={3} />
           </span>
+          <div
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: 22,
+              color: TEXT,
+              marginTop: 12,
+              lineHeight: 1.25,
+              animation: "riseIn .45s cubic-bezier(.32,.72,0,1) .12s both",
+            }}
+          >
+            {label} {logResult.edited ? "updated" : "logged"}
+          </div>
+          <div
+            style={{
+              fontSize: 12.5,
+              color: MUTED,
+              marginTop: 3,
+              animation: "riseIn .45s cubic-bezier(.32,.72,0,1) .18s both",
+            }}
+          >
+            at {fmtTime(meal.timeMins)}
+          </div>
 
           {/* The score, or the reason there is not one yet. Without targets no
               hexagon appears at all: a locked one would promise that meals
@@ -167,8 +246,10 @@ export default function MealLogged() {
                   explanation of the lock two sections away from the lock. */}
               {scoreUnlocked ? (
                 <div style={{ fontSize: 12.5, color: MUTED, marginTop: 14, lineHeight: 1.55 }}>
-                  Three meals in, so your score is ready. Log the rest of the day to see where it
-                  really lands.
+                  {mealsIn} of {mealSlots} meals logged.{" "}
+                  {mealsLeft > 0
+                    ? "Your sufficiency climbs with each one you add, so this is where it stands so far."
+                    : "That is the whole day, so this is where it lands."}
                 </div>
               ) : (
                 <div
@@ -182,7 +263,7 @@ export default function MealLogged() {
                   }}
                 >
                   <div style={{ display: "flex", gap: 6 }}>
-                    {[0, 1, 2].map((i) => (
+                    {Array.from({ length: mealSlots }, (_, i) => (
                       <span
                         key={i}
                         style={{
@@ -197,7 +278,7 @@ export default function MealLogged() {
                     ))}
                   </div>
                   <div style={{ fontSize: 12.5, color: TEXT, fontWeight: 700, marginTop: 11 }}>
-                    {left === 1 ? "One more meal" : left + " more meals"} to unlock your score
+                    Log a meal to open your score
                   </div>
                   <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.5, marginTop: 3 }}>
                     Any meal counts, whichever ones your day is made of.
@@ -267,11 +348,32 @@ export default function MealLogged() {
         </div>
       </div>
 
-      <div style={{ flexShrink: 0, borderTop: "1px solid " + LINE, padding: "12px 22px 24px" }}>
+      <div style={{ flexShrink: 0, borderTop: "1px solid " + LINE, padding: "12px 22px 24px", display: "flex", gap: 10 }}>
+        {/* The way back into what was just recorded. A meal is a guess about
+            portions half the time, and the moment somebody is most likely to
+            want to fix one is while they are still looking at it. */}
+        <button
+          onClick={() => editMeal(meal.division)}
+          style={{
+            flexShrink: 0,
+            height: 50,
+            background: BG,
+            border: "1px solid " + BORDER,
+            borderRadius: 14,
+            padding: "0 18px",
+            fontSize: 14.5,
+            fontWeight: 700,
+            color: TEXT,
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          Edit
+        </button>
         <button
           onClick={done}
           style={{
-            width: "100%",
+            flex: 1,
             height: 50,
             background: GREEN,
             border: "none",

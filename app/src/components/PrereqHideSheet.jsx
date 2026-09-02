@@ -22,7 +22,10 @@ import {
 const ICONS = { score: BarChart3, labs: FlaskConical, assess: MessagesSquare };
 
 export default function PrereqHideSheet() {
-  const { prereqAsk, setPrereqAsk, setPrereqHidden, nextOpen } = useWF();
+  const {
+    prereqAsk, setPrereqAsk, setPrereqHidden, nextOpen,
+    setActiveTab, setPrereqOpen, setHomeProgramTab, setNextScrollDue,
+  } = useWF();
   if (!prereqAsk) return null;
 
   const close = () => setPrereqAsk(false);
@@ -92,13 +95,18 @@ export default function PrereqHideSheet() {
           >
             You'll find {n === 1 ? "this next action" : "these next actions"} on Home
           </h2>
-          {/* Where to swipe, then why to bother. Written against the
-              consultation rather than against booking it: nothing gates
-              openBooking, so telling somebody to finish these before they book
-              would be a rule the app does not keep. */}
+          {/* Where they go, then why to bother. It used to say to swipe across
+              the top section, which was true while these were cards in Home's
+              carousel. They are the Start here strip now, and they sit beside
+              Your Program as well, so the sheet points at the rail it is
+              about to take them to.
+
+              Written against the consultation rather than against booking it:
+              nothing gates openBooking, so telling somebody to finish these
+              before they book would be a rule the app does not keep. */}
           <p style={{ margin: "8px 0 0", fontSize: 13.5, color: MUTED, lineHeight: 1.6 }}>
-            Swipe across the top section to reach{" "}
-            <strong style={{ color: TEXT }}>Next actions</strong>. Complete{" "}
+            {n === 1 ? "It waits" : "They wait"} under{" "}
+            <strong style={{ color: TEXT }}>Next Action(s)</strong>, beside your program. Complete{" "}
             {n === 1 ? "this task" : "these tasks"} before your first consultation, as{" "}
             {n === 1 ? "it is" : "they are"} very important for your care program.
           </p>
@@ -106,8 +114,15 @@ export default function PrereqHideSheet() {
 
         <div style={{ flexShrink: 0, padding: "20px 22px 26px" }}>
           <button
+            /* Take them there rather than telling them where it is. Home,
+               the program rail scrolled into view, sitting on Next Action(s).
+               No ring over the shut strip: they just shut it. */
             onClick={() => {
               setPrereqHidden(true);
+              setPrereqOpen(false);
+              setActiveTab("home");
+              setHomeProgramTab("next");
+              setNextScrollDue(true);
               close();
             }}
             style={{
@@ -124,7 +139,7 @@ export default function PrereqHideSheet() {
               boxShadow: "0 2px 0 " + GREEN_DEEP,
             }}
           >
-            Got it
+            Show me
           </button>
         </div>
       </div>
