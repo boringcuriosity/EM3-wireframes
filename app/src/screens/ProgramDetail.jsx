@@ -116,6 +116,15 @@ export default function ProgramDetailPage() {
                 </div>
               </div>
 
+              {/* What the program is still waiting on, before anything it
+                  builds. The blocks below are what the program does once it
+                  can start, and it cannot start until these are done. The same
+                  card as To-do, sharing its state, so opening or putting it
+                  away here does the same there. */}
+              <div style={{ padding: "22px 22px 0" }}>
+                <PrereqRail />
+              </div>
+
               {/* Daily building blocks */}
               <div style={{ padding: "22px 22px 0" }}>
                 {sectionLabel("Daily building blocks")}
@@ -150,13 +159,6 @@ export default function ProgramDetailPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-
-              {/* What the program is still waiting on, above the people who
-                  are waiting on it. The same card as To-do, sharing its state,
-                  so opening or putting it away here does the same there. */}
-              <div style={{ padding: "24px 22px 0" }}>
-                <PrereqRail />
               </div>
 
               {/* Care team */}

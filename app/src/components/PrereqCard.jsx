@@ -3,7 +3,7 @@ import { useWF } from "../state";
 import { BarChart3, FlaskConical, MessagesSquare } from "lucide-react";
 import CtaArrow from "./CtaArrow";
 import {
-  GREEN, GREEN_DEEP, MUTED, WARN, WARN_TINT, WARN_LINE, SH_SM,
+  GREEN, MUTED, WARN, WARN_TINT, WARN_LINE, SH_SM,
 } from "../tokens";
 
 /* One thing the care program cannot start without.
@@ -45,13 +45,22 @@ const PREREQS = {
 };
 
 export default function PrereqCard({ id, width, minHeight }) {
-  const { setActiveTab, nextDone, setNextDone } = useWF();
+  const { setActiveTab, nextDone, setNextDone, setScoreFlow, setScoreStep } = useWF();
   const x = PREREQS[id];
   if (!x) return null;
 
-  /* Tapping through is what finishes it. There is no separate tick, because
-     nobody books a lab test and then also ticks a box to say so. */
+  /* Tapping through is what finishes the two that hand off to another screen:
+     nobody books a lab test and then also ticks a box to say so.
+
+     The score is not one of those. It runs a walkthrough of its own now, so
+     marking it done on the tap would finish it before it started; Result marks
+     it when the score actually exists. */
   const go = () => {
+    if (id === "score") {
+      setScoreStep(0);
+      setScoreFlow("intro");
+      return;
+    }
     if (!nextDone.includes(id)) setNextDone(nextDone.concat(id));
     setActiveTab(x.tab);
   };
@@ -96,23 +105,30 @@ export default function PrereqCard({ id, width, minHeight }) {
       </div>
       <button
         onClick={go}
+        /* The same pill the session cards use. These sit in the same Home rail
+           as Book a session and View session, so a second button shape one
+           card along read as two kinds of action rather than one.
+
+           Flex, so the label and the arrow centre on each other rather than on
+           a line box the arrow's descent has stretched. */
         style={{
           position: "relative",
           alignSelf: "flex-start",
+          display: "inline-flex",
+          alignItems: "center",
           background: GREEN,
           border: "none",
-          borderRadius: 11,
-          padding: "9px 14px",
+          borderRadius: 999,
+          padding: "6px 13px",
           color: "#fff",
-          fontSize: 12.5,
-          fontWeight: 700,
+          fontSize: 11.5,
+          fontWeight: 600,
           cursor: "pointer",
           fontFamily: "inherit",
-          boxShadow: "0 2px 0 " + GREEN_DEEP,
         }}
       >
         {x.cta}
-        <CtaArrow size={14} />
+        <CtaArrow />
       </button>
     </div>
   );

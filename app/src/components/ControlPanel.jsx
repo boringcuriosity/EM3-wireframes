@@ -23,7 +23,7 @@ const ALL_DONE = { eat: 3, move: 1, mind: 1, measure: 1 };
 const ALL_GROUPS = [
   "signup", "plan", "welcome", "tour", "move", "hero", "targets",
   "logging", "suff", "streakscreen", "streak", "milestones",
-  "focus", "homecard", "metabcard", "planarrive", "dayparts", "coachtip", "taskcard", "weekread", "movetrend", "mindtrend", "dayWon", "skip", "measuretasks", "score", "sessions", "nextaction", "home", "eat", "mind", "measure",
+  "focus", "homecard", "metabcard", "planarrive", "dayparts", "coachtip", "taskcard", "weekread", "movetrend", "mindtrend", "dayWon", "skip", "measuretasks", "score", "scoreflow", "sessions", "live", "nextaction", "home", "eat", "mind", "measure",
 ];
 
 const SCREEN_GROUPS = {
@@ -36,10 +36,10 @@ const SCREEN_GROUPS = {
   eat: ["eat", "targets", "logging", "coachtip"],
   chats: [],
   program: ["welcome"],
-  todo: ["nextaction", "hero", "focus", "taskcard", "planarrive", "weekread", "measuretasks"],
+  todo: ["nextaction", "scoreflow", "hero", "focus", "taskcard", "planarrive", "weekread", "measuretasks"],
   // Home's "This part of day" card reads the same phases, so the split is a
   // control on both screens rather than a To-do one that quietly moves Home.
-  home: ["welcome", "tour", "nextaction", "focus", "homecard", "metabcard", "measuretasks"],
+  home: ["welcome", "tour", "nextaction", "scoreflow", "live", "focus", "homecard", "metabcard", "measuretasks"],
   measure: ["measure"],
   care: [],
   more: [],
@@ -188,7 +188,7 @@ const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 const SLEEP_SRC = { gate: null, syncing: "phone", phone: "phone", manualnone: "manual", manual: "manual", tools: "manual" };
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, logPlan, openMealLog, kairaLog, setKairaLog, planNotif, setPlanNotif, hasTargets, scoreUnlocked, mealsIn, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, logExPick, openMoveLog, moveResult, setMoveResult, setRoutineFeel, setRoutineDone, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindKept, mindTemplate, setMindTemplate, setTemplateKept, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, prereqHidden, setPrereqHidden, prereqAsk, setPrereqAsk, prereqExpanded, setPrereqOpen, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, metabCard, setMetabCard, phaseMode, setPhaseMode, tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira, planSeen, setPlanSeen, kcalSource, movePlan, mindPlan, setMindPlan, bookOpen, setBookOpen, bookWith, setBookWith, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, scoreFlow, setScoreFlow, setScoreStep, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, setToast, mealsLogged, setMealsLogged, setLogItems, logPlan, openMealLog, kairaLog, setKairaLog, planNotif, setPlanNotif, hasTargets, scoreUnlocked, mealsIn, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, logExPick, openMoveLog, moveResult, setMoveResult, setRoutineFeel, setRoutineDone, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindKept, mindTemplate, setMindTemplate, setTemplateKept, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, prereqHidden, setPrereqHidden, prereqAsk, setPrereqAsk, prereqExpanded, setPrereqOpen, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, metabCard, setMetabCard, phaseMode, setPhaseMode, tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira, planSeen, setPlanSeen, kcalSource, movePlan, mindPlan, setMindPlan, bookOpen, setBookOpen, bookWith, setBookWith, liveState, setLiveState, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -1660,6 +1660,43 @@ export default function ControlPanel() {
             down: "Ring plus a decrease and the last updated date.",
           }[scoreState]
         )}
+
+        {panelGroup(
+          "scoreflow",
+          "Metabolic score flow",
+          "from Take your metabolic score",
+          [
+            { id: null, label: "Closed", full: "Not running" },
+            { id: "intro", label: "What it is", full: "The four parts, one of them shut behind a lab test" },
+            { id: "focus", label: "What to look at", full: "The one question that is about you rather than your measurements" },
+            { id: "profile", label: "Questions", full: "One at a time, with a bar" },
+            { id: "review", label: "Review", full: "Every answer, each editable back to its own question" },
+            { id: "result", label: "The score", full: "277 of 400, with the shut quarter drawn shut" },
+          ].map((v) =>
+            panelChip(v.label, scoreFlow === v.id, () => { setScoreStep(0); setScoreFlow(v.id); }, v.full)
+          ),
+          scoreFlow
+            ? "Five steps that turn a few answers into one number. The figures are staged: a form that really collected height and weight would move BMR, TDEE and every macro under it."
+            : "Opens from the Take your metabolic score card. Finishing it is what ticks that card off, rather than the tap that opened it.",
+          true
+        )}
+
+        {isPaid &&
+          panelGroup(
+            "live",
+            "Live sessions",
+            "Home carousel, last card",
+            [
+              { id: "one", label: "One scheduled", full: "A specialist's hour, open to everybody on the program" },
+              { id: "none", label: "None scheduled", full: "No live session, so no card and no tab" },
+            ].map((v) =>
+              panelChip(v.label, liveState === v.id, () => { setLiveState(v.id); setActiveTab("home"); setHomeProgramTab(v.id === "one" ? "live" : "program"); }, v.full)
+            ),
+            liveState === "one"
+              ? "Not a consultation: nobody books it, it is not yours, and it runs whether or not you turn up. Tinted rather than white so it does not read as another slot with your name on it."
+              : "No card and no tab. A tab leading to nothing scheduled is worse than no tab.",
+            true
+          )}
 
         {isPaid &&
           panelGroup(

@@ -226,6 +226,27 @@ export function WFProvider({ children, initial = {} }) {
   // null | "learn" | "profile" | "meals" | "computing" | "result"
   //      | "computing2" | "lifted"
   const [suffFlow, setSuffFlow] = useState(initial.suffFlow !== undefined ? initial.suffFlow : null);
+
+  /* The metabolic score walkthrough, the first thing the program asks for.
+     One value naming the step, so the panel can open any of them cold rather
+     than making you walk the whole thing, the way SufficiencyFlow already
+     works.
+
+     The figures are staged. Four sub scores add up to the metabolic score, and
+     the Diagnostic one stays shut until a lab test comes back, which is why
+     the total reads as incomplete rather than as a low score: 277 of a
+     possible 400 with one quarter missing is a different sentence from 277
+     out of 400. */
+  const [scoreFlow, setScoreFlow] = useState(initial.scoreFlow !== undefined ? initial.scoreFlow : null);
+  const [scoreFocus, setScoreFocus] = useState(initial.scoreFocus !== undefined ? initial.scoreFocus : null);
+  const [scoreStep, setScoreStep] = useState(initial.scoreStep !== undefined ? initial.scoreStep : 0);
+  const SUB_SCORES = [
+    { id: "profile",    label: "Profile",    value: 95, tone: "#6172F3" },
+    { id: "wellness",   label: "Wellness",   value: 93, tone: "#2DA6A6" },
+    { id: "habit",      label: "Habit",      value: 89, tone: "#E7C144" },
+    { id: "diagnostic", label: "Diagnostic", value: null, tone: "#299D6B" },
+  ];
+  const metabolicScore = SUB_SCORES.reduce((n, s) => n + (s.value || 0), 0);
   // ---------- Movement ----------
   const [moveDetail, setMoveDetail] = useState(initial.moveDetail !== undefined ? initial.moveDetail : false);
   const [moveTab, setMoveTab] = useState(initial.moveTab !== undefined ? initial.moveTab : "today");
@@ -542,6 +563,20 @@ export function WFProvider({ children, initial = {} }) {
     const who = CARE_TEAM.find((c) => c.id === id);
     return { role: who.role, coach: who.name, date: b.full, time: b.time, cta: "Join Your Zoom Session" };
   })();
+  /* A live session is not a consultation. Nobody books it, it is not yours,
+     and it happens whether or not you turn up: a specialist runs an hour for
+     everybody on the program. That is why it gets its own card rather than
+     sitting in the queue of things you have booked, where every other entry is
+     a slot with your name on it. */
+  const LIVE_SESSION = {
+    role: "Psychologist",
+    host: "Shubha Dubey",
+    date: "5 September",
+    topic: "Breaking unhelpful habits, and building better ones",
+  };
+  const [liveState, setLiveState] = useState(initial.liveState !== undefined ? initial.liveState : "one");
+  const liveSession = liveState === "none" ? null : LIVE_SESSION;
+
   const [bookOpen, setBookOpen] = useState(initial.bookOpen !== undefined ? initial.bookOpen : false);
   const [bookWith, setBookWith] = useState(initial.bookWith !== undefined ? initial.bookWith : null);
   const openBooking = () => {
@@ -570,8 +605,14 @@ export function WFProvider({ children, initial = {} }) {
   /* The rail is cards; the chips above it are tabs. One prerequisite is one
      card, so Next actions is a tab covering however many are still open rather
      than a card holding a list. */
-  const HOME_CARDS = ["program", ...(showNext ? nextOpen.map((id) => "next:" + id) : []), "sessions"];
-  const HOME_TABS = ["program", showNext ? "next" : null, "sessions"].filter(Boolean);
+  const HOME_CARDS = [
+    "program",
+    ...(showNext ? nextOpen.map((id) => "next:" + id) : []),
+    "sessions",
+    ...(liveSession ? ["live"] : []),
+  ];
+  // A tab leading to nothing scheduled is worse than no tab, same as Next.
+  const HOME_TABS = ["program", showNext ? "next" : null, "sessions", liveSession ? "live" : null].filter(Boolean);
   const tabOfCard = (c) => (c.startsWith("next:") ? "next" : c);
   const cardStep = CARD_W + CARD_GAP;
   // The card the tab is pointing at can stop existing, so fall back rather
@@ -1332,6 +1373,8 @@ export function WFProvider({ children, initial = {} }) {
      favorites, setFavorites,
     mealsLogged, setMealsLogged, mealItem, setMealItem, metricInfo, setMetricInfo, logResult, setLogResult, toast, setToast,
     suffFlow, setSuffFlow, suffLift, setSuffLift,
+    scoreFlow, setScoreFlow, scoreFocus, setScoreFocus, scoreStep, setScoreStep,
+    SUB_SCORES, metabolicScore,
     suffDone, setSuffDone, suffEdit, setSuffEdit, suffSheet, setSuffSheet, suffGoal, setSuffGoal, suffKcal, setSuffKcal,
     kcalSource, setKcalSource, suffMeals, setSuffMeals,
     suffAddons, setSuffAddons,
@@ -1342,6 +1385,7 @@ export function WFProvider({ children, initial = {} }) {
     flipcoins, isPaid, CARD_W, CARD_GAP, CARD_PAD, CARD_H,
     SHOW_PROGRAM_TABS, program, bookedSession: nextSession, CARD_TAIL, carouselRef,
     bookOpen, setBookOpen, bookWith, setBookWith, openBooking, bookings, setBookings,
+    liveState, setLiveState, liveSession,
     nextActions, nextDone, setNextDone, nextOpen, setNextList,
     prereqHidden, setPrereqHidden, prereqAsk, setPrereqAsk,
     prereqOpen, setPrereqOpen, prereqExpanded,

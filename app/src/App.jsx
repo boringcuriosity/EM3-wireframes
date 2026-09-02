@@ -20,6 +20,7 @@ import ControlPanel from "./components/ControlPanel";
 import ProgramWelcomeSheet from "./components/ProgramWelcomeSheet";
 import StreakGuide from "./screens/StreakGuide";
 import SufficiencyFlow from "./screens/sufficiency/SufficiencyFlow";
+import ScoreFlow from "./screens/score/ScoreFlow";
 import LogMeal from "./screens/log/LogMeal";
 import MealLogged from "./screens/log/MealLogged";
 import Toast from "./components/Toast";
@@ -65,7 +66,7 @@ import WeekReadSheet from "./components/WeekReadSheet";
 // Full-screen takeovers hide the bottom nav. Order matters: the first
 // truthy one wins, exactly as in the original wireframe.
 function Takeover() {
-  const { logExOpen, logSleepOpen, mindDetail, moveDetail, logResult, logOpen, suffFlow, streakOpen, onboardingOpen, chatsOpen, programDetail, eatDetail, cgmOpen, bcaOpen, planNotif, moveResult, bookOpen } = useWF();
+  const { logExOpen, logSleepOpen, mindDetail, moveDetail, logResult, logOpen, suffFlow, scoreFlow, streakOpen, onboardingOpen, chatsOpen, programDetail, eatDetail, cgmOpen, bcaOpen, planNotif, moveResult, bookOpen } = useWF();
   /* First, because neither is our app. Nothing of ours belongs over a message
      somebody is reading on a lock screen or in WhatsApp. */
   if (planNotif === "push") return <PushNotification />;
@@ -82,6 +83,7 @@ function Takeover() {
   if (logResult) return <MealLogged />;
   if (logOpen) return <LogMeal />;
   if (suffFlow) return <SufficiencyFlow />;
+  if (scoreFlow) return <ScoreFlow />;
   if (streakOpen === "guide") return <StreakGuide />;
   if (onboardingOpen) return <OnboardingPage />;
   if (chatsOpen) return <ChatsPage />;
@@ -171,6 +173,7 @@ export default function App() {
     wf.logResult ||
     wf.logOpen ||
     wf.suffFlow ||
+    wf.scoreFlow ||
     wf.streakOpen ||
     wf.onboardingOpen ||
     wf.chatsOpen ||

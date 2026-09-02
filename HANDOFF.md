@@ -152,7 +152,8 @@ Examples that exist today:
 - `planAssigned` — `plan === "paid" && kcalSource === "coach" && !!movePlan`
 - `heroState` — what the top of To-do shows, from the plan and the day
 - `celebrated` — which rows have already played their finish animation
-- `HOME_CARDS` / `HOME_TABS` — the Home carousel and its chips
+- `HOME_CARDS` / `HOME_TABS` — the Home carousel and its chips: program, any open
+  prerequisites, sessions, and a live session when one is scheduled
 
 If you find yourself writing the same number in two components, stop and derive it.
 
@@ -759,6 +760,59 @@ then **when**. A separate screen for the calendar would be two back buttons for 
   rather than being stored a second time, so the card and this screen cannot disagree about
   what is next.
 
+### The metabolic score is a walkthrough, not a tick
+
+`PrereqCard.go()` marks a prerequisite done the moment you tap it, on the theory that tapping
+through **is** doing it: nobody books a lab test and then also ticks a box to say so. That still
+holds for the diagnostics and the assessment, both of which hand off to another screen.
+
+It does not hold for the score, which now runs five steps of its own in `screens/score/`. Marking
+it done on the tap would have finished it before it started, so `Result` marks it and the tap only
+opens the flow.
+
+`ScoreFlow.jsx` is a router keyed on one `scoreFlow` value, the same shape as `SufficiencyFlow`,
+so the panel opens any step cold rather than making you walk the whole thing:
+
+```
+intro -> focus -> profile -> review -> working -> result
+```
+
+- **intro** names all four parts and shows Diagnostic already shut. Saying so up front is the
+  point: a score that turns out at the end to have been a quarter missing reads as a bait, and
+  the missing quarter is the part that costs money.
+- **focus** is the one question about the person rather than their measurements. It steers what
+  the coaches read first and gates nothing, which the line at the foot says out loud, because a
+  question that quietly narrows a score is one people answer strategically instead of honestly.
+- **profile** asks one at a time with a bar. Five on a screen is a form and a form gets skimmed.
+  The fields are drawn filled rather than as live inputs: the answers are staged, and a caret
+  that does not accept a keystroke is worse than a field that never claimed to.
+- **result** prints `metabolicScore`, which is **derived** as the sum of `SUB_SCORES`, so the
+  total cannot disagree with the four figures printed beside it. The shut quarter keeps its
+  place rather than being left out, so 277 visibly is three quarters of something.
+
+**Biomarker is the lab test.** The result's "Book diagnostics" goes to the same place the `labs`
+prerequisite does rather than inventing a second booking route. One prerequisite, not two.
+
+The figures are staged on purpose. A form that genuinely collected height and weight would move
+`BODY`, and `BODY` drives BMR, TDEE, the calorie target and every macro under it. Those numbers
+belong to the coach's plan, not to a demo walkthrough.
+
+### Live sessions are not consultations
+
+The Home carousel carries a fourth card and tab. Nobody books a live session, it is not yours,
+and it runs whether or not you turn up: a specialist takes an hour for everybody on the program.
+That is why it gets its own card rather than joining the queue of things you have booked, where
+every other entry is a slot with your name on it, and why it is drawn in the pillar's tint rather
+than as another white card.
+
+`liveState` is `one` or `none`, and `none` drops the card **and** the tab, the same rule Next
+actions follows: a tab leading to nothing scheduled is worse than no tab.
+
+The empty **No upcoming sessions** card was rebuilt in the same pass. Its CTA sat at the top
+beside the faces, so it asked you to act one line before telling you what for, and it was the
+only CTA on Home not at the foot of its own card. It now reads faces, then what is missing, then
+why, then the ask, and the button is wired to `openBooking` rather than being decorative.
+
 ### Mind, on the same grammar
 
 Mind's plan is not practices at hours the way Eat's is meals and Move's is exercises. It is
@@ -973,7 +1027,7 @@ after that is pushed, and nothing should be until the user says so.
   `RoutineExercise` card with its overlay question and `routineFeel`
 - one Move logger for both kinds of movement: the routine as an exercise in `exercises.js`,
   `openMoveLog`, `logExPick`, the pinned Your plan section, and **Log this session** in
-  `RoutineList`
+  `RoutineList` (that button has since been removed, see above)
 - the plan assignment notifications: `screens/PlanNotification.jsx` (both WhatsApp messages
   verbatim), `screens/PushNotification.jsx`, `planNotif`, `careTeam` lifted into state, and the
   **Push notification** and **WhatsApp messages** chips under Plan assignment
@@ -1004,6 +1058,16 @@ after that is pushed, and nothing should be until the user says so.
   came out of `buildDay`, and the `tpl:` routing in `openRow` went with them
 - the step goal waits for a coach, and the Start here card appears on the program page too,
   above Care team, sharing To-do's collapse and cross
+- `screens/score/`: the metabolic score walkthrough, five steps behind `scoreFlow`, and the
+  metabolism prerequisite no longer ticking itself off on the tap that opens it
+- Live sessions as a fourth Home card and tab (`liveState`), and the empty sessions card
+  rebuilt so its CTA comes after the reason rather than before it
+- one button shape for the small Home CTAs. Get my score, Book a slot and Start the chat were a
+  different button entirely, one card along from Book a session in the same rail. They are also
+  `inline-flex` now: `CtaArrow` sits 2px below the baseline, which dragged the label a pixel low
+  inside its own padding
+- Start here moved above Daily building blocks on the program page, so the page runs in
+  dependency order: what is blocking, then what it unblocks, then the people waiting on it
 - `check-state.mjs` no longer reads JSX prose as code. Its text sweep started at any `>`,
   including the one in `=>`, so every use between an arrow function and the JSX was invisible
   to it; the sweeps now exclude `=;()` and were tested in both directions

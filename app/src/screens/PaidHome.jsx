@@ -3,15 +3,15 @@ import { useWF } from "../state";
 import DailyTasks from "../components/DailyTasks";
 import HomeTopBar from "../components/HomeTopBar";
 import SmartDevices from "../components/SmartDevices";
-import { ChevronRight, Calendar, Hourglass, Heart, Store, FlaskConical } from "lucide-react";
-import { GREEN, TEXT, MUTED, BG_ALT, BG, BORDER, SH } from "../tokens";
+import { ChevronRight, Calendar, Hourglass, Heart, Store, FlaskConical, Radio } from "lucide-react";
+import { GREEN, GREEN_DEEP, GREEN_TINT, GREEN_WASH, TEXT, MUTED, BG_ALT, BG, BORDER, SH } from "../tokens";
 import { sectionLabel, coachAvatar } from "../ui";
 import TourTarget from "../components/TourTarget";
 import CtaArrow from "../components/CtaArrow";
 import PrereqCard from "../components/PrereqCard";
 
 export default function PaidHomePage() {
-  const { setActiveTab, setHomeProgramTab, sessionState, scoreState, setProgramDetail, CARD_W, CARD_GAP, CARD_PAD, CARD_H, SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef, handleCarouselScroll, nextOpen, HOME_CARDS, HOME_TABS, homeTab, firstName } = useWF();
+  const { setActiveTab, setHomeProgramTab, sessionState, scoreState, setProgramDetail, CARD_W, CARD_GAP, CARD_PAD, CARD_H, SHOW_PROGRAM_TABS, program, bookedSession, CARD_TAIL, carouselRef, handleCarouselScroll, nextOpen, HOME_CARDS, HOME_TABS, homeTab, firstName, liveSession, openBooking } = useWF();
 
   return (
     (
@@ -38,12 +38,15 @@ export default function PaidHomePage() {
             { id: "program", label: "Your Program" },
             { id: "next", label: "Next Action(s)" },
             { id: "sessions", label: "Upcoming Session(s)" },
+            { id: "live", label: "Live Sessions" },
           ]
             .filter((t) => HOME_TABS.includes(t.id))
             .map((t) => {
               const active = homeTab === t.id;
             const badge =
               t.id === "sessions" && sessionState === "booked"
+                ? "1"
+                : t.id === "live" && liveSession
                 ? "1"
                 : t.id === "next" && nextOpen.length
                 ? String(nextOpen.length)
@@ -114,6 +117,74 @@ export default function PaidHomePage() {
           {HOME_CARDS.map((card) =>
             card.startsWith("next:") ? (
               <PrereqCard key={card} id={card.slice(5)} width={CARD_W} minHeight={CARD_H} />
+            ) : card === "live" ? (
+              /* Live sessions. Not a consultation: nobody books it, it is not
+                 yours, and it runs whether or not you turn up. Drawn in the
+                 pillar's own tint rather than as another white card, so a
+                 thing open to everybody does not read as another slot with
+                 your name on it. */
+              <div
+                key="live"
+                style={{
+                  width: CARD_W,
+                  height: CARD_H,
+                  flexShrink: 0,
+                  scrollSnapAlign: "start",
+                  boxSizing: "border-box",
+                  background: "linear-gradient(160deg, " + GREEN_WASH + " 0%, " + BG + " 62%)",
+                  border: "1px solid " + GREEN_TINT,
+                  borderRadius: 18,
+                  padding: 14,
+                  boxShadow: SH,
+                  display: "flex",
+                  flexDirection: "column",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Radio size={12} color={GREEN_DEEP} strokeWidth={2.4} />
+                  <span style={{ fontSize: 11, fontWeight: 700, color: GREEN_DEEP }}>
+                    Live on {liveSession.date}
+                  </span>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 10 }}>
+                  {coachAvatar(30)}
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: 10.5, color: MUTED }}>{liveSession.role}</div>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: TEXT, marginTop: 1 }}>
+                      {liveSession.host}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ fontSize: 11.5, color: MUTED, marginTop: 8, lineHeight: 1.45 }}>
+                  {liveSession.topic}
+                </div>
+
+                <button
+                  style={{
+                    marginTop: "auto",
+                    alignSelf: "flex-start",
+                    /* Flex, so the label and the arrow centre on each
+                       other. Left inline, the arrow's 15px box hangs 2px
+                       below the baseline and drags the line box with it,
+                       which put the text a pixel low inside its own
+                       padding. */
+                    display: "inline-flex",
+                    alignItems: "center",
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    padding: "6px 13px",
+                    borderRadius: 999,
+                    border: "none",
+                    background: GREEN,
+                    color: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  View session<CtaArrow />
+                </button>
+              </div>
             ) : card === "program" ? (
               <TourTarget
                 key="program"
@@ -262,6 +333,13 @@ export default function PaidHomePage() {
                       style={{
                         marginTop: "auto",
                         alignSelf: "flex-start",
+                        /* Flex, so the label and the arrow centre on each
+                           other. Left inline, the arrow's 15px box hangs 2px
+                           below the baseline and drags the line box with it,
+                           which put the text a pixel low inside its own
+                           padding. */
+                        display: "inline-flex",
+                        alignItems: "center",
                         fontSize: 11.5,
                         fontWeight: 600,
                         padding: "6px 13px",
@@ -276,48 +354,54 @@ export default function PaidHomePage() {
                     </button>
                   </>
                 ) : (
+                  /* Who, then what is missing, then why, then the ask. The
+                     button used to sit at the top beside the faces, so you were
+                     asked to act one line before being told what for, and it
+                     was the only CTA on Home that did not sit at the foot of
+                     its card the way the booked one does. */
                   <>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        marginBottom: 10,
-                      }}
-                    >
-                      <div style={{ display: "flex" }}>
-                        {[0, 1, 2].map((i) => (
-                          <div key={i} style={{ marginLeft: i === 0 ? 0 : -11 }}>
-                            {coachAvatar(32)}
-                          </div>
-                        ))}
-                      </div>
-                      <button
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 600,
-                          padding: "8px 14px",
-                          borderRadius: 999,
-                          border: "none",
-                          background: GREEN,
-                          color: "#fff",
-                          cursor: "pointer",
-                          flexShrink: 0,
-                        }}
-                      >
-                        Book now<CtaArrow />
-                      </button>
+                    <div style={{ display: "flex", marginBottom: 9 }}>
+                      {[0, 1, 2].map((i) => (
+                        <div key={i} style={{ marginLeft: i === 0 ? 0 : -11 }}>
+                          {coachAvatar(30)}
+                        </div>
+                      ))}
                     </div>
                     <div style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>No upcoming sessions</div>
-                    <div style={{ fontSize: 11.5, color: MUTED, marginTop: 5, lineHeight: 1.4 }}>
-                      Connect with your coaches every 15 days for your assessments.
+                    <div style={{ fontSize: 11.5, color: MUTED, marginTop: 4, lineHeight: 1.45 }}>
+                      Your coaches like to see you every couple of weeks.
                     </div>
+                    <button
+                      onClick={openBooking}
+                      style={{
+                        marginTop: "auto",
+                        alignSelf: "flex-start",
+                        /* Flex, so the label and the arrow centre on each
+                           other. Left inline, the arrow's 15px box hangs 2px
+                           below the baseline and drags the line box with it,
+                           which put the text a pixel low inside its own
+                           padding. */
+                        display: "inline-flex",
+                        alignItems: "center",
+                        fontSize: 11.5,
+                        fontWeight: 600,
+                        padding: "6px 13px",
+                        borderRadius: 999,
+                        border: "none",
+                        background: GREEN,
+                        color: "#fff",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Book a session<CtaArrow />
+                    </button>
                   </>
                 )}
               </div>
               </TourTarget>
             )
           )}
+
         </div>
 
         {/* Today's tasks — the daily engine, replaces the one-time setup card */}
