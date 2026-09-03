@@ -284,8 +284,12 @@ export function buildDay(w) {
      Two shapes. As one task it is a Measure row in the evening that opens the
      whole week at once, Measure being the pillar that means knowing. As three
      it is one read per pillar, each at the hour that pillar is on your mind:
-     sleep in the morning, movement in the afternoon, food after dinner. */
-  if (weekInsight && weekInsight !== "off") {
+     sleep in the morning, movement in the afternoon, food after dinner.
+
+     Only once a plan is in. A week read is the coach's reading of a week you
+     spent on their plan, so before one exists there is nothing for it to be
+     about. */
+  if (planAssigned && weekInsight && weekInsight !== "off") {
     const readAll = weekInsight === "read";
     if (weekMode === "sheet")
       rows.push({
