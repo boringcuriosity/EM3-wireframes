@@ -1,6 +1,6 @@
 import React from "react";
 import { useWF } from "../state";
-import { Check, Minus, RotateCcw, SquarePen, X } from "lucide-react";
+import { Check, Footprints, Minus, RotateCcw, SquarePen, X } from "lucide-react";
 import { TEXT, MUTED, BG, BG_ALT, BORDER, LINE, RULE, GREEN, PILLAR } from "../tokens";
 import { byId, qtyLabel } from "../screens/log/foods";
 
@@ -23,7 +23,7 @@ const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure"
 export default function DayRowSheet() {
   const {
     rowMenu, setRowMenu, dayRows, daySkipped, toggleSkip, toggleTick, goToRecord,
-    water, setWater, editMeal, undoMeal, openMealLog,
+    water, setWater, editMeal, undoMeal, openMealLog, setStepsSheet,
   } = useWF();
   const r = dayRows.find((x) => x.id === rowMenu);
   if (!r) return null;
@@ -53,8 +53,19 @@ export default function DayRowSheet() {
   const left = planItems.filter((it) => !inAlready.has(it.id));
   const gotIn = planItems.length - left.length;
 
+  /* A count that is under way. The question somebody taps a half finished
+     target with is how far along am I, and the only two answers worth having
+     are the number and a way out of it. */
+  const isSteps = !r.done && !off && r.kind === "target" && r.to === "steps";
+  const now = r.now || 0;
+  const toGo = Math.max(0, (r.goal || 0) - now);
+  const pct = r.goal ? Math.min(100, Math.round((now / r.goal) * 100)) : 0;
+  const n = (x) => x.toLocaleString("en-IN");
+
   const mode = off
     ? "back"
+    : isSteps
+    ? "steps"
     : isPartial
     ? "partial"
     : isMeal
@@ -112,6 +123,19 @@ export default function DayRowSheet() {
       yes: "Edit what I logged",
       tone: GREEN,
     },
+    steps: {
+      Icon: Footprints,
+      head: n(now) + " steps so far",
+      line:
+        n(toGo) + " to go. A twenty minute walk is about 2,000 of them, so it is " +
+        "closer than the number looks.",
+      bar: true,
+      /* Adding to it only when the count is the person's own. Connected, the
+         number is a reading and a button that changed it would be a lie. */
+      no: r.add ? "Skip today" : null,
+      yes: r.add ? "Add steps" : "Skip today",
+      tone: r.add ? GREEN : TEXT,
+    },
     meal: {
       Icon: SquarePen,
       head: r.name + " is logged",
@@ -133,6 +157,10 @@ export default function DayRowSheet() {
   }[mode];
 
   const act = () => {
+    if (mode === "steps") {
+      setRowMenu(null);
+      return r.add ? setStepsSheet(true) : toggleSkip(r.id);
+    }
     if (mode === "skip" || mode === "back") toggleSkip(r.id);
     else if (mode === "undo") toggleTick(r.id);
     else if (mode === "less") setWater(Math.max(0, water - 1));
@@ -226,6 +254,48 @@ export default function DayRowSheet() {
             </span>
           </span>
         </div>
+
+        {/* The count, as a shape. The two numbers are already in the sentence
+            above, so this is the part a sentence cannot do: how much of the
+            bar is behind you. */}
+        {COPY.bar && (
+          <div style={{ padding: "18px 22px 0" }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "baseline",
+                justifyContent: "space-between",
+                marginBottom: 9,
+              }}
+            >
+              <span style={{ fontSize: 24, fontWeight: 800, color: c, letterSpacing: "-0.02em" }}>
+                {pct}%
+              </span>
+              <span style={{ fontSize: 11.5, color: MUTED, fontVariantNumeric: "tabular-nums" }}>
+                {n(now)} of {n(r.goal)} {r.unit}
+              </span>
+            </div>
+            <div
+              style={{
+                height: 10,
+                borderRadius: 999,
+                background: BG_ALT,
+                border: "1px solid " + LINE,
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: pct + "%",
+                  height: "100%",
+                  background: c,
+                  borderRadius: 999,
+                  transition: "width .5s cubic-bezier(.32,.72,0,1)",
+                }}
+              />
+            </div>
+          </div>
+        )}
 
         {COPY.list && (
           <div style={{ padding: "14px 22px 0" }}>
@@ -367,6 +437,7 @@ export default function DayRowSheet() {
               onClick={() => {
                 setRowMenu(null);
                 if (mode === "meal" || mode === "partial") undoMeal(r.division);
+                if (mode === "steps") toggleSkip(r.id);
               }}
               style={{
                 flex: 1,

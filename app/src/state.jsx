@@ -1352,9 +1352,11 @@ export function WFProvider({ children, initial = {} }) {
       /* Same as sleep: nobody has said where steps come from, so ask here in
          a sheet rather than sending them to Move to meet a full screen. */
       if (healthSource.steps === null) return setHealthSheet("steps");
-      setMoveDetail(true);
-      if (healthSource.steps === "manual") setStepsSheet(true);
-      return;
+      /* Then the count itself, in a sheet on top of the day. Move has more
+         steps on it than this row does, and none of it answers the question
+         somebody taps this row to ask, which is how far along am I. */
+      if (r.done) return setMoveDetail(true);
+      return setRowMenu(r.id);
     }
     /* The glucose sync has a screen of its own: the reading is the whole
        point of the tap, and Measure is a tab about everything. */
