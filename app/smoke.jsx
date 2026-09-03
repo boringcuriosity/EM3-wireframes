@@ -228,6 +228,7 @@ const MATRIX = [
   ["move:nosource",    MoveDetail,       { moveDetail: true }],
   ["steps:half",       App,              { authStep: null, activeTab: "track", todayOnboarded: true, kcalSource: "coach", movePlan: "assigned", healthSource: { steps: "phone", sleep: "phone" }, rowMenu: "steps" }],
   ["steps:half:man",   App,              { authStep: null, activeTab: "track", todayOnboarded: true, kcalSource: "coach", movePlan: "assigned", healthSource: { steps: "manual", sleep: "manual" }, manualSteps: 4000, rowMenu: "steps" }],
+  ["steps:skipped",    App,              { authStep: null, activeTab: "track", todayOnboarded: true, kcalSource: "coach", movePlan: "assigned", healthSource: { steps: "phone", sleep: "phone" }, daySkipped: ["steps"] }],
   ["ask:steps",        App,              { authStep: null, activeTab: "track", todayOnboarded: true, healthSheet: "steps" }],
   ["ask:sleep",        App,              { authStep: null, activeTab: "track", todayOnboarded: true, healthSheet: "sleep" }],
   ["mind:today",       MindDetail,       { mindDetail: true, healthSource: { steps: null, sleep: "manual" } }],

@@ -278,9 +278,14 @@ export default function DayRow({ row: r, last, compact, now }) {
   );
 
   const body = off ? (
-    <span style={{ display: "block", fontSize: 11.5, color: FAINT, lineHeight: 1.45, marginTop: 3 }}>
-      You skipped this today.
-    </span>
+    <>
+      <span style={{ display: "block", fontSize: 11.5, color: FAINT, lineHeight: 1.45, marginTop: 3 }}>
+        You skipped this today.
+      </span>
+      {/* Skipping the walk does not unwalk the steps. They still count towards
+          Move, so the row keeps saying how many there were. */}
+      {bar && <Bar r={r} pct={pct} c={c} off />}
+    </>
   ) : (
     <>
       {r.tip && !r.done && (
@@ -302,34 +307,7 @@ export default function DayRow({ row: r, last, compact, now }) {
       {(r.opts?.length > 0 || (r.done && r.items?.length > 0)) && (
         <Plan row={r} onPick={(i) => setPlanOption({ ...planOption, [r.division]: i })} />
       )}
-      {bar && (
-        <div style={{ marginTop: 8 }}>
-          <div style={{ height: 4, borderRadius: 2, background: LINE, overflow: "hidden" }}>
-            <div
-              style={{
-                height: "100%",
-                width: "100%",
-                background: c,
-                borderRadius: 2,
-                /* Scaled rather than widened, so filling the bar does not make
-                   the row lay itself out again on every frame. The track
-                   already clips, and a 2px cap on a 4px bar is not something a
-                   horizontal scale can visibly bend. */
-                transformOrigin: "left",
-                transform: "scaleX(" + pct / 100 + ")",
-                transition: "transform .5s cubic-bezier(.32,.72,0,1)",
-              }}
-            />
-          </div>
-          <div style={{ fontSize: 10.5, color: MUTED, marginTop: 5 }}>
-            {r.syncing ? (
-              <Skel w={72} h={10} />
-            ) : (
-              (r.now === null ? 0 : r.now).toLocaleString() + " of " + r.goal.toLocaleString() + " " + r.unit
-            )}
-          </div>
-        </div>
-      )}
+      {bar && <Bar r={r} pct={pct} c={c} />}
     </>
   );
 
@@ -938,9 +916,12 @@ export default function DayRow({ row: r, last, compact, now }) {
           /* A skipped row is still a row you might change your mind about, so
              tapping anywhere on it reopens the sheet that put it here. The line
              does not need to say so. */
-          <span style={{ display: "block", fontSize: 11.5, color: FAINT, lineHeight: 1.45, marginTop: 3 }}>
-            You skipped this today.
-          </span>
+          <>
+            <span style={{ display: "block", fontSize: 11.5, color: FAINT, lineHeight: 1.45, marginTop: 3 }}>
+              You skipped this today.
+            </span>
+            {bar && <Bar r={r} pct={pct} c={c} off />}
+          </>
         ) : (
           <>
             {r.tip && !r.done && (
@@ -958,36 +939,42 @@ export default function DayRow({ row: r, last, compact, now }) {
             {(r.opts?.length > 0 || (r.done && r.items?.length > 0)) && (
               <Plan row={r} onPick={(i) => setPlanOption({ ...planOption, [r.division]: i })} />
             )}
-            {bar && (
-              <div style={{ marginTop: 8 }}>
-                <div style={{ height: 4, borderRadius: 2, background: LINE, overflow: "hidden" }}>
-                  <div
-                    style={{
-                      height: "100%",
-                      width: "100%",
-                      background: c,
-                      borderRadius: 2,
-                      // Same reason as the bar on the timeline row above.
-                      transformOrigin: "left",
-                      transform: "scaleX(" + pct / 100 + ")",
-                      transition: "transform .5s cubic-bezier(.32,.72,0,1)",
-                    }}
-                  />
-                </div>
-                <div style={{ fontSize: 10.5, color: MUTED, marginTop: 5 }}>
-                  {r.syncing ? (
-                    <Skel w={72} h={10} />
-                  ) : (
-                    (r.now === null ? 0 : r.now).toLocaleString() +
-                    " of " +
-                    r.goal.toLocaleString() +
-                    " " +
-                    r.unit
-                  )}
-                </div>
-              </div>
-            )}
+            {bar && <Bar r={r} pct={pct} c={c} />}
           </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* How far along a target is, on the row itself. Drawn the same whether the
+   target is live or skipped: the only difference is that a skipped one is
+   greyed, because the number is a record rather than something to finish. */
+function Bar({ r, pct, c, off }) {
+  return (
+    <div style={{ marginTop: 8 }}>
+      <div style={{ height: 4, borderRadius: 2, background: LINE, overflow: "hidden" }}>
+        <div
+          style={{
+            height: "100%",
+            width: "100%",
+            background: off ? FAINT : c,
+            borderRadius: 2,
+            /* Scaled rather than widened, so filling the bar does not make the
+               row lay itself out again on every frame. The track already
+               clips, and a 2px cap on a 4px bar is not something a horizontal
+               scale can visibly bend. */
+            transformOrigin: "left",
+            transform: "scaleX(" + pct / 100 + ")",
+            transition: "transform .5s cubic-bezier(.32,.72,0,1)",
+          }}
+        />
+      </div>
+      <div style={{ fontSize: 10.5, color: off ? FAINT : MUTED, marginTop: 5 }}>
+        {r.syncing ? (
+          <Skel w={72} h={10} />
+        ) : (
+          (r.now === null ? 0 : r.now).toLocaleString() + " of " + r.goal.toLocaleString() + " " + r.unit
         )}
       </div>
     </div>
