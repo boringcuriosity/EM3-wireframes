@@ -1,8 +1,8 @@
 import React from "react";
 import { useWF } from "../state";
-import { Minus, RotateCcw, SquarePen, X } from "lucide-react";
-import { TEXT, MUTED, BG, BG_ALT, BORDER, LINE, GREEN, PILLAR } from "../tokens";
-import { byId } from "../screens/log/foods";
+import { Check, Minus, RotateCcw, SquarePen, X } from "lucide-react";
+import { TEXT, MUTED, BG, BG_ALT, BORDER, LINE, RULE, GREEN, PILLAR } from "../tokens";
+import { byId, qtyLabel } from "../screens/log/foods";
 
 const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure" };
 
@@ -46,18 +46,12 @@ export default function DayRowSheet() {
      food has not left anything of the coach's half done. */
   const isPartial =
     r.done && !off && !!r.division && r.fromPlan && (r.outstanding || []).length > 0;
-  // What the coach asked for that is still not in, said the way the plan says
-  // it: portion first, then the food.
-  const restNames = (r.outstanding || [])
-    .map((id) => byId(id))
-    .filter(Boolean)
-    .map((f) => f.name.toLowerCase());
-  const rest =
-    restNames.length > 1
-      ? restNames.slice(0, -1).join(", ") + " and " + restNames[restNames.length - 1]
-      : restNames[0] || "";
-  const asked = (r.opts && r.opts[r.oi] ? r.opts[r.oi].length : 0);
-  const gotIn = asked - (r.outstanding || []).length;
+  // The coach's option as it stands, which is what the sheet shows: the same
+  // list Eat draws, ticks and all, rather than a sentence about it.
+  const planItems = (r.opts && r.opts[r.oi]) || [];
+  const inAlready = new Set(r.loggedIds || []);
+  const left = planItems.filter((it) => !inAlready.has(it.id));
+  const gotIn = planItems.length - left.length;
 
   const mode = off
     ? "back"
@@ -109,22 +103,13 @@ export default function DayRowSheet() {
     partial: {
       Icon: SquarePen,
       head: r.name + " is logged",
-      line:
-        "Your coach suggested " + asked + " things and " + gotIn + " of them went in. " +
-        "The " + rest + (restNames.length > 1 ? " are" : " is") + " still there if you want " +
-        (restNames.length > 1 ? "them" : "it") + ".",
-      /* Three, stacked, and the first is the only one that adds anything: the
-         other two are for a log that came out wrong. Two side by side would
-         have made one of them look like the answer. */
-      actions: [
-        {
-          label: restNames.length > 1 ? "Log the rest" : "Log " + rest,
-          run: () => openMealLog(r.division, r.oi),
-          primary: true,
-        },
-        { label: "Edit what I logged", run: () => editMeal(r.division) },
-        { label: "Undo log", run: () => undoMeal(r.division) },
-      ],
+      line: gotIn + " of the " + planItems.length + " things your coach suggested went in.",
+      /* The option itself, rather than a sentence describing it. A person who
+         has eaten two of three wants to see which one is missing and tick it,
+         which is what the same list does in Eat. */
+      list: true,
+      no: "Undo log",
+      yes: "Edit what I logged",
       tone: GREEN,
     },
     meal: {
@@ -152,7 +137,7 @@ export default function DayRowSheet() {
     else if (mode === "undo") toggleTick(r.id);
     else if (mode === "less") setWater(Math.max(0, water - 1));
     setRowMenu(null);
-    if (mode === "meal") return editMeal(r.division);
+    if (mode === "meal" || mode === "partial") return editMeal(r.division);
     /* The way to the record, which is not the same as the way to do the task.
        This row is already done, so the logger has nothing left to ask. */
     if (mode === "open") goToRecord(r);
@@ -242,6 +227,114 @@ export default function DayRowSheet() {
           </span>
         </div>
 
+        {COPY.list && (
+          <div style={{ padding: "14px 22px 0" }}>
+            <div
+              style={{
+                background: BG_ALT,
+                border: "1px solid " + LINE,
+                borderRadius: 14,
+                padding: "6px 12px",
+              }}
+            >
+              {planItems.map((it) => {
+                const food = byId(it.id);
+                if (!food) return null;
+                const done = inAlready.has(it.id);
+                return (
+                  <div
+                    key={it.id}
+                    style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0" }}
+                  >
+                    <button
+                      onClick={
+                        done
+                          ? undefined
+                          : () => {
+                              setRowMenu(null);
+                              openMealLog(r.division, r.oi, it);
+                            }
+                      }
+                      disabled={done}
+                      aria-label={done ? food.name + " is logged" : "Log " + food.name}
+                      style={{
+                        width: 20,
+                        height: 20,
+                        flexShrink: 0,
+                        padding: 0,
+                        borderRadius: "50%",
+                        background: done ? GREEN : BG,
+                        border: "1.5px solid " + (done ? GREEN : RULE),
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: done ? "default" : "pointer",
+                      }}
+                    >
+                      {done && <Check size={12} color="#fff" strokeWidth={3} />}
+                    </button>
+                    <span
+                      style={{
+                        flex: 1,
+                        minWidth: 0,
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        color: done ? MUTED : TEXT,
+                      }}
+                    >
+                      {/* Only the name is struck. A decoration on the whole
+                          row would carry through the portion, which is not
+                          the thing that has been done. */}
+                      <span
+                        style={
+                          done
+                            ? { textDecoration: "line-through", textDecorationColor: c }
+                            : undefined
+                        }
+                      >
+                        {food.name}
+                      </span>{" "}
+                      <span style={{ color: MUTED, fontWeight: 400 }}>
+                        &middot; {qtyLabel(food, it.qty)}
+                      </span>
+                    </span>
+                    <span style={{ flexShrink: 0, fontSize: 12, color: MUTED }}>
+                      {Math.round(food.kcal * it.qty)} cal
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* One circle at a time is three trips through the logger, so the
+                whole rest goes in one go once there is more than one left.
+                With a single item outstanding its own circle is this button. */}
+            {left.length > 1 && (
+              <button
+                onClick={() => {
+                  setRowMenu(null);
+                  openMealLog(r.division, r.oi);
+                }}
+                style={{
+                  width: "100%",
+                  marginTop: 10,
+                  background: BG,
+                  border: "1px solid " + GREEN,
+                  borderRadius: 12,
+                  padding: "10px 0",
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  color: GREEN,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                Log the other {left.length}
+              </button>
+            )}
+          </div>
+        )}
+
         {COPY.actions ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: "18px 22px 0" }}>
             {COPY.actions.map((a) => (
@@ -273,7 +366,7 @@ export default function DayRowSheet() {
             <button
               onClick={() => {
                 setRowMenu(null);
-                if (mode === "meal") undoMeal(r.division);
+                if (mode === "meal" || mode === "partial") undoMeal(r.division);
               }}
               style={{
                 flex: 1,

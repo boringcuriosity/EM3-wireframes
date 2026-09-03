@@ -290,6 +290,7 @@ const MATRIX = [
   ["suff:three",       App,              { authStep: null, eatDetail: true, plan: "paid", kcalSource: "coach", suffDone: true, mealsLogged: [{ division: "breakfast", timeMins: 510, items: [{ id: "poha", qty: 1 }] }, { division: "lunch", timeMins: 810, items: [{ id: "dal", qty: 1 }] }, { division: "dinner", timeMins: 1230, items: [{ id: "paneer", qty: 1 }] }] }],
   ["eat:plan:divs",    App,              { authStep: null, eatDetail: true, kcalSource: "coach" }],
   ["meal:part",        App,              { authStep: null, activeTab: "track", todayOnboarded: true, kcalSource: "coach", movePlan: "assigned", mealsLogged: [{ division: "breakfast", timeMins: 510, items: [{ id: "eggs", qty: 1 }, { id: "chilla", qty: 2 }] }] }],
+  ["meal:part:one",    App,              { authStep: null, activeTab: "track", todayOnboarded: true, kcalSource: "coach", movePlan: "assigned", rowMenu: "meal:breakfast", mealsLogged: [{ division: "breakfast", timeMins: 510, items: [{ id: "eggs", qty: 1 }] }] }],
   ["meal:part:sheet",  App,              { authStep: null, activeTab: "track", todayOnboarded: true, kcalSource: "coach", movePlan: "assigned", rowMenu: "meal:breakfast", mealsLogged: [{ division: "breakfast", timeMins: 510, items: [{ id: "eggs", qty: 1 }, { id: "chilla", qty: 2 }] }] }],
 ];
 
