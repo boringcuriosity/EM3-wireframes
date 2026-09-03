@@ -16,7 +16,18 @@ const SIGNALS = {
     title: "Your steps",
     head: "Let your phone count your steps.",
     why: "It is already keeping this. Connecting it means the walking you do anyway counts without you having to remember it.",
-    reads: ["Steps", "Walking distance", "Workouts"],
+    reads: ["Step count", "Walking distance", "Workout minutes"],
+    /* What the permission screen actually offers, which is coarser than what
+       we read off it: the phone grants a category and the app works out the
+       rest. Drawing three switches for the three lines above would be a
+       screen nobody is ever shown. */
+    perms: [
+      { name: "Steps", on: true },
+      { name: "Distance", on: true },
+      { name: "Exercise", on: true },
+      { name: "Heart rate", on: false },
+      { name: "Weight", on: false },
+    ],
     manual: "I will log my walks myself",
   },
   sleep: {
@@ -25,6 +36,12 @@ const SIGNALS = {
     head: "Let your phone tell us how you slept.",
     why: "Your body clock runs on when you sleep, not just how long, and that is what shapes how you handle food the next day.",
     reads: ["Time asleep", "Bedtime and wake time", "Sleep stages"],
+    perms: [
+      { name: "Sleep", on: true },
+      { name: "Heart rate", on: false },
+      { name: "Steps", on: false },
+      { name: "Weight", on: false },
+    ],
     manual: "I will tell you when I slept",
   },
 };
@@ -113,7 +130,28 @@ export default function HealthConnectSheet() {
           </h2>
           <p style={{ margin: "9px 0 0", fontSize: 12.5, color: MUTED, lineHeight: 1.6 }}>{s.why}</p>
 
-          <Phone reads={s.reads} />
+          {/* What we take off it, in words somebody can check. The phone grants
+              one broad permission, so this is the only place the actual reads
+              are ever named. */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 12 }}>
+            {s.reads.map((x) => (
+              <span
+                key={x}
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: 600,
+                  color: GREEN_DEEP,
+                  background: GREEN_TINT,
+                  borderRadius: 999,
+                  padding: "4px 10px",
+                }}
+              >
+                {x}
+              </span>
+            ))}
+          </div>
+
+          <Phone perms={s.perms} />
         </div>
 
         <div style={{ flexShrink: 0, padding: "16px 22px 24px" }}>
@@ -177,7 +215,7 @@ export default function HealthConnectSheet() {
 /* The screen that appears next, drawn small. Somebody about to be handed a
    page of switches by their phone should recognise it when it arrives, and
    seeing the list is what makes "only what is listed" mean something. */
-function Phone({ reads }) {
+function Phone({ perms }) {
   return (
     <div
       style={{
@@ -228,7 +266,7 @@ function Phone({ reads }) {
             color: GREEN,
           }}
         >
-          Allow all
+          Allow selected
         </div>
 
         <div
@@ -244,9 +282,9 @@ function Phone({ reads }) {
             WebkitMaskImage: "linear-gradient(#000 42%, transparent 96%)",
           }}
         >
-          {reads.concat(["Heart rate", "Height and weight"]).map((x) => (
+          {perms.map((x) => (
             <div
-              key={x}
+              key={x.name}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -255,17 +293,22 @@ function Phone({ reads }) {
                 borderBottom: "1px solid " + LINE,
               }}
             >
-              <span style={{ flex: 1, minWidth: 0, fontSize: 10.5, color: TEXT }}>{x}</span>
+              <span style={{ flex: 1, minWidth: 0, fontSize: 10.5, color: x.on ? TEXT : MUTED }}>
+                {x.name}
+              </span>
+              {/* Off for the ones we do not ask for. A screen where everything
+                  is on says we take everything, which is the opposite of what
+                  the line under the button promises. */}
               <span
                 style={{
                   width: 22,
                   height: 13,
                   borderRadius: 999,
-                  background: GREEN,
+                  background: x.on ? GREEN : BORDER,
                   flexShrink: 0,
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "flex-end",
+                  justifyContent: x.on ? "flex-end" : "flex-start",
                   padding: 1.5,
                   boxSizing: "border-box",
                 }}
