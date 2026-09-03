@@ -1065,10 +1065,10 @@ function Plan({ row: r, onPick }) {
     return ends ? n + " " + name : n + " " + noun + " " + name;
   };
 
-  /* Each item on its own, so a coach's option can be half done. Logging two of
-     three used to leave the whole line unstruck, which said nothing about
-     which one was still owed. The ones already in are struck; the rest are
-     what the row is still asking for. */
+  /* Each item struck as it goes in. On a finished meal that is the record of
+     what was eaten, three of the coach's four included: the block says what
+     went in rather than what was asked for, and the fourth one lives in the
+     sheet, which is where it can be logged. */
   const inAlready = new Set(r.loggedIds || []);
   const parts = items
     .map((it) => ({ key: it.id, text: said(it), on: r.done || inAlready.has(it.id) }))
@@ -1079,7 +1079,7 @@ function Plan({ row: r, onPick }) {
         <span key={x.key}>
           <span
             style={
-              x.on && !r.done
+              x.on
                 ? { textDecoration: "line-through", textDecorationColor: c, color: FAINT }
                 : undefined
             }

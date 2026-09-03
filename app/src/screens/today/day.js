@@ -263,16 +263,17 @@ export function buildDay(w) {
       // them one at a time rather than all at once.
       loggedIds: mine.map((x) => x.id),
       outstanding,
+      // Whether what went in came off the coach's option at all. Somebody who
+      // ate their own food has not part-finished a plan, they have finished a
+      // meal, and the sheet needs to tell those two apart.
+      fromPlan,
       kind: "go", to: "eat:" + d.id,
-      /* Half a coach's option is half a meal. Logging two of three used to
-         close the whole row, which told somebody they had eaten a thing they
-         had not, and hid the third item behind a struck title.
-
-         So the row finishes when nothing the coach asked for is still
-         outstanding. Somebody who ate their own food instead finishes it too:
-         they have logged a meal, and holding the row open over a plan they
-         chose not to follow would be the app arguing with them. */
-      done: mine.length > 0 && (!optIds.length || outstanding.length === 0 || !fromPlan),
+      /* A meal is logged the moment anything goes in, three of the coach's
+         four included. Holding the row open over the fourth read as though
+         the meal had not happened, which is not what somebody who has eaten
+         wants to see. What is still owed shows as the unstruck item in the
+         block underneath, and the sheet offers to log it. */
+      done: mine.length > 0,
     });
   });
 

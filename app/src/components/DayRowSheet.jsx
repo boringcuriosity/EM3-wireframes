@@ -2,6 +2,7 @@ import React from "react";
 import { useWF } from "../state";
 import { Minus, RotateCcw, SquarePen, X } from "lucide-react";
 import { TEXT, MUTED, BG, BG_ALT, BORDER, LINE, GREEN, PILLAR } from "../tokens";
+import { byId } from "../screens/log/foods";
 
 const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure" };
 
@@ -22,7 +23,7 @@ const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure"
 export default function DayRowSheet() {
   const {
     rowMenu, setRowMenu, dayRows, daySkipped, toggleSkip, toggleTick, goToRecord,
-    water, setWater, editMeal, undoMeal,
+    water, setWater, editMeal, undoMeal, openMealLog,
   } = useWF();
   const r = dayRows.find((x) => x.id === rowMenu);
   if (!r) return null;
@@ -36,10 +37,27 @@ export default function DayRowSheet() {
      that finishes elsewhere is a reading or a session, where undoing means
      deleting something the person did rather than something they typed. */
   const isMeal = r.done && !off && !!r.division;
-  /* Part of a coach's option is in and part is not, which is the one row with
-     three honest answers rather than two: change what went in, take it back
-     off, or call the rest of the plan done with. */
-  const isPartial = !r.done && !off && !!r.division && (r.loggedIds || []).length > 0;
+  /* Part of a coach's option is in and part is not. The meal is logged and
+     the row is ticked, so this is not an unfinished task: it is a finished one
+     with something the coach asked for still on the table, and the useful
+     answer is to offer that thing rather than to argue about the tick.
+
+     Only when what went in came off the option. Somebody who ate their own
+     food has not left anything of the coach's half done. */
+  const isPartial =
+    r.done && !off && !!r.division && r.fromPlan && (r.outstanding || []).length > 0;
+  // What the coach asked for that is still not in, said the way the plan says
+  // it: portion first, then the food.
+  const restNames = (r.outstanding || [])
+    .map((id) => byId(id))
+    .filter(Boolean)
+    .map((f) => f.name.toLowerCase());
+  const rest =
+    restNames.length > 1
+      ? restNames.slice(0, -1).join(", ") + " and " + restNames[restNames.length - 1]
+      : restNames[0] || "";
+  const asked = (r.opts && r.opts[r.oi] ? r.opts[r.oi].length : 0);
+  const gotIn = asked - (r.outstanding || []).length;
 
   const mode = off
     ? "back"
@@ -90,14 +108,22 @@ export default function DayRowSheet() {
     },
     partial: {
       Icon: SquarePen,
-      head: "Part of " + r.name.toLowerCase() + " is logged",
-      line: "You have some of it in and the rest still on the list. Change what went in, take it back off, or leave the rest for today.",
-      /* Three, stacked. Two side by side would have made one of them look like
-         the answer, and none of these is. */
+      head: r.name + " is logged",
+      line:
+        "Your coach suggested " + asked + " things and " + gotIn + " of them went in. " +
+        "The " + rest + (restNames.length > 1 ? " are" : " is") + " still there if you want " +
+        (restNames.length > 1 ? "them" : "it") + ".",
+      /* Three, stacked, and the first is the only one that adds anything: the
+         other two are for a log that came out wrong. Two side by side would
+         have made one of them look like the answer. */
       actions: [
-        { label: "Edit what I logged", run: () => editMeal(r.division), primary: true },
+        {
+          label: restNames.length > 1 ? "Log the rest" : "Log " + rest,
+          run: () => openMealLog(r.division, r.oi),
+          primary: true,
+        },
+        { label: "Edit what I logged", run: () => editMeal(r.division) },
         { label: "Undo log", run: () => undoMeal(r.division) },
-        { label: "Skip the rest today", run: () => toggleSkip(r.id) },
       ],
       tone: GREEN,
     },

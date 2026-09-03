@@ -922,6 +922,7 @@ export default function ControlPanel() {
             { id: "toast", label: "Toast", full: "The confirmation toast" },
             { id: "donetoast", label: "Task done toast", full: "What you see when a diary task finishes on another screen" },
             { id: "water", label: "Water sheet", full: "Logging glasses of water, with the time it happened" },
+            { id: "part", label: "Part of an option", full: "Two of the coach's three in, the third still on the table" },
             { id: "reset", label: "Clear day", full: "Wipe everything logged today" },
           ].map((v) =>
             panelChip(
@@ -936,6 +937,10 @@ export default function ControlPanel() {
                 ? !!logResult
                 : v.id === "water"
                 ? !!waterSheet
+                : v.id === "part"
+                ? mealsLogged.length === 1 &&
+                  mealsLogged[0].division === "breakfast" &&
+                  mealsLogged[0].items.length === 2
                 : v.id === "off" && !logOpen && !logResult && !waterSheet,
               () => {
                 setWaterSheet(v.id === "water");
@@ -956,6 +961,23 @@ export default function ControlPanel() {
                 if (v.id === "donetoast") {
                   setToast({ title: "Done for today", line: "Breakfast \u00b7 3 of 9 today", coins: 4, task: "eat" });
                   setEatDetail(true);
+                }
+                /* A coach's option half eaten. The meal is logged and the
+                   row is ticked; what is left shows in the sheet behind the
+                   row's three dots. */
+                if (v.id === "part") {
+                  setKcalSource("coach");
+                  setMovePlan("assigned");
+                  setTodayOnboarded(true);
+                  setEatDetail(false);
+                  setActiveTab("track");
+                  setMealsLogged([
+                    {
+                      division: "breakfast",
+                      timeMins: 8 * 60 + 30,
+                      items: [{ id: "eggs", qty: 1 }, { id: "chilla", qty: 2 }],
+                    },
+                  ]);
                 }
                 if (v.id === "reset") {
                   setMealsLogged([]);
