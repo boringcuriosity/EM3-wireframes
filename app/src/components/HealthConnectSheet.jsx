@@ -1,7 +1,7 @@
 import React from "react";
 import { useWF } from "../state";
-import { X, Check, Footprints, Moon } from "lucide-react";
-import { GREEN, GREEN_DEEP, GREEN_TINT, TEXT, MUTED, FAINT, BG, BG_ALT, BORDER, LINE } from "../tokens";
+import { X, Check } from "lucide-react";
+import { GREEN, GREEN_DEEP, TEXT, MUTED, FAINT, BG, BG_ALT, BORDER, LINE } from "../tokens";
 
 /* Where a signal comes from, asked once and changeable after.
 
@@ -12,11 +12,10 @@ import { GREEN, GREEN_DEEP, GREEN_TINT, TEXT, MUTED, FAINT, BG, BG_ALT, BORDER, 
 
 const SIGNALS = {
   steps: {
-    Icon: Footprints,
     title: "Your steps",
     head: "Let your phone count your steps.",
     why: "It is already keeping this. Connecting it means the walking you do anyway counts without you having to remember it.",
-    reads: ["Step count", "Walking distance", "Workout minutes"],
+    note: "your step count, walking distance and workout minutes",
     /* What the permission screen actually offers, which is coarser than what
        we read off it: the phone grants a category and the app works out the
        rest. Drawing three switches for the three lines above would be a
@@ -31,11 +30,10 @@ const SIGNALS = {
     manual: "I will log my walks myself",
   },
   sleep: {
-    Icon: Moon,
     title: "Your sleep",
     head: "Let your phone tell us how you slept.",
     why: "Your body clock runs on when you sleep, not just how long, and that is what shapes how you handle food the next day.",
-    reads: ["Time asleep", "Bedtime and wake time", "Sleep stages"],
+    note: "time asleep, bedtime and wake time, and your sleep stages",
     perms: [
       { name: "Sleep", on: true },
       { name: "Heart rate", on: false },
@@ -88,24 +86,6 @@ export default function HealthConnectSheet() {
       >
         <div style={{ flex: 1, overflowY: "auto", padding: "20px 22px 0", minHeight: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                background: GREEN_TINT,
-                color: GREEN_DEEP,
-                borderRadius: 999,
-                padding: "4px 10px 4px 8px",
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: 0.6,
-                textTransform: "uppercase",
-              }}
-            >
-              <s.Icon size={12} strokeWidth={2.2} />
-              {s.title}
-            </span>
             <span style={{ flex: 1 }} />
             <button
               onClick={() => setHealthSheet(null)}
@@ -129,27 +109,6 @@ export default function HealthConnectSheet() {
             {s.head}
           </h2>
           <p style={{ margin: "9px 0 0", fontSize: 12.5, color: MUTED, lineHeight: 1.6 }}>{s.why}</p>
-
-          {/* What we take off it, in words somebody can check. The phone grants
-              one broad permission, so this is the only place the actual reads
-              are ever named. */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 12 }}>
-            {s.reads.map((x) => (
-              <span
-                key={x}
-                style={{
-                  fontSize: 10.5,
-                  fontWeight: 600,
-                  color: GREEN_DEEP,
-                  background: GREEN_TINT,
-                  borderRadius: 999,
-                  padding: "4px 10px",
-                }}
-              >
-                {x}
-              </span>
-            ))}
-          </div>
 
           <Phone perms={s.perms} />
         </div>
@@ -204,7 +163,7 @@ export default function HealthConnectSheet() {
           </button>
 
           <p style={{ margin: "6px 0 0", fontSize: 11, color: FAINT, lineHeight: 1.5, textAlign: "center" }}>
-            We read only what is listed above. Your health data stays yours.
+            We read {s.note}. Nothing else, and your health data stays yours.
           </p>
         </div>
       </div>

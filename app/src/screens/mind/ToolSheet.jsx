@@ -74,20 +74,6 @@ export default function ToolSheet() {
 
         <div style={{ flex: 1, overflowY: "auto", padding: "22px 22px 0", minHeight: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-            <span
-              style={{
-                background: MIND_T,
-                color: MIND_C,
-                borderRadius: 999,
-                padding: "4px 11px",
-                fontSize: 10,
-                fontWeight: 700,
-                letterSpacing: 0.6,
-                textTransform: "uppercase",
-              }}
-            >
-              {tool.label}
-            </span>
             <span style={{ flex: 1 }} />
             <button
               onClick={() => setMindTool(null)}

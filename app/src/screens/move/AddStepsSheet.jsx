@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useWF } from "../../state";
-import { X, Footprints } from "lucide-react";
+import { X } from "lucide-react";
 import Wheel from "../../components/Wheel";
-import { GREEN, GREEN_DEEP, MOVE_C, MOVE_T, TEXT, MUTED, BG } from "../../tokens";
+import { GREEN, GREEN_DEEP, TEXT, MUTED, BG } from "../../tokens";
 
 const COINS = 1;
 
@@ -64,24 +64,6 @@ export default function AddStepsSheet() {
       >
 
         <div style={{ padding: "22px 22px 0", display: "flex", alignItems: "center", gap: 9 }}>
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              background: MOVE_T,
-              color: MOVE_C,
-              borderRadius: 999,
-              padding: "4px 10px 4px 8px",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: 0.6,
-              textTransform: "uppercase",
-            }}
-          >
-            <Footprints size={12} strokeWidth={2.2} />
-            Steps
-          </span>
           <span style={{ flex: 1 }} />
           <button
             onClick={() => setStepsSheet(false)}
