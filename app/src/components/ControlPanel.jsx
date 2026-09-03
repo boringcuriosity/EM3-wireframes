@@ -716,7 +716,7 @@ export default function ControlPanel() {
              that is the Care plan toggle at the top, and Move reading it
              separately is what let the two disagree. */
           [
-            { id: "gate", label: "Health Connect permission", steps: null },
+            { id: "gate", label: "Not decided yet", steps: null },
             { id: "syncing", label: "Allowed, syncing", steps: "phone", sync: "steps", logs: [] },
             { id: "connected", label: "Steps in, nothing logged", steps: "phone", logs: [] },
             {
@@ -775,7 +775,7 @@ export default function ControlPanel() {
             )
           ),
           healthSource.steps === null
-            ? "First open. Not skippable, because logging by hand is a real answer and the screen has nothing to show without one."
+            ? "Nobody has said where steps come from. The ask arrives as a sheet over Move rather than a screen in front of it, and the line at the foot of the card reopens it."
             : healthSync === "steps"
             ? "Mid-sync. The number is a skeleton rather than a zero, because zero would be a claim."
             : healthSource.steps === "manual"

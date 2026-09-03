@@ -1,9 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useWF } from "../../state";
 import { Moon } from "lucide-react";
 
 import PillarScreen from "../../components/PillarScreen";
-import HealthGate from "../../components/HealthGate";
 import LogPrompt from "../../components/LogPrompt";
 import LotusIcon from "../../components/LotusIcon";
 import MindHero from "./MindHero";
@@ -18,11 +17,14 @@ import { MIND_ARTICLES } from "./tools";
    to you. So the hero is sleep, the record is the things you can actually do
    about it, and the way in offers both. */
 export default function MindDetail() {
-  const { setMindDetail, mindTab, setMindTab, setLogSleepOpen, healthSource } =
+  const { setMindDetail, mindTab, setMindTab, setLogSleepOpen, healthSource, setHealthSheet } =
     useWF();
 
-  // Same gate as Move, for the same reason: no source, nothing to show.
-  if (healthSource.sleep === null) return <HealthGate signal="sleep" />;
+  // Same ask as Move, in the same sheet, for the same reason.
+  useEffect(() => {
+    if (healthSource.sleep === null) setHealthSheet("sleep");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <PillarScreen

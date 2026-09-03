@@ -1348,7 +1348,14 @@ export function WFProvider({ children, initial = {} }) {
        session row names a thing that was done; landing on Move and hunting for
        where to say so is the work the tap was meant to save. */
     if (r.to === "move") return openMoveLog(planAssigned ? "routine" : null);
-    if (r.to === "steps") { setMoveDetail(true); if (healthSource.steps === "manual") setStepsSheet(true); return; }
+    if (r.to === "steps") {
+      /* Same as sleep: nobody has said where steps come from, so ask here in
+         a sheet rather than sending them to Move to meet a full screen. */
+      if (healthSource.steps === null) return setHealthSheet("steps");
+      setMoveDetail(true);
+      if (healthSource.steps === "manual") setStepsSheet(true);
+      return;
+    }
     /* The glucose sync has a screen of its own: the reading is the whole
        point of the tap, and Measure is a tab about everything. */
     /* Each device sync has a screen of its own: the reading is the whole point

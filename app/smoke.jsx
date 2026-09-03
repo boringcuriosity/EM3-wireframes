@@ -10,7 +10,6 @@ import MindDetail from "./src/screens/mind/MindDetail";
 import LogSleep from "./src/screens/mind/LogSleep";
 import ToolSheet from "./src/screens/mind/ToolSheet";
 import HealthConnectSheet from "./src/components/HealthConnectSheet";
-import HealthGate from "./src/components/HealthGate";
 import AddStepsSheet from "./src/screens/move/AddStepsSheet";
 import TrackPage, { TodayFtux } from "./src/screens/Today";
 import CarePage from "./src/screens/Care";
@@ -225,10 +224,10 @@ const MATRIX = [
   ["science:move",     PillarScienceSheet, { pillarInfo: "move", kcalSource: "coach", movePlan: "assigned", healthSource: { steps: "phone", sleep: null } }],
   ["science:move:man", PillarScienceSheet, { pillarInfo: "move", healthSource: { steps: "manual", sleep: null } }],
   ["science:mind",     PillarScienceSheet, { pillarInfo: "mind", healthSource: { steps: null, sleep: "phone" } }],
-  ["mind:gate",        MindDetail,       { mindDetail: true }],
-  ["move:gate",        MoveDetail,       { moveDetail: true }],
-  ["gate:steps",       (p) => <HealthGate signal="steps" {...p} />, {}],
-  ["gate:sleep",       (p) => <HealthGate signal="sleep" {...p} />, {}],
+  ["mind:nosource",    MindDetail,       { mindDetail: true }],
+  ["move:nosource",    MoveDetail,       { moveDetail: true }],
+  ["ask:steps",        App,              { authStep: null, activeTab: "track", todayOnboarded: true, healthSheet: "steps" }],
+  ["ask:sleep",        App,              { authStep: null, activeTab: "track", todayOnboarded: true, healthSheet: "sleep" }],
   ["mind:today",       MindDetail,       { mindDetail: true, healthSource: { steps: null, sleep: "manual" } }],
   ["mind:phone",       MindDetail,       { mindDetail: true, healthSource: { steps: null, sleep: "phone" } }],
   ["mind:slept",       MindDetail,       { mindDetail: true, healthSource: { steps: null, sleep: "phone" } }],

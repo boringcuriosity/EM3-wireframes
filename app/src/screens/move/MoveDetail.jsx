@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useWF } from "../../state";
 import { Flame, Footprints } from "lucide-react";
 import PillarScreen from "../../components/PillarScreen";
-import HealthGate from "../../components/HealthGate";
 import LogPrompt from "../../components/LogPrompt";
 import MoveHero from "./MoveHero";
 import MoveTrend from "./MoveTrend";
@@ -16,12 +15,18 @@ import { TEXT } from "../../tokens";
    routine and what has been logged. Trend and Learn sit behind the pillar's
    own nav, exactly as they do on Eat. */
 export default function MoveDetail() {
-  const { setMoveDetail, moveTab, setMoveTab, openMoveLog, planAssigned, healthSource, setStepsSheet } =
+  const { setMoveDetail, moveTab, setMoveTab, openMoveLog, planAssigned, healthSource, setStepsSheet, setHealthSheet } =
     useWF();
 
-  /* Asked before anything else, once. Move cannot show a step count without
-     knowing where steps come from, so this is a gate rather than a card. */
-  if (healthSource.steps === null) return <HealthGate signal="steps" />;
+  /* Asked once, on the way in, and asked in the sheet rather than on a screen
+     of its own. A full page standing between somebody and their pillar reads
+     as a wall; the same question over the screen they came for reads as a
+     question. Closing it leaves the line at the foot of the card, which is
+     the way back to it. */
+  useEffect(() => {
+    if (healthSource.steps === null) setHealthSheet("steps");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <PillarScreen
