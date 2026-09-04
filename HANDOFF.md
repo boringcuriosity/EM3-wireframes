@@ -705,8 +705,22 @@ Two rules keep it honest:
 - **Declining is per signal.** Saying you will count your own steps says nothing about your
   nights, so the other pillar still gets to ask once.
 
-The panel's two "Health Connect permission" chips reset **both** signals, because "nobody has
+The panel's two chips, now **Not decided yet**, reset **both** signals, because "nobody has
 been asked yet" is now one state rather than one per pillar.
+
+**The asking moved from a screen into a sheet.** `HealthGate.jsx` was a full page standing in
+front of Move and Mind with no way past it, which made a reasonable request feel like a toll
+gate. It is deleted. Both detail screens now open `HealthConnectSheet.jsx` on arrival when the
+signal is undecided, and the sheet closes on the scrim like any other. The dead end that
+creates is covered by `ConnectNudge.jsx`, which carries the undecided case too and offers
+**Choose** rather than going straight for the connect.
+
+The sheet argues rather than asks: what the phone already knows, why that particular signal
+matters, then a drawing of the permission screen that is about to appear. That drawing shows
+the permissions the OS actually offers, not the three lines of copy above it. Apple HealthKit's
+`sleepAnalysis` and Android's `SleepSessionRecord` are each **one** category, so the mock shows
+one Sleep switch on and Heart rate, Steps and Weight off. A mock with everything switched on
+would contradict the promise printed under the button.
 
 ### The handover is three plans, not two
 
@@ -1007,9 +1021,9 @@ The smoke test proves it renders; only the screen proves it is right.
 
 ## 9. In flight right now
 
-Committed and deployed through `cb7b7e4` ("The metabolic score becomes a walkthrough"), which
-is also what `/v4` freezes. The standing rule still holds for whatever comes next: batch the
-work and wait to be told when to push.
+Committed and deployed through `2001d68` ("A skipped walk still keeps its steps"). `/v4`
+freezes `cb7b7e4`, a dozen commits back. The standing rule still holds for whatever comes next:
+batch the work and wait to be told when to push.
 
 **Recently landed** (everything below is committed; the list is here as a change log, not as a to-do):
 
@@ -1071,6 +1085,27 @@ work and wait to be told when to push.
   inside its own padding
 - Start here moved above Daily building blocks on the program page, so the page runs in
   dependency order: what is blocking, then what it unblocks, then the people waiting on it
+- Next actions back beside Your Program. The prerequisites had moved to the Start here strip
+  and left the carousel, but the sheet still sent people to a tab that was not there. They are
+  a tab **and** a strip now (`HOME_CARDS`, `HOME_TABS`, `tabOfCard`), and **Show me** lands on
+  the rail rather than pointing at it: `nextScrollDue` fires a scroll in `PaidHome.jsx`. That
+  scroll is hand rolled, 420ms of `requestAnimationFrame`, because `scrollTo({behavior:
+  "smooth"})` is a no-op on the app frame's scroller in Chrome. The PREREQ coachmark went with
+  it; nobody needs a ring drawn over the thing they just shut
+- `/know` rebuilt off `/play`: seven sections, and the ranking code copied across rather than
+  described, so the deck and the sandbox cannot drift apart
+- a part eaten meal still ticks. Three of the coach's four things going in used to leave the
+  row open, which reads as nothing logged. The row ticks on any log, the subtext crosses only
+  what actually went in, and the sheet lists the items the way Eat does: circles you can tap to
+  finish the rest, then **Undo log** and **Edit what I logged**. Three stacked CTAs were tried
+  first and were too much
+- **Read your week with Kaira** is hidden until a plan exists. There is no week to read yet
+- `HealthConnectSheet.jsx` for both signals, `HealthGate.jsx` deleted (see above), and the
+  header pill gone from every sheet on `/`, not only the health ones
+- a synced but unfinished step row opens a sheet instead of a screen: how far you have walked,
+  how far is left, and **Skip today**. Skipping keeps the number, greyed, because skipping the
+  walk does not unwalk the steps. That bar is one `Bar` component in `DayRow.jsx` now, used in
+  three places, so the live and skipped versions cannot drift
 - `check-state.mjs` no longer reads JSX prose as code. Its text sweep started at any `>`,
   including the one in `=>`, so every use between an arrow function and the JSX was invisible
   to it; the sweeps now exclude `=;()` and were tested in both directions
