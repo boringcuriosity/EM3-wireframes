@@ -15,7 +15,7 @@ import { GOALS, targetsFor } from "./screens/sufficiency/data";
 const CARE_TEAM = [
   { id: "eat", pillar: "eat", coach: "Your Eat coach", role: "Your nutritionist", name: "Sahana Chandra" },
   { id: "move", pillar: "move", coach: "Your Move coach", role: "Your physiotherapist", name: "Sahana Physio" },
-  { id: "success", pillar: "mind", coach: "Your Mind coach", role: "Your success coach", name: "Manya Jain" },
+  { id: "success", pillar: "mind", coach: "Your Mind coach", role: "Your psychologist", name: "Manya Jain" },
 ];
 import { GREEN, TEXT, EAT_C, MOVE_C, MIND_C, MEASURE_C, EAT_T, MOVE_T, MIND_T, MEASURE_T } from "./tokens";
 
@@ -89,7 +89,9 @@ export function WFProvider({ children, initial = {} }) {
      its tab are not there at all. Three at most: a card that scrolls is a
      screen pretending to be a card. */
   const [nextActions, setNextActions] = useState(
-    initial.nextActions !== undefined ? initial.nextActions : ["score", "labs", "assess", "book:eat", "book:move", "book:mind"]
+    initial.nextActions !== undefined
+      ? initial.nextActions
+      : ["score", "labs", "doctor", "assess", "book:eat", "book:move", "book:mind"]
   );
   // Which of them are ticked off. They stay on the card struck through, so the
   // last one is finished against something rather than alone.
@@ -115,6 +117,14 @@ export function WFProvider({ children, initial = {} }) {
      Its own takeover rather than a tab, because it is a thing you decide once
      and it has a price on it. */
   const [diagOpen, setDiagOpen] = useState(initial.diagOpen !== undefined ? initial.diagOpen : false);
+  /* The doctor consultation, which is arranged outside this app. Its screen
+     hands over and waits, so the person's own word is what finishes it. */
+  const [docOpen, setDocOpen] = useState(initial.docOpen !== undefined ? initial.docOpen : false);
+  const openDoctor = () => {
+    setNextSheet(false);
+    setScoreFlow(null);
+    setDocOpen(true);
+  };
   const openDiagnostics = () => {
     setNextSheet(false);
     setScoreFlow(null);
@@ -618,7 +628,8 @@ export function WFProvider({ children, initial = {} }) {
   const nextSession = (() => {
     const made = Object.entries(bookings).sort((a, b) => a[1].day - b[1].day);
     if (!made.length) {
-      return { role: "Your success coach", coach: "Manya Jain", date: "17 Aug, 2026", time: "10:15 AM", cta: "Join Your Zoom Session" };
+      const who = CARE_TEAM.find((c) => c.id === "success");
+      return { role: who.role, coach: who.name, date: "17 Aug, 2026", time: "10:15 AM", cta: "Join Your Zoom Session" };
     }
     const [id, b] = made[0];
     const who = CARE_TEAM.find((c) => c.id === id);
@@ -1811,6 +1822,7 @@ export function WFProvider({ children, initial = {} }) {
     nextActions, nextDone, setNextDone, nextOpen, setNextList,
     nextJustDone, setNextJustDone, finishNext,
     nextSheet, setNextSheet, diagOpen, setDiagOpen, openDiagnostics,
+    docOpen, setDocOpen, openDoctor,
     prereqHidden, setPrereqHidden, prereqAsk, setPrereqAsk,
     prereqOpen, setPrereqOpen, prereqExpanded,
     HOME_CARDS, HOME_TABS, homeTab,

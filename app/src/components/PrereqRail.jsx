@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useWF } from "../state";
 import PrereqCard from "./PrereqCard";
-import { Check, ChevronDown, ListChecks, X } from "lucide-react";
-import { GREEN, TEXT, MUTED, BG, BORDER, WARN, WARN_TINT, WARN_LINE, SH_SM } from "../tokens";
+import { ChevronDown, ListChecks, X } from "lucide-react";
+import { TEXT, MUTED, BG, BORDER, WARN, WARN_TINT, WARN_LINE, SH_SM } from "../tokens";
 
 /* What has to happen before a coach can write anything.
 
@@ -50,7 +50,7 @@ export default function PrereqRail({ startOpen = false, keep = false }) {
 
   useEffect(() => {
     if (!leaving) return;
-    const t = setTimeout(() => setNextJustDone(null), 1900);
+    const t = setTimeout(() => setNextJustDone(null), 2500);
     return () => clearTimeout(t);
   }, [leaving, setNextJustDone]);
 
@@ -64,27 +64,84 @@ export default function PrereqRail({ startOpen = false, keep = false }) {
     return () => clearTimeout(t);
   }, [done, shownDone]);
 
-  /* Every hook is above this line. The rail bows out on a list with nothing
-     left in it, and a return that sits between hooks changes how many run
-     between one render and the next. */
-  if (!nextOpen.length || (prereqHidden && !keep)) return null;
-
   /* A card on its way out opens the section to show itself. Shut is the right
      resting state once a plan lands, but a strip that silently ticks from 0 to
      1 while folded is the disappearance this whole thing exists to avoid. It
      folds back to whatever it was as soon as the card has gone. */
   const expanded = leaving ? true : prereqOpen === null ? startOpen : prereqOpen;
 
-  /* Open ones first, finished ones after them, all still here.
+  /* One order, always, and nothing ever moves in it.
 
-     They used to leave the rail the moment they were done. That is tidy and it
-     throws away the only proof anybody gets that the thing they went off and
-     did actually counted: you come back and the card is simply absent, which
-     reads the same as a card that was dropped. Struck and sitting at the end,
-     it is a receipt. */
-  const shown = nextActions
-    .filter((id) => nextOpen.includes(id))
-    .concat(nextActions.filter((id) => !nextOpen.includes(id)));
+     They used to leave the rail the moment they were done, which throws away
+     the only proof anybody gets that the thing they went off and did counted.
+     Sorting the finished ones to the end fixed that and broke something else:
+     a card that jumps three places while you are looking for it is a card you
+     have to find again, and the person has just come back specifically to see
+     it. So the list is the list, and what changes is the card, in place. */
+  const shown = nextActions;
+
+  /* Watching it tick, then being taken to what is next.
+
+     The rail lands on the card that was finished, holds long enough to read
+     the tick going on, and then carries you to the first one still open. That
+     order matters: the payoff first, the next ask second. Doing it the other
+     way round is an app hurrying somebody past the thing they earned. */
+  const railRef = useRef(null);
+  const cards = useRef({});
+  useEffect(() => {
+    if (!leaving || !expanded) return;
+    const rail = railRef.current;
+    if (!rail) return;
+    const at = (id) => {
+      const el = cards.current[id];
+      if (!el) return null;
+      return el.getBoundingClientRect().left - rail.getBoundingClientRect().left + rail.scrollLeft - 13;
+    };
+    const from = at(leaving);
+    if (from !== null) rail.scrollLeft = Math.max(0, from);
+
+    /* Native rather than a hand rolled tween. A tween writing scrollLeft on
+       every frame was being undone by something between the rail and the
+       frame's own scroller, so the glide fired and the rail sat at nought.
+       scrollIntoView asks the browser for the same thing once and lets it
+       own the animation, which is both shorter and the version that works. */
+    /* Then it carries you to the one still waiting.
+
+       Slowly, and after the tick has landed: the payoff first, the next ask
+       second. Doing it the other way round is an app hurrying somebody past
+       the thing they earned.
+
+       Hand rolled rather than scrollTo({behavior:"smooth"}), which is a no-op
+       on this frame's scrollers in Chrome, and the loop keeps re-asserting the
+       position every frame rather than setting it once, so a re-render landing
+       mid glide cannot put the rail back where it started. */
+    const nextUp = nextActions.find((id) => nextOpen.includes(id));
+    let raf = null;
+    const hold = setTimeout(() => {
+      const to = nextUp ? at(nextUp) : null;
+      if (to === null) return;
+      const start = rail.scrollLeft;
+      const t0 = performance.now();
+      const step = (now) => {
+        const k = Math.min(1, (now - t0) / 620);
+        const e = 1 - Math.pow(1 - k, 3);
+        rail.scrollLeft = Math.max(0, start + (to - start) * e);
+        if (k < 1) raf = requestAnimationFrame(step);
+      };
+      raf = requestAnimationFrame(step);
+    }, 1300);
+
+    return () => {
+      clearTimeout(hold);
+      if (raf) cancelAnimationFrame(raf);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leaving, expanded]);
+
+  /* Every hook is above this line. The rail bows out on a list with nothing
+     left in it, and a return that sits between hooks changes how many run
+     between one render and the next. */
+  if (!nextOpen.length || (prereqHidden && !keep)) return null;
 
   const head = (
     <>
@@ -243,73 +300,40 @@ export default function PrereqRail({ startOpen = false, keep = false }) {
                 alignItems: "stretch",
                 gap: 10,
                 overflowX: "auto",
-                scrollSnapType: "x mandatory",
+                /* No snapping. A mandatory snap container re-snaps on every
+                   frame and on every re-render, so it fought the glide to the
+                   next card and put the rail back at nought each time. The
+                   cards are wider than the frame and a partial one at the edge
+                   is the point, so there was never much for snapping to add. */
                 scrollPaddingLeft: 13,
                 padding: "0 13px 13px",
                 scrollbarWidth: "none",
               }}
+              ref={railRef}
             >
-              {shown.map((id) =>
-                nextOpen.includes(id) ? (
-                  <PrereqCard key={id} id={id} width={268} />
-                ) : (
-                  <Struck key={id} id={id} fresh={id === leaving} />
-                )
-              )}
+              {shown.map((id) => (
+                <span
+                  key={id}
+                  ref={(el) => {
+                    cards.current[id] = el;
+                  }}
+                  /* Stretch passes through. Without it the wrapper sizes to
+                     its own content and the ticked card ends up shorter than
+                     the one beside it. */
+                  style={{ display: "flex", alignItems: "stretch", flexShrink: 0 }}
+                >
+                  <PrereqCard
+                    id={id}
+                    width={268}
+                    done={!nextOpen.includes(id)}
+                    fresh={id === leaving}
+                  />
+                </span>
+              ))}
             </div>
           </div>
         )}
       </div>
-    </div>
-  );
-}
-
-/* A first step that has been done, kept where it was finished.
-
-   The card underneath, greyed and struck, with a tick where its own button
-   was. `fresh` is the one just completed somewhere else: it plays its tick in
-   rather than arriving already ticked, so walking back from a flow shows the
-   moment rather than the aftermath. */
-function Struck({ id, fresh }) {
-  return (
-    <div
-      style={{
-        flexShrink: 0,
-        position: "relative",
-        filter: "grayscale(.55)",
-        opacity: 0.72,
-        animation: fresh ? "prereqSettle .7s cubic-bezier(.32,.72,0,1) both" : undefined,
-      }}
-    >
-      <PrereqCard id={id} width={268} />
-      <span
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          borderRadius: 16,
-          background: "rgba(255,255,255,.55)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <span
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: "50%",
-            background: GREEN,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 4px 12px rgba(16,24,40,.16)",
-            animation: fresh ? "popIn .45s cubic-bezier(.32,.72,0,1) .18s both" : undefined,
-          }}
-        >
-          <Check size={21} color="#fff" strokeWidth={3} />
-        </span>
-      </span>
     </div>
   );
 }

@@ -167,7 +167,7 @@ export default function PillarScienceSheet() {
                 ))}
               </div>
 
-              <CoachNote role="nutrition coach" onChat={() => { setPillarInfo(null); setChatsOpen(true); }} />
+              <CoachNote pillar="eat" onChat={() => { setPillarInfo(null); setChatsOpen(true); }} />
             </>
           )}
 
@@ -183,7 +183,7 @@ export default function PillarScienceSheet() {
                 </span>
                 <span style={{ fontSize: 12, color: MUTED }}>minutes of movement a day</span>
               </div>
-              <CoachNote role="exercise coach" onChat={() => { setPillarInfo(null); setChatsOpen(true); }} />
+              <CoachNote pillar="move" onChat={() => { setPillarInfo(null); setChatsOpen(true); }} />
             </>
           )}
 
@@ -234,12 +234,19 @@ function Label({ children }) {
 
 /* Who set a target and how to get it changed. Both pillars say it the same
    way, because it is the same relationship. */
-function CoachNote({ role, onChat }) {
+/* Who set a target, read off the care team rather than written out here.
+
+   It named Manya Jain on both sheets, so the Move target was credited to the
+   Mind coach. A name in a component is a second copy of a fact `careTeam`
+   already holds, and this is what that always costs. */
+function CoachNote({ pillar, onChat }) {
+  const { careTeam } = useWF();
+  const who = careTeam.find((c) => c.pillar === pillar) || careTeam[0];
   return (
     <div style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
       <Lock size={13} color={GREEN} strokeWidth={2.2} style={{ flexShrink: 0, marginTop: 2 }} />
       <span style={{ fontSize: 12, color: MUTED, lineHeight: 1.55 }}>
-        Manya Jain, your {role}, set this after your first consultation.{" "}
+        {who.name}, {who.coach.replace("Your ", "your ")}, set this after your first consultation.{" "}
         <button
           onClick={onChat}
           style={{

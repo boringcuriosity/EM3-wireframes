@@ -10,9 +10,12 @@ import { PROFILE, GOALS, BMR, TDEE, ACTIVITY, targetsFor } from "./data";
    derived from the one above it, so nothing has to be taken on faith. */
 export default function Profile() {
   const {
+    careTeam,
     setSuffFlow, setSuffSheet, userName, suffGoal, setSuffGoal, suffKcal, setSuffKcal,
     kcalSource, isPaid, suffEdit, setSuffEdit, setEatDetail,
   } = useWF();
+  // The coach who actually sets a calorie target, read off the care team.
+  const eatCoach = careTeam.find((c) => c.pillar === "eat");
 
   const name = (userName || "").trim().split(" ")[0];
   const goal = GOALS.find((g) => g.id === suffGoal) || GOALS[0];
@@ -175,7 +178,7 @@ export default function Profile() {
             <span style={{ fontSize: 11, color: MUTED, lineHeight: 1.55 }}>
               {source === "coach" ? (
                 <>
-                  Manya Jain, your success coach, set this after your consultation on 14 Aug. It
+                  {eatCoach.name}, your Eat coach, set this after your consultation on 14 Aug. It
                   stays fixed so your plan and your logging agree. Message them if it needs a change.
                 </>
               ) : (

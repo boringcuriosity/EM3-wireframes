@@ -15,7 +15,7 @@ const PARTS = [
   { id: "morning",   name: "Morning",   hours: "5 AM to 12 PM", from: 5 * 60 },
   { id: "afternoon", name: "Afternoon", hours: "12 PM to 4 PM", from: 12 * 60 },
   { id: "evening",   name: "Evening",   hours: "4 PM to 7 PM",  from: 16 * 60 },
-  { id: "night",     name: "Night",     hours: "7 PM to 5 AM", from: 19 * 60 },
+  { id: "night",     name: "Night",     hours: "7 PM to 12 AM", from: 19 * 60 },
 ];
 /* What the big bubble asks.
 

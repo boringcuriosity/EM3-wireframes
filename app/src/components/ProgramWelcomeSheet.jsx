@@ -23,9 +23,9 @@ const LOGS = [
 ];
 
 const COACHES = [
-  { id: "nutrition", Icon: Utensils, label: "Nutrition coach", line: "Builds your diet plan around how you actually eat." },
-  { id: "exercise", Icon: Flame, label: "Exercise coach", line: "Sets movement that fits your body and your day." },
-  { id: "success", Icon: HeartHandshake, label: "Success coach", line: "Keeps the whole plan on track and checks in on you." },
+  { id: "nutrition", Icon: Utensils, label: "Eat coach", line: "Builds your diet plan around how you actually eat." },
+  { id: "exercise", Icon: Flame, label: "Move coach", line: "Sets movement that fits your body and your day." },
+  { id: "success", Icon: HeartHandshake, label: "Mind coach", line: "Keeps the whole plan on track and checks in on you." },
 ];
 
 export default function ProgramWelcomeSheet() {
@@ -48,8 +48,15 @@ export default function ProgramWelcomeSheet() {
       title: (you ? "Hey " + you + ", welcome to\n" : "Welcome to\n") + program.name + " care.",
       say: (
         <>
-          Your coaches will be assigned to you soon. Your program can include coach consultations,
-          doctor visits, lab tests and devices.
+          {/* The coaches are named twenty lines below with what each one does,
+              so promising them soon here contradicted the list underneath.
+
+              The list of four is what the programs can hold between them, not
+              what this person has. Ending on what they were promised is what
+              turns a brochure line into a sentence about them, and it is the
+              honest version: nobody gets all four. */}
+          Your program can include coach consultations, doctor consultations, lab tests and
+          devices, whichever of these you were promised when you joined.
         </>
       ),
       cta: "What happens next",

@@ -15,8 +15,13 @@ export default function OnboardingPage() {
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", background: BG, minHeight: 0 }}>
       <div style={{ padding: "8px 22px 0", flexShrink: 0 }}>
+        {/* Named rather than "Back". This is the only screen anybody reaches
+            it from, so it can say where it goes instead of only that it
+            leaves, and somebody two paragraphs into an explainer wants to know
+            what they land on. */}
         <button
           onClick={onbBack}
+          aria-label="Go to home"
           style={{
             display: "flex",
             alignItems: "center",
@@ -30,7 +35,7 @@ export default function OnboardingPage() {
             cursor: "pointer",
           }}
         >
-          <ChevronLeft size={20} color={TEXT} /> Back
+          <ChevronLeft size={20} color={TEXT} /> Go to home
         </button>
       </div>
 

@@ -16,16 +16,17 @@ import {
 const ITEMS = {
   score: { name: "Metabolic score", line: "A few questions about how you eat, move and sleep." },
   labs: { name: "Diagnostics", line: "A blood test at home, included in your program." },
+  doctor: { name: "Doctor consultation", line: "Consult expert doctors for your health journey and your progress reviews." },
   assess: { name: "Pre-consultation assessment", line: "KAIRA learns how your days actually run." },
-  "book:eat": { name: "Eat consultation", line: "The hour your nutrition coach writes your plan in." },
-  "book:move": { name: "Move consultation", line: "The hour your physio writes your routine in." },
-  "book:mind": { name: "Mind consultation", line: "The hour your psychologist plans around." },
+  "book:eat": { name: "Eat consultation", line: "The hour your Eat coach writes your plan in." },
+  "book:move": { name: "Move consultation", line: "The hour your Move coach writes your routine in." },
+  "book:mind": { name: "Mind consultation", line: "The hour your Mind coach plans around." },
 };
 
 export default function NextActionsSheet() {
   const {
     setNextSheet, nextActions, nextOpen, setScoreFlow, setScoreStep,
-    openDiagnostics, openBooking, setActiveTab,
+    openDiagnostics, openDoctor, openBooking, setActiveTab,
   } = useWF();
 
   const total = nextActions.length;
@@ -41,6 +42,7 @@ export default function NextActionsSheet() {
       return;
     }
     if (id === "labs") return openDiagnostics();
+    if (id === "doctor") return openDoctor();
     if (id.startsWith("book:")) return openBooking({ eat: "eat", move: "move", mind: "success" }[id.slice(5)]);
     setActiveTab("care");
   };

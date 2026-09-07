@@ -1690,10 +1690,10 @@ export default function ControlPanel() {
           screenKey === "todo" ? "Prerequisites" : "Next actions card",
           screenKey === "todo" ? "To-do, above the list" : "Home carousel, second card",
           [
-            { id: "all", label: "All six waiting", v: ["score", "labs", "assess", "book:eat", "book:move", "book:mind"], d: [] },
-            { id: "one", label: "Score done", v: ["score", "labs", "assess", "book:eat", "book:move", "book:mind"], d: ["score"] },
-            { id: "two", label: "Only the coaches left", v: ["score", "labs", "assess", "book:eat", "book:move", "book:mind"], d: ["score", "labs", "assess"] },
-            { id: "none", label: "Nothing pending", v: ["score", "labs", "assess", "book:eat", "book:move", "book:mind"], d: ["score", "labs", "assess", "book:eat", "book:move", "book:mind"] },
+            { id: "all", label: "All seven waiting", v: ["score", "labs", "doctor", "assess", "book:eat", "book:move", "book:mind"], d: [] },
+            { id: "one", label: "Score done", v: ["score", "labs", "doctor", "assess", "book:eat", "book:move", "book:mind"], d: ["score"] },
+            { id: "two", label: "Only the coaches left", v: ["score", "labs", "doctor", "assess", "book:eat", "book:move", "book:mind"], d: ["score", "labs", "doctor", "assess"] },
+            { id: "none", label: "Nothing pending", v: ["score", "labs", "doctor", "assess", "book:eat", "book:move", "book:mind"], d: ["score", "labs", "doctor", "assess", "book:eat", "book:move", "book:mind"] },
           ].map((x) =>
             panelChip(
               x.label,

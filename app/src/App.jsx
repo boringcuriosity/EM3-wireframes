@@ -63,19 +63,21 @@ import KairaFab from "./components/KairaFab";
 import PlanChangedSheet from "./components/PlanChangedSheet";
 import CgmSync from "./screens/measure/CgmSync";
 import Diagnostics from "./screens/measure/Diagnostics";
+import DoctorVisit from "./screens/DoctorVisit";
 import BcaSync from "./screens/measure/BcaSync";
 import WeekReadSheet from "./components/WeekReadSheet";
 
 // Full-screen takeovers hide the bottom nav. Order matters: the first
 // truthy one wins, exactly as in the original wireframe.
 function Takeover() {
-  const { logExOpen, logSleepOpen, mindDetail, moveDetail, logResult, logOpen, suffFlow, scoreFlow, streakOpen, onboardingOpen, chatsOpen, programDetail, eatDetail, cgmOpen, bcaOpen, planNotif, moveResult, bookOpen, diagOpen } = useWF();
+  const { logExOpen, logSleepOpen, mindDetail, moveDetail, logResult, logOpen, suffFlow, scoreFlow, streakOpen, onboardingOpen, chatsOpen, programDetail, eatDetail, cgmOpen, bcaOpen, planNotif, moveResult, bookOpen, diagOpen, docOpen } = useWF();
   /* First, because neither is our app. Nothing of ours belongs over a message
      somebody is reading on a lock screen or in WhatsApp. */
   if (planNotif === "push") return <PushNotification />;
   if (planNotif) return <PlanNotification />;
   if (bookOpen) return <BookAppointment />;
   if (diagOpen) return <Diagnostics />;
+  if (docOpen) return <DoctorVisit />;
   if (logSleepOpen) return <LogSleep />;
   // The result outranks the logger, exactly as a meal's does.
   if (moveResult) return <MoveLogged />;
@@ -171,6 +173,7 @@ export default function App() {
     wf.moveResult ||
     wf.bookOpen ||
     wf.diagOpen ||
+    wf.docOpen ||
     wf.logSleepOpen ||
     wf.mindDetail ||
     wf.logExOpen ||

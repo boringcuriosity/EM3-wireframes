@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useWF } from "../../state";
-import { TEXT, MUTED, GREEN, GREEN_WASH, BG, BORDER } from "../../tokens";
+import { Check } from "lucide-react";
+import { TEXT, MUTED, GREEN, GREEN_WASH, BG, BORDER, SH_SM } from "../../tokens";
 import PillarFlower from "../../components/PillarFlower";
 import { AuthScreen, AuthHeader, PrimaryCta, inputStyle } from "./parts";
 import CtaArrow from "../../components/CtaArrow";
@@ -10,7 +11,19 @@ import CtaArrow from "../../components/CtaArrow";
 export default function PhoneEntry() {
   const { phone, setPhone, setAuthStep } = useWF();
   const [focused, setFocused] = useState(false);
-  const valid = phone.length === 10;
+  /* Consent, given rather than assumed.
+
+     The line used to read "by continuing you agree", which takes the tap on
+     Continue and counts it as two answers: one about the number and one about
+     the terms. A box somebody has to reach for is one act meaning one thing,
+     and it is the only version of this that a person could later say they did.
+
+     It gates the button alongside the number, so the button means what it
+     says. The button keeps one label either way: a control that renames itself
+     to nag is louder than the box it is pointing at, and the box is right
+     above it. */
+  const [agreed, setAgreed] = useState(false);
+  const valid = phone.length === 10 && agreed;
 
   return (
     <AuthScreen
@@ -128,17 +141,65 @@ export default function PhoneEntry() {
           </div>
         </div>
 
-        <p style={{ fontSize: 10.5, color: MUTED, lineHeight: 1.6, margin: "12px 0 20px" }}>
-          By continuing you agree to GoodFlip's{" "}
-          <span style={{ color: TEXT, fontWeight: 600, textDecoration: "underline" }}>
-            Terms &amp; Conditions
-          </span>{" "}
-          and{" "}
-          <span style={{ color: TEXT, fontWeight: 600, textDecoration: "underline" }}>
-            Privacy Policy
+        {/* The whole row is the target, because a 20px box is a small thing to
+            ask somebody to hit and the words beside it are what they are
+            agreeing to. The two links keep their own taps inside it. */}
+        <button
+          onClick={() => setAgreed(!agreed)}
+          role="checkbox"
+          aria-checked={agreed}
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 10,
+            width: "100%",
+            margin: "14px 0 20px",
+            padding: 0,
+            background: "none",
+            border: "none",
+            textAlign: "left",
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          <span
+            aria-hidden
+            style={{
+              width: 19,
+              height: 19,
+              flexShrink: 0,
+              marginTop: 1,
+              borderRadius: 6,
+              background: agreed ? GREEN : BG,
+              border: "1.5px solid " + (agreed ? GREEN : BORDER),
+              /* Lifted off the page so it reads as something to press. A
+                 hairline square on white is the same drawing as a disabled
+                 field, and this is the one control on the screen a person has
+                 to find on their own. Ticked, the shadow takes the brand's own
+                 colour, so it looks pressed in rather than merely filled. */
+              boxShadow: agreed
+                ? "0 2px 5px -1px " + GREEN + "59, inset 0 1px 0 rgba(255,255,255,.25)"
+                : SH_SM + ", inset 0 -1px 0 rgba(16,24,40,.04)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "background .18s ease, border-color .18s ease, box-shadow .18s ease",
+            }}
+          >
+            {agreed && <Check size={13} color="#fff" strokeWidth={3.2} />}
           </span>
-          .
-        </p>
+          <span style={{ fontSize: 11, color: MUTED, lineHeight: 1.6 }}>
+            I agree to GoodFlip's{" "}
+            <span style={{ color: TEXT, fontWeight: 600, textDecoration: "underline" }}>
+              Terms &amp; Conditions
+            </span>{" "}
+            and{" "}
+            <span style={{ color: TEXT, fontWeight: 600, textDecoration: "underline" }}>
+              Privacy Policy
+            </span>
+            , and to GoodFlip contacting me about my care.
+          </span>
+        </button>
       </div>
     </AuthScreen>
   );

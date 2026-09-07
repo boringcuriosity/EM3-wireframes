@@ -1,6 +1,6 @@
 import React from "react";
 import { useWF } from "../state";
-import { BarChart3, FlaskConical, MessagesSquare } from "lucide-react";
+import { BarChart3, Check, FlaskConical, MessagesSquare, Stethoscope } from "lucide-react";
 import CtaArrow from "./CtaArrow";
 import { coachAvatar } from "../ui";
 import {
@@ -43,6 +43,21 @@ const PREREQS = {
     cta: "Book a slot",
     tab: "care",
   },
+  /* The clinical half of the program, and the only part of it with authority
+     over treatment.
+
+     A coach shapes habits. A licensed specialist matched to the condition, a
+     diabetologist, a hepatologist, a gynaecologist, is the one person who can
+     review medication and change it. Saying so is the point of the card:
+     without it the whole thing reads as lifestyle advice running on its own,
+     and the reason to book is exactly that it does not. */
+  doctor: {
+    Icon: Stethoscope,
+    title: "Book your doctor consultation",
+    line: "Consult expert doctors for your health journey and your progress reviews.",
+    cta: "Book now",
+    tab: "care",
+  },
   /* The part a lab test cannot answer. Kaira asks it as a conversation
      because a person will tell a chat what they skip and why, and will not
      tell a form. */
@@ -58,8 +73,11 @@ const PREREQS = {
 /* The plan each consultation produces, named the way the handover names it. */
 const PLAN_OF = { eat: "Eat plan", move: "Move plan", mind: "Mind plan" };
 
-export default function PrereqCard({ id, width, minHeight }) {
-  const { setActiveTab, nextDone, setNextDone, setScoreFlow, setScoreStep, openBooking, careTeam } = useWF();
+export default function PrereqCard({ id, width, minHeight, done, fresh }) {
+  const {
+    setActiveTab, nextDone, setNextDone, setScoreFlow, setScoreStep, openBooking, careTeam,
+    openDiagnostics, openDoctor,
+  } = useWF();
   const x = PREREQS[id];
   if (!x) return null;
   // The coach cards are their own shape: a person rather than a task.
@@ -81,6 +99,11 @@ export default function PrereqCard({ id, width, minHeight }) {
        already records the slot, so a tick of our own would be the same fact
        kept twice and the two would part company the moment a slot moved. */
     if (x.book) return openBooking(who ? who.id : null);
+    /* Two that go somewhere of their own and finish there rather than on the
+       tap: the lab test has a price to read first, and the doctor is arranged
+       outside this app so only the person can say it happened. */
+    if (id === "labs") return openDiagnostics();
+    if (id === "doctor") return openDoctor();
     if (!nextDone.includes(id)) setNextDone(nextDone.concat(id));
     setActiveTab(x.tab);
   };
@@ -95,6 +118,11 @@ export default function PrereqCard({ id, width, minHeight }) {
         scrollSnapAlign: "start",
         position: "relative",
         overflow: "hidden",
+        /* A finished card steps back without becoming unreadable. Enough to
+           read as behind you at a glance, not so much that the card you came
+           back to look at is hard to look at. */
+        opacity: done ? 0.62 : 1,
+        transition: "opacity .8s ease",
         display: "flex",
         flexDirection: "column",
         background: WARN_TINT,
@@ -153,33 +181,76 @@ export default function PrereqCard({ id, width, minHeight }) {
           </div>
         </>
       )}
-      <button
-        onClick={go}
-        /* The same pill the session cards use. These sit in the same Home rail
-           as Book a session and View session, so a second button shape one
-           card along read as two kinds of action rather than one.
+      {done ? (
+        /* Finished, said where the ask was.
 
-           Flex, so the label and the arrow centre on each other rather than on
-           a line box the arrow's descent has stretched. */
-        style={{
-          position: "relative",
-          alignSelf: "flex-start",
-          display: "inline-flex",
-          alignItems: "center",
-          background: GREEN,
-          border: "none",
-          borderRadius: 999,
-          padding: "6px 13px",
-          color: "#fff",
-          fontSize: 11.5,
-          fontWeight: 600,
-          cursor: "pointer",
-          fontFamily: "inherit",
-        }}
-      >
-        {who ? "Book a time" : x.cta}
-        <CtaArrow />
-      </button>
+           A tick floated over the middle of the card said "done" by covering
+           the thing it was about, so the card became unreadable at the moment
+           somebody came back to read it. The ask is the one part that has
+           stopped being true, so the ask is the part that changes: same pill,
+           same place, same size, a tick instead of an arrow. */
+        <span
+          style={{
+            position: "relative",
+            alignSelf: "flex-start",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 9,
+          }}
+        >
+          {/* A mark and a label, not a pill. Filled and rounded in the same
+              green as the button it replaced, it read as one more thing to
+              press: the shape was the message, and the shape said "act". A
+              circle carrying a tick is a state in every visual language there
+              is, and nothing about it invites a tap. */}
+          <span
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: "50%",
+              background: GREEN,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 4px 12px -2px " + GREEN + "70",
+              animation: fresh ? "prereqTick .62s cubic-bezier(.34,1.56,.64,1) .22s both" : undefined,
+            }}
+          >
+            <Check size={17} color="#fff" strokeWidth={3.2} />
+          </span>
+          <span style={{ fontSize: 14, fontWeight: 800, color: GREEN, letterSpacing: -0.2 }}>
+            Task done
+          </span>
+        </span>
+      ) : (
+        <button
+          onClick={go}
+          /* The same pill the session cards use. These sit in the same Home
+             rail as Book a session and View session, so a second button shape
+             one card along read as two kinds of action rather than one.
+
+             Flex, so the label and the arrow centre on each other rather than
+             on a line box the arrow's descent has stretched. */
+          style={{
+            position: "relative",
+            alignSelf: "flex-start",
+            display: "inline-flex",
+            alignItems: "center",
+            background: GREEN,
+            border: "none",
+            borderRadius: 999,
+            padding: "6px 13px",
+            color: "#fff",
+            fontSize: 11.5,
+            fontWeight: 600,
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          {who ? "Book a time" : x.cta}
+          <CtaArrow />
+        </button>
+      )}
     </div>
   );
 }

@@ -11,7 +11,9 @@ import {
    must follow the number honestly, and a target a coach has already set must
    not be quietly overwritten by a slider. */
 export default function CaloriesSheet() {
-  const { setSuffSheet, suffGoal, suffKcal, setSuffKcal, kcalSource, isPaid } = useWF();
+  const { setSuffSheet, suffGoal, suffKcal, setSuffKcal, kcalSource, isPaid, careTeam } = useWF();
+  // The coach who actually sets a calorie target, read off the care team.
+  const eatCoach = careTeam.find((c) => c.pillar === "eat");
   const goal = GOALS.find((g) => g.id === suffGoal) || GOALS[0];
   const kcal = suffKcal ?? goal.kcal;
   const locked = isPaid && kcalSource === "coach";
@@ -210,7 +212,7 @@ export default function CaloriesSheet() {
             >
               <Lock size={15} color={TEXT} style={{ flexShrink: 0, marginTop: 1 }} />
               <span style={{ fontSize: 11.5, color: TEXT, lineHeight: 1.55 }}>
-                Manya Jain, your success coach, set this after your consultation on 14 Aug. If it
+                {eatCoach.name}, your Eat coach, set this after your consultation on 14 Aug. If it
                 does not feel right, message them and they can change it.
               </span>
             </div>

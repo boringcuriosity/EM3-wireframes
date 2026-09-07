@@ -26,6 +26,13 @@
    The hours are Indian too. Shaam starts with tea at four rather than at the
    six most apps assume, and raat starts at seven with the evening meal.
 
+   The last part ends at midnight rather than running to five. Most people are
+   asleep by twelve and nothing is ever assigned after it, so a label that said
+   the night ran to 5 AM was promising a stretch of the day the plan has no
+   business in. The turnover is still five: `phaseOf` files anything before it
+   under the night that was already running, so a two in the morning row
+   belongs to last night rather than opening the next day.
+
    `when` is the phase said as a moment rather than as a heading, for the lines
    that read "2 more tonight". Night is the reason it exists: every other part
    takes "this", and "this night" is not something anybody says.
@@ -36,12 +43,12 @@ export const PHASE_MODES = {
     { id: "morning",   label: "Morning",   hindi: "Subah",   span: "5 AM to 12 PM", when: "this morning",   from:  5 * 60 },
     { id: "afternoon", label: "Afternoon", hindi: "Dopahar", span: "12 PM to 4 PM", when: "this afternoon", from: 12 * 60 },
     { id: "evening",   label: "Evening",   hindi: "Shaam",   span: "4 PM to 7 PM",  when: "this evening",   from: 16 * 60 },
-    { id: "night",     label: "Night",     hindi: "Raat",    span: "7 PM to 5 AM",  when: "tonight",        from: 19 * 60 },
+    { id: "night",     label: "Night",     hindi: "Raat",    span: "7 PM to 12 AM", when: "tonight",        from: 19 * 60 },
   ],
   3: [
     { id: "morning",   label: "Morning",   hindi: "Subah",   span: "5 AM to 12 PM", when: "this morning",   from:  5 * 60 },
     { id: "afternoon", label: "Afternoon", hindi: "Dopahar", span: "12 PM to 5 PM", when: "this afternoon", from: 12 * 60 },
-    { id: "evening",   label: "Evening",   hindi: "Shaam",   span: "5 PM to 5 AM",  when: "this evening",   from: 17 * 60 },
+    { id: "evening",   label: "Evening",   hindi: "Shaam",   span: "5 PM to 12 AM", when: "this evening",   from: 17 * 60 },
   ],
 };
 
@@ -269,15 +276,27 @@ export function buildDay(w) {
       rows.push({ ...n, pillar: "move", kind: "tick", done: ticks.includes(n.id) })
     );
 
-  measureRows.forEach((m) =>
+  /* The body scan goes before anything is eaten or drunk.
+
+     A composition reading moves with a glass of water, so a scan taken after
+     breakfast is measuring the breakfast. It sits ahead of the first meal on
+     the list for that reason rather than for tidiness, and the row says so:
+     somebody who is not told will do it whenever they get to it, and then the
+     number their coach reads is the wrong number.
+
+     Only the scale. A glucose monitor is not a fasting reading and moving it
+     up would put a row before breakfast that has no reason to be there. */
+  measureRows.forEach((m) => {
+    const fasting = m.id === "measure";
     rows.push({
-      id: "sync:" + m.id, pillar: "measure", at: 7 * 60 + 30, coins: 10,
+      id: "sync:" + m.id, pillar: "measure", at: fasting ? 5 * 60 + 30 : 7 * 60 + 30, coins: 10,
       cat: "device", name: m.name,
-      when: "7:30 AM",
+      when: fasting ? "5:30 AM" : "7:30 AM",
+      tip: fasting ? "We recommend taking this before you eat or drink anything." : null,
       kind: "go", to: "measure",
       done: m.done,
-    })
-  );
+    });
+  });
 
   eatDivisions.forEach((d) => {
     const mine = itemsIn(d.id);

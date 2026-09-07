@@ -19,6 +19,7 @@ import { TEXT, MUTED, BG_ALT, LINE, GREEN, WARN, WARN_TINT, WARN_LINE } from "..
 const NAME = {
   score: "Metabolic score",
   labs: "Diagnostics",
+  doctor: "Doctor consultation",
   assess: "Pre-consultation assessment",
   "book:eat": "Eat consultation",
   "book:move": "Move consultation",
@@ -26,7 +27,7 @@ const NAME = {
 };
 
 export default function NextActionStrip({ id }) {
-  const { nextActions, nextOpen, setNextSheet, openDiagnostics } = useWF();
+  const { nextActions, nextOpen, setNextSheet, openDiagnostics, openDoctor } = useWF();
   const total = nextActions.length;
   const done = total - nextOpen.length;
 
@@ -130,6 +131,7 @@ export default function NextActionStrip({ id }) {
             onClick={(e) => {
               e.stopPropagation();
               if (after[0] === "labs") openDiagnostics();
+      else if (after[0] === "doctor") openDoctor();
               else setNextSheet(true);
             }}
             style={{
