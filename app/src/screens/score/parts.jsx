@@ -1,4 +1,6 @@
 import React from "react";
+import { useWF } from "../../state";
+import NextActionStrip from "../../components/NextActionStrip";
 import { ChevronLeft } from "lucide-react";
 import { GREEN, TEXT, BG, BORDER } from "../../tokens";
 
@@ -12,6 +14,12 @@ const STEPS = ["intro", "focus", "profile", "review", "result"];
 
 export function ScoreScreen({ step, onBack, children, footer }) {
   const idx = STEPS.indexOf(step);
+  /* Only when this walkthrough is one of the first steps. Opened cold from the
+     panel, or by somebody who has no such list, it is a score flow and nothing
+     else, and a progress strip for a list they are not on would be a promise
+     about work nobody asked them to do. */
+  const { nextActions } = useWF();
+  const strip = nextActions.includes("score") ? <NextActionStrip id="score" /> : null;
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", background: BG, minHeight: 0 }}>
       <div
@@ -64,8 +72,11 @@ export function ScoreScreen({ step, onBack, children, footer }) {
       <div style={{ flex: 1, overflowY: "auto", minHeight: 0 }}>{children}</div>
 
       {footer && (
-        <div style={{ flexShrink: 0, padding: "12px 22px 26px", borderTop: "1px solid " + BORDER }}>
-          {footer}
+        <div style={{ flexShrink: 0, borderTop: "1px solid " + BORDER }}>
+          {/* Outside the padding, so the strip reaches both edges of the frame
+              and reads as part of the screen rather than as content. */}
+          {strip}
+          <div style={{ padding: "12px 22px 26px" }}>{footer}</div>
         </div>
       )}
     </div>

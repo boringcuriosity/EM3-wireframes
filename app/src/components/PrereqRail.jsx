@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useWF } from "../state";
 import PrereqCard from "./PrereqCard";
-import { ChevronDown, ListChecks, X } from "lucide-react";
-import { TEXT, MUTED, BG, BORDER, WARN, WARN_TINT, WARN_LINE, SH_SM } from "../tokens";
+import { Check, ChevronDown, ListChecks, X } from "lucide-react";
+import { GREEN, TEXT, MUTED, BG, BORDER, WARN, WARN_TINT, WARN_LINE, SH_SM } from "../tokens";
 
 /* What has to happen before a coach can write anything.
 
@@ -38,13 +38,53 @@ import { TEXT, MUTED, BG, BORDER, WARN, WARN_TINT, WARN_LINE, SH_SM } from "../t
    too, that promise would be a lie and there would be no way back to them. */
 export default function PrereqRail({ startOpen = false, keep = false }) {
   const {
-    nextActions, nextOpen, prereqHidden, prereqOpen, setPrereqOpen, setPrereqAsk,
+    nextActions, nextOpen, nextJustDone, setNextJustDone,
+    prereqHidden, prereqOpen, setPrereqOpen, setPrereqAsk,
   } = useWF();
-  const expanded = prereqOpen === null ? startOpen : prereqOpen;
-  if (!nextOpen.length || (prereqHidden && !keep)) return null;
-
+  /* The one finished elsewhere, kept in the rail for as long as it takes to
+     watch it go. Long enough to read the tick, short enough that it is gone
+     before anybody wonders why a finished thing is still sitting there. */
+  const leaving = nextJustDone && nextActions.includes(nextJustDone) ? nextJustDone : null;
   const total = nextActions.length;
   const done = total - nextOpen.length;
+
+  useEffect(() => {
+    if (!leaving) return;
+    const t = setTimeout(() => setNextJustDone(null), 1900);
+    return () => clearTimeout(t);
+  }, [leaving, setNextJustDone]);
+
+  /* The count the header draws, which lags the real one by a beat so the bar
+     is seen filling rather than arriving full. Only ever matters on the return
+     from a flow, where the number changed while nobody was looking. */
+  const [shownDone, setShownDone] = useState(leaving ? done - 1 : done);
+  useEffect(() => {
+    if (shownDone === done) return;
+    const t = setTimeout(() => setShownDone(done), 520);
+    return () => clearTimeout(t);
+  }, [done, shownDone]);
+
+  /* Every hook is above this line. The rail bows out on a list with nothing
+     left in it, and a return that sits between hooks changes how many run
+     between one render and the next. */
+  if (!nextOpen.length || (prereqHidden && !keep)) return null;
+
+  /* A card on its way out opens the section to show itself. Shut is the right
+     resting state once a plan lands, but a strip that silently ticks from 0 to
+     1 while folded is the disappearance this whole thing exists to avoid. It
+     folds back to whatever it was as soon as the card has gone. */
+  const expanded = leaving ? true : prereqOpen === null ? startOpen : prereqOpen;
+
+  /* Open ones first, finished ones after them, all still here.
+
+     They used to leave the rail the moment they were done. That is tidy and it
+     throws away the only proof anybody gets that the thing they went off and
+     did actually counted: you come back and the card is simply absent, which
+     reads the same as a card that was dropped. Struck and sitting at the end,
+     it is a receipt. */
+  const shown = nextActions
+    .filter((id) => nextOpen.includes(id))
+    .concat(nextActions.filter((id) => !nextOpen.includes(id)));
 
   const head = (
     <>
@@ -92,7 +132,7 @@ export default function PrereqRail({ startOpen = false, keep = false }) {
           color: WARN,
         }}
       >
-        {done} of {total}
+        {shownDone} of {total}
         <ChevronDown
           size={15}
           strokeWidth={2.4}
@@ -179,7 +219,7 @@ export default function PrereqRail({ startOpen = false, keep = false }) {
               width: "100%",
               background: WARN,
               transformOrigin: "left",
-              transform: "scaleX(" + (total ? done / total : 0) + ")",
+              transform: "scaleX(" + (total ? shownDone / total : 0) + ")",
               transition: "transform .6s cubic-bezier(.32,.72,0,1)",
             }}
           />
@@ -202,13 +242,67 @@ export default function PrereqRail({ startOpen = false, keep = false }) {
                 scrollbarWidth: "none",
               }}
             >
-              {nextOpen.map((id) => (
-                <PrereqCard key={id} id={id} width={268} />
-              ))}
+              {shown.map((id) =>
+                nextOpen.includes(id) ? (
+                  <PrereqCard key={id} id={id} width={268} />
+                ) : (
+                  <Struck key={id} id={id} fresh={id === leaving} />
+                )
+              )}
             </div>
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/* A first step that has been done, kept where it was finished.
+
+   The card underneath, greyed and struck, with a tick where its own button
+   was. `fresh` is the one just completed somewhere else: it plays its tick in
+   rather than arriving already ticked, so walking back from a flow shows the
+   moment rather than the aftermath. */
+function Struck({ id, fresh }) {
+  return (
+    <div
+      style={{
+        flexShrink: 0,
+        position: "relative",
+        filter: "grayscale(.55)",
+        opacity: 0.72,
+        animation: fresh ? "prereqSettle .7s cubic-bezier(.32,.72,0,1) both" : undefined,
+      }}
+    >
+      <PrereqCard id={id} width={268} />
+      <span
+        aria-hidden
+        style={{
+          position: "absolute",
+          inset: 0,
+          borderRadius: 16,
+          background: "rgba(255,255,255,.55)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <span
+          style={{
+            width: 40,
+            height: 40,
+            borderRadius: "50%",
+            background: GREEN,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 4px 12px rgba(16,24,40,.16)",
+            animation: fresh ? "popIn .45s cubic-bezier(.32,.72,0,1) .18s both" : undefined,
+          }}
+        >
+          <Check size={21} color="#fff" strokeWidth={3} />
+        </span>
+      </span>
     </div>
   );
 }

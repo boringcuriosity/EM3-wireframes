@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useWF } from "../../state";
 import { Lock, AlertTriangle } from "lucide-react";
 import { ScoreScreen } from "./parts";
@@ -17,13 +17,21 @@ import {
    One prerequisite, not two. */
 export default function Result() {
   const {
-    setScoreFlow, SUB_SCORES, metabolicScore, nextDone, setNextDone, setActiveTab, firstName,
+    setScoreFlow, SUB_SCORES, metabolicScore, finishNext, setActiveTab, firstName,
   } = useWF();
 
   const shut = SUB_SCORES.filter((s) => s.value === null);
 
+  /* Ticked off on arrival rather than on the way out. The score exists the
+     moment this screen does, and holding the first step open until somebody
+     presses a button means the strip below spends this whole screen saying
+     there is still something to do about a thing that is finished. */
+  useEffect(() => {
+    finishNext("score");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const finish = () => {
-    if (!nextDone.includes("score")) setNextDone(nextDone.concat("score"));
     setScoreFlow(null);
     setActiveTab("track");
   };

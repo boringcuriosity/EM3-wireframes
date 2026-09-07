@@ -39,6 +39,7 @@ import MealItemSheet from "./components/MealItemSheet";
 import MetricInfoSheet from "./components/MetricInfoSheet";
 import PrereqHideSheet from "./components/PrereqHideSheet";
 import HealthConnectSheet from "./components/HealthConnectSheet";
+import NextActionsSheet from "./components/NextActionsSheet";
 import MindDetail from "./screens/mind/MindDetail";
 import LogSleep from "./screens/mind/LogSleep";
 import ToolSheet from "./screens/mind/ToolSheet";
@@ -61,18 +62,20 @@ import { GREEN, TEXT, MUTED, BG_ALT, BG, BORDER, TABS } from "./tokens";
 import KairaFab from "./components/KairaFab";
 import PlanChangedSheet from "./components/PlanChangedSheet";
 import CgmSync from "./screens/measure/CgmSync";
+import Diagnostics from "./screens/measure/Diagnostics";
 import BcaSync from "./screens/measure/BcaSync";
 import WeekReadSheet from "./components/WeekReadSheet";
 
 // Full-screen takeovers hide the bottom nav. Order matters: the first
 // truthy one wins, exactly as in the original wireframe.
 function Takeover() {
-  const { logExOpen, logSleepOpen, mindDetail, moveDetail, logResult, logOpen, suffFlow, scoreFlow, streakOpen, onboardingOpen, chatsOpen, programDetail, eatDetail, cgmOpen, bcaOpen, planNotif, moveResult, bookOpen } = useWF();
+  const { logExOpen, logSleepOpen, mindDetail, moveDetail, logResult, logOpen, suffFlow, scoreFlow, streakOpen, onboardingOpen, chatsOpen, programDetail, eatDetail, cgmOpen, bcaOpen, planNotif, moveResult, bookOpen, diagOpen } = useWF();
   /* First, because neither is our app. Nothing of ours belongs over a message
      somebody is reading on a lock screen or in WhatsApp. */
   if (planNotif === "push") return <PushNotification />;
   if (planNotif) return <PlanNotification />;
   if (bookOpen) return <BookAppointment />;
+  if (diagOpen) return <Diagnostics />;
   if (logSleepOpen) return <LogSleep />;
   // The result outranks the logger, exactly as a meal's does.
   if (moveResult) return <MoveLogged />;
@@ -167,6 +170,7 @@ export default function App() {
     wf.planNotif ||
     wf.moveResult ||
     wf.bookOpen ||
+    wf.diagOpen ||
     wf.logSleepOpen ||
     wf.mindDetail ||
     wf.logExOpen ||
@@ -261,6 +265,7 @@ export default function App() {
             {wf.metricInfo && <MetricInfoSheet />}
             {wf.prereqAsk && <PrereqHideSheet />}
             {wf.healthSheet && <HealthConnectSheet />}
+            {wf.nextSheet && <NextActionsSheet />}
             {wf.mindTool && <ToolSheet />}
             {wf.mindTemplate && <MindTemplateSheet />}
             {wf.stepsSheet && <AddStepsSheet />}
@@ -305,6 +310,7 @@ export default function App() {
             {wf.metricInfo && <MetricInfoSheet />}
             {wf.prereqAsk && <PrereqHideSheet />}
             {wf.healthSheet && <HealthConnectSheet />}
+            {wf.nextSheet && <NextActionsSheet />}
             {wf.mindTool && <ToolSheet />}
             {wf.mindTemplate && <MindTemplateSheet />}
             {wf.stepsSheet && <AddStepsSheet />}

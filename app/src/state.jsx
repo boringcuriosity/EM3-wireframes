@@ -96,6 +96,31 @@ export function WFProvider({ children, initial = {} }) {
   const [nextDone, setNextDone] = useState(
     initial.nextDone !== undefined ? initial.nextDone : []
   );
+  /* The first step finished since a rail was last on screen.
+
+     A next action gets done inside a flow, three screens away from the card
+     that asked for it, and by the time somebody walks back the card has simply
+     stopped existing. That reads as a task that was dropped rather than one
+     that was finished, so the rail holds it one beat longer, shows it ticking
+     off, and then lets it go. Whichever rail shows it first clears it. */
+  const [nextJustDone, setNextJustDone] = useState(
+    initial.nextJustDone !== undefined ? initial.nextJustDone : null
+  );
+
+  /* The list of first steps, opened from the strip that rides above a flow.
+     Somewhere in the middle of a five screen walkthrough the honest question is
+     "what else is on this list", and the strip could count but not answer. */
+  const [nextSheet, setNextSheet] = useState(initial.nextSheet !== undefined ? initial.nextSheet : false);
+  /* The diagnostics screen, which is the one first step that is a purchase.
+     Its own takeover rather than a tab, because it is a thing you decide once
+     and it has a price on it. */
+  const [diagOpen, setDiagOpen] = useState(initial.diagOpen !== undefined ? initial.diagOpen : false);
+  const openDiagnostics = () => {
+    setNextSheet(false);
+    setScoreFlow(null);
+    setDiagOpen(true);
+  };
+
   // Set once the card has been let go, so the list clearing does not yank it
   // out from under the finger that ticked the last box.
 
@@ -115,8 +140,16 @@ export function WFProvider({ children, initial = {} }) {
   const setNextList = (ids, done = []) => {
     setNextActions(ids);
     setNextDone(done);
+    setNextJustDone(null);
     setPrereqHidden(false);
     setPrereqOpen(null);
+  };
+  /* One way to finish a first step, wherever it was finished. It marks the
+     list and remembers which one, so the rail has something to play rather
+     than a card that is already gone. */
+  const finishNext = (id) => {
+    setNextDone((d) => (d.includes(id) ? d : d.concat(id)));
+    setNextJustDone(id);
   };
   // sessionState: "none" | "booked" — second carousel card on paid Home
   const [sessionState, setSessionState] = useState("none");
@@ -1776,6 +1809,8 @@ export function WFProvider({ children, initial = {} }) {
     bookOpen, setBookOpen, bookWith, setBookWith, openBooking, bookings, setBookings,
     liveState, setLiveState, liveSession,
     nextActions, nextDone, setNextDone, nextOpen, setNextList,
+    nextJustDone, setNextJustDone, finishNext,
+    nextSheet, setNextSheet, diagOpen, setDiagOpen, openDiagnostics,
     prereqHidden, setPrereqHidden, prereqAsk, setPrereqAsk,
     prereqOpen, setPrereqOpen, prereqExpanded,
     HOME_CARDS, HOME_TABS, homeTab,

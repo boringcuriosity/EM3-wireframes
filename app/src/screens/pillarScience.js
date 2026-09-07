@@ -13,19 +13,31 @@ export const PILLAR_SCIENCE = {
     points: [
       { t: "Steady energy", b: "Fewer crashes and less random snacking." },
       { t: "Nothing to cut", b: "Keep your poha, dal and biryani. Small add-ons close the gaps." },
-      { t: "Weight that holds", b: "Fullness that comes from real food, not willpower." },
+      /* Sufficiency is not a weight claim. The four things a body needs are
+         the same whichever direction somebody is trying to go, and the old
+         line made this pillar sound like a diet. */
+      { t: "It holds for any goal", b: "Losing weight, holding steady and building muscle all run on the same four. Only the amounts change." },
     ],
   },
 
+  /* Momentum, as the /move deck argues it: the day is the thing that matters,
+     not the single session inside it. The sheet said the old NEAT-only story,
+     which was a claim about where calories burn rather than an explanation of
+     the score the pillar actually shows.
+
+     The sub names the three things the score adds up, the same way Eat's names
+     its four, so the two sheets read as one system. The deck's own fourth
+     input, the small coach-assigned actions, is out: those are tips, and a tip
+     carries no weight anywhere on this pillar now. */
   move: {
-    tagline: "Burn what you take in, a little all day.",
-    lede: "Most of what you burn each day",
-    ledeAccent: "comes from moving around, not from the gym.",
-    sub: "Walking, stairs, standing and chores all count, not just workouts. Doctors call this NEAT, and it is the biggest part of your daily burn.",
+    tagline: "Keep moving, a little through the whole day.",
+    lede: "Movement spread across your day",
+    ledeAccent: "does more than the same effort in one block.",
+    sub: "Your Momentum score adds up three things: the session your coach set, the steps your phone counts, and how many parts of the day you moved in at all.",
     points: [
-      { t: "More energy spent", b: "The largest part of your daily burn you can actually change." },
-      { t: "Steadier blood sugar", b: "Breaking up long sitting lowers the spike after meals." },
-      { t: "Sitting undoes a workout", b: "An hour at the gym does not buy back nine hours in a chair." },
+      { t: "Steadier blood sugar", b: "Breaking up long sitting lowers the spike after a meal." },
+      { t: "Little and often wins", b: "Moving in three parts of your day earns more than the same minutes in one." },
+      { t: "Your coach holds the biggest lever", b: "The session they set is half the score on its own." },
     ],
   },
 
