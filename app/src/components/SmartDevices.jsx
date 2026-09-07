@@ -116,8 +116,8 @@ export default function SmartDevices() {
                   }}
                 >
                   {[
-                    { icon: Droplet, label: "Avg Glucose", value: "104 mg/dl" },
-                    { icon: Hourglass, label: "Time In Range", value: "99.7%" },
+                    { icon: Droplet, label: "Average glucose", value: "104 mg/dl" },
+                    { icon: Hourglass, label: "Time in range", value: "99.7%" },
                   ].map((m, i) => {
                     const MIcon = m.icon;
                     return (

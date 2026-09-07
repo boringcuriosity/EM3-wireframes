@@ -36,25 +36,25 @@ const PLANS = {
       { pillar: "mind", Icon: LotusIcon, coach: "Mind coach" },
     ],
     head: "Your plans start with a consultation",
-    body: "Your Eat, Move and Mind coaches will curate a full personalised day for you: tasks that improve your metabolism, built on EM3, the habit building framework. All of it is assigned once your first consultation is done.",
+    body: "Your Eat, Move and Mind coaches will curate a full personalised day for you: tasks that improve your metabolism, built on EM3, the habit-building framework. All of it is assigned once your first consultation is done.",
   },
   eat: {
     pillar: "eat",
     chips: [{ pillar: "eat", Icon: Utensils, coach: "Eat coach" }],
     head: "Your Eat plan starts with a consultation",
-    body: "Your Eat coach will curate your meals for the day: what to eat and when, built on EM3, the habit building framework. It is assigned once your first consultation is done.",
+    body: "Your Eat coach will curate your meals for the day: what to eat and when, built on EM3, the habit-building framework. It is assigned once your first consultation is done.",
   },
   move: {
     pillar: "move",
     chips: [{ pillar: "move", Icon: Flame, coach: "Move coach" }],
     head: "Your Move plan starts with a consultation",
-    body: "Your Move coach will curate your movement for the day: the session and the small things around it, built on EM3, the habit building framework. It is assigned once your first consultation is done.",
+    body: "Your Move coach will curate your movement for the day: the session and the small things around it, built on EM3, the habit-building framework. It is assigned once your first consultation is done.",
   },
   mind: {
     pillar: "mind",
     chips: [{ pillar: "mind", Icon: LotusIcon, coach: "Mind coach" }],
     head: "Your Mind plan starts with a consultation",
-    body: "Your Mind coach will curate your sleep and your worksheets, built on EM3, the habit building framework. It is assigned once your first consultation is done.",
+    body: "Your Mind coach will curate your sleep and your worksheets, built on EM3, the habit-building framework. It is assigned once your first consultation is done.",
   },
 };
 

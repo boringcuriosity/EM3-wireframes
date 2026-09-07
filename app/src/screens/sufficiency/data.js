@@ -11,11 +11,11 @@ export const NUTRIENTS = [
 export const BENEFITS = [
   {
     title: "Steadier energy",
-    line: "Fewer mid afternoon crashes, and less of the random snacking that follows them.",
+    line: "Fewer mid-afternoon crashes, and less of the random snacking that follows them.",
   },
   {
     title: "Better focus and mood",
-    line: "A well fed brain thinks clearer and stays steadier through the day.",
+    line: "A well-fed brain thinks more clearly and stays steadier through the day.",
   },
   {
     title: "Stronger immunity",
@@ -76,7 +76,7 @@ export const ADDONS = [
   { id: "salad", label: "Sliced cucumber and tomato", why: "fibre and micronutrients" },
   { id: "raita", label: "A katori of raita", why: "protein and a cooling fibre boost" },
   { id: "chana", label: "A handful of roasted chana", why: "plant protein and fibre" },
-  { id: "curd", label: "A katori of curd", why: "protein and gut friendly fibre" },
+  { id: "curd", label: "A katori of curd", why: "protein and gut-friendly fibre" },
   { id: "almonds", label: "A few soaked almonds", why: "healthy fats and micronutrients" },
 ];
 
@@ -100,7 +100,11 @@ export const PAYOFFS = [
    Everything below is derived from that so the numbers on screen agree with
    each other: change the calorie goal and the macros genuinely recompute. */
 
-export const ACTIVITY = { label: "Lightly active", factor: 1.375 };
+/* The persona sits still most of the day, which is the honest starting point
+   for somebody joining a metabolic programme and is what pulls TDEE down to a
+   figure a real day of food can actually meet. Lightly active at 1.375 put the
+   line at 2,200, so the coach's own plan scored barely half. */
+export const ACTIVITY = { label: "Sedentary", factor: 1.2 };
 
 // Harris-Benedict, male revised equation.
 export function bmr({ kg, cm, age }) {
@@ -109,7 +113,7 @@ export function bmr({ kg, cm, age }) {
 
 export const BODY = { kg: 74.2, cm: 174, age: 56 };
 export const BMR = bmr(BODY);                                   // 1600
-export const TDEE = Math.round((BMR * ACTIVITY.factor) / 50) * 50;  // 2200
+export const TDEE = Math.round((BMR * ACTIVITY.factor) / 50) * 50;  // 1900
 export const BMI = +(BODY.kg / (BODY.cm / 100) ** 2).toFixed(1); // 24.5
 
 /* What the To-do hero stages. The goal it measures against is not here: that

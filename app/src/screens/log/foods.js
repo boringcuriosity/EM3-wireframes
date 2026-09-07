@@ -47,7 +47,7 @@ export const FOODS = [
   f("eggs", "Boiled egg", "1 egg", 6, 1, 5, 0),
   f("chilla", "Lauki oats besan chilla", "1 piece", 3.5, 10, 2.5, 2),
   f("chutney", "Green chutney", "1 spoon", 0, 1, 0, 0.5),
-  f("dahi", "Dahi, low fat", "1 bowl", 9, 12, 3, 0),
+  f("dahi", "Dahi, low-fat", "1 bowl", 9, 12, 3, 0),
   f("gardensalad", "Garden salad", "1 bowl", 1, 3.5, 0, 3),
   f("quinoa", "Vegetable quinoa pulao", "1 bowl", 6, 28, 4, 5),
   f("makhana", "Roasted makhana", "1 bowl", 3, 18, 1.5, 2),
@@ -87,12 +87,12 @@ export const DIVISION_TIME = {
 };
 
 export const DIVISION_LABEL = {
-  prebreakfast: "Pre Breakfast",
+  prebreakfast: "Pre-breakfast",
   breakfast: "Breakfast",
   lunch: "Lunch",
-  eveningsnack: "Evening Snack",
+  eveningsnack: "Evening snack",
   dinner: "Dinner",
-  bedtime: "Bed time",
+  bedtime: "Bedtime",
 };
 
 /* "2 x 1 piece" reads badly for a single helping, so one helping just names
@@ -146,7 +146,12 @@ export function sufficiency(t, targets) {
     Math.min(t.f / map.fats, 1),
     Math.min(t.fibre / map.fibre, 1),
   ];
-  return Math.round((parts.reduce((a, b) => a + b, 0) / 4) * 100);
+  const pct = (parts.reduce((a, b) => a + b, 0) / 4) * 100;
+  /* Anything in the day reads as at least a point. A cup of black tea really
+     is a rounding error against a whole day's protein, carbs, fats and fibre,
+     but printing 0% straight after somebody logged something teaches that
+     logging does nothing, which is the opposite of what this screen is for. */
+  return pct > 0 ? Math.max(1, Math.round(pct)) : 0;
 }
 
 /* A day's three main meals, at the times they would really be eaten. Used

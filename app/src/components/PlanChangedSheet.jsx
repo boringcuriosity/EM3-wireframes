@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useWF } from "../state";
 import { X, Utensils, Flame, Check } from "lucide-react";
 import { GREEN, GREEN_DEEP, TEXT, MUTED, FAINT, BG, BG_ALT, BORDER, LINE, PILLAR } from "../tokens";
+import { COACH_ROUTINE } from "../screens/move/exercises";
 
 /* What the coach actually set, opened from the arrival card.
 
@@ -19,8 +20,16 @@ const HEAD = {
 
 };
 
+/* The session reads off the routine itself rather than being written out
+   again here. It said six moves and forty minutes at seven o'clock while the
+   plan held four moves of twenty, and the day's list put the session at half
+   past six: three places describing one session, and all three different. */
 const MOVE_ROWS = [
-  { t: "Your exercise session", s: "Six moves, about 40 minutes", w: "7:00 - 8:00 PM" },
+  {
+    t: "Your exercise session",
+    s: COACH_ROUTINE.items.length + " moves, about " + COACH_ROUTINE.minutes + " minutes",
+    w: "6:30 - 7:00 PM",
+  },
   { t: "Your step target", s: "10,000 steps across the day", w: "All day" },
 ];
 

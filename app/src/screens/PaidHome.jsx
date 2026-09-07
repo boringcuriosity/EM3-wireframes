@@ -99,10 +99,10 @@ export default function PaidHomePage() {
           }}
         >
           {[
-            { id: "program", label: "Your Program" },
-            { id: "next", label: "Next Action(s)" },
-            { id: "sessions", label: "Upcoming Session(s)" },
-            { id: "live", label: "Live Sessions" },
+            { id: "program", label: "Your program" },
+            { id: "next", label: "Next actions" },
+            { id: "sessions", label: "Upcoming sessions" },
+            { id: "live", label: "Live sessions" },
           ]
             .filter((t) => HOME_TABS.includes(t.id))
             .map((t) => {
@@ -644,7 +644,7 @@ export default function PaidHomePage() {
                 </div>
               </div>
               <div style={{ fontSize: 10.5, fontWeight: 600, color: TEXT, lineHeight: 1.3 }}>
-                Book Lab Tests
+                Book lab tests
               </div>
             </div>
           </div>

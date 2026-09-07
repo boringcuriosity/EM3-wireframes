@@ -47,7 +47,7 @@ export default function WeekReadSheet() {
     if (weekInsight === "read") return;
     setWeekInsight("read");
     setFlipcoins(flipcoins + 5);
-    setToast({ title: "+5 Flipcoins earned", line: "Read your week with Kaira", coins: 5 });
+    setToast({ title: "+5 Flipcoins earned", line: "Read your week with KAIRA", coins: 5 });
   }, [weekInsight, setWeekInsight, flipcoins, setFlipcoins, setToast]);
 
   // One opener, shared with the day's own rows, so a week reached from here

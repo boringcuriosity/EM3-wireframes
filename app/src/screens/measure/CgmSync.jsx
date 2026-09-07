@@ -120,8 +120,8 @@ export default function CgmSync() {
       {/* Two readings of the same data: today, and the run of days behind it. */}
       <div style={{ flexShrink: 0, display: "flex", borderBottom: "1px solid " + LINE }}>
         {[
-          { id: "daily", label: "Daily Metrics" },
-          { id: "cumulative", label: "Cumulative Report" },
+          { id: "daily", label: "Daily metrics" },
+          { id: "cumulative", label: "Cumulative report" },
         ].map((t) => (
           <button
             key={t.id}

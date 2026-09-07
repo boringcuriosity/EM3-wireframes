@@ -7,6 +7,7 @@ const e = (id, name, met, tags = []) => ({ id, name, met, tags });
 /* Named once, because the routine is both a plan you work through and a thing
    you log, and the two must not end up calling it different names. */
 const ROUTINE_NAME = "Starter mobility plan";
+const MORNING_NAME = "Morning wake-up stretch";
 
 export const EXERCISES = [
   /* The coach's routine, as one more activity.
@@ -19,6 +20,7 @@ export const EXERCISES = [
      Mobility work sits near yoga on the MET scale, a little under stretching
      held still, because the sets keep you moving between the holds. */
   e("routine", ROUTINE_NAME, 2.8, ["coach"]),
+  e("morning", MORNING_NAME, 2.3, ["coach"]),
   e("walk", "Walking", 4.3, ["common"]),
   e("briskwalk", "Brisk walking", 5.0, ["common"]),
   e("treadmill", "Treadmill walking", 4.5),
@@ -80,6 +82,47 @@ export function dayBurn(logs, kg) {
 
 /* A routine a coach has assigned. Same shape whether or not one exists, so the
    empty case is a real state rather than a missing screen. */
+/* The morning half of the physio's plan, and deliberately not a workout.
+
+   Five minutes, no change of clothes and nothing to push against: the point
+   of the first thing in the day is that it happens at all. It is a plan
+   rather than a walk somebody logs on their own, so it opens on the same
+   plan tab the session does and comes back through the same result screen. */
+export const COACH_MORNING = {
+  name: MORNING_NAME,
+  by: "Manya Jain",
+  from: "18 Aug 2026",
+  to: "14 Sep 2026",
+  block: "Every morning",
+  minutes: 5,
+  items: [
+    {
+      id: "reach",
+      name: "Overhead reach",
+      reps: 5,
+      sets: 1,
+      rest: "none",
+      note: "Stand tall and reach up. It opens the ribs after a night lying down.",
+    },
+    {
+      id: "sidebend",
+      name: "Side bends",
+      reps: 6,
+      sets: 1,
+      rest: "none",
+      note: "Slow, one side then the other. Nothing to push against.",
+    },
+    {
+      id: "calfraise",
+      name: "Calf raises",
+      reps: 10,
+      sets: 1,
+      rest: "none",
+      note: "By the counter while the kettle boils. It wakes the legs up.",
+    },
+  ],
+};
+
 export const COACH_ROUTINE = {
   name: ROUTINE_NAME,
   by: "Manya Jain",
@@ -149,3 +192,7 @@ export const VIDEO_SECTIONS = [
     ],
   },
 ];
+
+/* The plans, by the id the day's rows and the logger pass around. One lookup
+   rather than two imports everywhere, so a third routine is a data entry. */
+export const ROUTINES = { routine: COACH_ROUTINE, morning: COACH_MORNING };

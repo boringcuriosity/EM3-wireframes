@@ -26,7 +26,7 @@ export default function MindHero() {
 
   const calm = mindDone.includes("breathing") ? 3 : 0;
   const stats = [
-    { v: lastNight ? fmtTime(lastNight.bed) : known ? "11:40 PM" : "—", l: "Bedtime" },
+    { v: lastNight ? fmtTime(lastNight.bed) : "—", l: "Bedtime" },
     { v: calm ? calm + " min" : "—", l: "Calm" },
     { v: mindMood ? mindMood : "—", l: "Mood" },
   ];

@@ -3,7 +3,7 @@ import { useWF } from "../../state";
 import { ChevronLeft, ChevronRight, Search, X, Plus, Minus } from "lucide-react";
 import { GREEN, TEXT, MUTED, FAINT, BG, BG_ALT, BG_SUNK, BORDER } from "../../tokens";
 import Wheel from "../../components/Wheel";
-import { EXERCISES, byId, INTENSITIES, burnt, dayMinutes, COACH_ROUTINE } from "./exercises";
+import { EXERCISES, byId, INTENSITIES, burnt, dayMinutes, ROUTINES } from "./exercises";
 import RoutineExercise from "./RoutineExercise";
 import { fmtTime, timeSlots } from "../log/foods";
 
@@ -35,13 +35,17 @@ export default function LogExercise() {
      coach's session; "On your own" is everything you did without being asked.
      The pair names the real split rather than labelling one of them as the
      ordinary case. The plan tab only exists when a plan does. */
-  const [tab, setTab] = useState(logExPick === "routine" ? "plan" : "own");
+  /* Which of the coach's plans the door in was about. Both the morning
+     stretch and the evening session are the physio's work, so both land on
+     the plan tab rather than on the list of things you did on your own. */
+  const openedPlan = ROUTINES[logExPick] || null;
+  const [tab, setTab] = useState(openedPlan ? "plan" : "own");
   // Opened on something, when the door in already knew what was done.
-  const [picked, setPicked] = useState(logExPick === "routine" ? null : logExPick);
+  const [picked, setPicked] = useState(openedPlan ? null : logExPick);
   const [minutes, setMinutes] = useState(20);
   // Mobility work is light by design, so the routine says so rather than
   // making somebody correct a default that was never right for it.
-  const [intensity, setIntensity] = useState(logExPick === "routine" ? "light" : "moderate");
+  const [intensity, setIntensity] = useState(openedPlan ? "light" : "moderate");
   const [when, setWhen] = useState(NOW);
   const [adjust, setAdjust] = useState(null);
 
@@ -54,17 +58,21 @@ export default function LogExercise() {
   const list = q
     ? EXERCISES.filter((x) => notCoach(x) && x.name.toLowerCase().includes(q))
     : EXERCISES.filter((x) => notCoach(x) && x.tags.includes("common"));
-  const total = COACH_ROUTINE.items.length;
+  // The plan showing, or the session when the tab was reached without one.
+  const shown = openedPlan || ROUTINES.routine;
+  const total = shown.items.length;
   /* What was marked, and nothing more. The bar used to treat nothing marked as
      everything, which made one button mean two things and made it lie about a
      single exercise routine: "Mark 1 done" about the one thing already done.
      Marking is the card's job now and the bar only logs, so this is a count
      rather than an assumption. */
-  const ticked = routineDone.length;
+  // Only this plan's own exercises. Two routines share one marked list, and
+  // counting across both would log the morning stretch as a full session.
+  const ticked = routineDone.filter((id) => shown.items.some((it) => it.id === id)).length;
   const doing = ticked;
   // Pro rata, because logging the full twenty for half the work is a number
   // the trend has to live with afterwards.
-  const routineMins = Math.max(5, Math.round((COACH_ROUTINE.minutes * doing) / total));
+  const routineMins = Math.max(shown.minutes <= 5 ? 2 : 5, Math.round((shown.minutes * doing) / total));
 
   const ex = picked ? byId(picked) : null;
   const inten = INTENSITIES.find((i) => i.id === intensity);
@@ -78,10 +86,10 @@ export default function LogExercise() {
   const logSession = () => {
     /* The session's own reading, from what they said on the way through.
        Everything marked has an answer, because answering is what marks it. */
-    const votes = routineDone.map((id) => routineFeel[id]).filter(Boolean);
+    const votes = shown.items.map((it) => routineFeel[it.id]).filter(Boolean);
     const hard = votes.filter((v) => v === "hard").length;
     const sessionFeel = votes.length ? (hard * 2 >= votes.length ? "hard" : "easy") : null;
-    const entry = { id: "routine", minutes: routineMins, intensity: "light", timeMins: when };
+    const entry = { id: shown === ROUTINES.morning ? "morning" : "routine", minutes: routineMins, intensity: "light", timeMins: when };
     const before = dayMinutes(exLogs);
     setExLogs(exLogs.concat(entry));
     setMoveResult({ entry, before, after: before + routineMins, count: doing, total, feel: sessionFeel });
@@ -152,6 +160,7 @@ export default function LogExercise() {
 
         {!picked && routine && tab === "plan" ? (
           <PlanTab
+            openedPlan={shown}
             ticked={ticked}
             total={total}
             mins={routineMins}
@@ -241,9 +250,9 @@ export default function LogExercise() {
               <div style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{ex.name}</div>
               {/* What was in it, so the session being logged is recognisably
                   the work that was done rather than a name and a number. */}
-              {picked === "routine" && (
+              {ROUTINES[picked] && (
                 <div style={{ fontSize: 11.5, color: MUTED, marginTop: 5, lineHeight: 1.5 }}>
-                  {COACH_ROUTINE.items.map((it) => it.name).join(", ")}
+                  {ROUTINES[picked].items.map((it) => it.name).join(", ")}
                 </div>
               )}
 
@@ -340,19 +349,19 @@ export default function LogExercise() {
    because in both cases it logs the whole session. Arriving and pressing it
    straight away is the common path: most people open this having just finished.
    It only counts when some were left out. */
-function PlanTab({ ticked, total, mins, onLog, feel, onFeel, onClear }) {
-  const kcal = burnt({ met: byId("routine").met, minutes: mins, factor: 0.8 });
+function PlanTab({ openedPlan, ticked, total, mins, onLog, feel, onFeel, onClear }) {
+  const kcal = burnt({ met: byId(openedPlan === ROUTINES.morning ? "morning" : "routine").met, minutes: mins, factor: 0.8 });
 
   return (
     <>
       <div style={{ flex: 1, overflowY: "auto", padding: "0 22px 16px", minHeight: 0 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{COACH_ROUTINE.name}</div>
+        <div style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{openedPlan.name}</div>
         <div style={{ fontSize: 11.5, color: MUTED, marginTop: 3 }}>
-          Set by {COACH_ROUTINE.by} · about {COACH_ROUTINE.minutes} minutes
+          Set by {openedPlan.by} · about {openedPlan.minutes} minutes
         </div>
 
         <div style={{ marginTop: 14 }}>
-          {COACH_ROUTINE.items.map((it) => (
+          {openedPlan.items.map((it) => (
             <RoutineExercise
               key={it.id}
               item={it}

@@ -219,7 +219,7 @@ export default function ProgramDetailPage() {
                 <div style={{ display: "flex", gap: 12 }}>
                   {[
                     { l: "Weight", s: "Connect with a GoodFlip Smart BCA" },
-                    { l: "Sugar Levels", s: "Connect with your glucose monitor" },
+                    { l: "Sugar levels", s: "Connect with your glucose monitor" },
                   ].map((t) => (
                     <div
                       key={t.l}

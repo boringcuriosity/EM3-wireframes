@@ -210,7 +210,7 @@ export default function MindTrend() {
           { label: "Average night", value: hhmm(avg), delta: steady ? "+22m" : "Same", up: steady },
           { label: "Nights logged", value: nights.length + " of 7", delta: steady ? "+1" : null, up: steady },
           {
-            label: "Bed time swing",
+            label: "Bedtime swing",
             value: spread(swing),
             delta: steady ? "Tighter" : "Wide",
             up: steady,
@@ -234,7 +234,7 @@ export default function MindTrend() {
         <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.5, marginTop: 4 }}>
           {steady
             ? "Your nights are landing within half an hour of each other. That steadiness is doing more for your glucose than an extra hour would."
-            : "Pick one bed time and hold it for five nights, even on the late days. The hours will follow the timing."}
+            : "Pick one bedtime and hold it for five nights, even on the late days. The hours will follow the timing."}
         </div>
       </div>
 

@@ -86,7 +86,7 @@ export default function KairaLogSheet() {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Kaira is reading your meal"
+        aria-label="KAIRA is reading your meal"
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",
@@ -113,7 +113,7 @@ export default function KairaLogSheet() {
         >
           <Mark size={30} />
           <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: TEXT }}>Kaira</span>
+            <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: TEXT }}>KAIRA</span>
             <span style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 1 }}>
               {thinking ? x.title : "Found " + x.found.length + " items"}
             </span>

@@ -73,7 +73,7 @@ export default function KairaChatSheet() {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Chat with Kaira"
+        aria-label="Chat with KAIRA"
         onClick={(e) => e.stopPropagation()}
         style={{
           width: "100%",
@@ -102,7 +102,7 @@ export default function KairaChatSheet() {
         >
           <Mark size={30} />
           <span style={{ flex: 1, minWidth: 0 }}>
-            <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: TEXT }}>Kaira</span>
+            <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: TEXT }}>KAIRA</span>
             <span style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 1 }}>
               AI care assistant
             </span>
@@ -172,7 +172,7 @@ export default function KairaChatSheet() {
               color: FAINT,
             }}
           >
-            Ask Kaira anything
+            Ask KAIRA anything
           </span>
           <span
             aria-hidden

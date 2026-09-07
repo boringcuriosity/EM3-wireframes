@@ -41,7 +41,7 @@ export default function FreeHome() {
             >
               {isReturning
                 ? "Keep working on your metabolism."
-                : "Your metabolism, built on Eat, Move, Mind. We've crafted simple daily habits across each to help you see it and change it."}
+                : "Your metabolism, built on Eat, Move, Mind. We have crafted simple daily habits across each to help you see it and change it."}
             </p>
 
             {/* Three pillar cards — stateful */}
@@ -322,7 +322,7 @@ export default function FreeHome() {
                         Know your sufficiency today
                       </div>
                       <div style={{ fontSize: 12, color: MUTED, lineHeight: 1.4 }}>
-                        Eating right is better than eating less.
+                        Enough of each nutrient, across the whole day.
                       </div>
                     </div>
                     <button
@@ -395,7 +395,7 @@ export default function FreeHome() {
                         Metabolic Kickstarter
                       </div>
                       <div style={{ fontSize: 12, color: MUTED, lineHeight: 1.4 }}>
-                        The free program to jumpstart your metabolism. Try it now.
+                        The free program to jump-start your metabolism. Try it now.
                       </div>
                     </div>
                     <button

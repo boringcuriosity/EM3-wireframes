@@ -66,7 +66,7 @@ export default function ProgramProgressPage() {
         <div style={{ marginTop: 24 }}>
           {sectionLabel("Your program")}
           {[
-            { l: "Coach sessions", v: "0 sessions completed", r: "Recommended: 1 session every 15 days" },
+            { l: "Coach sessions", v: "0 sessions completed", r: "Recommended: one session every 15 days" },
             { l: "Periodic health checks", v: "0 tests completed", r: "Recommended: a test every 90 days" },
           ].map((r) => (
             <div

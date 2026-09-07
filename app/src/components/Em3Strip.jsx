@@ -186,7 +186,7 @@ export default function Em3Strip({ head = true, top, bottom }) {
               {day === 1 ? "Day 1 of your streak" : day + " days in a row"}
             </span>
             <span style={{ display: "block", fontSize: 10.5, color: GOLD_DEEP, marginTop: 3, lineHeight: 1.4 }}>
-              All four in. Come back tomorrow to keep it alive.
+              All four in. Come back tomorrow to keep it going.
             </span>
           </span>
           <ChevronRight size={16} color={GOLD_DEEP} style={{ flexShrink: 0 }} />

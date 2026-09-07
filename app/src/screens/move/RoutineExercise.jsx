@@ -83,7 +83,16 @@ export default function RoutineExercise({ item, feel, onPick, onClear }) {
             {item.name}
           </span>
           <span style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2 }}>
-            {item.sets} sets · {item.reps} reps · {item.rest} rest
+            {/* Composed rather than written, because a single set of a
+                morning stretch has no second set to rest between and "1 sets
+                · none rest" is a sentence nobody wrote on purpose. */}
+            {[
+              item.sets > 1 ? item.sets + " sets" : "1 set",
+              item.reps + " reps",
+              item.rest === "none" ? null : item.rest + " rest",
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </span>
         </span>
 

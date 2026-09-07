@@ -41,7 +41,7 @@ export default function MoveIntroCard() {
       onClick:
         healthSource.steps === "manual" && healthSync !== "steps" ? () => setStepsSheet(true) : undefined,
     },
-    { v: worked ? String(dayBurn(exLogs)) : "\u2014", l: "Kcal burnt" },
+    { v: worked ? String(dayBurn(exLogs)) : "\u2014", l: "kcal burnt" },
   ];
 
   return (

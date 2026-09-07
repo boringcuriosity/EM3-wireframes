@@ -14,10 +14,16 @@ const COINS = 2;
    answer would be a guess. Two times they do know, and the number falls out.
    It also gives us the part that matters for the body clock: when. */
 export default function LogSleep() {
-  const { setLogSleepOpen, sleepLogs, setSleepLogs, flipcoins, setFlipcoins, setToast, setHealthSheet } = useWF();
+  const { setLogSleepOpen, sleepLogs, setSleepLogs, lastNight, flipcoins, setFlipcoins, setToast, setHealthSheet } = useWF();
 
-  const [bed, setBed] = useState(23 * 60);
-  const [wake, setWake] = useState(6 * 60 + 40);
+  /* Opens on the night that is already in, whichever way it arrived, because
+     editing starts from the thing it is about. Without one it opens on the
+     defaults, and every one of these hours has to be one of the rail's own
+     half hours below. 6:40 was not, so no chip was selected, the rail had
+     nothing to scroll to and the wake row opened on 4 AM with the answer off
+     the right hand edge. */
+  const [bed, setBed] = useState(lastNight ? lastNight.bed : 23 * 60);
+  const [wake, setWake] = useState(lastNight ? lastNight.wake : 6 * 60 + 30);
   const dur = (wake - bed + 1440) % 1440;
 
   // Half hours across the evening and the morning, which is where real
@@ -28,12 +34,19 @@ export default function LogSleep() {
   for (let t = 4 * 60; t <= 11 * 60; t += 30) wakeSlots.push(t);
 
   const submit = () => {
-    setSleepLogs(sleepLogs.concat({ bed, wake }));
-    setFlipcoins(flipcoins + COINS);
+    /* A correction replaces the night rather than adding a second one, the
+       same way editing a meal replaces that slot. A night that came off the
+       phone leaves nothing of ours to replace, so that one is written fresh
+       and wins on its own. */
+    const mine = sleepLogs.length > 0;
+    setSleepLogs((mine ? sleepLogs.slice(0, -1) : sleepLogs).concat({ bed, wake }));
+    /* Paid once. The task was already done the moment a night was in, so a
+       correction that pays again pays twice for one thing. */
+    if (!lastNight) setFlipcoins(flipcoins + COINS);
     setToast({
-      title: "Sleep logged",
+      title: lastNight ? "Sleep updated" : "Sleep logged",
       line: fmtDur(dur) + " · " + fmtTime(bed) + " to " + fmtTime(wake),
-      coins: COINS,
+      coins: lastNight ? undefined : COINS,
     });
     setLogSleepOpen(false);
   };

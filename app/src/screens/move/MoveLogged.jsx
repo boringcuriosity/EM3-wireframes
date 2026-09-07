@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useWF } from "../../state";
 import { Check, Flame } from "lucide-react";
-import { byId, logBurn, dayBurn, DAILY_GOAL_MIN, COACH_ROUTINE } from "./exercises";
+import { byId, logBurn, dayBurn, DAILY_GOAL_MIN, ROUTINES, COACH_ROUTINE } from "./exercises";
 import { fmtTime } from "../log/foods";
 import CtaArrow from "../../components/CtaArrow";
 import {
@@ -41,7 +41,8 @@ export default function MoveLogged() {
   if (!moveResult) return null;
   const { entry, after, count, total, feel } = moveResult;
   const ex = byId(entry.id);
-  const isRoutine = entry.id === "routine";
+  // Either of the coach's plans, so the morning stretch gets the same beats.
+  const isRoutine = !!ROUTINES[entry.id];
   const kcal = logBurn(entry);
   const pct = Math.min(100, Math.round((shown / DAILY_GOAL_MIN) * 100));
   const met = after >= DAILY_GOAL_MIN;
@@ -186,7 +187,7 @@ export default function MoveLogged() {
                 the way out too. */}
             {isRoutine && (
               <div style={{ marginTop: 11, paddingTop: 11, borderTop: "1px solid " + LINE }}>
-                {COACH_ROUTINE.items.map((it, i) => (
+                {(ROUTINES[entry.id] || COACH_ROUTINE).items.map((it, i) => (
                   <div
                     key={it.id}
                     style={{

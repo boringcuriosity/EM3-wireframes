@@ -1,8 +1,8 @@
 import React from "react";
 import { useWF } from "../state";
-import { Check, Footprints, Minus, RotateCcw, SquarePen, X } from "lucide-react";
+import { Check, Footprints, Minus, Moon, RotateCcw, SquarePen, X } from "lucide-react";
 import { TEXT, MUTED, BG, BG_ALT, BORDER, LINE, RULE, GREEN, PILLAR } from "../tokens";
-import { byId, qtyLabel } from "../screens/log/foods";
+import { byId, fmtTime, qtyLabel } from "../screens/log/foods";
 
 const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure" };
 
@@ -24,6 +24,7 @@ export default function DayRowSheet() {
   const {
     rowMenu, setRowMenu, dayRows, daySkipped, toggleSkip, toggleTick, goToRecord,
     water, setWater, editMeal, undoMeal, openMealLog, setStepsSheet,
+    lastNight, setLogSleepOpen,
   } = useWF();
   const r = dayRows.find((x) => x.id === rowMenu);
   if (!r) return null;
@@ -37,6 +38,12 @@ export default function DayRowSheet() {
      that finishes elsewhere is a reading or a session, where undoing means
      deleting something the person did rather than something they typed. */
   const isMeal = r.done && !off && !!r.division;
+  /* The one reading somebody can correct. A body scan and a glucose reading
+     are the device's answer and there is nothing to say back to them, but a
+     night is two times, and the person was there. So a night that is in
+     offers what it holds and the way to change it, whether the phone handed
+     it over or they typed it themselves. */
+  const isNight = r.done && !off && r.to === "sleep" && !!lastNight;
   /* Part of a coach's option is in and part is not. The meal is logged and
      the row is ticked, so this is not an unfinished task: it is a finished one
      with something the coach asked for still on the table, and the useful
@@ -68,6 +75,8 @@ export default function DayRowSheet() {
     ? "steps"
     : isPartial
     ? "partial"
+    : isNight
+    ? "night"
     : isMeal
     ? "meal"
     : owned
@@ -82,7 +91,7 @@ export default function DayRowSheet() {
     skip: {
       Icon: Minus,
       head: "Not doing this today?",
-      line: "That's fine. It won't count as missed, and your coach will see you chose to skip it.",
+      line: "That is fine. It will not count as missed, and your coach will see you chose to skip it.",
       no: null,
       yes: "Skip today",
       tone: TEXT,
@@ -127,7 +136,7 @@ export default function DayRowSheet() {
       Icon: Footprints,
       head: n(now) + " steps so far",
       line:
-        n(toGo) + " to go. A twenty minute walk is about 2,000 of them, so it is " +
+        n(toGo) + " to go. A twenty-minute walk is about 2,000 of them, so it is " +
         "closer than the number looks.",
       bar: true,
       /* Adding to it only when the count is the person's own. Connected, the
@@ -135,6 +144,14 @@ export default function DayRowSheet() {
       no: r.add ? "Skip today" : null,
       yes: r.add ? "Add steps" : "Skip today",
       tone: r.add ? GREEN : TEXT,
+    },
+    night: {
+      Icon: Moon,
+      head: r.result,
+      line: lastNight ? fmtTime(lastNight.bed) + " to " + fmtTime(lastNight.wake) : null,
+      no: null,
+      yes: "Edit this night",
+      tone: GREEN,
     },
     meal: {
       Icon: SquarePen,
@@ -165,6 +182,7 @@ export default function DayRowSheet() {
     else if (mode === "undo") toggleTick(r.id);
     else if (mode === "less") setWater(Math.max(0, water - 1));
     setRowMenu(null);
+    if (mode === "night") return setLogSleepOpen(true);
     if (mode === "meal" || mode === "partial") return editMeal(r.division);
     /* The way to the record, which is not the same as the way to do the task.
        This row is already done, so the logger has nothing left to ask. */

@@ -112,5 +112,5 @@ const SUB_LINES = {
   profile: "Your age, size and family history.",
   wellness: "How you sleep, move and feel.",
   habit: "What a normal week actually looks like.",
-  diagnostic: "Bloodwork. It opens once a lab test comes back.",
+  diagnostic: "Blood work. It opens once a lab test comes back.",
 };

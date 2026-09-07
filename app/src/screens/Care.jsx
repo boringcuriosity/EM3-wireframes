@@ -33,11 +33,11 @@ export default function CarePage() {
           }}
         >
           {[
-            "Book Lab Test",
-            "Science Pack Supplements",
+            "Book a lab test",
+            "Science pack supplements",
             "GoodFlip Smart Scale",
             "GoodFlip CGM",
-            "GoodFlip Care Programs",
+            "GoodFlip Care programs",
           ].map((title) => (
             <div
               key={title}
@@ -142,7 +142,7 @@ export default function CarePage() {
                 maxWidth: 240,
               }}
             >
-              Structured, doctor guided plans built around your body and your
+              Structured, doctor-guided plans built around your body and your
               goals.
             </div>
           </div>

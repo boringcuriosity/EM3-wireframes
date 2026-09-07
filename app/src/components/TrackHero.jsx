@@ -112,7 +112,7 @@ export default function TrackHero({ state, onSeeTasks }) {
           <Kaira>
             {state === "nodata" ? (
               <>
-                Your body spends about <strong>2,200</strong> on an ordinary day whether you eat
+                Your body spends about <strong>{TDEE.toLocaleString()}</strong> on an ordinary day whether you eat
                 or not. Everything you log today is measured against that, which is where the
                 deficit comes from.
               </>

@@ -57,7 +57,7 @@ export default function ChatsPage() {
               <path d="M12 2l8.66 5v10L12 22l-8.66-5V7z" />
             </svg>
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>Kaira</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>KAIRA</div>
               <div style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>AI care assistant</div>
             </div>
           </div>

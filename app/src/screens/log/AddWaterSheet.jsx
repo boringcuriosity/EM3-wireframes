@@ -6,7 +6,10 @@ import { fmtTime } from "./foods";
 import { GREEN, GREEN_DEEP, GREEN_TINT, EAT_C, EAT_T, TEXT, MUTED, FAINT, BG, BG_ALT, BORDER } from "../../tokens";
 
 const COINS = 3;
-const MAX = 12;
+/* A day's worth, not a fortnight's. Twelve glasses drew two full rows of
+   droplets for a question nobody answers above seven, and the size of the grid
+   is itself a suggestion about how much is normal. */
+const MAX = 7;
 
 /* Water, counted in glasses.
 

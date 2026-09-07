@@ -12,11 +12,11 @@ import CtaArrow from "../components/CtaArrow";
 import ArticleList from "../components/ArticleList";
 
 const EAT_ARTICLES = [
-  { title: "Eating Smart: Your Guide to Balanced Nutrition for Weight…", meta: "1 min read . 21 Mar 26" },
-  { title: "Is Ragi Good for Diabetes? A Simple Guide to This Powerfu…", meta: "7 min read . 07 Jan 26" },
-  { title: "Is Jackfruit Good for Diabetes? The Complete Indian Guide t…", meta: "10 min read . 02 Jan 26" },
-  { title: "Drink Smart, Stay Balanced: How Steady Hydration Keeps…", meta: "8 min read . 24 Dec 25" },
-  { title: "Fasting & Gut Reset: How a Simple 16-Hour Pause Can R…", meta: "6 min read . 18 Dec 25" },
+  { title: "Eating Smart: Your Guide to Balanced Nutrition for Weight…", meta: "1 min read · 21 Mar 26" },
+  { title: "Is Ragi Good for Diabetes? A Simple Guide to This Powerfu…", meta: "7 min read · 07 Jan 26" },
+  { title: "Is Jackfruit Good for Diabetes? The Complete Indian Guide t…", meta: "10 min read · 02 Jan 26" },
+  { title: "Drink Smart, Stay Balanced: How Steady Hydration Keeps…", meta: "8 min read · 24 Dec 25" },
+  { title: "Fasting & Gut Reset: How a Simple 16-Hour Pause Can R…", meta: "6 min read · 18 Dec 25" },
 ];
 
 // Where the plus on each division drops you on the clock.
@@ -155,12 +155,12 @@ export default function EatDetailPage() {
             </div>
             <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.45, marginTop: 3 }}>
               {{
-                ft: "You're a Care program user. Before your coach builds your plan, they want to see how you eat. Log at least your 3 main meals each day, every item counts, even papad and pickle.",
+                ft: "You are a Care program user. Before your coach builds your plan, they want to see how you eat. Log at least your three main meals each day. Every item counts, even papad and pickle.",
                 fad: "One day in. A few more and your first weekly insight unlocks.",
-                kg: "You're building a habit. Protein is the gap to watch this week.",
+                kg: "You are building a habit. Protein is the gap to watch this week.",
                 wc: "Your first week is in. Protein ran low most days, lunch is the easiest fix.",
-                w2: "This week reads against last week, so you can see what's shifting.",
-                cg: "Protein has stayed flat across two weeks. A quick coach consult could help.",
+                w2: "This week reads against last week, so you can see what is shifting.",
+                cg: "Protein has stayed flat across two weeks. A quick coach consultation could help.",
               }[eatState]}
             </div>
             {(eatState === "wc" || eatState === "w2" || eatState === "cg") && (
@@ -579,7 +579,7 @@ export default function EatDetailPage() {
                           lineHeight: 1.3,
                         }}
                       >
-                        A free consult, on us
+                        A free consultation, on us
                       </div>
                       <div style={{ fontSize: 12.5, color: MUTED, marginTop: 4, lineHeight: 1.45 }}>
                         Let a GoodFlip coach help you crack the protein gap for good.

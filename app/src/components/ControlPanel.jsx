@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useWF } from "../state";
 import { DEMO_DAY } from "../screens/log/foods";
 import { MIND_TEMPLATES } from "../screens/mind/tools";
+import { isTip } from "../screens/today/day";
 import { Home, Bell, MessageCircle } from "lucide-react";
 import { GREEN, TEXT, SH, SH_MD } from "../tokens";
 import { flame } from "../ui";
@@ -23,7 +24,7 @@ const ALL_DONE = { eat: 3, move: 1, mind: 1, measure: 1 };
 const ALL_GROUPS = [
   "signup", "plan", "welcome", "tour", "move", "hero", "targets",
   "logging", "loghistory", "suff", "streakscreen", "streak", "milestones",
-  "focus", "homecard", "metabcard", "planarrive", "dayparts", "coachtip", "taskcard", "weekread", "movetrend", "mindtrend", "dayWon", "skip", "measuretasks", "score", "scoreflow", "sessions", "live", "nextaction", "home", "eat", "mind", "measure",
+  "focus", "homecard", "bubbleskin", "metabcard", "planarrive", "dayparts", "coachtip", "taskcard", "weekread", "movetrend", "mindtrend", "dayWon", "skip", "measuretasks", "score", "scoreflow", "sessions", "live", "nextaction", "home", "eat", "mind", "measure",
 ];
 
 const SCREEN_GROUPS = {
@@ -39,7 +40,7 @@ const SCREEN_GROUPS = {
   todo: ["nextaction", "scoreflow", "hero", "focus", "taskcard", "planarrive", "weekread", "measuretasks"],
   // Home's "This part of day" card reads the same phases, so the split is a
   // control on both screens rather than a To-do one that quietly moves Home.
-  home: ["welcome", "tour", "nextaction", "scoreflow", "live", "focus", "homecard", "metabcard", "measuretasks"],
+  home: ["welcome", "tour", "nextaction", "scoreflow", "live", "focus", "homecard", "bubbleskin", "metabcard", "measuretasks"],
   measure: ["measure"],
   care: [],
   more: [],
@@ -128,7 +129,14 @@ const SUFF_STATES = [
   },
 ];
 
-const DEMO_EXERCISE = [{ id: "walk", minutes: 45, intensity: "moderate", timeMins: 7 * 60 + 15 }];
+/* A day's movement as the plan actually asks for it: the morning stretch and
+   the coach's session. It was one 45 minute walk, which stopped ticking either
+   Move row once each of them started looking for its own log, so "Everything
+   ticked" quietly left two things open. */
+const DEMO_EXERCISE = [
+  { id: "morning", minutes: 5, intensity: "light", timeMins: 7 * 60 + 15 },
+  { id: "routine", minutes: 20, intensity: "light", timeMins: 18 * 60 + 40 },
+];
 
 /* Every shape Today's focus takes, as one tap each.
 
@@ -188,7 +196,7 @@ const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 const SLEEP_SRC = { gate: null, syncing: "phone", phone: "phone", manualnone: "manual", manual: "manual", tools: "manual" };
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, scoreFlow, setScoreFlow, setScoreStep, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, waterSheet, setWaterSheet, setToast, mealsLogged, setMealsLogged, setLogItems, logPlan, openMealLog, favorites, setFavorites, kairaLog, setKairaLog, planNotif, setPlanNotif, hasTargets, scoreUnlocked, mealsIn, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, logExPick, openMoveLog, moveResult, setMoveResult, setRoutineFeel, setRoutineDone, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindKept, mindTemplate, setMindTemplate, setTemplateKept, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, prereqHidden, setPrereqHidden, prereqAsk, setPrereqAsk, prereqExpanded, setPrereqOpen, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, metabCard, setMetabCard, phaseMode, setPhaseMode, tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira, planSeen, setPlanSeen, kcalSource, movePlan, mindPlan, setMindPlan, bookOpen, setBookOpen, bookWith, setBookWith, liveState, setLiveState, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, scoreFlow, setScoreFlow, setScoreStep, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, waterSheet, setWaterSheet, setToast, mealsLogged, setMealsLogged, setLogItems, logPlan, openMealLog, favorites, setFavorites, kairaLog, setKairaLog, planNotif, setPlanNotif, hasTargets, scoreUnlocked, mealsIn, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, logExPick, openMoveLog, moveResult, setMoveResult, setRoutineFeel, setRoutineDone, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindKept, mindTemplate, setMindTemplate, setTemplateKept, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, prereqHidden, setPrereqHidden, prereqAsk, setPrereqAsk, prereqExpanded, setPrereqOpen, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, bubbleSkin, setBubbleSkin, metabCard, setMetabCard, phaseMode, setPhaseMode, tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira, planSeen, setPlanSeen, kcalSource, movePlan, mindPlan, setMindPlan, bookOpen, setBookOpen, bookWith, setBookWith, liveState, setLiveState, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -718,7 +726,7 @@ export default function ControlPanel() {
           [
             { id: "gate", label: "Not decided yet", steps: null },
             { id: "syncing", label: "Allowed, syncing", steps: "phone", sync: "steps", logs: [] },
-            { id: "connected", label: "Steps in, nothing logged", steps: "phone", logs: [] },
+            { id: "connected", label: "Connected, nothing walked yet", steps: "phone", logs: [] },
             {
               id: "walk",
               label: "One walk logged",
@@ -1495,6 +1503,24 @@ export default function ControlPanel() {
         )}
 
         {panelGroup(
+          "bubbleskin",
+          "Bubble depth",
+          "Home, the four pillars",
+          [
+            { id: "orb", label: "Orb", full: "Lit sphere, coloured shadow, liquid with a surface" },
+            { id: "glass", label: "Glass", full: "The same light, held back: a softer rim and a quieter shadow" },
+            { id: "flat", label: "Flat", full: "One tint, one hairline, a straight block of fill" },
+          ].map((v) =>
+            panelChip(v.label, bubbleSkin === v.id, () => { setBubbleSkin(v.id); setHomeCard("bubbles"); setActiveTab("home"); }, v.full)
+          ),
+          {
+            orb: "The most depth of the three. Lit from the top left, a rim of its own hue, and a shadow in the pillar's colour so it sits above the card. What is logged reads as liquid with a surface that moves.",
+            glass: "The same sphere with the volume down. Keeps the light and the liquid, drops the coloured shadow and the inner rim, so four of them together sit quieter on the card.",
+            flat: "Where these started: a tint, a hairline and a rectangle of fill. Here to compare against, since a circle cut straight across reads as a chart rather than as a bubble.",
+          }[bubbleSkin]
+        )}
+
+        {panelGroup(
           "metabcard",
           "Metabolism strip",
           "Home, under the day",
@@ -1541,25 +1567,41 @@ export default function ControlPanel() {
                       }))
                     : DEMO_DAY.slice(0, d.meals || 0)
                 );
-                setExLogs(DEMO_EXERCISE.slice(0, d.every ? 1 : 0));
+                setExLogs(d.every ? DEMO_EXERCISE : []);
                 setMindDone(d.every || d.mind ? ["breathing"] : []);
-                setSleepLogs(d.every || d.mind ? [{ bed: 23 * 60, wake: 6 * 60 + 40 }] : []);
+                /* On the logger's own half hour rails, because editing this
+                   night opens on it. 6:40 is not one of them, so the wake rail
+                   had no chip to centre on and opened at 4 AM. */
+                setSleepLogs(d.every || d.mind ? [{ bed: 23 * 60, wake: 6 * 60 + 30 }] : []);
                 setWater(d.every ? 2 : d.water || 0);
                 /* Both lists are read off the day the plan actually builds
                    rather than written out here. A hand written list stays
                    right until the plan grows one more capsule or the
                    psychologist adds one more worksheet, and then Everything
                    ticked quietly stops meaning everything. */
-                setDayTicks(
-                  d.every
-                    ? eatDivisions.flatMap((x) => (x.notes || []).map((n) => n.id))
-                    : d.ticks || []
-                );
+                /* Every tip in the day, read off the day itself rather than
+                   from the meals they hang off. Half of them do not: the
+                   stairs and the standing break are the physio's, so a list
+                   built from `eatDivisions` left two of them open and
+                   "Everything ticked" never reached the night. */
+                setDayTicks(d.every ? dayLive.filter(isTip).map((r) => r.id) : d.ticks || []);
                 setTemplateKept(
                   d.every ? Object.fromEntries(MIND_TEMPLATES.map((t) => [t.id, true])) : {}
                 );
                 setManualSteps(d.every ? 10200 : null);
-                setHealthSource({ steps: "manual", sleep: "manual" });
+                /* Where a signal comes from is not a thing a preset gets to
+                   answer. A preset that seeds a night or a step count has to
+                   say the person wrote them, because a hand written record
+                   needs a hand. A preset that seeds neither leaves the
+                   question open, so the row still asks the first time it is
+                   tapped: forcing manual here sent somebody who had never
+                   been asked about Health Connect straight into the manual
+                   logger. Each signal answers for itself, the same rule
+                   declining follows. */
+                setHealthSource({
+                  steps: d.every ? "manual" : null,
+                  sleep: d.every || d.mind ? "manual" : null,
+                });
                 setHealthSync(null);
                 setDaySkipped([]);
                 if (weekInsight !== "off") setWeekInsight(d.every ? "read" : "ready");

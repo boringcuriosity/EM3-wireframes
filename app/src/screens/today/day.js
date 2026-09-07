@@ -110,9 +110,57 @@ export const taskTitle = (r) =>
 export const askAbout = (r) =>
   "Tell me why I should " + r.title.charAt(0).toLowerCase() + r.title.slice(1) + ".";
 
+/* What the big bubble on Home asks.
+
+   Home is the screen somebody opens after the thing has already happened. A
+   plan tells you to do something; this app is where you say you did it, so the
+   bubble asks rather than instructs. "Have you had your lunch" is a question a
+   person can answer. "Time to eat" is a nag about a moment that has usually
+   already passed.
+
+   One line per row rather than one per pillar, because the whole point is that
+   it names the thing actually waiting. A category cannot do that: it would ask
+   about food when what is open is the bedtime snack. The pillar line is only
+   the fallback for a row nobody has written one for.
+
+   The device rows say what the device reads. "Take a reading" is our word for
+   it; a body composition check is what the person went and did. */
+const ASK = {
+  sleep: "How did you sleep last night?",
+  "meal:prebreakfast": "Have you had anything yet this morning?",
+  "meal:breakfast": "Have you had your breakfast?",
+  "meal:lunch": "Have you had your lunch?",
+  "meal:eveningsnack": "Have you had your evening snack?",
+  "meal:dinner": "Have you had your dinner?",
+  "meal:bedtime": "Have you had anything before bed?",
+  water: "Have you had some water today?",
+  morning: "Have you done your morning stretch?",
+  session: "Have you done your session today?",
+  steps: "Have you been on your feet today?",
+  calm: "How has your day been?",
+  "sync:measure": "Have you checked your body composition today?",
+  "sync:cgm": "Have you checked your glucose today?",
+  weekread: "Have you read your week yet?",
+};
+
+const ASK_PILLAR = {
+  eat: "Have you eaten yet today?",
+  move: "Have you moved today?",
+  mind: "How are you feeling today?",
+  measure: "Have you taken a reading today?",
+};
+
+export const askOf = (r) =>
+  !r ? null : ASK[r.id] || (r.id.startsWith("weekread") ? ASK.weekread : ASK_PILLAR[r.pillar]) || null;
+
+/* A tip is not work. It pays nothing, it files nothing, and it does not decide
+   which pillar is worth looking at, so everything about the bubbles reads the
+   recordable rows only. Same test the row itself uses to draw its info mark. */
+export const isTip = (r) => r.kind === "tick";
+
 /* Eat keeps the plain slot names for its own headings, where a section is a
    place rather than a thing to do. Two of them read differently as a task. */
-const MEAL_NAME = { prebreakfast: "Pre-breakfast", bedtime: "Bedtime snack" };
+const MEAL_NAME = { bedtime: "Bedtime snack" };
 
 /* One line of the coach's thinking per slot. This is the part that makes the
    list read as a plan somebody wrote for you, rather than a checklist. It only
@@ -294,7 +342,7 @@ export function buildDay(w) {
     if (weekMode === "sheet")
       rows.push({
         id: "weekread", pillar: "measure", at: 18 * 60 + 30, coins: 5,
-        cat: "insight", name: "Your week with Kaira",
+        cat: "insight", name: "Your week with KAIRA",
         when: "6:30 PM",
         tip: "Seven days in. What your food, movement and sleep are saying.",
         kind: "go", to: "week",
@@ -335,6 +383,24 @@ export function buildDay(w) {
     kind: "target", to: "water",
   });
 
+  /* The morning half of the physio's plan. Move's only other recordable rows
+     are the session before dinner and the step count at the end of the day,
+     so until this the pillar had nothing of its own to answer for before the
+     evening, and a whole morning went by without it.
+
+     It is the coach's work rather than a walk somebody took on their own, so
+     it opens the same plan tab the session does. */
+  if (planAssigned)
+    rows.push({
+      id: "morning", pillar: "move", at: 7 * 60, coins: 5,
+      cat: "record", name: "Your morning stretch",
+      when: "7:00 - 8:00 AM",
+      tip: "Five minutes, still in what you slept in. Three moves your coach picked.",
+      kind: "go", to: "move:morning",
+      // Its own log, not the session's, or one would tick both rows.
+      done: exLogs.some((e) => e.id === "morning"),
+    });
+
   /* With a plan this is the coach's session at their hour. Without one it is
      an open ask with no clock on it, because nobody has earned the right to
      give this person a time yet. */
@@ -352,7 +418,8 @@ export function buildDay(w) {
              stale the moment a coach changed one. */
           tip: "About 30 minutes, with the moves your coach picked for you.",
           kind: "go", to: "move",
-          done: exLogs.length > 0,
+          // The routine itself. A morning walk is a different thing logged.
+          done: exLogs.some((e) => e.id === "routine"),
         }
       : {
           id: "session", pillar: "move", at: 16 * 60, coins: 10,

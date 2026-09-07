@@ -278,7 +278,7 @@ export default function Msa2Page() {
             >
               K
             </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>Your week, read by Kaira</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>Your week, read by KAIRA</div>
           </div>
 
           <div style={{ fontSize: 12.5, color: TEXT, lineHeight: 1.55, marginBottom: 12 }}>

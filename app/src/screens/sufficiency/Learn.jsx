@@ -19,7 +19,7 @@ export default function Learn() {
       <div style={{ padding: "0 22px 8px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
           <KairaMark size={22} />
-          <span style={{ fontSize: 12.5, color: MUTED }}>Hey, I'm Kaira.</span>
+          <span style={{ fontSize: 12.5, color: MUTED }}>Hey, I'm KAIRA.</span>
         </div>
 
         <Title sub="I find where your day falls short, then suggest small add-ons that close the gap.">

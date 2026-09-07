@@ -116,7 +116,7 @@ export default function Result({ lifted }) {
                   away. Same poha, same biryani.
                 </p>
                 <p style={{ ...pStyle, marginTop: 12 }}>
-                  This is not a one time fix. Sufficiency moves with what you eat each day, and it
+                  This is not a one-time fix. Sufficiency moves with what you eat each day, and it
                   takes a few weeks of real meals before the picture is properly yours.
                 </p>
                 <p style={{ ...pStyle, marginTop: 12 }}>

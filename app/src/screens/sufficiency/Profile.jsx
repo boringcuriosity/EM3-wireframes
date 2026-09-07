@@ -53,7 +53,7 @@ export default function Profile() {
 
       {/* What we know */}
       <div style={{ padding: "0 22px" }}>
-        <Eyebrow>FROM YOUR SIGN UP</Eyebrow>
+        <Eyebrow>FROM YOUR SIGN-UP</Eyebrow>
         <div style={{ background: BG, border: "1px solid " + BORDER, borderRadius: 16, overflow: "hidden" }}>
           {PROFILE.map((p, i) => (
             <div

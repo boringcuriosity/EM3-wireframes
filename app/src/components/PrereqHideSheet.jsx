@@ -93,7 +93,7 @@ export default function PrereqHideSheet() {
             id="prereq-hide-title"
             style={{ margin: 0, fontSize: 19, fontWeight: 800, color: TEXT, letterSpacing: -0.3 }}
           >
-            You'll find {n === 1 ? "this next action" : "these next actions"} on Home
+            You will find {n === 1 ? "this next action" : "these next actions"} on Home
           </h2>
           {/* Where they go, then why to bother. It used to say to swipe across
               the top section, which was true while these were cards in Home's
@@ -106,7 +106,7 @@ export default function PrereqHideSheet() {
               before they book would be a rule the app does not keep. */}
           <p style={{ margin: "8px 0 0", fontSize: 13.5, color: MUTED, lineHeight: 1.6 }}>
             {n === 1 ? "It waits" : "They wait"} under{" "}
-            <strong style={{ color: TEXT }}>Next Action(s)</strong>, beside your program. Complete{" "}
+            <strong style={{ color: TEXT }}>{n === 1 ? "Next action" : "Next actions"}</strong>, beside your program. Complete{" "}
             {n === 1 ? "this task" : "these tasks"} before your first consultation, as{" "}
             {n === 1 ? "it is" : "they are"} very important for your care program.
           </p>

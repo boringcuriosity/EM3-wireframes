@@ -142,7 +142,7 @@ export default function ProgressPage() {
                   boxShadow: SH,
                 }}
               >
-                <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>Everything you're tracking, together</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>Everything you are tracking, together</div>
                 <div style={{ fontSize: 11, color: MUTED, marginTop: 2, marginBottom: 14 }}>
                   Each line shows how close you got to your goal that week. Tap a pillar to see what's inside.
                 </div>
@@ -252,7 +252,7 @@ export default function ProgressPage() {
                 {[
                   { pillar: "Eat", c: GREEN, text: "You're 515 kcal under your TDEE target most days, and protein is the gap. Add one protein anchor at lunch." },
                   { pillar: "Move", c: "#444CE7", text: "Steps averaged 6,200 against your 8,000 goal. A 15-minute walk after lunch closes most of it." },
-                  { pillar: "Mind", c: "#2DA6A6", text: "You're averaging 6h 40m against your 7h 30m need. A fixed wake-up time is the easiest lever." },
+                  { pillar: "Mind", c: "#2DA6A6", text: "You are averaging 6h 40m against your 7h 30m need. A fixed wake-up time is the easiest lever." },
                 ].map((p) => (
                   <div key={p.pillar} style={{ display: "flex", gap: 10, marginBottom: 12 }}>
                     <div style={{ width: 3, borderRadius: 2, background: p.c, flexShrink: 0 }} />

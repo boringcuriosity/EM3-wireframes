@@ -135,7 +135,7 @@ export default function CoachTipSheet() {
               boxShadow: "0 2px 0 " + GREEN_DEEP,
             }}
           >
-            Ask Kaira more about it
+            Ask KAIRA more about it
             <CtaArrow size={15} />
           </button>
         </div>

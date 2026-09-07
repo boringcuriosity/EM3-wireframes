@@ -28,19 +28,19 @@ export default function A1Page() {
               Your daily movers
             </div>
             <div style={{ fontSize: 12.5, color: MUTED, marginBottom: 18, lineHeight: 1.5 }}>
-              Eat, Move and Mind this week, and what Kaira makes of each.
+              Eat, Move and Mind this week, and what KAIRA makes of each.
             </div>
 
             {[
               {
                 p: "Eat", c: GREEN, pts: "0,95 50,80 100,70 150,62 200,55 250,48 300,40",
-                stat: "72% avg sufficiency", delta: "↑ 11%",
+                stat: "72% average sufficiency", delta: "↑ 11%",
                 read: "Your most consistent week yet. Protein was short on six of seven days. Your best days all had a protein anchor at lunch. Start there rather than changing dinner.",
               },
               {
                 p: "Move", c: "#444CE7", pts: "0,70 50,72 100,60 150,66 200,58 250,50 300,62",
                 stat: "6,200 steps / day", delta: "↑ 700",
-                read: "You moved more on the days you ate better. Those two travel together for you. Three workouts logged, all before 9am, which seems to be when it actually happens.",
+                read: "You moved more on the days you ate better. Those two travel together for you. Three workouts logged, all before 9 AM, which seems to be when it actually happens.",
               },
               {
                 p: "Mind", c: "#2DA6A6", pts: "0,60 50,60 100,60 150,60 200,60 250,60 300,60",
@@ -151,7 +151,7 @@ export default function A1Page() {
                     fontFamily: "'Playfair Display', Georgia, serif",
                   }}
                 >K</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>Your week, read by Kaira</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>Your week, read by KAIRA</div>
               </div>
 
               <div style={{ fontSize: 13, color: TEXT, lineHeight: 1.6, marginBottom: 14 }}>
@@ -163,7 +163,7 @@ export default function A1Page() {
 
               {/* Correlation chips */}
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
-                {["Why protein matters for you", "Food vs. energy", "What changed from last week"].map((c) => (
+                {["Why protein matters for you", "Food vs energy", "What changed from last week"].map((c) => (
                   <button
                     key={c}
                     style={{
@@ -277,20 +277,20 @@ export default function A1Page() {
               Make your insights richer
             </div>
             <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.5, marginBottom: 12 }}>
-              Each of these gives Kaira something new to work with.
+              Each of these gives KAIRA something new to work with.
             </div>
 
             {[
               {
                 icon: "hex",
                 h: "Get your metabolic scorecard",
-                s: "A full read of where your metabolism stands today, built from your habits and anything you've measured. Kaira uses it as the baseline for everything else.",
+                s: "A full read of where your metabolism stands today, built from your habits and anything you have measured. KAIRA uses it as the baseline for everything else.",
                 cta: "Get your scorecard",
               },
               {
                 icon: "vial",
                 h: "Add your lab report",
-                s: "Your logs show what you eat. A lab report shows what your body is doing with it, and lets Kaira connect the two.",
+                s: "Your logs show what you eat. A lab report shows what your body is doing with it, and lets KAIRA connect the two.",
                 cta: "Upload a report",
               },
               {
@@ -301,8 +301,8 @@ export default function A1Page() {
               },
               {
                 icon: "scale",
-                h: "Know what you're losing",
-                s: "Weight alone can't tell you whether you're losing fat or muscle. A smart scale can.",
+                h: "Know what you are losing",
+                s: "Weight alone cannot tell you whether you are losing fat or muscle. A smart scale can.",
                 cta: "Explore smart scale",
               },
               {

@@ -93,11 +93,17 @@ export default function MealLogged() {
      result; one that climbs is something you did. */
   useEffect(() => {
     if (!logResult || working) return;
-    const span = Math.max(1, logResult.after - logResult.before);
+    /* The distance the number travels, which is allowed to be nothing. It
+       used to be floored at 1 so the animation always had something to do,
+       and that floor landed in the printed figure: a meal worth nothing
+       finished the climb reading one point higher than the score Home was
+       showing for the same day. The guard belongs on the step, not on the
+       destination. */
+    const span = logResult.after - logResult.before;
     let i = 0;
     const t = setInterval(() => {
       i += 1;
-      setShown(logResult.before + Math.round((span * i) / 24));
+      setShown(i >= 24 ? logResult.after : logResult.before + Math.round((span * i) / 24));
       if (i >= 24) clearInterval(t);
     }, 26);
     return () => clearInterval(t);
@@ -245,11 +251,52 @@ export default function MealLogged() {
                   The card used to sit below the macros, which put the
                   explanation of the lock two sections away from the lock. */}
               {scoreUnlocked ? (
-                <div style={{ fontSize: 12.5, color: MUTED, marginTop: 14, lineHeight: 1.55 }}>
-                  {mealsIn} of {mealSlots} meals logged.{" "}
-                  {mealsLeft > 0
-                    ? "Your sufficiency climbs with each one you add, so this is where it stands so far."
-                    : "That is the whole day, so this is where it lands."}
+                /* Why the number is small, shown rather than said. One
+                   segment per meal slot, filled for what is in: five empty
+                   segments beside a 1% answer the question "why so low"
+                   before the sentence under them gets a chance to. A figure
+                   with no sense of how much day is still to come reads as a
+                   verdict on the day rather than as a running total. */
+                <div style={{ marginTop: 14 }}>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {Array.from({ length: mealSlots }, (_, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          flex: 1,
+                          height: 6,
+                          borderRadius: 3,
+                          background: i < mealsIn ? GREEN : BG_ALT,
+                          border: "1px solid " + (i < mealsIn ? GREEN : RULE),
+                          transition: "background .45s cubic-bezier(.32,.72,0,1) " + i * 0.08 + "s",
+                        }}
+                      />
+                    ))}
+                  </div>
+                  {mealsLeft > 0 ? (
+                    <>
+                      {/* Said at the size of the thing it is explaining. A
+                          number this small is the most alarming figure on the
+                          screen, and a caption under it in grey is not loud
+                          enough to stop somebody reading it as a verdict. */}
+                      <div style={{ fontSize: 16, fontWeight: 800, color: TEXT, marginTop: 12, lineHeight: 1.3 }}>
+                        This is {mealsIn} {mealsIn === 1 ? "meal" : "meals"} in. You have{" "}
+                        {mealsLeft} to go.
+                      </div>
+                      <div style={{ fontSize: 12.5, color: MUTED, marginTop: 4, lineHeight: 1.55 }}>
+                        Your score climbs with every one of them. It is only finished when your day is.
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: TEXT, marginTop: 12, lineHeight: 1.3 }}>
+                        That is your whole day in.
+                      </div>
+                      <div style={{ fontSize: 12.5, color: MUTED, marginTop: 4, lineHeight: 1.55 }}>
+                        This is where your sufficiency lands.
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div

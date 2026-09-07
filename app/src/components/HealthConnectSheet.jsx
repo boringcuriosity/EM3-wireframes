@@ -45,14 +45,23 @@ const SIGNALS = {
 };
 
 export default function HealthConnectSheet() {
-  const { healthSheet, setHealthSheet, healthSource, pickSource } = useWF();
+  const { healthSheet, setHealthSheet, healthSource, pickSource, setLogSleepOpen, setStepsSheet } = useWF();
   const s = SIGNALS[healthSheet];
   if (!s) return null;
 
   const current = healthSource[healthSheet];
+  /* Where somebody who keeps their own count says so. Saying you will tell us
+     yourself is a decision made in order to record the thing, so the sheet
+     hands straight over to where that is done rather than closing on the
+     screen the question was asked from. It used to leave somebody back on the
+     day's list, tapping the same row a second time to reach the logger they
+     had just chosen. */
+  const MANUAL_GO = { sleep: setLogSleepOpen, steps: setStepsSheet };
   const pick = (v) => {
     pickSource(healthSheet, v);
+    const go = v === "manual" ? MANUAL_GO[healthSheet] : null;
     setHealthSheet(null);
+    if (go) go(true);
   };
 
   return (

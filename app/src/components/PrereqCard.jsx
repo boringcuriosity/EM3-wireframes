@@ -49,7 +49,7 @@ const PREREQS = {
   assess: {
     Icon: MessagesSquare,
     title: "Take your pre-consultation assessment",
-    line: "Kaira learns how you eat, move and rest, so your coaches know you before they meet you.",
+    line: "KAIRA learns how you eat, move and rest, so your coaches know you before they meet you.",
     cta: "Start the chat",
     tab: "care",
   },

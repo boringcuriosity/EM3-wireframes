@@ -64,7 +64,7 @@ export default function NameEntry() {
             </span>
           </span>
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>Hey, I'm Kaira.</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: TEXT }}>Hey, I'm KAIRA.</div>
             <div style={{ fontSize: 12, color: MUTED, marginTop: 2, lineHeight: 1.45 }}>
               Your AI health companion. I'll guide you through your health journey.
             </div>

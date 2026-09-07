@@ -26,7 +26,7 @@ export default function MorePage() {
           {
             title: "Records",
             desc: "Store your health records with GoodFlip security.",
-            tag: "04 records stored",
+            tag: "4 records stored",
           },
           {
             title: "Virtual Health Scan",

@@ -13,7 +13,7 @@ import { INDIGO, MIND_C, SH_XL } from "../tokens";
 export default function KairaFab({ bottom = 92 }) {
   return (
     <button
-      aria-label="Ask Kaira"
+      aria-label="Ask KAIRA"
       style={{
         position: "absolute",
         right: 18,
