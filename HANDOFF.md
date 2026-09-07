@@ -54,7 +54,7 @@ list, so if you add a state, add it to the panel and smoke covers it for free.
 | Path | What it is |
 |---|---|
 | `/` | the live wireframe, where all work happens |
-| `/v5` | a **frozen snapshot** of the cycle where Home started asking questions: the four bubbles ranked on the day rather than the score, each asking about the row it is waiting on, tips carrying no weight, and the bubbles drawn as lit spheres with liquid in them. Also the plan rebalanced to a real day of food against a TDEE of 1,900, sleep editable whichever way the night arrived, and a first step riding above its own flow as a strip. Built from commit `50238c2`, which was also the working tree, so nothing is missing from it. Served from `app/public/v5/`. |
+| `/v5` | a **frozen snapshot** of the cycle where Home started asking questions: the four bubbles ranked on the day rather than the score, each asking about the row it is waiting on, tips carrying no weight, and the bubbles drawn as lit spheres with liquid in them. Also the plan rebalanced to a real day of food against a TDEE of 1,900, sleep editable whichever way the night arrived, and a first step riding above its own flow as a strip. Built from commit `50238c2`, which was also the working tree, so nothing is missing from it. Served from `app/public/v5/`. `/` has moved on since: the consent checkbox, the coach renaming, the doctor consultation and the finished-card behaviour all landed after it. |
 | `/v4` | a **frozen snapshot** of the four part day: Morning, Afternoon, Evening and Night on Indian hours, one logger per pillar, three plans in the handover, the pillar scores under Home's day and the metabolic score as a five step walkthrough. Built from commit `cb7b7e4`, which was also the working tree, so nothing is missing from it. Served from `app/public/v4/`. |
 | `/v3` | a **frozen snapshot** of the three part day: Morning, Afternoon and Evening, Eat's logger with no plan tab, Move recording the routine as four ticks nothing read, no Mind plan, two plans in the handover. Built from commit `38a575c`. Served from `app/public/v3/`. Its README carries one caveat: it is the last **committed** state, and the morning of 31 Aug also held uncommitted work that is absent here. |
 | `/v2` | a **frozen snapshot** of the ring design: the four pillars in one strip with a progress circle round each icon and "2 of 5" under it, on Home's Today's focus card and again at the foot of To-do. Built from commit `1bd3859`. Served from `app/public/v2/`. |
@@ -254,6 +254,10 @@ Animation keyframes all live in `index.css`: `strikeIn`, `taskPop`, `haloOut`, `
   says must carry something they did not already know.
 - The calorie target is always the coach's by default. The user can edit it. There are no
   ownership variants.
+- **A coach is named after their pillar**: Eat coach, Move coach, Mind coach. Never Nutrition,
+  Exercise or Success. The profession is a separate field and a separate word: nutritionist,
+  physiotherapist, psychologist. `careTeam` in `state.jsx` holds both, and nothing else should
+  hold either.
 - **KAIRA is always in full capitals** in anything a user reads. Code identifiers and component
   names (`kairaAsk`, `KairaChatSheet`) keep their normal casing.
 - **Spelling is British and Indian English**: colour, favourite, personalised, mobilisation,
@@ -341,6 +345,19 @@ Three things this moved:
   second copy going stale the moment a coach changed one.
 
 The planned day comes out 6 / 2 / 2 / 5, the free day 2 / 2 / 2 / 3.
+
+**The last part ends at midnight.** The spans read 7 PM to 12 AM rather than to 5 AM, because
+most people are asleep by twelve and nothing is ever assigned after it, so a label running to
+five was promising a stretch of the day the plan has no business in. The turnover is still five:
+`phaseOf` files anything before it under the night that was already running, so a two in the
+morning row belongs to last night rather than opening the next day. Do not "fix" `from` to match
+the label.
+
+**The body scan goes before anything is eaten or drunk**, at 5:30 rather than 7:30, ahead of the
+first meal on the list. A composition reading moves with a glass of water, so a scan taken after
+breakfast is measuring the breakfast, and the row carries the recommendation because somebody
+who is not told will do it whenever they get to it. Only the scale: a glucose monitor is not a
+fasting reading and stays at its usual hour.
 
 ### Eight ways to draw a day, all live in the panel
 
@@ -1038,16 +1055,61 @@ step, so you can count what is behind you and what is ahead. Tapping it opens
 names what comes next, and that name is its own door.
 
 `finishNext(id)` is the one way to finish a first step: it marks the list and records which one,
-so the rail has something to play. **A done step stays in the rail**, struck and at the end,
-rather than being gone by the time anybody walks back: absent reads the same as dropped, and the
-card is the only proof anybody gets that the thing they went off and did counted.
+so the rail has something to play.
+
+**A done step keeps its place.** It went to the end of the list for a while, which is tidy and
+wrong: a card that jumps three places while you are looking for it is a card you have to find
+again, and the person came back specifically to see it. The order is `nextActions` and nothing
+moves in it.
+
+**The card says it, where the ask was.** A tick floated over the middle said "done" by covering
+the thing it was about. The ask is the one part that has stopped being true, so the ask is what
+changes: `PrereqCard` takes `done` and swaps its button for a filled circle and the words
+**Task done**. A green pill in the button's own place read as one more thing to press, which is
+why it is a mark and a label rather than a pill. The card dims to 62%, enough to read as behind
+you without being hard to read.
+
+Then the rail **carries you to the next open card**: the tick lands, holds 1.3s, and the rail
+glides over 620ms. Payoff first, next ask second. Two things had to be true for that to work at
+all. The rail's `scroll-snap-type: x mandatory` came off, because a mandatory snap container
+re-snaps every frame and drags a programmatic scroll back to where it started, and the tween
+re-asserts the position on every frame rather than setting it once, so a re-render landing mid
+glide cannot undo it.
 
 `screens/measure/Diagnostics.jsx` is the one first step that is a purchase, except it is not.
 The price is shown **struck through to nothing**, because a benefit somebody already bought is
 worth seeing rather than quietly applied.
 
+`screens/DoctorVisit.jsx` is the seventh, and the only one arranged outside this app. The screen
+is the door rather than the booking: it hands over, shows a turning ring and **Visit health**,
+and takes the person's word for it on the way back, because nothing here can know what happened
+on the other side. The clinical reason it exists is in a comment on the card: a licensed
+specialist matched to the condition is the one person who can review and change treatment, which
+the coaching side cannot.
+
 The strip's heading follows the state: **Start here** before a plan, **Tasks from your care
 program** once one lands, since "before your consultation" is a moment that has passed.
+
+### The coaches are named after their pillars
+
+They were named three different ways at once. **Nutrition, Exercise and Success are Eat, Move
+and Mind** everywhere now, which is what the pillars are already called on every other surface,
+and Manya is a **psychologist** rather than a success coach, which is what `ToolList` and KAIRA
+already called her. So `careTeam` carries two clean fields: `coach` is the pillar, `role` is the
+job.
+
+The rename turned up what a hardcoded name always turns up. `CoachNote` printed "Manya Jain" on
+**both** pillar sheets, so Move's target was credited to the Mind coach, and the sufficiency
+targets and the calorie sheet attributed the calorie goal to her rather than to the Eat coach.
+All four read `careTeam` by pillar now.
+
+### Consent is given, not assumed
+
+Signing up said "by continuing you agree", which takes the tap on Continue and counts it as two
+answers, one about the number and one about the terms. It is a checkbox now, the whole row is
+the target, and it gates Continue alongside the ten digits. The button keeps one label either
+way: a control that renames itself to nag is louder than the box it is pointing at, and the box
+is directly above it.
 
 ### Sleep is a night, not a number
 
@@ -1153,12 +1215,25 @@ The smoke test proves it renders; only the screen proves it is right.
 
 ## 9. In flight right now
 
-Committed through `50238c2` ("The sandbox runs the rule the app runs"). **Two commits are on
-`main` and not on the live site**: pushing does not deploy on this project, so production still
-serves whatever the last `vercel --prod` put there. `/v5` freezes `50238c2` and is the closest
-snapshot to `/`. The standing rule holds: batch the work and wait to be told when to push.
+Committed and pushed through `1c27ac1` ("Consent asked for, coaches named after their pillars,
+and a doctor to see"). **`main` is ahead of the live site**: pushing does not deploy on this
+project, so production still serves whatever the last `vercel --prod` put there. `/v5` freezes
+`50238c2`, which is a few commits back. The standing rule holds: batch the work and wait to be
+told when to push.
 
-**This cycle, in one line each** (all committed; a change log, not a to-do):
+**Since `/v5` was frozen** (all committed; a change log, not a to-do):
+
+- consent is a checkbox that gates Continue, rather than a line claiming the tap agreed to it
+- the coaches are Eat, Move and Mind everywhere, and the four places that hardcoded a coach's
+  name read `careTeam` by pillar
+- a seventh first step, the doctor consultation, with a screen that hands over and waits
+- a finished first step keeps its place, ticks where its button was, dims, and the rail glides
+  on to the next one
+- the day's last part ends at midnight, and the body scan moves ahead of the first meal
+- the welcome sheet stops promising coaches it names twenty lines later, and the pillar science
+  sheet drops its source picker
+
+**The cycle before that, in one line each:**
 
 - Home's bubbles rank on the day and ask a question; tips carry no weight anywhere, including
   in Momentum; three depths behind a panel chip and no dashed rings
@@ -1178,6 +1253,8 @@ snapshot to `/`. The standing rule holds: batch the work and wait to be told whe
 
 **Bugs this cycle turned up, worth knowing because the class recurs:**
 
+- `CoachNote` printed one hardcoded coach's name on both pillar sheets, so the Move target was
+  credited to the Mind coach and the calorie goal to her rather than to the Eat coach
 - the mood was stored as a word and read back as an id, so saving one set nothing the day could
   see and the button read as broken
 - `Wellbeing` gated on `sleepLogs` alone, so a night from Health Connect left it shut with the
@@ -1290,5 +1367,8 @@ snapshot to `/`. The standing rule holds: batch the work and wait to be told whe
 5. **`PlanChangedSheet` describes the Move plan as one thing**, and `RoutineList` on Move shows
    only the evening routine, so the morning stretch has no home there.
 6. **No way back to Health Connect for steps.** The source picker came out of the pillar science
-   sheet, and that was the only place to switch a signal after deciding.
-7. **When to push and deploy.** The standing instruction is to batch and wait.
+   sheet, and that was the only place to switch a signal after deciding. Move's own screen, next
+   to Add steps, is the natural home for one.
+7. **The doctor consultation is a stub.** `DoctorVisit.jsx` is a loader and a Done button
+   standing in for whatever the real handover is, and only the person can mark it finished.
+8. **When to push and deploy.** The standing instruction is to batch and wait.
