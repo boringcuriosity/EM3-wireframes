@@ -49,24 +49,30 @@ npm run build        # production build
 `npm run smoke` is the one that catches real breakage. It walks the control panel's own state
 list, so if you add a state, add it to the panel and smoke covers it for free.
 
-### The seven URLs
+### The nine URLs
 
 | Path | What it is |
 |---|---|
 | `/` | the live wireframe, where all work happens |
+| `/v5` | a **frozen snapshot** of the cycle where Home started asking questions: the four bubbles ranked on the day rather than the score, each asking about the row it is waiting on, tips carrying no weight, and the bubbles drawn as lit spheres with liquid in them. Also the plan rebalanced to a real day of food against a TDEE of 1,900, sleep editable whichever way the night arrived, and a first step riding above its own flow as a strip. Built from commit `50238c2`, which was also the working tree, so nothing is missing from it. Served from `app/public/v5/`. |
 | `/v4` | a **frozen snapshot** of the four part day: Morning, Afternoon, Evening and Night on Indian hours, one logger per pillar, three plans in the handover, the pillar scores under Home's day and the metabolic score as a five step walkthrough. Built from commit `cb7b7e4`, which was also the working tree, so nothing is missing from it. Served from `app/public/v4/`. |
 | `/v3` | a **frozen snapshot** of the three part day: Morning, Afternoon and Evening, Eat's logger with no plan tab, Move recording the routine as four ticks nothing read, no Mind plan, two plans in the handover. Built from commit `38a575c`. Served from `app/public/v3/`. Its README carries one caveat: it is the last **committed** state, and the morning of 31 Aug also held uncommitted work that is absent here. |
 | `/v2` | a **frozen snapshot** of the ring design: the four pillars in one strip with a progress circle round each icon and "2 of 5" under it, on Home's Today's focus card and again at the foot of To-do. Built from commit `1bd3859`. Served from `app/public/v2/`. |
 | `/v1` | a **frozen snapshot** of the diary design: chronological To-do, one card on Home, the plan handover card, the two device syncs, the weekly read. Served from `app/public/v1/`. |
 | `/v0` | a **frozen snapshot** of the older pillar-grouped To-do, from before the diary rewrite. Served from `app/public/v0/`. |
 | `/scenarios` | working notes: every user moment in To-do, EM3 and the streak, written as open questions, with a suggestions tab. Static HTML in `app/public/scenarios/index.html`. |
+| `/know` | the Home deck: why the four bubbles exist, what the rule is, and an interactive board. Static HTML in `app/public/know/index.html`, with the ranking code copied across from the sandbox. **Not yet updated to the current rule**, see section 9. |
+| `/play` | the bubble sandbox: drag tasks between parts of the day, add them, throw them away, slide the clock, and watch the ranking answer. A real Vite entry, `app/src/play/`, so it shares the tokens and the fonts and stays out of the product's bundle. |
+| `/move` | the Move deck: the Momentum concept, its sources and its maths. Static HTML in `app/public/move/index.html`. |
 
 The snapshots are in age order: `/v0` groups the day by pillar, `/v1` turns it into a diary,
 `/v2` sits between them in spirit, holding the moment the four rings still carried the day's
-numbers, `/v3` is the day before it gained a Night, and `/v4` is the day after. `/v2` is the one
-to open when somebody asks where the progress circles went; `/v3` is the one for anything about
-the three part day or the two plan handover; `/v4` is the whole of the cycle that followed, and
-is the closest snapshot to wherever `/` has since gone.
+numbers, `/v3` is the day before it gained a Night, `/v4` is the day after, and `/v5` is the
+cycle where Home stopped summarising and started asking. `/v2` is the one to open when somebody
+asks where the progress circles went; `/v3` is the one for anything about the three part day or
+the two plan handover; `/v4` is the one for the pillar score cards, the old score-led bubble
+rule and Kaira's longer lines; and `/v5` is the closest snapshot to wherever `/` has since
+gone.
 
 A snapshot that is not committed is not deployed. `app/public/v2/` sat untracked for days, so
 the live site served nothing at `/v2` while the folder existed happily on one laptop. Check
@@ -99,9 +105,9 @@ rm -rf public/v2/v0 public/v2/v1 public/v2/scenarios
 git worktree remove /tmp/wt-v2 --force
 ```
 
-In dev, `/v0/`, `/v1/`, `/v2/`, `/v3/`, `/v4/` and `/scenarios/` need the explicit `index.html` (Vite's SPA
-fallback answers the bare directory with the live app). On the deployed site the bare paths
-work.
+In dev, `/v0/` through `/v5/`, `/scenarios/`, `/know/` and `/move/` need the explicit
+`index.html` (Vite's SPA fallback answers the bare directory with the live app). `/play/` is a
+real entry and works either way. On the deployed site every bare path works.
 
 ### Deploying
 
@@ -120,7 +126,7 @@ run. On 31 Aug that gap left `/` serving the previous build and `/v2` and `/v3` 
 while both sat committed on main.
 
 Check a deploy rather than assuming it: `curl -s -o /dev/null -w "%{http_code}" <url>` on each
-of the six paths, and compare the bundle hash at `/` against `app/dist/assets/`.
+of the paths above, and compare the bundle hash at `/` against `app/dist/assets/`.
 
 **Do not push or deploy unless asked.** The user batches changes and says when.
 
@@ -248,6 +254,19 @@ Animation keyframes all live in `index.css`: `strikeIn`, `taskPop`, `haloOut`, `
   says must carry something they did not already know.
 - The calorie target is always the coach's by default. The user can edit it. There are no
   ownership variants.
+- **KAIRA is always in full capitals** in anything a user reads. Code identifiers and component
+  names (`kairaAsk`, `KairaChatSheet`) keep their normal casing.
+- **Spelling is British and Indian English**: colour, favourite, personalised, mobilisation,
+  burnt, analyser. **Program is the one deliberate exception**, kept in the American spelling
+  because it is the product's own word for the care programme.
+- **Contractions belong to KAIRA** when she is speaking in the first person. Interface copy is
+  written out in full: "That is fine", "It will not count as missed", "You are averaging".
+- **She says one mechanism and nothing to do.** The screen already carries the ask, so a line
+  ending in "log it" is the same request twice and the second one reads as nagging. Her job is
+  the half the screen cannot show: why this is worth a minute. One sentence, two at most.
+- **No target figures in her copy.** She used to quote "6 grams of the 30" and "44 of the 110
+  grams of protein", which read beautifully and went wrong the moment the plan or the calorie
+  target moved, because they were a second copy of numbers derived elsewhere.
 - Follow the **Impeccable** principles skill for anything visual.
 
 ### Task titles are a verb and a name
@@ -950,6 +969,115 @@ Two things worth keeping if you touch it:
 The photo itself is a labelled placeholder, not a stock plate. Whatever ships there is the
 picture the person actually took.
 
+### Home asks a question now
+
+The big change this cycle. Home's four bubbles used to rank on score: lowest score with
+something open takes the middle, and a hardcoded owner per part of the day broke the tie. That
+cannot follow a day. A score only moves **after** something is logged, so it always reacts a
+step late, and with nothing logged all three daily pillars sat level on nought and the owner
+decided instead, which is why the morning always opened on Eat while the day's first row was
+sleep.
+
+**The day leads and the score breaks ties.** The front goes to the pillar whose nearest
+unfinished row is soonest; score only separates pillars that are equally soon or equally idle.
+Every log hands the front to whatever is genuinely next, which is what makes the card feel
+joined to the list rather than parked beside it. `SLOT_OWNER` and `NUDGE` are gone, and so is a
+dead `b.openNow - a.openNow` term that had been comparing an undefined property on every sort.
+
+**They ask rather than instruct.** This is a logging app: people open it after the thing has
+happened. "Have you had your lunch" is a question a person can answer; "Time to eat" is a nag
+about a moment that has usually passed. `ASK` in `day.js` is one line per **row**, with a
+per-pillar fallback, because the point is that it names the thing actually waiting. The score
+sits under the question once there is one.
+
+**Tips carry no weight.** `isTip(r)` is `kind === "tick"`, the same test the row already uses
+for its info mark. A nudge pays nothing and files nothing, so it cannot decide which pillar is
+big, cannot fill one, and cannot open a score. That includes Momentum: the Move deck sets it out
+as 40 / 10 / 10 / 40 with NEAT as the third tenth, and ticking the stairs was worth ten points
+of NEAT and another ten of spread. It is **Movement 50 + Steps 20 + Spread 30** here, and the
+comment in `state.jsx` says where it diverges from the deck and why.
+
+**They look like bubbles.** Three skins behind **Bubble depth** in the panel, defaulting to Orb:
+a sphere lit from the top left, a rim of its own hue, a shadow in the pillar's colour, and what
+is logged drawn as liquid with a lit surface that breathes on a slower cycle than the drift. An
+empty bubble keeps its light and only changes its rim, because the first thing anybody sees on
+a fresh day should not be the flattest thing on the screen. There are no dashed rings: the
+liquid level and the missing number already say "nothing yet", and four broken outlines on one
+card read as damage.
+
+`/play` runs the same rule, the same asks and the same look. A sandbox that disagrees with the
+product is worse than no sandbox.
+
+### The plan is a day's food
+
+Logging every one of the coach's meals scored 54%. The cause was not the target: all six
+option-one meals came to **974 kcal** against 2,200, which is under half a day, so no amount of
+tuning the goal could fix it. Breakfast was one boiled egg.
+
+Both levers moved. The persona is **sedentary** rather than lightly active, which is the honest
+starting point for somebody joining a metabolic programme and takes TDEE to **1,900** through
+Harris-Benedict unchanged, so the worked examples on the calorie sheet still add up. And option
+one gained real food: two eggs and curd at breakfast, rajma at lunch, chana with the makhana,
+dal and a salad at dinner. That is **1,635 kcal**, a sensible deficit, and it scores **89%**.
+
+The other options were levelled to match. Option one at 1,635 beside option two at 1,316 would
+have meant switching options tanked the score, and "pick whichever one you actually had" must
+never punish the truth. All **48 combinations across the six meals now score 87 to 89%**.
+
+`sufficiency()` also floors at 1% whenever anything is in. A cup of black tea really is a
+rounding error against a whole day, but printing 0% straight after somebody logged something
+teaches that logging does nothing.
+
+### A first step you can see yourself doing
+
+A next action was a card on Home and To-do, and then you tapped it and every trace of it
+disappeared for the length of a five screen flow. `NextActionStrip` rides above the button on
+every step of the score walkthrough: which step this is, its name, and one segment per first
+step, so you can count what is behind you and what is ahead. Tapping it opens
+`NextActionsSheet`, the whole list with a way into any of them. On the result it turns green and
+names what comes next, and that name is its own door.
+
+`finishNext(id)` is the one way to finish a first step: it marks the list and records which one,
+so the rail has something to play. **A done step stays in the rail**, struck and at the end,
+rather than being gone by the time anybody walks back: absent reads the same as dropped, and the
+card is the only proof anybody gets that the thing they went off and did counted.
+
+`screens/measure/Diagnostics.jsx` is the one first step that is a purchase, except it is not.
+The price is shown **struck through to nothing**, because a benefit somebody already bought is
+worth seeing rather than quietly applied.
+
+The strip's heading follows the state: **Start here** before a plan, **Tasks from your care
+program** once one lands, since "before your consultation" is a moment that has passed.
+
+### Sleep is a night, not a number
+
+`sleepMins` held the synced night as a bare duration and a hand-written one as a bed and wake
+pair, so a synced night could not be edited: there was nothing for the logger's two questions to
+open on. There is one `lastNight` now, a bed time and a wake time whichever way it arrived, and
+the duration falls out of it. The synced night is 11:30 PM to 5:00 AM, both on the logger's own
+half-hour rails.
+
+**A hand-written night beats the reading.** Somebody who corrects a night has just told us the
+number. The source is untouched, so tomorrow still syncs. Tapping a done sleep row, or its three
+dots, opens the night and **Edit this night**; the logger opens on it and replaces it rather
+than adding a second, and a correction pays no Flipcoins.
+
+Saying you will keep a signal yourself now carries you to where that is done: sleep opens the
+logger, steps open the step sheet. It used to close on the day's list and leave somebody tapping
+the same row a second time.
+
+### Move has a morning
+
+Move's only recordable rows were the session before dinner and the step count at the end of the
+day, so a whole morning went by without it. `COACH_MORNING` is the physio's other half: a five
+minute **Morning wake-up stretch**, three moves, deliberately not a workout. It is the coach's
+work rather than a walk somebody took, so it opens the same plan tab the session does.
+`ROUTINES` is one lookup for both, so a third routine is a data entry.
+
+Steps arrive once there is movement to have made them. A flat 5,008 the instant Health Connect
+was granted handed over half a day's walking to somebody who had just woken up, and Momentum
+climbed five points for something nobody had done.
+
 ---
 
 ## 6. How a decision gets made here
@@ -1001,6 +1129,10 @@ The smoke test proves it renders; only the screen proves it is right.
    whole day of skips ambiguous. It needs a rule, stated to the user in plain words.
 5. **Move and Mind on the free Home** look tappable and go nowhere. The Metabolic Kickstarter
    card has no destination.
+6. **Wellbeing and the metabolic score have no formula.** Eat runs on nutrition sufficiency and
+   Move on Momentum, both real. Mind's 89 and Measure's 68 are staged in `pillarScores`, in one
+   place, on purpose: inventing a formula would make a product decision look settled that has
+   not been made.
 
 ---
 
@@ -1012,7 +1144,7 @@ The smoke test proves it renders; only the screen proves it is right.
   a piece of layout, because the layout itself is readable. Keep that.
 - **Verify visually.** Run the dev server, drive the control panel, look at the screen. The
   smoke test proves it renders, not that it is right.
-- **Do not touch `/v0` through `/v4`.** They are frozen for comparison. Check
+- **Do not touch `/v0` through `/v5`.** They are frozen for comparison. Check
   `git status --short app/public` before you finish: a stray diff there means a build leaked
   into a snapshot.
 - **Do not push or deploy until asked.**
@@ -1021,9 +1153,43 @@ The smoke test proves it renders; only the screen proves it is right.
 
 ## 9. In flight right now
 
-Committed and deployed through `2001d68` ("A skipped walk still keeps its steps"). `/v4`
-freezes `cb7b7e4`, a dozen commits back. The standing rule still holds for whatever comes next:
-batch the work and wait to be told when to push.
+Committed through `50238c2` ("The sandbox runs the rule the app runs"). **Two commits are on
+`main` and not on the live site**: pushing does not deploy on this project, so production still
+serves whatever the last `vercel --prod` put there. `/v5` freezes `50238c2` and is the closest
+snapshot to `/`. The standing rule holds: batch the work and wait to be told when to push.
+
+**This cycle, in one line each** (all committed; a change log, not a to-do):
+
+- Home's bubbles rank on the day and ask a question; tips carry no weight anywhere, including
+  in Momentum; three depths behind a panel chip and no dashed rings
+- KAIRA says one mechanism and nothing to do, with every target figure out of her copy
+- the coach's plan is a real day of food, 1,635 kcal against a TDEE of 1,900 reached by making
+  the persona sedentary; all 48 option combinations score 87 to 89%
+- a first step rides above its own flow as a strip, opens the whole list in a sheet, and stays
+  in the rail struck through once it is done; diagnostics has a screen with the price struck to
+  nothing
+- sleep is a night rather than a number, editable whichever way it arrived
+- Move gained the coach's morning stretch; Measure's day is one task and finishes
+- the profile questions stack instead of replacing each other, and the score intro is the score
+  as an object rather than a list
+- KAIRA in full capitals, and a copy pass over every user-facing string: British and Indian
+  spelling, hyphens, numerals, sentence case
+- `/play` runs the same rule, the same asks and the same look
+
+**Bugs this cycle turned up, worth knowing because the class recurs:**
+
+- the mood was stored as a word and read back as an id, so saving one set nothing the day could
+  see and the button read as broken
+- `Wellbeing` gated on `sleepLogs` alone, so a night from Health Connect left it shut with the
+  reading on the row above it
+- the result screen's counter floored its span at 1, so a meal worth nothing printed one point
+  above the score Home showed for the same day
+- the panel's Today's focus presets set both health sources to manual, so a preset that seeded
+  nothing still answered the permission question for you
+- `moodLabel`, `lastNight`, `daySteps` and `TrackHero`'s hardcoded 2,200 were all one fact in
+  two places. Every single one of them broke in the same way
+
+**Earlier cycles** (kept as the record of how the current shape was arrived at):
 
 **Recently landed** (everything below is committed; the list is here as a change log, not as a to-do):
 
@@ -1112,7 +1278,17 @@ batch the work and wait to be told when to push.
 
 **Waiting on the user, in order:**
 
-1. **Which task layout to keep.** Eight are built and switchable. This is the live decision;
-   the others come down once it is made.
-2. **Whether the afternoon gets a tip.** A post-lunch walk was offered.
-3. **When to push.** The standing instruction is to batch and wait.
+1. **Which task layout to keep.** Eight are built and switchable. Still the live decision.
+2. **`/know` is out of date.** It teaches the old bubble rule, the old nudges and Kaira's old
+   line shape, and its interactive board runs the old ranking. `/play` has been brought forward;
+   `/know` has not.
+3. **The consultations in the first-steps list.** The Care plan toggle sets the three plans and
+   never touches `nextActions`, so with plans on the day the strip still lists three
+   consultations to book. Marking them done when a plan lands is one line.
+4. **Momentum diverges from the `/move` deck**, which still documents 40 / 10 / 10 / 40 with
+   NEAT. Worth deciding whether the deck gets reissued.
+5. **`PlanChangedSheet` describes the Move plan as one thing**, and `RoutineList` on Move shows
+   only the evening routine, so the morning stretch has no home there.
+6. **No way back to Health Connect for steps.** The source picker came out of the pillar science
+   sheet, and that was the only place to switch a signal after deciding.
+7. **When to push and deploy.** The standing instruction is to batch and wait.
