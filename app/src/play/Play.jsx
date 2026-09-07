@@ -17,31 +17,35 @@ const PARTS = [
   { id: "evening",   name: "Evening",   hours: "4 PM to 7 PM",  from: 16 * 60 },
   { id: "night",     name: "Night",     hours: "7 PM to 5 AM", from: 19 * 60 },
 ];
-/* What the big bubble says once it has a score. It replaces the pillar's name
-   there, because a label plus a number is two things to read and neither of
-   them asks for anything. The colour and the seat already say which pillar it
-   is, so the words can be spent on the nudge instead.
+/* What the big bubble asks.
 
-   Mind is the only one that changes through the day: easing into a morning and
-   winding down at night are opposite ends of the same pillar. */
-const NUDGE = {
-  eat:     { any: "Time to eat" },
-  move:    { any: "Time to move" },
-  mind:    { morning: "Ease into your day", night: "Time to wind down", any: "Take a breather" },
-  measure: { any: "Time for a reading" },
+   Home is the screen somebody opens after the thing has already happened, so
+   it asks rather than instructs. "Have you had your lunch" is a question a
+   person can answer; "Time to eat" is a nag about a moment that has usually
+   passed. One line per task rather than one per pillar, because the point is
+   that it names the thing actually waiting, which a category cannot do. */
+const ASK = {
+  "Pre-breakfast": "Have you had anything yet this morning?",
+  "Breakfast": "Have you had your breakfast?",
+  "Lunch": "Have you had your lunch?",
+  "Evening snack": "Have you had your evening snack?",
+  "Dinner": "Have you had your dinner?",
+  "Bedtime snack": "Have you had anything before bed?",
+  "2 glasses of water": "Have you had some water today?",
+  "Last night's sleep": "How did you sleep last night?",
+  "Your mood": "How has your day been?",
+  "Morning stretch": "Have you done your morning stretch?",
+  "Your coach's session": "Have you done your session today?",
+  "10,000 steps": "Have you been on your feet today?",
+  "Body composition": "Have you checked your body composition today?",
 };
-const nudgeFor = (pillar, part) => NUDGE[pillar][part] || NUDGE[pillar].any;
-
-/* Whose hour it is, when nothing else separates them.
-
-   Four pillars on the same score is a real tie and somebody has to break it,
-   and the honest answer is that each part of the day has a pillar it belongs
-   to: breakfast sets the morning, a reading suits the flat middle of the day,
-   the session goes before dinner, and the night is for winding down.
-
-   It is only ever a tie-break. A pillar that is genuinely further behind still
-   wins on its own, whatever hour it is. */
-const SLOT_OWNER = { morning: "eat", afternoon: "measure", evening: "move", night: "mind" };
+const ASK_PILLAR = {
+  eat: "Have you eaten yet today?",
+  move: "Have you moved today?",
+  mind: "How are you feeling today?",
+  measure: "Have you taken a reading today?",
+};
+const askFor = (task, pillar) => (task && ASK[task.name]) || ASK_PILLAR[pillar];
 
 /* What Kaira says under the bubbles.
 
@@ -56,30 +60,30 @@ const SLOT_OWNER = { morning: "eat", afternoon: "measure", evening: "move", nigh
    less. */
 const KAIRA = {
   eat: {
-    fresh: "Your Eat score is built from the meals you log, so it has nothing to work with yet. Log your first meal, whatever was actually on the plate, and the number appears.",
-    morning: "Fibre usually runs short by the evening, and breakfast is the cheapest place to get ahead of it. The chilla option has 6 grams of the 30 you need today, so eat that one and log it.",
-    afternoon: "You are at 44 grams of the 110 grams of protein you need today. The evening chana carries 9 grams on its own, which is the easiest 9 left, so make that your next meal and log it.",
-    evening: "Your fibre is at 11 grams of 30 with dinner still to come. The multigrain roti option has 6 of them, so choosing that one and logging it closes most of tonight's gap.",
-    night: "Finishing dinner two hours before bed gives your body the whole night for repair instead of digestion. The khichdi option is the lighter of the two, so pick that one and log it.",
+    fresh: "This one reads how close your day came to enough protein, carbs, fats and fibre. It has nothing to read yet.",
+    morning: "Fibre is the one most days run short on by evening, and breakfast is where it is cheapest to get.",
+    afternoon: "Protein is what keeps hunger away for hours, and the afternoon is where most days lose it.",
+    evening: "Dinner is where fibre is easiest to close, because the roti and the dal both carry it.",
+    night: "Two hours between dinner and bed gives your body the night for repair instead of digestion.",
   },
   move: {
-    fresh: "Nothing has been logged for Move today, and sitting for long stretches quietly undoes the meals in between. Get ten minutes on your feet after your next meal and log it.",
-    part: "Your session is the biggest single thing left in your day. Twenty minutes of it moves your score more than anything else you could do right now, so do it and log it.",
-    any: "Your session does the most for your glucose when it lands before dinner. Half past six gives you the time, so get it done and log it.",
-    night: "Walking after a meal does more for your glucose than walking before one. Take ten minutes after dinner and log the steps, and they count double.",
+    fresh: "Long stretches of sitting quietly undo the meals in between, whatever else a day holds.",
+    part: "Your session is the biggest single lever your plan gives you.",
+    any: "Your session does the most for your glucose when it lands before dinner rather than after.",
+    night: "Ten minutes on your feet after a meal does more for your glucose than the same ten before it.",
   },
   mind: {
-    fresh: "Your body clock is set by the light you get in the first hour after waking. Ten minutes of sun before nine does more for tonight's sleep than anything you do at bedtime, so go out and tick it off.",
-    part: "Sleep is the half of Mind a device can read, and how the day felt is the half only you can. Sync last night and log your mood, and both halves are in.",
-    morning: "Ten minutes of sun before nine sets your body clock for the whole day, and that does more for tonight's sleep than anything you do at bedtime. Step outside and tick it off.",
-    any: "How a day felt is the half of Mind no device can read for you. Log your mood in one tap and the pattern behind your weeks starts to show.",
-    night: "A bedtime you keep every night does more for your glucose than the number of hours you get. Wind down now and mark it done, because the rhythm matters more than the total.",
+    fresh: "The hour your night starts moves your glucose the next day more than the number of hours in it.",
+    part: "A device can read how long you slept. How the day felt is the half only you know.",
+    morning: "A bedtime that wanders costs you more than an hour lost, because your body clock reads the timing.",
+    any: "How a day felt is the half of Mind no device reads, and it is the pattern your psychologist looks for.",
+    night: "A bedtime you keep every night does more for your glucose than the number of hours you get.",
   },
   measure: {
-    fresh: "A body reading is the one number here that logging cannot give you. Take two minutes on the scale and sync it, because the next three months get built on what it says.",
-    any: "A body reading is the one number here that logging cannot give you. Take two minutes on the scale and sync it, because the next three months get built on what it says.",
+    fresh: "A body reading is the one number logging cannot give you, and the next three months get built on it.",
+    any: "A body reading is the one number logging cannot give you, and the next three months get built on it.",
   },
-  done: "Everything on today's list is logged. Days like this are what turn into a pattern, and four of them in a week is when it starts to show.",
+  done: "Four days like this in a week is where a pattern starts to show.",
   empty: "Nothing is on the day yet. Add a task to any part of the day and I will have something useful to say about it.",
 };
 
@@ -120,52 +124,59 @@ const PILLARS = [
    out and never takes the middle. Adding a Measure task from a column is what
    shows the other case. */
 const START = [
-  { id: 1,  part: "morning",   pillar: "eat",  name: "Pre-breakfast" },
-  { id: 2,  part: "morning",   pillar: "eat",  name: "Breakfast" },
-  { id: 3,  part: "morning",   pillar: "mind", name: "Last night's sleep" },
-  { id: 4,  part: "morning",   pillar: "mind", name: "10 min morning sun" },
-  { id: 5,  part: "afternoon", pillar: "eat",  name: "Lunch" },
-  { id: 6,  part: "afternoon", pillar: "eat",  name: "2 glasses of water" },
-  { id: 7,  part: "evening",   pillar: "eat",  name: "Evening snack" },
-  { id: 8,  part: "evening",   pillar: "move", name: "Your coach's session" },
-  { id: 9,  part: "night",     pillar: "eat",  name: "Dinner" },
-  { id: 10, part: "night",     pillar: "eat",  name: "Bedtime snack" },
-  { id: 11, part: "night",     pillar: "move", name: "10,000 steps" },
-  { id: 12, part: "night",     pillar: "mind", name: "Your mood" },
-  { id: 13, part: "night",     pillar: "mind", name: "Lights out by 11" },
+  { id: 3,  part: "morning",   pillar: "mind",    name: "Last night's sleep" },
+  { id: 1,  part: "morning",   pillar: "eat",     name: "Pre-breakfast" },
+  { id: 14, part: "morning",   pillar: "move",    name: "Morning stretch" },
+  { id: 4,  part: "morning",   pillar: "move",    name: "10 min morning sun", tip: true },
+  { id: 15, part: "morning",   pillar: "measure", name: "Body composition" },
+  { id: 2,  part: "morning",   pillar: "eat",     name: "Breakfast" },
+  { id: 16, part: "morning",   pillar: "move",    name: "The stairs on your way in", tip: true },
+  { id: 5,  part: "afternoon", pillar: "eat",     name: "Lunch" },
+  { id: 6,  part: "afternoon", pillar: "eat",     name: "2 glasses of water" },
+  { id: 7,  part: "evening",   pillar: "eat",     name: "Evening snack" },
+  { id: 8,  part: "evening",   pillar: "move",    name: "Your coach's session" },
+  { id: 9,  part: "night",     pillar: "eat",     name: "Dinner" },
+  { id: 12, part: "night",     pillar: "mind",    name: "Your mood" },
+  { id: 10, part: "night",     pillar: "eat",     name: "Bedtime snack" },
+  { id: 11, part: "night",     pillar: "move",    name: "10,000 steps" },
 ].map((t) => ({ ...t, done: false }));
 
 /* A normal day in six stops. Each one is only a list of what is done by then,
    because everything else falls out of that. */
 const SCENARIOS = [
   {
-    id: "wake", at_: 6 * 60, part: "morning", label: "Just woke up", at: "6:00 AM", done: [3],
+    id: "wake", at_: 6 * 60, part: "morning", label: "Just woke up", at: "6:00 AM", done: [],
     story:
-      "Sleep is already logged, so Mind has one of its four in. Eat has all seven of its tasks still ahead, so it has the most of its day left and takes the middle.",
+      "Nothing logged yet. The first thing the day wants is last night's sleep, so Mind takes the middle and asks about it.",
   },
   {
-    id: "fed", at_: 9 * 60, part: "morning", label: "Breakfast in", at: "9:00 AM", done: [3, 1, 2],
+    id: "slept", at_: 6 * 60 + 30, part: "morning", label: "Sleep logged", at: "6:30 AM", done: [3],
     story:
-      "Both morning meals are in. Eat has nothing else this morning, so it steps back to its corner, and the ten minutes of sun is the last thing open. Mind takes the middle.",
+      "Sleep is in, and the front moves straight on to whatever follows it. Pre-breakfast is the next thing on the day, so Eat comes forward.",
   },
   {
-    id: "lunch", at_: 13 * 60, part: "afternoon", label: "Lunchtime", at: "1:00 PM", done: [3, 1, 2, 4],
+    id: "fed", at_: 9 * 60, part: "morning", label: "Breakfast in", at: "9:00 AM", done: [3, 1, 14, 15, 2],
     story:
-      "The morning is clear, so the day moved on by itself. The afternoon is all Eat, and lunch is the next thing on it.",
+      "The stretch, the reading and both morning meals are in. The stairs are still unticked and change nothing, because a tip carries no weight. The next real thing is lunch.",
   },
   {
-    id: "afternoon", at_: 16 * 60, part: "evening", label: "Late afternoon", at: "4:00 PM", done: [3, 1, 2, 4, 5, 6],
+    id: "lunch", at_: 13 * 60, part: "afternoon", label: "Lunchtime", at: "1:00 PM", done: [3, 1, 14, 15, 2, 5],
     story:
-      "Eat is more than half done. Move has not started at all, so it has the most left of anything, and the coach's session takes the middle.",
+      "Lunch is done and the afternoon holds one more Eat task, so Eat keeps the middle. It is not stuck: the number under the question climbs with every log.",
   },
   {
-    id: "bed", at_: 22 * 60, part: "night", label: "Getting late", at: "10:00 PM", done: [3, 1, 2, 4, 5, 6, 7, 8, 9, 10, 11],
+    id: "afternoon", at_: 16 * 60, part: "evening", label: "Late afternoon", at: "4:00 PM", done: [3, 1, 14, 15, 2, 5, 6, 7],
     story:
-      "Everything else is in. Mind has slipped through the day with your mood and bedtime still open, so it has the most left and asks for the one thing that still helps at ten o'clock.",
+      "The evening snack is in, so the next thing on the day is the coach's session. Move comes forward, even though Eat is further behind on score.",
+  },
+  {
+    id: "bed", at_: 22 * 60, part: "night", label: "Getting late", at: "10:00 PM", done: [3, 1, 14, 15, 2, 5, 6, 7, 8, 9, 10],
+    story:
+      "Everything else is in. Your mood is the next open thing and the steps come after it, so Mind asks how the day has been.",
   },
   {
     id: "good", at_: 23 * 60, part: "night", label: "A day that went well", at: "11:00 PM",
-    done: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13],
+    done: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16],
     story:
       "Everything is done. There is nothing to single out, so the four go back to the same size and simply float.",
   },
@@ -192,41 +203,50 @@ export default function Play() {
      any set of tasks and see what the bubbles do. */
   const nowPart = partAt(minute);
 
-  /* Each pillar, as its own day. `left` out of `total` is the whole of it:
-     the bigger the share still to do, the more that pillar needs you. */
+  /* How near a task is: which part of the day it sits in, then where it sits
+     inside that part. The board has no clock on its rows, so its own order is
+     the order of the day, and dragging a task somewhere else genuinely moves
+     when it is due. */
+  const nearness = (t) => PARTS.findIndex((x) => x.id === t.part) * 1000 + tasks.indexOf(t);
+
+  /* Each pillar, as its own day.
+
+     THE DAY LEADS AND THE SCORE BREAKS TIES. It used to be the other way
+     round, and the other way round cannot follow a day: a score only moves
+     after something is logged, so it always reacts a step late, and with
+     nothing logged all four sat level and a hardcoded owner per part of the
+     day decided instead. Nearest unfinished task first, so every tick hands
+     the front to whatever is genuinely next.
+
+     Tips are in none of it. A nudge pays nothing and files nothing, so it
+     cannot make a pillar look busy or make one look finished. */
   const ranked = PILLARS.map((p) => {
-    const mine = tasks.filter((t) => t.pillar === p.id);
+    const mine = tasks.filter((t) => t.pillar === p.id && !t.tip);
     const done = mine.filter((t) => t.done).length;
-    const openNow = nowPart
-      ? mine.filter((t) => t.part === nowPart.id && !t.done).sort((a, b) => a.id - b.id)
-      : [];
+    const open = mine.filter((t) => !t.done).sort((a, b) => nearness(a) - nearness(b));
+    const next = open[0] || null;
     return {
       ...p,
       total: mine.length,
       done,
-      left: mine.length - done,
+      left: open.length,
       /* The score, and it is the pillar's own day rather than anything set by
          hand. Null until something has been logged, because a percentage of
          nothing is a figure nobody has earned. */
       score: mine.length && done ? Math.round((done / mine.length) * 100) : mine.length ? 0 : null,
       started: done > 0,
-      openNow,
-      // Only a pillar with something open right now can take the middle.
-      can: openNow.length > 0,
-      nudge: nudgeFor(p.id, nowPart.id),
+      openNow: open,
+      // How soon this pillar is wanted. Nothing left sorts to the back.
+      at: next ? nearness(next) : Infinity,
+      // The question, from the task rather than from the pillar.
+      ask: askFor(next, p.id),
     };
   }).sort((a, b) => {
-    const owner = SLOT_OWNER[nowPart.id];
-    const sc = (x) => (x.score === null ? Infinity : x.score);
+    // Nothing logged sorts lowest, because the whole of it is still to win.
+    const sc = (x) => (x.score === null ? 0 : x.score);
     return (
-      // Something open right now comes first, then anything left later today.
-      b.can - a.can ||
-      (b.left > 0) - (a.left > 0) ||
-      // Lowest score, which is the whole idea: the one furthest from done.
+      a.at - b.at ||
       sc(a) - sc(b) ||
-      // Level on score, so the hour decides.
-      (b.id === owner) - (a.id === owner) ||
-      b.openNow.length - a.openNow.length ||
       PILLARS.findIndex((x) => x.id === a.id) - PILLARS.findIndex((x) => x.id === b.id)
     );
   });
@@ -237,7 +257,7 @@ export default function Play() {
   const empty = tasks.length === 0;
   const allDone = tasks.length > 0 && tasks.every((t) => t.done);
   // Nothing due in this part of the day, though the day is not over.
-  const quiet = !ranked.some((p) => p.can) && !allDone && !empty;
+  const quiet = !ranked.some((p) => p.left > 0) && !allDone && !empty;
   /* Only a finished day flattens the four. An hour with nothing due still has
      a pillar worth pointing at, and four identical circles would say the day
      had no shape at all. */
@@ -431,11 +451,12 @@ export default function Play() {
    the bubbles move. */
 function Rules() {
   const steps = [
+    ["The nearest unfinished task decides.", "Whichever pillar the day wants next takes the middle. Every tick hands the front to whatever genuinely follows it, which is what makes the bubbles feel joined to the list rather than parked beside it."],
+    ["Score only breaks ties.", "It used to lead, and leading cannot follow a day: a score moves after something is logged, so it always reacts a step late, and with nothing logged all four sat level and the hour had to decide. Now it separates pillars that are equally soon or equally idle, and the one furthest behind wins."],
+    ["Tips carry no weight.", "The stairs, the morning sun, standing through a meeting. They pay nothing and file nothing, so they cannot make a pillar look busy, cannot fill it, and cannot pull the middle onto it. Only the tasks that leave a record count."],
+    ["The big one asks a question.", "This is where somebody comes after the thing has happened, so it asks rather than instructs. \u201cHave you had your lunch\u201d is a question a person can answer; \u201cTime to eat\u201d is a nag about a moment that has usually passed. The line comes from the task waiting, not from the pillar."],
     ["Each pillar carries its own score.", "In the product that is a real one: Eat is your nutrition sufficiency against the macros your coach set, Move is Momentum, and Mind gets its own. Here it is stood in for by how much of that pillar's day is logged, so you can move it by ticking things rather than by setting a dial."],
-    ["Whatever is due right now comes first.", "A pillar with something open in this part of the day outranks one whose next thing is hours away. With nothing due at all, the one furthest behind still takes the middle."],
-    ["Among those, the lowest score goes in the middle.", "It is the one furthest from where it should be, so it is where the next hour is worth the most."],
-    ["Level on score, and the hour decides.", "The morning belongs to Eat, the afternoon to Measure, the evening to Move and the night to Mind. It only ever breaks a tie: a pillar genuinely further behind still wins on its own, whatever the hour. Anything still level after that falls back to the Eat, Move, Mind, Measure order, so the same day always gives the same answer."],
-    ["Before anything is logged there is no score, so it asks you to log.", "A percentage of nothing means nothing, and on the biggest circle of the screen the honest thing is the ask. From the first log onward it is a plain percentage."],
+    ["Before anything is logged there is no score, so it asks and waits.", "A percentage of nothing means nothing, so the circle carries the question on its own until the first log gives it a number to put underneath."],
     ["When it is all done, nothing is singled out.", "The four go back to the same size. Nobody is behind on a day they have finished."],
   ];
   return (

@@ -1,6 +1,6 @@
 import React from "react";
 import CtaArrow from "../components/CtaArrow";
-import { PILLAR, TEXT, MUTED, RULE } from "../tokens";
+import { PILLAR, TEXT, MUTED } from "../tokens";
 
 /* The four pillars, one of them bigger.
 
@@ -28,10 +28,15 @@ const SEATS = {
   eat:     { x: 80,  y: 180, d: 74 },
 };
 const C = { x: 173, y: 118 };
-const HERO = 150;
+const HERO = 158;
 const PERIOD = { eat: 8, move: 9.4, mind: 7.2, measure: 8.7 };
 const DELAY = { eat: 0, move: 2.6, mind: 4.1, measure: 1.3 };
-const EASE = "cubic-bezier(.32,.72,0,1)";
+/* Settling, with a little overshoot. A handover is a thing arriving, and a
+   bubble that eases politely into its size reads as a resize rather than as
+   something that moved. */
+const EASE = "cubic-bezier(.34,1.3,.5,1)";
+// The liquid has weight, so it takes longer to settle than the shell does.
+const POUR = "cubic-bezier(.22,1,.36,1)";
 
 export default function Bubbles({ order, onOpen }) {
   return (
@@ -53,9 +58,9 @@ export default function Bubbles({ order, onOpen }) {
             aria-label={
               p.name + ", " +
               (state === "none" ? "nothing to do today"
-                : !p.started ? "not logged yet, " + p.first
+                : !p.started ? "not logged yet, " + p.ask
                 : p.score + " percent, " + p.done + " of " + p.total + " done today" +
-                  (hero ? ". " + p.nudge : ""))
+                  (hero ? ". " + p.ask : ""))
             }
             style={{
               position: "absolute",
@@ -63,7 +68,7 @@ export default function Bubbles({ order, onOpen }) {
               top: cy - d / 2,
               width: d,
               height: d,
-              transition: ["left", "top", "width", "height"].map((k) => k + " .5s " + EASE).join(", "),
+              transition: ["left", "top", "width", "height"].map((k) => k + " .62s " + EASE).join(", "),
               background: "none", border: "none", padding: 0,
               cursor: "pointer", fontFamily: "inherit",
             }}
@@ -73,10 +78,19 @@ export default function Bubbles({ order, onOpen }) {
                 display: "flex", width: "100%", height: "100%",
                 borderRadius: "50%", position: "relative", overflow: "hidden",
                 alignItems: "center", justifyContent: "center", textAlign: "center",
-                background: c.w,
-                // Solid once the day has anything in it. A dotted ring while
-                // there is nothing yet, which is the plainest way to draw it.
-                border: p.started ? "1.5px solid " + c.c : "1.5px dashed " + RULE,
+                /* A lit sphere rather than a tinted disc. One rim, drawn the
+                   same whether anything is in it or not and just paler while
+                   it is empty: a dashed ring was meant to say "nothing yet",
+                   but the liquid level and the missing number already say
+                   that, and four broken outlines on one card read as damage
+                   rather than as a state. */
+                background:
+                  "radial-gradient(130% 130% at 28% 18%, #FFFFFF 0%, " + c.w + " 32%, " +
+                  c.t + " 74%, " + c.c + "59 100%)",
+                boxShadow:
+                  "0 16px 30px -12px " + c.c + "59, 0 2px 5px " + c.c + "26, " +
+                  "inset 0 -16px 24px -13px " + c.c + "A6, inset 0 9px 15px -8px #FFFFFF, " +
+                  "inset 0 0 0 1px " + c.c + (p.started ? "26" : "14"),
                 animation: `drift ${PERIOD[p.id]}s ease-in-out infinite`,
                 animationDelay: `-${DELAY[p.id]}s`,
               }}
@@ -87,8 +101,35 @@ export default function Bubbles({ order, onOpen }) {
                 style={{
                   position: "absolute", left: 0, right: 0, bottom: 0,
                   height: (p.total ? (p.done / p.total) * 100 : 0) + "%",
-                  background: c.t,
-                  transition: "height .6s " + EASE,
+                  background: "linear-gradient(180deg, " + c.t + " 0%, " + c.c + "59 100%)",
+                  transition: "height .85s " + POUR,
+                }}
+              >
+                {/* The surface. A flat cut across a sphere reads as a chart; a
+                    lit line that breathes reads as something poured in. */}
+                {p.done > 0 && (
+                  <span
+                    aria-hidden
+                    style={{
+                      position: "absolute", left: "-10%", right: "-10%", top: -1,
+                      height: 3, borderRadius: "50%",
+                      background: "rgba(255,255,255,.62)",
+                      animation: "meniscus 4.6s ease-in-out infinite",
+                    }}
+                  />
+                )}
+              </span>
+
+              {/* Where the light lands, which is the whole difference between
+                  a disc and a sphere. */}
+              <span
+                aria-hidden
+                style={{
+                  position: "absolute", top: "10%", left: "17%",
+                  width: "34%", height: "23%",
+                  borderRadius: "50%", background: "#FFFFFF",
+                  opacity: p.started ? 1 : 0.5,
+                  filter: "blur(6px)",
                 }}
               />
 
@@ -99,26 +140,23 @@ export default function Bubbles({ order, onOpen }) {
                     keeps the name, because that is all it has to identify it
                     by. */}
                 {hero ? (
-                  /* Big always asks for something. Even with nothing scheduled
-                     for this hour, a pillar you are behind on is one you can
-                     get ahead of now, so the line and the arrow stay. */
-                  p.started ? (
-                    <>
-                      <span style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: TEXT, lineHeight: 1.3 }}>
-                        {p.nudge}
-                        <CtaArrow size={12} style={{ color: c.c, marginLeft: 4, verticalAlign: -1.5 }} />
-                      </span>
-                      <span style={{ display: "block", fontFamily: "'Playfair Display', serif", fontSize: 34, color: TEXT, lineHeight: 1.1, marginTop: 2 }}>
+                  /* The question first, always. A score is the answer to a
+                     different question and it only exists once something has
+                     gone in, so it sits under the ask rather than replacing
+                     it. Long questions step the type down rather than spilling
+                     out of the circle. */
+                  <>
+                    <span style={{ display: "block", fontSize: p.ask.length > 30 ? 11.5 : 12.5, fontWeight: 700, color: TEXT, lineHeight: 1.32 }}>
+                      {p.ask}
+                      <CtaArrow size={12} style={{ color: c.c, marginLeft: 4, verticalAlign: -1.5 }} />
+                    </span>
+                    {p.started && (
+                      <span style={{ display: "block", fontFamily: "'Playfair Display', serif", fontSize: p.ask.length > 30 ? 26 : 32, color: TEXT, lineHeight: 1.1, marginTop: 2 }}>
                         {p.score}
                         <span style={{ fontSize: "0.48em", color: MUTED }}>%</span>
                       </span>
-                    </>
-                  ) : (
-                    <span style={{ display: "block", fontFamily: "'Playfair Display', serif", fontSize: 16, color: TEXT, lineHeight: 1.3 }}>
-                      {p.first}
-                      <CtaArrow size={14} style={{ color: c.c, marginLeft: 5, verticalAlign: -2 }} />
-                    </span>
-                  )
+                    )}
+                  </>
                 ) : (
                   <>
                     <span style={{ display: "block", fontSize: 11, fontWeight: 700, color: state === "none" ? MUTED : TEXT, letterSpacing: 0.2 }}>
@@ -138,6 +176,7 @@ export default function Bubbles({ order, onOpen }) {
         );
       })}
       <style>{`@keyframes drift{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-4px,0)}}
+        @keyframes meniscus{0%,100%{transform:translateY(0) rotate(-.6deg)}50%{transform:translateY(1px) rotate(.6deg)}}
         @media(prefers-reduced-motion:reduce){[aria-label="Your four pillars"] span{animation:none!important}}`}</style>
     </div>
   );
