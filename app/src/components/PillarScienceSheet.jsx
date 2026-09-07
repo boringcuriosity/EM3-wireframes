@@ -6,7 +6,6 @@ import { PILLAR_SCIENCE } from "../screens/pillarScience";
 import { DAILY_GOAL_MIN } from "../screens/move/exercises";
 
 // Which health signal each pillar's numbers come from, if any.
-const SIGNAL = { move: "steps", mind: "sleep" };
 
 /* Why a pillar is a pillar. Opened from the concept pill on each EM3 card, so
    the teaching screen stays one line per pillar and the person who wants the
@@ -19,7 +18,7 @@ const SIGNAL = { move: "steps", mind: "sleep" };
    so four sheets read as four pages of the same book. */
 export default function PillarScienceSheet() {
   const { pillarInfo, setPillarInfo, pillarExplain, planAssigned, dailyTargets, kcalTarget, setChatsOpen,
-    healthSource, pickSource } = useWF();
+  } = useWF();
 
   const p = pillarExplain.find((x) => x.id === pillarInfo);
   const s = PILLAR_SCIENCE[pillarInfo];
@@ -188,48 +187,6 @@ export default function PillarScienceSheet() {
             </>
           )}
 
-          {/* Where the numbers come from, and the way to change it. It lives
-              here because this is the sheet the info dot already opens, and a
-              second place to change one setting is a second place to look. */}
-          {SIGNAL[pillarInfo] && (
-            <>
-              <div style={{ height: 1, background: LINE, margin: "18px 0 14px" }} />
-              <Label>Where this comes from</Label>
-              <div style={{ display: "flex", gap: 8 }}>
-                {[
-                  { v: "phone", label: "Health Connect" },
-                  { v: "manual", label: "I log it myself" },
-                ].map((o) => {
-                  const on = healthSource[SIGNAL[pillarInfo]] === o.v;
-                  return (
-                    <button
-                      key={o.v}
-                      onClick={() => pickSource(SIGNAL[pillarInfo], o.v)}
-                      style={{
-                        flex: 1,
-                        background: on ? GREEN_TINT : BG,
-                        border: "1px solid " + (on ? GREEN : BORDER),
-                        borderRadius: 12,
-                        padding: "10px 0",
-                        fontSize: 12.5,
-                        fontWeight: 700,
-                        color: on ? GREEN : MUTED,
-                        cursor: "pointer",
-                        fontFamily: "inherit",
-                      }}
-                    >
-                      {o.label}
-                    </button>
-                  );
-                })}
-              </div>
-              <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.5, marginTop: 10 }}>
-                {healthSource[SIGNAL[pillarInfo]] === "phone"
-                  ? "Reading from Health Connect. Switch to logging it yourself any time."
-                  : "You are entering this by hand. Connect Health Connect and it fills in on its own."}
-              </div>
-            </>
-          )}
         </div>
 
         <div style={{ flexShrink: 0, padding: "16px 22px 24px" }}>

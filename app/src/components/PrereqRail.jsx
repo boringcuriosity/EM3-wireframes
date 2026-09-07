@@ -38,7 +38,7 @@ import { GREEN, TEXT, MUTED, BG, BORDER, WARN, WARN_TINT, WARN_LINE, SH_SM } fro
    too, that promise would be a lie and there would be no way back to them. */
 export default function PrereqRail({ startOpen = false, keep = false }) {
   const {
-    nextActions, nextOpen, nextJustDone, setNextJustDone,
+    nextActions, nextOpen, nextJustDone, setNextJustDone, planAssigned,
     prereqHidden, prereqOpen, setPrereqOpen, setPrereqAsk,
   } = useWF();
   /* The one finished elsewhere, kept in the rail for as long as it takes to
@@ -106,7 +106,12 @@ export default function PrereqRail({ startOpen = false, keep = false }) {
 
       <span style={{ flex: 1, minWidth: 0 }}>
         <span style={{ display: "block", fontSize: 14, fontWeight: 800, color: TEXT, letterSpacing: -0.2 }}>
-          Start here
+          {/* What these are changes the day a plan lands. Before one, they are
+              the work holding everything up and the section is the beginning
+              of the thing. After, the consultation they were preparing for has
+              happened: they are not a start any more, they are the part of the
+              program that still needs the person rather than the coach. */}
+          {planAssigned ? "Tasks from your care program" : "Start here"}
         </span>
         {/* The only subtext. There were two saying overlapping things, and this
             line said the count a second time next to "0 of 3" on the right.
@@ -117,7 +122,9 @@ export default function PrereqRail({ startOpen = false, keep = false }) {
             Sized to hold one line, because a shut card is supposed to cost a
             line: at 11.5 this wrapped and the card grew by a third. */}
         <span style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 1.5 }}>
-          Important first steps before your consultation
+          {planAssigned
+            ? "These help at your next consultation"
+            : "Important first steps before your consultation"}
         </span>
       </span>
 
