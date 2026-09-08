@@ -61,6 +61,7 @@ list, so if you add a state, add it to the panel and smoke covers it for free.
 | `/v1` | a **frozen snapshot** of the diary design: chronological To-do, one card on Home, the plan handover card, the two device syncs, the weekly read. Served from `app/public/v1/`. |
 | `/v0` | a **frozen snapshot** of the older pillar-grouped To-do, from before the diary rewrite. Served from `app/public/v0/`. |
 | `/scenarios` | working notes: every user moment in To-do, EM3 and the streak, written as open questions, with a suggestions tab. Static HTML in `app/public/scenarios/index.html`. |
+| `/users` | the five user archetypes, from the daily logger to the dead account, and what each one should open into. Holds the merged-bubble mechanic, the progress gap sheet, the welcome back sheet and the coach's chat message in English and Hinglish. Static HTML in `app/public/users/index.html`. Nothing on it is built yet. |
 | `/know` | the Home deck: why the four bubbles exist, what the rule is, and an interactive board. Static HTML in `app/public/know/index.html`, with the ranking code copied across from the sandbox. **Not yet updated to the current rule**, see section 9. |
 | `/play` | the bubble sandbox: drag tasks between parts of the day, add them, throw them away, slide the clock, and watch the ranking answer. A real Vite entry, `app/src/play/`, so it shares the tokens and the fonts and stays out of the product's bundle. |
 | `/move` | the Move deck: the Momentum concept, its sources and its maths. Static HTML in `app/public/move/index.html`. |
@@ -1191,7 +1192,16 @@ The smoke test proves it renders; only the screen proves it is right.
    whole day of skips ambiguous. It needs a rule, stated to the user in plain words.
 5. **Move and Mind on the free Home** look tappable and go nowhere. The Metabolic Kickstarter
    card has no destination.
-6. **Wellbeing and the metabolic score have no formula.** Eat runs on nutrition sufficiency and
+6. **The app only knows how to greet a daily user.** Home is shaped around one day: the bubbles
+   reset at midnight, the streak breaks, To-do empties. Three of the five user archetypes are
+   defined by staying away, so the app's first sentence to them reads as "you did nothing".
+   `/users` works this through archetype by archetype. Four questions in it decide what gets
+   drawn, and none of them are answered yet:
+   - does the passive user get "welcome back" as well, or does that begin at inactive
+   - when exactly do the four bubbles merge into one, given the morning arrival still wants four
+   - does a returning user get the sheet and the chat message in the same session
+   - is the archetype derived from days logged in the last 7 and 14, with a panel chip each
+7. **Wellbeing and the metabolic score have no formula.** Eat runs on nutrition sufficiency and
    Move on Momentum, both real. Mind's 89 and Measure's 68 are staged in `pillarScores`, in one
    place, on purpose: inventing a formula would make a product decision look settled that has
    not been made.
@@ -1221,6 +1231,15 @@ project, so production still serves whatever the last `vercel --prod` put there.
 `50238c2`, which is a few commits back. The standing rule holds: batch the work and wait to be
 told when to push.
 
+**`/users` is the newest thing here and none of it is built.** It is a deck at
+`app/public/users/index.html` covering the five user archetypes and what each one should open
+into: the merged evening bubble, the progress gap sheet for the passive user, the welcome back
+sheet for the inactive and dead user, and the coach's chat message in English and Hinglish with
+a multi-select that tells the coach which pillar is hardest. Read it before designing anything
+in this area, and treat its four questions as unanswered. A one-shot KAIRA flow for the whole
+day is drawn there and parked: until it clearly removes work that To-do already does, it is a
+second way to do the same job.
+
 **Since `/v5` was frozen** (all committed; a change log, not a to-do):
 
 - consent is a checkbox that gates Continue, rather than a line claiming the tap agreed to it
@@ -1232,6 +1251,7 @@ told when to push.
 - the day's last part ends at midnight, and the body scan moves ahead of the first meal
 - the welcome sheet stops promising coaches it names twenty lines later, and the pillar science
   sheet drops its source picker
+- `/users`, the archetype deck, which is design work rather than app behaviour
 
 **The cycle before that, in one line each:**
 

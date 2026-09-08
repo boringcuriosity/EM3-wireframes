@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Users, experiences that sustain</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto+Mono:wght@400;500&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand:#299D6B; --brand-700:#2A805A; --brand-100:#E6FAF1; --brand-50:#F3FCF8; --brand-200:#CBF0E0;
+    --text:#344054; --ink:#101828; --muted:#667085; --faint:#98A2B3;
+    --bg:#F9FAFB; --bg2:#F2F4F7; --card:#FFFFFF; --border:#E4E7EC; --line:#F2F4F7;
+    --eat:#299D6B; --move:#444CE7; --mind:#2DA6A6; --meas:#CDA935;
+    --ok:#039855; --warn:#DC6803; --bad:#D92D20;
+    --a1:#299D6B; --a1-ink:#FFFFFF;
+    --a2:#A7E3C6; --a2-ink:#17513A;
+    --a3:#FDE8A6; --a3-ink:#6B4E0B;
+    --a4:#F8C579; --a4-ink:#6B3D08;
+    --a5:#FBD2CE; --a5-ink:#7A211A;
+    --shadow-card:0 1px 3px rgba(0,0,0,.10),0 1px 2px -1px rgba(0,0,0,.10);
+    --shadow-raise:0 10px 15px -3px rgba(0,0,0,.10),0 4px 6px -4px rgba(0,0,0,.10);
+    --shadow-lift:0 18px 34px -14px rgba(16,24,40,.22),0 6px 12px -8px rgba(16,24,40,.12);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Roboto',system-ui,sans-serif;color:var(--text);background:var(--bg);letter-spacing:.25px;-webkit-font-smoothing:antialiased;line-height:1.62}
+  h1,h2,h3,h4,.serif{font-family:'Playfair Display',Georgia,serif;color:var(--ink);font-weight:600;text-wrap:balance}
+  strong{color:var(--ink);font-weight:700}
+  a{color:var(--brand-700)}
+  :focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:4px}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:0 26px}
+  .mono{font-family:'Roboto Mono',ui-monospace,monospace}
+  .eyebrow{font-family:'Roboto Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+
+  /* ---------- masthead ---------- */
+  .mast{background:radial-gradient(680px 300px at 84% -14%,var(--brand-50),transparent 66%),var(--card);border-bottom:1px solid var(--border)}
+  .mast-in{padding:58px 0 48px;display:grid;gap:24px}
+  .mast h1{font-size:clamp(34px,5.4vw,58px);line-height:1.05;letter-spacing:-.02em;max-width:17ch}
+  .mast h1 em{font-style:italic;color:var(--brand-700)}
+  .mast p{max-width:66ch;font-size:17px}
+  .mast-meta{display:flex;flex-wrap:wrap;gap:8px 26px;padding-top:14px;border-top:1px solid var(--line)}
+  .mast-meta span{font-family:'Roboto Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .mast-meta b{color:var(--ink);font-weight:500}
+
+  /* ---------- sections ---------- */
+  .sec{padding:60px 0;border-bottom:1px solid var(--line)}
+  .sec.alt{background:var(--card)}
+  .sec-head{display:grid;gap:11px;max-width:66ch;margin-bottom:32px}
+  .sec-head h2{font-size:clamp(24px,3.2vw,34px);line-height:1.16;letter-spacing:-.014em}
+  .num{font-family:'Roboto Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--brand-700);text-transform:uppercase}
+
+  /* ---------- principles ---------- */
+  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+  .rule{background:var(--card);padding:22px 22px 24px;display:grid;gap:9px;align-content:start}
+  .rule b{font-family:'Playfair Display',serif;font-size:17px;color:var(--ink);font-weight:600;line-height:1.3}
+  .rule p{font-size:14.5px}
+
+  /* ---------- archetype ladder ---------- */
+  .scroller{overflow-x:auto;border:1px solid var(--border);border-radius:16px;background:var(--card);box-shadow:var(--shadow-card)}
+  table{border-collapse:collapse;width:100%;min-width:800px;font-size:14px}
+  thead th{text-align:left;padding:13px 16px;font-family:'Roboto Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);background:var(--bg)}
+  tbody td{padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  tbody th{text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);font-weight:700;font-size:14px;color:var(--ink);white-space:nowrap}
+  tbody tr:last-child th{border-bottom:none}
+  .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:9px;vertical-align:1px}
+  .same{color:var(--faint)}
+
+  /* ---------- entries ---------- */
+  .entry{border-top:1px solid var(--border);padding:48px 0}
+  .entry:first-of-type{border-top:none;padding-top:8px}
+  .entry-head{display:flex;flex-wrap:wrap;align-items:center;gap:11px 16px;margin-bottom:10px}
+  .chip{display:inline-flex;align-items:center;background:var(--tone);color:var(--tone-ink);border-radius:999px;padding:6px 15px;font-size:13.5px;font-weight:700}
+  .freq{font-family:'Roboto Mono',monospace;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  .entry h3{font-size:clamp(21px,2.5vw,27px);letter-spacing:-.014em;margin-bottom:26px;max-width:24ch}
+  .entry-body{display:grid;grid-template-columns:286px minmax(0,1fr);gap:38px;align-items:start}
+  @media(max-width:900px){.entry-body{grid-template-columns:1fr;gap:28px}}
+
+  .block{display:grid;gap:8px;padding-left:16px;border-left:2px solid var(--tone);margin-bottom:20px}
+  .block:last-child{margin-bottom:0}
+  .block h4{font-family:'Roboto Mono',monospace;font-size:11.5px;font-weight:500;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+  .block p,.block li{font-size:15px;max-width:64ch}
+  .block ul{margin:0;padding-left:19px;display:grid;gap:7px}
+  .block li::marker{color:var(--tone)}
+  .block.trouble{border-left-color:var(--bad)}
+  .block.trouble h4{color:var(--bad)}
+
+  .said{background:var(--brand-50);border:1px solid var(--brand-200);border-radius:14px;padding:15px 17px;display:grid;gap:6px;margin-top:4px}
+  .said span{font-family:'Roboto Mono',monospace;font-size:10px;letter-spacing:.11em;text-transform:uppercase;color:var(--brand-700)}
+  .said p{font-size:15px;color:var(--ink);line-height:1.6}
+
+  /* ---------- phone ---------- */
+  .phone{width:270px;border-radius:28px;border:1px solid var(--border);background:var(--card);box-shadow:var(--shadow-lift);padding:11px 11px 0;overflow:hidden}
+  .screen{border-radius:21px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+  .pbar{display:flex;justify-content:space-between;align-items:center;padding:11px 14px 9px;border-bottom:1px solid var(--line);background:var(--card)}
+  .pbar b{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--ink)}
+  .pbar span{font-family:'Roboto Mono',monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .pstage{position:relative;height:172px}
+  .mini{position:absolute;border-radius:50%;
+        background:radial-gradient(circle at 33% 26%,rgba(255,255,255,.6),rgba(255,255,255,0) 46%),linear-gradient(to top,var(--c) var(--fill),color-mix(in srgb,var(--c) 14%,transparent) var(--fill));
+        border:1px solid color-mix(in srgb,var(--c) 32%,transparent);box-shadow:inset 0 -6px 12px -8px rgba(0,0,0,.3),0 5px 12px -7px rgba(16,24,40,.3)}
+  .m1{--c:var(--eat);width:66px;height:66px;left:20px;top:16px}
+  .m2{--c:var(--move);width:54px;height:54px;left:110px;top:10px}
+  .m3{--c:var(--mind);width:58px;height:58px;left:46px;top:92px}
+  .m4{--c:var(--meas);width:48px;height:48px;left:132px;top:86px}
+  .mini-one{position:absolute;left:50%;top:50%;width:134px;height:134px;margin:-67px 0 0 -67px;border-radius:50%;display:grid;place-content:center;padding:0 16px;text-align:center;
+        background:radial-gradient(circle at 33% 26%,rgba(255,255,255,.5),rgba(255,255,255,0) 48%),linear-gradient(to top,var(--c) 76%,color-mix(in srgb,var(--c) 15%,transparent) 76%);
+        border:1px solid color-mix(in srgb,var(--c) 38%,transparent);box-shadow:inset 0 -10px 20px -12px rgba(0,0,0,.32),0 12px 26px -12px rgba(16,24,40,.4)}
+  .mini-one b{display:block;color:#fff;font-size:13.5px;line-height:1.3;text-shadow:0 1px 3px rgba(0,0,0,.3)}
+  .mini-one em{display:block;font-style:normal;margin-top:5px;font-size:10.5px;line-height:1.35;color:rgba(255,255,255,.86)}
+  .psheet{border-top:1px solid var(--border);background:var(--card);border-radius:16px 16px 0 0;padding:12px 15px 16px;box-shadow:0 -8px 20px -14px rgba(16,24,40,.4)}
+  .grip{width:34px;height:4px;border-radius:99px;background:var(--border);margin:0 auto 11px}
+  .psheet b{display:block;font-family:'Playfair Display',serif;font-size:15px;font-weight:600;color:var(--ink);line-height:1.26}
+  .psheet p{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:6px}
+  .week{display:flex;gap:5px;margin:10px 0 3px}
+  .week i{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--border)}
+  .week i.on{background:var(--brand);border-color:var(--brand)}
+  .pcta{margin-top:11px;background:var(--brand);color:#fff;border-radius:999px;text-align:center;padding:9px;font-size:12px;font-weight:700}
+  .ptabs{display:flex;justify-content:space-around;padding:9px 0 11px;border-top:1px solid var(--line);background:var(--card)}
+  .ptabs i{width:17px;height:17px;border-radius:5px;background:var(--bg2)}
+  .ptabs i.on{background:var(--brand)}
+  .pnote{font-family:'Roboto Mono',monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);margin-top:12px;max-width:270px;line-height:1.6}
+
+  /* ---------- sheet furniture ---------- */
+  .weekw{display:grid;gap:5px;margin:12px 0 6px}
+  .weekw .week{margin:0}
+  .wrow{display:flex;gap:6px}
+  .wlab span{width:16px;text-align:center;font-family:'Roboto Mono',monospace;font-size:8.5px;letter-spacing:.04em;color:var(--faint)}
+  .week i{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--border);display:block}
+  .grow{display:grid;gap:6px;margin:13px 0 4px}
+  .bars{display:flex;align-items:flex-end;gap:6px;height:56px}
+  .bars i{flex:1;border-radius:5px 5px 3px 3px;background:var(--brand);display:block}
+  .blab{display:flex;gap:6px}
+  .blab span{flex:1;text-align:center;font-family:'Roboto Mono',monospace;font-size:8.5px;letter-spacing:.04em;color:var(--faint)}
+  .grow-cap{font-family:'Roboto Mono',monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--brand-700);text-align:right}
+  .pcta.ghost{background:var(--card);color:var(--brand-700);border:1px solid var(--border);margin-top:7px}
+  .until{font-family:'Roboto Mono',monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-top:9px;display:block}
+
+  /* ---------- chat ---------- */
+  .chat-grid{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr);gap:36px;align-items:start}
+  @media(max-width:860px){.chat-grid{grid-template-columns:1fr}}
+  .chat{border:1px solid var(--border);border-radius:20px;background:var(--card);overflow:hidden;box-shadow:var(--shadow-raise)}
+  .chat-top{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line);background:var(--bg)}
+  .av{width:30px;height:30px;border-radius:50%;background:linear-gradient(140deg,var(--brand),var(--mind));flex:none}
+  .chat-top b{font-size:13.5px;color:var(--ink)}
+  .chat-top small{display:block;font-size:11px;color:var(--muted)}
+  .langs{margin-left:auto;display:inline-flex;background:var(--bg2);border-radius:999px;padding:3px;gap:2px}
+  .langs button{border:none;background:transparent;cursor:pointer;border-radius:999px;padding:4px 10px;font-family:'Roboto Mono',monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:500}
+  .langs button[aria-pressed="true"]{background:var(--card);color:var(--ink);box-shadow:var(--shadow-card)}
+  .thread{padding:16px 15px;display:grid;gap:10px;min-height:270px;align-content:start}
+  .msg{background:var(--bg2);border-radius:4px 16px 16px 16px;padding:11px 14px;font-size:14.5px;color:var(--ink);line-height:1.55;max-width:92%}
+  .msg.me{background:var(--brand);color:#fff;border-radius:16px 16px 4px 16px;justify-self:end;text-align:right}
+  .opts{display:grid;gap:7px;padding:0 15px 16px}
+  .opt{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:9px 15px;font-size:13.5px;color:var(--text);cursor:pointer;font-family:inherit;text-align:left;transition:border-color .15s,background .15s}
+  .opt:hover{border-color:var(--brand);background:var(--brand-50);color:var(--brand-700)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 15px 16px}
+  .chips button{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:7px 13px;font-size:12.5px;color:var(--text);cursor:pointer;font-family:inherit}
+  .chips button:hover{border-color:var(--brand);background:var(--brand-50);color:var(--brand-700)}
+  .chips button[aria-pressed="true"]{border-color:var(--brand);background:var(--brand);color:#fff}
+  .chips button[aria-pressed="true"]:hover{background:var(--brand-700);color:#fff}
+  .send{padding:0 15px 16px}
+  .send button{width:100%;border:none;background:var(--brand);color:#fff;border-radius:999px;padding:10px;font-size:13.5px;font-weight:700;font-family:inherit;cursor:pointer}
+  .send button:disabled{background:var(--bg2);color:var(--faint);cursor:default}
+  .restart{padding:0 15px 16px}
+  .restart button{border:none;background:transparent;color:var(--muted);font-family:'Roboto Mono',monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;cursor:pointer;padding:0}
+  .restart button:hover{color:var(--brand-700)}
+  .hide{display:none}
+
+  /* ---------- settle ---------- */
+  .qs{display:grid;gap:1px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+  .q{background:var(--card);padding:19px 22px;display:grid;gap:6px}
+  .q b{font-size:15.5px;color:var(--ink)}
+  .q p{font-size:14.5px;max-width:66ch}
+  .q .rec{color:var(--brand-700)}
+  .q .rec strong{color:var(--brand-700)}
+
+  .order{display:grid;grid-template-columns:repeat(auto-fit,minmax(266px,1fr));gap:18px}
+  .phase{border:1px solid var(--border);border-radius:18px;background:var(--card);padding:20px 22px;display:grid;gap:12px;box-shadow:var(--shadow-card)}
+  .phase h3{font-size:19px}
+  .phase ol,.phase ul{margin:0;padding-left:20px;display:grid;gap:8px;font-size:14.5px}
+  .phase ul{color:var(--muted)}
+  .phase li::marker{color:var(--brand);font-family:'Roboto Mono',monospace;font-size:12px}
+
+  footer{padding:40px 0 56px;font-size:13px;color:var(--muted)}
+  footer p{max-width:66ch}
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="wrap mast-in">
+    <p class="eyebrow">GoodFlip EM3 &middot; Users</p>
+    <h1>How do we build one app that <em>holds five different people?</em></h1>
+    <p>
+      Everything on Home is shaped around a single day. Bubbles reset at midnight, the streak breaks,
+      To-do empties. That fits the person who opens the app twice a day. Three of our five archetypes
+      are defined by staying away, and for them the app opens on an empty screen that reads as failure.
+      This is what each of the five should see instead.
+    </p>
+    <div class="mast-meta">
+      <span>Status <b>For review</b></span>
+      <span>Phase <b>Messaging first</b></span>
+      <span>Surfaces <b>Home, chat, To-do</b></span>
+      <span>Updated <b>8 Sep 2026</b></span>
+    </div>
+  </div>
+</header>
+
+<!-- 1 ================= PRINCIPLE ================= -->
+<section class="sec alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="num">01</p>
+      <h2>An experience sustains when it bends to the person's rhythm</h2>
+      <p>Four rules that every screen in this document follows.</p>
+    </div>
+
+    <div class="rules">
+      <div class="rule">
+        <b>Read the rhythm, do not demand one</b>
+        <p>A person who logs three days a week is keeping a weekly rhythm. The app should meet that instead of asking them to become daily.</p>
+      </div>
+      <div class="rule">
+        <b>Never open on a failure</b>
+        <p>State what is known and what is missing. Missed, failed and broken do not appear anywhere on these screens.</p>
+      </div>
+      <div class="rule">
+        <b>Ask for one thing, in their moment</b>
+        <p>Nine rows at 9 PM is nine chances to stop. One ask, shaped to the time they actually arrived, is one chance to finish.</p>
+      </div>
+      <div class="rule">
+        <b>Let people move between archetypes</b>
+        <p>Nobody is labelled. The archetype comes from days logged in the last week, so it changes the moment the person does.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2 ================= ARCHETYPES ================= -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="num">02</p>
+      <h2>The five, and what each one runs into</h2>
+      <p>How often they come, why they come, and the problem waiting for them on the screen they open.</p>
+    </div>
+
+    <div class="scroller">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Archetype</th>
+            <th scope="col">How often</th>
+            <th scope="col">Why they come</th>
+            <th scope="col">What goes wrong</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row"><span class="dot" style="background:var(--a1)"></span>Pro active</th>
+            <td>Daily, many times</td>
+            <td>Adherence, tracking, building habits</td>
+            <td>The 3 PM visit shows exactly what the 11 AM visit showed</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="dot" style="background:var(--a2)"></span>Active</th>
+            <td>Daily, once, morning or evening</td>
+            <td>Read the day ahead, or put the whole day in</td>
+            <td>At 9 PM the day is nine unlogged rows, opened and closed one by one</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="dot" style="background:var(--a3)"></span>Passive</th>
+            <td>4 days a week, down to one</td>
+            <td>Check progress, or a coach pushed them</td>
+            <td>Three days of real effort show up as four empty bubbles and a dead streak</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="dot" style="background:var(--a4)"></span>Inactive, coach led</th>
+            <td>Once in 15 days</td>
+            <td>Coach push, results not arriving, a booking</td>
+            <td>They came to book a consultation and land on a task list</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="dot" style="background:var(--a5)"></span>Dead</th>
+            <td>Not using</td>
+            <td>Something outside the app reached them</td>
+            <td>A three month old plan and a dead streak undo whatever brought them back</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- 3 ================= THE FIVE ================= -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="num">03</p>
+      <h2>Scenario by scenario</h2>
+      <p>What each person opens into, what goes wrong there today, and what we put in its place.</p>
+    </div>
+
+    <!-- PRO ACTIVE -->
+    <article class="entry" style="--tone:var(--a1);--tone-ink:var(--a1-ink)">
+      <div class="entry-head">
+        <span class="chip">Pro active user</span>
+        <span class="freq">Daily, multiple times</span>
+      </div>
+      <h3>All four bubbles work. Leave them alone.</h3>
+
+      <div class="entry-body">
+        <div>
+          <div class="phone">
+            <div class="screen">
+              <div class="pbar"><b>Today</b><span>11:04 AM</span></div>
+              <div class="pstage">
+                <div class="mini m1" style="--fill:72%"></div>
+                <div class="mini m2" style="--fill:55%"></div>
+                <div class="mini m3" style="--fill:40%"></div>
+                <div class="mini m4" style="--fill:100%"></div>
+              </div>
+              <div class="ptabs"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+            </div>
+          </div>
+          <p class="pnote">Four bubbles filling through the day. Unchanged.</p>
+        </div>
+
+        <div>
+          <div class="block trouble">
+            <h4>What goes wrong today</h4>
+            <p>They come back three or four times a day and the screen is identical every time. There is nothing waiting for the second visit.</p>
+          </div>
+          <div class="block">
+            <h4>What we do</h4>
+            <ul>
+              <li>Home stays exactly as it is.</li>
+              <li>A suppression rule, so no re-engagement message can ever reach somebody logging five days a week.</li>
+              <li>Later: one line on the second visit, "Your coach read your breakfast log", so returning has something new in it.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ACTIVE -->
+    <article class="entry" style="--tone:var(--a2);--tone-ink:var(--a2-ink)">
+      <div class="entry-head">
+        <span class="chip">Active user</span>
+        <span class="freq">Daily, one time, morning or evening</span>
+      </div>
+      <h3>The evening arrival wants to put the whole day in at once.</h3>
+
+      <div class="entry-body">
+        <div>
+          <div class="phone">
+            <div class="screen">
+              <div class="pbar"><b>Today</b><span>9:12 PM</span></div>
+              <div class="pstage" style="height:158px">
+                <div class="mini-one" style="--c:var(--brand)"><b>Let's wind down the day</b><em>Mark what you did</em></div>
+              </div>
+              <div class="ptabs"><i class="on"></i><i></i><i></i><i></i><i></i></div>
+            </div>
+          </div>
+          <p class="pnote">Evening. One bubble in place of four, and it opens to-do.</p>
+        </div>
+
+        <div>
+          <div class="block trouble">
+            <h4>What goes wrong today</h4>
+            <ul>
+              <li>At 9 PM the whole day is unlogged. Nine rows, each opening and closing separately, and most people stop after three.</li>
+              <li>The morning questions are still on screen. "Have you eaten?" at night reads as though the app missed the entire day.</li>
+              <li>The morning half of this archetype is fine. They open to read the day ahead and the day is there.</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h4>What we do</h4>
+            <ul>
+              <li>The four bubbles merge into one: <strong>Let's wind down the day</strong>, with <strong>Mark what you did</strong> under it.</li>
+              <li>It opens to-do, with the day's remaining rows ready.</li>
+              <li>The morning questions stop. At night the bubble asks about the day that happened.</li>
+              <li>Tapping a single pillar still works, so nothing is taken away.</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h4>Who sees it</h4>
+            <p>
+              Anyone who reaches the evening having logged little or nothing that day. Somebody who has
+              been logging as they go never sees it, because their day is already in.
+            </p>
+          </div>
+          <div class="said">
+            <span>Parked</span>
+            <p>
+              A one-shot KAIRA flow, where you tell her the whole day and she fills the rows, is set
+              aside for now. Until it is clearly less work than to-do, it is a second way to do the same
+              job. Worth returning to if swiping through cards or tapping photos of the plan turns out
+              to beat opening nine rows.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </article>
+
+    <!-- PASSIVE -->
+    <article class="entry" style="--tone:var(--a3);--tone-ink:var(--a3-ink)">
+      <div class="entry-head">
+        <span class="chip">Passive user</span>
+        <span class="freq">4 days a week, down to once</span>
+      </div>
+      <h3>Three days of effort, and the screen says nothing happened.</h3>
+
+      <div class="entry-body">
+        <div>
+          <div class="phone">
+            <div class="screen">
+              <div class="pbar"><b>Today</b><span>Sunday</span></div>
+              <div class="pstage" style="height:92px">
+                <div class="mini m1" style="--fill:12%;width:50px;height:50px;top:20px;left:22px"></div>
+                <div class="mini m2" style="--fill:8%;width:44px;height:44px;top:16px;left:88px"></div>
+                <div class="mini m3" style="--fill:6%;width:46px;height:46px;top:30px;left:144px"></div>
+                <div class="mini m4" style="--fill:10%;width:40px;height:40px;top:22px;left:200px"></div>
+              </div>
+              <div class="psheet">
+                <div class="grip"></div>
+                <b>You came 3 days this week</b>
+                <div class="weekw">
+                  <div class="wrow week"><i class="on"></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i></div>
+                  <div class="wrow wlab"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+                </div>
+                <p>Some weeks get busy, that is alright. Logging is how your coach sees your week, so your next consultation can start from what really happened rather than from a guess.</p>
+                <div class="pcta">Log today's tasks</div>
+              </div>
+            </div>
+          </div>
+          <p class="pnote">The progress gap sheet, on return after two or more quiet days.</p>
+        </div>
+
+        <div>
+          <div class="block trouble">
+            <h4>What goes wrong today</h4>
+            <ul>
+              <li>Four empty bubbles and a broken streak. Three days of real effort read as zero.</li>
+              <li>The streak overlay tells them they lost something on the day they came back.</li>
+              <li>The coach walks into the consultation with four days missing and no idea why.</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h4>On open, the progress gap sheet</h4>
+            <p>Seven dots for the week with three filled, then the sentence below, then one button that goes straight to today's to-do.</p>
+          </div>
+          <div class="said">
+            <span>The sheet, word for word</span>
+            <p>
+              <strong>You came 3 days this week.</strong><br>
+              Some weeks get busy, that is alright. Logging is how your coach sees your week, so your
+              next consultation can start from what really happened rather than from a guess.
+            </p>
+            <p class="mono" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brand-700)">Button: Log today's tasks</p>
+          </div>
+          <div class="block" style="margin-top:20px">
+            <h4>Then, and after</h4>
+            <ul>
+              <li>The coach message waits in chat behind a badge rather than popping, so one return costs one interruption.</li>
+              <li>Seven week dots sit above the bubbles from then on, so three filled days keep reading as a week with something in it.</li>
+              <li>The bubbles stay. This person has data to put in them.</li>
+              <li>The broken-streak overlay is suppressed on a return.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- INACTIVE -->
+    <article class="entry" style="--tone:var(--a4);--tone-ink:var(--a4-ink)">
+      <div class="entry-head">
+        <span class="chip">Inactive, coach led</span>
+        <span class="freq">Once in 15 days</span>
+      </div>
+      <h3>Fifteen days later, the screen has to be worth opening.</h3>
+
+      <div class="entry-body">
+        <div>
+          <div class="phone">
+            <div class="screen">
+              <div class="pbar"><b>Today</b><span>15 days on</span></div>
+              <div class="pstage" style="height:146px">
+                <div class="mini-one" style="--c:var(--a4);width:118px;height:118px;margin:-59px 0 0 -59px"><b>Welcome back</b><em>Your program is waiting</em></div>
+              </div>
+              <div class="psheet">
+                <div class="grip"></div>
+                <b>Welcome back. Your program is still active.</b>
+                <div class="grow">
+                  <div class="bars">
+                    <i style="height:26%;opacity:.34"></i>
+                    <i style="height:44%;opacity:.5"></i>
+                    <i style="height:60%;opacity:.66"></i>
+                    <i style="height:78%;opacity:.83"></i>
+                    <i style="height:100%"></i>
+                  </div>
+                  <div class="blab"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span></div>
+                  <p class="grow-cap">Fills as you log</p>
+                </div>
+                <p>Every task you log adds something your coach can read. A week of them is enough for your coach to change your plan.</p>
+                <span class="until">Active until 14 November</span>
+                <div class="pcta">Go to my to-do</div>
+              </div>
+            </div>
+          </div>
+          <p class="pnote">One bubble, and a sheet that shows what logging builds.</p>
+        </div>
+
+        <div>
+          <div class="block trouble">
+            <h4>What goes wrong today</h4>
+            <ul>
+              <li>They came to book a consultation and the screen hands them a task list.</li>
+              <li>Fifteen empty days sit between them and anything they recognise.</li>
+              <li>"Results are not coming" is one of the three reasons they open the app, and nothing on any screen answers it.</li>
+            </ul>
+          </div>
+          <div class="said">
+            <span>The sheet, word for word</span>
+            <p>
+              <strong>Welcome back. Your program is still active.</strong><br>
+              Every task you log adds something your coach can read. A week of them is enough for your
+              coach to change your plan.
+            </p>
+            <p class="mono" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brand-700)">Above it: a small chart that fills as you log &middot; Button: Go to my to-do</p>
+          </div>
+          <div class="block" style="margin-top:20px">
+            <h4>What we do</h4>
+            <ul>
+              <li>The bubbles collapse to one that says <strong>Welcome back</strong>, and it opens the sheet.</li>
+              <li>A small chart rises across the week, showing what logging builds rather than what the last fortnight looked like.</li>
+              <li>One button, and it goes to to-do. The sheet's whole argument ends on logging, so that is the only thing it asks for.</li>
+              <li>The streak is hidden entirely, so nothing greets them with a loss.</li>
+              <li>Booking stays where it already lives, in the first-steps rail, so this sheet keeps one job.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- DEAD -->
+    <article class="entry" style="--tone:var(--a5);--tone-ink:var(--a5-ink)">
+      <div class="entry-head">
+        <span class="chip">Dead</span>
+        <span class="freq">Not using</span>
+      </div>
+      <h3>The same screen as the inactive user. Reaching them is the hard part.</h3>
+
+      <div class="entry-body">
+        <div>
+          <div class="phone">
+            <div class="screen">
+              <div class="pbar"><b>Today</b><span>Back after months</span></div>
+              <div class="pstage" style="height:146px">
+                <div class="mini-one" style="--c:var(--a4);width:118px;height:118px;margin:-59px 0 0 -59px"><b>Welcome back</b><em>Your program is waiting</em></div>
+              </div>
+              <div class="psheet">
+                <div class="grip"></div>
+                <b>Welcome back. Your program is still active.</b>
+                <div class="grow">
+                  <div class="bars">
+                    <i style="height:26%;opacity:.34"></i>
+                    <i style="height:44%;opacity:.5"></i>
+                    <i style="height:60%;opacity:.66"></i>
+                    <i style="height:78%;opacity:.83"></i>
+                    <i style="height:100%"></i>
+                  </div>
+                  <div class="blab"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span></div>
+                  <p class="grow-cap">Fills as you log</p>
+                </div>
+                <p>Every task you log adds something your coach can read. A week of them is enough for your coach to change your plan.</p>
+                <span class="until">Active until 14 November</span>
+                <div class="pcta">Go to my to-do</div>
+              </div>
+            </div>
+          </div>
+          <p class="pnote">The same bubble and the same sheet the inactive user gets.</p>
+        </div>
+
+        <div>
+          <div class="block trouble">
+            <h4>What goes wrong today</h4>
+            <ul>
+              <li>No screen reaches this person at all. They are not opening the app, so every in-app idea misses them.</li>
+              <li>If a message does work, the app opens on a three month old plan, an empty day and a dead streak, and whatever brought them back is gone inside one screen.</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h4>What we do</h4>
+            <ul>
+              <li>The message is WhatsApp and push, because that is the only surface that reaches them.</li>
+              <li>If they do open the app, they get the inactive user's screen exactly: one bubble saying welcome back, and the same sheet.</li>
+              <li>No to-do behind it, no bubbles filling, no streak. One screen, one sentence, one button.</li>
+            </ul>
+          </div>
+          <div class="said">
+            <span>Later</span>
+            <p>Starting again should probably rebuild the plan from a fresh consultation rather than resume one written three months ago against a body that has changed since.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- 4 ================= CHAT ================= -->
+<section class="sec alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="num">04</p>
+      <h2>The coach asks, in the language they think in</h2>
+      <p>
+        Tap a reply and see where it goes. Hinglish is scoped to this one conversation, in Roman script,
+        so the rest of the interface stays as it is.
+      </p>
+    </div>
+
+    <div class="chat-grid">
+      <div class="chat" id="chat" data-lang="hi">
+        <div class="chat-top">
+          <span class="av"></span>
+          <span><b>Rahul</b><small>Your Move coach</small></span>
+          <span class="langs" role="group" aria-label="Language">
+            <button type="button" data-set="en" aria-pressed="false">English</button>
+            <button type="button" data-set="hi" aria-pressed="true">Hinglish</button>
+          </span>
+        </div>
+        <div class="thread" id="thread"></div>
+        <div class="opts" id="opts"></div>
+        <div class="chips hide" id="chips"></div>
+        <div class="send hide" id="send"></div>
+        <div class="restart hide" id="again"><button type="button">Start over</button></div>
+      </div>
+
+      <div>
+        <div class="block trouble">
+          <h4>What goes wrong today</h4>
+          <ul>
+            <li>Nobody ever asks why a person stopped, so the product never learns the reason.</li>
+            <li>A reminder in English lands on somebody who thinks and types in Hinglish, and it reads like a form letter.</li>
+            <li>Three reply buttons that all lead to "Great!" get noticed inside one round, and then nobody taps them again.</li>
+          </ul>
+        </div>
+        <div class="block" style="--tone:var(--brand)">
+          <h4>Each reply buys something</h4>
+          <ul>
+            <li><strong>I will log daily</strong> asks for a reminder time on the spot, because a promise with no time attached is gone by evening.</li>
+            <li><strong>Busy these days</strong> drops the week to one ask. Later it will genuinely shrink the plan and hold the streak.</li>
+            <li><strong>Something is getting in the way</strong> asks which pillar is hardest, and takes more than one answer. It is the only place the product learns why somebody stopped.</li>
+          </ul>
+        </div>
+        <div class="said" style="margin-bottom:18px">
+          <span>Where the answer goes</span>
+          <p>
+            Whichever pillars they pick land in the coach portal against that person, before their next
+            consultation. The coach opens the call already knowing that Move is the part going wrong,
+            and the promise the chat makes, that the plan changes at the next consultation, is one the
+            coach can actually keep.
+          </p>
+        </div>
+        <div class="said">
+          <span>Who sends it</span>
+          <p>
+            The coach sends this when one is assigned, and KAIRA sends it when none is. KAIRA's job here
+            is insight, so keeping a nudge out of her voice keeps her worth reading.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5 ================= SETTLE ================= -->
+<section class="sec">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="num">05</p>
+      <h2>Four things to settle before wireframes</h2>
+      <p>Each one changes what gets drawn.</p>
+    </div>
+
+    <div class="qs">
+      <div class="q">
+        <b>1. Does the passive user get "welcome back" too?</b>
+        <p>Welcome back tells a three-day-a-week person that they were gone, and it works against the sheet they just read.</p>
+        <p class="rec"><strong>Recommendation:</strong> passive keeps its bubbles and the gap sheet. Welcome back starts at inactive.</p>
+      </div>
+      <div class="q">
+        <b>2. When exactly do the bubbles merge?</b>
+        <p>Too early and the morning arrival loses their four bubbles. Too late and the evening logger has already worked through the rows by hand.</p>
+        <p class="rec"><strong>Recommendation:</strong> after 7 PM with three or more pillars empty, matching the night phase the day model already uses.</p>
+      </div>
+      <div class="q">
+        <b>3. Sheet and chat message in the same session?</b>
+        <p>Two interruptions on one return usually means the second one is dismissed without being read.</p>
+        <p class="rec"><strong>Recommendation:</strong> the sheet opens, the chat waits behind a badge.</p>
+      </div>
+      <div class="q">
+        <b>4. How is an archetype worked out?</b>
+        <p>A stored label goes stale the moment the person changes.</p>
+        <p class="rec"><strong>Recommendation:</strong> days logged in the last 7 and 14, computed in one place, with a Control Panel chip for every state.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 ================= ORDER ================= -->
+<section class="sec alt">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="num">06</p>
+      <h2>Messaging first, behaviour after</h2>
+      <p>The left column changes what the app says. The right column changes what it does, and each item there needs the left column working first.</p>
+    </div>
+
+    <div class="order">
+      <div class="phase">
+        <h3>Now, messaging</h3>
+        <ol>
+          <li>The progress gap sheet, with its to-do button.</li>
+          <li>The coach chat message, three replies, Hinglish.</li>
+          <li>Week dots above the bubbles for the passive user.</li>
+          <li>The welcome back bubble and program sheet for inactive.</li>
+          <li>The evening merge for the active user.</li>
+          <li>Suppression rules, so none of it reaches a pro active user.</li>
+        </ol>
+      </div>
+      <div class="phase">
+        <h3>Next, behaviour</h3>
+        <ul>
+          <li>"Busy these days" genuinely shrinks the week to two rows.</li>
+          <li>The streak holds through a declared quiet week.</li>
+          <li>Progress moves above tasks on Home for the passive user.</li>
+          <li>A monthly logged-days count that only ever grows.</li>
+          <li>The "results are not coming" path for inactive users.</li>
+          <li>A restart that rebuilds the plan from a fresh consultation.</li>
+          <li>A one-shot KAIRA flow for the whole day, once it beats to-do on effort.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>
+      GoodFlip EM3 wireframes. Nothing here is built yet. Once the four questions above are settled,
+      each scenario becomes a state in the Control Panel so the whole set can be walked and checked
+      before it reaches anybody.
+    </p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  /* ---------- the conversation ----------
+     Both languages carry the same three replies and the same follow-ups, so
+     switching language never changes what the coach is actually offering. */
+  var SCRIPT = {
+    en: {
+      open: "Shaheer, I could see 3 of your days this week. The rest I have to guess at. Log from your to-do and I will know exactly where to help you.",
+      opts: [
+        {
+          say: "I will log daily",
+          back: "That is what I wanted to hear. What time should I remind you?",
+          chips: ["8 AM", "2 PM", "9 PM"],
+          close: "Done. I will nudge you then, and I will read every day you send."
+        },
+        {
+          say: "Busy these days",
+          back: "That happens, and it is alright. This week just log what you eat and how you move. The rest can wait until things settle.",
+          chips: [],
+          close: ""
+        },
+        {
+          say: "Something is getting in the way",
+          back: "Which part is hardest? Pick as many as you like.",
+          chips: ["Eat tasks", "Move tasks", "Mind tasks"],
+          multi: true,
+          send: "Send this to my coach",
+          close: "Thank you, this helps. We will change your plan and these tasks in your next consultation. Until then, log what you eat and how you move."
+        }
+      ]
+    },
+    hi: {
+      open: "Shaheer, is hafte aapke sirf 3 din dikhe. Baaki dinon ka andaza lagana padta hai. To-do se log karo, phir main theek se bata paunga ki kahan help chahiye.",
+      opts: [
+        {
+          say: "Roz log karunga",
+          back: "Bahut badhiya. Reminder kis time bhejun?",
+          chips: ["Subah 8", "Dopahar 2", "Raat 9"],
+          close: "Theek hai. Us time yaad dila dunga, aur aapka har din padhunga."
+        },
+        {
+          say: "In dino busy hoon",
+          back: "Koi baat nahi, hota hai. Is hafte bas khana aur movement log kar dijiye. Baaki tasks tab tak ruk sakte hain.",
+          chips: [],
+          close: ""
+        },
+        {
+          say: "Kuch dikkat aa rahi hai",
+          back: "Kaun sa hissa mushkil lag raha hai? Jitne chahe chun lijiye.",
+          chips: ["Eat ke tasks", "Move ke tasks", "Mind ke tasks"],
+          multi: true,
+          send: "Coach ko bhej dijiye",
+          close: "Shukriya, isse madad milegi. Aapki agli consultation mein hum aapka plan aur ye tasks badal denge. Tab tak, aap jo khaate ho aur jo movement karte ho, wo log karte rahiye."
+        }
+      ]
+    }
+  };
+
+  var chat = document.getElementById("chat");
+  var thread = document.getElementById("thread");
+  var optsEl = document.getElementById("opts");
+  var chipsEl = document.getElementById("chips");
+  var sendEl = document.getElementById("send");
+  var againEl = document.getElementById("again");
+  var lang = "hi";
+  var picked = null; // index of the chosen reply, so a language switch keeps its place
+
+  function bubble(text, mine) {
+    var p = document.createElement("p");
+    p.className = "msg" + (mine ? " me" : "");
+    p.textContent = text;
+    thread.appendChild(p);
+  }
+
+  function render() {
+    var s = SCRIPT[lang];
+    thread.innerHTML = "";
+    optsEl.innerHTML = "";
+    chipsEl.innerHTML = "";
+    sendEl.innerHTML = "";
+    chipsEl.classList.add("hide");
+    sendEl.classList.add("hide");
+    againEl.classList.add("hide");
+
+    bubble(s.open, false);
+
+    if (picked === null) {
+      s.opts.forEach(function (o, i) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "opt";
+        b.textContent = o.say;
+        b.addEventListener("click", function () { picked = i; render(); });
+        optsEl.appendChild(b);
+      });
+      return;
+    }
+
+    var opt = s.opts[picked];
+    bubble(opt.say, true);
+    bubble(opt.back, false);
+
+    if (opt.chips.length && opt.multi) {
+      /* Which pillars are hard is more than one answer, and it is the one thing
+         here the coach actually reads before the consultation. */
+      var chosen = [];
+      chipsEl.classList.remove("hide");
+      sendEl.classList.remove("hide");
+
+      var go = document.createElement("button");
+      go.type = "button";
+      go.textContent = opt.send;
+      go.disabled = true;
+
+      opt.chips.forEach(function (c) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.textContent = c;
+        b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", function () {
+          var at = chosen.indexOf(c);
+          if (at === -1) { chosen.push(c); } else { chosen.splice(at, 1); }
+          b.setAttribute("aria-pressed", String(at === -1));
+          go.disabled = chosen.length === 0;
+        });
+        chipsEl.appendChild(b);
+      });
+
+      go.addEventListener("click", function () {
+        bubble(chosen.join(", "), true);
+        bubble(opt.close, false);
+        chipsEl.classList.add("hide");
+        sendEl.classList.add("hide");
+      });
+      sendEl.appendChild(go);
+    } else if (opt.chips.length) {
+      chipsEl.classList.remove("hide");
+      opt.chips.forEach(function (c) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.textContent = c;
+        b.addEventListener("click", function () {
+          bubble(c, true);
+          bubble(opt.close, false);
+          chipsEl.classList.add("hide");
+        });
+        chipsEl.appendChild(b);
+      });
+    }
+    againEl.classList.remove("hide");
+  }
+
+  againEl.querySelector("button").addEventListener("click", function () {
+    picked = null;
+    render();
+  });
+
+  chat.querySelectorAll(".langs button").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      lang = btn.dataset.set;
+      chat.dataset.lang = lang;
+      chat.querySelectorAll(".langs button").forEach(function (b) {
+        b.setAttribute("aria-pressed", String(b === btn));
+      });
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
