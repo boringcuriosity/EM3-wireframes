@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useWF } from "../../state";
-import { Check, Lock } from "lucide-react";
+import { Check, Lock, Info } from "lucide-react";
 import MacroRings from "../../components/MacroRings";
 import CaloriesStrip from "../../components/CaloriesStrip";
 import { byId, DIVISION_LABEL, fmtTime } from "./foods";
+import SufficiencySheet from "./SufficiencySheet";
 import {
   GREEN, GREEN_DEEP, TEXT, MUTED, FAINT, BG, BG_ALT, BORDER, LINE, RULE,
 } from "../../tokens";
@@ -81,6 +82,7 @@ export default function MealLogged() {
      Initialised rather than set inside the effect, because editing clears the
      result and reopens the logger, so this screen unmounts between meals and
      never has to reset itself while it is up. */
+  const [explainer, setExplainer] = useState(false);
   const [working, setWorking] = useState(!!(logResult && logResult.fresh));
   useEffect(() => {
     if (!working) return;
@@ -213,19 +215,33 @@ export default function MealLogged() {
                       <span style={{ display: "block", fontSize: 40, fontWeight: 800, color: "#fff", lineHeight: 1 }}>
                         {shown}%
                       </span>
-                      <span
+                      {/* The rule behind the number, on the word it belongs
+                          to. A percentage nobody can check reads as a grade;
+                          the sheet turns it back into arithmetic. */}
+                      <button
+                        onClick={() => setExplainer(true)}
+                        aria-label="What sufficiency means"
                         style={{
-                          display: "block",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 4,
+                          margin: "4px auto 0",
+                          padding: "3px 6px",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          fontFamily: "inherit",
                           fontSize: 8.5,
                           fontWeight: 700,
                           color: "#fff",
                           letterSpacing: 1.2,
                           opacity: 0.85,
-                          marginTop: 4,
                         }}
                       >
                         SUFFICIENCY
-                      </span>
+                        <Info size={11} color="#fff" strokeWidth={2.6} />
+                      </button>
                     </span>
                   ) : (
                     <span
@@ -278,13 +294,12 @@ export default function MealLogged() {
                       {/* Said at the size of the thing it is explaining. A
                           number this small is the most alarming figure on the
                           screen, and a caption under it in grey is not loud
-                          enough to stop somebody reading it as a verdict. */}
-                      <div style={{ fontSize: 16, fontWeight: 800, color: TEXT, marginTop: 12, lineHeight: 1.3 }}>
-                        This is {mealsIn} {mealsIn === 1 ? "meal" : "meals"} in. You have{" "}
-                        {mealsLeft} to go.
-                      </div>
-                      <div style={{ fontSize: 12.5, color: MUTED, marginTop: 4, lineHeight: 1.55 }}>
-                        Your score climbs with every one of them. It is only finished when your day is.
+                          enough to stop somebody reading it as a verdict. One
+                          sentence, no meal count: the bar above already says
+                          how much day is left, and saying it again in words
+                          turns the answer into a tally. */}
+                      <div style={{ fontSize: 16, fontWeight: 800, color: TEXT, marginTop: 12, lineHeight: 1.4 }}>
+                        As per your assigned Eat plan, this is where your sufficiency stands. Log the rest of your meals and it goes up a long way.
                       </div>
                     </>
                   ) : (
@@ -436,6 +451,8 @@ export default function MealLogged() {
           Done
         </button>
       </div>
+
+      {explainer && <SufficiencySheet onClose={() => setExplainer(false)} />}
     </div>
   );
 }
