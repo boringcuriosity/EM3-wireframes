@@ -2,27 +2,34 @@ import React from "react";
 import { useWF } from "../state";
 import ScoreBubbles from "./ScoreBubbles";
 import KairaSummary from "./KairaSummary";
-import DayRow from "./DayRow";
 import { DayDoneCard } from "./DayStreakBar";
 import StreakFlame from "./StreakFlame";
 import { ChevronRight } from "lucide-react";
-import { GREEN, GREEN_DEEP, TEXT, MUTED, LINE, BG, BG_SUNK, BORDER, GOLD, SH_SM } from "../tokens";
+import { GREEN, TEXT, MUTED, LINE, BG, BG_SUNK, BORDER, GOLD, SH_SM } from "../tokens";
 
 /* Home's day, read from the top down.
 
-   The order is the argument. Scores first, because they are why any of this is
-   worth doing, then Kaira saying which task moves which score, then the tasks
-   themselves, then what the day adds up to and the way into the rest of it.
-   To-do is adherence and EM3 is motivation, and this is the one place a person
-   sees both at once with something joining them.
+   The order is the argument. The bubbles first, because they are why any of
+   this is worth doing and because the big one is already the day's next task
+   asked as a question. Then Kaira, saying why that pillar is worth a minute.
+   Then what the day adds up to and the way into the rest of it.
+
+   NO TASK LIST HERE ANY MORE. There used to be two rows under a "Your next
+   task" heading, and the top one was the row the big bubble was already asking
+   about: one task, named twice, with two ways to tap it. Wording around it
+   never fixed anything, because the cause was that Home was doing To-do's job
+   as well as its own. To-do is adherence and it owns the list. EM3 is
+   motivation and it owns this card. The foot of the card is the door between
+   them.
+
+   What went with the list: ticking a row without opening it, the preview of
+   the task after next, and tips, which never counted towards a bubble anyway.
 
    All of it in one card, because it is one argument. It ran as four separate
    blocks for a while and read as four unrelated things stacked up. */
 export default function HomeToday() {
   const { dayLive, dayRowsDone, dayComplete, streakShown, streakState, setActiveTab, setStreakInfo } = useWF();
 
-  const open = dayLive.filter((r) => !r.done);
-  const shown = open.slice(0, 2);
   const day = Math.max(1, streakShown);
 
   if (dayComplete) {
@@ -53,31 +60,10 @@ export default function HomeToday() {
         <KairaSummary />
       </div>
 
-      <div style={{ borderTop: "1px solid " + LINE, padding: "0 14px" }}>
-        <span
-          style={{
-            display: "block",
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: 1,
-            textTransform: "uppercase",
-            color: MUTED,
-            padding: "12px 0 1px",
-          }}
-        >
-          Your next task
-        </span>
-        {/* Two rows, and no line counting the rest. The button at the foot is
-            already the way to the whole day, and saying it twice made the
-            shortlist look like a truncated list rather than a shortlist. */}
-        {shown.map((r, i) => (
-          <DayRow key={r.id} row={r} compact last={i === shown.length - 1} />
-        ))}
-      </div>
-
       {/* What today is worth, and the way into the rest of it. The streak is
-          the reason to finish rather than a threat about breaking: it says how
-          many are left and what they buy, in that order. */}
+          the reason to finish rather than a threat about breaking, and it says
+          it in the flame, the count of days and the bar rather than in a
+          sentence. */}
       <div
         style={{
           borderTop: "1px solid " + LINE,
@@ -111,10 +97,11 @@ export default function HomeToday() {
               {day === 1 ? "Day 1" : day + " days"}
             </span>
           </span>
-          <span style={{ display: "block", fontSize: 10.5, color: MUTED, marginTop: 1.5, lineHeight: 1.35 }}>
-            Finish today to keep it going
-          </span>
-          <span style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 7 }}>
+          {/* No line of encouragement under the day. The flame, the number of
+              days, the bar and the count already say where the day stands and
+              that finishing it matters, and a sentence repeating that in words
+              is the only thing on this card not carrying its own weight. */}
+          <span style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8 }}>
             <span
               aria-hidden
               style={{ flex: 1, minWidth: 0, height: 5, borderRadius: 3, background: BORDER, overflow: "hidden" }}
@@ -136,20 +123,23 @@ export default function HomeToday() {
           </span>
         </button>
 
+        {/* Secondary, because it is a way out rather than the thing to do. The
+            work is up in the bubbles; this is the door to the list for
+            somebody who wants the whole day. A filled button here competed
+            with the big one for the only tap the card is asking for. */}
         <button
           onClick={() => setActiveTab("track")}
           style={{
             flexShrink: 0,
-            background: GREEN,
-            border: "none",
+            background: BG,
+            border: "1px solid " + GREEN,
             borderRadius: 13,
-            color: "#fff",
+            color: GREEN,
             fontSize: 12.5,
             fontWeight: 700,
             fontFamily: "inherit",
-            padding: "11px 13px",
+            padding: "10px 12px",
             cursor: "pointer",
-            boxShadow: "0 2px 0 " + GREEN_DEEP,
             display: "inline-flex",
             alignItems: "center",
             gap: 4,

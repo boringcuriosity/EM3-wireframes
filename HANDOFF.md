@@ -54,7 +54,7 @@ list, so if you add a state, add it to the panel and smoke covers it for free.
 | Path | What it is |
 |---|---|
 | `/` | the live wireframe, where all work happens |
-| `/v5` | a **frozen snapshot** of the cycle where Home started asking questions: the four bubbles ranked on the day rather than the score, each asking about the row it is waiting on, tips carrying no weight, and the bubbles drawn as lit spheres with liquid in them. Also the plan rebalanced to a real day of food against a TDEE of 1,900, sleep editable whichever way the night arrived, and a first step riding above its own flow as a strip. Built from commit `50238c2`, which was also the working tree, so nothing is missing from it. Served from `app/public/v5/`. `/` has moved on since: the consent checkbox, the coach renaming, the doctor consultation and the finished-card behaviour all landed after it. |
+| `/v5` | a **frozen snapshot** of the cycle where Home started asking questions: the four bubbles ranked on the day rather than the score, each asking about the row it is waiting on, tips carrying no weight, and the bubbles drawn as lit spheres with liquid in them. Also the plan rebalanced to a real day of food against a TDEE of 1,900, sleep editable whichever way the night arrived, and a first step riding above its own flow as a strip. Also the consent checkbox, the coaches named after their pillars, the doctor consultation, and the sufficiency number explaining how it was worked out. Refreshed from commit `001a898`, which was also the working tree, so nothing is missing from it. Served from `app/public/v5/`. `/` has moved on since the refresh: Home dropped its task list, and the big bubble gained a satellite carrying the pillar's name and score. |
 | `/v4` | a **frozen snapshot** of the four part day: Morning, Afternoon, Evening and Night on Indian hours, one logger per pillar, three plans in the handover, the pillar scores under Home's day and the metabolic score as a five step walkthrough. Built from commit `cb7b7e4`, which was also the working tree, so nothing is missing from it. Served from `app/public/v4/`. |
 | `/v3` | a **frozen snapshot** of the three part day: Morning, Afternoon and Evening, Eat's logger with no plan tab, Move recording the routine as four ticks nothing read, no Mind plan, two plans in the handover. Built from commit `38a575c`. Served from `app/public/v3/`. Its README carries one caveat: it is the last **committed** state, and the morning of 31 Aug also held uncommitted work that is absent here. |
 | `/v2` | a **frozen snapshot** of the ring design: the four pillars in one strip with a progress circle round each icon and "2 of 5" under it, on Home's Today's focus card and again at the foot of To-do. Built from commit `1bd3859`. Served from `app/public/v2/`. |
@@ -107,7 +107,7 @@ rm -rf public/v2/v0 public/v2/v1 public/v2/scenarios
 git worktree remove /tmp/wt-v2 --force
 ```
 
-In dev, `/v0/` through `/v5/`, `/scenarios/`, `/know/` and `/move/` need the explicit
+In dev, `/v0/` through `/v5/`, `/scenarios/`, `/know/`, `/move/`, `/mind/` and `/users/` need the explicit
 `index.html` (Vite's SPA fallback answers the bare directory with the live app). `/play/` is a
 real entry and works either way. On the deployed site every bare path works.
 
@@ -1226,11 +1226,12 @@ The smoke test proves it renders; only the screen proves it is right.
 
 ## 9. In flight right now
 
-Committed and pushed through `1c27ac1` ("Consent asked for, coaches named after their pillars,
-and a doctor to see"). **`main` is ahead of the live site**: pushing does not deploy on this
-project, so production still serves whatever the last `vercel --prod` put there. `/v5` freezes
-`50238c2`, which is a few commits back. The standing rule holds: batch the work and wait to be
-told when to push.
+Committed through `001a898` ("Mind gets a deck of its own, and the decks catch up"). **`main` is
+ahead of the live site**: pushing does not deploy on this project, so production still serves
+whatever the last `vercel --prod` put there. `/v5` was refreshed on 10 Sep 2026 and freezes
+`001a898`. It matched `/` at that moment and no longer does: Home's rebuild landed after it,
+so `/v5` is the last look at the card with a task list on it. The standing rule holds: batch the work
+and wait to be told when to push.
 
 **`/users` is the newest thing here and none of it is built.** It is a deck at
 `app/public/users/index.html` covering the five user archetypes and what each one should open
@@ -1255,7 +1256,46 @@ Read it before designing anything in this area, and treat its four questions as 
 one-shot KAIRA flow for the whole day is drawn there and parked: until it clearly removes work
 that To-do already does, it is a second way to do the same job.
 
-**Since `/v5` was frozen** (all committed; a change log, not a to-do):
+**On `/` since `/v5` was refreshed** (uncommitted):
+
+- Home's two row task list is gone. It named the row the big bubble was already asking about, so
+  one task appeared twice with two ways to tap it. To-do owns the list; this card owns the reason.
+- the hero keeps a satellite: the pillar's own name and score in a small bubble gooed onto it,
+  sitting on that pillar's vacated corner. The big one goes to the action, the satellite to the
+  detail page. Before this, a pillar in the hero seat had no route to its own detail page at all.
+- the hero gave up both its score and its liquid. The satellite holds the level and the figure;
+  the big one holds the question and nothing else.
+- the four corners moved out and the frame grew to 346x268. The three that stay are placed off
+  the hero rather than off the frame, so all three clear it by the same 22px in every
+  arrangement, and the joined pair is the only thing in the picture that touches. Before this it
+  was -8px, +4px and +9px, then 22, 33 and 44 once they were merely spread.
+- **completing a task is a three beat sequence, with no pause anywhere in it.** The big one
+  charges to 26% over 460ms, drains to nothing over 2.3s while the satellite rises to the new
+  score down the same neck, and straight off the back of that the next pillar comes up out of its
+  corner while this one goes back down into its, over 1.05s. Through the pour the big one carries
+  a tick rather than a question: fading the question left a large blank bubble for three seconds,
+  which reads as a hang rather than as slow.
+- **nothing resizes on a guess.** The ranking moves the instant a task lands, so between the log
+  and the sequence starting there were renders where the next pillar was simply the hero: finish
+  a Mind task and Eat swelled, collapsed as the sequence put Mind back in the middle, and swelled
+  again at the end. Behind the celebration the swell happened unseen and the collapse was the
+  first thing on screen. The middle is now held by whoever was last drawn there until the
+  question is settled, which is 150ms, or the length of the scrim. Sampled every 120ms across a
+  full return, the middle changes hands exactly once.
+- **the pour has an easing curve of its own**, `cubic-bezier(.42,.06,.36,.96)`. On the card's
+  usual eased-out curve a pour is 76% finished a quarter of the way through and 96% by halfway,
+  so lengthening it bought half a second of movement and two seconds of creep nobody can see, and
+  every attempt to fix the hang by slowing it down made the hang longer. Duration was never the
+  problem. Anything meant to be watched on the way needs an even curve; the eased-out one is for
+  things arriving somewhere.
+- it only runs that way when the pillar that rose is the one that was drawn large, which is the
+  tap-log-return path. A rise from To-do or a sheet just fills, with a ring to say which.
+- nothing starts while the task-done celebration is over the card, and the card mounts at the
+  level it last showed, so returning from a logger is the level moving rather than a number that
+  is already different
+- View all tasks is a secondary button
+
+**In `/v5` since the 7 Sep build** (all committed; a change log, not a to-do):
 
 - consent is a checkbox that gates Continue, rather than a line claiming the tap agreed to it
 - the coaches are Eat, Move and Mind everywhere, and the four places that hardcoded a coach's
