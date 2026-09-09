@@ -1226,7 +1226,7 @@ The smoke test proves it renders; only the screen proves it is right.
 
 ## 9. In flight right now
 
-Committed through `001a898` ("Mind gets a deck of its own, and the decks catch up"). **`main` is
+Committed and pushed through `69e4676` ("The big bubble asks, the small one scores"). **`main` is
 ahead of the live site**: pushing does not deploy on this project, so production still serves
 whatever the last `vercel --prod` put there. `/v5` was refreshed on 10 Sep 2026 and freezes
 `001a898`. It matched `/` at that moment and no longer does: Home's rebuild landed after it,
@@ -1256,7 +1256,7 @@ Read it before designing anything in this area, and treat its four questions as 
 one-shot KAIRA flow for the whole day is drawn there and parked: until it clearly removes work
 that To-do already does, it is a second way to do the same job.
 
-**On `/` since `/v5` was refreshed** (uncommitted):
+**On `/` since `/v5` was refreshed** (in `69e4676`):
 
 - Home's two row task list is gone. It named the row the big bubble was already asking about, so
   one task appeared twice with two ways to tap it. To-do owns the list; this card owns the reason.
