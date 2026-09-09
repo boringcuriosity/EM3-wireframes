@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mind — Rhythm Concept One-Pager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand:#299D6B; --brand-700:#2A805A; --brand-100:#E6FAF1; --brand-50:#F3FCF8; --brand-200:#CBF0E0;
+    --text:#344054; --ink:#101828; --muted:#667085;
+    --bg:#F9FAFB; --bg2:#F2F4F7; --card:#FFFFFF; --border:#E4E7EC;
+    --indigo:#444CE7; --indigo-50:#EEF4FF;
+    --shadow-card:0 1px 3px rgba(0,0,0,.10),0 1px 2px -1px rgba(0,0,0,.10);
+    --shadow-raise:0 10px 15px -3px rgba(0,0,0,.10),0 4px 6px -4px rgba(0,0,0,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Roboto',system-ui,sans-serif;color:var(--text);background:var(--bg);letter-spacing:.25px;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,.serif{font-family:'Playfair Display',Georgia,serif;color:var(--ink);font-weight:600}
+  .hl{color:var(--brand)}
+  a{color:inherit;text-decoration:none}
+
+  .progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--brand);z-index:60}
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:14px 40px;font-size:12px;font-weight:600;letter-spacing:1px;color:var(--muted)}
+  .topbar b{color:var(--brand)}
+
+  html{scroll-snap-type:y mandatory;scroll-padding-top:46px;scroll-behavior:smooth}
+  section{min-height:100vh;scroll-snap-align:start;scroll-snap-stop:always;display:flex;align-items:center;padding:80px 40px 56px}
+  .wrap{max-width:1040px;margin:auto;width:100%}
+  .band{background:#fff;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .hero{background:linear-gradient(160deg,var(--brand-50),#fff 70%);border-bottom:1px solid var(--border)}
+
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--brand);margin-bottom:16px}
+  h1{font-size:60px;line-height:1.03;margin-bottom:16px}
+  h2{font-size:36px;line-height:1.12;margin-bottom:20px}
+  h3{font-size:20px}
+  .lead{font-size:19px;line-height:1.62;color:var(--text);max-width:760px}
+  .small{font-size:13px;color:var(--muted)}
+  .chip{display:inline-flex;align-items:center;gap:8px;background:var(--brand-100);color:var(--brand-700);font-weight:600;font-size:12px;padding:6px 13px;border-radius:999px;letter-spacing:.3px}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;box-shadow:var(--shadow-card)}
+  .grid{display:grid;gap:16px}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g2{grid-template-columns:1fr 1fr}
+  @media(max-width:820px){.g3,.g2{grid-template-columns:1fr}}
+
+  .quote{font-family:'Playfair Display',serif;font-size:40px;line-height:1.18;color:var(--ink)}
+  .strike{position:relative;color:var(--muted)}
+  .strike:after{content:"";position:absolute;left:0;right:0;top:52%;height:3px;background:var(--brand)}
+
+  ul.points{list-style:none;display:flex;flex-direction:column;gap:16px;margin-top:8px}
+  ul.points li{display:flex;gap:14px;align-items:flex-start}
+  ul.points .num{width:32px;height:32px;border-radius:999px;background:var(--brand-100);color:var(--brand-700);font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px;flex:0 0 auto;margin-top:1px}
+  ul.points .dotm{width:9px;height:9px;border-radius:999px;background:var(--brand);flex:0 0 auto;margin-top:8px}
+  ul.points b{color:var(--ink)}
+  ul.points .d{color:var(--muted);font-size:14px;margin-top:2px}
+
+  .tappable{position:relative;display:block;transition:.15s;cursor:pointer}
+  .tappable:hover{border-color:var(--brand);box-shadow:var(--shadow-raise);transform:translateY(-3px)}
+  .tappable .arrow{position:absolute;top:16px;right:16px;width:28px;height:28px;border-radius:999px;background:var(--brand-100);color:var(--brand-700);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700}
+  .tappable h3{margin:12px 0 6px}
+  .studylink{display:inline-block;margin-top:12px;font-size:12px;font-weight:600;color:var(--brand)}
+
+  .formula{background:var(--ink);color:#fff;border-radius:16px;padding:28px;font-size:22px;line-height:1.6;text-align:center;font-weight:500}
+  .formula .op{color:#98A2B3;margin:0 4px}
+  .formula .ex{color:#79CCA8;font-weight:700}
+  .formula .sp{color:#A4BCFD;font-weight:700}
+  .spreadcard{margin-top:16px}
+  .spreadrow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0 12px}
+  .spreadrow div{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 8px;text-align:center;font-size:12px;color:var(--muted);font-weight:600}
+  .spreadrow div b{display:block;font-family:'Playfair Display',serif;font-size:24px;color:var(--brand);margin-top:4px}
+
+  .calc{display:grid;grid-template-columns:1.1fr .9fr;gap:24px}
+  @media(max-width:820px){.calc{grid-template-columns:1fr}}
+  .slider{margin-bottom:18px}
+  .slider label{display:flex;justify-content:space-between;font-size:14px;font-weight:600;color:var(--ink);margin-bottom:6px}
+  .slider label span{color:var(--brand);font-variant-numeric:tabular-nums}
+  input[type=range]{-webkit-appearance:none;width:100%;height:6px;border-radius:999px;background:var(--bg2);outline:none}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:999px;background:var(--brand);cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.2);border:3px solid #fff}
+  input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:999px;background:var(--brand);cursor:pointer;border:3px solid #fff}
+  .parts{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 4px}
+  .part{flex:1;min-width:120px;text-align:center;font-size:12px;font-weight:600;padding:10px 4px;border-radius:10px;border:1px solid var(--border);background:#fff;color:var(--muted);cursor:pointer;transition:.15s;user-select:none}
+  .part.on{background:var(--brand-100);border-color:var(--brand);color:var(--brand-700)}
+  .calcscore{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;flex-direction:column;align-items:center}
+  .bigring{position:relative;width:180px;height:180px}
+  .bigring .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .bigring .val .n{font-family:'Playfair Display',serif;font-size:52px;color:var(--ink);line-height:1}
+  .bigring .val .l{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-top:2px}
+  .presets{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .presets button{font-family:inherit;font-size:12px;font-weight:600;border:1px solid var(--border);background:#fff;color:var(--text);padding:8px 12px;border-radius:999px;cursor:pointer;transition:.15s}
+  .presets button:hover{border-color:var(--brand);color:var(--brand)}
+  .breakdown{width:100%;margin-top:16px}
+  .brk{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--border)}
+  .brk b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+  ul.clean{list-style:none;display:flex;flex-direction:column;gap:14px;margin-top:6px}
+  ul.clean li{display:flex;gap:12px;align-items:flex-start}
+  ul.clean .tick{width:24px;height:24px;border-radius:999px;background:var(--brand-100);color:var(--brand-700);display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:13px;font-weight:700;margin-top:1px}
+  ul.clean b{color:var(--ink)}
+  ul.clean .d{color:var(--muted);font-size:14px}
+
+  .phones{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+  .phone{width:236px;flex:0 0 auto;background:#fff;border:8px solid #101828;border-radius:34px;padding:14px 12px 18px;box-shadow:var(--shadow-raise)}
+  .phone .notch{width:74px;height:5px;background:#101828;border-radius:999px;margin:2px auto 12px;opacity:.85}
+  .pcap{text-align:center;font-size:12px;color:var(--muted);margin-top:10px;max-width:236px}
+  .pcardhdr{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+  .ring-wrap{display:flex;flex-direction:column;align-items:center}
+  .ringnum{font-family:'Playfair Display',serif;font-size:30px;color:var(--ink)}
+  .ringlbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:600}
+  .subrow{display:flex;justify-content:space-between;margin-top:14px;border-top:1px solid var(--border);padding-top:10px}
+  .subrow div{text-align:center;flex:1}
+  .subrow .v{font-weight:700;color:var(--ink);font-size:13px}
+  .subrow .k{font-size:9px;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);font-weight:600;margin-top:2px}
+  .contrib{display:flex;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px solid var(--border)}
+  .contrib:last-child{border-bottom:0}
+  .contrib b{color:var(--ink)}
+  .nudge{background:var(--indigo-50);border:1px solid #C7D7FE;border-radius:14px;padding:12px 13px;font-size:12px;line-height:1.5;color:var(--text)}
+  .nudge .kai{display:inline-flex;align-items:center;gap:6px;font-weight:700;color:var(--indigo);margin-bottom:5px;font-size:11px;letter-spacing:.5px;text-transform:uppercase}
+  .dot{width:14px;height:14px;border-radius:4px;background:linear-gradient(135deg,#444CE7,#44E7E7)}
+  .delta{color:var(--brand);font-weight:700}
+  .btn3d{position:relative;display:block;text-align:center;background:var(--brand);color:#fff;font-weight:600;font-size:14px;padding:12px;border-radius:12px;box-shadow:0 6px 0 var(--brand-700);margin-top:14px}
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="topbar"><b>GoodFlip</b> · Eat · Move · Mind · Measure</div>
+
+<!-- 1 MIND STORY -->
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">The Mind pillar</div>
+    <h1>The story of <span class="hl">Mind</span></h1>
+    <p class="lead">Mind is the pillar of recovery, and the one that keeps the whole journey alive. Its objective is simple: help people recover well and stay with the program, so their metabolism keeps improving. This one-pager walks through the concept, the science, a glimpse of the experience, and the math behind the score.</p>
+  </div>
+</section>
+
+<!-- 2 INSIGHT -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">The insight</div>
+    <h2>The belief we need to break.</h2>
+    <p class="quote" style="margin-bottom:20px"><span class="strike">More sleep</span> is the fix.</p>
+    <p class="lead">It isn't, at least not on its own. What protects your metabolism is not how long you sleep, it is how steady your clock is. Sleep and wake at wildly different times and your body never settles, even after a long night. The regularity of your sleep matters as much as the amount.</p>
+  </div>
+</section>
+
+<!-- 3 CONCEPT -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">The concept</div>
+    <h1 style="font-size:64px"><span class="hl">Rhythm</span></h1>
+    <p class="quote" style="margin:14px 0 22px">"Sleeping more isn't the answer.<br>Sleeping steady is."</p>
+    <p class="lead" style="margin-bottom:6px">Rhythm is not about one good night. It is a lens on your body's clock, and it reads three things together:</p>
+    <ul class="points">
+      <li><span class="dotm"></span><div>When you sleep and wake, your <b>timing</b></div></li>
+      <li><span class="dotm"></span><div>How long you sleep, your <b>hours</b></div></li>
+      <li><span class="dotm"></span><div>The <b>wind-down</b> routine that gets you there</div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 4 SCIENCE -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Credibility</div>
+    <h2>Fresh name, serious backbone.</h2>
+    <div class="grid g3" style="margin-top:8px">
+      <a class="card tappable" href="https://academic.oup.com/sleep/article/47/1/zsad253/7280269" target="_blank" rel="noopener">
+        <span class="arrow">↗</span>
+        <span class="chip">Measured</span>
+        <h3>Sleep Regularity Index</h3>
+        <p class="small">A named score for how consistent your sleep is. In large studies, regularity predicts metabolic and mortality risk more strongly than how long you sleep.</p>
+        <span class="studylink">Read the study</span>
+      </a>
+      <a class="card tappable" href="https://onlinelibrary.wiley.com/doi/10.1111/jsr.13770" target="_blank" rel="noopener">
+        <span class="arrow">↗</span>
+        <span class="chip">Established</span>
+        <h3>Social Jetlag</h3>
+        <p class="small">The gap between your weekday and weekend clock. The wider it is, the higher the waist size, HbA1c and diabetes risk, through circadian disruption.</p>
+        <span class="studylink">Read the study</span>
+      </a>
+      <a class="card tappable" href="https://www.sleepfoundation.org/insomnia/treatment/cognitive-behavioral-therapy-insomnia" target="_blank" rel="noopener">
+        <span class="arrow">↗</span>
+        <span class="chip">Method</span>
+        <h3>CBT-I</h3>
+        <p class="small">The gold-standard behavioral method for sleep: a consistent schedule and a wind-down routine. It is exactly what your success coach delivers.</p>
+        <span class="studylink">Read the study</span>
+      </a>
+    </div>
+    <p class="small" style="margin-top:20px">Regularity is the under-used, ownable signal, and it runs on sleep timing you already capture. Tap any card to open the source.</p>
+  </div>
+</section>
+
+<!-- 5 HOW IT WORKS -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">How it works</div>
+    <h2>What builds your Rhythm.</h2>
+    <ul class="points" style="max-width:760px">
+      <li><span class="num">1</span><div><b>Wind-down, the coach's routine</b><div class="d">The nightly sleep-hygiene actions the success coach assigns: no late caffeine, screens off before bed, bed only for sleep, a relaxing wind-down. Checked off each night.</div></div></li>
+      <li><span class="num">2</span><div><b>Consistency, the moat</b><div class="d">How close your sleep and wake times land to your usual window. The regularity signal, and the one no other app scores.</div></div></li>
+      <li><span class="num">3</span><div><b>Sleep, the baseline</b><div class="d">How long you slept against your goal. It matters, just not as the hero, because steady beats long.</div></div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 6 MATH -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">The logic</div>
+    <h2>The math, in one line.</h2>
+    <div class="formula">
+      Rhythm <span class="op">=</span> <span class="ex">Wind-down (40)</span> <span class="op">+</span> Sleep (20) <span class="op">+</span> <span class="sp">Consistency (40)</span>
+    </div>
+    <div class="card spreadcard">
+      <p style="font-weight:600;color:var(--ink)">The Wind-down (40) is earned across the nightly routine</p>
+      <div class="spreadrow">
+        <div>No late caffeine<b>10</b></div>
+        <div>Screens off<b>10</b></div>
+        <div>Bed only for sleep<b>10</b></div>
+        <div>Wind-down activity<b>10</b></div>
+      </div>
+      <p class="small">Each sleep-hygiene action adds 10%. Do the full routine and the 40% is yours. That is how the habits that build a steady clock earn the score.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 7 CALCULATOR -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">Play with it</div>
+    <h2>Test it yourself.</h2>
+    <div class="calc">
+      <div class="card">
+        <label style="font-size:14px;font-weight:600;color:var(--ink);display:block;margin-bottom:2px">Wind-down routine (each adds 10)</label>
+        <div class="parts">
+          <div class="part on">No late caffeine</div>
+          <div class="part on">Screens off</div>
+          <div class="part on">Bed only for sleep</div>
+          <div class="part on">Wind-down activity</div>
+        </div>
+        <div class="slider" style="margin-top:16px"><label>Sleep vs goal <span id="slv">100%</span></label><input type="range" id="sl" min="0" max="100" value="100"></div>
+        <div class="slider"><label>Consistency of timing <span id="cov">100%</span></label><input type="range" id="co" min="0" max="100" value="100"></div>
+        <div class="presets">
+          <button data-preset="4,100,100">Perfect night</button>
+          <button data-preset="4,60,100">Steady but short</button>
+          <button data-preset="2,100,30">Long but erratic</button>
+          <button data-preset="4,0,0">Routine only</button>
+        </div>
+      </div>
+      <div class="calcscore">
+        <div class="bigring">
+          <svg width="180" height="180" viewBox="0 0 180 180">
+            <circle cx="90" cy="90" r="78" fill="none" stroke="#E4E7EC" stroke-width="12"/>
+            <circle id="ring" cx="90" cy="90" r="78" fill="none" stroke="#299D6B" stroke-width="12" stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="0" transform="rotate(-90 90 90)" style="transition:stroke-dashoffset .35s ease"/>
+          </svg>
+          <div class="val"><div class="n" id="score">100</div><div class="l">Rhythm</div></div>
+        </div>
+        <div class="breakdown">
+          <div class="brk"><span>Wind-down</span><b id="bwd">40.0</b></div>
+          <div class="brk"><span>Sleep</span><b id="bsl">20.0</b></div>
+          <div class="brk"><span>Consistency</span><b id="bco">40.0</b></div>
+        </div>
+      </div>
+    </div>
+    <p class="small" style="margin-top:14px">Toggle the routine or move a slider. The score reacts live. Try "Steady but short" versus "Long but erratic" to feel why regularity beats duration.</p>
+  </div>
+</section>
+
+<!-- 8 WHY IT HOLDS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Robustness</div>
+    <h2>Why it holds up.</h2>
+    <ul class="clean">
+      <li><span class="tick">✓</span><div><b>It rewards steadiness, not just hours.</b> <span class="d">A long but erratic night cannot win. A steady, slightly short night can. That is the concept built into the math.</span></div></li>
+      <li><span class="tick">✓</span><div><b>It runs on data you already have.</b> <span class="d">Sleep timing and duration come from Apple Health and Google Fit. No ring required.</span></div></li>
+      <li><span class="tick">✓</span><div><b>The coach's recovery routine is in the score.</b> <span class="d">Her wind-down tools count. Her cognitive and motivation tools stay a voluntary safety net, never gamified, because grading them would break them.</span></div></li>
+      <li><span class="tick">✓</span><div><b>Regularity is the ownable signal.</b> <span class="d">Everyone else shows sleep hours. Consistency is the differentiator no other app scores.</span></div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 9 GLIMPSE (last) -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">The experience</div>
+    <h2>A glimpse of the experience.</h2>
+    <div class="phones">
+      <div>
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="pcardhdr"><span>Rhythm</span><span>Last night</span></div>
+          <div class="card" style="padding:16px">
+            <div class="ring-wrap">
+              <svg width="120" height="120" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="52" fill="none" stroke="#E4E7EC" stroke-width="8"/>
+                <circle cx="60" cy="60" r="52" fill="none" stroke="#299D6B" stroke-width="8" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="26" transform="rotate(-90 60 60)"/>
+              </svg>
+              <div style="margin-top:-78px"><div class="ringnum">92%</div><div class="ringlbl">Rhythm</div></div>
+              <div style="height:26px"></div>
+            </div>
+            <div class="subrow">
+              <div><div class="v">11:10</div><div class="k">Bedtime</div></div>
+              <div><div class="v">6:20</div><div class="k">Wake</div></div>
+              <div><div class="v">7h 10m</div><div class="k">Slept</div></div>
+            </div>
+          </div>
+        </div>
+        <p class="pcap">Steady clock, steady score.</p>
+      </div>
+
+      <div>
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="pcardhdr"><span>Contributors</span><span>·</span></div>
+          <div class="card" style="padding:14px">
+            <div class="contrib"><span>Wind-down · 4 of 4</span><b>40 / 40</b></div>
+            <div class="contrib"><span>Consistency</span><b>36 / 40</b></div>
+            <div class="contrib"><span>Sleep</span><b>16 / 20</b></div>
+          </div>
+          <div class="btn3d">Log tonight's wind-down</div>
+        </div>
+        <p class="pcap">The three inputs, plain and honest.</p>
+      </div>
+
+      <div>
+        <div class="phone">
+          <div class="notch"></div>
+          <div class="pcardhdr"><span>Nudge</span><span>Sun 9:30 pm</span></div>
+          <div class="nudge">
+            <span class="kai"><span class="dot"></span> Kaira</span>
+            Your weekend bedtime drifted almost two hours later. Pull tonight's back toward 11:15 and your Rhythm climbs from <b>78%</b> to <b class="delta">92%</b>. Steady beats long.
+          </div>
+          <div class="btn3d" style="background:#101828;box-shadow:0 6px 0 #000">Show my wind-down</div>
+        </div>
+        <p class="pcap">Social jetlag, caught early and coached.</p>
+      </div>
+    </div>
+    <p class="small" style="text-align:center;margin-top:16px">Directional, not the final experience.</p>
+  </div>
+</section>
+
+<script>
+  // scroll progress
+  window.addEventListener('scroll',()=>{
+    const h=document.documentElement;
+    const s=h.scrollTop/(h.scrollHeight-h.clientHeight||1);
+    document.getElementById('progress').style.width=(s*100)+'%';
+  });
+
+  // calculator
+  const sl=document.getElementById('sl'), co=document.getElementById('co');
+  const slv=document.getElementById('slv'), cov=document.getElementById('cov');
+  const parts=[...document.querySelectorAll('.part')];
+  const ring=document.getElementById('ring'), scoreEl=document.getElementById('score');
+  const C=490;
+  function windCount(){return parts.filter(p=>p.classList.contains('on')).length;}
+  function calc(){
+    const s=+sl.value, c=+co.value, w=windCount();
+    slv.textContent=s+'%'; cov.textContent=c+'%';
+    const bwd=w*10, bsl=s*0.20, bco=c*0.40;
+    const score=Math.round((bwd+bsl+bco)*10)/10;
+    document.getElementById('bwd').textContent=bwd.toFixed(1);
+    document.getElementById('bsl').textContent=bsl.toFixed(1);
+    document.getElementById('bco').textContent=bco.toFixed(1);
+    scoreEl.textContent=Math.round(score);
+    ring.style.strokeDashoffset=C*(1-score/100);
+    const col = score>=75?'#299D6B':score>=50?'#F79009':'#F04438';
+    ring.setAttribute('stroke',col);
+    scoreEl.style.color = score>=50?'#101828':'#912018';
+  }
+  [sl,co].forEach(el=>el.addEventListener('input',calc));
+  parts.forEach(p=>p.addEventListener('click',()=>{p.classList.toggle('on');calc();}));
+  document.querySelectorAll('.presets button').forEach(b=>{
+    b.onclick=()=>{
+      const [w,s,c]=b.dataset.preset.split(',').map(Number);
+      sl.value=s; co.value=c;
+      parts.forEach((p,x)=>p.classList.toggle('on',x<w));
+      calc();
+    };
+  });
+  calc();
+</script>
+</body>
+</html>

@@ -49,7 +49,7 @@ npm run build        # production build
 `npm run smoke` is the one that catches real breakage. It walks the control panel's own state
 list, so if you add a state, add it to the panel and smoke covers it for free.
 
-### The nine URLs
+### The thirteen URLs
 
 | Path | What it is |
 |---|---|
@@ -61,10 +61,11 @@ list, so if you add a state, add it to the panel and smoke covers it for free.
 | `/v1` | a **frozen snapshot** of the diary design: chronological To-do, one card on Home, the plan handover card, the two device syncs, the weekly read. Served from `app/public/v1/`. |
 | `/v0` | a **frozen snapshot** of the older pillar-grouped To-do, from before the diary rewrite. Served from `app/public/v0/`. |
 | `/scenarios` | working notes: every user moment in To-do, EM3 and the streak, written as open questions, with a suggestions tab. Static HTML in `app/public/scenarios/index.html`. |
-| `/users` | the five user archetypes, from the daily logger to the dead account, and what each one should open into. Holds the merged-bubble mechanic, the progress gap sheet, the welcome back sheet and the coach's chat message in English and Hinglish. Static HTML in `app/public/users/index.html`. Nothing on it is built yet. |
+| `/users` | the five user archetypes, built on one rule: the unit of the ask grows with the gap, from a row to a day to a week to the program. Each archetype is read as intent, behaviour, emotion and what we do. Holds the merged evening bubble, the progress gap sheet, the welcome back sheet and KAIRA's chat message in English and Hinglish. Static HTML in `app/public/users/index.html`. Nothing on it is built yet. |
 | `/know` | the Home deck: why the four bubbles exist, what the rule is, and an interactive board. Static HTML in `app/public/know/index.html`, with the ranking code copied across from the sandbox. **Not yet updated to the current rule**, see section 9. |
 | `/play` | the bubble sandbox: drag tasks between parts of the day, add them, throw them away, slide the clock, and watch the ranking answer. A real Vite entry, `app/src/play/`, so it shares the tokens and the fonts and stays out of the product's bundle. |
 | `/move` | the Move deck: the Momentum concept, its sources and its maths. Static HTML in `app/public/move/index.html`. |
+| `/mind` | the Mind deck: the Rhythm concept, what builds it, the maths in one line and a sandbox to test it. Static HTML in `app/public/mind/index.html`, copied from `rhythm-mind-deck.html` at the root the way the Move deck is. |
 
 The snapshots are in age order: `/v0` groups the day by pillar, `/v1` turns it into a diary,
 `/v2` sits between them in spirit, holding the moment the four rings still carried the day's
@@ -1234,11 +1235,25 @@ told when to push.
 **`/users` is the newest thing here and none of it is built.** It is a deck at
 `app/public/users/index.html` covering the five user archetypes and what each one should open
 into: the merged evening bubble, the progress gap sheet for the passive user, the welcome back
-sheet for the inactive and dead user, and the coach's chat message in English and Hinglish with
-a multi-select that tells the coach which pillar is hardest. Read it before designing anything
-in this area, and treat its four questions as unanswered. A one-shot KAIRA flow for the whole
-day is drawn there and parked: until it clearly removes work that To-do already does, it is a
-second way to do the same job.
+sheet for the inactive and dead user, and KAIRA's chat message in English and Hinglish with a
+multi-select that tells the coach which pillar is hardest.
+
+Its frame is one rule: **the unit of the ask grows with the gap.** A row for somebody who was
+here an hour ago, a day for somebody arriving at night, a week for somebody who logged three
+days, the program for somebody back after a fortnight. Asking a passive user about lunch is
+asking at a finer grain than the thing that is actually missing, which is why the current screen
+reads as though the app missed their week. Each archetype is then read in four lines: intent,
+behaviour, emotion, and what we do. The emotion line is the one that writes the copy, since the
+first sentence exists to answer the feeling somebody arrives with.
+
+**KAIRA sends the chat nudge herself**, in the coach chat, which the deck used to give to the
+coach. Her opening line is what earns it: she says what the missing days cost her own ability to
+help rather than asking for a log, so it stays insight in her voice and "please log" belongs to
+the button underneath.
+
+Read it before designing anything in this area, and treat its four questions as unanswered. A
+one-shot KAIRA flow for the whole day is drawn there and parked: until it clearly removes work
+that To-do already does, it is a second way to do the same job.
 
 **Since `/v5` was frozen** (all committed; a change log, not a to-do):
 
