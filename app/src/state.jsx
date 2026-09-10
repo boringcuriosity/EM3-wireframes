@@ -1256,12 +1256,21 @@ export function WFProvider({ children, initial = {} }) {
      from the day rather than tracked, or two screens would disagree about
      what is next. */
   const nextRowId = (dayLive.find((r) => !r.done) || {}).id;
-  /* The next tip, which is a different row from the next task and almost never
-     the same one. A day is eighteen rows and two of them are tips, so a Kaira
-     affordance gated on the tip being literally next would have shown up about
-     twice a fortnight. This is the first tip still to do: one row carries it,
-     and it is the one you will reach next. */
-  const nextTipId = (dayLive.find((r) => !r.done && isTip(r)) || {}).id;
+  /* One tip per pillar gets to say Kaira's name out loud: the next one still to
+     do in Eat, in Move, and in anything else that grows tips later.
+
+     It was one tip for the whole day for about an hour, which put every
+     invitation on the same pillar. Tips are authored as notes hanging off meal
+     divisions, so they are nearly all Eat's, and a single winner meant Move's
+     small moves never got asked about at all. Per pillar is the smallest rule
+     that fixes that without turning the list into a row of pills. */
+  const tipPillIds = new Set();
+  const pillarsSpoken = new Set();
+  dayLive.forEach((r) => {
+    if (r.kind !== "tick" || r.done || pillarsSpoken.has(r.pillar)) return;
+    pillarsSpoken.add(r.pillar);
+    tipPillIds.add(r.id);
+  });
   const dayRowsDone = dayLive.filter((r) => r.done).length;
   const dayPhases = phasesFor(phaseMode).map((f) => {
     const rows = dayRows.filter((r) => r.phase === f.id);
@@ -2144,7 +2153,7 @@ export function WFProvider({ children, initial = {} }) {
     SHARE_COINS, STREAK_REWARDS,
     MILESTONES, milestones, setMilestones, milestoneStatus,
     completeTask, taskProgress, setTaskProgress, taskDone, setTaskDone,
-    dayRows, dayLive, dayPhases, dayRowsDone, nextRowId, nextTipId, openRow, water, setWater, dayTicks, setDayTicks,
+    dayRows, dayLive, dayPhases, dayRowsDone, nextRowId, tipPillIds, openRow, water, setWater, dayTicks, setDayTicks,
     daySkipped, setDaySkipped, toggleSkip, toggleTick, rowMenu, setRowMenu, planOption, setPlanOption,
     openPhase, setOpenPhase,
     tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira,
