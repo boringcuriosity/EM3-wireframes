@@ -46,6 +46,22 @@ for (const p of files) {
     .replace(/"(?:[^"\\]|\\.)*"/g, '""')
     .replace(/'(?:[^'\\]|\\.)*'/g, "''");
 
+  /* And the other direction, which is the one that bites quietly.
+
+     Destructuring a name the provider never puts in the value is not an error
+     anywhere: it lands as `undefined`, and a screen that reads it as a boolean
+     simply renders the wrong branch for good. `moveStarted` sat outside the
+     value object for a while and Move's card showed "Nothing logged yet" over
+     a session it was, in the same breath, reporting as done. */
+  for (const b of have) {
+    // `momentumParts: m` asks the provider for the name on the left and calls
+    // it the name on the right, so it is the left one that has to exist.
+    const k = b.split(":")[0].trim();
+    if (!k || k.startsWith("...") || KEYS.includes(k)) continue;
+    console.log(`NOT PROVIDED  ${p}  ->  ${k}`);
+    bad++;
+  }
+
   for (const k of KEYS) {
     if (have.has(k)) continue;
     for (const m of body.matchAll(new RegExp(`(?<![\\w$])${k}(?![\\w$])`, "g"))) {
@@ -58,5 +74,5 @@ for (const p of files) {
     }
   }
 }
-console.log(bad ? `\n${bad} missing binding(s)` : "\nevery context key is bound");
+console.log(bad ? `\n${bad} binding problem(s)` : "\nevery context key is bound, both ways");
 process.exit(bad ? 1 : 0);

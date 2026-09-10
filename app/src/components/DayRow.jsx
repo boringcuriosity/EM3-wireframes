@@ -5,7 +5,8 @@ import { ChevronRight, Plus, MoreVertical, Minus, Info, Utensils, Flame, BarChar
 import Skel from "./Skel";
 import Confetti from "./Confetti";
 import { byId } from "../screens/log/foods";
-import { PILLAR, TEXT, TEXT_2, MUTED, FAINT, LINE, BG, BG_ALT, BORDER, GOLD, GOLD_TINT, GOLD_LINE, GOLD_DEEP, SH_SM } from "../tokens";
+import KairaMark from "./KairaMark";
+import { PILLAR, TEXT, TEXT_2, MUTED, FAINT, LINE, BG, BG_ALT, BORDER, GOLD, GOLD_TINT, GOLD_LINE, GOLD_DEEP, INDIGO, INDIGO_W, INDIGO_RING, SH_SM } from "../tokens";
 
 const PILLAR_NAME = { eat: "Eat", move: "Move", mind: "Mind", measure: "Measure" };
 const PILLAR_ICON = { eat: Utensils, move: Flame, mind: LotusIcon, measure: BarChart3 };
@@ -38,7 +39,7 @@ const startTime = (when) => {
    Nothing is ever struck through until it is genuinely done. Strike-through
    means finished, not late, and a meal you have not logged yet is neither. */
 export default function DayRow({ row: r, last, compact, now }) {
-  const { openRow, setRowMenu, setTipInfo, planOption, setPlanOption, celebrated, celebrate, uncelebrate, taskCard, nextRowId } = useWF();
+  const { openRow, setRowMenu, setTipInfo, askKaira, planOption, setPlanOption, celebrated, celebrate, uncelebrate, taskCard, nextRowId, nextTipId } = useWF();
   const c = PILLAR[r.pillar].c;
   // A target with nothing to count towards has no bar to draw.
   const bar = r.kind === "target" && r.goal != null;
@@ -198,7 +199,7 @@ export default function DayRow({ row: r, last, compact, now }) {
      finished tip is still a tip. Inline flex, so the same element works as a
      flex child in the card layouts and sits on the text baseline inside a
      wrapping title. */
-  const info = r.kind === "tick" && !off && (
+  const info = r.kind === "tick" && !off && r.id !== nextTipId && (
     <button
       onClick={(e) => {
         e.stopPropagation();
@@ -220,6 +221,60 @@ export default function DayRow({ row: r, last, compact, now }) {
       }}
     >
       <Info size={14} color={r.done ? FAINT : TEXT_2} strokeWidth={2.2} />
+    </button>
+  );
+
+  /* A way to ask her about it, on exactly one row.
+
+     A tip is the one thing on the day that asks you to take something on
+     trust: every other row is a thing to do, and this one is a thing to
+     believe. The info mark opened the reason, but a mark is a mark and nobody
+     taps a small circle to start a conversation.
+
+     IT REPLACES THE MARK RATHER THAN JOINING IT. Both on one title is two
+     buttons offering the same thing in two strengths, and the quiet one wins
+     the space while the loud one gets the taps. The pill says who is on the
+     other side and what it costs to ask, which is everything the mark was
+     hinting at, so the mark steps off this row and keeps every other one.
+
+     ONE TIP AT A TIME, THE NEXT ONE. Put on every tip it becomes decoration,
+     an invitation nobody takes, which is worse than none. On the one somebody
+     is about to reach it is an offer.
+
+     It is the next TIP rather than the next ROW, which sounds like the same
+     rule and is not. The day is eighteen rows and two of them are tips, so a
+     tip standing at the head of the list is a coincidence that happens about
+     twice a fortnight: gated on that, the offer would have been code nobody
+     ever saw. The coach's small movements are assigned work rather than
+     advice, so they keep their info mark and never get the pill. */
+  const askTip = !off && r.id === nextTipId && (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        askKaira(r.id);
+      }}
+      style={{
+        flexShrink: 0,
+        marginLeft: 6,
+        padding: "3px 9px 3px 6px",
+        gap: 4,
+        background: INDIGO_W,
+        border: "1px solid " + INDIGO_RING,
+        borderRadius: 999,
+        display: "inline-flex",
+        alignItems: "center",
+        verticalAlign: "middle",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        fontSize: 10.5,
+        fontWeight: 700,
+        letterSpacing: 0.2,
+        color: INDIGO,
+        lineHeight: 1.2,
+      }}
+    >
+      <KairaMark size={12} />
+      Ask KAIRA
     </button>
   );
 
@@ -462,7 +517,7 @@ export default function DayRow({ row: r, last, compact, now }) {
           )}
           <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 7 }}>
             {badge}
-            {info}
+            {info}{askTip}
             <span style={{ flex: 1, minWidth: 0 }}>{titleText(13)}</span>
             {coin}
             {menu}
@@ -526,7 +581,7 @@ export default function DayRow({ row: r, last, compact, now }) {
           {r.title}
         </span>
         <PillarIcon size={11} color={off ? FAINT : c} strokeWidth={2} style={{ flexShrink: 0 }} />
-        {info}
+        {info}{askTip}
         {when}
       </div>
     );
@@ -635,7 +690,7 @@ export default function DayRow({ row: r, last, compact, now }) {
           <>
             <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 7 }}>
               {badgeNamed}
-              {info}
+              {info}{askTip}
               {coin}
               <span style={{ flex: 1 }} />
               {when}
@@ -659,7 +714,7 @@ export default function DayRow({ row: r, last, compact, now }) {
             <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
               {tick}
               {badge}
-              {info}
+              {info}{askTip}
               <span style={{ flex: 1, minWidth: 0 }}>{titleText(13.5)}</span>
               {coin}
               {when}
@@ -714,7 +769,7 @@ export default function DayRow({ row: r, last, compact, now }) {
               {burst && !off && <Confetti pillar={r.pillar} />}
             </span>
 
-            {info}
+            {info}{askTip}
             <span style={{ flex: 1, minWidth: 0 }}>{titleText(13.5)}</span>
             {coin}
             {when}
@@ -852,7 +907,7 @@ export default function DayRow({ row: r, last, compact, now }) {
               >
                 <PillarIcon size={10} color={off ? FAINT : c} strokeWidth={2} />
               </span>
-              {info}
+              {info}{askTip}
             </span>
           </span>
         </span>

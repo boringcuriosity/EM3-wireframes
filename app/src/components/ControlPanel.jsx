@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useWF } from "../state";
 import { DEMO_DAY } from "../screens/log/foods";
 import { MIND_TEMPLATES } from "../screens/mind/tools";
-import { isTip } from "../screens/today/day";
+import { MOVE_NEAT, STEP_GOAL } from "../screens/today/day";
+import { COACH_ROUTINE } from "../screens/move/exercises";
 import { Home, Bell, MessageCircle } from "lucide-react";
 import { GREEN, TEXT, SH, SH_MD } from "../tokens";
 import { flame } from "../ui";
@@ -29,7 +30,7 @@ const ALL_GROUPS = [
 
 const SCREEN_GROUPS = {
   signup: ["signup"],
-  move: ["move", "movetrend", "focus"],
+  move: ["momcard", "move", "movetrend", "focus"],
   mind: ["mind", "mindtrend", "focus"],
   logging: ["logging", "loghistory", "targets"],
   suff: ["suff", "targets"],
@@ -81,6 +82,52 @@ const HERO_STATES = [
     plan: true,
     data: "done",
     desc: "Same two cards, score unlocked, and two suggestions for closing the gap.",
+  },
+];
+
+/* Momentum's card, the way SUFF_STATES does Eat's.
+
+   The same five questions asked of a different pillar: is there a plan to be
+   read against, has anything been done, is it spread or piled into one hour,
+   and is it finished. `neat` is which of the four small movements are ticked,
+   by index, so a preset can put a day in one part or across all four without
+   naming row ids the plan is free to change. */
+const MOM_STATES = [
+  {
+    id: "await",
+    label: "No plan yet",
+    plan: false, session: false, neat: [], steps: 0,
+    desc: "Momentum is a fraction of what a coach asked for, so with nobody having asked it is locked rather than nought. The ring holds a padlock and the card says who it is waiting on.",
+  },
+  {
+    id: "empty",
+    label: "Plan set, nothing done",
+    plan: true, session: false, neat: [], steps: 0,
+    desc: "Six empty segments and four empty parts of the day. This is the state the number is lowest in and the one it has to read as a morning rather than as a verdict.",
+  },
+  {
+    id: "session",
+    label: "Workout only, then sat",
+    plan: true, session: true, neat: [], steps: 0,
+    desc: "The belief the pillar exists to break. A full workout, nothing else, and the whole of it in one hour: 26. Compare it against Every small movement, which is the same weight of work spread out.",
+  },
+  {
+    id: "neat",
+    label: "Every small movement, no workout",
+    plan: true, session: false, neat: [0, 1, 2, 3], steps: 0,
+    desc: "The same weight of work as the workout alone, landed in all four parts of the day: 33. Spread is the whole argument and this is the pair of presets that shows it.",
+  },
+  {
+    id: "part",
+    label: "Half a day in",
+    plan: true, session: true, neat: [0, 1], steps: 4000,
+    desc: "Workout, two small movements and part of the step goal. The gap card names the evening, which is the part still worth something, and steps count in proportion rather than as done or not.",
+  },
+  {
+    id: "all",
+    label: "Everything the coach asked",
+    plan: true, session: true, neat: [0, 1, 2, 3], steps: 10000,
+    desc: "The whole plan, and therefore 100. It is 100 for any plan finished, which is what makes the score usable for somebody whose plan is four seated movements and no walking.",
   },
 ];
 
@@ -196,7 +243,20 @@ const focusState = (v) => (v.ftux ? "ftux" : v.data || "empty");
 const SLEEP_SRC = { gate: null, syncing: "phone", phone: "phone", manualnone: "manual", manual: "manual", tools: "manual" };
 
 export default function ControlPanel() {
-  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, scoreFlow, setScoreFlow, setScoreStep, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, waterSheet, setWaterSheet, setToast, mealsLogged, setMealsLogged, setLogItems, logPlan, openMealLog, favorites, setFavorites, kairaLog, setKairaLog, planNotif, setPlanNotif, hasTargets, scoreUnlocked, mealsIn, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, logExPick, openMoveLog, moveResult, setMoveResult, setRoutineFeel, setRoutineDone, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindKept, mindTemplate, setMindTemplate, setTemplateKept, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, prereqHidden, setPrereqHidden, prereqAsk, setPrereqAsk, prereqExpanded, setPrereqOpen, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, bubbleSkin, setBubbleSkin, metabCard, setMetabCard, phaseMode, setPhaseMode, tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira, planSeen, setPlanSeen, kcalSource, movePlan, mindPlan, setMindPlan, bookOpen, setBookOpen, bookWith, setBookWith, liveState, setLiveState, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions } = useWF();
+  const { authStep, setAuthStep, setPhone, setOtp, setUserName, activeTab, setActiveTab, userState, setUserState, eatDetail, setEatDetail, eatState, setEatState, measureApproach, setMeasureApproach, setMsDetail, setA1Detail, setMsa2Detail, plan, setPlan, sessionState, setSessionState, scoreState, setScoreState, dailyState, setDailyState, taskProgress, setTaskProgress, setTaskDone, setStreakInfo, setOnboardingOpen, setOnboardingStep, tour, setTour, setTodayOnboarded, streakState, setStreakState, programDetail, setProgramDetail, setProgramSub, chatsOpen, setChatsOpen, openGroups, setOpenGroups, isPaid, program, programIntro, setProgramIntro, setProgramIntroSeen, streakOpen, setStreakOpen, milestones, setMilestones, flipcoins, setFlipcoins, streakDays, setStreakDays, suffFlow, setSuffFlow, setSuffLift, suffLift, scoreFlow, setScoreFlow, setScoreStep, setKcalSource, logOpen, setLogOpen, logResult, setLogResult, waterSheet, setWaterSheet, setToast, mealsLogged, setMealsLogged, setLogItems, logPlan, openMealLog, favorites, setFavorites, kairaLog, setKairaLog, planNotif, setPlanNotif, hasTargets, scoreUnlocked, mealsIn, planAssigned, heroState, measureTasks, setMeasureTasks, moveDetail, setMoveDetail, moveTab, setMoveTab, setMovePlan, logExOpen, setLogExOpen, logExPick, openMoveLog, moveResult, setMoveResult, setRoutineFeel, setRoutineDone, exLogs, setExLogs, healthSource, setHealthSource, healthSync, setHealthSync, manualSteps, setManualSteps, mindDetail, setMindDetail, mindTab, setMindTab, mindDone, setMindDone, setMindKept, mindTemplate, setMindTemplate, setTemplateKept, sleepLogs, setSleepLogs, logSleepOpen, setLogSleepOpen, nextActions, nextDone, nextOpen, setNextList, prereqHidden, setPrereqHidden, prereqAsk, setPrereqAsk, prereqExpanded, setPrereqOpen, setHomeProgramTab, setWater, setDayTicks, taskCard, setTaskCard, moveWeek, setMoveWeek, mindWeek, setMindWeek, weekInsight, setWeekInsight, weekMode, setWeekMode, setWeekReads, homeCard, setHomeCard, bubbleSkin, setBubbleSkin, metabCard, setMetabCard, phaseMode, setPhaseMode, tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira, planSeen, setPlanSeen, kcalSource, movePlan, mindPlan, setMindPlan, bookOpen, setBookOpen, bookWith, setBookWith, liveState, setLiveState, cgmOpen, bcaOpen, streakBurst, setStreakBurst, dayLive, daySkipped, toggleSkip, setDaySkipped, eatDivisions, momentumParts, momentum, moveStarted, daySteps, dayTicks } = useWF();
+
+  /* Read off the day rather than from a counter, so a state built by hand still
+     lights the chip it actually looks like. */
+  const momCardState = (
+    MOM_STATES.find(
+      (v) =>
+        v.plan === planAssigned &&
+        (!v.plan ||
+          (v.session === !!(momentumParts.session && momentumParts.session.done) &&
+            v.neat.length === momentumParts.neatDone &&
+            v.steps === (daySteps || 0)))
+    ) || {}
+  ).id;
 
   const suffCardState = (
     SUFF_STATES.find(
@@ -223,6 +283,7 @@ export default function ControlPanel() {
 
   const groupValue = {
     move: moveResult ? "Result" : logExOpen ? (logExPick === "routine" ? "Routine" : "Log") : moveDetail ? moveTab : "Closed",
+    momcard: planAssigned ? (moveStarted ? momentum + "%" : "Nothing yet") : "No plan",
     targets: hasTargets ? (scoreUnlocked ? mealsIn + " logged" : "No meals yet") : "No targets",
     logging: logResult ? "Result" : kairaLog ? "Kaira " + kairaLog : logOpen ? (logPlan ? "On plan" : "Search") : mealsLogged.length + " logged",
     suff: suffFlow || "Off",
@@ -380,6 +441,33 @@ export default function ControlPanel() {
      `appliesTo` and `caption` are no longer rendered. They stay in the call
      sites as a note on what each group does, which is worth more in the source
      than it was on screen. */
+  /* A slider, for the three things a Momentum plan is made of.
+
+     Chips can only land you on states somebody wrote down in advance. Momentum
+     is a product of two terms and the interesting part is the shape of the
+     curve between them, which you can only feel by dragging: four small
+     movements spread out beat one whole workout, and no list of presets makes
+     that as obvious as watching the number cross over. */
+  const panelSlider = (key, label, value, max, onChange, note) => (
+    <div key={key} style={{ padding: "2px 0 6px" }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+        <span style={{ fontSize: 10.5, fontWeight: 700, color: "#344054" }}>{label}</span>
+        <span style={{ marginLeft: "auto", fontSize: 10.5, fontWeight: 700, color: GREEN, fontVariantNumeric: "tabular-nums" }}>
+          {note}
+        </span>
+      </div>
+      <input
+        type="range"
+        min={0}
+        max={max}
+        step={key === "steps" ? 500 : 1}
+        value={value}
+        onChange={(e) => onChange(+e.target.value)}
+        style={{ width: "100%", marginTop: 5, accentColor: GREEN, cursor: "pointer" }}
+      />
+    </div>
+  );
+
   const panelGroup = (id, title, appliesTo, chips, caption, stack) => {
     const live = liveGroup === id;
     const here = onScreen.includes(id);
@@ -793,7 +881,7 @@ export default function ControlPanel() {
             : logExOpen && logExPick === "routine"
             ? "The routine is one activity, not four, so the session is what gets logged and the minutes, the burn, the hero and the day's row all follow from it."
             : planAssigned
-            ? "The coach routine is here because the Care plan is assigned. Work through the exercises here; Log exercise at the top of the screen is what tells the rest of the app the session happened."
+            ? "The coach routine is here because the Care plan is assigned. Work through the exercises here; Log workout at the top of the screen is what tells the rest of the app the session happened."
             : "No routine, because the Care plan is not assigned yet. The opening card asks for movement so the coach has something to build from.",
           true
         )}
@@ -912,6 +1000,94 @@ export default function ControlPanel() {
             )
           ),
           (SUFF_STATES.find((v) => v.id === suffCardState) || {}).desc ||
+            "A mix the presets do not cover. Tap any preset to land somewhere known.",
+          true
+        )}
+
+        {panelGroup(
+          "momcard",
+          "Momentum card",
+          "the hero on Move",
+          [
+            /* The three terms, draggable. Each one writes only its own records,
+               so moving the workout does not quietly reset the walks: the point
+               is to hold two of them still and watch the third. */
+            panelSlider(
+              "workout", "Workout", momentumParts.routineTicked, momentumParts.routineTotal,
+              (n) => {
+                setKcalSource("coach");
+                setMovePlan("assigned");
+                setExLogs([]);
+                setRoutineDone(COACH_ROUTINE.items.slice(0, n).map((it) => it.id));
+                setMoveDetail(true);
+                setActiveTab("track");
+              },
+              momentumParts.routineTicked + " of " + momentumParts.routineTotal
+            ),
+            panelSlider(
+              "neat", "Small moves", momentumParts.neatDone, MOVE_NEAT.length,
+              (n) => {
+                setKcalSource("coach");
+                setMovePlan("assigned");
+                const mine = MOVE_NEAT.map((t) => t.id);
+                setDayTicks(dayTicks.filter((id) => !mine.includes(id)).concat(mine.slice(0, n)));
+                setMoveDetail(true);
+                setActiveTab("track");
+              },
+              momentumParts.neatDone + " of " + MOVE_NEAT.length
+            ),
+            panelSlider(
+              "steps", "Steps", daySteps || 0, STEP_GOAL,
+              (n) => {
+                setKcalSource("coach");
+                setMovePlan("assigned");
+                setHealthSource({ ...healthSource, steps: "manual" });
+                setHealthSync(null);
+                setManualSteps(n);
+                setMoveDetail(true);
+                setActiveTab("track");
+              },
+              (daySteps || 0).toLocaleString("en-IN")
+            ),
+          ].concat(
+          MOM_STATES.map((v) =>
+            panelChip(
+              v.label,
+              momCardState === v.id,
+              () => {
+                setMoveResult(null);
+                setToast(null);
+                setLogExOpen(false);
+                /* Momentum reads the coach's plan, so the plan is what a
+                   preset sets, the same way Eat's card presets set the care
+                   plan rather than a target owner. */
+                setKcalSource(v.plan ? "coach" : "pending");
+                setMovePlan(v.plan ? "assigned" : null);
+                setExLogs(
+                  v.session
+                    ? [{ id: "routine", minutes: 30, intensity: "light", timeMins: 7 * 60 }]
+                    : []
+                );
+                /* The small movements are ticks on the day, so the preset
+                   writes the tick list rather than a count. Everything that is
+                   not one of them is left alone, or a Move preset would clear
+                   the coach's food nudges on its way past. */
+                const mine = MOVE_NEAT.map((t) => t.id);
+                setDayTicks(
+                  dayTicks.filter((id) => !mine.includes(id)).concat(v.neat.map((i) => mine[i]))
+                );
+                setHealthSource({ ...healthSource, steps: "manual" });
+                setHealthSync(null);
+                setManualSteps(v.steps || null);
+                setRoutineFeel({});
+                setRoutineDone([]);
+                setMoveTab("today");
+                setMoveDetail(true);
+                setActiveTab("track");
+              }
+            )
+          )),
+          (MOM_STATES.find((v) => v.id === momCardState) || {}).desc ||
             "A mix the presets do not cover. Tap any preset to land somewhere known.",
           true
         )}
@@ -1282,7 +1458,6 @@ export default function ControlPanel() {
           [
             { id: null, label: "Closed", d: "The day as it sits. Tip rows carry a grey info mark beside their pillar chip." },
             { id: "note:methi", label: "Warm water with methi", d: "The explainer for the morning tip: what a tip is, the coach's own line, and the way to Kaira." },
-            { id: "note:sun", label: "10 minutes of morning sun", d: "The same sheet on the Mind nudge, so the pillar wording follows the row." },
             { id: "ask", label: "Kaira answering", d: "The chat, opened on the question already sent. She thinks for a beat, then answers in two parts." },
           ].map((v) =>
             panelChip(
@@ -1569,6 +1744,15 @@ export default function ControlPanel() {
                 );
                 setExLogs(d.every ? DEMO_EXERCISE : []);
                 setMindDone(d.every || d.mind ? ["breathing"] : []);
+                /* The mood too, when the preset says everything.
+
+                   It never set one, so "Everything ticked" left the mood row
+                   open on every screen that reads the day's rows: the day done
+                   card said everything on today's list was in while the big
+                   bubble underneath was still asking how the day had been, and
+                   Kaira's closing line could not be reached at all. The preset
+                   is called Everything, so it has to mean it. */
+                setMindKept(d.every ? { mood: "Good" } : {});
                 /* On the logger's own half hour rails, because editing this
                    night opens on it. 6:40 is not one of them, so the wake rail
                    had no chip to centre on and opened at 4 AM. */
@@ -1579,12 +1763,18 @@ export default function ControlPanel() {
                    right until the plan grows one more capsule or the
                    psychologist adds one more worksheet, and then Everything
                    ticked quietly stops meaning everything. */
-                /* Every tip in the day, read off the day itself rather than
-                   from the meals they hang off. Half of them do not: the
-                   stairs and the standing break are the physio's, so a list
-                   built from `eatDivisions` left two of them open and
-                   "Everything ticked" never reached the night. */
-                setDayTicks(d.every ? dayLive.filter(isTip).map((r) => r.id) : d.ticks || []);
+                /* Every one-tap row in the day, read off the day itself rather
+                   than from the meals they hang off. Half of them do not: the
+                   physio's small movements are the plan's, so a list built from
+                   `eatDivisions` left them open and "Everything ticked" never
+                   reached the night.
+
+                   Every tick, not every tip. The coach's small movements stopped
+                   being tips when Momentum started reading them, and a preset
+                   that means "the whole day is done" has to include the work as
+                   well as the nudges, or it leaves four rows open and the day
+                   never completes. */
+                setDayTicks(d.every ? dayLive.filter((r) => r.kind === "tick").map((r) => r.id) : d.ticks || []);
                 setTemplateKept(
                   d.every ? Object.fromEntries(MIND_TEMPLATES.map((t) => [t.id, true])) : {}
                 );

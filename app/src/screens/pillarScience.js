@@ -25,19 +25,21 @@ export const PILLAR_SCIENCE = {
      which was a claim about where calories burn rather than an explanation of
      the score the pillar actually shows.
 
-     The sub names the three things the score adds up, the same way Eat's names
-     its four, so the two sheets read as one system. The deck's own fourth
-     input, the small coach-assigned actions, is out: those are tips, and a tip
-     carries no weight anywhere on this pillar now. */
+     The sub says what the score is rather than listing its inputs. It used to
+     name three things it "adds up", which was wrong twice over: Momentum
+     multiplies rather than adds, and the three it named stopped being the
+     three the moment the small movements became assigned work rather than
+     tips. What survives a change of plan is the shape of the thing, so that is
+     what the sub carries. */
   move: {
     tagline: "Keep moving, a little through the whole day.",
     lede: "Movement spread across your day",
     ledeAccent: "does more than the same effort in one block.",
-    sub: "Your Momentum score adds up three things: the session your coach set, the steps your phone counts, and how many parts of the day you moved in at all.",
+    sub: "Momentum is how much of your coach's plan you did, multiplied by how much of the day you did it across. Finish the plan and it is 100, whatever the plan asks for.",
     points: [
       { t: "Steadier blood sugar", b: "Breaking up long sitting lowers the spike after a meal." },
-      { t: "Little and often wins", b: "Moving in three parts of your day earns more than the same minutes in one." },
-      { t: "Your coach holds the biggest lever", b: "The session they set is half the score on its own." },
+      { t: "Little and often wins", b: "The same minutes spread across the day are worth more than the same minutes in one block." },
+      { t: "Any movement counts", b: "Your workout is scored on minutes, so a swim of your own earns it as surely as the routine your coach wrote." },
     ],
   },
 

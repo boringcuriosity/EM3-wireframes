@@ -1,9 +1,10 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from "react";
 import { Home, BarChart3, Utensils, Check, Moon, Droplet, Flame } from "lucide-react";
 import LotusIcon from "./components/LotusIcon";
-import { buildDay, taskTitle, phasesFor, askOf, isTip, WATER_GOAL, STEP_GOAL } from "./screens/today/day";
+import { buildDay, taskTitle, phasesFor, phaseOf, askOf, isTip, STEP_GOAL } from "./screens/today/day";
 import { totals as sumFoods, sufficiency as scoreOf, DEMO_DAY, DIVISION_TIME } from "./screens/log/foods";
 import { GOALS, targetsFor } from "./screens/sufficiency/data";
+import { COACH_ROUTINE, dayMinutes } from "./screens/move/exercises";
 
 
 /* Who is actually on this person's care team. Above the provider because the
@@ -797,14 +798,6 @@ export function WFProvider({ children, initial = {} }) {
           verb: "Drink", name: "Warm water with methi",
           tip: "Soak a spoon of seeds overnight. Drink the water first thing.",
         },
-        {
-          id: "note:sun",
-          at: 7 * 60 + 15,
-          when: "7:15 AM",
-          pillar: "move",
-          verb: "Get", name: "10 minutes of morning sun",
-          tip: "Balcony or terrace, before nine. It sets your body clock for the day.",
-        },
       ],
       plan: [
         [{ id: "eggs", qty: 2 }, { id: "chilla", qty: 2 }, { id: "chutney", qty: 2 }, { id: "curd", qty: 1 }],
@@ -1183,9 +1176,17 @@ export function WFProvider({ children, initial = {} }) {
 
      Steps arrive once there is movement to have made them. The walk is what
      puts them on the counter, which is both true and the thing a demo can
-     point at. */
+     point at.
+
+     A floor of four hundred under that, because nought is its own lie. A phone
+     that has been in a pocket since morning has counted the walk to the
+     kitchen and back, and a connected counter reading exactly zero says the
+     sensor is broken rather than that the day has been quiet. The floor is
+     small enough to be honest about a day nobody has moved in and large enough
+     that the counter reads like a counter. */
+  const STEP_FLOOR = 420;
   const daySteps =
-    healthSync === "steps" ? null : healthOn("steps") ? (exLogs.length ? 5008 : 0) : manualSteps;
+    healthSync === "steps" ? null : healthOn("steps") ? (exLogs.length ? 5008 : STEP_FLOOR) : manualSteps;
   /* The night the app is holding, as a bed time and a wake time rather than
      as a bare duration. Health Connect reports both and the logger asks for
      both, so a night that is only a number is a night nobody can correct.
@@ -1255,6 +1256,12 @@ export function WFProvider({ children, initial = {} }) {
      from the day rather than tracked, or two screens would disagree about
      what is next. */
   const nextRowId = (dayLive.find((r) => !r.done) || {}).id;
+  /* The next tip, which is a different row from the next task and almost never
+     the same one. A day is eighteen rows and two of them are tips, so a Kaira
+     affordance gated on the tip being literally next would have shown up about
+     twice a fortnight. This is the first tip still to do: one row carries it,
+     and it is the one you will reach next. */
+  const nextTipId = (dayLive.find((r) => !r.done && isTip(r)) || {}).id;
   const dayRowsDone = dayLive.filter((r) => r.done).length;
   const dayPhases = phasesFor(phaseMode).map((f) => {
     const rows = dayRows.filter((r) => r.phase === f.id);
@@ -1380,7 +1387,7 @@ export function WFProvider({ children, initial = {} }) {
      tab under
      the routine in Move. Both pass the routine, because both are somebody
      saying they did the coach's work. Passing nothing opens the pick list,
-     which is what the free day's row and the Log exercise prompt want. */
+     which is what the free day's row and the Log workout prompt want. */
   const openMoveLog = (id = null) => {
     setLogExPick(id);
     setMoveReturn(moveDetail ? "move" : "track");
@@ -1542,35 +1549,327 @@ export function WFProvider({ children, initial = {} }) {
      and the wrong place to say it: a strip you swipe past has room for what a
      score is, not for what today's happens to mean. */
   const mealsLeft = Math.max(0, mealSlots - mealsIn);
-  /* Momentum:
+  /* ---------- Momentum ----------
 
-       Movement 50  +  Steps 20  +  Spread 30
+     Momentum = Movement x Spread.
 
-     The Move deck sets this out as 40 / 10 / 10 / 40, where the third tenth is
-     NEAT: the stairs, standing through a meeting, the small things. Those are
-     tips, and a tip is not work. It pays no Flipcoins, files no record and
-     carries no weight anywhere else on this screen, so it cannot be the one
-     thing on the card that still moves a number. Ticking the stairs was worth
-     ten points of NEAT and another ten of spread, and Move climbed for
-     something nobody had logged.
+       Movement = what you finished / what your coach assigned
+       Spread   = 0.75 + 0.25 x (parts you moved in / parts the plan asks for)
 
-     So NEAT is out and its ten points go to the movement itself, which is
-     where the work is. Spread is ten a part of the day and there are exactly
-     three parts with movement to record in them, the morning stretch, the
-     session and the step count, so a day spread across all three tops out at
-     thirty. Movement scattered across a day still beats the same effort
-     crammed into one block, which is the whole argument of the pillar.
+     FINISH THE PLAN AND IT IS 100, WHATEVER THE PLAN IS. That is the whole
+     rule, and everything here exists to keep it true. The denominator is the
+     coach's own list, so a patient with back pain whose plan is four seated
+     movements and no step goal reaches a hundred by doing four seated
+     movements. Nobody is measured against a task they were never given.
 
-     Every term now reads a row that leaves a record behind. */
-  const moveRows = dayLive.filter((r) => r.pillar === "move" && !isTip(r));
-  const moveParts = new Set(moveRows.filter((r) => r.done).map((r) => r.phase)).size;
-  const momentum = Math.round(
-    (exLogs.length > 0 ? 50 : 0) +
-      Math.min(1, (daySteps || 0) / STEP_GOAL) * 20 +
-      Math.min(30, moveParts * 10)
-  );
-  // Something has to have been logged before there is a reading to show.
-  const moveStarted = exLogs.length > 0 || (daySteps || 0) > 0;
+     Three weights and no more, because the coach assigns tasks rather than
+     numbers: a workout is six, a small movement is one, a step goal is four.
+
+     THE WORKOUT IS DELIBERATELY THE HEAVIEST THING IN THE DAY, and that is a
+     decision rather than a derivation. At four it tied with the four small
+     movements between them, and a finished workout that had happened all in
+     one hour came out at 26 against their 33: the number said, correctly by
+     the concept and badly by the feel of it, that a person who did every
+     minute their physio asked for had had a worse day than one who took the
+     stairs four times. Six puts the workout at 34 and the four spread
+     movements at 29.
+
+     It costs something real and it is worth writing down: the Momentum deck
+     argues that moving often beats moving once, and at six a single workout
+     outscores a day of small movement. Spread still multiplies everything, so
+     the same workout with a walk after dinner beats the same workout without
+     one, but the headline claim is softer than the deck states it.
+
+     SPREAD IS MEASURED AGAINST THE DAY THE PLAN ASKS FOR, not against the
+     clock. Against the clock, a coach who deliberately keeps a plan to the
+     morning and the evening would cap their patient at 87% for doing every
+     single thing right. A plan that asks for no part of the day at all, a step
+     goal and nothing else, has nothing to spread and keeps the full bonus
+     rather than dividing by nothing.
+
+     Steps are their own quarter and are read from the phone, never inferred
+     from a task, so a step goal and a task list can never pay for the same
+     walk twice. They are also the only part that pays in proportion: a
+     movement is done or it is not, but eight thousand of ten thousand steps is
+     eight tenths of a walk.
+
+     Going past the plan cannot take it over a hundred, and is not meant to.
+     Overshoot is Kaira's to raise in the hour it can still be spent in. */
+  const MOVE_UNIT = { exercise: 6, neat: 1 };
+  const STEP_UNIT = 4;
+  /* THE PARTS OF THE DAY ARE WORTH THE SAME.
+
+     They were not for a while: morning 15, afternoon 30, evening 35, night 20,
+     off the trial that found afternoon movement did the most for HbA1c. Good
+     evidence, wrong place to spend it. Nobody chooses which part of the day
+     their tasks sit in, the coach does, so an unequal table means two patients
+     who each did exactly what they were told score differently because of a
+     decision neither of them made. The science belongs in where the physio
+     puts the task, not in what the patient is marked out of.
+
+     Equal weights mean there is no table left to keep: the bonus is simply how
+     many of the parts the plan reaches were moved in. */
+  const MOVE_PARTS = ["morning", "afternoon", "evening", "night"];
+
+  // The plan's own rows on today's list, which is what carries `done`.
+  const moveRows = dayLive.filter((r) => r.pillar === "move" && !isTip(r) && r.type);
+
+  /* THE WORKOUT IS NOT ALL OR NOTHING.
+
+     Its four moves are ticked one at a time on Move, and each tick is a real
+     piece of work done. Counting only the finished session meant somebody who
+     did the neck stretches and the arm circles and then ran out of morning had
+     moved the number by exactly nothing, which is the opposite of what a
+     pillar built on "a little, often" should say back.
+
+     So it pays in proportion, the same way the step goal does. A logged
+     session is the whole of it however the ticks landed, because finishing
+     through the logger is the person saying the routine is done. */
+  const routineTicked = routineDone.filter((id) =>
+    COACH_ROUTINE.items.some((it) => it.id === id)
+  ).length;
+  const routineTotal = COACH_ROUTINE.items.length;
+
+  /* THE WORKOUT IS MINUTES, FROM WHEREVER THEY CAME.
+
+     It used to read one thing only: whether the coach's own routine had been
+     ticked or logged. So a forty five minute swim scored nothing at all. It
+     appeared under Logged today, moved no part of the number, and if the plan
+     was already in it was filed as overshoot. A pillar whose whole argument is
+     that movement matters cannot then tell somebody their movement did not
+     count because it was the wrong movement.
+
+     So the term is minutes done over minutes asked, capped. Any log counts,
+     the coach's or your own. Ticking the routine's moves without logging it
+     converts to the minutes those moves represent, which is what keeps partial
+     credit working, and the guard on `routineLogged` stops the same half hour
+     being counted once as ticks and again as a log.
+
+     What it costs is worth naming: the deck says a strength and mobility
+     session is not walking, and the physio picked those four moves for a
+     reason. On minutes alone, a walk satisfies a mobility plan. */
+  const askedMins = COACH_ROUTINE.minutes;
+  const routineLogged = exLogs.some((e) => e.id === "routine");
+  const workoutMins =
+    dayMinutes(exLogs) +
+    (routineLogged || !routineTotal ? 0 : askedMins * (routineTicked / routineTotal));
+  const workoutShare = Math.min(1, askedMins ? workoutMins / askedMins : 0);
+
+  /* How much of a row is in, from nought to one. Everything except the workout
+     is a single act and so is done or not. */
+  const moveShare = (r) => (r.type === "exercise" ? workoutShare : r.done ? 1 : 0);
+
+  /* WHERE THE MOVEMENT ACTUALLY LANDED.
+
+     The plan puts the workout at seven in the morning, and for a long time the
+     spread bonus took that literally: a session done at nine at night credited
+     a morning that had nothing in it. Every log already carries the minute it
+     happened, so the parts a workout fills are the parts its logs fell in.
+
+     A routine ticked but never logged has no time of its own, so it credits
+     the hour the coach set, which is the only time anybody has stated.
+
+     Clamped to the parts the plan asks for. Without that, a log in a part the
+     coach never mentioned would push the earned weight above the asked weight
+     and hand out a spread bonus over one. */
+  const movePartsGot = (shares) => {
+    const asked = new Set(moveRows.map((r) => r.phase));
+    const got = new Set();
+    moveRows.forEach((r) => {
+      if (r.type === "exercise") return;
+      if (shares[r.id] > 0) got.add(r.phase);
+    });
+    exLogs.forEach((l) => got.add(phaseOf(l.timeMins, phaseMode)));
+    const ex = moveRows.find((r) => r.type === "exercise");
+    if (ex && !exLogs.length && shares[ex.id] > 0) got.add(ex.phase);
+    return [...got].filter((ph) => asked.has(ph));
+  };
+
+  const moveGoal = planAssigned ? STEP_GOAL : 0;
+
+  /* Momentum, as a function rather than as a value.
+
+     Kaira has to be able to ask what a thing is worth before it is done, and
+     the only honest way to answer that is to run the same arithmetic with that
+     one thing finished. Any other way of estimating it is a second formula
+     that starts drifting from the first the day a weight changes. */
+  const scoreMove = (shares, stepsPct) => {
+    let assigned = 0, earned = 0;
+    moveRows.forEach((r) => {
+      const u = MOVE_UNIT[r.type] || 0;
+      assigned += u;
+      earned += u * shares[r.id];
+    });
+    if (moveGoal) {
+      assigned += STEP_UNIT;
+      earned += STEP_UNIT * stepsPct;
+    }
+    const movement = assigned ? earned / assigned : 0;
+    // Begun is enough. Two of four stretches is movement that happened in the
+    // morning, and the bonus is about where the day moved, not how much.
+    const askW = new Set(moveRows.map((r) => r.phase)).size;
+    const gotW = movePartsGot(shares).length;
+    const spread = 0.75 + 0.25 * (askW ? gotW / askW : 1);
+    return { assigned, earned, movement, spread, askW, gotW, value: Math.round(100 * movement * spread) };
+  };
+
+  const moveShares = Object.fromEntries(moveRows.map((r) => [r.id, moveShare(r)]));
+  const moveStepsPct = moveGoal ? Math.min(1, (daySteps || 0) / moveGoal) : 0;
+
+  const momentumParts = (() => {
+    const shareOf = moveShare;
+    const goal = moveGoal;
+    const { assigned, earned, movement, spread, askW, gotW } = scoreMove(moveShares, moveStepsPct);
+
+    /* The day in four, for the screens to draw. A part is asked for once the
+       plan puts anything in it and got once anything in it is done, which is
+       the same test the bonus runs, so the strip somebody looks at and the
+       multiplier they are being given can never disagree. */
+    const lit = movePartsGot(moveShares);
+    const parts = MOVE_PARTS.map((id) => ({
+      id,
+      asked: moveRows.some((r) => r.phase === id),
+      got: lit.includes(id),
+    }));
+
+    /* The emptiest part of the day still to come, which is Move's version of
+       Eat naming its weakest macro: the one thing worth doing something about,
+       said with the reason rather than as a scold. */
+    const gap = parts.find((x) => x.asked && !x.got) || null;
+
+    const neat = moveRows.filter((r) => r.type === "neat");
+    return {
+      assigned, earned, movement, spread, askW, gotW, parts, gap, goal,
+      session: moveRows.find((r) => r.type === "exercise") || null,
+      // What the workout is worth right now, and the ticks behind it.
+      sessionShare: (() => {
+        const r = moveRows.find((x) => x.type === "exercise");
+        return r ? shareOf(r) : 0;
+      })(),
+      routineTicked, routineTotal, workoutMins, askedMins,
+      neat,
+      neatDone: neat.filter((r) => r.done).length,
+      steps: moveStepsPct,
+      // Everything the plan asks for, done or not, for the segment bar.
+      slots: moveRows.length + (goal ? 1 : 0),
+      filled: moveRows.filter((r) => shareOf(r) >= 1).length + (goal && (daySteps || 0) >= goal ? 1 : 0),
+      value: Math.round(100 * movement * spread),
+    };
+  })();
+
+  /* WHAT KAIRA SAYS ON MOVE.
+
+     Her job here is the one she has everywhere: joining a thing you could do
+     to the number it moves. She used to report the emptiest part of the day,
+     "nothing in your evening yet", which is a recap wearing an insight's
+     clothes. It named a hole rather than an action, it said the same shape of
+     thing four ways depending on the hour, and a person who read it learned
+     nothing they could not see on the strip beside it.
+
+     So she works out what every unfinished thing in the plan is actually worth
+     right now, by running the score with that one thing done, and names the
+     biggest. That is genuinely not obvious: a ten minute walk can be worth
+     more than the rest of a workout, because it lands in a part of the day
+     nothing has landed in yet and the spread bonus multiplies everything that
+     was already earned. She says which, and what it takes the day to.
+
+     The steps are in the running like anything else, and when they win she
+     says how far short they are rather than what fraction is left, because
+     nobody walks in fractions. */
+  const momentumLine = (() => {
+    if (!planAssigned) return null;
+    const now = momentumParts.value;
+
+    /* OVERSHOOT IS TALKED ABOUT, NEVER SCORED.
+
+       Momentum stops at a hundred because the plan is what a hundred means,
+       and a number that keeps climbing past the plan is a different promise
+       from the one the coach made. But somebody who did fifty minutes when
+       they were asked for thirty has done something real, and a card that
+       takes no notice of it is the score quietly telling them it did not
+       count. This is the half that notices.
+
+       What she says depends on whether the day still has somewhere to put it.
+       With a part of the day still empty, the useful advice is to move some of
+       it there rather than to add more now, because spread multiplies what was
+       already earned and another set in the same hour does not. With the plan
+       already in, the useful advice is to stop: the day cannot pay for it any
+       more, and tomorrow can. */
+    const overMins = Math.max(0, dayMinutes(exLogs) - COACH_ROUTINE.minutes);
+    const overSteps = Math.max(0, (daySteps || 0) - STEP_GOAL);
+    const over = overMins >= 10 || overSteps >= 1000;
+    const emptyPart = momentumParts.parts.find((x) => x.asked && !x.got);
+
+    if (over && emptyPart)
+      return (
+        (overMins >= 10
+          ? "That is " + overMins + " minutes more than your plan asked for."
+          : "You are " + overSteps.toLocaleString("en-IN") + " steps past your goal.") +
+        " Your " + emptyPart.id + " is still empty, and ten minutes there is worth more to today than anything else you add now."
+      );
+
+    if (over && now >= 100)
+      return (
+        (overMins >= 10
+          ? "That is " + overMins + " minutes past your plan, and the plan is already in."
+          : "You are " + overSteps.toLocaleString("en-IN") + " steps past your goal, and the plan is already in.") +
+        " Nothing left to chase today. Tomorrow will use it better than tonight will."
+      );
+
+    if (now >= 100) return "A day like this is what your physio builds the next plan on.";
+
+    const bids = [];
+
+    moveRows.forEach((r) => {
+      if (moveShares[r.id] >= 1) return;
+      const would = scoreMove({ ...moveShares, [r.id]: 1 }, moveStepsPct).value;
+      // Whether it is the first thing to land in its part of the day, which is
+      // usually why one is worth more than another.
+      const opens =
+        !moveRows.some((x) => x.phase === r.phase && moveShares[x.id] > 0);
+      bids.push({ gain: would - now, would, opens, row: r });
+    });
+
+    if (moveGoal && moveStepsPct < 1) {
+      const would = scoreMove(moveShares, 1).value;
+      bids.push({ gain: would - now, would, steps: Math.max(0, STEP_GOAL - (daySteps || 0)) });
+    }
+
+    if (!bids.length) return null;
+    bids.sort((a, b) => b.gain - a.gain || 0);
+    const best = bids[0];
+    if (best.gain <= 0) return "Everything left today is small. Do whichever is easiest to reach.";
+
+    if (best.steps !== undefined) {
+      const left = best.steps.toLocaleString("en-IN");
+      return "You are " + left + " steps short. Closing that takes today to " + best.would +
+        ", more than anything else left.";
+    }
+
+    /* The row's own title, used as the instruction it already is. Titles are
+       imperatives, "Log your workout" and "Walk for ten minutes after dinner",
+       so they lead the sentence. Dropped into the middle of one they come out
+       as "so log your workout is worth more", which is what happens when a
+       verb phrase is asked to behave like a noun. */
+    return best.opens
+      ? best.row.title + " and today goes to " + best.would +
+        ". Your " + best.row.phase + " is still empty, so it carries more than anything else left."
+      : best.row.title + " and today goes to " + best.would + ", more than anything else left.";
+  })();
+
+  const momentum = momentumParts.value;
+
+  /* Something has to have been done before there is a reading to show, and
+     there has to be a plan for it to be read against. Momentum is a fraction
+     of what a coach asked for, so before anybody has asked for anything the
+     score has no denominator rather than a low value.
+
+     Read off what was earned rather than off finished rows. Two stretches out
+     of four earn a quarter of the workout and finish nothing, so a test for
+     `done` left the card saying "Nothing logged yet" and holding a nought over
+     a ring that was, in the same breath, reading 25%. Anything that moved the
+     number has started the day. */
+  const moveStarted = planAssigned && momentumParts.earned > 0;
 
   const pillarScores = [
     {
@@ -1694,53 +1993,6 @@ export function WFProvider({ children, initial = {} }) {
   // The one Kaira has to talk about, so the two halves of the card agree.
   const bubbleHero = bubbles[0] && bubbles[0].hero ? bubbles[0] : null;
 
-  /* What Kaira says under the bubbles.
-
-     ONE MECHANISM, AND NOTHING TO DO. The bubble above her already asks the
-     question and is the button that answers it, so a line ending in "log it"
-     is the same ask twice and the second one reads as nagging. Her job is the
-     half the screen cannot show: why this pillar is worth a minute.
-
-     Short, because she sits between a question and a list of tasks, and a
-     paragraph in that gap is something to scroll past. One sentence, two at
-     most.
-
-     No target figures. She used to quote "6 grams of the 30" and "44 of the
-     110 grams of protein", which read beautifully and went wrong the moment
-     the coach's plan or the calorie target moved, because they were a second
-     copy of numbers derived elsewhere. What survives is the mechanism, which
-     is the part she actually knows and the part that stays true.
-
-     She talks about the pillar in the big bubble and never another one,
-     because a card whose halves disagree is worse than a card saying less,
-     and she never reads back the number above her or the list below her. */
-  const KAIRA_LINE = {
-    eat: {
-      fresh: "This one reads how close your day came to enough protein, carbs, fats and fibre. It has nothing to read yet.",
-      morning: "Fibre is the one most days run short on by evening, and breakfast is where it is cheapest to get.",
-      afternoon: "Protein is what keeps hunger away for hours, and the afternoon is where most days lose it.",
-      evening: "Dinner is where fibre is easiest to close, because the roti and the dal both carry it.",
-      night: "Two hours between dinner and bed gives your body the night for repair instead of digestion.",
-    },
-    move: {
-      fresh: "Long stretches of sitting quietly undo the meals in between, whatever else a day holds.",
-      part: "Your session is the biggest single lever your plan gives you.",
-      any: "Your session does the most for your glucose when it lands before dinner rather than after.",
-      night: "Ten minutes on your feet after a meal does more for your glucose than the same ten before it.",
-    },
-    mind: {
-      fresh: "The hour your night starts moves your glucose the next day more than the number of hours in it.",
-      part: "A device can read how long you slept. How the day felt is the half only you know.",
-      morning: "A bedtime that wanders costs you more than an hour lost, because your body clock reads the timing.",
-      any: "How a day felt is the half of Mind no device reads, and it is the pattern your psychologist looks for.",
-      night: "A bedtime you keep every night does more for your glucose than the number of hours you get.",
-    },
-    measure: {
-      fresh: "A body reading is the one number logging cannot give you, and the next three months get built on it.",
-      any: "A body reading is the one number logging cannot give you, and the next three months get built on it.",
-    },
-  };
-
   const kairaLine = (() => {
     /* Nothing from her until a plan is in. Her whole job is joining a score to
        the work that moves it, and before a coach has written anything there is
@@ -1749,25 +2001,84 @@ export function WFProvider({ children, initial = {} }) {
        cards above already say what the pillars are, which is all there is to
        say at that stage. */
     if (!planAssigned) return null;
-    /* The closing line waits for the day's own list, not for `dayComplete`,
-       which counts the four pillar cards rather than the rows. Those two
-       disagree: a day could read complete while the mood row was still open,
-       so she said "four days like this in a week" over a bubble still asking
-       how the day had been.
 
-       No hero means nothing left to ask about, which is the only honest
-       definition of a finished day on this card. */
-    if (!bubbleHero)
-      return "Four days like this in a week is where a pattern starts to show.";
-    const set = KAIRA_LINE[bubbleHero.id] || {};
-    if (!bubbleHero.logged) return set.fresh;
-    if (!bubbleHero.started) return set.part || set.fresh;
-    return set[bubblePhase ? bubblePhase.id : ""] || set.any || set.fresh;
+    /* SHE TALKS ABOUT THE DAY, NOT ABOUT THE NEXT ROW.
+
+       She used to carry one mechanism per pillar, picked off whichever bubble
+       happened to be largest. Every line was true and none of them were warm:
+       the same fact about fibre arrived whether somebody had done nothing all
+       day or almost everything, because the only thing choosing it was which
+       task came next. A companion who never notices how the day is going is
+       not a companion, it is a tooltip on a rota.
+
+       So she reads the shape instead. How much of the day is in, what hour it
+       is, and whether what has been done is spread out or piled into one part
+       of it. Then she says the two things a person actually wants from her:
+       that she has noticed, and one thing worth knowing.
+
+       NO COUNTING AND NO NAMING. "Three of eight done" is the progress bar's
+       job and it is directly below her; "your walk after dinner is next" is
+       the list's job and that is below that. She is the only voice on the
+       screen that can say something neither of them can, so anything she
+       spends on their work is wasted. */
+    const rows = dayLive.filter((r) => !isTip(r));
+    const done = rows.filter((r) => r.done);
+    if (!rows.length) return null;
+
+    const frac = done.length / rows.length;
+    const hour = bubblePhase ? bubblePhase.id : "night";
+
+    /* A few words of warmth, then a reason from the body.
+
+       The warmth on its own was the problem. "Days that hold together are the
+       ones that got going early" is true of homework and laundry, and a
+       companion inside a metabolic health programme saying it is a companion
+       who has not noticed what she is inside. The person reading this has a
+       glucose problem their coach is treating, so the second half of every
+       line is what the thing they are being asked to do actually does to them.
+
+       No figures of their own. She never quotes a target or a reading, because
+       those live elsewhere and would go stale the moment a coach moved one.
+       What she carries is the mechanism, which stays true. */
+    if (frac >= 1)
+      return "Every one of them, in. Your HbA1c is a three month average, and a day like this is the unit it is built out of.";
+
+    /* One real observation about today, and the only one worth interrupting
+       the warmth for: a day that has happened entirely in one part of itself.
+       It is the thing somebody cannot see from a list of ticks, and it is the
+       whole argument of the pillars. */
+    const parts = new Set(done.map((r) => r.phase));
+    if (done.length >= 2 && parts.size === 1 && hour !== [...parts][0])
+      return (
+        "Good going, and all of it landed in your " + [...parts][0] +
+        ". The extra glucose your muscles pull from your blood after moving fades within a few hours, so one small thing now is worth more than a longer one earlier."
+      );
+
+    if (frac === 0)
+      return hour === "morning"
+        ? "Nothing in yet, and the morning is the cheapest place to start. Your body handles carbohydrate better earlier in the day, so the same meal and the same walk are worth more now than they will be tonight."
+        : hour === "afternoon"
+        ? "Still plenty of day left. An hour of unbroken sitting is enough to slow how much glucose your muscles take out of your blood, and standing up starts it again."
+        : hour === "evening"
+        ? "Quiet day so far. Ten minutes on your feet after your last meal flattens the rise that would otherwise carry into your sleep."
+        : "Nothing today, and one day does not undo a week. Your metabolism reads the average of many days rather than any single one.";
+
+    if (frac < 0.34)
+      return hour === "morning"
+        ? "Good start. Working muscles pull glucose out of your blood without needing insulin to do it, and that keeps running for hours after you stop."
+        : "You are moving, and that is the part that counts. Every break in a long sit is another chance for your muscles to clear what is sitting in your blood.";
+
+    if (frac < 0.67)
+      return hour === "evening" || hour === "night"
+        ? "Solid day. What you add from here lands on your night, and a steadier night is what your fasting reading in the morning is made of."
+        : "Nicely halfway, and the harder half is done. Days that stay this even hold your glucose in a narrower band, and it is the swings rather than the average that wear things out.";
+
+    return "Nearly the whole thing. Finishing is what turns a good day into the run of days your three month average is actually made of.";
   })();
 
   const value = {
     hasTargets, kcalTarget, dailyTargets, dayTotals, mealsIn, mealSlots, mealsLeft, liveScore, scoreUnlocked, weakestMacro,
-    pillarScores, metabCard, setMetabCard,
+    pillarScores, metabCard, setMetabCard, momentum, momentumParts, momentumLine, moveStarted,
     bubbles, bubbleHero, bubblePhase, bubblesSettled, kairaLine,
     activeGoal,
     authStep, setAuthStep, phone, setPhone, otp, setOtp, userName, setUserName, firstName,
@@ -1833,7 +2144,7 @@ export function WFProvider({ children, initial = {} }) {
     SHARE_COINS, STREAK_REWARDS,
     MILESTONES, milestones, setMilestones, milestoneStatus,
     completeTask, taskProgress, setTaskProgress, taskDone, setTaskDone,
-    dayRows, dayLive, dayPhases, dayRowsDone, nextRowId, openRow, water, setWater, dayTicks, setDayTicks,
+    dayRows, dayLive, dayPhases, dayRowsDone, nextRowId, nextTipId, openRow, water, setWater, dayTicks, setDayTicks,
     daySkipped, setDaySkipped, toggleSkip, toggleTick, rowMenu, setRowMenu, planOption, setPlanOption,
     openPhase, setOpenPhase,
     tipInfo, setTipInfo, kairaAsk, setKairaAsk, askKaira,

@@ -16,7 +16,7 @@ const WEEKS = {
     mins: [22, 0, 35, 0, 45, 30, 0],
     steps: [6200, 3100, 8800, 2400, 11200, 9400, 3900],
     head: "Your movement comes in bursts rather than most days.",
-    body: "Four days out of seven, and the three quiet ones sit together in the middle of the week. Your body reads a steady twenty minutes better than one long session, so the gap is worth closing before the minutes are.",
+    body: "Four days out of seven, and the three quiet ones sit together in the middle of the week. Your body reads a steady half hour better than one long workout, so the gap is worth closing before the minutes are.",
   },
   weeks: {
     mins: [30, 25, 35, 20, 45, 30, 25],
@@ -41,7 +41,7 @@ export default function MoveTrend() {
         line={
           days
             ? "Two days in. A couple more and I can tell whether the gaps are the problem or the minutes are."
-            : "Log a walk, a session, anything. On Sunday I read the week back to you: how often you moved, and the one thing worth changing."
+            : "Log a walk, a workout, anything. On Sunday I read the week back to you: how often you moved, and the one thing worth changing."
         }
         note="A day counts once anything is logged in it, a walk to the shop included."
         cta="Log something you did"

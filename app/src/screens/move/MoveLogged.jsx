@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useWF } from "../../state";
 import { Check, Flame } from "lucide-react";
-import { byId, logBurn, dayBurn, DAILY_GOAL_MIN, ROUTINES, COACH_ROUTINE } from "./exercises";
+import { byId, logBurn, dayBurn, dayMinutes, ROUTINES, COACH_ROUTINE } from "./exercises";
+import KairaMark from "../../components/KairaMark";
 import { fmtTime } from "../log/foods";
 import CtaArrow from "../../components/CtaArrow";
 import {
@@ -10,6 +11,49 @@ import {
 
 const COINS = 2;
 
+/* A moment of work before the answer.
+
+   A screen that resolves the instant you press the button reads as a form
+   submitting; the same screen after a beat reads as something having been
+   worked out. Eat has had this since the beginning and Move landed straight on
+   its result, which made the number look printed rather than calculated.
+
+   Only a result that has just been committed gets it. One staged from the
+   panel is somebody wanting to look at the screen, and making them watch a
+   spinner first is a wait with nothing behind it. It also keeps the smoke test
+   rendering the body rather than the spinner. */
+function Working() {
+  return (
+    <div
+      style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 16,
+        background: BG,
+        minHeight: 0,
+      }}
+    >
+      <span
+        aria-hidden
+        style={{
+          width: 30,
+          height: 30,
+          borderRadius: "50%",
+          border: "3px solid " + LINE,
+          borderTopColor: PILLAR.move.c,
+          animation: "spin .7s linear infinite",
+        }}
+      />
+      <span role="status" style={{ fontSize: 13.5, color: MUTED }}>
+        Logging your workout
+      </span>
+    </div>
+  );
+}
+
 /* What that session did, on the same beat as a meal.
 
    Eat has counted its score up on a screen of its own since the beginning, and
@@ -17,35 +61,82 @@ const COINS = 2;
    one made something of it, the other mentioned it. This is the other half.
 
    Four beats, the same four: the rise, what was in it, where the day stands
-   now, and what happens next. The number that moves here is minutes against
-   the day's twenty, because that is the one Move is actually asking for. */
+   now, and what happens next.
+
+   THE NUMBER THAT MOVES IS MOMENTUM, not minutes. It counted minutes against a
+   goal of twenty for a while, which meant the screen that should have said
+   what the session was worth instead reported a stopwatch: a person finished
+   their coach's half hour, watched "30 minutes" arrive, and learned nothing
+   about the day. Momentum is what the pillar is scored on, so it is what the
+   act of logging should move, the same way a meal moves sufficiency.
+
+   The bars underneath are the same two the hero carries, and they are the
+   reason a low number does not read as a verdict: one says how much of the
+   plan is in, the other says how much of the day it is spread across. */
 export default function MoveLogged() {
-  const { moveResult, setMoveResult, setMoveDetail, moveReturn, exLogs, flipcoins, setFlipcoins, setToast } = useWF();
+  const {
+    moveResult, setMoveResult, setMoveDetail, moveReturn, exLogs, flipcoins, setFlipcoins, setToast,
+    momentum, momentumParts: m,
+  } = useWF();
+
+  /* Read live rather than carried in the result. By the time this draws, the
+     log is in state and Momentum has been worked out from it, so the screen
+     and the pillar can never disagree about what just happened. */
+  const after = momentum;
 
   const [shown, setShown] = useState(moveResult ? moveResult.before : 0);
+  const [working, setWorking] = useState(!!(moveResult && moveResult.fresh));
+  useEffect(() => {
+    if (!working) return;
+    const t = setTimeout(() => setWorking(false), 900);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* Counted up rather than printed. A number that arrives already correct is a
      result; one that climbs is something you did. */
   useEffect(() => {
-    if (!moveResult) return;
-    const span = Math.max(1, moveResult.after - moveResult.before);
+    if (!moveResult || working) return;
+    /* The distance travelled, which is allowed to be nothing. Flooring the
+       span at one so the animation always has something to do lands in the
+       printed figure, and the screen finishes a point above what the pillar
+       shows for the same day. */
+    const span = after - moveResult.before;
     let i = 0;
     const t = setInterval(() => {
       i += 1;
-      setShown(moveResult.before + Math.round((span * i) / 24));
+      setShown(i >= 24 ? after : moveResult.before + Math.round((span * i) / 24));
       if (i >= 24) clearInterval(t);
     }, 26);
     return () => clearInterval(t);
-  }, [moveResult]);
+  }, [moveResult, after, working]);
 
   if (!moveResult) return null;
-  const { entry, after, count, total, feel } = moveResult;
+  if (working) return <Working />;
+  const { entry, count, total } = moveResult;
   const ex = byId(entry.id);
   // Either of the coach's plans, so the morning stretch gets the same beats.
   const isRoutine = !!ROUTINES[entry.id];
   const kcal = logBurn(entry);
-  const pct = Math.min(100, Math.round((shown / DAILY_GOAL_MIN) * 100));
-  const met = after >= DAILY_GOAL_MIN;
+  const pct = Math.min(100, shown);
+  const gained = after - moveResult.before;
+
+  /* What she says back. Good work first, because somebody who has just finished
+     a session should not be met with a list, and then the one thing worth doing
+     next. Spread is named where it applies rather than as a general rule: after
+     a workout the small movements are the whole of what is left to spread. */
+  const neatLeft = m.neat.length - m.neatDone;
+  const stepsShort = m.goal ? Math.max(0, m.goal - Math.round(m.steps * m.goal)) : 0;
+  const said =
+    after >= 100
+      ? "Good work. That is your whole plan in, and nothing is left to chase today."
+      : neatLeft > 0
+      ? "Good work on that. Your " + (neatLeft === 1 ? "last small move is" : neatLeft + " small moves are") +
+        " still open, and landing them in different parts of the day lifts Momentum further than another workout would."
+      : stepsShort > 0
+      ? "Good work on that. You are " + stepsShort.toLocaleString("en-IN") +
+        " steps short of your goal, which is the biggest thing left today."
+      : "Good work on that.";
 
   const done = () => {
     setFlipcoins(flipcoins + COINS);
@@ -95,9 +186,9 @@ export default function MoveLogged() {
             <Check size={12} color={GREEN} strokeWidth={3} /> LOGGED
           </span>
 
-          {/* A ring rather than Eat's hexagon. Minutes against the day's goal
-              is a fraction of something, and a ring is what the rest of Move
-              already draws a fraction with. */}
+          {/* A ring rather than Eat's hexagon. Momentum is a fraction of a
+              plan, and a ring is what the rest of Move already draws a
+              fraction with. */}
           <div style={{ display: "flex", justifyContent: "center" }}>
             <div style={{ position: "relative", width: 150, height: 150 }}>
               <svg width="150" height="150" viewBox="0 0 150 150" aria-hidden>
@@ -130,19 +221,53 @@ export default function MoveLogged() {
                   {shown}
                 </span>
                 <span style={{ fontSize: 10, fontWeight: 700, color: MUTED, letterSpacing: 1.1, marginTop: 4 }}>
-                  MINUTES TODAY
+                  MOMENTUM
                 </span>
               </div>
             </div>
           </div>
 
+          {/* What the session was worth, and how much of the plan is in.
+
+              NO WEIGHTS AND NO SCIENCE HERE. The parts of the day carry
+              numbers on them, 15 through 35, and printing that table under a
+              number somebody has just earned turns a result into a marking
+              scheme: they came here to find out what they did, not to be shown
+              how it was graded. The mechanism, the trial and the HbA1c figure
+              belong on the pillar's own card, where somebody is reading about
+              the score rather than collecting one. This screen says what
+              landed and what is left, in that order, and stops. */}
           <div style={{ fontSize: 13, color: TEXT, marginTop: 16, lineHeight: 1.5 }}>
-            <strong>+{entry.minutes} minutes</strong> from this session
+            <strong>+{gained} Momentum</strong> from this workout
           </div>
-          <div style={{ fontSize: 11.5, color: MUTED, marginTop: 4 }}>
-            {met
-              ? "That clears the twenty you are aiming for today."
-              : DAILY_GOAL_MIN - after + " more minutes and today counts."}
+
+          {/* Kaira, rather than a bar and a tally.
+
+              There were six segments here and a line counting what was left,
+              which is the day's admin restated on the one screen that exists to
+              say what a thing was worth. She takes the room instead: what was
+              just done, and then the one thing that would move the number
+              furthest, which on Move is nearly always spreading it rather than
+              adding to it. */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
+              textAlign: "left",
+              background: BG,
+              border: "1px solid " + BORDER,
+              borderRadius: 14,
+              padding: "12px 13px",
+              marginTop: 18,
+            }}
+          >
+            <span style={{ flexShrink: 0, marginTop: 1 }}>
+              <KairaMark size={18} />
+            </span>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: TEXT, lineHeight: 1.55 }}>
+              {said}
+            </span>
           </div>
         </div>
 
@@ -208,8 +333,10 @@ export default function MoveLogged() {
           </div>
         </div>
 
-        {/* Where the day now stands */}
-        <div style={{ padding: "20px 22px 0" }}>
+        {/* Where the day now stands. It carries the foot of the scroll now
+            that the coach's read on how it felt has gone, so it brings its own
+            bottom padding rather than borrowing the next block's. */}
+        <div style={{ padding: "20px 22px 22px" }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: TEXT, marginBottom: 10 }}>Today so far</div>
           <div
             style={{
@@ -220,10 +347,15 @@ export default function MoveLogged() {
               padding: "14px 0",
             }}
           >
+            {/* Minutes still belong here, as a reading rather than as the
+                score. `after` is Momentum now, and printing it under a label
+                saying Minutes had a twenty minute session reporting thirty
+                nine minutes: the same figure meaning two different things two
+                inches apart. */}
             {[
-              { v: after, l: "Minutes" },
+              { v: dayMinutes(exLogs), l: "Minutes" },
               { v: dayBurn(exLogs), l: "kcal burnt" },
-              { v: exLogs.length, l: exLogs.length === 1 ? "Session" : "Sessions" },
+              { v: exLogs.length, l: exLogs.length === 1 ? "Workout" : "Workouts" },
             ].map((x, i) => (
               <div
                 key={x.l}
@@ -240,22 +372,6 @@ export default function MoveLogged() {
           </div>
         </div>
 
-        {/* What happens next.
-
-            When they told us how it felt, that is the first thing said back,
-            because a question you answer and never hear about again is a toll
-            rather than a conversation. */}
-        <div style={{ padding: "18px 22px 8px" }}>
-          <div style={{ fontSize: 11.5, color: MUTED, lineHeight: 1.55 }}>
-            {feel === "easy"
-              ? "You found this one easy, so " + COACH_ROUTINE.by.split(" ")[0] + " can step it up when she writes the next one."
-              : feel === "hard"
-              ? "You found this one difficult, and " + COACH_ROUTINE.by.split(" ")[0] + " will see that before she writes the next one. Holding the same routine another week is a normal answer."
-              : met
-              ? "Your coach sees this the next time they open your week, and steady days are what they build the next routine on."
-              : "A walk after dinner would finish today off. Short and often is what moves the number your coach watches."}
-          </div>
-        </div>
       </div>
 
       <div style={{ flexShrink: 0, borderTop: "1px solid " + BORDER, padding: "12px 22px 24px" }}>

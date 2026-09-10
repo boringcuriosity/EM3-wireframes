@@ -3,7 +3,7 @@ import { useWF } from "../../state";
 import { ChevronLeft, ChevronRight, Search, X, Plus, Minus } from "lucide-react";
 import { GREEN, TEXT, MUTED, FAINT, BG, BG_ALT, BG_SUNK, BORDER } from "../../tokens";
 import Wheel from "../../components/Wheel";
-import { EXERCISES, byId, INTENSITIES, burnt, dayMinutes, ROUTINES } from "./exercises";
+import { EXERCISES, byId, INTENSITIES, burnt, ROUTINES, COACH_ROUTINE } from "./exercises";
 import RoutineExercise from "./RoutineExercise";
 import { fmtTime, timeSlots } from "../log/foods";
 
@@ -27,8 +27,11 @@ export default function LogExercise() {
   const {
     setLogExOpen, exLogs, setExLogs,
     planAssigned, routineDone, routineFeel, setFeel, clearFeel,
-    logExPick, setLogExPick, setMoveResult,
+    logExPick, setLogExPick, setMoveResult, momentum, careTeam,
   } = useWF();
+
+  // The same one fact, read from the same place the routine list reads it.
+  const physio = (careTeam.find((c) => c.pillar === "move") || {}).name;
 
   const [query, setQuery] = useState("");
   /* Two sources, two tabs, the way Eat's logger has them. "Your plan" is the
@@ -42,7 +45,11 @@ export default function LogExercise() {
   const [tab, setTab] = useState(openedPlan ? "plan" : "own");
   // Opened on something, when the door in already knew what was done.
   const [picked, setPicked] = useState(openedPlan ? null : logExPick);
-  const [minutes, setMinutes] = useState(20);
+  /* The plan's own length, not a round number picked in a vacuum. Somebody
+     logging their own session is nearly always doing the thing their coach
+     asked for, and starting the wheel at twenty when the plan says thirty asks
+     them to correct it every single time. */
+  const [minutes, setMinutes] = useState(COACH_ROUTINE.minutes);
   // Mobility work is light by design, so the routine says so rather than
   // making somebody correct a default that was never right for it.
   const [intensity, setIntensity] = useState(openedPlan ? "light" : "moderate");
@@ -90,18 +97,23 @@ export default function LogExercise() {
     const hard = votes.filter((v) => v === "hard").length;
     const sessionFeel = votes.length ? (hard * 2 >= votes.length ? "hard" : "easy") : null;
     const entry = { id: shown === ROUTINES.morning ? "morning" : "routine", minutes: routineMins, intensity: "light", timeMins: when };
-    const before = dayMinutes(exLogs);
+    /* The score as it stands before this lands. The one after is read live on
+       the result screen, because by the time it draws, the log is in state and
+       Momentum has already been worked out from it. Computing an "after" here
+       would be a second copy of the formula, drifting the first time the
+       weights move. */
+    const before = momentum;
     setExLogs(exLogs.concat(entry));
-    setMoveResult({ entry, before, after: before + routineMins, count: doing, total, feel: sessionFeel });
+    setMoveResult({ entry, before, count: doing, total, feel: sessionFeel, fresh: true });
     setLogExPick(null);
     setLogExOpen(false);
   };
 
   const submit = () => {
     const entry = { id: picked, minutes, intensity, timeMins: when };
-    const before = dayMinutes(exLogs);
+    const before = momentum;
     setExLogs(exLogs.concat(entry));
-    setMoveResult({ entry, before, after: before + minutes });
+    setMoveResult({ entry, before, fresh: true });
     setLogExPick(null);
     setLogExOpen(false);
   };
@@ -133,7 +145,7 @@ export default function LogExercise() {
           <div style={{ flexShrink: 0, display: "flex", gap: 10, padding: "0 22px 12px" }}>
             {[
               { id: "plan", label: "Your plan" },
-              { id: "own", label: "Log other exercise" },
+              { id: "own", label: "Other workout" },
             ].map((t) => (
               <button
                 key={t.id}
@@ -160,6 +172,7 @@ export default function LogExercise() {
 
         {!picked && routine && tab === "plan" ? (
           <PlanTab
+            physio={physio}
             openedPlan={shown}
             ticked={ticked}
             total={total}
@@ -308,7 +321,7 @@ export default function LogExercise() {
                 cursor: "pointer", fontFamily: "inherit",
               }}
             >
-              Log exercise
+              Log workout
             </button>
           </div>
         )}
@@ -349,7 +362,7 @@ export default function LogExercise() {
    because in both cases it logs the whole session. Arriving and pressing it
    straight away is the common path: most people open this having just finished.
    It only counts when some were left out. */
-function PlanTab({ openedPlan, ticked, total, mins, onLog, feel, onFeel, onClear }) {
+function PlanTab({ openedPlan, physio, ticked, total, mins, onLog, feel, onFeel, onClear }) {
   const kcal = burnt({ met: byId(openedPlan === ROUTINES.morning ? "morning" : "routine").met, minutes: mins, factor: 0.8 });
 
   return (
@@ -357,7 +370,7 @@ function PlanTab({ openedPlan, ticked, total, mins, onLog, feel, onFeel, onClear
       <div style={{ flex: 1, overflowY: "auto", padding: "0 22px 16px", minHeight: 0 }}>
         <div style={{ fontSize: 15, fontWeight: 700, color: TEXT }}>{openedPlan.name}</div>
         <div style={{ fontSize: 11.5, color: MUTED, marginTop: 3 }}>
-          Set by {openedPlan.by} · about {openedPlan.minutes} minutes
+          Set by {physio} · about {openedPlan.minutes} minutes
         </div>
 
         <div style={{ marginTop: 14 }}>

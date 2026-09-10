@@ -25,10 +25,6 @@ const ANSWERS = {
     "Methi seeds are wrapped in a soluble fibre called galactomannan. In water it turns to gel, and that gel slows how fast your stomach empties into the gut.",
     "So the sugar from breakfast arrives in a slow stream rather than a wave, and the spike your body has to answer is smaller. On an empty stomach the gel is already in place before the food lands, which is why the timing matters as much as the seeds.",
   ],
-  "note:sun": [
-    "Light in the first hour or two after waking is what sets your body clock for the day. That clock decides when melatonin arrives at night, so morning light is really about how easily you fall asleep sixteen hours later.",
-    "It has to be outdoors. A bright room is around 300 lux, an overcast sky is 10,000, and the eye reads the difference. Ten minutes on the balcony does more than an hour by the window.",
-  ],
   "note:almonds": [
     "Almond skins carry tannins, which bind to the iron and zinc in the nut and to the enzymes your gut uses to break it down. Soaking pulls those tannins into the water, and the skin slips off with them.",
     "You also soften the cell walls, so the vitamin E and the good fats underneath are easier to absorb. Overnight in plain water is enough. Peel them in the morning and throw the water away.",

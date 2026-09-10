@@ -27,6 +27,9 @@ export const RULE    = "#D0D5DD"; // gray-300, the strongest hairline
    that merely has the cursor in it should not wear it. */
 export const INDIGO      = "#444CE7"; // indigo-600
 export const INDIGO_RING = "rgba(68,76,231,0.16)";
+/* The faintest indigo that still reads as a surface rather than as white, for
+   a pill that has to sit inside a heading without competing with it. */
+export const INDIGO_W    = "#F3F4FE";
 
 /* ---------- Pillar hues ----------
    Eat takes the brand. Move takes indigo, the system's "actionable" accent.

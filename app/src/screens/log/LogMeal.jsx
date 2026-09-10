@@ -11,6 +11,37 @@ import FoodInfoSheet from "./FoodInfoSheet";
 /* Log a meal. Search, or pick from what you already eat, build up a meal, say
    when you ate it, and send it. The time matters: it decides which division in
    Eat the food lands in, so it is a first class control rather than a detail. */
+/* THE PLAN IS NOT THE ONLY THING YOU CAN LOG, said where somebody is looking
+   at the plan.
+
+   A logger that opens on the coach's food and offers two tabs of your own
+   favourites reads, quite reasonably, as a menu you have to pick from. People
+   eat what they eat, and a day logged honestly is worth more to a coach than
+   a day logged obediently. The search bar has been at the top of this screen
+   the whole time; nothing said out loud that it was for this. */
+function Anything() {
+  return (
+  <div
+    style={{
+      display: "flex",
+      alignItems: "flex-start",
+      gap: 9,
+      background: BG_ALT,
+      border: "1px solid " + BORDER,
+      borderRadius: 13,
+      padding: "11px 12px",
+      margin: "4px 0 10px",
+    }}
+  >
+    <Search size={14} color={MUTED} style={{ flexShrink: 0, marginTop: 1 }} />
+    <span style={{ flex: 1, minWidth: 0, fontSize: 11.5, color: TEXT, lineHeight: 1.5 }}>
+      Ate something else? Search for it at the top. Anything you log counts,
+      on the plan or not, and your coach would rather see the real day.
+    </span>
+  </div>
+);
+}
+
 export default function LogMeal() {
   const {
     setLogOpen, logItems, setLogItems, logTime, setLogTimeOpen, logTimeOpen,
@@ -19,12 +50,49 @@ export default function LogMeal() {
 
   /* What the coach picked for this meal, when the logger was opened on a plan.
      Favourites and Frequent know nothing about a plan, so arriving from a meal
-     row used to mean searching for your own breakfast by name. */
-  const planFoods = logPlan
-    ? (((eatDivisions.find((d) => d.id === logPlan.division) || {}).plan || [])[logPlan.oi] || [])
-        .map((it) => byId(it.id))
-        .filter(Boolean)
-    : [];
+     row used to mean searching for your own breakfast by name.
+
+     EVERY OPTION, NOT THE ONE YOU CAME THROUGH. A meal row carries the option
+     it was tapped on and this read `plan[logPlan.oi]`, so a breakfast the
+     coach wrote three ways arrived here as one. The choice was the point: the
+     day's list offers Option 1 and Option 2 side by side and then the logger
+     quietly decided for you, and a person who fancied the other one had to
+     search for their own coach's food by name. */
+  const planDiv = logPlan ? eatDivisions.find((d) => d.id === logPlan.division) : null;
+  const planAll = ((planDiv || {}).plan || [])
+    .map((opt, i) => ({
+      oi: i,
+      label: "Option " + (i + 1),
+      // The one the row was tapped on, marked so it stays obvious which was meant.
+      came: i === (logPlan ? logPlan.oi ?? 0 : 0),
+      foods: opt.map((it) => byId(it.id)).filter(Boolean),
+    }))
+    .filter((g) => g.foods.length);
+
+  /* WHAT EVERY OPTION SHARES, LIFTED OUT OF ALL OF THEM.
+
+     A breakfast written three ways is rarely three breakfasts. It is a curd
+     and an egg that never change, and one main that does. Printed as three
+     complete options that is eleven rows to read six things from, with the
+     curd appearing three times and quietly implying you might want three.
+
+     Pulled apart, the plan says what it actually is: here is what you are
+     having either way, and here is the choice. Six rows, and the shape of the
+     coach's thinking is visible rather than buried in the repetition.
+
+     Not done when it would empty an option. An option whose every item is
+     shared is not a variant, and a header with nothing under it reads as a
+     bug rather than as a base. */
+  const shared =
+    planAll.length > 1
+      ? planAll[0].foods.filter((f) => planAll.every((g) => g.foods.some((x) => x.id === f.id)))
+      : [];
+  const splitOk = shared.length > 0 && planAll.every((g) => g.foods.length > shared.length);
+  const planCommon = splitOk ? shared : [];
+  const planGroups = splitOk
+    ? planAll.map((g) => ({ ...g, foods: g.foods.filter((f) => !shared.some((x) => x.id === f.id)) }))
+    : planAll;
+  const planFoods = planCommon.concat(planGroups.flatMap((g) => g.foods));
 
   /* Land on the plan when there is one, since it is the reason this screen
      opened. Failing that, land on the tab that has something in it: on a first
@@ -56,6 +124,107 @@ export default function LogMeal() {
     : SUGGESTED;
 
   const qtyOf = (id) => logItems.find((x) => x.id === id)?.qty || 0;
+
+
+
+
+  const FoodRow = (food) => {
+              const qty = qtyOf(food.id);
+              const fav = favorites.includes(food.id);
+              return (
+                <div
+                  key={food.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "10px 10px",
+                    margin: "0 -10px",
+                    borderRadius: 14,
+                    background: qty ? BG_ALT : "transparent",
+                    borderBottom: "1px solid " + BORDER,
+                    transition: "background .15s",
+                  }}
+                >
+                  <span style={{ flex: 1, minWidth: 0 }}>
+                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span style={{ fontSize: 13.5, fontWeight: 700, color: TEXT }}>{food.name}</span>
+                      <button
+                        onClick={() => setLogInfo(food.id)}
+                        aria-label={"What " + food.name + " gives you"}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          padding: 0,
+                          cursor: "pointer",
+                          display: "flex",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Info size={13} color={MUTED} />
+                      </button>
+                    </span>
+                    <span style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2 }}>
+                      {food.unit} · {food.kcal} kcal
+                    </span>
+                  </span>
+
+                  <button
+                    onClick={() => toggleFav(food.id)}
+                    aria-label={fav ? "Remove from favourites" : "Add to favourites"}
+                    aria-pressed={fav}
+                    style={{ background: "none", border: "none", padding: 4, cursor: "pointer", flexShrink: 0 }}
+                  >
+                    <Heart size={17} color={fav ? TEXT : MUTED} fill={fav ? TEXT : "none"} />
+                  </button>
+
+                  {qty ? (
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 9,
+                        background: BG,
+                        border: "1.5px solid " + GREEN,
+                        borderRadius: 11,
+                        padding: "5px 8px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Step onClick={() => bump(food.id, -1)} aria={"One less " + food.name}>
+                        <Minus size={13} color={TEXT} strokeWidth={2.6} />
+                      </Step>
+                      <span style={{ fontSize: 13, fontWeight: 700, color: TEXT, minWidth: 9, textAlign: "center" }}>
+                        {qty}
+                      </span>
+                      <Step onClick={() => bump(food.id, 1)} aria={"One more " + food.name}>
+                        <Plus size={13} color={TEXT} strokeWidth={2.6} />
+                      </Step>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => bump(food.id, 1)}
+                      aria-label={"Add " + food.name}
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 11,
+                        background: GREEN,
+                        border: "none",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Plus size={18} color="#fff" strokeWidth={2.6} />
+                    </button>
+                  )}
+                </div>
+              );
+  };
+
   const count = logItems.reduce((n, x) => n + x.qty, 0);
   const division = divisionForTime(logTime);
 
@@ -258,137 +427,145 @@ export default function LogMeal() {
               </div>
             </div>
           ) : (
-            list.map((food) => {
-              const qty = qtyOf(food.id);
-              const fav = favorites.includes(food.id);
-              return (
-                <div
-                  key={food.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "10px 10px",
-                    margin: "0 -10px",
-                    borderRadius: 14,
-                    background: qty ? BG_ALT : "transparent",
-                    borderBottom: "1px solid " + BORDER,
-                    transition: "background .15s",
-                  }}
-                >
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span style={{ fontSize: 13.5, fontWeight: 700, color: TEXT }}>{food.name}</span>
-                      <button
-                        onClick={() => setLogInfo(food.id)}
-                        aria-label={"What " + food.name + " gives you"}
+            tab === "plan" && !q && planGroups.length > 1 ? (
+              /* One block per option the coach wrote, in the order they wrote
+                 them, with the one the row was tapped on marked. Two options
+                 rendered as one flat list reads as a single long meal rather
+                 than as a choice between two. */
+              <>
+                {planCommon.length > 0 && (
+                  <div style={{ marginBottom: 18 }}>
+                    <div style={{ fontSize: 9.5, fontWeight: 700, letterSpacing: 1, textTransform: "uppercase", color: MUTED, margin: "6px 0 4px" }}>
+                      In every option
+                    </div>
+                    {planCommon.map(FoodRow)}
+                  </div>
+                )}
+                {planGroups.map((g) => (
+                  <div key={g.oi} style={{ marginBottom: 18 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 7, margin: "6px 0 4px" }}>
+                      <span
                         style={{
-                          background: "none",
-                          border: "none",
-                          padding: 0,
-                          cursor: "pointer",
-                          display: "flex",
-                          flexShrink: 0,
+                          fontSize: 9.5, fontWeight: 700, letterSpacing: 1,
+                          textTransform: "uppercase", color: g.came ? TEXT : MUTED,
                         }}
                       >
-                        <Info size={13} color={MUTED} />
-                      </button>
-                    </span>
-                    <span style={{ display: "block", fontSize: 11, color: MUTED, marginTop: 2 }}>
-                      {food.unit} · {food.kcal} kcal
-                    </span>
-                  </span>
-
-                  <button
-                    onClick={() => toggleFav(food.id)}
-                    aria-label={fav ? "Remove from favourites" : "Add to favourites"}
-                    aria-pressed={fav}
-                    style={{ background: "none", border: "none", padding: 4, cursor: "pointer", flexShrink: 0 }}
-                  >
-                    <Heart size={17} color={fav ? TEXT : MUTED} fill={fav ? TEXT : "none"} />
-                  </button>
-
-                  {qty ? (
-                    <span
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 9,
-                        background: BG,
-                        border: "1.5px solid " + GREEN,
-                        borderRadius: 11,
-                        padding: "5px 8px",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Step onClick={() => bump(food.id, -1)} aria={"One less " + food.name}>
-                        <Minus size={13} color={TEXT} strokeWidth={2.6} />
-                      </Step>
-                      <span style={{ fontSize: 13, fontWeight: 700, color: TEXT, minWidth: 9, textAlign: "center" }}>
-                        {qty}
+                        {g.label}
                       </span>
-                      <Step onClick={() => bump(food.id, 1)} aria={"One more " + food.name}>
-                        <Plus size={13} color={TEXT} strokeWidth={2.6} />
-                      </Step>
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => bump(food.id, 1)}
-                      aria-label={"Add " + food.name}
-                      style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 11,
-                        background: GREEN,
-                        border: "none",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: "pointer",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Plus size={18} color="#fff" strokeWidth={2.6} />
-                    </button>
-                  )}
-                </div>
-              );
-            })
+                      {g.came && (
+                        <span
+                          style={{
+                            fontSize: 9, fontWeight: 700, letterSpacing: 0.4,
+                            color: GREEN, background: BG_ALT,
+                            borderRadius: 999, padding: "2px 7px",
+                          }}
+                        >
+                          SELECTED
+                        </span>
+                      )}
+                    </div>
+                    {g.foods.map(FoodRow)}
+                  </div>
+                ))}
+                <Anything />
+              </>
+            ) : (
+              <>
+                {list.map(FoodRow)}
+                {tab === "plan" && !q && <Anything />}
+              </>
+            )
           )}
         </div>
 
         {/* The meal being built */}
         <div style={{ flexShrink: 0, borderTop: "1px solid " + BORDER, padding: "12px 22px 24px" }}>
           {logItems.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginBottom: 11 }}>
-              {logItems.map((it) => {
-                const food = byId(it.id);
-                return (
-                  <span
-                    key={it.id}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      background: BG_ALT,
-                      border: "1px solid " + BORDER,
-                      borderRadius: 999,
-                      padding: "5px 9px 5px 11px",
-                      fontSize: 11.5,
-                      color: TEXT,
-                    }}
-                  >
-                    <strong>{it.qty}</strong> {food.name}
-                    <button
-                      onClick={() => setLogItems(logItems.filter((x) => x.id !== it.id))}
-                      aria-label={"Remove " + food.name}
-                      style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex" }}
-                    >
-                      <X size={13} color={MUTED} />
-                    </button>
-                  </span>
-                );
-              })}
+            /* Two rows that hug, and then it scrolls sideways.
+
+               It wrapped once, so a meal of eight things grew the tray to four
+               rows and pushed the plan up off the screen: the list you are
+               choosing from shrinks as you choose from it, which is exactly
+               backwards.
+
+               A two row grid fixed the height and broke the chips. Columns take
+               the width of their widest member, so "2 Boiled egg" stretched to
+               the width of "2 Lauki oats besan chilla" underneath it and sat in
+               a pill half full of nothing. Two plain rows inside one scroller
+               instead: every chip is its own width, each row packs tight, and
+               the pair scroll together. */
+            <div style={{ overflowX: "auto", marginBottom: 11 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 7, width: "max-content" }}>
+                {[
+                  logItems.slice(0, Math.ceil(logItems.length / 2)),
+                  logItems.slice(Math.ceil(logItems.length / 2)),
+                ]
+                  // Split down the middle rather than every other one, so each
+                  // row still reads left to right in the order things went in.
+                  .filter((row) => row.length)
+                  .map((row, ri) => (
+                    <div key={ri} style={{ display: "flex", gap: 7 }}>
+                      {row.map((it) => {
+                        const food = byId(it.id);
+                        return (
+                          /* Two targets in one pill. The label opens what the
+                             food actually gives you, the same sheet its row
+                             above opens, and only the cross removes it. A chip
+                             that could only be deleted made the tray a list of
+                             things to undo rather than the meal itself. */
+                          <span
+                            key={it.id}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              flexShrink: 0,
+                              background: BG_ALT,
+                              border: "1px solid " + BORDER,
+                              borderRadius: 999,
+                              fontSize: 11.5,
+                              color: TEXT,
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            <button
+                              onClick={() => setLogInfo(it.id)}
+                              aria-label={"What " + food.name + " gives you"}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 5,
+                                background: "none",
+                                border: "none",
+                                padding: "5px 4px 5px 11px",
+                                margin: 0,
+                                cursor: "pointer",
+                                fontFamily: "inherit",
+                                fontSize: 11.5,
+                                color: TEXT,
+                              }}
+                            >
+                              <strong>{it.qty}</strong> {food.name}
+                            </button>
+                            <button
+                              onClick={() => setLogItems(logItems.filter((x) => x.id !== it.id))}
+                              aria-label={"Remove " + food.name}
+                              style={{
+                                background: "none",
+                                border: "none",
+                                padding: "5px 9px 5px 4px",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                              }}
+                            >
+                              <X size={13} color={MUTED} />
+                            </button>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ))}
+              </div>
             </div>
           )}
 

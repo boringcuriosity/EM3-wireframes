@@ -131,7 +131,16 @@ export const askAbout = (r) =>
    the fallback for a row nobody has written one for.
 
    The device rows say what the device reads. "Take a reading" is our word for
-   it; a body composition check is what the person went and did. */
+   it; a body composition check is what the person went and did.
+
+   NONE OF THEM SAY "TODAY". The card they sit on is Home, the day it is
+   showing is today, and the date is at the top of the screen: a question that
+   ends in "today" is spending its last word restating the one thing nobody
+   could be confused about. It also made every ask sound like the same ask.
+
+   The session is a workout, here as everywhere else. It was the last place
+   still calling it a session, which is the word Move stopped using when the
+   score started counting minutes rather than the coach's routine. */
 const ASK = {
   sleep: "How did you sleep last night?",
   "meal:prebreakfast": "Have you had anything yet this morning?",
@@ -140,21 +149,21 @@ const ASK = {
   "meal:eveningsnack": "Have you had your evening snack?",
   "meal:dinner": "Have you had your dinner?",
   "meal:bedtime": "Have you had anything before bed?",
-  water: "Have you had some water today?",
+  water: "Have you had some water?",
   morning: "Have you done your morning stretch?",
-  session: "Have you done your session today?",
-  steps: "Have you been on your feet today?",
+  session: "Have you done your workout?",
+  steps: "Have you been on your feet?",
   calm: "How has your day been?",
-  "sync:measure": "Have you checked your body composition today?",
-  "sync:cgm": "Have you checked your glucose today?",
+  "sync:measure": "Have you checked your body composition?",
+  "sync:cgm": "Have you checked your glucose?",
   weekread: "Have you read your week yet?",
 };
 
 const ASK_PILLAR = {
-  eat: "Have you eaten yet today?",
-  move: "Have you moved today?",
-  mind: "How are you feeling today?",
-  measure: "Have you taken a reading today?",
+  eat: "Have you eaten yet?",
+  move: "Have you moved yet?",
+  mind: "How are you feeling?",
+  measure: "Have you taken a reading?",
 };
 
 export const askOf = (r) =>
@@ -162,8 +171,13 @@ export const askOf = (r) =>
 
 /* A tip is not work. It pays nothing, it files nothing, and it does not decide
    which pillar is worth looking at, so everything about the bubbles reads the
-   recordable rows only. Same test the row itself uses to draw its info mark. */
-export const isTip = (r) => r.kind === "tick";
+   recordable rows only.
+
+   One tap is not what makes something a tip. The coach's small movements tap
+   exactly the same way and are assigned work, so they carry `scores` and count
+   everywhere a logged row counts. What makes a tip a tip is that nobody was
+   asked to do it. */
+export const isTip = (r) => r.kind === "tick" && !r.scores;
 
 /* Eat keeps the plain slot names for its own headings, where a section is a
    place rather than a thing to do. Two of them read differently as a task. */
@@ -182,25 +196,81 @@ const MEAL_TIP = {
   bedtime: "Small and warm. It is for sleep, not for hunger.",
 };
 
-/* The physio's small asks, the ones that need no gym, no change of clothes and
-   no half hour. This is the NEAT half of Momentum: the movement between the
-   sessions, which adds up to more across a day than the session does.
+/* THE COACH'S MOVE PLAN, AND THE ONLY THING MOMENTUM READS.
 
-   They sit here rather than hanging off a meal the way the coach's food nudges
-   do, because a meal is not what they belong to and Eat's own tips section
-   would have ended up listing the stairs. */
-const MOVE_NOTES = [
-  {
-    id: "note:stairs", at: 9 * 60 + 30,
-    verb: "Take", name: "The stairs on your way in",
-    tip: "Two or three floors is enough. It is the easiest movement of the day to get.",
-  },
-  {
-    id: "note:standup", at: 15 * 60,
-    verb: "Stand", name: "For one meeting this afternoon",
-    tip: "Long sitting is what quietly undoes a good lunch. Standing through one call breaks it up.",
-  },
-];
+   The physio assigns three kinds of thing and nothing else: a session, some
+   small movements, and a step goal. Everything the score does is worked out
+   from this list, so no plan carries a weight set by hand and no two coaches
+   can grade the same plan differently. Finish what is here and Momentum is
+   100, whatever "here" happens to be.
+
+   That last part is the point. A patient with back pain gets a plan of four
+   seated movements and no step goal, and finishing it is a full day, because
+   the coach who wrote it knew what to ask for. Nobody is ever measured against
+   a task they were never given.
+
+   The small movements are the NEAT half: the stairs, standing through a call,
+   ten minutes after a meal. No gym, no change of clothes, and no stopwatch,
+   which is why they are one tap rather than a logger. They are spread one to a
+   part of the day on purpose, because spread is what the spread bonus reads
+   and a plan that lands them all before lunch has not asked for a day.
+
+   `at` is all the score needs to know about when: `phaseOf` turns it into a
+   part of the day, and the parts are what the bonus is measured over.
+
+   IT IS ALL THE PERSON NEEDS EITHER, for the small ones. The workout has a
+   real time because the coach put it at an hour and it takes half of one. A
+   walk after your tea does not happen at 5:30, it happens somewhere in the
+   evening, and printing 5:30 next to it invents a precision nobody agreed to
+   and makes a plan look like a timetable to fall behind. So `at` orders them
+   and files them, and the screen shows the part of the day it landed in.
+
+   `type` is what the task is worth, and it is deliberately not called `kind`.
+   A row's `kind` is how it behaves on the list, go or tick or target, and the
+   two answer different questions: the session is an `exercise` by weight and a
+   `go` by behaviour, and collapsing them into one word made the session's row
+   claim to be an exercise-kind row that nothing knew how to draw. */
+export const MOVE_PLAN = {
+  stepGoal: STEP_GOAL,
+  tasks: [
+    {
+      id: "session", type: "exercise", at: 7 * 60, coins: 10,
+      cat: "record", name: "Your workout",
+      when: "7:00 - 7:30 AM",
+      /* Generic on purpose. The routine itself is on the Move screen, so a row
+         that counted the moves would be a second copy of it, going stale the
+         moment a coach changed one. */
+      tip: "About 30 minutes, with the moves your coach picked for you.",
+      to: "move",
+    },
+    {
+      id: "note:stairs", type: "neat", at: 9 * 60 + 30, coins: 3,
+      verb: "Take", name: "The stairs on your way in",
+      tip: "Two or three floors is enough, and it is the cheapest movement of the day.",
+    },
+    {
+      id: "note:standup", type: "neat", at: 15 * 60, coins: 3,
+      verb: "Stand", name: "Through one meeting",
+      tip: "Long sitting quietly undoes a good lunch. One meeting on your feet breaks it up.",
+    },
+    {
+      id: "note:tea", type: "neat", at: 17 * 60 + 30, coins: 3,
+      verb: "Walk", name: "For ten minutes after your tea",
+      tip: "A walk after a meal does more than the same walk before it.",
+    },
+    {
+      id: "note:dinner", type: "neat", at: 21 * 60, coins: 3,
+      verb: "Walk", name: "For ten minutes after dinner",
+      tip: "This one settles the meal you just had, and your night starts from there.",
+    },
+  ],
+};
+
+/* The small movements, which is every task in the plan that is not the session
+   and not the step goal. One tap each, and unlike a tip they file a record and
+   pay for it. */
+export const MOVE_NEAT = MOVE_PLAN.tasks.filter((t) => t.type === "neat");
+export const MOVE_SESSION = MOVE_PLAN.tasks.find((t) => t.type === "exercise");
 
 /* One read per pillar, each at the hour that pillar is on somebody's mind. */
 const WEEK_READS = [
@@ -260,7 +330,8 @@ export function buildDay(w) {
     eatDivisions.forEach((d) =>
       (d.notes || []).forEach((n) =>
         rows.push({
-          // A nudge belongs to the habit it serves, and sunlight is Mind's.
+          // A nudge belongs to the habit it serves rather than to the meal it
+          // hangs off, so it can name its own pillar and most do not.
           id: n.id, pillar: n.pillar || "eat", at: n.at,
           verb: n.verb, name: n.name,
           when: n.when,
@@ -271,9 +342,17 @@ export function buildDay(w) {
       )
     );
 
+  /* The coach's small movements, straight off the plan.
+
+     `scores: true` is what separates these from the coach's nudges. A nudge
+     pays nothing, files nothing and cannot move a number, which is the rule
+     that kept the stairs out of Momentum for good reason: it was worth twenty
+     points for a tap nobody had to earn. These are assigned tasks that happen
+     to take one tap, so they file a record and pay for it, and Momentum reads
+     them. Same gesture, different standing. */
   if (planAssigned)
-    MOVE_NOTES.forEach((n) =>
-      rows.push({ ...n, pillar: "move", kind: "tick", done: ticks.includes(n.id) })
+    MOVE_NEAT.forEach((n) =>
+      rows.push({ ...n, pillar: "move", kind: "tick", scores: true, done: ticks.includes(n.id) })
     );
 
   /* The body scan goes before anything is eaten or drunk.
@@ -402,42 +481,23 @@ export function buildDay(w) {
     kind: "target", to: "water",
   });
 
-  /* The morning half of the physio's plan. Move's only other recordable rows
-     are the session before dinner and the step count at the end of the day,
-     so until this the pillar had nothing of its own to answer for before the
-     evening, and a whole morning went by without it.
+  /* The coach's session, at the hour the plan puts it: the morning, where the
+     day has the best chance of it actually happening.
 
-     It is the coach's work rather than a walk somebody took on their own, so
-     it opens the same plan tab the session does. */
-  if (planAssigned)
-    rows.push({
-      id: "morning", pillar: "move", at: 7 * 60, coins: 5,
-      cat: "record", name: "Your morning stretch",
-      when: "7:00 - 8:00 AM",
-      tip: "Five minutes, still in what you slept in. Three moves your coach picked.",
-      kind: "go", to: "move:morning",
-      // Its own log, not the session's, or one would tick both rows.
-      done: exLogs.some((e) => e.id === "morning"),
-    });
+     ONE SESSION, AND ONLY ONE. There were two for a while, a five minute
+     stretch at seven and a half hour routine before dinner, and between them
+     they made the exercise half of the plan worth twice what the whole of the
+     rest of the day was. The stretch's flow is still in the code, unused, for
+     the day a coach wants both.
 
-  /* With a plan this is the coach's session at their hour. Without one it is
-     an open ask with no clock on it, because nobody has earned the right to
-     give this person a time yet. */
+     Without a plan it is an open ask with no clock on it, because nobody has
+     earned the right to give this person a time yet. */
   rows.push(
     planAssigned
       ? {
-          /* Half past six, so the session sits in the evening rather than in
-             the night. Seven is where raat starts, and a workout is something
-             you do before dinner rather than after it. */
-          id: "session", pillar: "move", at: 18 * 60 + 30, coins: 10,
-          cat: "record", name: "Your exercise session",
-          when: "6:30 - 7:00 PM",
-          /* Generic on purpose. The routine itself is on the Move screen, so a
-             row that counted the moves would be a second copy of it, going
-             stale the moment a coach changed one. */
-          tip: "About 30 minutes, with the moves your coach picked for you.",
-          kind: "go", to: "move",
-          // The routine itself. A morning walk is a different thing logged.
+          ...MOVE_SESSION,
+          pillar: "move",
+          kind: "go",
           done: exLogs.some((e) => e.id === "routine"),
         }
       : {

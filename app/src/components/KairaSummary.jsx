@@ -1,6 +1,7 @@
 import React from "react";
 import { useWF } from "../state";
-import { INDIGO, MIND_C, TEXT_2, BG, BORDER, SH_SM } from "../tokens";
+import KairaMark from "./KairaMark";
+import { TEXT_2, BG, BORDER, SH_SM } from "../tokens";
 
 /* Kaira's read on the day.
 
@@ -16,7 +17,9 @@ import { INDIGO, MIND_C, TEXT_2, BG, BORDER, SH_SM } from "../tokens";
 
    Unsigned, and unnamed. Her hexagon is the only mark on it: putting a label
    over the line spends a row saying who is talking, which the shape already
-   does, and there is one voice on this card anyway. */
+   does, and there is one voice on this card anyway. The mark itself moved to
+   `KairaMark` when Move's card needed it too, rather than becoming a third
+   copy of the same six points. */
 export default function KairaSummary() {
   const { kairaLine } = useWF();
   if (!kairaLine) return null;
@@ -34,43 +37,10 @@ export default function KairaSummary() {
         gap: 10,
       }}
     >
-      <Outline />
+      <KairaMark />
       <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, color: TEXT_2, lineHeight: 1.55 }}>
         {kairaLine}
       </span>
     </div>
-  );
-}
-
-/* The hexagon as an outline rather than a solid.
-
-   Drawn in SVG because a clip-path has no edge to stroke, so the gradient
-   would have needed two stacked shapes and a background colour to fake the
-   hole. The gradient is the one `KairaFab` already wears, indigo into teal,
-   so she is the same mark wherever she turns up. */
-function Outline({ size = 19 }) {
-  return (
-    <svg
-      aria-hidden
-      width={size}
-      height={size * 1.09}
-      viewBox="0 0 100 109"
-      style={{ flexShrink: 0, marginTop: 1, display: "block" }}
-    >
-      <defs>
-        <linearGradient id="kairaEdge" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor={INDIGO} />
-          <stop offset="100%" stopColor={MIND_C} />
-        </linearGradient>
-      </defs>
-      {/* Inset by half the stroke, so the edge is not clipped by the viewBox. */}
-      <polygon
-        points="50,5 89,28 89,81 50,104 11,81 11,28"
-        fill="none"
-        stroke="url(#kairaEdge)"
-        strokeWidth="9"
-        strokeLinejoin="round"
-      />
-    </svg>
   );
 }

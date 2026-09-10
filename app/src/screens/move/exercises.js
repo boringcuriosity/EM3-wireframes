@@ -59,7 +59,6 @@ export const INTENSITIES = [
 
 export const DURATIONS = [5, 10, 15, 20, 30, 45, 60, 90];
 
-export const DAILY_GOAL_MIN = 20;
 
 // The standard MET formula: kcal per minute = MET x 3.5 x kg / 200.
 export function burnt({ met, minutes, factor = 1, kg = 74.2 }) {
@@ -90,7 +89,6 @@ export function dayBurn(logs, kg) {
    plan tab the session does and comes back through the same result screen. */
 export const COACH_MORNING = {
   name: MORNING_NAME,
-  by: "Manya Jain",
   from: "18 Aug 2026",
   to: "14 Sep 2026",
   block: "Every morning",
@@ -125,7 +123,6 @@ export const COACH_MORNING = {
 
 export const COACH_ROUTINE = {
   name: ROUTINE_NAME,
-  by: "Manya Jain",
   from: "18 Aug 2026",
   to: "14 Sep 2026",
   block: "Routine 1",
@@ -134,7 +131,7 @@ export const COACH_ROUTINE = {
      A meal's portions are the person's to state; a routine's length is the
      coach's. Four exercises at two sets each is a prescribed duration, so
      asking "how long?" makes somebody do arithmetic the plan already did. */
-  minutes: 20,
+  minutes: 30,
   items: [
     {
       id: "neck",

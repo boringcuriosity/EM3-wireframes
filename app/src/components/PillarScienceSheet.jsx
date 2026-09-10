@@ -3,7 +3,6 @@ import { useWF } from "../state";
 import { X, Check, Lock } from "lucide-react";
 import { GREEN, GREEN_DEEP, GREEN_TINT, TEXT, MUTED, BG, BG_ALT, BORDER, LINE } from "../tokens";
 import { PILLAR_SCIENCE } from "../screens/pillarScience";
-import { DAILY_GOAL_MIN } from "../screens/move/exercises";
 
 // Which health signal each pillar's numbers come from, if any.
 
@@ -18,6 +17,7 @@ import { DAILY_GOAL_MIN } from "../screens/move/exercises";
    so four sheets read as four pages of the same book. */
 export default function PillarScienceSheet() {
   const { pillarInfo, setPillarInfo, pillarExplain, planAssigned, dailyTargets, kcalTarget, setChatsOpen,
+    momentumParts,
   } = useWF();
 
   const p = pillarExplain.find((x) => x.id === pillarInfo);
@@ -178,8 +178,12 @@ export default function PillarScienceSheet() {
               <div style={{ height: 1, background: LINE, margin: "18px 0 14px" }} />
               <Label>Your target</Label>
               <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginBottom: 13 }}>
+                {/* The plan's own figure. It printed DAILY_GOAL_MIN, a flat
+                    twenty left over from before a coach could set anything, so
+                    the sheet explaining the score promised a target the score
+                    had never used. */}
                 <span style={{ fontSize: 22, fontWeight: 800, color: TEXT, lineHeight: 1 }}>
-                  {DAILY_GOAL_MIN}
+                  {momentumParts.askedMins}
                 </span>
                 <span style={{ fontSize: 12, color: MUTED }}>minutes of movement a day</span>
               </div>
