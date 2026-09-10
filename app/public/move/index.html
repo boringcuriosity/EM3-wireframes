@@ -26,8 +26,21 @@
   .topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:14px 40px;font-size:12px;font-weight:600;letter-spacing:1px;color:var(--muted)}
   .topbar b{color:var(--brand)}
 
-  html{scroll-snap-type:y mandatory;scroll-padding-top:46px;scroll-behavior:smooth}
-  section{min-height:100vh;scroll-snap-align:start;scroll-snap-stop:always;display:flex;align-items:center;padding:80px 40px 56px}
+  /* Proximity, not mandatory.
+
+     Mandatory means the scroll must always come to rest on a snap target, so a
+     section taller than the window cannot be read: releasing it from the snap
+     is not enough, because the scroll still has to land somewhere, and the
+     nearest somewhere is the top of the section after it. The interior gets
+     jumped straight over. That is how the calculator became unreachable the
+     moment the section above it grew a card.
+
+     Proximity snaps when you are already near a section and otherwise leaves
+     the scroll where you put it, so the full height sections still click into
+     place and the long ones can simply be read. */
+  html{scroll-snap-type:y proximity;scroll-padding-top:46px;scroll-behavior:smooth}
+  section{min-height:100vh;scroll-snap-align:start;scroll-snap-stop:normal;display:flex;align-items:center;padding:80px 40px 56px}
+  section.tall{min-height:0;scroll-snap-align:none;scroll-snap-stop:normal;align-items:flex-start;padding-top:56px;padding-bottom:56px}
   .wrap{max-width:1040px;margin:auto;width:100%}
   .band{background:#fff;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
   .hero{background:linear-gradient(160deg,var(--brand-50),#fff 70%);border-bottom:1px solid var(--border)}
@@ -97,6 +110,45 @@
   .breakdown{width:100%;margin-top:16px}
   .brk{display:flex;justify-content:space-between;font-size:13px;padding:6px 0;border-bottom:1px dashed var(--border)}
   .brk b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+  /* tasks calculator */
+  .planpills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+  .planpills button{font-family:inherit;font-size:12px;font-weight:600;border:1px solid var(--border);background:#fff;color:var(--text);padding:9px 13px;border-radius:999px;cursor:pointer;transition:.15s}
+  .planpills button:hover{border-color:var(--brand);color:var(--brand)}
+  .planpills button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .plannote{font-size:13px;color:var(--muted);line-height:1.55;margin-bottom:16px;min-height:38px}
+  .tasklist{display:flex;flex-direction:column;gap:8px}
+  .trow{display:flex;align-items:center;gap:12px;padding:11px 13px;border:1px solid var(--border);border-radius:12px;background:#fff;cursor:pointer;transition:.15s;user-select:none}
+  .trow:hover{border-color:var(--brand)}
+  .trow.on{background:var(--brand-50);border-color:var(--brand)}
+  .tbox{width:22px;height:22px;border-radius:999px;border:2px solid var(--border);flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;transition:.15s}
+  .trow.on .tbox{background:var(--brand);border-color:var(--brand)}
+  .tmid{flex:1;min-width:0;display:block}
+  .tname{display:block;font-size:14px;font-weight:600;color:var(--ink);line-height:1.3}
+  .twhen{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+  .tshare{font-size:12px;font-weight:700;color:var(--brand-700);font-variant-numeric:tabular-nums;flex:0 0 auto;margin-left:auto}
+  .trow.steps{cursor:default;flex-direction:column;align-items:stretch;gap:9px}
+  .trow.steps:hover{border-color:var(--border)}
+  .stephdr{display:flex;align-items:center;gap:12px;width:100%}
+  .partstrip{display:flex;gap:6px;margin-top:14px;width:100%}
+  .ps{flex:1;text-align:center;padding:9px 3px;border-radius:10px;border:1px dashed var(--border);background:#fff;font-size:11px;font-weight:600;color:#C4C9D2}
+  .ps.asked{border-style:solid;color:var(--muted)}
+  .ps.got{background:var(--brand-100);border-color:var(--brand);color:var(--brand-700)}
+  .ps b{display:block;font-size:14px;font-family:'Playfair Display',serif;margin-top:2px}
+  .worked{width:100%;margin-top:14px;background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 14px;font-size:12px;line-height:1.9;color:var(--muted);font-variant-numeric:tabular-nums}
+  .worked b{color:var(--ink)}
+  .worked .eq{color:var(--brand-700);font-weight:700}
+
+  .tdel{font-family:inherit;font-size:17px;line-height:1;border:none;background:none;color:#C4C9D2;cursor:pointer;padding:2px 4px;margin-left:8px;flex:0 0 auto;border-radius:6px;transition:.15s}
+  .tdel:hover{color:#D92D20;background:#FEF3F2}
+  .editor{margin-top:16px;padding-top:14px;border-top:1px dashed var(--border)}
+  .edtitle{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .edrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px}
+  .edlbl{font-size:12px;color:var(--muted);font-weight:600}
+  .edrow button{font-family:inherit;font-size:12px;font-weight:600;border:1px solid var(--border);background:#fff;color:var(--text);padding:7px 11px;border-radius:9px;cursor:pointer;transition:.15s}
+  .edrow button:hover{border-color:var(--brand);color:var(--brand)}
+  .edrow b{font-size:13px;color:var(--ink);font-variant-numeric:tabular-nums;min-width:58px;text-align:center}
+  #stepr{margin-top:2px}
 
   /* why it holds */
   ul.clean{list-style:none;display:flex;flex-direction:column;gap:14px;margin-top:6px}
@@ -207,20 +259,22 @@
   <div class="wrap">
     <div class="eyebrow">How it works</div>
     <h2>What builds your Momentum.</h2>
+    <p class="small" style="margin:-10px 0 18px;max-width:740px">True of the model whichever way its arithmetic has been written. What the four are worth, and how each is earned, is the part that changed.</p>
     <ul class="points" style="max-width:760px">
-      <li><span class="num">1</span><div><b>The session, the hero</b><div class="d">The coach prescribes one exercise session a day. It is 30 of the 70 minutes, and only a logged session earns it.</div></div></li>
-      <li><span class="num">2</span><div><b>A walk after each meal</b><div class="d">Ten minutes, four times. This is the other 40 minutes, and it is where a day is either kept moving or lost.</div></div></li>
-      <li><span class="num">3</span><div><b>Steps</b><div class="d">Read per part of the day. Where your phone saw more walking than the walk you ticked, the larger of the two counts, never both.</div></div></li>
-      <li><span class="num">4</span><div><b>Where it landed</b><div class="d">The moat. Spread multiplies what the first three earned, and afternoon and evening count for more than morning does.</div></div></li>
+      <li><span class="num">1</span><div><b>The workout, the hero</b><div class="d">The coach prescribes a session. It is the biggest single thing in the day and the largest single move the number makes.</div></div></li>
+      <li><span class="num">2</span><div><b>The small movements between</b><div class="d">The stairs, standing through a call, a walk after a meal. No gym, no change of clothes and no half hour, placed at hours that spread the day out.</div></div></li>
+      <li><span class="num">3</span><div><b>Steps</b><div class="d">Read from the phone rather than from anything you tick, so a step goal and a task list never pay for the same walk twice.</div></div></li>
+      <li><span class="num">4</span><div><b>Where it landed</b><div class="d">The moat. Spread multiplies what the first three earned, so the same effort scattered across a day beats the same effort in one block.</div></div></li>
     </ul>
   </div>
 </section>
 
-<!-- 6 MATH -->
+<!-- 6 THE FIRST LOGIC -->
 <section>
   <div class="wrap">
-    <div class="eyebrow">The logic</div>
-    <h2>The formula.</h2>
+    <div class="eyebrow">The logic, as it first stood</div>
+    <h2>The formula, in minutes.</h2>
+    <p class="small" style="margin:-10px 0 20px;max-width:760px">This is where Momentum started. It is kept in place, in the order it was written, because the argument it makes is still the right one and only its arithmetic changed. What replaced it is at the end of this deck.</p>
     <div class="formula" style="text-align:left;font-size:26px;padding:26px 28px">
       Momentum <span class="op">=</span> <span class="ex">Movement</span> <span class="op">&times;</span> <span class="sp">Spread bonus</span>
       <div style="border-top:1px solid rgba(255,255,255,.16);margin-top:18px;padding-top:16px;font-size:15px;line-height:1.85;color:#D0D5DD">
@@ -258,11 +312,13 @@
   </div>
 </section>
 
-<!-- 7 CALCULATOR -->
+<!-- 7 THE FIRST CALCULATOR -->
 <section class="band">
   <div class="wrap">
-    <div class="eyebrow">Play with it</div>
-    <h2>Test it yourself.</h2>
+    <div class="eyebrow">Play with it, as it first stood</div>
+    <h2>The minutes calculator.</h2>
+    <p class="small" style="margin:-8px 0 18px;max-width:760px">Drag the session and the steps. Try "Session then sat" against "The whole plan": one is thirty minutes of work, the other is a day of it, and the number says so. That argument survived every change. The stopwatch it runs on did not.</p>
+<h3 style="margin-bottom:14px">The minutes calculator, as it stood</h3>
     <div class="calc">
       <div class="card">
         <div class="slider"><label>The session <span id="exv">30 min</span></label>
@@ -283,7 +339,7 @@
           <div class="part on" data-w="2">Tea</div>
           <div class="part on" data-w="3">Dinner</div>
         </div>
-        <div class="presets">
+        <div class="presets" id="oldpresets">
           <button data-preset="30,2,11000,1111">The whole plan</button>
           <button data-preset="30,2,3200,0000">Session then sat</button>
           <button data-preset="0,2,16000,0000">Walked a lot, no session</button>
@@ -309,20 +365,6 @@
       </div>
     </div>
     <p class="small" style="margin-top:14px">Try "Session then sat" against "The whole plan". One is thirty minutes of work, the other is a day of it, and the number says so.</p>
-  </div>
-</section>
-
-<!-- 8 WHY IT HOLDS -->
-<section>
-  <div class="wrap">
-    <div class="eyebrow">Robustness</div>
-    <h2>Why it holds up.</h2>
-    <ul class="clean">
-      <li><span class="tick">✓</span><div><b>It rewards a day, not an hour.</b> <span class="d">Spread multiplies rather than adds, so it can only scale what was earned. It cannot invent marks, and it cannot be bought by moving more in one block.</span></div></li>
-      <li><span class="tick">✓</span><div><b>It cannot be faked with one workout.</b> <span class="d">"Do the session then sit all day" lands around 36%, because the plan is a day of movement and the session is 30 minutes of it.</span></div></li>
-      <li><span class="tick">✓</span><div><b>Over-achievers get coached, not ignored.</b> <span class="d">Spare minutes pay a little into the other half of the plan, and Kaira reads the rest against the clock, so the advice is only ever about a part of the day still to come.</span></div></li>
-      <li><span class="tick">✓</span><div><b>The coach stays the hero.</b> <span class="d">The coach sets the 70 minutes, so the coach defines what 100 means. The target is personal because a person wrote it.</span></div></li>
-    </ul>
   </div>
 </section>
 
@@ -388,13 +430,420 @@
   </div>
 </section>
 
+<!-- 10 WHAT CHANGED -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">What changed</div>
+    <h2>The argument held. The arithmetic did not.</h2>
+    <p class="lead" style="margin-bottom:22px">Everything up to here is the model as it was first written, and every claim it makes is still one we would make. What went wrong was never the reasoning. It was that the model asked for things a real plan cannot always give, and marked people for decisions they never made.</p>
+    <div class="grid g2" style="margin-bottom:16px">
+      <div class="card" style="border-color:#E4E7EC">
+        <h3 style="font-size:17px;margin-bottom:12px;color:var(--muted)">Then</h3>
+        <ul class="clean" style="gap:11px">
+          <li><span class="dotm" style="width:7px;height:7px;border-radius:999px;background:#D0D5DD;flex:0 0 auto;margin-top:8px"></span><div class="d">Seventy minutes, fixed, whoever the patient was.</div></li>
+          <li><span class="dotm" style="width:7px;height:7px;border-radius:999px;background:#D0D5DD;flex:0 0 auto;margin-top:8px"></span><div class="d">Walks timed at ten minutes each, on a stopwatch nobody starts.</div></li>
+          <li><span class="dotm" style="width:7px;height:7px;border-radius:999px;background:#D0D5DD;flex:0 0 auto;margin-top:8px"></span><div class="d">Only the prescribed session earned the session. A swim of your own scored nothing.</div></li>
+          <li><span class="dotm" style="width:7px;height:7px;border-radius:999px;background:#D0D5DD;flex:0 0 auto;margin-top:8px"></span><div class="d">Parts of the day weighted 15 to 35, so where your coach put a task changed your score.</div></li>
+          <li><span class="dotm" style="width:7px;height:7px;border-radius:999px;background:#D0D5DD;flex:0 0 auto;margin-top:8px"></span><div class="d">Spare minutes paid across at a fifth, capped at eight.</div></li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="font-size:17px;margin-bottom:12px">Now</h3>
+        <ul class="clean" style="gap:11px">
+          <li><span class="tick">&#10003;</span><div class="d">Whatever the coach assigned. Finish it and you are at 100, whatever it was.</div></li>
+          <li><span class="tick">&#10003;</span><div class="d">Small movements are one tap. No duration is asked for.</div></li>
+          <li><span class="tick">&#10003;</span><div class="d">The workout is minutes from any log, so your own movement counts as surely as the plan's.</div></li>
+          <li><span class="tick">&#10003;</span><div class="d">Every part of the day counts the same. Nobody picks which part their plan lands in.</div></li>
+          <li><span class="tick">&#10003;</span><div class="d">Overshoot is Kaira's to raise, in the hour it can still be spent in.</div></li>
+        </ul>
+      </div>
+    </div>
+    <p class="small">One thing to be honest about. The old model said a strength and mobility session is not walking, and it was right. Scored on minutes, a walk now satisfies a mobility plan, and the physio's four moves are no longer required to earn the workout. That is the price of counting movement people actually do.</p>
+  </div>
+</section>
+
+<!-- 11 THE LOGIC NOW -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">The logic now</div>
+    <h2>The formula, in tasks.</h2>
+    <p class="lead" style="margin:-10px 0 20px">Momentum is <b>how much of your plan you did</b>, multiplied by <b>how much of your day you did it across</b>.</p>
+    <div class="formula" style="text-align:left;font-size:26px;padding:26px 28px">
+      Momentum <span class="op">=</span> <span class="ex">Movement</span> <span class="op">&times;</span> <span class="sp">Spread</span>
+      <div style="border-top:1px solid rgba(255,255,255,.16);margin-top:18px;padding-top:16px;font-size:15px;line-height:1.85;color:#D0D5DD">
+        <span class="ex">Movement</span> <span class="op">=</span> what you finished <span class="op">&divide;</span> what your coach assigned<br>
+        <span class="sp">Spread</span> <span class="op">=</span> 0.75 <span class="op">+</span> 0.25 <span class="op">&times;</span> how many parts of the assigned day you moved in<div style="margin-top:12px;font-size:13px;color:#98A2B3;line-height:1.6">Called Spread rather than a spread bonus, because it multiplies rather than adds. It can only ever scale what was already earned, which is why one long block cannot buy its way to a high number.</div>
+      </div>
+    </div>
+
+    <div class="card spreadcard">
+      <p style="font-weight:600;color:var(--ink);margin-bottom:4px">Finish the plan and you are at 100. Always.</p>
+      <p class="small" style="margin-bottom:14px">The coach assigns three kinds of thing and nothing else. Everything below is worked out from them, so no plan needs a number set by hand.</p>
+      <div class="spreadrow" style="grid-template-columns:repeat(3,1fr)">
+        <div style="text-align:left;padding:16px 18px">A workout<b style="font-size:30px">&times; 6</b>
+          <span style="display:block;font-weight:400;margin-top:6px;line-height:1.5">Scored on minutes against the minutes the coach asked for, from any log. Deliberately the heaviest single thing in the day.</span></div>
+        <div style="text-align:left;padding:16px 18px">A small movement<b style="font-size:30px">&times; 1</b>
+          <span style="display:block;font-weight:400;margin-top:6px;line-height:1.5">One tap. No duration is asked for, because nobody times the stairs.</span></div>
+        <div style="text-align:left;padding:16px 18px">A step goal<b style="font-size:30px">&times; 4</b>
+          <span style="display:block;font-weight:400;margin-top:6px;line-height:1.5">Read from the phone, counted in proportion, and the only one that pays part marks.</span></div>
+      </div>
+      <p class="small">The usual plan is a session, four small movements and a step goal. The session is deliberately the heaviest single thing in it: at parity with the small movements a finished session that happened all in one hour scored below four flights of stairs, which is true to the concept and wrong to the person who did it. Assign more or fewer of anything and the shares divide themselves again.</p>
+    </div>
+
+    <div class="card spreadcard">
+      <p style="font-weight:600;color:var(--ink)">Every part of the day counts the same</p>
+      <div class="spreadrow">
+        <div>Morning<b>1</b></div>
+        <div>Afternoon<b>1</b></div>
+        <div>Evening<b>1</b></div>
+        <div>Night<b>1</b></div>
+      </div>
+      <p class="small">They were weighted for a while, 15 through 35, off the four year trial that found afternoon movement did the most for HbA1c. Good evidence in the wrong place. <b>Nobody chooses which part of the day their tasks sit in, the coach does</b>, so an unequal table marks two patients differently for a decision neither of them made: do your morning session and you fill 15, do the same session in the evening because that is where your physio put it and you fill 35. The science belongs in where the coach places the task, not in what the patient is scored out of. A part counts once movement lands in it, so Spread climbs from 0.75 to a full 1.00 as the day fills.</p>
+    </div>
+
+    <div class="card spreadcard">
+      <p style="font-weight:600;color:var(--ink)">Spread is measured against the day the coach asked for, not against the clock</p>
+      <p class="small" style="margin-top:8px">If a plan only reaches into the morning and the evening, then the morning and the evening are the whole of it, and finishing them is a full 1.00. This is the part that makes the score usable for somebody with back pain, or after surgery, or on a day their coach deliberately kept short. <b>Nobody is measured against a task they were never given.</b> A plan with no timed tasks at all, a step goal and nothing else, has nothing to spread and keeps the full 1.00.</p>
+    </div>
+
+    <div class="card spreadcard">
+      <p style="font-weight:600;color:var(--ink)">Going past the plan is noticed, never scored</p>
+      <p class="small" style="margin-top:8px">Doing more than was asked cannot take the number above 100, and it is not meant to. What it does instead is give Kaira something to say, and what she says depends on whether the day still has anywhere to put it.</p>
+      <div class="spreadrow" style="grid-template-columns:1fr 1fr;margin-bottom:4px">
+        <div style="text-align:left;padding:16px 18px">A part of the day still empty<span style="display:block;font-weight:400;margin-top:6px;line-height:1.6">Move some of it there rather than adding more now. Spread multiplies what was already earned; another set in the same hour does not.</span></div>
+        <div style="text-align:left;padding:16px 18px">The plan already in<span style="display:block;font-weight:400;margin-top:6px;line-height:1.6">Stop. The day cannot pay for it any more, and tomorrow can. A score that keeps climbing past the plan is a different promise from the one the coach made.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 12 THE CALCULATOR NOW -->
+<section class="band">
+  <div class="wrap">
+    <div class="eyebrow">Play with it now</div>
+    <h2>A coach's plan, and what it scores.</h2>
+    <p class="small" style="margin:-8px 0 18px;max-width:720px">Pick a plan, then tick what the person actually did. The share beside each task is worked out from the plan, never set by hand, so changing the plan changes what every task is worth. In the app a workout is scored on minutes rather than as one tick, so any movement of your own earns it; here it is a tick, because the argument the calculator is making is about shares and spread rather than about stopwatches.</p>
+
+    <div class="planpills" id="planpills"></div>
+    <p class="plannote" id="plannote"></p>
+
+    <div class="calc">
+      <div class="card">
+        <div class="tasklist" id="tasklist"></div>
+        <div class="editor">
+          <div class="edtitle">Change the plan</div>
+          <div class="edrow">
+            <span class="edlbl">Add</span>
+            <button data-add="exercise">+ Session</button>
+            <button data-add="neat">+ Small movement</button>
+            <span class="edlbl">in</span>
+            <div class="parts" id="addpart" style="margin:0;flex:1">
+              <div class="part" data-ap="0">Morning</div>
+              <div class="part on" data-ap="1">Afternoon</div>
+              <div class="part" data-ap="2">Evening</div>
+              <div class="part" data-ap="3">Night</div>
+            </div>
+          </div>
+          <div class="edrow">
+            <span class="edlbl">Step goal</span>
+            <button data-goalstep="-1000">&minus;1,000</button>
+            <b id="goalval">8,000</b>
+            <button data-goalstep="1000">+1,000</button>
+            <button data-goalset="0">No step goal</button>
+            <button data-goalset="8000">8,000</button>
+          </div>
+        </div>
+
+        <div class="presets" id="daypresets">
+          <button data-day="all">Everything the coach asked</button>
+          <button data-day="ex">The session only, then sat</button>
+          <button data-day="neat">Every small movement, nothing else</button>
+          <button data-day="steps">Steps only, no tasks</button>
+          <button data-day="none">A day of nothing</button>
+        </div>
+      </div>
+
+      <div class="calcscore">
+        <div class="bigring">
+          <svg width="180" height="180" viewBox="0 0 180 180">
+            <circle cx="90" cy="90" r="78" fill="none" stroke="#E4E7EC" stroke-width="12"/>
+            <circle id="ring2" cx="90" cy="90" r="78" fill="none" stroke="#299D6B" stroke-width="12" stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="490" transform="rotate(-90 90 90)" style="transition:stroke-dashoffset .35s ease"/>
+          </svg>
+          <div class="val"><div class="n" id="score2">0</div><div class="l">Momentum</div></div>
+        </div>
+
+        <div class="partstrip" id="partstrip"></div>
+        <p class="small" style="margin-top:8px;text-align:center" id="partnote"></p>
+
+        <div class="worked" id="worked"></div>
+      </div>
+    </div>
+
+    <p class="small" style="margin-top:14px">Try <b>Every small movement, nothing else</b> against <b>The session only, then sat</b>. The same weight of work, and the day that was spread out wins. Then switch to <b>Back pain, no walking</b> and finish it: a plan with no session and no step goal still reaches 100, because the coach knew what to ask for.</p>
+  </div>
+</section>
+
+<!-- 13 WHY IT HOLDS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Robustness</div>
+    <h2>Why it holds up.</h2>
+    <ul class="clean">
+      <li><span class="tick">✓</span><div><b>It rewards a day, not an hour.</b> <span class="d">Spread multiplies rather than adds, so it can only scale what was earned. It cannot invent marks, and it cannot be bought by moving more in one block.</span></div></li>
+      <li><span class="tick">✓</span><div><b>One workout is not a whole day.</b> <span class="d">"Do the session then sit all day" lands around 34%. The session is deliberately the heaviest single thing a coach assigns, so it clears the four small movements on its own, and spread still keeps it to a third of the day: adding one walk after dinner takes the same session to 39%. What a session cannot do is reach the whole day without the rest of the plan.</span></div></li>
+      <li><span class="tick">✓</span><div><b>Over-achievers get coached, not ignored.</b> <span class="d">Spare minutes pay a little into the other half of the plan, and Kaira reads the rest against the clock, so the advice is only ever about a part of the day still to come.</span></div></li>
+      <li><span class="tick">✓</span><div><b>The coach stays the hero.</b> <span class="d">The coach sets the 70 minutes, so the coach defines what 100 means. The target is personal because a person wrote it.</span></div></li>
+    </ul>
+  </div>
+</section>
+
 <script>
+  /* A section taller than the window stops being a snap target.
+
+     Every section is a full screen that snaps, which is the whole feel of the
+     deck, and it works right up until one of them outgrows the window. Then
+     mandatory snapping will not let go of it: the overflow is unreachable,
+     because the only place the scroll is allowed to rest is the top of that
+     section or the top of the next one. Whatever is past the fold is simply
+     lost, which is what happened to the calculator the moment the section
+     above it gained a card.
+
+     So the ones that do not fit are measured and released, on load and on
+     resize, since the same section fits on a laptop and does not on a
+     thirteen inch screen. Measured off the content rather than the section,
+     because the section is stretched to the window by min-height and would
+     always report exactly fitting. */
+  function fitSections(){
+    document.querySelectorAll('section').forEach(sec=>{
+      const wrap=sec.querySelector('.wrap');
+      if(!wrap) return;
+      sec.classList.remove('tall');
+      const needs=wrap.getBoundingClientRect().height+136;
+      if(needs>window.innerHeight) sec.classList.add('tall');
+    });
+  }
+  fitSections();
+  window.addEventListener('resize',fitSections);
+  window.addEventListener('load',fitSections);
+
   // scroll progress
   window.addEventListener('scroll',()=>{
     const h=document.documentElement;
     const s=h.scrollTop/(h.scrollHeight-h.clientHeight||1);
     document.getElementById('progress').style.width=(s*100)+'%';
   });
+
+  /* ---------- the tasks calculator ----------
+
+     The coach assigns three kinds of thing and nothing else. Every share below
+     is worked out from what was assigned, so a plan never carries a number set
+     by hand and no two coaches can weight the same plan differently. */
+  // Equal, because nobody picks which part of the day their plan lands in.
+  const PARTS=[{n:'Morning',w:1},{n:'Afternoon',w:1},{n:'Evening',w:1},{n:'Night',w:1}];
+  const UNIT={exercise:6,neat:1};
+  const STEP_UNIT=4;
+
+  const PLANS=[
+    { id:'standard', label:'The standard plan',
+      note:'A session, four small movements placed across the day, and a step goal. It falls out as three even thirds: the session, the small movements together, and the steps.',
+      steps:8000,
+      tasks:[
+        {id:'s', kind:'exercise', name:'Your morning session', when:'7:00 AM', part:0},
+        {id:'a', kind:'neat', name:'Take the stairs on your way in', when:'9:30 AM', part:0},
+        {id:'b', kind:'neat', name:'Stand through one call', when:'1:30 PM', part:1},
+        {id:'c', kind:'neat', name:'Walk after your tea', when:'5:30 PM', part:2},
+        {id:'d', kind:'neat', name:'Walk after dinner', when:'9:00 PM', part:3},
+      ]},
+    { id:'back', label:'Back pain, no walking',
+      note:'No session, no step goal, four seated movements the physio picked. Finishing them is a full day, because a full day is what this person was asked for.',
+      steps:0,
+      tasks:[
+        {id:'a', kind:'neat', name:'Ankle pumps at your desk', when:'9:30 AM', part:0},
+        {id:'b', kind:'neat', name:'Stand and reach, twice', when:'1:30 PM', part:1},
+        {id:'c', kind:'neat', name:'Seated marching', when:'5:30 PM', part:2},
+        {id:'d', kind:'neat', name:'Shoulder rolls before bed', when:'9:00 PM', part:3},
+      ]},
+    { id:'recover', label:'Recovering, no step goal',
+      note:'A physio session and two small movements. The plan never reaches the night, so the night is not part of the spread and cannot be lost.',
+      steps:0,
+      tasks:[
+        {id:'s', kind:'exercise', name:'Your physio session', when:'7:00 AM', part:0},
+        {id:'b', kind:'neat', name:'Stand through one call', when:'1:30 PM', part:1},
+        {id:'c', kind:'neat', name:'Short corridor walk', when:'5:30 PM', part:2},
+      ]},
+    { id:'walker', label:'A walker, no session',
+      note:'Somebody whose whole plan is walking. Steps are two thirds of it here, because there is no session to take a share.',
+      steps:12000,
+      tasks:[
+        {id:'b', kind:'neat', name:'Stand through one call', when:'1:30 PM', part:1},
+        {id:'c', kind:'neat', name:'Walk after dinner', when:'9:00 PM', part:3},
+      ]},
+    { id:'steps', label:'A step goal and nothing else',
+      note:'The plan asks for no part of the day in particular, so there is nothing to spread and the bonus stays full. Walk the goal and the day is done.',
+      steps:6000, tasks:[]},
+    { id:'heavy', label:'A heavy plan',
+      note:'Two sessions and six small movements. The sessions take more of the plan because there is more of them, and every small movement is worth less than it was in the standard plan.',
+      steps:12000,
+      tasks:[
+        {id:'s1', kind:'exercise', name:'Your morning session', when:'6:30 AM', part:0},
+        {id:'a', kind:'neat', name:'Take the stairs', when:'9:30 AM', part:0},
+        {id:'b', kind:'neat', name:'Walk after breakfast', when:'10:00 AM', part:0},
+        {id:'c', kind:'neat', name:'Stand through one call', when:'1:30 PM', part:1},
+        {id:'d', kind:'neat', name:'Walk after lunch', when:'2:30 PM', part:1},
+        {id:'s2', kind:'exercise', name:'Your evening session', when:'6:30 PM', part:2},
+        {id:'e', kind:'neat', name:'Walk after your tea', when:'5:30 PM', part:2},
+        {id:'f', kind:'neat', name:'Walk after dinner', when:'9:00 PM', part:3},
+      ]},
+  ];
+
+  const PART_TIME=['8:00 AM','1:30 PM','5:30 PM','9:00 PM'];
+  const clone=pl=>({...pl, tasks:pl.tasks.map(t=>({...t}))});
+  let plan=clone(PLANS[0]), done=new Set(), stepsWalked=0, seq=0;
+
+  function addTask(kind,part){
+    seq++;
+    plan.tasks.push({id:'x'+seq, kind, part,
+      name: kind==='exercise' ? 'Another session' : 'Another small movement',
+      when: PART_TIME[part]});
+    plan.tasks.sort((a,b)=>a.part-b.part);
+    render();
+  }
+  function removeTask(id){ plan.tasks=plan.tasks.filter(t=>t.id!==id); done.delete(id); render(); }
+  function setGoal(n){ plan.steps=Math.max(0,n); if(stepsWalked>plan.steps) stepsWalked=plan.steps; render(); }
+
+  /* Movement is what was finished over what was assigned, so finishing a plan
+     is always exactly one. Spread is measured against the parts of the day the
+     plan actually reaches, which is what stops a short plan capping the person
+     who completes it. A plan that reaches no part has nothing to spread. */
+  function score(){
+    let assigned=0, earned=0;
+    plan.tasks.forEach(t=>{ assigned+=UNIT[t.kind]; if(done.has(t.id)) earned+=UNIT[t.kind]; });
+    if(plan.steps){ assigned+=STEP_UNIT; earned+=STEP_UNIT*Math.min(1,stepsWalked/plan.steps); }
+    const movement = assigned ? earned/assigned : 0;
+
+    const asked=new Set(plan.tasks.map(t=>t.part));
+    const got=new Set(plan.tasks.filter(t=>done.has(t.id)).map(t=>t.part));
+    const askW=[...asked].reduce((n,i)=>n+PARTS[i].w,0);
+    const gotW=[...got].reduce((n,i)=>n+PARTS[i].w,0);
+    const filled = askW ? gotW/askW : 1;
+    const spread = 0.75+0.25*filled;
+
+    return {assigned,earned,movement,spread,asked,got,askW,gotW,
+            value:Math.round(100*movement*spread)};
+  }
+
+  const shareOf=(t,assigned)=>assigned?Math.round(100*UNIT[t.kind]/assigned):0;
+
+  function drawPlans(){
+    document.getElementById('planpills').innerHTML=PLANS.map(pl=>
+      '<button data-plan="'+pl.id+'"'+(pl.id===plan.id?' class="on"':'')+'>'+pl.label+'</button>').join('');
+    document.querySelectorAll('#planpills button').forEach(b=>b.onclick=()=>{
+      plan=clone(PLANS.find(x=>x.id===b.dataset.plan)); done=new Set(); stepsWalked=0; drawPlans(); render();
+    });
+    document.getElementById('plannote').textContent=plan.note;
+  }
+
+  /* Two halves, and they have to stay apart.
+
+     The list is rebuilt only when the plan or the ticks change. The readout is
+     updated on its own. Rebuilding the list on every step of the slider threw
+     away the very element the pointer was holding, so the drag ended after one
+     pixel and the control was all but unusable. Nothing that a pointer can be
+     resting on gets replaced while it is being used. */
+  function render(){
+    const r=score();
+    const list=document.getElementById('tasklist');
+    let html=plan.tasks.map(t=>
+      '<div class="trow'+(done.has(t.id)?' on':'')+'" data-t="'+t.id+'">'+
+        '<span class="tbox">'+(done.has(t.id)?'&#10003;':'')+'</span>'+
+        '<span class="tmid"><span class="tname">'+t.name+'</span>'+
+          '<span class="twhen">'+t.when+' &middot; '+PARTS[t.part].n+(t.kind==='exercise'?' &middot; session':'')+'</span></span>'+
+        '<span class="tshare">'+shareOf(t,r.assigned)+'%</span>'+
+        '<button class="tdel" data-del="'+t.id+'" title="Remove from the plan">&times;</button>'+
+      '</div>').join('');
+    if(plan.steps){
+      html+='<div class="trow steps" id="steprow">'+
+        '<span class="stephdr"><span class="tbox" id="stepbox"></span>'+
+        '<span class="tmid"><span class="tname">'+plan.steps.toLocaleString('en-IN')+' steps</span>'+
+        '<span class="twhen">read from the phone &middot; counted in proportion</span></span>'+
+        '<span class="tshare">'+Math.round(100*STEP_UNIT/r.assigned)+'%</span>'+
+        '<button class="tdel" data-goal="0" title="Remove the step goal">&times;</button></span>'+
+        '<input type="range" id="stepr" min="0" max="'+Math.round(plan.steps*1.5)+'" step="100" value="'+stepsWalked+'">'+
+        '<span class="twhen" id="steplbl" style="text-align:right"></span></div>';
+    }
+    if(!plan.tasks.length && !plan.steps) html='<p class="small">This plan is empty. Add something below.</p>';
+    list.innerHTML=html;
+
+    list.querySelectorAll('.trow[data-t]').forEach(el=>el.onclick=e=>{
+      if(e.target.dataset.del) return;
+      const id=el.dataset.t; done.has(id)?done.delete(id):done.add(id); render();
+    });
+    list.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); removeTask(b.dataset.del); });
+    list.querySelectorAll('[data-goal]').forEach(b=>b.onclick=e=>{ e.stopPropagation(); setGoal(0); });
+
+    const sr=document.getElementById('stepr');
+    if(sr) sr.oninput=()=>{ stepsWalked=+sr.value; readout(); };
+    readout();
+  }
+
+  function readout(){
+    const r=score();
+    const pctGoal=plan.steps?Math.round(100*Math.min(1,stepsWalked/plan.steps)):0;
+    const row=document.getElementById('steprow');
+    if(row){
+      row.classList.toggle('on', pctGoal>0);
+      document.getElementById('stepbox').innerHTML = pctGoal>=100 ? '&#10003;' : '';
+      document.getElementById('steplbl').textContent =
+        stepsWalked.toLocaleString('en-IN')+' walked \u00b7 '+pctGoal+'% of the goal';
+    }
+    const gv=document.getElementById('goalval');
+    if(gv) gv.textContent = plan.steps ? plan.steps.toLocaleString('en-IN') : 'none';
+    document.getElementById('score2').textContent=r.value;
+    document.getElementById('ring2').style.strokeDashoffset=490-490*(r.value/100);
+
+    document.getElementById('partstrip').innerHTML=PARTS.map((p,i)=>{
+      const cls=r.got.has(i)?'ps got':r.asked.has(i)?'ps asked':'ps';
+      // No number on the tile. They are all worth one, so printing it four
+      // times says only that somebody once thought they might differ.
+      return '<div class="'+cls+'">'+p.n+'</div>';
+    }).join('');
+    document.getElementById('partnote').textContent =
+      r.askW===0 ? 'This plan asks for no part of the day, so there is nothing to spread.'
+      : 'Solid is what the plan asks for, filled is where you moved. ' + r.gotW + ' of ' + r.askW + ' parts.';
+
+    const pct=n=>Math.round(n*100)+'%';
+    document.getElementById('worked').innerHTML=
+      '<b>Movement</b> &nbsp;'+(Math.round(r.earned*10)/10)+' of '+r.assigned+' assigned &nbsp;=&nbsp; <span class="eq">'+pct(r.movement)+'</span><br>'+
+      '<b>Spread</b> &nbsp;0.75 + 0.25 &times; '+(r.askW?r.gotW+'/'+r.askW:'nothing to spread')+' &nbsp;=&nbsp; <span class="eq">&times; '+r.spread.toFixed(2)+'</span><br>'+
+      '<b>Momentum</b> &nbsp;'+pct(r.movement)+' &times; '+r.spread.toFixed(2)+' &nbsp;=&nbsp; <span class="eq">'+r.value+'%</span>';
+  }
+
+  /* The editor. Adding and removing is the only way to feel what the shares do:
+     a small movement is worth eight percent in a plan of six things and twenty
+     five in a plan of four, and no amount of reading the formula lands that. */
+  function wireEditor(){
+    let addPart=1;
+    document.querySelectorAll('#addpart .part').forEach(el=>el.onclick=()=>{
+      addPart=+el.dataset.ap;
+      document.querySelectorAll('#addpart .part').forEach(x=>x.classList.toggle('on',x===el));
+    });
+    document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>addTask(b.dataset.add,addPart));
+    document.querySelectorAll('[data-goalstep]').forEach(b=>b.onclick=()=>setGoal(plan.steps+ +b.dataset.goalstep));
+    document.querySelectorAll('[data-goalset]').forEach(b=>b.onclick=()=>setGoal(+b.dataset.goalset));
+  }
+
+  document.querySelectorAll('#daypresets button').forEach(b=>b.onclick=()=>{
+    const k=b.dataset.day;
+    done=new Set(
+      k==='all'  ? plan.tasks.map(t=>t.id) :
+      k==='ex'   ? plan.tasks.filter(t=>t.kind==='exercise').map(t=>t.id) :
+      k==='neat' ? plan.tasks.filter(t=>t.kind==='neat').map(t=>t.id) : []
+    );
+    stepsWalked = (k==='all'||k==='steps') ? plan.steps : 0;
+    render();
+  });
+
+  drawPlans(); wireEditor(); render();
 
   // calculator
   const W=[0.15,0.30,0.35,0.20];          // what each part of the day is worth
@@ -451,7 +900,11 @@
     parts.forEach(q=>q.classList.remove('on'));p.classList.add('on');calc();}));
   walks.forEach(w=>w.addEventListener('click',()=>{w.classList.toggle('on');calc();}));
   [ex,st].forEach(el=>el.addEventListener('input',calc));
-  document.querySelectorAll('.presets button').forEach(b=>{
+  /* Scoped to its own buttons. Unscoped it also matched the tasks calculator's
+     day presets, which carry the same class, and since this runs second and
+     assigns onclick rather than adding a listener, it silently replaced their
+     handlers and left every one of them inert. */
+  document.querySelectorAll('#oldpresets button').forEach(b=>{
     b.onclick=()=>{
       const [m,p,s,ws]=b.dataset.preset.split(',');
       ex.value=+m; st.value=+s;
