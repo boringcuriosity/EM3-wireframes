@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Plate, in every state</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Roboto:wght@400;500;700&display=swap">
+<style>
+  :root { --bg: #F2F4F7; --ink: #101828; --muted: #667085; --line: #E4E7EC; --green: #299D6B; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); font-family: Roboto, system-ui, sans-serif; color: var(--ink); }
+  header { position: sticky; top: 0; z-index: 5; background: rgba(242,244,247,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); padding: 14px 24px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+  h1 { font-family: "Playfair Display", Georgia, serif; font-size: 24px; margin: 0; }
+  header p { margin: 0; color: var(--muted); font-size: 13px; flex: 1; min-width: 240px; }
+  .ctl { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+  .ctl button { font: inherit; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+  .ctl button.on { border-color: var(--green); color: var(--green); font-weight: 700; }
+  main { display: flex; gap: 40px; padding: 24px; overflow-x: auto; align-items: flex-start; }
+  figure { margin: 0; flex-shrink: 0; width: calc(390px * var(--z)); min-width: 220px; }
+  figcaption { min-height: 78px; margin-bottom: 12px; }
+  figcaption b { display: block; font-size: 15px; margin-bottom: 4px; }
+  figcaption .id { font-family: ui-monospace, monospace; font-size: 11px; color: var(--muted); font-weight: 400; }
+  figcaption p { margin: 0; font-size: 12.5px; line-height: 1.45; color: #344054; }
+  .phone { width: calc(390px * var(--z)); height: calc(844px * var(--z)); overflow: hidden; border-radius: calc(28px * var(--z)); background: #fff; box-shadow: 0 20px 25px -5px rgba(0,0,0,.10), 0 8px 10px -6px rgba(0,0,0,.10); border: 1px solid var(--line); }
+  iframe { width: 390px; height: 844px; border: 0; transform: scale(var(--z)); transform-origin: 0 0; display: block; }
+  .open { display: inline-block; margin-top: 8px; font-size: 12px; color: var(--green); }
+  footer { padding: 0 24px 40px; font-size: 13px; }
+  footer a { color: var(--green); }
+</style>
+</head>
+<body style="--z: .75">
+<header>
+  <h1>The Plate, in every state</h1>
+  <p>One page, every state the real screen has. Only phones on screen animate. Scroll sideways.</p>
+  <div class="ctl">Zoom
+    <button data-z=".5">50%</button><button data-z=".75" class="on">75%</button><button data-z="1">100%</button>
+  </div>
+</header>
+<main id="board"></main>
+<footer><a href="noplan.html">Three ways to fit the first state</a> · <a href="index.html">Back to the score gallery</a></footer>
+<script>
+/* One user, in order, the same acts the case document runs on: before a plan,
+   the plan arriving, a day filling up, and the days behind them. Loading is
+   not in the story, so it is not in this gallery either; the control panel
+   still reaches it. */
+const STATES = [
+  ["noplanempty", "No plan, nothing logged", "Where a Care user starts. No plan, no targets, nothing logged: the score is locked and Kaira's card teaches, then offers the two ways to log."],
+  ["noplan", "No plan, food logged", "Same user, food in. The grams are real from the first meal even though the score is not."],
+  ["empty", "The plan is assigned", "Targets are set and the day has not started. The plate is laid, waiting."],
+  ["first", "The first meal on it", "One meal logged. The score is small and honest rather than hidden."],
+  ["mid", "By the afternoon", "Three meals in, the day still has room."],
+  ["full", "The whole day in", "All six meals logged. Nothing left, so the number is the day's verdict."],
+  ["perfect", "Every target met", "The rare full day. One soft bloom of light, nothing louder."],
+  ["over", "More than the plan", "Every meal in and then some. Three targets met, so the score holds; the calories keep counting and say so."],
+  ["past", "An earlier day", "A finished day, read only and still. Logging it is a separate, quieter action."],
+  ["missed", "A day with nothing", "A past day that was never logged. Empty, not broken."],
+];
+const fig = ([id, name, line]) => `
+  <figure id="${id}">
+    <figcaption><b>${name} <span class="id">${id}</span></b><p>${line}</p></figcaption>
+    <div class="phone"><iframe src="eat.html?state=${id}" title="${name}"></iframe></div>
+    <a class="open" href="eat.html?state=${id}" target="_blank">Open full size</a>
+  </figure>`;
+document.getElementById("board").innerHTML = STATES.map(fig).join("");
+/* ponytail: only phones on screen run their hero; Chrome drops the oldest WebGL contexts past ~16 */
+const onScreen = new Map();
+const tell = (fr) => fr.contentWindow && fr.contentWindow.postMessage(onScreen.get(fr) ? "hero:mount" : "hero:unmount", "*");
+const check = () => document.querySelectorAll("figure").forEach((f) => {
+  const r = f.getBoundingClientRect(), fr = f.querySelector("iframe");
+  const vis = r.right > -120 && r.left < innerWidth + 120 && r.bottom > 0 && r.top < innerHeight && !!f.offsetParent;
+  if (onScreen.get(fr) !== vis) { onScreen.set(fr, vis); tell(fr); }
+});
+let raf = 0;
+const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(check); };
+document.getElementById("board").addEventListener("scroll", schedule, { passive: true });
+addEventListener("scroll", schedule, { passive: true });
+addEventListener("resize", schedule);
+check();
+window.addEventListener("message", (e) => {
+  if (e.data !== "hero:ready") return;
+  const fr = [...document.querySelectorAll("iframe")].find((x) => x.contentWindow === e.source);
+  if (fr) tell(fr);
+});
+document.querySelectorAll(".ctl button").forEach((b) => b.onclick = () => {
+  document.body.style.setProperty("--z", b.dataset.z);
+  document.querySelectorAll(".ctl button").forEach((x) => x.classList.toggle("on", x === b));
+  setTimeout(check, 50);
+});
+</script>
+<script src="chrome.js"></script>
+</body>
+</html>

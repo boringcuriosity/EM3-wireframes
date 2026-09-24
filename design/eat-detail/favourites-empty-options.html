@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Favourites, four empty states</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="icons/glyph-masks.css">
+<style>
+  :root{
+    --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0; --brand-600:#299D6B; --brand-700:#2A805A;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-50:#EEF4FF; --in-100:#E0EAFF; --in-600:#444CE7;
+    --red-50:#FEF3F2; --red-100:#FEE4E2; --red-500:#F04438; --red-600:#D92D20;
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1760px;margin:0 auto;padding:40px 24px 90px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 10px}
+  .lede{max-width:880px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 8px}
+  .lede b{color:var(--g-900)}
+  .src{max-width:880px;font-size:13px;line-height:21px;color:var(--g-500);margin:0 0 36px}
+
+  .grid{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+  .col{width:390px;flex:0 0 390px}
+  .cap{min-height:190px;margin-bottom:14px}
+  .cap h2{margin:0 0 6px;font-size:17px;line-height:24px;font-weight:600}
+  .cap p{margin:0 0 8px;font-size:13px;line-height:20px;color:var(--g-600)}
+  .cap .tr{font-size:12px;line-height:18px;color:var(--g-500)}
+  .cap .tr b{color:var(--g-700);font-weight:600}
+  .tag{display:inline-block;margin-bottom:6px;font-size:11px;line-height:16px;font-weight:600;
+    letter-spacing:.4px;text-transform:uppercase;color:var(--g-500);background:var(--g-100);
+    border-radius:9999px;padding:2px 8px}
+  .tag.pick{color:var(--brand-700);background:var(--brand-100)}
+
+  /* the phone, cropped to the part that is being decided */
+  .phone{width:390px;height:430px;border:1px solid var(--g-200);border-radius:20px;
+    background:#fff;overflow:hidden;box-shadow:0 1px 3px rgba(16,24,40,.1)}
+  .tabs{display:flex;padding:0 16px;border-bottom:1px solid var(--g-100)}
+  .tab{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;height:46px;
+    font:600 15px/22px Roboto,sans-serif;color:var(--g-500)}
+  .tab.on{color:var(--brand-600);box-shadow:inset 0 -3px 0 var(--brand-600)}
+  .tab svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8}
+  .body{padding:34px 28px 28px;text-align:center}
+  /* the pool of light every empty state in this screen sits in */
+  .art{position:relative;display:grid;place-items:center}
+  .art::before{content:"";position:absolute;width:300px;height:150px;border-radius:9999px;
+    pointer-events:none;background:radial-gradient(closest-side,rgba(171,230,204,.34),rgba(255,255,255,0))}
+  .art>*{position:relative}
+  .line{margin:22px auto 0;max-width:268px;font:500 15px/22px Roboto,sans-serif;color:var(--g-600)}
+
+  /* ---------------- shared row furniture, used by A, B and C --------------- */
+  .card{background:#fff;border:1px solid var(--g-100);border-radius:14px;
+    box-shadow:0 6px 18px rgba(16,24,40,.09)}
+  .row{display:flex;align-items:center;gap:10px;text-align:left;padding:9px 12px}
+  .rt{flex:1;min-width:0}
+  .rt b{display:block;font:600 13px/18px Roboto,sans-serif;color:var(--g-900)}
+  .rt i{display:block;font-style:normal;font:400 11px/16px Roboto,sans-serif;color:var(--g-500)}
+  .hh{position:relative;display:grid;place-items:center;width:34px;height:34px;flex-shrink:0}
+  .hh>span{grid-area:1/1;display:grid;place-items:center}
+  .ho{color:var(--g-300)}
+  .hf{color:var(--red-500);opacity:0}
+  .hr{width:34px;height:34px;border-radius:9999px;background:var(--red-100);
+    transform:scale(.3);opacity:0}
+
+  @keyframes ring{0%,6%{transform:scale(.3);opacity:0}
+    11%{transform:scale(1);opacity:.9}26%,100%{transform:scale(1.9);opacity:0}}
+  @keyframes hideO{0%,8%{opacity:1}12%,90%{opacity:0}100%{opacity:1}}
+  @keyframes fillH{0%,8%{opacity:0;transform:scale(.4)}
+    12%{opacity:1;transform:scale(1.34)}18%{transform:scale(.94)}
+    23%,88%{opacity:1;transform:scale(1)}96%,100%{opacity:0;transform:scale(1)}}
+
+  /* ============================================================= A ======== */
+  .a .card{width:252px;padding:4px 12px}
+  .a .row{padding:9px 0}
+  .a .row+.row{border-top:1px solid var(--g-100)}
+  .a .hr{animation:ring 4.6s var(--ease) infinite}
+  .a .ho{animation:hideO 4.6s steps(1,end) infinite}
+  .a .hf{animation:fillH 4.6s var(--ease) infinite}
+  .a .row:nth-child(2) .hr,.a .row:nth-child(2) .ho,.a .row:nth-child(2) .hf{animation-delay:.55s}
+  .a .row:nth-child(3) .hr,.a .row:nth-child(3) .ho,.a .row:nth-child(3) .hf{animation-delay:1.1s}
+
+  /* ============================================================= B ======== */
+  /* one food, one press, and the thing the press produces.
+
+     Its own keyframes rather than the shared ones, because this variant has to
+     rest first. The row has to sit there unhearted long enough to be read as
+     the starting state, otherwise the finger arrives before the reader has
+     seen what it is about to do. A third of the loop is spent doing nothing. */
+  .b .card{width:248px}
+  @keyframes bRing{0%,30%{transform:scale(.3);opacity:0}
+    35%{transform:scale(1);opacity:.9}52%,100%{transform:scale(1.9);opacity:0}}
+  @keyframes bOut{0%,31%{opacity:1}34%,88%{opacity:0}93%,100%{opacity:1}}
+  @keyframes bFill{0%,31%{opacity:0;transform:scale(.4)}
+    35%{opacity:1;transform:scale(1.34)}41%{transform:scale(.94)}
+    46%,86%{opacity:1;transform:scale(1)}92%,100%{opacity:0;transform:scale(1)}}
+  .b .hr{animation:bRing 4.4s var(--ease) infinite}
+  .b .ho{animation:bOut 4.4s steps(1,end) infinite}
+  .b .hf{animation:bFill 4.4s var(--ease) infinite}
+  /* the finger, as the only honest way to show that this is a tap */
+  .b .tip{position:absolute;right:11px;top:9px;width:30px;height:30px;border-radius:9999px;
+    background:rgba(16,24,40,.13);border:1.5px solid rgba(16,24,40,.16);
+    transform:translate(14px,-22px) scale(1.5);opacity:0;
+    animation:bTip 4.4s var(--ease) infinite}
+  @keyframes bTip{0%,22%{transform:translate(14px,-22px) scale(1.5);opacity:0}
+    31%{transform:translate(0,0) scale(1);opacity:1}
+    35%{transform:translate(0,0) scale(.86);opacity:1}
+    46%{transform:translate(10px,-18px) scale(1.3);opacity:0}
+    100%{opacity:0}}
+  /* a small heart leaving, which is the part a person remembers */
+  .b .fly{position:absolute;right:20px;top:14px;color:var(--red-500);opacity:0;
+    animation:bFly 4.4s var(--ease) infinite}
+  @keyframes bFly{0%,38%{transform:translateY(0) scale(.5);opacity:0}
+    47%{transform:translateY(-16px) scale(1);opacity:.9}
+    64%,100%{transform:translateY(-40px) scale(.7);opacity:0}}
+
+  /* ============================================================= C ======== */
+  /* where it goes, not just what to press */
+  .c .wrap{position:relative;width:258px;padding-top:44px}
+  .c .pocket{position:absolute;left:50%;top:0;transform:translateX(-50%);
+    display:flex;align-items:center;gap:7px;height:32px;padding:0 14px;border-radius:9999px;
+    background:var(--red-50);border:1px solid var(--red-100);
+    font:600 12.5px/18px Roboto,sans-serif;color:var(--red-600)}
+  .c .pocket svg{width:14px;height:14px;fill:currentColor;stroke:none}
+  .c .pocket .n{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;
+    border-radius:9999px;background:var(--red-500);color:#fff;font:700 11px/18px Roboto,sans-serif;
+    transform:scale(0);animation:pop 4s var(--ease) infinite}
+  @keyframes pop{0%,26%{transform:scale(0)}33%{transform:scale(1.25)}
+    40%,88%{transform:scale(1)}95%,100%{transform:scale(0)}}
+  .c .card{width:258px;animation:file 4s var(--ease) infinite}
+  /* the row lifts, shrinks and files itself away, then a fresh one is there */
+  @keyframes file{0%,20%{transform:translateY(0) scale(1);opacity:1}
+    30%{transform:translateY(-6px) scale(1.02);opacity:1}
+    46%{transform:translateY(-46px) scale(.8);opacity:0}
+    47%,60%{transform:translateY(10px) scale(.96);opacity:0}
+    72%,100%{transform:translateY(0) scale(1);opacity:1}}
+  .c .hr{animation:ring 4s var(--ease) infinite}
+  .c .ho{animation:hideO 4s steps(1,end) infinite}
+  .c .hf{animation:fillH 4s var(--ease) infinite}
+
+  /* ============================================================= D ======== */
+  /* the heart as the container, filling with what you eat */
+  .d .well{position:relative;width:150px;height:140px}
+  .d .well svg{position:absolute;inset:0;width:150px;height:140px}
+  .d .chip{position:absolute;left:50%;top:0;width:30px;height:30px;margin-left:-15px;
+    border-radius:9999px;background:#fff;border:1px solid var(--g-100);
+    box-shadow:0 2px 6px rgba(16,24,40,.12);display:grid;place-items:center;
+    opacity:0;animation:drop 4.2s var(--ease) infinite}
+  /* the house glyph masks, not the raw PNGs: those are black silhouettes
+     meant to be masked, and dropped in as images they read as smudges */
+  .d .chip .g{width:16px;height:16px;background:var(--in-600);
+    -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+    -webkit-mask-position:center;mask-position:center}
+  .d .chip:nth-of-type(2){animation-delay:.5s}
+  .d .chip:nth-of-type(3){animation-delay:1s}
+  @keyframes drop{0%{transform:translateY(-26px) scale(.7);opacity:0}
+    7%{opacity:1}
+    17%{transform:translateY(58px) scale(1);opacity:1}
+    22%{transform:translateY(52px) scale(1)}
+    26%,80%{transform:translateY(56px) scale(1);opacity:1}
+    90%,100%{transform:translateY(56px) scale(.8);opacity:0}}
+  .d .fillmask{clip-path:inset(100% 0 0 0);animation:rise 4.2s var(--ease) infinite}
+  @keyframes rise{0%,8%{clip-path:inset(100% 0 0 0)}
+    24%{clip-path:inset(66% 0 0 0)}42%{clip-path:inset(34% 0 0 0)}
+    58%,80%{clip-path:inset(0 0 0 0)}92%,100%{clip-path:inset(100% 0 0 0)}}
+
+  @media (prefers-reduced-motion:reduce){
+    .a *,.b *,.c *,.d *{animation:none !important}
+    .ho{opacity:0}.hf{opacity:1}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Favourites, before there are any</h1>
+  <p class="lede">Four ways to answer the same two questions on an empty tab: <b>what is this
+    for</b>, and <b>how does anything get in here</b>. All four are live and looping, built
+    from the logging screen's own row, heart and type, so what differs between two cards is
+    only the idea.</p>
+  <p class="src">Every one holds its finished state under <code>prefers-reduced-motion</code>,
+    since the finished state is what the loop was teaching. The line under each is the copy
+    that variant would ship with.</p>
+
+  <div class="grid">
+
+    <!-- ================================================================== A -->
+    <div class="col a">
+      <div class="cap">
+        <span class="tag">Built now</span>
+        <h2>A. The shortlist</h2>
+        <p>Three foods, hearted one after another. Says the tab is a shortlist of things you
+          eat often, not a single dish you liked once.</p>
+        <p class="tr"><b>Against it:</b> three hearts filling on their own is the one thing that
+          never happens, so it teaches the outcome more than the gesture.</p>
+      </div>
+      <div class="phone">
+        <div class="tabs">
+          <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Recent</div>
+          <div class="tab on"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.2A4 4 0 0 1 12 8a4 4 0 0 1 7 2.8C19 15.6 12 20 12 20z"/></svg>Favourites</div>
+        </div>
+        <div class="body">
+          <div class="art"><div class="card" id="aCard"></div></div>
+          <p class="line">Heart the things you eat often. They wait at the top for you.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================== B -->
+    <div class="col b">
+      <div class="cap">
+        <span class="tag pick">Recommended</span>
+        <h2>B. One press, and what it leaves behind</h2>
+        <p>A fingertip comes down on the heart, the heart takes, and a small heart lifts away
+          towards the tab. One food, one gesture, one consequence.</p>
+        <p class="tr"><b>For it:</b> the only variant that shows a <b>hand</b>, which is what
+          makes it read as an instruction rather than as decoration.</p>
+      </div>
+      <div class="phone">
+        <div class="tabs">
+          <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Recent</div>
+          <div class="tab on"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.2A4 4 0 0 1 12 8a4 4 0 0 1 7 2.8C19 15.6 12 20 12 20z"/></svg>Favourites</div>
+        </div>
+        <div class="body">
+          <div class="art">
+            <div class="card" style="position:relative" id="bCard"></div>
+          </div>
+          <p class="line">Tap the heart on a food, and it is here whenever you want it.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================== C -->
+    <div class="col c">
+      <div class="cap">
+        <h2>C. Into the tab</h2>
+        <p>The row is hearted, then lifts and files itself into a Favourites pill above, whose
+          count ticks up. Answers "where does it go" rather than "what do I press".</p>
+        <p class="tr"><b>Against it:</b> the pill is not a real thing on the screen, so it
+          teaches a destination the user will then go looking for.</p>
+      </div>
+      <div class="phone">
+        <div class="tabs">
+          <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Recent</div>
+          <div class="tab on"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.2A4 4 0 0 1 12 8a4 4 0 0 1 7 2.8C19 15.6 12 20 12 20z"/></svg>Favourites</div>
+        </div>
+        <div class="body">
+          <div class="art">
+            <div class="wrap">
+              <span class="pocket">
+                <svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.2A4 4 0 0 1 12 8a4 4 0 0 1 7 2.8C19 15.6 12 20 12 20z"/></svg>
+                Favourites <span class="n">1</span>
+              </span>
+              <div class="card" id="cCard"></div>
+            </div>
+          </div>
+          <p class="line">Heart a food once and it moves up here for good.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================================================================== D -->
+    <div class="col d">
+      <div class="cap">
+        <h2>D. The heart fills up</h2>
+        <p>Foods drop into an outlined heart, which fills red as they land. No rows, no press:
+          a picture of the idea rather than of the interface.</p>
+        <p class="tr"><b>Against it:</b> it is the prettiest and the least instructive. Nothing
+          in it tells a first-time user what to actually do.</p>
+      </div>
+      <div class="phone">
+        <div class="tabs">
+          <div class="tab"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Recent</div>
+          <div class="tab on"><svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.2A4 4 0 0 1 12 8a4 4 0 0 1 7 2.8C19 15.6 12 20 12 20z"/></svg>Favourites</div>
+        </div>
+        <div class="body">
+          <div class="art">
+            <div class="well">
+              <svg viewBox="0 0 150 140" aria-hidden="true">
+                <path d="M75 126S16 88 16 54a26 26 0 0 1 59-16 26 26 0 0 1 59 16c0 34-59 72-59 72z"
+                  fill="none" stroke="#E4E7EC" stroke-width="3" stroke-linejoin="round"/>
+                <g class="fillmask">
+                  <path d="M75 126S16 88 16 54a26 26 0 0 1 59-16 26 26 0 0 1 59 16c0 34-59 72-59 72z"
+                    fill="#FEE4E2" stroke="#F04438" stroke-width="3" stroke-linejoin="round"/>
+                </g>
+              </svg>
+              <span class="chip"><span class="g glyph-protein"></span></span>
+              <span class="chip"><span class="g glyph-carbs"></span></span>
+              <span class="chip"><span class="g glyph-fibre"></span></span>
+            </div>
+          </div>
+          <p class="line">The foods you come back to, kept in one place.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* One row builder for A, B and C, so the three ideas are compared on identical
+   furniture and a difference in feel is a difference in idea. */
+var HEART = function (filled) {
+  return '<svg viewBox="0 0 24 24" width="19" height="19" fill="' + (filled ? "currentColor" : "none") +
+    '" stroke="currentColor" stroke-width="2" stroke-linejoin="round">' +
+    '<path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/></svg>';
+};
+function row(name, unit) {
+  return '<div class="row"><span class="rt"><b>' + name + "</b><i>" + unit + "</i></span>" +
+    '<span class="hh"><span class="hr"></span>' +
+    '<span class="ho">' + HEART(false) + "</span>" +
+    '<span class="hf">' + HEART(true) + "</span></span></div>";
+}
+document.getElementById("aCard").innerHTML =
+  row("Masala chai", "1 cup") + row("Vegetable poha", "1 bowl") + row("Roasted chana", "1 handful");
+document.getElementById("bCard").innerHTML =
+  row("Vegetable poha", "1 bowl, 242 kcal") +
+  '<span class="tip"></span><span class="fly">' + HEART(true) + "</span>";
+document.getElementById("cCard").innerHTML = row("Vegetable poha", "1 bowl, 242 kcal");
+</script>
+</body>
+</html>

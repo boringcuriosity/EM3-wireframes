@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log all, five options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --brand-25:#FAFFFD; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0;
+    --brand-600:#299D6B; --brand-700:#2A805A; --ok-600:#039855;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-200:#C7D7FE; --in-600:#444CE7; --in-900:#2D3282;
+    --gold-50:#FFFBEE; --gold-200:#FEF1C7; --gold-800:#A68A2D;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1900px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:820px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 6px}
+  .lede b{color:var(--g-900)}
+  .src{max-width:820px;font-size:13px;line-height:21px;color:var(--g-500);margin:0 0 32px}
+  .grid{display:flex;flex-wrap:wrap;gap:30px;align-items:flex-start}
+  .col{width:360px;flex:0 0 360px}
+  .cap{margin-bottom:14px;min-height:150px}
+  .cap h2{font-size:16px;line-height:23px;font-weight:600;margin:0 0 6px}
+  .cap p{font-size:13px;line-height:20px;color:var(--g-600);margin:0 0 6px}
+  .cap .risk{font-size:12px;line-height:18px;color:var(--g-500)}
+  .cap .risk b{color:var(--g-700);font-weight:600}
+  .cap .from{font-size:11px;line-height:17px;color:var(--g-400);margin-top:4px}
+
+  /* the card, as it now ships */
+  .meal{margin-bottom:16px;border-radius:24px;border:1px solid transparent;box-shadow:2px 2px 0 var(--g-200);
+    background:linear-gradient(180deg,var(--in-25) 0%,#fff 29%,#fff 100%) padding-box,
+      conic-gradient(from 0deg,var(--in-600) 0deg,var(--g-200) 43deg,var(--g-200) 317deg,var(--in-600) 360deg) border-box}
+  .hd{display:flex;align-items:flex-start;gap:10px;padding:16px}
+  .t{flex:1;min-width:0}
+  .n{font:600 16px/22px Roboto}
+  .s{font-size:12px;line-height:18px;color:var(--g-500);margin-top:2px}
+  .plus{width:26px;height:26px;border-radius:9999px;border:1.5px solid var(--brand-600);background:#fff;
+    color:var(--brand-600);display:grid;place-items:center;flex-shrink:0;margin-top:4px}
+  .rows{padding:6px 0 12px;margin:0 16px;border-top:1px solid var(--g-100)}
+  .row{display:flex;align-items:center;gap:10px;min-height:38px;font-size:14px}
+  .row+.row{border-top:1px dashed var(--g-200)}
+  .tk{width:22px;height:22px;border-radius:9999px;background:var(--ok-600);display:grid;place-items:center;flex-shrink:0}
+  .tk.off{background:#fff;border:1.5px solid var(--g-300)}
+  .tk svg{width:12px;height:12px}
+  .nm{flex:1;min-width:0;font-weight:700}.nm span{color:var(--g-500);font-weight:400}
+  .kc{color:var(--g-500);font-size:13px;white-space:nowrap}
+
+  /* 0, today */
+  .bar{display:flex;align-items:center;justify-content:center;gap:8px;width:calc(100% - 32px);margin:0 16px 14px;
+    min-height:41px;border-radius:8px;background:#fff;border:1px solid var(--brand-600);color:var(--brand-600);
+    font:700 14px/1 Roboto;letter-spacing:.25px}
+
+  /* 1, tinted count pill in the header */
+  .pill{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin-block:-9px;padding:0 12px;
+    border-radius:9999px;border:0;background:var(--in-50);color:var(--in-900);
+    font:600 13px/1 Roboto;letter-spacing:.25px;white-space:nowrap;flex-shrink:0}
+  .pill svg{width:14px;height:14px}
+
+  /* 2, ghost pill */
+  .ghost{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin-block:-9px;padding:0 12px;
+    border-radius:9999px;border:1px solid var(--g-300);background:#fff;color:var(--g-700);
+    font:600 13px/1 Roboto;letter-spacing:.25px;white-space:nowrap;flex-shrink:0}
+
+  /* 3, text action with the count opposite it */
+  .lead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 16px;padding:8px 0 10px;
+    border-top:1px dashed var(--g-200)}
+  .left{font-size:13px;color:var(--g-500)}
+  .txt{display:inline-flex;align-items:center;gap:4px;min-height:44px;margin-block:-11px;padding:0 4px;margin-right:-4px;
+    border:0;background:none;color:var(--brand-600);font:400 14px/1 Roboto;letter-spacing:.25px}
+
+  /* GoodFlip's own card-level secondary: a frame named "secondary button" that
+     is not a button. No fill, no stroke, no plate. Green label, 12px arrow. */
+  .gf{display:flex;align-items:center;justify-content:flex-end;margin:0 16px;padding:2px 0 12px}
+  .gfcta{display:inline-flex;align-items:center;gap:4px;min-height:44px;margin-block:-13px;padding:0 4px;margin-right:-4px;
+    border:0;background:none;color:var(--brand-600);font:400 14px/1 Roboto;letter-spacing:.25px}
+  .gfcta svg{width:12px;height:12px}
+
+  /* 4, inset footer row */
+  .foot{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:12px;
+    background:var(--g-50);border:0;color:var(--g-600);font:600 13px/1 Roboto;letter-spacing:.25px;
+    margin:4px 16px 14px;width:calc(100% - 32px)}
+
+  @media (max-width:900px){.page{padding:24px 16px 60px}.col{width:100%;flex:1 1 100%}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Log all, five options</h1>
+  <p class="lede">The shortcut that logs every remaining planned food in a meal at once. Today it is a full width button at the bottom of the card. It appears on <b>up to six cards down one scroll</b>, which is the whole problem: the design system says a repeating card should not contain a button at all.</p>
+  <p class="src">Each column shows two meals so the repetition is visible. Options 1 to 4 come from a Mobbin survey of nutrition diaries, grocery lists and checklists, where every app that repeats a meal card puts its per-meal control in the <b>card header row, right aligned</b>, as a pill or an icon, never a bar. Option 5 is what GoodFlip itself does.</p>
+  <p class="src" style="color:var(--g-700)"><b>One correction worth knowing:</b> the action should be <b>green, not indigo</b>. Indigo never labels an action anywhere in the GoodFlip corpus; where it appears as text it is always a data value or a content tag. Indigo belongs on the card edge and the score, green on the verb. Option 1's tint is shown as drawn, but its label would move to green.</p>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+var TICK='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+var PLUS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg>';
+var DBL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12.5l4 4L14 8"/><path d="M9 16.5l1.5 1.5L19 9.5"/></svg>';
+var CHEV='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M9 5l7 7-7 7"/></svg>';
+
+var MEALS=[
+ {n:"Breakfast",s:"Suggested 8:00 - 10:00 AM · 0 of 382 cal",left:3,
+  rows:[["Boiled egg","2 x 1 egg","146 cal",0],["Lauki oats chilla","2 x 1 piece","153 cal",0],["Green chutney","2 x 1 spoon","8 cal",0]]},
+ {n:"Lunch",s:"Suggested 1:00 - 3:00 PM · 160 of 464 cal",left:2,
+  rows:[["Multigrain roti","2 x 1 piece","160 cal",1],["Mixed veg sabzi","1 katori","114 cal",0],["Dal","1 katori","152 cal",0]]}
+];
+function rows(m){return '<div class="rows">'+m.rows.map(function(r){
+  return '<div class="row"><span class="tk'+(r[3]?'':' off')+'">'+(r[3]?TICK:'')+'</span>'+
+   '<span class="nm">'+r[0]+' <span>· '+r[1]+'</span></span><span class="kc">'+r[2]+'</span></div>';}).join('')+'</div>';}
+
+function build(kind,m){
+  var head='<div class="hd"><div class="t"><div class="n">'+m.n+'</div><div class="s">'+m.s+'</div></div>';
+  var pl='<span class="plus">'+PLUS+'</span>';
+  if(kind==='pill')  head+='<button class="pill">'+DBL+'Log all '+m.left+'</button>'+pl;
+  else if(kind==='ghost') head+='<button class="ghost">'+DBL+'Log all '+m.left+'</button>'+pl;
+  else head+=pl;
+  head+='</div>';
+  var body=rows(m), extra='';
+  if(kind==='bar')  extra='<button class="bar">Log all '+m.left+'</button>';
+  if(kind==='text') extra='<div class="lead"><span class="left">'+m.left+' still to log</span>'+
+      '<button class="txt">Log all '+m.left+CHEV+'</button></div>';
+  if(kind==='foot') extra='<button class="foot">'+DBL+'Log all '+m.left+'</button>';
+  if(kind==='gf')   extra='<div class="gf"><button class="gfcta">Log all '+m.left+CHEV+'</button></div>';
+  if(kind==='text') return '<div class="meal">'+head+body+extra+'</div>';
+  return '<div class="meal">'+head+body+extra+'</div>';
+}
+
+var OPTS=[
+ {k:"bar",title:"0. What we have now",
+  body:"A full width secondary button at the foot of the card.",
+  risk:"<b>The problem:</b> it repeats up to six times, it competes with the screen's one real primary, and every card ends in a slab.",
+  from:"No precedent for this per card. The full width count button is common, but always one per screen inside a sheet."},
+ {k:"pill",title:"1. Tinted count pill in the header",
+  body:"Meal name left, a low tinted pill on the right beside the add control. Indigo tint, never green. 44px hit box held open by a negative block margin so the header does not grow.",
+  risk:"<b>Risk at six repeats:</b> six tinted pills stack into a right hand column that can start to read as a navigation rail.",
+  from:"MyFitnessPal, Julienne, Target. The pattern every nutrition diary uses."},
+ {k:"ghost",title:"2. Bordered ghost pill",
+  body:"Same geometry, zero colour. A hairline border and near black text.",
+  risk:"<b>Risk:</b> six more hairlines on a page that already has six card edges, so it can start to look wireframed.",
+  from:"Julienne, Crouton, Noom. The safest option against the reserved green rule."},
+ {k:"text",title:"3. Text action, with the count opposite",
+  body:"A quiet row under the foods: the count on the left creates the tension, the action answers it on the right.",
+  risk:"<b>Risk:</b> lightest footprint of any option, and the easiest to read as a label rather than a control.",
+  from:"Todoist, Recime, Careem, Amazon Fresh."},
+ {k:"foot",title:"4. Inset footer row",
+  body:"Today's position, minus the chrome. Inset from the card edges and visibly narrower than the card, so it reads as the last row rather than a slab.",
+  risk:"<b>Risk:</b> even inset and tinted, six horizontal bars at six card bottoms still stripe the scroll.",
+  from:"Alma, Anything. Ranked last: the least change from what exists."},
+ {k:"gf",title:"5. GoodFlip's own pattern",
+  body:"A green label and a 12px arrow with nothing behind it, right aligned. Roboto 400, not bold, not underlined. GoodFlip has a frame literally named <i>secondary button</i> that is not a button: no fill, no stroke, no plate. It occurs 138 times across the three files.",
+  risk:"<b>Risk:</b> the lightest of all six, so it leans hardest on the verb and on the undo toast to teach what it did.",
+  from:"detected workout card 7741:876, whose \"Log Workout \u2192\" is instanced four times on one scroll. The closest semantic match to ours in the whole corpus."}
+];
+document.getElementById('grid').innerHTML=OPTS.map(function(o){
+ return '<div class="col"><div class="cap"><h2>'+o.title+'</h2><p>'+o.body+'</p><div class="risk">'+o.risk+
+  '</div><div class="from">'+o.from+'</div></div>'+MEALS.map(function(m){return build(o.k,m);}).join('')+'</div>';
+}).join('');
+</script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eat Detail Directions</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Roboto:wght@400;500;700&display=swap">
+<style>
+  :root { --bg: #F2F4F7; --ink: #101828; --muted: #667085; --line: #E4E7EC; --green: #299D6B; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); font-family: Roboto, system-ui, sans-serif; color: var(--ink); }
+  header { position: sticky; top: 0; z-index: 5; background: rgba(242,244,247,.92); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); padding: 14px 24px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; }
+  h1 { font-family: "Playfair Display", Georgia, serif; font-size: 24px; margin: 0; }
+  header p { margin: 0; color: var(--muted); font-size: 13px; flex: 1; min-width: 240px; }
+  .ctl { display: flex; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+  .ctl button { font: inherit; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+  .ctl button.on { border-color: var(--green); color: var(--green); font-weight: 700; }
+  nav { display: flex; gap: 6px; flex-wrap: wrap; padding: 12px 24px 0; }
+  nav a { font-size: 12px; text-decoration: none; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 5px 10px; }
+  .row { display: flex; gap: 40px; padding: 24px; overflow-x: auto; align-items: flex-start; }
+  figure { margin: 0; flex-shrink: 0; width: calc(390px * var(--z)); min-width: 260px; }
+  figcaption { min-height: 170px; margin-bottom: 12px; }
+  figcaption b { display: block; font-size: 15px; margin-bottom: 4px; }
+  figcaption p { margin: 0 0 6px; font-size: 12.5px; line-height: 1.45; color: #344054; }
+  figcaption .refs { font-size: 11.5px; color: var(--muted); }
+  figcaption .refs a { color: var(--green); }
+  .phone { width: calc(390px * var(--z)); height: calc(var(--h) * 1px * var(--z)); overflow: hidden; border-radius: calc(28px * var(--z)); background: #fff; box-shadow: 0 20px 25px -5px rgba(0,0,0,.10), 0 8px 10px -6px rgba(0,0,0,.10); border: 1px solid var(--line); }
+  iframe { width: 390px; height: calc(var(--h) * 1px); border: 0; transform: scale(var(--z)); transform-origin: 0 0; display: block; }
+  .open { display: inline-block; margin-top: 8px; font-size: 12px; color: var(--green); }
+  details { margin: 8px 24px 40px; border-top: 1px solid var(--line); padding-top: 16px; }
+  summary { cursor: pointer; font-size: 14px; color: var(--muted); }
+  summary b { color: var(--ink); }
+  details .row { padding-left: 0; padding-right: 0; }
+</style>
+</head>
+<body style="--z: .75">
+<header>
+  <h1>Eat detail, round 2</h1>
+  <p>Six directions you kept, refined: macros in one colour with GoodFlip's own icons. Same day in every screen: Tue 15 Sep, 1:30 PM, 54% sufficient. Scroll sideways. Nav and Kaira are sticky in the real app.</p>
+  <div class="ctl">Zoom
+    <button data-z=".5">50%</button><button data-z=".75" class="on">75%</button><button data-z="1">100%</button>
+  </div>
+</header>
+<nav id="jump"></nav>
+<main class="row" id="board"></main>
+<details>
+  <summary><b>Backup</b>, 6 directions set aside in round 1 (Hex Bloom, Up Next, Timeline Rail, Green Hero, Nutrition Label, Protocol). Round 1 originals of every screen are in the <code>v1</code> folder.</summary>
+  <div class="row" id="backup"></div>
+</details>
+<script>
+const M = (id) => `https://mobbin.com/screens/${id}`;
+const KEPT = [
+  { f: "PebblesFill", n: "Pebbles Fill (new)", h: 3360, idea: "Pebbles, with each macro's own icon filling with green to its percentage: beans for protein, wheat for carbs, a drop for fats, spinach for fibre. Tonal greens, soft glows, one gold marker on the biggest gap.", why: "The icons do the explaining, so the macros read at a glance and feel alive.", refs: [["Blue Bottle mug fill", "5fd10b94-8603-4da6-a94b-7ffc508497fc"], ["Forest glow", "ec8d0e3c-86f0-4351-b996-2960a26fed6b"]] },
+  { f: "Pebbles", n: "Pebbles", h: 3060, idea: "Glossy spheres filled with green liquid: one big for sufficiency, four small for macros. Meals float on a faint hour grid with icon and gram chips per meal.", why: "Tactile, delightful, matches the spheres on Home.", refs: [["Alma day header", "b599837d-75f6-4374-b5d7-1990a189bfc0"]] },
+  { f: "Reading", n: "Reading", h: 3120, idea: "Narrative first: a soft green landscape and thin score arc, one line naming the day's gap, then contributors with icon, grams, a plain verdict and a bar.", why: "Says what the number means before its parts.", refs: [["Oura Readiness", "7ff0dafd-7d45-4d6c-bf94-f2d926bd0288"], ["Cal AI breakdown", "a4ec6f0f-5e5f-4290-a8a3-f8b76f3bf29d"], ["Yuka rows", "ba8c52a4-7922-43be-a31c-ab40ed68ff5e"]] },
+  { f: "DayClock", n: "Day Clock", h: 2860, idea: "A 6 AM to 11 PM dial with each meal window as an arc and the score in the centre. The meal list below is the dial unrolled.", why: "Time and score in one glance.", refs: [["Garmin daily timeline", "db3e47bb-da4f-49d3-9c08-feddbc24b4a4"], ["Yazio intake bars", "5141bab2-02f8-4ae4-8179-2b20e7d027c3"]] },
+  { f: "BentoJars", n: "Bento Jars", h: 2740, idea: "Widget style tiles with macros as four jars of green liquid, labelled with GoodFlip's icons. Meals as a carousel plus the rest of the day.", why: "The macros you liked, now in one colour.", refs: [["Lifesum widgets", "c832f3db-c966-43e7-b063-cc80e5d699aa"]] },
+  { f: "DottedHalo", n: "Dotted Halo", h: 3344, idea: "The halo now means one thing, sufficiency: green dots fill clockwise to 54%. Macros moved to plain rows with icon, grams and a single bar.", why: "Keeps the beautiful hero, fixes the confusing macros.", refs: [["Withings halo", "3defe666-ccc4-4f4c-b7c8-9f648bb736c3"], ["Cal AI breakdown", "a4ec6f0f-5e5f-4290-a8a3-f8b76f3bf29d"], ["Yazio intake bars", "5141bab2-02f8-4ae4-8179-2b20e7d027c3"]] },
+  { f: "Pantry", n: "Pantry", h: 3400, idea: "Playful tiles framed as what is left for today, each ring holding GoodFlip's macro icon. Water as glasses to fill, the week as hexagon stickers.", why: "Most game like, quick to read.", refs: [["Cal AI tiles", "6c754a7d-4245-470d-99ac-fdee78e3178b"]] },
+];
+const BACKUP = [
+  { f: "backup/HexBloom", n: "Hex Bloom", h: 2980, idea: "Set aside: nested hexagon rings are hard to understand." },
+  { f: "backup/UpNext", n: "Up Next", h: 2460, idea: "Set aside: the score has too little affordance." },
+  { f: "backup/TimelineRail", n: "Timeline Rail", h: 2560, idea: "Set aside: score card is plain, the day format is tricky." },
+  { f: "backup/GreenHero", n: "Green Hero", h: 3120, idea: "Set aside: too basic." },
+  { f: "backup/NutritionLabel", n: "Nutrition Label", h: 3180, idea: "Set aside: too basic." },
+  { f: "backup/Protocol", n: "Protocol", h: 3780, idea: "Set aside: too basic." },
+];
+const card = (v) => {
+  const refs = v.refs ? `<div class="refs">Mobbin: ${v.refs.map(([t, id]) => `<a href="${M(id)}" target="_blank">${t}</a>`).join(" · ")}</div>` : "";
+  const id = v.f.replace("/", "-");
+  return `<figure id="${id}">
+    <figcaption><b>${v.n}</b><p>${v.idea}</p>${v.why ? `<p><strong>Why:</strong> ${v.why}</p>` : ""}${refs}</figcaption>
+    <div class="phone" style="--h:${v.h}"><iframe src="${v.f}.dc.html" style="--h:${v.h}" loading="lazy" title="${v.n}"></iframe></div>
+    <a class="open" href="${v.f}.dc.html" target="_blank">Open full size</a>
+  </figure>`;
+};
+document.getElementById("board").innerHTML = KEPT.map(card).join("");
+document.getElementById("backup").innerHTML = BACKUP.map(card).join("");
+document.getElementById("jump").innerHTML = KEPT.map((v) => `<a href="#${v.f}">${v.n}</a>`).join("");
+document.querySelectorAll("iframe").forEach((fr) => fr.addEventListener("load", () => {
+  try { const h = fr.contentDocument.documentElement.scrollHeight; if (h) { fr.style.setProperty("--h", h); fr.parentElement.style.setProperty("--h", h); } } catch (e) {}
+}));
+document.querySelectorAll(".ctl button").forEach((b) => b.onclick = () => {
+  document.body.style.setProperty("--z", b.dataset.z);
+  document.querySelectorAll(".ctl button").forEach((x) => x.classList.toggle("on", x === b));
+});
+</script>
+</body>
+</html>

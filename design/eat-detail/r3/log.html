@@ -1,0 +1,1972 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Log a meal</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Roboto:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap">
+<link rel="stylesheet" href="../icons/glyph-masks.css">
+<style>
+  /* ============================================================
+     The logging screen. Neutrals carry the page. Green marks the
+     one primary and the active states, nothing else. Indigo carries
+     a focused input and the two hands free ways in (a photo, a
+     sentence). Gold marks the one reward moment. One 16px gutter
+     runs down both edges, and only a row tint crosses it. Kaira
+     lives in her own sheet elsewhere and is not on this screen.
+     ============================================================ */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: #FFFFFF; font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: 0.25px; color: #101828; -webkit-font-smoothing: antialiased; }
+  button, input { font: inherit; letter-spacing: inherit; color: inherit; }
+  .col { position: relative; max-width: 390px; margin: 0 auto; display: flex;
+    flex-direction: column; background: #fff; overflow-x: hidden;
+    height: 100vh; min-height: 100vh; }
+  /* dvh tracks the viewport as the browser bars come and go, so the tray stays
+     on screen instead of hiding under them */
+  @supports (height: 100dvh) { .col { height: 100dvh; min-height: 100dvh; } }
+  .ico { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+  /* header */
+  .hd { flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 10px 16px; }
+  .hd .back { width: 44px; height: 44px; border: 0; background: none; border-radius: 9999px; display: grid; place-items: center; color: #344054; cursor: pointer; }
+  .hd .back:hover { background: #F9FAFB; }
+  .hd .t { flex: 1; min-width: 0; text-align: center; }
+  .hd .t b { display: block; font-size: 16px; font-weight: 700; line-height: 20px; }
+  .hd .t span { display: block; font-size: 12px; line-height: 16px; color: #667085; margin-top: 1px; }
+  /* There is no Save here. The tray button at the bottom is the one primary:
+     it sits in the thumb zone, it names what it will do, and it carries the
+     count. A second control firing the same save() out of thumb reach just
+     split attention and asked the screen two questions at once. This spacer
+     balances the 44px back button so the title stays optically centred. */
+  .hd .hspace { width: 44px; flex-shrink: 0; }
+
+  /* a day that is not today says so once, at the top */
+  .daynote { flex-shrink: 0; display: flex; align-items: center; gap: 8px; margin: 0 16px 10px; padding: 9px 12px; border-radius: 12px;
+    background: #F9FAFB; border: 1px solid #E4E7EC; font-size: 12.5px; line-height: 18px; color: #475467; }
+  .daynote svg { color: #667085; }
+
+  /* search */
+  .srch { flex-shrink: 0; padding: 0 16px 10px; }
+  .sbar { display: flex; align-items: center; gap: 8px; background: #F9FAFB; border: 1px solid #E4E7EC; border-radius: 12px; padding: 0 4px 0 12px; height: 52px; }
+  /* indigo is the house colour for a focused input */
+  .sbar { transition: border-color .18s ease-out, box-shadow .18s ease-out, background .18s ease-out; }
+  .sbar:focus-within { border-color: #444CE7; background: #fff; box-shadow: 0 0 0 3px #EEF4FF; }
+  .sbar input { flex: 1; min-width: 0; min-height: 44px; border: 0; outline: none; background: transparent; font-size: 14px; color: #101828; }
+  .sbar input::placeholder { color: #98A2B3; }
+  .sbar .sep { width: 1px; height: 20px; background: #E4E7EC; }
+  .iconbtn { width: 44px; height: 44px; border: 0; background: none; border-radius: 9999px; display: grid; place-items: center; color: #344054; cursor: pointer; flex-shrink: 0; }
+  .iconbtn:hover { background: #F2F4F7; }
+  .iconbtn.ind { color: #444CE7; }
+  .iconbtn.ind:hover { background: #EEF4FF; }
+
+  /* tabs */
+  /* Underline tabs, not pills. Your plan / Favourites / Frequent are peer
+     views of the same list, which is exactly what the underline variant is
+     for. The option chips below them are a selection inside the content, so
+     they keep the pill. Two rows of identical green pills read as one
+     control repeated, and you cannot tell which row navigates. */
+  /* The design system's underline bar carries a 5px indicator and no bottom
+     hairline (Figma 6250:1528). It also puts a green tinted pill behind the
+     active label, which we deliberately leave out: the option chips directly
+     below are green tinted pills, and two of them stacked read as one control
+     repeated, which is the confusion the underline was chosen to avoid. */
+  .tabs { position: relative; flex-shrink: 0; padding: 0 16px; margin-bottom: 10px; }
+  .tabbtns { display: flex; gap: 4px; }
+  /* One indicator that travels, rather than a pseudo on each tab that can only
+     blink. It outlives the re-render, which is what lets it animate at all. */
+  .tabind { position: absolute; bottom: 0; height: 5px; border-radius: 5px 5px 0 0;
+    background: #299D6B; opacity: 0;
+    transition: transform .2s cubic-bezier(.4,0,.2,1), width .2s cubic-bezier(.4,0,.2,1),
+      opacity .15s ease-out; }
+  @media (prefers-reduced-motion: reduce) { .tabind { transition: opacity .15s ease-out; } }
+  .tab { position: relative; flex: 1; min-height: 44px; border: 0; background: none; padding: 0 4px;
+    font-size: 15px; font-weight: 600; color: #667085; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .tab svg { width: 17px; height: 17px; flex-shrink: 0; }
+  .tab { transition: color .18s ease-out; }
+  .tab.on { color: #299D6B; }
+
+  /* list */
+  .list { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 2px 16px 8px; }
+  .glab { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: #667085; margin: 12px 0 4px; display: flex; align-items: center; gap: 8px; }
+  /* the tint runs edge to edge, the text and controls stand on the 16px gutter */
+  .row { display: flex; align-items: center; gap: 8px; padding: 8px 16px; margin: 0 -16px; border-bottom: 1px solid #F2F4F7; transition: background .15s ease-out; }
+  .row.has { background: #F9FAFB; }
+  /* the name is the widest zone in the row and it opens the portion sheet, so
+     it is a real button with a chevron rather than text that answers a tap in
+     secret. The margin and padding cancel, so the row keeps its height. */
+  .row .nm { flex: 1; min-width: 0; margin: -4px -6px; padding: 4px 6px; border: 0; border-radius: 8px;
+    background: none; text-align: left; cursor: pointer; }
+  .row .nm:hover { background: #F2F4F7; }
+  .row .nm:active { background: #E4E7EC; }
+  .row .nm b { display: block; font-size: 14px; font-weight: 600; line-height: 19px; color: #101828; }
+  .row .nm .chev { color: #98A2B3; vertical-align: -2px; margin-left: 2px; }
+  .row .nm span { display: block; font-size: 12.5px; line-height: 17px; color: #667085; margin-top: 1px; }
+  /* isolate, because the svg below carries a z-index so it paints over the
+     burst. Without a stacking context here that z-index escapes to the root
+     and the hearts sit on top of the tray and the keyboard. */
+  .heart { position: relative; isolation: isolate; width: 44px; height: 44px; border: 0; background: none; border-radius: 9999px; display: grid; place-items: center; color: #98A2B3; cursor: pointer; flex-shrink: 0; }
+  /* a like, not an error. The error red on this screen is #D92D20 and it is
+     always on a tinted card with a warning glyph. A like is a step warmer and
+     lighter at #F04438, and it is never on a card. */
+  .heart.on { color: #F04438; }
+  .heart svg { position: relative; z-index: 1; }
+  /* Twitter's heart is the reference: the glyph overshoots, a ring throws
+     outward with a handful of dots behind it, and the whole thing takes itself
+     away inside 620ms. It is built in JS only when motion is welcome, so with
+     prefers-reduced-motion there is nothing to leave behind. */
+  .heart.pop svg { animation: heartpop .45s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes heartpop { 0% { transform: scale(.25); } 45% { transform: scale(1.3); } 70% { transform: scale(.92); } 100% { transform: scale(1); } }
+  .burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; }
+  .burst .ring { position: absolute; left: -11px; top: -11px; width: 12px; height: 12px; border-radius: 9999px;
+    border: 5px solid #F97066; animation: bring .48s cubic-bezier(.2,.7,.3,1) both; }
+  @keyframes bring { 0% { transform: scale(.2); opacity: 1; }
+    45% { border-color: #FDA29B; opacity: 1; }
+    75% { border-color: #FEE4E2; opacity: .85; }
+    100% { transform: scale(2.1); border-width: 1px; opacity: 0; } }
+  .burst i { position: absolute; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 9999px;
+    animation: bdot .44s cubic-bezier(.2,.7,.3,1) .1s both; }
+  @keyframes bdot { 0% { transform: translate(0,0) scale(.3); opacity: 1; }
+    55% { opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(.3); opacity: 0; } }
+  /* a row affordance repeats ten times over, so it stays quiet. No depth bar. */
+  .add { width: 44px; height: 44px; border-radius: 12px; border: 0; background: #F2F4F7; color: #101828; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+  .add:hover { background: #E4E7EC; }
+  .add:active { background: #D0D5DD; }
+  .step { display: flex; align-items: center; background: #fff; border: 1px solid #E4E7EC; border-radius: 12px; flex-shrink: 0; }
+  .step button { width: 44px; height: 44px; border: 0; background: none; border-radius: 9999px; color: #101828; display: grid; place-items: center; cursor: pointer; }
+  .step button:hover { background: #F2F4F7; }
+  /* the count is the green mark that says this row is in the meal */
+  .step b { min-width: 24px; text-align: center; font-size: 14px; font-weight: 700; color: #299D6B; }
+
+  /* the coach's plan: one option is chosen, its items tick off one tap each */
+  .opts { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 2px; }
+  /* the ordinal is the label, the way the coach numbered them. The calorie
+     total sits under it so the three can be weighed against each other. */
+  /* Slim pill, 44px tap target held open by a transparent ::after. */
+  .opt { position: relative; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px; border-radius: 9999px;
+    border: 1px solid #E4E7EC; background: #fff; font-size: 14px; font-weight: 600; color: #667085; cursor: pointer; }
+  .opt::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+  .opt.on { background: #E6FAF1; border-color: #299D6B; color: #299D6B; }
+  .opt svg { width: 15px; height: 15px; }
+  .opt .ot { display: block; text-align: left; }
+  .opt .ot b { display: block; font-size: 13px; font-weight: 700; line-height: 17px; }
+  .opt .ot span { display: block; font-size: 12px; font-weight: 400; line-height: 16px; color: #667085; }
+  .opt.on .ot span { color: #299D6B; }
+  /* the hit area is 44, the glyph is 24 and it lands on the 16px gutter */
+  .tickbtn { width: 44px; height: 44px; margin-left: -10px; border: 0; background: none; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+  .tick { width: 24px; height: 24px; border-radius: 9999px; border: 2px solid #98A2B3; background: #fff; display: grid; place-items: center; color: #fff; }
+  .tick.on { background: #299D6B; border-color: #299D6B; }
+  .tickbtn:hover .tick { border-color: #299D6B; }
+
+  /* a day that has not happened yet */
+  .future { padding: 48px 16px; text-align: center; }
+  .future .dic { width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 9999px; background: #F2F4F7; color: #667085; display: grid; place-items: center; }
+  .future b { display: block; font-size: 15.5px; font-weight: 700; }
+  .future p { margin: 8px 0 0; font-size: 13.5px; line-height: 20px; color: #667085; }
+
+  /* room to add what the coach did not write */
+
+  /* nothing here */
+  .empty { padding: 40px 28px 36px; text-align: center; }
+  .empty p { margin: 22px auto 0; max-width: 268px; font-size: 15px; line-height: 22px;
+    font-weight: 500; color: #475467; text-wrap: pretty; }
+  /* the object sits in its own pool of light, the same device the plate and
+     the macro card use to lift a mark off a white page */
+  .empty .eart { position: relative; display: grid; place-items: center; height: 96px; }
+  .empty .eart:has(.favdemo)::before { width: 296px; height: 120px; }
+  .empty .eart::before { content: ""; position: absolute; width: 150px; height: 96px;
+    border-radius: 9999px; pointer-events: none;
+    background: radial-gradient(closest-side, rgba(171,230,204,.34), rgba(255,255,255,0)); }
+  .empty .eart > * { position: relative; }
+  .empty img { display: block; }
+  /* A tab nobody has used cannot be explained by a picture of a heart: the
+     reader has to see the heart on a food, in the place it really sits, and
+     see a hand press it. The hand is the part that makes this read as an
+     instruction rather than as decoration, and the heart that lifts away
+     afterwards is the part a person remembers.
+
+     A third of the loop is spent doing nothing, on purpose. The row has to sit
+     there unhearted long enough to be read as the starting state, or the
+     finger arrives before the reader has seen what it is about to do. */
+  .favdemo { position: relative; width: 248px; border-radius: 14px; background: #fff;
+    border: 1px solid #F2F4F7; box-shadow: 0 6px 18px rgba(16,24,40,.09); }
+  .fdrow { display: flex; align-items: center; gap: 10px; text-align: left; padding: 9px 12px; }
+  .fdt { flex: 1; min-width: 0; }
+  .fdt b { display: block; font-size: 13px; line-height: 18px; font-weight: 600; color: #101828; }
+  .fdt i { display: block; font-style: normal; font-size: 11px; line-height: 16px; color: #667085; }
+  .fdh { position: relative; display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; }
+  .fdh > span { grid-area: 1 / 1; display: grid; place-items: center; }
+  .fdo { color: #D0D5DD; }
+  .fdf { color: #F04438; opacity: 0; }
+  /* the press, as the ring a finger leaves behind */
+  .fdring { width: 34px; height: 34px; border-radius: 9999px; background: #FEE4E2;
+    transform: scale(.3); opacity: 0; }
+  .fdtip { position: absolute; right: 11px; top: 9px; width: 30px; height: 30px;
+    border-radius: 9999px; background: rgba(16,24,40,.13);
+    border: 1.5px solid rgba(16,24,40,.16); opacity: 0; }
+  .fdfly { position: absolute; right: 20px; top: 14px; color: #F04438; opacity: 0; }
+
+  @keyframes fdRing { 0%, 30% { transform: scale(.3); opacity: 0; }
+    35% { transform: scale(1); opacity: .9; }
+    52%, 100% { transform: scale(1.9); opacity: 0; } }
+  @keyframes fdOut { 0%, 31% { opacity: 1; } 34%, 88% { opacity: 0; } 93%, 100% { opacity: 1; } }
+  /* lands on 1, so the heart is still rather than resting mid-spring */
+  @keyframes fdFill { 0%, 31% { opacity: 0; transform: scale(.4); }
+    35% { opacity: 1; transform: scale(1.34); }
+    41% { transform: scale(.94); }
+    46%, 86% { opacity: 1; transform: scale(1); }
+    92%, 100% { opacity: 0; transform: scale(1); } }
+  @keyframes fdTip { 0%, 22% { transform: translate(14px, -22px) scale(1.5); opacity: 0; }
+    31% { transform: translate(0, 0) scale(1); opacity: 1; }
+    35% { transform: translate(0, 0) scale(.86); opacity: 1; }
+    46% { transform: translate(10px, -18px) scale(1.3); opacity: 0; }
+    100% { opacity: 0; } }
+  @keyframes fdFly { 0%, 38% { transform: translateY(0) scale(.5); opacity: 0; }
+    47% { transform: translateY(-16px) scale(1); opacity: .9; }
+    64%, 100% { transform: translateY(-40px) scale(.7); opacity: 0; } }
+
+  .fdring { animation: fdRing 4.4s cubic-bezier(.22,1,.36,1) infinite; }
+  .fdo { animation: fdOut 4.4s steps(1, end) infinite; }
+  .fdf { animation: fdFill 4.4s cubic-bezier(.22,1,.36,1) infinite; }
+  .fdtip { animation: fdTip 4.4s cubic-bezier(.22,1,.36,1) infinite; }
+  .fdfly { animation: fdFly 4.4s cubic-bezier(.22,1,.36,1) infinite; }
+  @media (prefers-reduced-motion: reduce) {
+    /* the finished state, which is what the loop was teaching */
+    .fdring, .fdo, .fdf, .fdtip, .fdfly { animation: none; }
+    .fdo, .fdtip, .fdfly { opacity: 0; }
+    .fdf { opacity: 1; }
+  }
+
+  /* the search miss: Kaira's mark on its own, the sentence, the button.
+     Her mark is indigo wherever it appears, but the button stays the house
+     green, because on this screen green means "this is the way on" and a
+     second button colour would make Kaira look like a different kind of
+     action rather than the one that is left. */
+  .empty p b { font-weight: 700; color: #101828; }
+  /* at the scale the other two empty states set their object */
+  .empty .eart > svg { width: 54px; height: 59px; }
+
+  /* the house primary, with its depth bar, because on this screen finding a
+     food is not one option among several, it is the job */
+  .empty .cta { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    height: 52px; margin-top: 22px; padding: 0 26px; border-radius: 12px; border: 0;
+    background: #299D6B; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
+    box-shadow: 0 4px 0 #2A805A; transition: transform .15s cubic-bezier(.4,0,.2,1), box-shadow .15s cubic-bezier(.4,0,.2,1); }
+  .empty .cta:active { transform: translateY(4px); box-shadow: none; }
+  .empty .cta .ico { width: 18px; height: 18px; }
+
+  /* the meal being built */
+  /* the sticky bar clears the home indicator as well as the safe area */
+  /* above the list whatever the list contains, so a row can never paint into
+     the tray as it scrolls behind it */
+  .tray { position: relative; z-index: 2; flex-shrink: 0; background: #fff;
+    padding: 8px 16px calc(12px + var(--gf-home-h, 0px) + env(safe-area-inset-bottom, 0px)); }
+  /* The strip stands proud of the tray, so without this the list shows in the
+     gap either side of its rounded ends. The fade takes the list out before
+     the strip reaches it, and separates the two better than a rule did. */
+  .tray::before { content: ""; position: absolute; left: 0; right: 0; top: -40px;
+    height: 40px; pointer-events: none;
+    background: linear-gradient(180deg, rgba(255,255,255,0), #fff 72%); }
+  /* ------------------------------------------------------- the tally strip */
+  /* What is in the tray, in 36px that never grows. Every cart bar in the
+     field is count-only or count plus one thumbnail, from item 1 to item 50,
+     and none of them grows, so this does not either: three food tokens, then
+     a +N, then the names as one truncating line, then the running kcal.
+
+     It floats 18px proud of the tray's edge so it reads as sitting on the
+     tray rather than inside it, and tapping it opens the full list. */
+  .tally { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px;
+    width: 100%; min-height: 44px; margin: -30px 0 6px; padding: 4px 12px 4px 10px;
+    border: 0; border-radius: 9999px; background: #fff; cursor: pointer;
+    box-shadow: 0 1px 3px rgba(16,24,40,.10), 0 6px 16px -6px rgba(16,24,40,.22); }
+  .tally .stack { display: flex; flex-shrink: 0; }
+  /* a fixed width however many are in it, because the third becomes a +N */
+  .tally .tok { width: 28px; height: 28px; border-radius: 9999px; flex-shrink: 0;
+    background: #C7D7FE; border: 2px solid #fff; display: grid; place-items: center;
+    font: 700 11px/1 Roboto, sans-serif; color: #2D3282; }
+  .tally .tok + .tok { margin-left: -10px; }
+  .tally .tok.more { background: #EEF4FF; color: #444CE7; }
+  .tally .tok svg { width: 15px; height: 15px; }
+  .tally .names { flex: 1; min-width: 0; text-align: left; font-size: 12.5px; line-height: 18px;
+    color: #101828; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tally .kc { flex-shrink: 0; font-size: 12.5px; line-height: 18px; color: #667085; }
+  .tally .chev { flex-shrink: 0; color: #98A2B3; transition: transform .2s cubic-bezier(.4,0,.2,1); }
+  /* the newest name arrives green and settles to ink, so the eye is told
+     where the word went without the line moving */
+  @keyframes nameIn { 0% { color: #299D6B; } 100% { color: #101828; } }
+  .tally .names.fresh { animation: nameIn .6s cubic-bezier(.4,0,.2,1); }
+  /* the token's entrance belongs to the drop, which plays it on the frame the
+     flier lands. A CSS animation here would start on render and, being an
+     animation, would override the inline hold-back that keeps it hidden. */
+  @media (prefers-reduced-motion: reduce) {
+    .tally .names.fresh { animation: none; }
+  }
+
+  .trayrows { padding-bottom: 4px; }
+  .trayrow { display: flex; align-items: center; gap: 8px; }
+  .trayrow + .trayrow { border-top: 1px solid #F2F4F7; }
+  .trayrow .nm { flex: 1; min-width: 0; text-align: left; border: 0; background: none;
+    padding: 10px 0; min-height: 44px; cursor: pointer; }
+  .trayrow .nm b { display: block; font-size: 14px; font-weight: 600; color: #101828; }
+  .trayrow .nm span { display: block; font-size: 12.5px; color: #667085; margin-top: 2px; }
+  .trayrow .rm { width: 44px; min-height: 44px; border: 0; background: none; color: #667085;
+    cursor: pointer; display: grid; place-items: center; flex-shrink: 0; }
+
+  .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 12px;
+    touch-action:pan-x; overscroll-behavior-x:contain; }
+  .chips::-webkit-scrollbar { display: none; }
+  .cchip { flex-shrink: 0; display: inline-flex; align-items: stretch; min-height: 44px; background: #F9FAFB; border: 1px solid #E4E7EC; border-radius: 9999px; font-size: 12.5px; color: #101828; white-space: nowrap; }
+  .cchip b { font-weight: 700; }
+  .cchip .lbl { display: inline-flex; align-items: center; gap: 4px; min-height: 44px; border: 0; background: none; padding: 0 4px 0 16px; cursor: pointer; font-size: 12.5px; }
+  .cchip .rm { border: 0; background: none; min-height: 44px; padding: 0 16px 0 14px; color: #667085; cursor: pointer; display: flex; align-items: center; }
+  /* One row for the time and the commit. Stacking them cost 52px, which is
+     most of what the tray had spare. The clock is a well, not a pill, so it
+     reads as part of the button's row rather than a second action. */
+  /* flex-start, not stretch: stretch grew the button's face to the row height,
+     which was set by the pill plus its own margin, so the pill ended up 4px
+     shorter than the control beside it. Both now declare 52, and the lip is
+     the only thing that sits below either of them. */
+  .trow { display: flex; align-items: flex-start; gap: 8px; }
+  .trow .primary { flex: 1; min-width: 0; margin: 0; }
+  .trow .cnt { flex: 1; min-width: 0; font-size: 12.5px; color: #667085; }
+  .trow .cnt b { color: #101828; font-weight: 700; }
+  /* the door to the time picker. It has to read as a control worth tapping
+     without taking the eye off the green primary under it, so the depth is a
+     hairline and one pixel of lift, and the pencil sits in its own quiet disc
+     rather than shouting EDIT in caps beside the number. */
+  /* A pill again, not a second button: two buttons side by side made the time
+     look like an alternative to logging. It fills the primary's full 48px so
+     the row still sits on one baseline, and the clock rides in a white disc
+     inset in the tint, which is what gives it its own shape at that height. */
+  .timebtn { display: flex; align-items: center; gap: 8px; height: 52px; flex-shrink: 0;
+    padding: 0 16px; border-radius: 9999px;
+    /* the system's secondary colours: white on a brand border, brand label */
+    background: #fff; border: 1px solid #299D6B; color: #299D6B; cursor: pointer;
+    transition: transform .2s ease-out, background .2s ease-out; }
+  .timebtn:hover { background: #F3FCF8; }
+  .timebtn:active { transform: scale(.96); }
+  .timebtn .tclock { display: grid; place-items: center; color: #299D6B; flex-shrink: 0; }
+  .timebtn b { font-size: 14px; font-weight: 700; line-height: 18px; color: #299D6B; }
+  .timebtn .tedit { display: none; }
+  .timebtn:hover .tedit { background: #E4E7EC; }
+  .lands { font-size: 12.5px; line-height: 18px; color: #667085; margin-bottom: 10px; }
+  .lands b { color: #101828; }
+  /* the one primary on this screen */
+  .primary { width: 100%; height: 52px; min-height: 52px; border: 0; border-radius: 12px; background: #299D6B; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 0 #2A805A;
+    transition: transform .2s ease-out, box-shadow .2s ease-out; }
+  .primary:active { transform: translateY(4px); box-shadow: none; }
+  /* keeps its lip while disabled, in grey. Dropping the shadow made the
+     button 4px shorter than itself and unbalanced the row against the time. */
+  .primary[disabled] { background: #F2F4F7; color: #98A2B3; box-shadow: 0 4px 0 #E4E7EC;
+    cursor: default; transform: none; }
+
+  /* the one reward moment on this screen, and the only gold */
+
+  /* banners: something to know before saving */
+  .ban { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; padding: 12px; border-radius: 12px; font-size: 12.5px; line-height: 18px; }
+  .ban svg { flex-shrink: 0; margin-top: 1px; }
+  .ban .bt { flex: 1; min-width: 0; }
+  .ban b { display: block; font-weight: 700; }
+  .ban.warn { background: #FFFAEB; border: 1px solid #FEDF89; color: #93370D; }
+  .ban.warn svg { color: #DC6803; }
+  .ban.off { background: #F9FAFB; border: 1px solid #E4E7EC; color: #475467; }
+  .ban.off svg { color: #667085; }
+  .ban.err { background: #FEF3F2; border: 1px solid #FECDCA; color: #912018; }
+  .ban.err svg { color: #D92D20; }
+  .ban .retry { min-height: 44px; padding: 0 16px; border-radius: 9999px; border: 1px solid #D92D20; background: #fff; color: #D92D20; font-size: 12.5px; font-weight: 700; cursor: pointer; flex-shrink: 0; }
+
+  /* sheets: title left, filled circle X right, no handle, 90vh cap */
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: opacity .3s ease-out; z-index: 40; }
+  .scrim.on { opacity: 1; pointer-events: auto; }
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh; display: flex; flex-direction: column;
+    background: #fff; border-radius: 16px 16px 0 0; transform: translate(-50%, 100%); transition: transform .3s ease-out; z-index: 41; box-shadow: 0 20px 25px -5px rgba(0,0,0,.1); }
+  .sheet.on { transform: translate(-50%, 0); }
+  /* title and X both stand on the 16px gutter, the X glyph is 32 inside a 44 target */
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 8px; }
+  .shead h4 { margin: 0; font-size: 18px; font-weight: 600; }
+  .shead .x { width: 44px; height: 44px; margin-right: -9px; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  .sbody { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .sbody p { margin: 0 0 12px; font-size: 14px; line-height: 21px; color: #475467; }
+  /* while a sheet is up it owns the screen, so this is that screen's one primary */
+  .sok { width: 100%; min-height: 52px; margin-top: 16px; border: 0; border-radius: 12px; background: #299D6B; color: #fff; font-size: 15px; font-weight: 600; box-shadow: 0 4px 0 #2A805A; cursor: pointer; }
+  .sok:active { transform: translateY(4px); box-shadow: none; }
+  .sghost { width: 100%; min-height: 48px; margin-top: 12px; border: 1px solid #E4E7EC; border-radius: 12px; background: #fff; color: #344054; font-size: 14.5px; font-weight: 600; cursor: pointer; }
+
+  /* quantity */
+  /* what the item is */
+  .qitem { padding: 2px 0 14px; }
+  .qitem b { display: block; font-size: 22px; line-height: 30px; font-weight: 700; color: #101828;
+    letter-spacing: -.2px; }
+  .qitem span { display: block; margin-top: 2px; font-size: 14px; line-height: 21px; color: #667085; }
+
+  /* One panel, not three. Calories and the four macros are the same kind of
+     fact about the same helping, so they share a surface and are separated by
+     a hairline rather than by a colour each. The helping is named once, under
+     the food, and everything here belongs to it. */
+  .qfacts { border-radius: 16px; overflow: hidden; border: 1px solid #F2F4F7;
+    background: linear-gradient(180deg, #FCFCFD 0%, #F9FAFB 100%); }
+  .qcal { display: flex; align-items: baseline; gap: 8px; padding: 16px 16px 14px; }
+  .qcal svg { align-self: center; flex-shrink: 0; }
+  .qcal b { font-size: 26px; line-height: 32px; font-weight: 700; color: #101828;
+    letter-spacing: -.4px; }
+  .qcal span { font-size: 14px; color: #667085; }
+
+  .qmac { display: flex; border-top: 1px solid #F2F4F7; }
+  .qmac div { flex: 1; min-width: 0; text-align: center; padding: 14px 4px 16px; }
+  .qmac div + div { border-left: 1px solid #F2F4F7; }
+  .qmac .g { width: 22px; height: 22px; margin: 0 auto; background: var(--in-600, #444CE7);
+    -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+  .qmac b { display: block; margin-top: 8px; font-size: 15px; line-height: 20px;
+    font-weight: 600; color: #101828; }
+  .qmac div span { display: block; margin-top: 1px; font-size: 12px; line-height: 18px;
+    color: #667085; }
+
+  /* Once it is in the meal the primary becomes the control, in place: same
+     green bar, same height, same lip. The button does not disappear and get
+     replaced by something else, it turns into the thing that adjusts what it
+     just did, so the eye never has to find a new target. */
+  .qstep { display: flex; align-items: center; justify-content: space-between;
+    height: 52px; margin-top: 22px; padding: 0 6px; border-radius: 12px;
+    background: #299D6B; box-shadow: 0 4px 0 #2A805A; }
+  .qstep button { width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 10px;
+    background: rgba(255,255,255,.16); color: #fff;
+    display: grid; place-items: center; cursor: pointer;
+    transition: transform .2s ease-out, background .2s ease-out; }
+  .qstep button:hover { background: rgba(255,255,255,.26); }
+  .qstep button:active { transform: scale(.9); }
+  .qstep .v { flex: 1; min-width: 0; display: flex; align-items: baseline;
+    justify-content: center; gap: 6px; }
+  .qstep .v b { font-size: 20px; line-height: 26px; font-weight: 700; color: #fff; }
+  .qstep .v i { font-style: normal; font-size: 16px; line-height: 22px; font-weight: 500;
+    color: rgba(255,255,255,.88); }
+
+  .macro { display: flex; justify-content: space-between; gap: 6px; margin-top: 16px; padding: 12px 8px; border-radius: 12px; background: #F9FAFB; border: 1px solid #E4E7EC; }
+  .macro div { flex: 1; min-width: 0; text-align: center; }
+  .macro b { display: block; font-size: 15px; font-weight: 700; color: #101828; }
+  .macro span { display: block; font-size: 12px; color: #667085; margin-top: 2px; }
+
+  /* time */
+  .times { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 4px; }
+  .tchip { min-height: 44px; padding: 0 16px; border-radius: 9999px; border: 1px solid #E4E7EC; background: #fff; font-size: 13.5px; font-weight: 600; color: #344054; cursor: pointer; }
+  .tchip.on { background: #E6FAF1; border-color: #299D6B; color: #299D6B; }
+
+  /* The wheel, for everything the chips do not cover. Four columns, day first,
+     because the time decides the meal and the day decides which day's score it
+     moves. Five rows show, the middle one is the value, and the lozenge is the
+     only mark it needs. Scroll snap does the work: touch flicks it, the mouse
+     drags it through pointer events, the arrow keys step it. No dependency. */
+  .wheel { position: relative; display: flex; align-items: stretch; height: 220px; margin-top: 4px;
+    border-radius: 16px; border: 1px solid #E4E7EC; background: #fff; overflow: hidden; }
+  .wloz { position: absolute; left: 6px; right: 6px; top: 88px; height: 44px; border-radius: 12px; background: #F2F4F7; pointer-events: none; }
+  .wcol { position: relative; flex: 1 1 0; min-width: 0; height: 100%; padding: 88px 0; cursor: grab;
+    overflow-y: auto; overflow-x: hidden; scroll-snap-type: y mandatory; overscroll-behavior: contain;
+    touch-action: pan-y; scrollbar-width: none;
+    -webkit-mask-image: linear-gradient(180deg, rgba(0,0,0,0) 0, #000 46px, #000 174px, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(180deg, rgba(0,0,0,0) 0, #000 46px, #000 174px, rgba(0,0,0,0) 100%); }
+  .wcol::-webkit-scrollbar { display: none; }
+  .wcol.grab { cursor: grabbing; scroll-snap-type: none; }
+  .wcol:focus { outline: none; }
+  .wcol:focus-visible { outline: 2px solid #444CE7; outline-offset: -2px; border-radius: 12px; }
+  .wcol.ap { flex-grow: 1.15; }
+  .wi { height: 44px; scroll-snap-align: center; display: flex; align-items: center; justify-content: center;
+    padding: 0 4px; font-size: 16px; line-height: 20px; color: #98A2B3; white-space: nowrap; }
+  .wi.on { color: #101828; font-weight: 700; }
+  /* the colon rides in the centre row, the way timespent puts its unit labels there */
+  /* relative, so it sits in the same painting layer as the columns and the
+     lozenge does not cover it */
+  .wsep { position: relative; flex: 0 0 6px; display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 700; color: #101828; }
+  .vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+  /* where the meal lands is information, so it is neutral */
+  .landing { margin-top: 16px; padding: 12px; border-radius: 12px; background: #F9FAFB; border: 1px solid #E4E7EC; font-size: 13.5px; line-height: 20px; color: #344054; }
+  .landing b { color: #101828; }
+
+  /* capture: a photo or a sentence. Indigo supports it, quietly. */
+  .cap { padding: 2px 0 6px; text-align: center; }
+  .frame { position: relative; height: 200px; border-radius: 16px; overflow: hidden; background: #EEF4FF; border: 1.5px solid #C7D7FE; display: grid; place-items: center; }
+  .frame .corner { position: absolute; width: 26px; height: 26px; border: 2.5px solid #A4BCFD; border-radius: 6px; }
+  .frame .c1 { left: 16px; top: 16px; border-right: 0; border-bottom: 0; }
+  .frame .c2 { right: 16px; top: 16px; border-left: 0; border-bottom: 0; }
+  .frame .c3 { left: 16px; bottom: 16px; border-right: 0; border-top: 0; }
+  .frame .c4 { right: 16px; bottom: 16px; border-left: 0; border-top: 0; }
+  .frame .plate { width: 104px; height: 104px; border-radius: 9999px; background: #fff; border: 1px solid #C7D7FE; box-shadow: 0 1px 3px rgba(16,24,40,.06), 0 1px 2px -1px rgba(16,24,40,.04); display: grid; place-items: center; color: #A4BCFD; }
+  .scanline { position: absolute; left: 0; right: 0; height: 36px; background: linear-gradient(180deg, rgba(68,76,231,0), rgba(68,76,231,.16), rgba(68,76,231,0)); animation: scan 1.6s ease-in-out infinite; }
+  @keyframes scan { 0% { top: -36px; } 100% { top: 200px; } }
+  .wave { display: flex; align-items: center; justify-content: center; gap: 6px; height: 200px; border-radius: 16px; background: #EEF4FF; border: 1.5px solid #C7D7FE; }
+  /* the bars carry a resting height of their own, so with motion off the panel
+     still reads as a level meter that is switched on. The animation rides on
+     top of it, because a keyframe outranks the height the markup sets. */
+  .wave i { width: 6px; height: 18px; border-radius: 9999px; background: linear-gradient(180deg, #6172F3, #444CE7); animation: wv 1s ease-in-out infinite; }
+  @keyframes wv { 0%, 100% { height: 16px; opacity: .55; } 50% { height: 58px; opacity: 1; } }
+  .capsay { margin: 16px 0 0; font-size: 14px; line-height: 21px; color: #475467; }
+  .capsay b { color: #101828; }
+  .quote { margin: 16px 0 0; padding: 12px; border-radius: 12px; background: #F9FAFB; border: 1px solid #E4E7EC; font-size: 14.5px; line-height: 21px; color: #101828; text-align: left; }
+  .quote span { display: block; font-size: 12px; color: #667085; margin-bottom: 4px; font-weight: 600; }
+  .found { text-align: left; }
+  .found .fh { display: flex; align-items: center; gap: 8px; margin: 2px 0 8px; font-size: 14.5px; font-weight: 700; color: #101828; }
+  /* the capture flow is indigo, so its confirmation is too */
+  .found .fh svg { color: #444CE7; }
+  /* the helper line promises the whole row, so the whole row is the button. The
+     pencil is drawn inside it rather than beside it, so a food has one target
+     and not two that do the same thing. */
+  .fitem { width: 100%; display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 4px 8px; margin: 0 -8px;
+    border: 0; border-radius: 8px; background: none; text-align: left; cursor: pointer; }
+  .fitem + .fitem { border-top: 1px solid #F2F4F7; }
+  .fitem:hover { background: #F9FAFB; }
+  .fitem:active { background: #F2F4F7; }
+  .fitem .fn { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; }
+  .fitem .fn span { display: block; font-weight: 400; font-size: 12.5px; color: #667085; margin-top: 1px; }
+  /* how sure the reading is, not a control. No fill, no border, no button
+     padding, so nothing here competes with the things that answer a tap. */
+  .fitem .sure { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 400; color: #667085; white-space: nowrap; }
+  .fitem .sure::before { content: ""; width: 6px; height: 6px; border-radius: 9999px; background: #98A2B3; flex-shrink: 0; }
+  .fitem .sure.low { color: #B54708; }
+  .fitem .sure.low::before { background: #DC6803; }
+  .fitem .edit { width: 32px; height: 32px; color: #667085; display: grid; place-items: center; flex-shrink: 0; }
+  .denied { text-align: center; padding: 10px 0 0; }
+  .denied .dic { width: 64px; height: 64px; margin: 0 auto 12px; border-radius: 9999px; background: #F2F4F7; color: #667085; display: grid; place-items: center; }
+
+  /* The moment after saving. Not a screen: a screen would repeat the day
+     view, which is where this lands two seconds later anyway. All it owes the
+     user is the one thing the day view does not say at this instant, which is
+     what the log just did to the score.
+
+     The burst is the house celebration, measured from the design system: a
+     disc that scales in with an overshoot, a tick stroked on as it settles,
+     then nine pieces thrown radially, dots and arcs alternating, arcs further
+     out than dots. The palette is deliberately not the brand palette, which
+     is exactly what makes it read as a break from the UI. */
+  .won { position: fixed; top: 0; bottom: 0; left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 390px; z-index: 60; display: grid; place-items: center;
+    text-align: center; color: #fff; opacity: 0;
+    background: linear-gradient(160deg, #2A805A, #299D6B 55%, #12B76A);
+    animation: wonIn .28s cubic-bezier(.4,0,.2,1) forwards; }
+  @keyframes wonIn { to { opacity: 1; } }
+
+  /* one soft bloom behind the disc, so the centre has somewhere to sit */
+  .won .halo { position: absolute; left: 50%; top: 50%; width: 260px; height: 260px;
+    margin: -190px 0 0 -130px; border-radius: 9999px; pointer-events: none;
+    background: radial-gradient(closest-side, rgba(255,255,255,.22), rgba(255,255,255,0));
+    transform: scale(.4); opacity: 0;
+    animation: bloom .7s cubic-bezier(.4,0,.2,1) .1s forwards; }
+  @keyframes bloom { 60% { opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+
+  /* the burst sits in a full width row of its own and is centred by that row,
+     so it never depends on the column's width, which changes while the number
+     rolls up */
+  .won .burstrow { position: relative; display: block; height: 76px; margin-bottom: 22px; }
+  /* pinned to the row's own centre line, so no inline or flex sizing gets a
+     say. The column's width changes while the number rolls, and every
+     content-driven centring mode drifted with it. */
+  .won .burst { position: absolute; left: 50%; top: 0; width: 76px; height: 76px;
+    transform: translateX(-50%); }
+  .won .tk { position: absolute; inset: 0; border-radius: 9999px;
+    border: 3px solid rgba(255,255,255,.4); display: grid; place-items: center;
+    transform: scale(0);
+    animation: discIn .25s cubic-bezier(.34,1.3,.64,1) forwards; }
+  @keyframes discIn { to { transform: scale(1); } }
+  .won .tk svg { width: 40px; height: 40px; }
+  .won .tk path { stroke: #fff; stroke-width: 3.2; fill: none;
+    stroke-linecap: round; stroke-linejoin: round;
+    stroke-dasharray: 76; stroke-dashoffset: 76;
+    animation: wonDraw .2s cubic-bezier(.4,0,.2,1) .2s forwards; }
+  @keyframes wonDraw { to { stroke-dashoffset: 0; } }
+
+  /* nine pieces, each flung along its own angle. --a is the angle, --d how
+     far it travels: dots go further than arcs, which is what the drawing does. */
+  .won .p { position: absolute; left: 50%; top: 50%; width: 7px; height: 7px;
+    margin: -3.5px 0 0 -3.5px; opacity: 0;
+    animation: fling .4s cubic-bezier(.2,.7,.3,1) .26s forwards; }
+  .won .p.dot { border-radius: 9999px; }
+  .won .p.arc { width: 11px; height: 11px; margin: -5.5px 0 0 -5.5px;
+    border: 1.5px solid; border-color: currentColor transparent transparent transparent;
+    border-radius: 9999px; background: none; }
+  @keyframes fling {
+    0%   { opacity: 0; transform: rotate(var(--a)) translateX(30px) rotate(calc(var(--a) * -1)) scale(.4); }
+    35%  { opacity: 1; }
+    100% { opacity: 0; transform: rotate(var(--a)) translateX(var(--d)) rotate(180deg) scale(1); }
+  }
+
+  .won .d { font: 700 46px/46px Roboto, sans-serif; letter-spacing: -1px; }
+  .won .d b { font-weight: 700; }
+  .won .d s { text-decoration: none; font-size: 20px; font-weight: 700; opacity: .7; }
+  .won p { margin: 10px 0 0; font: 400 15px/22px Roboto, sans-serif; color: rgba(255,255,255,.92); }
+  .won .m { margin-top: 4px; font: 400 14px/20px Roboto, sans-serif; color: rgba(255,255,255,.72); }
+  /* a flex column, so the burst centres on the text whatever the number
+     counts up to. Auto margins could not, because the column's width is set
+     by the widest line and changes while the number rolls. */
+  .won .col2 { position: relative; z-index: 1;
+    animation: riseIn .5s cubic-bezier(.25,.1,.25,1) .1s backwards; }
+  @keyframes riseIn { from { transform: translateY(14px); opacity: 0; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .won, .won .tk, .won .tk path, .won .p, .won .halo, .won .col2 { animation-duration: .001ms; }
+    .won { opacity: 1; } .won .tk { transform: none; } .won .tk path { stroke-dashoffset: 0; }
+    .won .p, .won .halo { opacity: 0; }
+  }
+
+  /* ---------------------------------------------------- putting it on the plate */
+  /* The load-bearing part is the bar reacting, not the flight. Of about twenty
+     delivery and logging apps, none flies anything to the cart, and NN/g
+     objects to the screen-crossing arc under repetition. So the token and the
+     bar always answer, and the flier is a garnish that is suppressed on
+     reduced motion, when the bar is off screen, and past three in the air.
+     A meal is three to six taps in twenty seconds: this has to survive the
+     fourth one.
+
+     The flier is the token it is about to become: same 28px disc, same tint,
+     same glyph. You watch the item turn into the chip in the bar rather than
+     watching a label evaporate near it. */
+  /* The flier is the row itself, lifted off the list: the dish's own name and
+     helping on a floating card. A glyph could only ever stand for the food,
+     and the one thing the user is certain they tapped is the name. */
+  .morsel { position: fixed; z-index: 70; pointer-events: none;
+    box-sizing: border-box; padding: 9px 14px; border-radius: 12px;
+    background: #fff; border: 1px solid #E4E7EC;
+    box-shadow: 0 14px 28px -10px rgba(16,24,40,.34), 0 3px 8px -4px rgba(16,24,40,.18);
+    text-align: left; transform-origin: 24px 50%; }
+  .morsel b { display: block; font-size: 14px; font-weight: 600; line-height: 20px;
+    color: #101828; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .morsel span { display: block; margin-top: 2px; font-size: 12px; line-height: 18px;
+    color: #667085; white-space: nowrap; }
+  /* the row it came from settles back while the card is away */
+  @keyframes rowGive { 0% { opacity: 1; } 30% { opacity: .35; } 100% { opacity: 1; } }
+  .row.gave { animation: rowGive .5s cubic-bezier(.4,0,.2,1); }
+
+  /* the row confirms in place, which is the move every app in the field uses */
+  @keyframes addPop { 0% { transform: scale(.7); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }
+  .row.just .step { animation: addPop .15s cubic-bezier(.4,0,.2,1); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .row.just .step { animation: none; }
+  }
+
+  /* saving */
+  .saving { position: fixed; inset: 0; background: rgba(255,255,255,.92); display: grid; place-items: center; z-index: 50; }
+  .saving .box { text-align: center; }
+  .spin { width: 44px; height: 44px; margin: 0 auto 16px; border-radius: 9999px; border: 3px solid #E6FAF1; border-top-color: #299D6B; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .saving b { display: block; font-size: 15px; font-weight: 700; }
+  .saving span { display: block; font-size: 13px; color: #667085; margin-top: 4px; }
+
+  /* a tap always answers. This one says what the real app would do, because a
+     web page cannot open the phone's settings and pretending otherwise is a
+     button that lies. */
+  /* it sits at the top, because every screen here keeps its primary at the
+     bottom and a note must never cover the thing it is explaining */
+  .toast { position: fixed; left: 50%; transform: translate(-50%, -12px); opacity: 0;
+    transition: opacity .2s ease-out, transform .2s ease-out; pointer-events: none;
+    top: calc(12px + env(safe-area-inset-top, 0px));
+    width: calc(100% - 32px); max-width: 358px; padding: 12px 16px; border-radius: 12px; background: #101828; color: #fff;
+    font-size: 12.5px; line-height: 18px; z-index: 70; box-shadow: 0 4px 12px rgba(16,24,40,.24); }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+  /* a state picker, for review only */
+  .picker { position: fixed; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 390px; display: flex; gap: 6px; overflow-x: auto; touch-action:pan-x; overscroll-behavior-x:contain;
+    padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px)); background: rgba(16,24,40,.92); z-index: 60; scrollbar-width: none; }
+  .picker::-webkit-scrollbar { display: none; }
+  .picker a { flex-shrink: 0; min-height: 32px; display: inline-flex; align-items: center; padding: 0 10px; border-radius: 9999px; background: rgba(255,255,255,.1); color: #fff; font-size: 12px; text-decoration: none; }
+  .picker a.on { background: #fff; color: #101828; font-weight: 700; }
+  body.nopicker .picker { display: none; }
+  body.haspicker .col { padding-bottom: 54px; }
+  body.haspicker .sbody { padding-bottom: 76px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="col" id="col">
+  <div class="hd">
+    <button class="back" id="back" aria-label="Back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <span class="t"><b id="hTitle">Log your meal</b><span id="hSub">Today</span></span>
+    <span class="hspace" aria-hidden="true"></span>
+  </div>
+
+  <div id="dayNote"></div>
+
+  <div class="srch">
+    <div class="sbar">
+      <svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px;color:#667085"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" placeholder="Search a dish or ingredient" aria-label="Search a dish or ingredient" autocomplete="off">
+      <span id="sTools"></span>
+    </div>
+  </div>
+
+  <div class="tabs" id="tabs"><div class="tabbtns" id="tabBtns"></div><span class="tabind" id="tabInd"></span></div>
+  <div class="list" id="list"></div>
+
+  <div class="tray" data-kb-lift>
+    <div id="tally"></div>
+    <div id="trayTop"></div>
+    <div class="trow">
+      <button class="timebtn" id="timeBtn" aria-label="Change the time, now 8:30 AM">
+        <span class="tclock" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24" style="width:19px;height:19px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+        <b id="timeLbl">8:30 AM</b>
+      </button>
+      <button class="primary" id="saveBtn" disabled>Log meal</button>
+      <span class="cnt" id="count" hidden></span>
+      <span id="lands" hidden></span>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sTitle">
+  <div class="shead">
+    <h4 id="sTitle"></h4>
+    <button class="x" id="sX" aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path fill="#98A2B3" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </div>
+  <div class="sbody" id="sBody"></div>
+</div>
+
+<div id="savingHost"></div>
+<div id="toastHost"></div>
+<div class="picker" id="picker"></div>
+
+<script>
+/* ---------- the food list, as the app has it ---------- */
+function f(id, name, unit, p, c, fat, fibre, tags) {
+  return { id: id, name: name, unit: unit, p: p, c: c, f: fat, fibre: fibre, kcal: Math.round(p * 4 + c * 4 + fat * 9), tags: tags || [] };
+}
+var FOODS = [
+  f("poha", "Vegetable poha", "1 bowl", 5, 42, 6, 4, ["fav"]),
+  f("chana", "Roasted chana", "1 handful", 9, 27, 4, 6, ["fav"]),
+  f("chai", "Masala chai", "1 cup", 2, 11, 3, 0, ["fav"]),
+  f("paratha", "Paratha", "1 piece", 5, 26, 6, 3, ["freq"]),
+  f("curd", "Curd", "1 katori", 5, 7, 3, 0, ["freq"]),
+  f("banana", "Banana", "1 piece", 1, 25, 0, 3, ["freq"]),
+  f("dal", "Dal", "1 katori", 9, 20, 4, 5, ["freq"]),
+  f("dosa", "Dosa", "1 piece", 4, 29, 4, 2),
+  f("idli", "Idli", "2 pieces", 4, 26, 1, 2),
+  f("sambar", "Sambar", "1 katori", 4, 14, 3, 4),
+  f("rice", "Steamed rice", "1 katori", 3, 35, 0, 1),
+  f("roti", "Roti", "1 piece", 3, 15, 2, 2),
+  f("eggbhurji", "Egg bhurji", "2 eggs", 13, 2, 11, 0),
+  f("chicken", "Chicken curry", "1 katori", 22, 6, 12, 1),
+  f("curdrice", "Curd rice", "1 bowl", 7, 40, 5, 2),
+  f("almonds", "Soaked almonds", "6 pieces", 3, 2, 7, 2),
+  f("salad", "Cucumber and tomato salad", "1 bowl", 2, 6, 0, 3),
+  f("raita", "Raita", "1 katori", 4, 6, 3, 1),
+  f("paneer", "Paneer bhurji", "1 katori", 14, 5, 14, 1),
+  f("rajma", "Rajma", "1 katori", 9, 25, 3, 7),
+  f("biryani", "Chicken biryani", "1 plate", 12, 58, 14, 4),
+  f("upma", "Upma", "1 bowl", 5, 38, 7, 3),
+  f("coffee", "Filter coffee", "1 cup", 2, 8, 2, 0),
+  f("khichdi", "Dal khichdi", "1 bowl", 8, 38, 6, 5),
+  f("blacktea", "Black tea with cinnamon", "1 cup", 0, 2.5, 0, 0),
+  f("jeerawater", "Jeera water", "1 glass", 0, 0.7, 0, 0),
+  f("eggs", "Boiled egg", "1 egg", 6, 1, 5, 0),
+  f("chilla", "Lauki oats besan chilla", "1 piece", 3.5, 10, 2.5, 2),
+  f("chutney", "Green chutney", "1 spoon", 0, 1, 0, 0.5),
+  f("dahi", "Dahi, low-fat", "1 bowl", 9, 12, 3, 0),
+  f("gardensalad", "Garden salad", "1 bowl", 1, 3.5, 0, 3),
+  f("quinoa", "Vegetable quinoa pulao", "1 bowl", 6, 28, 4, 5),
+  f("makhana", "Roasted makhana", "1 bowl", 3, 18, 1.5, 2),
+  f("multiroti", "Multigrain roti", "1 piece", 2.5, 13, 2, 3),
+  f("sabzi", "Mixed veg sabzi", "1 katori", 3, 12, 6, 4),
+  f("walnut", "Walnut", "1 piece", 0.6, 0.5, 2.6, 0.3),
+  f("chamomile", "Chamomile tea", "1 cup", 0, 0.5, 0, 0)
+];
+var byId = function (id) { return FOODS.filter(function (x) { return x.id === id; })[0]; };
+
+/* which meal a time lands in, exactly as the app decides it */
+function divisionForTime(mins) {
+  if (mins < 7.5 * 60) return "prebreakfast";
+  if (mins < 11.5 * 60) return "breakfast";
+  if (mins < 16 * 60) return "lunch";
+  if (mins < 19.25 * 60) return "eveningsnack";
+  if (mins < 21.75 * 60) return "dinner";
+  return "bedtime";
+}
+var DIV_LABEL = { prebreakfast: "Pre-breakfast", breakfast: "Breakfast", lunch: "Lunch", eveningsnack: "Evening snack", dinner: "Dinner", bedtime: "Bedtime" };
+var DIV_WINDOW = { prebreakfast: "6:00 - 7:00 AM", breakfast: "8:00 - 10:00 AM", lunch: "1:00 - 3:00 PM", eveningsnack: "5:00 - 6:30 PM", dinner: "8:00 - 9:30 PM", bedtime: "10:00 - 11:00 PM" };
+function fmtTime(mins) {
+  var h = Math.floor(mins / 60), m = mins % 60, ap = h < 12 ? "AM" : "PM", h12 = h % 12 === 0 ? 12 : h % 12;
+  return h12 + ":" + (m < 10 ? "0" : "") + m + " " + ap;
+}
+
+/* Days are named by hand rather than by toLocaleDateString, because en-GB
+   spells September "Sept" in some builds and the wheel column cannot afford a
+   label that changes width between browsers. */
+var WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+var WDL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+var MO = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+var MOL = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+function dayAt(off) { var d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() + off); return d; }
+function dayLabel(off) {
+  if (off === 0) return "Today";
+  if (off === -1) return "Yesterday";
+  var d = dayAt(off);
+  return WD[d.getDay()] + " " + d.getDate() + " " + MO[d.getMonth()];
+}
+/* Today says Today. Any other day says its date, which is the only thing a
+   person needs to know they are not logging into the wrong one. */
+function dayTitle(off) {
+  if (!off) return "Today";
+  var d = dayAt(off);
+  return d.getDate() + " " + MOL[d.getMonth()];
+}
+
+function dayLong(off) {
+  var d = dayAt(off);
+  return WDL[d.getDay()] + ", " + d.getDate() + " " + MOL[d.getMonth()];
+}
+
+/* the coach's breakfast, written three ways */
+var PLAN = [
+  [{ id: "eggs", qty: 2 }, { id: "chilla", qty: 2 }, { id: "chutney", qty: 2 }, { id: "curd", qty: 1 }],
+  [{ id: "poha", qty: 1 }, { id: "curd", qty: 1 }, { id: "eggs", qty: 1 }],
+  [{ id: "idli", qty: 1 }, { id: "sambar", qty: 1 }, { id: "curd", qty: 1 }, { id: "eggs", qty: 1 }]
+];
+
+/* ---------- icons ---------- */
+var I = {
+  /* the three tab marks. Recent is a clock because it is about when, not how
+     often. Favourites is the same heart the rows carry. The plan is the
+     clipboard the coach writes on. */
+  /* one neutral food mark for the tray tokens. A macro glyph implied the
+     dish was mostly that macro, which is a different claim. */
+  dish: '<svg viewBox="0 0 24 24" fill="none" stroke="#2D3282" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3.5 11h17"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 7.5c0-1.2 1.1-1.5 1.1-2.7"/><path d="M8.6 7.5c0-1.2 1.1-1.5 1.1-2.7"/></svg>',
+  /* the same flame the calorie card on the day view uses, gradient and all */
+  flame: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+    '<defs><linearGradient id="calf2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FDB022"/><stop offset="1" stop-color="#F04438"/></linearGradient></defs>' +
+    '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="url(#calf2)"/></svg>',
+  clock: '<svg class="ico" viewBox="0 0 24 24" style="stroke-width:1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  heartLine: '<svg class="ico" viewBox="0 0 24 24" style="stroke-width:1.8"><path d="M12 20s-7-4.4-7-9.2A4 4 0 0 1 12 8a4 4 0 0 1 7 2.8C19 15.6 12 20 12 20z"/></svg>',
+  /* the same glass the search bar above carries, so the button and the field
+     it sends you to are visibly the same thing */
+  /* Kaira's hexagon, lifted from the day view so she is the same mark
+     wherever she turns up */
+  kmark: '<svg width="34" height="37" viewBox="0 0 22 24" fill="none" aria-hidden="true">' +
+    '<defs><linearGradient id="klg" x1="0" y1="0" x2="1" y2="1">' +
+    '<stop offset="0" stop-color="#444CE7"/><stop offset="1" stop-color="#15B79E"/></linearGradient></defs>' +
+    '<path d="M11 1.2 20.1 6.6v10.8L11 22.8 1.9 17.4V6.6z" stroke="url(#klg)" stroke-width="2.4" stroke-linejoin="round"/></svg>',
+  kmarkSm: '<svg width="17" height="19" viewBox="0 0 22 24" fill="none" aria-hidden="true">' +
+    '<path d="M11 1.2 20.1 6.6v10.8L11 22.8 1.9 17.4V6.6z" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg>',
+  search: '<svg class="ico" viewBox="0 0 24 24" style="stroke-width:1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
+  clipboard: '<svg class="ico" viewBox="0 0 24 24" style="stroke-width:1.8"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4.5a2 2 0 0 1 2-1.5h2a2 2 0 0 1 2 1.5M9 11h6M9 15h4"/></svg>',
+  plus: '<svg class="ico" viewBox="0 0 24 24" style="width:20px;height:20px;stroke-width:2.4"><path d="M12 5v14M5 12h14"/></svg>',
+  minus: '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px;stroke-width:2.4"><path d="M5 12h14"/></svg>',
+  plusSm: '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px;stroke-width:2.4"><path d="M12 5v14M5 12h14"/></svg>',
+  x: '<svg class="ico" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+  heart: function (on) { return '<svg viewBox="0 0 24 24" width="19" height="19" fill="' + (on ? "currentColor" : "none") + '" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/></svg>'; },
+  cam: '<svg class="ico" viewBox="0 0 24 24" style="width:20px;height:20px"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>',
+  mic: '<svg class="ico" viewBox="0 0 24 24" style="width:20px;height:20px"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg>',
+  check: '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px;stroke-width:2.6"><path d="M20 6L9 17l-5-5"/></svg>',
+  tickMark: '<svg class="ico" viewBox="0 0 24 24" style="width:13px;height:13px;stroke-width:3"><path d="M20 6L9 17l-5-5"/></svg>',
+  info: '<svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
+  warn: '<svg class="ico" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M12 9v4M12 17h.01M10.3 3.9 2.4 17a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>',
+  cloud: '<svg class="ico" viewBox="0 0 24 24" style="width:17px;height:17px"><path d="M17.5 19a4.5 4.5 0 0 0 .5-9 6 6 0 0 0-11.7-1.3A4 4 0 0 0 6.5 19z"/><path d="M12 12v5M9.5 14.5 12 17l2.5-2.5"/></svg>',
+  cal: '<svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  pencil: '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  chev: '<svg class="ico chev" viewBox="0 0 24 24" style="width:14px;height:14px;stroke-width:2.6"><path d="M9 18l6-6-6-6"/></svg>',
+  block: '<svg class="ico" viewBox="0 0 24 24" style="width:26px;height:26px"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>'
+};
+
+/* ---------- state ---------- */
+var Q = new URLSearchParams(location.search);
+var STATE = Q.get("state") || "search";
+var ENTRY = Q.get("entry") || "plus";
+/* Which meal the door was opened from. The Eat screen sends this on every
+   door (`?meal=dinner`). Everything downstream, the header, the window and
+   the "This lands under" line, is already derived from the time, so setting
+   the clock to the middle of that meal's window makes all three correct at
+   once. Without it, Log all on Dinner opened a screen headed Breakfast. */
+var MEAL = Q.get("meal") || "";
+var MEAL_START = { prebreakfast: 6 * 60 + 30, breakfast: 8 * 60 + 30, lunch: 13 * 60 + 30,
+                   eveningsnack: 17 * 60 + 30, dinner: 20 * 60 + 30, bedtime: 22 * 60 + 30,
+  /* the day view's own ids for the same six meals. Without these, four of the
+     six doors fell through to the 8:30 default, which is why the + on Bedtime
+     used to open a screen headed Breakfast. */
+  pre: 6 * 60 + 30, bf: 8 * 60 + 30, snack: 17 * 60 + 30, bed: 22 * 60 + 30 };
+
+var S = {
+  items: [],          // [{id, qty}]
+  query: "",
+  tab: "recent",
+  time: MEAL_START[MEAL] || 8 * 60 + 30,
+  /* 0 is today, negative is a day already gone. The wheel's day column writes
+     it, the day note reads it, and S.past follows it. */
+  dayOffset: 0,
+  fav: ["poha", "chana", "chai"],
+  fresh: false,       // nothing logged ever, so no recents to show
+  option: 0,          // which of the coach's options is showing
+  hasPlan: true,
+  past: false,
+  banner: null,       // offline | failed
+  sheet: null
+};
+
+/* the entry point decides what is already in the tray and how the header reads */
+if (ENTRY === "tick") {
+  /* A tick on the day view no longer confirms in place, it sends the user
+     here with what they ticked. The food and its quantity ride in the query
+     so the row they pressed is already in the tray and the option they were
+     reading is already the open one, which is the whole point of coming here
+     rather than answering a sheet. The fixture is the fallback for a link
+     that arrives without them. */
+  var tf = Q.get("food"), tq = parseInt(Q.get("qty"), 10);
+  S.items = tf && byId(tf) ? [{ id: tf, qty: tq > 0 ? tq : 1 }] : [{ id: "eggs", qty: 2 }];
+  S.tab = "plan";
+}
+var tOpt = parseInt(Q.get("opt"), 10);
+if (tOpt >= 0 && tOpt < PLAN.length) S.option = tOpt;
+if (ENTRY === "logall") S.items = [{ id: "chilla", qty: 2 }, { id: "chutney", qty: 2 }, { id: "curd", qty: 1 }];
+/* Edit is the success screen's second thought: the meal that was just saved
+   comes back into the tray so a quantity, a time or a whole item can be put
+   right, rather than the only way out being to destroy the log. The items here
+   are a fixture. In the app the caller hands over what it wrote. */
+if (ENTRY === "edit") S.items = [{ id: "chilla", qty: 2 }, { id: "chutney", qty: 2 }, { id: "curd", qty: 1 }];
+var EDITING = ENTRY === "edit";
+if (ENTRY === "pastday") { S.past = true; S.dayOffset = -9; }
+
+/* a day that has not happened yet cannot be logged, so the screen says so and stops */
+var FUTURE = (function () {
+  var d = Q.get("date"); if (!d) return null;
+  var when = new Date(d + "T00:00:00"); if (isNaN(when)) return null;
+  var today = new Date(); today.setHours(0, 0, 0, 0);
+  if (when <= today) return null;
+  return when.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+})();
+
+/* each state is the screen at one moment, so a reviewer can jump straight to it */
+var PRESET = {
+  search: {},
+  typing: { query: "ro" },
+  noresults: { query: "kimchi pancake" },
+  quantity: { sheet: { kind: "qty", id: "poha", qty: 1 } },
+  multi: { items: [{ id: "eggs", qty: 2 }, { id: "chilla", qty: 2 }, { id: "chutney", qty: 2 }, { id: "chai", qty: 1 }] },
+  plan: { tab: "plan" },
+  noplan: { hasPlan: false, tab: "recent" },
+  /* The first time anyone opens this screen. No plan, so no plan tab; nothing
+     logged, so no recents; nothing hearted, so no favourites. Every list is
+     empty at once, which is the one arrangement the screen has to be good at
+     and the one it is least often designed for. */
+  ftux: { hasPlan: false, tab: "recent", fresh: true, fav: [] },
+  ftuxfav: { hasPlan: false, tab: "fav", fresh: true, fav: [] },
+  time: { sheet: { kind: "time" } },
+  snap: { sheet: { kind: "snap", step: "frame" } },
+  snapreading: { sheet: { kind: "snap", step: "reading" } },
+  snapresult: { sheet: { kind: "snap", step: "result" } },
+  snapnone: { sheet: { kind: "snap", step: "none" } },
+  snapdenied: { sheet: { kind: "snap", step: "denied" } },
+  voice: { sheet: { kind: "voice", step: "listening" } },
+  voiceheard: { sheet: { kind: "voice", step: "heard" } },
+  voiceresult: { sheet: { kind: "voice", step: "result" } },
+  voicenone: { sheet: { kind: "voice", step: "none" } },
+  voicedenied: { sheet: { kind: "voice", step: "denied" } },
+  saving: { items: [{ id: "eggs", qty: 2 }, { id: "curd", qty: 1 }], saving: true },
+  offline: { items: [{ id: "eggs", qty: 2 }, { id: "curd", qty: 1 }], banner: "offline" },
+  failed: { items: [{ id: "eggs", qty: 2 }, { id: "curd", qty: 1 }], banner: "failed" },
+};
+var p = PRESET[STATE] || {};
+for (var k in p) { if (k !== "saving") S[k] = p[k]; }
+if (!S.hasPlan && S.tab === "plan") S.tab = "recent";
+
+/* ---------- helpers ---------- */
+var el = function (id) { return document.getElementById(id); };
+var qtyOf = function (id) { var x = S.items.filter(function (i) { return i.id === id; })[0]; return x ? x.qty : 0; };
+/* an item is a food, not a helping: 2 eggs is one item at quantity 2 */
+var count = function () { return S.items.length; };
+var kcalTotal = function () { return S.items.reduce(function (n, x) { var fd = byId(x.id); return n + (fd ? fd.kcal * x.qty : 0); }, 0); };
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+/* How many morsels are in the air. Past three the flight is dropped and the
+   tray still answers, so a burst of taps never becomes a swarm. */
+var INFLIGHT = 0;
+
+function toss(a, name, sub, row) {
+  if (!a || INFLIGHT >= 3) return;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var strip = document.getElementById("tallyBtn");
+  var dest = (strip && strip.querySelector(".stack")) || el("saveBtn");
+  if (!dest) return;
+  var b = dest.getBoundingClientRect();
+  if (!a.width || !b.width) return;
+
+  /* The destination token is already in the DOM, because state commits before
+     the render. Hold it at nothing until the card actually arrives, or the
+     bar is visibly holding the item while the item is still in the air. */
+  var tok = strip ? strip.querySelector(".tok") : null;
+  if (tok) { tok.style.transform = "scale(0)"; tok.style.opacity = "0"; }
+
+  var m = document.createElement("div");
+  m.className = "morsel";
+  m.innerHTML = "<b>" + esc(name) + "</b>" + (sub ? "<span>" + esc(sub) + "</span>" : "");
+  /* on body, because position:fixed is measured against any ancestor that
+     carries a transform, and the list and tray both sit inside one */
+  document.body.appendChild(m);
+  m.style.width = Math.min(240, Math.max(150, a.width)) + "px";
+  var mr = m.getBoundingClientRect();
+  var x0 = a.left;
+  var y0 = a.top + a.height / 2 - mr.height / 2;
+  m.style.left = x0 + "px";
+  m.style.top = y0 + "px";
+
+  /* it converges on the token stack, and the card shrinks toward its own left
+     edge, which is the corner that lands there */
+  var dx = b.left - x0;
+  var dy = (b.top + b.height / 2 - mr.height / 2) - y0;
+  var lift = Math.min(40, Math.abs(dy) * 0.16);
+
+  INFLIGHT++;
+  if (row) { row.classList.remove("gave"); void row.offsetWidth; row.classList.add("gave"); }
+
+  /* Slow enough to watch. Three phases: it peels off the row and rises,
+     decelerating. It falls along an arc, accelerating, the way a dropped
+     thing does. It shrinks into the bar over the last stretch rather than
+     vanishing at a point. */
+  var DUR = 560;
+  var fly = m.animate([
+    { transform: "translate(0px,0px) scale(1)", opacity: 1, offset: 0,
+      easing: "cubic-bezier(.2,.85,.35,1)" },
+    { transform: "translate(" + (dx * .1) + "px," + (-lift) + "px) scale(1.04)", opacity: 1, offset: .24,
+      easing: "cubic-bezier(.5,0,.85,.4)" },
+    { transform: "translate(" + (dx * .82) + "px," + (dy * .86) + "px) scale(.52)", opacity: .92, offset: .78,
+      easing: "cubic-bezier(.4,0,.2,1)" },
+    { transform: "translate(" + dx + "px," + dy + "px) scale(.16)", opacity: 0, offset: 1 }
+  ], { duration: DUR, fill: "forwards" });
+
+  /* the bar takes it just before the card finishes shrinking, so the two
+     overlap instead of queueing */
+  setTimeout(function () {
+    if (tok) {
+      tok.style.transform = "";
+      tok.style.opacity = "";
+      tok.animate([
+        { transform: "scale(.5)", opacity: 0 },
+        { transform: "scale(1.16)", opacity: 1, offset: .55 },
+        { transform: "scale(1)", opacity: 1 }
+      ], { duration: 300, easing: "cubic-bezier(.34,1.3,.64,1)" });
+    }
+    if (strip) {
+      strip.animate([
+        { transform: "translateY(0)" },
+        { transform: "translateY(4px)", offset: .3 },
+        { transform: "translateY(0)" }
+      ], { duration: 340, easing: "cubic-bezier(.34,1.35,.64,1)" });
+    }
+  }, DUR * 0.8);
+
+  fly.onfinish = function () { m.remove(); INFLIGHT--; };
+}
+
+function addAt(id, qty, fromEl) {
+  var at = -1;
+  for (var i = 0; i < S.items.length; i++) { if (S.items[i].id === id) at = i; }
+  if (at === -1) S.items = S.items.concat({ id: id, qty: qty });
+  else S.items = S.items.map(function (x, i) { return i === at ? { id: x.id, qty: x.qty + qty } : x; });
+  var fd = byId(id);
+  LASTADD = id;
+  var srcRow = fromEl ? fromEl.closest(".row") : null;
+  var from = srcRow ? srcRow.getBoundingClientRect() : null;
+  render();
+  /* the row after the render, so the dim plays on the live node */
+  var liveRow = document.querySelector('.row[data-food="' + id + '"]');
+  if (from && fd) toss(from, fd.name, fd.unit, liveRow);
+}
+
+function bump(id, by, fromEl) {
+  var at = -1;
+  for (var i = 0; i < S.items.length; i++) { if (S.items[i].id === id) { at = i; } }
+  if (at === -1) {
+    if (by > 0) S.items = S.items.concat({ id: id, qty: 1 });
+  } else {
+    var next = S.items[at].qty + by;
+    if (next <= 0) S.items = S.items.filter(function (x) { return x.id !== id; });
+    else S.items = S.items.map(function (x, i) { return i === at ? { id: x.id, qty: next } : x; });
+  }
+  /* measured before render(), which takes the row away and leaves every
+     node from it detached with a zero rect */
+  var srcRow = by > 0 && fromEl ? fromEl.closest(".row") : null;
+  var rect = srcRow ? srcRow.getBoundingClientRect() : null;
+  var fd = byId(id);
+  if (by > 0) LASTADD = id;
+  JUST = by > 0 ? id : null;
+  render();
+  JUST = null;
+  var liveRow = document.querySelector('.row[data-food="' + id + '"]');
+  if (rect && fd) toss(rect, fd.name, fd.unit, liveRow);
+}
+/* the row that just took an item, so it can confirm in place */
+var JUST = null;
+
+/* ---------- the plan, shared items lifted out of the options ---------- */
+/* The tally strip. Newest first, because the thing you just tapped is the
+   thing you are checking. Three tokens then a +N, so its width is fixed
+   whether the tray holds four items or forty. */
+
+function renderTally() {
+  var host = el("tally");
+  if (!S.items.length) { host.innerHTML = ""; return; }
+  var newest = S.items.slice().reverse();
+  var shown = newest.slice(0, 2);
+  var extra = newest.length - shown.length;
+  var fresh = JUST || LASTADD;
+
+  var toks = shown.map(function (it) {
+    return '<span class="tok">' + I.dish + "</span>";
+  }).join("");
+  if (extra > 0) toks += '<span class="tok more">+' + extra + "</span>";
+
+  /* past ten the names give up rather than the strip growing or shrinking
+     the type to fit */
+  var names = newest.length >= 10
+    ? newest.length + " items"
+    : newest.map(function (it) { return byId(it.id).name; }).join(", ");
+
+  host.innerHTML = '<button class="tally" id="tallyBtn" aria-label="See what is in this meal">' +
+    '<span class="stack">' + toks + "</span>" +
+    '<span class="names' + (fresh ? " fresh" : "") + '">' + esc(names) + "</span>" +
+    '<span class="kc">' + kcalTotal() + " kcal</span>" +
+    '<span class="chev">' + I.chev + "</span></button>";
+  LASTADD = null;
+}
+/* which item arrived last, so the strip can point at it once */
+var LASTADD = null;
+
+/* Slides the indicator onto whichever tab is live. Measured rather than
+   computed, so it stays right whatever the labels say. */
+function moveTabInd() {
+  var ind = el("tabInd"), on = el("tabBtns").querySelector(".tab.on");
+  if (!ind) return;
+  if (!on) { ind.style.opacity = "0"; return; }
+  /* One coordinate system for both, offsetLeft against the same offsetParent,
+     rather than mixing getBoundingClientRect (viewport) with a transform
+     applied in the container's own space. Mixing the two is what kept putting
+     this 16px out in one direction or the other.
+
+     The width is the icon plus the gap plus the label, because the button is
+     flex:1 and therefore a third of the bar whatever it says. The icon is an
+     SVG, which has no offsetLeft, so its width comes from its box. */
+  var lab = on.lastElementChild;
+  var gap = parseFloat(getComputedStyle(on).gap) || 0;
+  var iconW = on.firstElementChild.getBoundingClientRect().width || 17;
+  var contentW = iconW + gap + lab.offsetWidth;
+  ind.style.width = Math.round(contentW) + "px";
+  /* offsetLeft is measured from the container's padding box, but the
+     indicator's own static position is its border box, so the container's
+     16px has to come back off. Measured on screen: without this the bar
+     lands exactly one padding to the right of its label. */
+  var pad = parseFloat(getComputedStyle(el("tabs")).paddingLeft) || 0;
+  ind.style.transform =
+    "translateX(" + Math.round(on.offsetLeft + (on.offsetWidth - contentW) / 2 - pad) + "px)";
+  ind.style.opacity = "1";
+}
+
+/* Re-measure once Roboto has actually arrived, and again if the column is
+   resized. Both change the label's width under a bar that was positioned
+   from it. */
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(function () { moveTabInd(); });
+}
+window.addEventListener("resize", moveTabInd);
+
+/* The coach's three options are numbered, because that is what a coach says on
+   the phone and what the person reads back. The calorie total rides underneath
+   so the three can still be compared without tapping each one in turn. */
+
+/* the coach wrote this plan for breakfast, so that is the meal its rows belong to */
+var PLAN_DIV = "breakfast";
+
+/* An empty tab is not an error, so it does not apologise. It names what the
+   tab is for, says how it fills, and where a list would have been it puts one
+   real object: the house pictogram for recents, and for favourites the very
+   heart the sentence is asking the reader to press. */
+/* One line, not a headline and a paragraph under it. There is nothing here to
+   summarise, so a heading had nothing to do but repeat the sentence below it
+   in fewer words. */
+function emptyList(art, line, cta) {
+  return '<div class="empty"><div class="eart">' + art + "</div>" +
+    "<p>" + line + "</p>" +
+    (cta ? '<button class="cta" data-act="toSearch">' + I.search + cta + "</button>" : "") +
+    "</div>";
+}
+
+/* a plan row carries the coach's quantity, and the tick asks before it logs */
+function planRow(it) {
+  var fd = byId(it.id); if (!fd) return "";
+  var qty = qtyOf(fd.id);
+  /* The same control every other row has. A checkbox here said "tick off the
+     plan", which made a plan food a different kind of thing from a searched
+     one. It is not: both are food going into the same tray.
+
+     This screen still carries no Skip. Saying "not today" to a coach's food
+     is a decision about the plan, not about this tray, so it lives in the
+     meal card's overflow menu on the Eat screen and nowhere else. */
+  return '<div class="row' + (qty ? " has" : "") + '" data-food="' + fd.id + '">' +
+    '<button class="nm"><b>' + esc(fd.name) + I.chev + "</b><span>" +
+      ((it.qty > 1 ? it.qty + " x " + esc(fd.unit) : esc(fd.unit)) + " \u00b7 " + Math.round(fd.kcal * it.qty) + " kcal") +
+      "</span></button>" +
+    (qty
+      ? '<span class="step"><button data-dec="' + fd.id + '" aria-label="One less ' + esc(fd.name) + '">' + I.minus + "</button><b>" + qty + "</b>" +
+        '<button data-inc="' + fd.id + '" aria-label="One more ' + esc(fd.name) + '">' + I.plusSm + "</button></span>"
+      : '<button class="add" data-plan="' + fd.id + ":" + it.qty + '" aria-label="Add ' + esc(fd.name) + '">' + I.plus + "</button>") +
+    "</div>";
+}
+
+/* ---------- rows ---------- */
+function foodRow(fd) {
+  var qty = qtyOf(fd.id), fav = S.fav.indexOf(fd.id) > -1;
+  return '<div class="row' + (qty ? " has" : "") + '" data-food="' + fd.id + '">' +
+    '<button class="nm"><b>' + esc(fd.name) + I.chev + '</b><span>' + esc(fd.unit) + " · " + fd.kcal + " kcal" + '</span></button>' +
+    '<button class="heart' + (fav ? " on" : "") + '" data-fav="' + fd.id + '" aria-label="' + (fav ? "Remove from favourites" : "Add to favourites") + '">' + I.heart(fav) + '</button>' +
+    (qty
+      ? '<span class="step"><button data-dec="' + fd.id + '" aria-label="One less ' + esc(fd.name) + '">' + I.minus + '</button><b>' + qty + '</b>' +
+        '<button data-inc="' + fd.id + '" aria-label="One more ' + esc(fd.name) + '">' + I.plusSm + '</button></span>'
+      : '<button class="add" data-inc="' + fd.id + '" aria-label="Add ' + esc(fd.name) + '">' + I.plus + '</button>') +
+    "</div>";
+}
+
+/* what is different about this log is said once, at the top. A day that is not
+   today follows the wheel, so it is rebuilt whenever the time changes. */
+function dayNoteHTML() {
+  var out = "";
+  if (EDITING) {
+    out += '<div class="daynote">' + I.pencil +
+      "<span>You are fixing <b>a meal you already logged</b>. Saving replaces what was there.</span></div>";
+  }
+  return out;
+}
+
+/* ---------- render ---------- */
+function render() {
+  var q = S.query.trim().toLowerCase();
+  var div = divisionForTime(S.time);
+
+  if (FUTURE) return renderFuture();
+
+  /* header: which meal this lands in, and the window the coach set for it */
+  el("hTitle").textContent = "Log your meal";
+  el("hSub").textContent = dayTitle(S.dayOffset);
+
+  el("dayNote").innerHTML = dayNoteHTML();
+
+  /* the two hands free ways in stand down once someone starts typing */
+  el("sTools").innerHTML = q
+    ? '<button class="iconbtn" id="clearQ" aria-label="Clear search">' + I.x + "</button>"
+    : '<span style="display:flex;align-items:center;gap:2px"><span class="sep" aria-hidden="true"></span>' +
+      '<button class="iconbtn ind" id="snapBtn" aria-label="Log with a photo">' + I.cam + "</button>" +
+      '<button class="iconbtn ind" id="voiceBtn" aria-label="Log by speaking">' + I.mic + "</button></span>";
+
+  /* tabs */
+  /* Recent, Favourites, then the plan. Frequent and Favourites were two
+     names for the same shelf, so Frequent became Recent: one is what you
+     reach for by habit, the other what you chose to keep. */
+  var tabs = [{ id: "recent", label: "Recent", icon: I.clock },
+              { id: "fav", label: "Favourites", icon: I.heartLine }];
+  if (S.hasPlan) tabs.push({ id: "plan", label: "Your plan", icon: I.clipboard });
+  el("tabBtns").innerHTML = q ? "" : tabs.map(function (t) {
+    return '<button class="tab' + (S.tab === t.id ? " on" : "") + '" data-tab="' + t.id + '">' +
+      t.icon + '<span>' + t.label + "</span></button>";
+  }).join("");
+  el("tabs").style.display = q ? "none" : "block";
+  moveTabInd();
+
+  /* the list */
+  var html = "";
+  if (q) {
+    var hits = FOODS.filter(function (x) { return x.name.toLowerCase().indexOf(q) > -1; });
+    if (!hits.length) {
+      /* The database not knowing a dish is not the user's problem to solve.
+         Telling them to try a shorter word puts the work back on them for a
+         gap on our side, so the search miss hands straight to Kaira, who can
+         take a description and log it. The spelling tip stays, quietly,
+         underneath, for the times it really was a typo. */
+      html = '<div class="empty">' +
+        '<div class="eart">' + I.kmark + "</div>" +
+        "<p>We could not find <b>" + esc(S.query) + "</b>. Kaira can log it for you.</p>" +
+        '<button class="cta" data-act="kairaLog">Log it with Kaira</button></div>';
+    } else {
+      html = hits.map(foodRow).join("");
+    }
+  } else if (S.tab === "plan") {
+    /* one option is chosen, the others are a tap away */
+    html += '<div class="opts">' + PLAN.map(function (o, i) {
+      return '<button class="opt' + (i === S.option ? " on" : "") + '" data-opt="' + i + '">' +
+        (i === S.option ? I.check : "") +
+        '<span class="ot"><b>Option ' + (i + 1) + "</b></span></button>";
+    }).join("") + "</div>";
+    /* One list, in the coach's own order. It used to be split into "in every
+       option" and "only in option 2", which made the reader hold all three
+       options in their head to read one, and answered a question nobody had
+       asked: they have already chosen. */
+    html += PLAN[S.option].map(planRow).join("");
+  } else if (S.tab === "fav") {
+    var favs = FOODS.filter(function (x) { return S.fav.indexOf(x.id) > -1; });
+    /* The empty state shows the exact control it is asking for. A generic
+       illustration would make the reader go and hunt for the heart; the real
+       one, at the size it appears on a row, is the instruction. */
+    html = favs.length ? favs.map(foodRow).join("")
+      : emptyList(
+          '<div class="favdemo" aria-hidden="true">' +
+            '<div class="fdrow"><span class="fdt"><b>Vegetable poha</b><i>1 bowl, 242 kcal</i></span>' +
+              '<span class="fdh"><span class="fdring"></span>' +
+                '<span class="fdo">' + I.heart(false) + "</span>" +
+                '<span class="fdf">' + I.heart(true) + "</span></span></div>" +
+            '<span class="fdtip"></span><span class="fdfly">' + I.heart(true) + "</span></div>",
+          "Tap the heart on a food, and it is here whenever you want it.");
+  } else if (S.fresh) {
+    /* Nothing has ever been logged, so there is nothing to recall. The screen
+       says what this tab is for rather than printing an apology, and points
+       at the field above, which is the only thing that can fill it. */
+    html = emptyList(
+      '<img src="../icons/pictogram-eat.png" alt="" width="47" height="72">',
+      "Start with whatever you ate last. No judgement, ever.",
+      "Find your food");
+  } else {
+    var recent = FOODS.filter(function (x) { return x.tags.indexOf("freq") > -1 || x.tags.indexOf("fav") > -1; });
+    html = '<div class="glab">' + (S.hasPlan ? "What you logged lately" : "Common meals to start with") + "</div>" + recent.map(foodRow).join("");
+  }
+  el("list").innerHTML = html;
+
+  /* the tray: chips, a banner when there is something to know, the count */
+  var top = "";
+  if (S.banner === "offline") {
+    top += '<div class="ban off">' + I.cloud + '<span class="bt"><b>You are offline</b>' +
+      "Log it anyway. It sends by itself when you are back.</span></div>";
+  }
+  if (S.banner === "failed") {
+    top += '<div class="ban err">' + I.warn + '<span class="bt"><b>That did not save</b>' +
+      "Your meal is still here, nothing is lost.</span>" +
+      '<button class="retry" id="retry">Retry</button></div>';
+  }
+
+  el("trayTop").innerHTML = top;
+
+  var n = count();
+  el("count").innerHTML = n === 0 ? "No items yet"
+    : "<b>" + n + "</b> " + (n === 1 ? "item" : "items") + " · " + kcalTotal() + " kcal";
+  renderTally();
+  el("timeLbl").textContent = fmtTime(S.time);
+  el("timeBtn").setAttribute("aria-label", "Change the time, now " + fmtTime(S.time));
+  el("lands").innerHTML = n > 0 ? '<div class="lands">This lands under <b>' + DIV_LABEL[div] + "</b></div>" : "";
+  var btn = el("saveBtn");
+  btn.disabled = n === 0;
+  /* an edit is a correction, so the button says so rather than counting items
+     into a meal that already has them */
+  btn.textContent = S.banner === "failed" ? "Try again"
+    : EDITING ? (S.banner === "offline" ? "Save changes when back online" : "Save changes")
+    : n === 0 ? "Log meal"
+    : S.banner === "offline" ? "Log " + n + (n === 1 ? " item" : " items") + " when back online"
+    : "Log " + n + (n === 1 ? " item" : " items");
+
+  renderSheet();
+}
+
+/* nothing to log on a day that has not happened, so the screen says it once and stops */
+function renderFuture() {
+  el("hTitle").textContent = "Log your meal";
+  el("hSub").textContent = FUTURE;
+  el("dayNote").innerHTML = "";
+  el("sTools").innerHTML = "";
+  el("tabs").style.display = "none";
+  el("list").innerHTML = '<div class="future"><span class="dic">' + I.cal + "</span>" +
+    "<b>" + esc(FUTURE) + " has not happened yet</b>" +
+    "<p>You can log a meal on the day itself, or afterwards. Come back then.</p></div>";
+  document.querySelector(".tray").style.display = "none";
+  document.querySelector(".srch").style.display = "none";
+}
+
+/* ---------- sheets ---------- */
+function openSheet(s) { S.sheet = s; render(); }
+function closeSheet() { S.sheet = null; render(); }
+
+function renderSheet() {
+  var s = S.sheet, sheet = el("sheet"), scrim = el("scrim");
+  if (!s) { WHEEL = null; sheet.classList.remove("on"); scrim.classList.remove("on"); return; }
+  sheet.classList.add("on"); scrim.classList.add("on");
+  var title = "", body = "";
+
+  if (s.kind === "tray") {
+    title = "In this meal";
+    body = '<div class="trayrows">' + S.items.map(function (it) {
+      var fd = byId(it.id);
+      return '<div class="trayrow">' +
+        '<button class="nm" data-qty="' + it.id + '"><b>' + esc(fd.name) + "</b>" +
+        "<span>" + it.qty + " \u00d7 " + esc(fd.unit) + " \u00b7 " + Math.round(fd.kcal * it.qty) + " kcal</span></button>" +
+        '<button class="rm" data-rm="' + it.id + '" aria-label="Remove ' + esc(fd.name) + '">' + I.x + "</button></div>";
+    }).join("") + "</div>";
+  } else if (s.kind === "qty") {
+    var fd = byId(s.id), inTray = qtyOf(s.id);
+    /* The title never changes. It named the sheet "Add item" before the tap
+       and "In this meal" after, which is the same sheet claiming to be two
+       different sheets: the user has not gone anywhere, so the label they
+       navigated by should not move under them. Only the one control that
+       actually changed changes, and it changes in place.
+       The unit chips are gone too: the helping a food comes in is the
+       helping, and offering "1 plate" for a katori of curd asked a question
+       nobody had. */
+    title = "Add item";
+    var q2 = inTray || 1;
+    body = '<div class="qitem"><b>' + esc(fd.name) + "</b><span>" + esc(fd.unit) + "</span></div>" +
+      '<div class="qfacts">' +
+        '<div class="qcal">' + I.flame + "<b>" + fd.kcal + "</b><span>kcal</span></div>" +
+        '<div class="qmac">' +
+          [["protein", "Protein", fd.p], ["carbs", "Carbs", fd.c],
+           ["fats", "Fats", fd.f], ["fibre", "Fibre", fd.fibre]].map(function (m) {
+            return '<div><span class="g glyph-' + m[0] + '"></span><b>' +
+              m[2] + "g</b><span>" + m[1] + "</span></div>";
+          }).join("") + "</div>" +
+      "</div>" +
+      /* a coach's food is confirmed before it goes in: how much, and when */
+      (s.plan ? timePart() : "") +
+      (inTray
+        /* once it is in, the same place becomes the control that changes it */
+        ? '<div class="qstep"><button id="qMinus" aria-label="' +
+            (q2 === 1 ? "Take it out of this meal" : "One less") + '">' + I.minus + "</button>" +
+            '<span class="v"><b>' + q2 + "</b><i>" + esc(unitPlural(fd.unit, q2)) + "</i></span>" +
+            '<button id="qPlus" aria-label="One more">' + I.plusSm + "</button></div>"
+        : '<button class="sok" id="qSave">' + (s.plan ? "Log it" : "Add to meal") + "</button>");
+  }
+
+
+  if (s.kind === "time") {
+    title = "When did you eat?";
+    /* One control, not two. Chips beside a wheel meant the same value could be
+       set two ways, and the chips could only ever reach seven of the 1,440
+       minutes in a day. The wheel reaches all of them. */
+    body = wheelHTML() +
+      '<p class="vh" id="tLive" role="status" aria-live="polite">' + esc(liveLine()) + "</p>" +
+      '<div class="landing" id="tLanding">' + landingLine() + "</div>" +
+      '<button class="sok" id="tDone">Done</button>';
+  }
+
+  if (s.kind === "snap") {
+    title = "Log with a photo";
+    if (s.step === "frame") {
+      body = '<div class="cap"><div class="frame"><span class="corner c1"></span><span class="corner c2"></span><span class="corner c3"></span><span class="corner c4"></span>' +
+        '<span class="plate">' + I.cam + "</span></div>" +
+        '<p class="capsay">Get the whole plate in frame and <b>hold steady</b>. One photo of the full meal reads better than three close ups.</p>' +
+        '<button class="sok" id="shoot">Take photo</button></div>';
+    } else if (s.step === "reading") {
+      body = '<div class="cap"><div class="frame"><span class="scanline"></span><span class="plate">' + I.cam + "</span></div>" +
+        '<p class="capsay"><b>Reading your photo</b><br>Matching what is on the plate to foods and portions.</p></div>';
+    } else if (s.step === "result") {
+      body = '<div class="cap found"><div class="fh">' + I.check + "Found 3 items</div>" +
+        found([{ id: "poha", qty: 1, sure: "Confident" }, { id: "eggs", qty: 2, sure: "Confident" }, { id: "chai", qty: 1, sure: "Not certain", low: true }]) +
+        '<p class="capsay" style="text-align:left">Tap any row to fix the food or the portion before it goes in.</p>' +
+        '<button class="sok" id="acceptFound">Add 3 items</button>' +
+        '<button class="sghost" id="retake">Take another photo</button></div>';
+    } else if (s.step === "none") {
+      body = '<div class="cap"><div class="frame"><span class="plate">' + I.cam + "</span></div>" +
+        '<p class="capsay"><b>Nothing recognised in that one</b><br>Bright light and the whole plate in frame help. Or add it by hand, which is just as good.</p>' +
+        '<button class="sok" id="retake">Take another photo</button>' +
+        '<button class="sghost" id="toSearch">Add it by hand</button></div>';
+    } else {
+      body = '<div class="cap denied"><span class="dic">' + I.block + "</span>" +
+        '<p class="capsay"><b>The camera is switched off for this app</b><br>Turn it on in Settings to log with a photo. Searching and speaking still work.</p>' +
+        '<button class="sok" id="toSettings">Open settings</button>' +
+        '<button class="sghost" id="toSearch">Add it by hand</button></div>';
+    }
+  }
+
+  if (s.kind === "voice") {
+    title = "Log by speaking";
+    if (s.step === "listening") {
+      body = '<div class="cap"><div class="wave" role="img" aria-label="The microphone is on">' + LEVELS.map(function (h, i) {
+          return '<i style="height:' + h + 'px;animation-delay:' + (i * 0.09).toFixed(2) + 's"></i>';
+        }).join("") + "</div>" +
+        '<p class="capsay"><b>Listening</b><br>Say what you ate, the way you would tell a friend. "Two eggs, a bowl of poha and chai."</p>' +
+        '<button class="sghost" id="stopVoice">Stop</button></div>';
+    } else if (s.step === "heard") {
+      body = '<div class="cap"><div class="quote"><span>Heard that</span>"Two boiled eggs, a bowl of poha and one masala chai"</div>' +
+        '<p class="capsay">Working out the foods and portions from that.</p>' +
+        '<button class="sghost" id="retakeVoice">Say it again</button></div>';
+    } else if (s.step === "result") {
+      body = '<div class="cap found"><div class="quote" style="margin-top:0"><span>Heard that</span>"Two boiled eggs, a bowl of poha and one masala chai"</div>' +
+        '<div class="fh" style="margin-top:16px">' + I.check + "Found 3 items</div>" +
+        found([{ id: "eggs", qty: 2, sure: "Confident" }, { id: "poha", qty: 1, sure: "Confident" }, { id: "chai", qty: 1, sure: "Confident" }]) +
+        /* snap and voice are the same three beats, so they teach the same thing */
+        '<p class="capsay" style="text-align:left">Tap any row to fix the food or the portion before it goes in.</p>' +
+        '<button class="sok" id="acceptFound">Add 3 items</button>' +
+        '<button class="sghost" id="retakeVoice">Say it again</button></div>';
+    } else if (s.step === "none") {
+      body = '<div class="cap"><div class="wave" style="opacity:.5"><i style="height:14px"></i><i style="height:14px"></i><i style="height:14px"></i></div>' +
+        '<p class="capsay"><b>That came through quiet</b><br>Somewhere less noisy usually does it. Or add it by hand, which is just as good.</p>' +
+        '<button class="sok" id="retakeVoice">Try again</button>' +
+        '<button class="sghost" id="toSearch">Add it by hand</button></div>';
+    } else {
+      body = '<div class="cap denied"><span class="dic">' + I.block + "</span>" +
+        '<p class="capsay"><b>The microphone is switched off for this app</b><br>Turn it on in Settings to log by speaking. Searching and photos still work.</p>' +
+        '<button class="sok" id="toSettings">Open settings</button>' +
+        '<button class="sghost" id="toSearch">Add it by hand</button></div>';
+    }
+  }
+
+  el("sTitle").textContent = title;
+  el("sBody").innerHTML = body;
+  if (s.kind === "time") wheelInit(); else WHEEL = null;
+}
+
+/* the resting shape of the level meter, so the panel is never an empty box */
+var LEVELS = [18, 30, 44, 34, 58, 38, 46, 26, 18];
+
+var TIME_OPTS = [6 * 60 + 30, 8 * 60 + 30, 10 * 60, 13 * 60 + 30, 17 * 60 + 30, 20 * 60 + 30, 22 * 60 + 30];
+function timeChips() {
+  return '<div class="times">' + TIME_OPTS.map(function (m) {
+    return '<button class="tchip' + (m === S.time ? " on" : "") + '" data-time="' + m + '">' + fmtTime(m) + "</button>";
+  }).join("") + "</div>";
+}
+/* ---------- the wheel ----------
+   Four columns: the day, the hour, the minute in fives, and AM or PM, the way
+   Yazio carries a whole "when" in one control. Scroll snap plus a scroll
+   listener is the whole engine, so there is nothing to install: touch flicks a
+   column, the mouse drags it through pointer events, and the arrow keys step
+   it. Each column is a spinbutton that says its own value, and a quiet live
+   region reads the whole answer back. Everything it lands on is written into
+   S.time, so the header, the meal window and the landing line keep deriving
+   exactly as they always did. */
+var WROW = 44;        // one row, and the lozenge, and a tap target
+var WHEEL = null;     // the four live columns, only while the time sheet is up
+function reduceMotion() {
+  return !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+}
+function minuteIndex(m) { return Math.max(0, Math.min(59, m)); }
+
+function wheelHTML() {
+  var h24 = Math.floor(S.time / 60), mn = S.time % 60;
+  var h12 = h24 % 12 === 0 ? 12 : h24 % 12;
+  var hrs = [], mins = [], i;
+  for (i = 1; i <= 12; i++) hrs.push(String(i));
+  for (i = 0; i < 60; i++) mins.push((i < 10 ? "0" : "") + i);
+  function col(cls, id, label, items, sel) {
+    return '<div class="wcol ' + cls + '" id="' + id + '" role="spinbutton" tabindex="0" aria-label="' + label +
+      '" aria-valuemin="0" aria-valuemax="' + (items.length - 1) + '" aria-valuenow="' + sel +
+      '" aria-valuetext="' + esc(items[sel]) + '">' +
+      items.map(function (t, k) { return '<div class="wi' + (k === sel ? " on" : "") + '">' + esc(t) + "</div>"; }).join("") +
+      "</div>";
+  }
+  /* Hour, minute, morning or afternoon. No day: the day is chosen by opening
+     that day on the Eat screen and logging from there, which keeps this sheet
+     about one question. */
+  return '<div class="wheel"><span class="wloz" aria-hidden="true"></span>' +
+    col("hr", "wHr", "Hour", hrs, h12 - 1) +
+    '<span class="wsep" aria-hidden="true">:</span>' +
+    col("mn", "wMn", "Minute", mins, minuteIndex(mn)) +
+    col("ap", "wAp", "Morning or afternoon", ["AM", "PM"], h24 < 12 ? 0 : 1) +
+    "</div>";
+}
+
+function wheelInit() {
+  var hr = el("wHr");
+  if (!hr) { WHEEL = null; return; }
+  WHEEL = { hr: hr, mn: el("wMn"), ap: el("wAp") };
+  ["hr", "mn", "ap"].forEach(function (k) { wheelColumn(WHEEL[k]); });
+}
+
+function colIndex(c) {
+  return Math.max(0, Math.min(c.children.length - 1, Math.round(c.scrollTop / WROW)));
+}
+
+function wheelColumn(c) {
+  c.scrollTop = +c.getAttribute("aria-valuenow") * WROW;
+  var tick = null;
+  c.addEventListener("scroll", function () {
+    if (c._to !== null && c._to !== undefined) return;   // a scroll we started ourselves
+    if (tick) return;
+    tick = requestAnimationFrame(function () { tick = null; markCol(c, colIndex(c)); });
+  });
+  c.addEventListener("keydown", function (e) {
+    var n = c.children.length, at = +c.getAttribute("aria-valuenow"), to = at;
+    if (e.key === "ArrowDown" || e.key === "ArrowRight") to = at + 1;
+    else if (e.key === "ArrowUp" || e.key === "ArrowLeft") to = at - 1;
+    else if (e.key === "PageDown") to = at + 3;
+    else if (e.key === "PageUp") to = at - 3;
+    else if (e.key === "Home") to = 0;
+    else if (e.key === "End") to = n - 1;
+    else return;
+    e.preventDefault();
+    scrollCol(c, Math.max(0, Math.min(n - 1, to)));
+  });
+  /* a mouse has no flick, so it gets a drag of its own. Touch keeps the
+     browser's own scrolling, which is smoother than anything written here. */
+  var drag = null, moved = 0;
+  c.addEventListener("pointerdown", function (e) {
+    if (e.pointerType !== "mouse") return;
+    drag = { y: e.clientY, top: c.scrollTop }; moved = 0;
+    c.classList.add("grab");
+    try { c.setPointerCapture(e.pointerId); } catch (err) {}
+    e.preventDefault();
+  });
+  c.addEventListener("pointermove", function (e) {
+    if (!drag) return;
+    var dy = e.clientY - drag.y;
+    moved = Math.max(moved, Math.abs(dy));
+    c.scrollTop = drag.top - dy;
+  });
+  function endDrag(e) {
+    if (!drag) return;
+    drag = null;
+    c.classList.remove("grab");
+    try { c.releasePointerCapture(e.pointerId); } catch (err) {}
+    scrollCol(c, colIndex(c));
+  }
+  c.addEventListener("pointerup", endDrag);
+  c.addEventListener("pointercancel", endDrag);
+  /* a row you can see is a row you can tap, so it winds itself to the middle */
+  c.addEventListener("click", function (e) {
+    if (moved > 4) { moved = 0; return; }
+    var row = e.target.closest(".wi");
+    if (!row) return;
+    scrollCol(c, [].indexOf.call(c.children, row));
+    c.focus();
+  });
+}
+
+/* the value is decided the moment it is asked for, the scroll only catches up */
+function scrollCol(c, i) {
+  c._to = i;
+  markCol(c, i);
+  if (c.scrollTo) c.scrollTo({ top: i * WROW, behavior: reduceMotion() ? "auto" : "smooth" });
+  else c.scrollTop = i * WROW;
+  clearTimeout(c._tt);
+  c._tt = setTimeout(function () { c._to = null; }, reduceMotion() ? 0 : 420);
+}
+
+function markCol(c, i) {
+  if (+c.getAttribute("aria-valuenow") === i) return;
+  c.setAttribute("aria-valuenow", i);
+  c.setAttribute("aria-valuetext", c.children[i].textContent);
+  for (var k = 0; k < c.children.length; k++) c.children[k].classList.toggle("on", k === i);
+  readWheel();
+}
+
+function readWheel() {
+  if (!WHEEL) return;
+  var h12 = +WHEEL.hr.children[+WHEEL.hr.getAttribute("aria-valuenow")].textContent;
+  var mn = +WHEEL.mn.children[+WHEEL.mn.getAttribute("aria-valuenow")].textContent;
+  var pm = +WHEEL.ap.getAttribute("aria-valuenow") === 1;
+  S.time = ((h12 % 12) + (pm ? 12 : 0)) * 60 + mn;
+  timeChanged();
+}
+
+/* the chips and the wheel are one control, so a chip moves the wheel rather
+   than jumping past it */
+function setWheelTime(mins) {
+  var h24 = Math.floor(mins / 60), mn = mins % 60;
+  scrollCol(WHEEL.hr, (h24 % 12 === 0 ? 12 : h24 % 12) - 1);
+  scrollCol(WHEEL.mn, minuteIndex(mn));
+  scrollCol(WHEEL.ap, h24 < 12 ? 0 : 1);
+}
+
+function liveLine() {
+  return dayLabel(S.dayOffset) + ", " + fmtTime(S.time) + ", lands under " + DIV_LABEL[divisionForTime(S.time)];
+}
+function landingLine() {
+  return "The time decides the meal. <b>" + esc(dayLabel(S.dayOffset)) + "</b> at <b>" + fmtTime(S.time) +
+    "</b> lands under <b>" + DIV_LABEL[divisionForTime(S.time)] + "</b>.";
+}
+
+/* The wheel owns its own DOM while it is up, so a full render would pull it out
+   from under the finger. Everything the time decides is refreshed in place
+   instead, and Done does the full render on the way out. */
+function timeChanged() {
+  var div = divisionForTime(S.time);
+  if (!FUTURE) {
+    el("hTitle").textContent = "Log your meal";
+    el("hSub").textContent = dayTitle(S.dayOffset);
+    el("dayNote").innerHTML = dayNoteHTML();
+    el("timeLbl").textContent = fmtTime(S.time);
+    el("timeBtn").setAttribute("aria-label", "Change the time, now " + fmtTime(S.time));
+    el("lands").innerHTML = count() > 0 ? '<div class="lands">This lands under <b>' + DIV_LABEL[div] + "</b></div>" : "";
+  }
+  var land = el("tLanding"); if (land) land.innerHTML = landingLine();
+  var live = el("tLive"); if (live) live.textContent = liveLine();
+  [].forEach.call(document.querySelectorAll(".tchip"), function (b) {
+    b.classList.toggle("on", +b.getAttribute("data-time") === S.time);
+  });
+}
+
+/* the time is part of confirming a coach's food, because the time picks the meal */
+function timePart() {
+  var div = divisionForTime(S.time);
+  return '<div class="glab" style="margin-top:16px">When did you eat it?</div>' + timeChips() +
+    (div === PLAN_DIV
+      ? '<div class="landing"><b>' + fmtTime(S.time) + "</b> keeps it under <b>" + DIV_LABEL[PLAN_DIV] + "</b>, where your coach put it.</div>"
+      : '<div class="landing">At <b>' + fmtTime(S.time) + "</b> this goes under <b>" + DIV_LABEL[div] +
+        "</b> instead of " + DIV_LABEL[PLAN_DIV].toLowerCase() + ". That is fine, it still counts.</div>");
+}
+
+/* one food, one target: the row itself, carrying the portion it was read at so
+   the sheet opens on that number rather than resetting to one */
+function found(rows) {
+  return rows.map(function (r) {
+    var fd = byId(r.id);
+    return '<button class="fitem" data-editfound="' + r.id + ':' + r.qty + '">' +
+      '<span class="fn">' + esc(fd.name) + "<span>" + (r.qty > 1 ? r.qty + " x " + esc(fd.unit) : esc(fd.unit)) + " · " + (fd.kcal * r.qty) + " kcal</span></span>" +
+      '<span class="sure' + (r.low ? " low" : "") + '">' + r.sure + "</span>" +
+      '<span class="edit" aria-hidden="true">' + I.pencil + "</span></button>";
+  }).join("");
+}
+
+/* ---------- the favourite burst ----------
+   Twitter's heart: the glyph overshoots and a ring throws outward with a few
+   dots behind it, then every part of it is taken away. Nothing is built at all
+   when motion is turned down, because an element whose animation has been
+   switched off by the reduced-motion rule would simply sit there. */
+function heartBurst(btn) {
+  if (!btn || reduceMotion()) return;
+  btn.classList.remove("pop");
+  void btn.offsetWidth;                    // so a second tap replays it
+  btn.classList.add("pop");
+  var b = document.createElement("span");
+  b.className = "burst";
+  b.setAttribute("aria-hidden", "true");
+  var html = '<span class="ring"></span>';
+  for (var i = 0; i < 7; i++) {
+    var a = (i / 7) * Math.PI * 2 - Math.PI / 2, r = 20 + (i % 2) * 5;
+    html += '<i style="--tx:' + (Math.cos(a) * r).toFixed(1) + "px;--ty:" + (Math.sin(a) * r).toFixed(1) +
+      "px;background:" + (i % 2 ? "#FDA29B" : "#F04438") + '"></i>';
+  }
+  b.innerHTML = html;
+  btn.appendChild(b);
+  setTimeout(function () {
+    if (b.parentNode) b.parentNode.removeChild(b);
+    btn.classList.remove("pop");
+  }, 620);
+}
+
+/* ---------- a one line answer, when there is nowhere to go ---------- */
+var toastT = null;
+function toast(msg) {
+  var host = el("toastHost");
+  host.innerHTML = '<div class="toast" role="status">' + esc(msg) + "</div>";
+  var t = host.firstChild;
+  /* a frame, so the start state commits before the class flips it */
+  requestAnimationFrame(function () { t.classList.add("on"); });
+  clearTimeout(toastT);
+  toastT = setTimeout(function () {
+    t.classList.remove("on");
+    setTimeout(function () { if (host.firstChild === t) host.innerHTML = ""; }, 220);
+  }, 3600);
+}
+
+/* ---------- saving ---------- */
+function showSaving() {
+  el("savingHost").innerHTML = '<div class="saving"><div class="box"><div class="spin"></div>' +
+    "<b>" + (EDITING ? "Saving your changes" : "Saving your meal") + "</b><span>" + count() + " items into " +
+      DIV_LABEL[divisionForTime(S.time)] + "</span></div></div>";
+}
+/* Which target this meal pushed hardest, so the overlay can name it rather
+   than congratulating the user for nothing in particular. */
+function movedMost() {
+  var t = { p: 0, c: 0, f: 0, fibre: 0 };
+  S.items.forEach(function (it) {
+    var fd = byId(it.id); if (!fd) return;
+    t.p += fd.p * it.qty; t.c += fd.c * it.qty; t.f += fd.f * it.qty; t.fibre += fd.fibre * it.qty;
+  });
+  /* against a rough daily target each, so grams of carbs do not always win */
+  var per = { p: t.p / 94, c: t.c / 236, f: t.f / 62, fibre: t.fibre / 30 };
+  var NAME = { p: "Protein", c: "Carbs", f: "Fats", fibre: "Fibre" };
+  var top = Object.keys(per).sort(function (a, b) { return per[b] - per[a]; })[0];
+  return { name: NAME[top], share: per[top] };
+}
+
+function showWon(queued) {
+  var m = movedMost();
+  /* a plausible move on a 0 to 100 score, from what actually went in */
+  var d = Math.max(1, Math.min(12, Math.round(m.share * 34)));
+  /* clock angle, travel, kind and colour, read off the design system frame.
+     Dots and arcs alternate and the arcs stay closer in. */
+  var PIECES = [
+    [-90, 86, "dot", "#FFB127"], [-150, 70, "arc", "#FF84B3"], [-30, 70, "arc", "#F97316"],
+    [-20, 90, "dot", "#66BEFF"], [180, 88, "dot", "#FF5994"], [40, 90, "dot", "#C495FF"],
+    [120, 84, "dot", "#69B7FF"], [150, 68, "arc", "#FFB2F0"], [70, 68, "arc", "#F97316"]
+  ];
+  var burst = PIECES.map(function (p, i) {
+    return '<span class="p ' + p[2] + '" style="--a:' + p[0] + 'deg;--d:' + p[1] + 'px;' +
+      (p[2] === "dot" ? "background:" : "color:") + p[3] + ";animation-delay:" + (260 + i * 12) + 'ms"></span>';
+  }).join("");
+
+  el("savingHost").innerHTML =
+    '<div class="won" role="status">' +
+      '<span class="halo" aria-hidden="true"></span>' +
+      '<div class="col2"><span class="burstrow"><span class="burst">' +
+        '<span class="tk"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>' + burst +
+      '</span></span>' +
+      '<div class="d">+<b id="wonN">0</b><s> points</s></div>' +
+      '<p>' + (queued ? "Saved on your phone" : m.name + " moved most") + '</p>' +
+      '<span class="m">' + count() + " into " + DIV_LABEL[divisionForTime(S.time)] +
+        (queued ? ", it sends when you are back" : "") + '</span></div>' +
+    '</div>';
+
+  /* the number counts up rather than appearing, which the system asks for */
+  var nEl = document.getElementById("wonN"), t0 = null;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { nEl.textContent = d; }
+  else requestAnimationFrame(function step(ts) {
+    if (t0 === null) t0 = ts;
+    var k = Math.min(1, (ts - t0) / 620);
+    nEl.textContent = Math.round(d * (1 - Math.pow(1 - k, 3)));
+    if (k < 1) requestAnimationFrame(step);
+  });
+  /* long enough to read, short enough that nobody reaches for a button */
+  setTimeout(goEat, 1700);
+}
+
+/* Back to the day, which is the screen that already holds everything else
+   this log changed. */
+function goEat() {
+  if (window.parent !== window) {
+    parent.postMessage({ nav: "eat", flags: { items: count(), kcal: kcalTotal() } }, "*");
+    return;
+  }
+  location.href = "eat.html";
+}
+
+function save() {
+  if (!count()) return;
+  if (S.banner === "offline") {
+    showSaving();
+    setTimeout(function () { showWon(true); }, 900);
+    return;
+  }
+  showSaving();
+  setTimeout(function () {
+    if (STATE === "failed") { el("savingHost").innerHTML = ""; S.banner = "failed"; render(); return; }
+    showWon(false);
+  }, 1100);
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click", function (e) {
+  var t = e.target;
+  var hit = function (sel) { return t.closest(sel); };
+
+  var inc = hit("[data-inc]"); if (inc) return bump(inc.getAttribute("data-inc"), 1, inc);
+  var dec = hit("[data-dec]"); if (dec) return bump(dec.getAttribute("data-dec"), -1);
+  var rm = hit("[data-rm]"); if (rm) { S.items = S.items.filter(function (x) { return x.id !== rm.getAttribute("data-rm"); }); return render(); }
+  var fav = hit("[data-fav]"); if (fav) {
+    var id = fav.getAttribute("data-fav");
+    var liking = S.fav.indexOf(id) === -1;
+    S.fav = liking ? S.fav.concat(id) : S.fav.filter(function (x) { return x !== id; });
+    render();
+    /* the row is rebuilt by then, so the burst goes on the heart that came back */
+    if (liking) heartBurst(document.querySelector('[data-fav="' + id + '"]'));
+    return;
+  }
+  var tab = hit("[data-tab]"); if (tab) { S.tab = tab.getAttribute("data-tab"); return render(); }
+  var opt = hit("[data-opt]"); if (opt) { S.option = +opt.getAttribute("data-opt"); return render(); }
+  var pl = hit("[data-plan]"); if (pl) {
+    var parts = pl.getAttribute("data-plan").split(":"), pid = parts[0], want = +parts[1];
+    return addAt(pid, want, pl);
+  }
+  if (hit("#tallyBtn")) return openSheet({ kind: "tray" });
+  var qty = hit("[data-qty]"); if (qty) { var qid = qty.getAttribute("data-qty"); return openSheet({ kind: "qty", id: qid, qty: qtyOf(qid) || 1 }); }
+  var nameHit = hit(".row .nm"); if (nameHit) {
+    var row = nameHit.closest("[data-food]");
+    if (row) { var fid = row.getAttribute("data-food"); return openSheet({ kind: "qty", id: fid, qty: qtyOf(fid) || 1 }); }
+  }
+  var tm = hit("[data-time]"); if (tm) {
+    var mins = +tm.getAttribute("data-time");
+    /* with the wheel up, a chip winds it to that time rather than jumping past it */
+    if (WHEEL) return setWheelTime(mins);
+    S.time = mins; return render();
+  }
+  var ef = hit("[data-editfound]"); if (ef) {
+    var fp = ef.getAttribute("data-editfound").split(":");
+    return openSheet({ kind: "qty", id: fp[0], qty: +fp[1] || 1 });
+  }
+
+  switch (t.closest("button") && t.closest("button").id) {
+    case "sX": case "tDone": return closeSheet();
+    case "clearQ": S.query = ""; el("q").value = ""; return render();
+    case "snapBtn": return openSheet({ kind: "snap", step: "frame" });
+    case "voiceBtn": return runVoice();
+    case "shoot": S.sheet = { kind: "snap", step: "reading" }; render();
+      return setTimeout(function () { S.sheet = { kind: "snap", step: "result" }; render(); }, 1900);
+    case "retake": S.sheet = { kind: "snap", step: "frame" }; return render();
+    case "retakeVoice": return runVoice();
+    case "stopVoice": return closeSheet();
+    case "toSearch": closeSheet(); return el("q").focus();
+    /* in the app this opens Kaira on the logging thread with the search text
+       already in it. The prototype stops here rather than faking a chat. */
+    case "kairaLog": return toast("Kaira opens here with \u201c" + S.query +
+      "\u201d ready to describe. This is a prototype, so it stops here.");
+    /* in the app this fires the platform settings intent. In the prototype it
+       says so, rather than being a full width primary that does nothing. */
+    case "toSettings": return toast("In the app this opens your phone's settings for GoodFlip. This is a prototype, so it stops here.");
+    case "acceptFound": return acceptFound();
+    case "qSave": return saveQty();
+    case "qPlus": return bump(S.sheet.id, 1);
+    /* Minus at one takes the item back out and the bar returns to "Add to
+       meal", in place, with the sheet still open. It used to close the sheet,
+       which punished a mis-tap by throwing the user out of the thing they
+       were in. Add and remove are now the same gesture in both directions. */
+    case "qMinus": return bump(S.sheet.id, -1);
+    case "retry": S.banner = null; return save();
+    case "saveBtn": return save();
+    case "back": return history.length > 1 ? history.back() : null;
+  }
+
+  if (t.classList && t.classList.contains("unit")) {
+    [].forEach.call(document.querySelectorAll(".unit"), function (u) { u.classList.remove("on"); });
+    t.classList.add("on");
+  }
+  if (t === el("scrim")) closeSheet();
+});
+
+function runVoice() {
+  S.sheet = { kind: "voice", step: "listening" }; render();
+  setTimeout(function () { S.sheet = { kind: "voice", step: "heard" }; render(); }, 1800);
+  setTimeout(function () { S.sheet = { kind: "voice", step: "result" }; render(); }, 3000);
+}
+function acceptFound() {
+  var rows = S.sheet.kind === "snap"
+    ? [{ id: "poha", qty: 1 }, { id: "eggs", qty: 2 }, { id: "chai", qty: 1 }]
+    : [{ id: "eggs", qty: 2 }, { id: "poha", qty: 1 }, { id: "chai", qty: 1 }];
+  rows.forEach(function (r) {
+    var at = S.items.filter(function (x) { return x.id === r.id; })[0];
+    if (at) at.qty += r.qty; else S.items = S.items.concat({ id: r.id, qty: r.qty });
+  });
+  closeSheet();
+}
+/* The unit carries the count, so "2" alone never has to be guessed at. The
+   helping is written as "1 bowl", so the number comes off the front and the
+   noun takes an s when there is more than one. */
+function unitPlural(unit, n) {
+  var noun = String(unit).replace(/^\s*[\d.]+\s*/, "") || "serving";
+  if (n <= 1) return noun;
+  return /s$/.test(noun) ? noun : noun + "s";
+}
+
+function saveQty() {
+  var id = S.sheet.id, q2 = S.sheet.qty || 1;
+  var at = S.items.filter(function (x) { return x.id === id; })[0];
+  if (at) at.qty = q2; else S.items = S.items.concat({ id: id, qty: q2 });
+  /* A coach's food is a confirmation, so the sheet has done its job and goes.
+     Anything else stays open, because the quantity control is the thing that
+     replaces the button and adjusting it is the likely next move. */
+  if (S.sheet.plan) return closeSheet();
+  LASTADD = id;
+  render();
+}
+
+el("q").addEventListener("input", function (e) { S.query = e.target.value; render(); });
+el("timeBtn").addEventListener("click", function () { openSheet({ kind: "time" }); });
+document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeSheet(); });
+
+/* ---------- the review picker ---------- */
+(function () {
+  var states = ["search", "typing", "noresults", "quantity", "multi", "plan", "noplan", "time",
+    "snap", "snapreading", "snapresult", "snapnone", "snapdenied",
+    "voice", "voiceheard", "voiceresult", "voicenone", "voicedenied",
+    "saving", "offline", "failed"];
+  /* the strip is for reviewing states, so it stays out of the way unless asked for */
+  if (Q.get("picker") !== "1") { document.body.classList.add("nopicker"); return; }
+  document.body.classList.add("haspicker");
+  el("picker").innerHTML = states.map(function (s) {
+    return '<a href="?state=' + s + (ENTRY !== "plus" ? "&entry=" + ENTRY : "") + '"' + (s === STATE ? ' class="on"' : "") + ">" + s + "</a>";
+  }).join("");
+})();
+
+el("q").value = S.query;
+render();
+if (p.saving) showSaving();
+</script>
+<script src="chrome.js"></script>
+</body>
+</html>

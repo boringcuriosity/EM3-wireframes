@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slim parts, Eat page</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Roboto:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap">
+<link rel="stylesheet" href="../../icons/glyph-masks.css">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #F2F4F7; font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .25px; color: #101828; }
+  header { position: sticky; top: 0; z-index: 3; background: rgba(242,244,247,.94); backdrop-filter: blur(8px); border-bottom: 1px solid #E4E7EC; padding: 14px 24px; }
+  h1 { font-family: "Playfair Display", Georgia, serif; font-weight: 600; font-size: 22px; margin: 0; }
+  header p { margin: 4px 0 0; font-size: 13px; color: #667085; }
+  main { padding: 24px; display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; }
+  section { width: 390px; background: #FCFCFD; border: 1px solid #E4E7EC; border-radius: 20px; overflow: hidden; box-shadow: 0 1px 3px rgba(16,24,40,.06); }
+  section > h2 { margin: 0; padding: 16px 24px 12px; font-size: 15px; font-weight: 700; border-bottom: 1px solid #F2F4F7; }
+  .opt { padding: 16px 24px 20px; border-bottom: 1px solid #F2F4F7; }
+  .opt:last-child { border-bottom: 0; }
+  .cap { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
+  .cap b { font-size: 14px; font-weight: 700; }
+  .cap .h { margin-left: auto; font-size: 11px; color: #98A2B3; font-family: "JetBrains Mono", monospace; }
+  .cap .id { font-size: 11px; color: #98A2B3; }
+  .note { margin: 0 0 12px; font-size: 12px; line-height: 17px; color: #667085; }
+  .slot { width: 342px; }
+  .miss { padding: 24px; font-size: 13px; color: #98A2B3; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Slim parts, Eat page</h1>
+  <p>The calorie strip sits under the macros card, Kaira gets her own card below it. Heights are measured live.</p>
+</header>
+<main id="board"></main>
+
+<script src="cal.js"></script>
+<script src="kaira.js"></script>
+<script>
+(function () {
+  var board = document.getElementById("board");
+  var GROUPS = [
+    { key: "cal", title: "Calorie strip options" },
+    { key: "kaira", title: "Kaira line options" }
+  ];
+  GROUPS.forEach(function (g) {
+    var list = (window.PARTS || {})[g.key];
+    var sec = document.createElement("section");
+    sec.innerHTML = "<h2>" + g.title + "</h2>";
+    if (!list || !list.length) {
+      sec.innerHTML += '<div class="miss">' + g.key + ".js is not here yet.</div>";
+      board.appendChild(sec);
+      return;
+    }
+    list.forEach(function (o) {
+      var wrap = document.createElement("div");
+      wrap.className = "opt";
+      wrap.innerHTML = '<div class="cap"><b>' + o.name + '</b><span class="id">' + o.id +
+        '</span><span class="h"></span></div><p class="note">' + o.note + "</p>";
+      var slot = document.createElement("div");
+      slot.className = "slot";
+      wrap.appendChild(slot);
+      sec.appendChild(wrap);
+      board.appendChild(sec);
+      try { o.mount(slot); } catch (e) { slot.textContent = "failed: " + e.message; }
+      requestAnimationFrame(function () {
+        wrap.querySelector(".h").textContent = Math.round(slot.getBoundingClientRect().height) + "px tall";
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

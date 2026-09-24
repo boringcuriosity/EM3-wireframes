@@ -1,0 +1,417 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto:wght@400;500;600;700;800&display=swap">
+  <style>
+    body { margin: 0; background: #F9FAFB; font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: 0.25px; color: #101828; -webkit-font-smoothing: antialiased; }
+    a { color: #299D6B; } a:hover { color: #2A805A; }
+    * { box-sizing: border-box; }
+  </style>
+</helmet>
+<div style="position: relative; width: 390px; min-height: 2460px; background: #F9FAFB; overflow: hidden; display: flex; flex-direction: column;">
+
+  <!-- Content -->
+  <div style="flex: 1; display: flex; flex-direction: column; gap: 28px; padding: 20px 24px 40px 24px;">
+
+    <!-- Header block: eyebrow, date, score badge, macro bar -->
+    <div style="display: flex; flex-direction: column; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#299D6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
+        <span style="font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: #299D6B;">Eat</span>
+        <span style="font-size: 12px; color: #667085;">Fuel your body right each day.</span>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+        <!-- Today chip -->
+        <div style="display: flex; align-items: center; gap: 2px; height: 44px; padding: 0 6px; background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 9999px;">
+          <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#667085" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; padding: 0 4px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#299D6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            <span style="font-size: 14px; font-weight: 700; color: #101828;">Today</span>
+          </div>
+          <div style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D0D5DD" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </div>
+
+        <!-- Score badge -->
+        <div style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 12px 0 6px; background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 9999px;">
+          <div style="width: 34px; height: 37px; background: linear-gradient(150deg, #299D6B 0%, #2A805A 100%); clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%); display: flex; align-items: center; justify-content: center;">
+            <span style="font-size: 11px; font-weight: 800; color: #FFFFFF; letter-spacing: 0;">54%</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 1px;">
+            <span style="font-size: 12px; font-weight: 700; color: #101828; line-height: 1.2;">Today's</span>
+            <span style="font-size: 11px; color: #667085; line-height: 1.2;">sufficiency</span>
+          </div>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+        </div>
+      </div>
+
+      <!-- Stacked macro bar -->
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px;">
+          <div style="height: 8px; background: #E0EAFF; border-radius: 9999px 2px 2px 9999px; overflow: hidden;"><div style="width: 45%; height: 100%; background: #444CE7;"></div></div>
+          <div style="height: 8px; background: #FEF1C7; border-radius: 2px; overflow: hidden;"><div style="width: 51%; height: 100%; background: #E7C144;"></div></div>
+          <div style="height: 8px; background: #E0FFFF; border-radius: 2px; overflow: hidden;"><div style="width: 51%; height: 100%; background: #2DA6A6;"></div></div>
+          <div style="height: 8px; background: #E6FAF1; border-radius: 2px 9999px 9999px 2px; overflow: hidden;"><div style="width: 70%; height: 100%; background: #299D6B;"></div></div>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 11px; font-weight: 600; color: #344054;">Protein</span>
+            <span style="font-size: 12px; color: #667085;"><span style="font-weight: 700; color: #101828;">43</span>/95g</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 11px; font-weight: 600; color: #344054;">Carbs</span>
+            <span style="font-size: 12px; color: #667085;"><span style="font-weight: 700; color: #101828;">121</span>/238g</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 11px; font-weight: 600; color: #344054;">Fats</span>
+            <span style="font-size: 12px; color: #667085;"><span style="font-weight: 700; color: #101828;">32</span>/63g</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 11px; font-weight: 600; color: #344054;">Fibre</span>
+            <span style="font-size: 12px; color: #667085;"><span style="font-weight: 700; color: #101828;">21</span>/30g</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+          <span style="flex: 1; font-size: 11px; line-height: 16px; color: #98A2B3;">3 of 6 meals logged. Your sufficiency increases as you log the rest of your meals.</span>
+        <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#299D6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+          <span style="font-size: 12px; color: #667085; white-space: nowrap;"><span style="font-weight: 700; color: #101828;">942</span> of 1,900 kcal</span>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero: Up next -->
+    <div style="background: #F3FCF8; border: 1px solid #E6FAF1; border-radius: 24px; padding: 28px 22px 24px 22px; display: flex; flex-direction: column; gap: 22px;">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="width: 8px; height: 8px; border-radius: 9999px; background: #299D6B; box-shadow: 0 0 0 4px #CBF0E0;"></span>
+            <span style="font-size: 11px; font-weight: 700; letter-spacing: 1.2px; color: #2A805A;">NOW · 1:00 - 3:00 PM</span>
+          </div>
+          <div style="width: 44px; height: 44px; margin: -10px -10px -10px 0; display: flex; align-items: center; justify-content: center;">
+            <div style="width: 32px; height: 32px; border-radius: 9999px; border: 1px solid #299D6B; background: #FFFFFF; display: flex; align-items: center; justify-content: center;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#299D6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            </div>
+          </div>
+        </div>
+        <div style="font-family: 'Playfair Display', Georgia, serif; font-weight: 600; font-size: 28px; line-height: 36px; color: #1D4D38; letter-spacing: 0;">Finish your lunch</div>
+        <div style="font-size: 14px; line-height: 21px; color: #475467;">446 of 464 cal. One thing left from Option 2.</div>
+      </div>
+
+      <!-- Options -->
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <span style="font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: #667085;">YOUR COACH'S PLAN</span>
+        <div style="display: flex; gap: 8px;">
+          <div style="height: 32px; padding: 0 14px; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 9999px; font-size: 12px; font-weight: 600; color: #667085;">Option 1</div>
+          <div style="height: 32px; padding: 0 12px 0 14px; display: flex; align-items: center; gap: 5px; background: #E6FAF1; border: 1px solid #299D6B; border-radius: 9999px; font-size: 12px; font-weight: 700; color: #299D6B;">Option 2
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#299D6B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Items -->
+      <div style="background: #FFFFFF; border-radius: 16px; padding: 4px 16px; display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 56px;">
+          <div style="width: 24px; height: 24px; border-radius: 9999px; border: 1.8px solid #D0D5DD; background: #FFFFFF; flex-shrink: 0;"></div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px;">
+            <span style="font-size: 14px; font-weight: 600; color: #101828;">Garden salad</span>
+            <span style="font-size: 12px; color: #667085;">1 bowl</span>
+          </div>
+          <span style="font-size: 13px; color: #667085;">18 cal</span>
+          <div style="width: 24px; height: 44px; display: flex; align-items: center; justify-content: center; margin-right: -6px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </div>
+        </div>
+        <div style="height: 1px; background: #F2F4F7;"></div>
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 52px;">
+          <div style="display: flex; align-items: center; flex-shrink: 0;">
+            <div style="width: 20px; height: 20px; border-radius: 9999px; background: #299D6B; border: 2px solid #FFFFFF; display: flex; align-items: center; justify-content: center;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div style="width: 20px; height: 20px; border-radius: 9999px; background: #59B38C; border: 2px solid #FFFFFF; margin-left: -8px;"></div>
+            <div style="width: 20px; height: 20px; border-radius: 9999px; background: #79CCA8; border: 2px solid #FFFFFF; margin-left: -8px;"></div>
+          </div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px;">
+            <span style="font-size: 13px; font-weight: 600; color: #344054;">3 logged</span>
+            <span style="font-size: 12px; color: #98A2B3;">Roti, Mixed veg sabzi, Dal</span>
+          </div>
+          <span style="font-size: 13px; color: #98A2B3;">446 cal</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+      </div>
+
+      <!-- Kaira prompt fused -->
+      <div style="display: flex; flex-direction: column; gap: 14px; padding-top: 18px; border-top: 1px dashed #CBF0E0;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <svg width="18" height="20" viewBox="0 0 22 24" fill="none"><defs><linearGradient id="kUp" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#444CE7"/><stop offset="100%" stop-color="#2DA6A6"/></linearGradient></defs><path d="M11 1.2 20.1 6.6v10.8L11 22.8 1.9 17.4V6.6z" stroke="url(#kUp)" stroke-width="2.2" stroke-linejoin="round"/></svg>
+          <span style="font-size: 14px; line-height: 20px; color: #344054;">Time to log your meal. Snap a photo or just say it out loud, whichever is easier.</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding-bottom: 4px;">
+          <div style="height: 48px; border-radius: 12px; background: #299D6B; box-shadow: 0 4px 0 #2A805A; display: flex; align-items: center; justify-content: center; gap: 8px; color: #FFFFFF; font-size: 16px; font-weight: 600;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+            Snap
+          </div>
+          <div style="height: 48px; border-radius: 12px; background: #FFFFFF; border: 1px solid #299D6B; box-shadow: 0 4px 0 #E6FAF1; display: flex; align-items: center; justify-content: center; gap: 8px; color: #299D6B; font-size: 16px; font-weight: 600;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#299D6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg>
+            Voice
+          </div>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 8px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#A68A2D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>
+          <span style="font-size: 12px; line-height: 18px; color: #475467;"><span style="font-weight: 700; color: #101828;">Protein</span> is the one furthest from where it should be, at 43g of 95g.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Earlier today -->
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between;">
+        <span style="font-size: 16px; font-weight: 700; color: #101828;">Earlier today</span>
+        <span style="font-size: 12px; color: #98A2B3;">2 done</span>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #F2F4F7; border-radius: 16px; display: flex; flex-direction: column;">
+        <!-- Pre-breakfast -->
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 0 16px;">
+          <div style="width: 24px; height: 24px; border-radius: 9999px; background: #299D6B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 14px; font-weight: 600; color: #101828;">Pre-breakfast</span>
+            <span style="font-size: 12px; color: #667085;">6:00 - 7:00 AM · Black tea with cinnamon · 1 cup</span>
+          </div>
+          <span style="font-size: 12px; color: #667085;">10 of 10 cal</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div style="height: 1px; background: #F2F4F7; margin: 0 16px;"></div>
+
+        <!-- Breakfast expanded -->
+        <div style="display: flex; flex-direction: column; gap: 14px; padding: 16px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 24px; height: 24px; border-radius: 9999px; background: #299D6B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 14px; font-weight: 600; color: #101828;">Breakfast</span>
+              <span style="font-size: 12px; color: #667085;">8:00 - 10:00 AM</span>
+            </div>
+            <span style="font-size: 12px; color: #667085;">486 of 382 cal</span>
+            <div style="width: 44px; height: 44px; margin: -10px -12px -10px -6px; display: flex; align-items: center; justify-content: center;">
+              <div style="width: 28px; height: 28px; border-radius: 9999px; border: 1px solid #299D6B; display: flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#299D6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; padding-left: 36px; gap: 14px;">
+            <!-- Manual -->
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 18px; height: 18px; border-radius: 9999px; background: #299D6B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+              <span style="flex: 1; min-width: 0; font-size: 13px; font-weight: 600; color: #344054;">Banana <span style="font-weight: 400; color: #98A2B3;">· 1 piece</span></span>
+              <span style="font-size: 10px; font-weight: 700; color: #667085; background: #F2F4F7; border-radius: 9999px; padding: 2px 8px;">Manual</span>
+              <span style="font-size: 12px; color: #98A2B3;">104 cal</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <span style="font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: #98A2B3;">YOUR COACH'S PLAN</span>
+              <div style="display: flex; gap: 6px;">
+                <div style="height: 28px; padding: 0 10px 0 12px; display: flex; align-items: center; gap: 4px; background: #E6FAF1; border: 1px solid #299D6B; border-radius: 9999px; font-size: 11px; font-weight: 700; color: #299D6B;">Option 1 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#299D6B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+                <div style="height: 28px; padding: 0 12px; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 9999px; font-size: 11px; font-weight: 600; color: #667085;">Option 2</div>
+                <div style="height: 28px; padding: 0 12px; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 9999px; font-size: 11px; font-weight: 600; color: #667085;">Option 3</div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 18px; height: 18px; border-radius: 9999px; background: #299D6B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+                  <span style="flex: 1; font-size: 13px; font-weight: 600; color: #344054;">Boiled egg <span style="font-weight: 400; color: #98A2B3;">· 2 x 1 egg</span></span>
+                  <span style="font-size: 12px; color: #98A2B3;">146 cal</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 18px; height: 18px; border-radius: 9999px; background: #299D6B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+                  <span style="flex: 1; font-size: 13px; font-weight: 600; color: #344054;">Lauki oats besan chilla <span style="font-weight: 400; color: #98A2B3;">· 2 x 1 piece</span></span>
+                  <span style="font-size: 12px; color: #98A2B3;">153 cal</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 18px; height: 18px; border-radius: 9999px; background: #299D6B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+                  <span style="flex: 1; font-size: 13px; font-weight: 600; color: #344054;">Green chutney <span style="font-weight: 400; color: #98A2B3;">· 2 x 1 spoon</span></span>
+                  <span style="font-size: 12px; color: #98A2B3;">8 cal</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <div style="width: 18px; height: 18px; border-radius: 9999px; background: #299D6B; display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+                  <span style="flex: 1; font-size: 13px; font-weight: 600; color: #344054;">Curd <span style="font-weight: 400; color: #98A2B3;">· 1 katori</span></span>
+                  <span style="font-size: 12px; color: #98A2B3;">75 cal</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Coach tip -->
+            <div style="display: flex; flex-direction: column; gap: 10px; padding-top: 12px; border-top: 1px solid #F2F4F7;">
+              <span style="font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: #98A2B3;">TIPS FROM YOUR COACH</span>
+              <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <div style="width: 18px; height: 18px; border-radius: 9999px; background: #299D6B; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                  <span style="display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: #667085;">Drink warm water with methi
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                  </span>
+                  <span style="font-size: 12px; line-height: 18px; color: #98A2B3;">Soak a spoon of seeds overnight. Drink the water first thing.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Later today -->
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between;">
+        <span style="font-size: 16px; font-weight: 700; color: #101828;">Later today</span>
+        <span style="font-size: 12px; color: #98A2B3;">3 to go</span>
+      </div>
+
+      <!-- Evening snack expanded -->
+      <div style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 16px; padding: 18px 16px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 24px; height: 24px; border-radius: 9999px; border: 1.8px dashed #D0D5DD; flex-shrink: 0;"></div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 15px; font-weight: 700; color: #101828;">Evening snack</span>
+            <span style="font-size: 12px; color: #667085;">5:00 - 6:30 PM · 0 of 278 cal</span>
+          </div>
+          <div style="width: 44px; height: 44px; margin: -10px -10px -10px 0; display: flex; align-items: center; justify-content: center;">
+            <div style="width: 32px; height: 32px; border-radius: 9999px; border: 1px solid #299D6B; display: flex; align-items: center; justify-content: center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#299D6B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></div>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; padding-left: 36px;">
+          <span style="font-size: 10px; font-weight: 700; letter-spacing: 1.2px; color: #98A2B3;">YOUR COACH'S PLAN</span>
+          <div style="display: flex; gap: 6px;">
+            <div style="height: 28px; padding: 0 12px; display: flex; align-items: center; background: #E6FAF1; border: 1px solid #299D6B; border-radius: 9999px; font-size: 11px; font-weight: 700; color: #299D6B;">Option 1</div>
+            <div style="height: 28px; padding: 0 12px; display: flex; align-items: center; background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 9999px; font-size: 11px; font-weight: 600; color: #667085;">Option 2</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; min-height: 36px;">
+            <div style="width: 20px; height: 20px; border-radius: 9999px; border: 1.8px solid #D0D5DD; flex-shrink: 0;"></div>
+            <span style="flex: 1; font-size: 13px; font-weight: 600; color: #101828;">Roasted makhana <span style="font-weight: 400; color: #667085;">· 1 bowl</span></span>
+            <span style="font-size: 12px; color: #667085;">98 cal</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; min-height: 36px;">
+            <div style="width: 20px; height: 20px; border-radius: 9999px; border: 1.8px solid #D0D5DD; flex-shrink: 0;"></div>
+            <span style="flex: 1; font-size: 13px; font-weight: 600; color: #101828;">Roasted chana <span style="font-weight: 400; color: #667085;">· 1 handful</span></span>
+            <span style="font-size: 12px; color: #667085;">180 cal</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+          </div>
+          <div style="height: 44px; border-radius: 12px; background: #FFFFFF; border: 1px solid #299D6B; box-shadow: 0 4px 0 #E6FAF1; display: flex; align-items: center; justify-content: center; color: #299D6B; font-size: 14px; font-weight: 600; margin-top: 4px;">Log all 2</div>
+        </div>
+      </div>
+
+      <!-- Dinner + Bedtime compact -->
+      <div style="background: #FFFFFF; border: 1px solid #F2F4F7; border-radius: 16px; display: flex; flex-direction: column;">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 68px; padding: 0 16px;">
+          <div style="width: 24px; height: 24px; border-radius: 9999px; border: 1.8px dashed #D0D5DD; flex-shrink: 0;"></div>
+          <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 14px; font-weight: 600; color: #101828;">Dinner</span>
+            <span style="font-size: 12px; color: #667085;">8:00 - 9:30 PM · 2 options · 4 items</span>
+          </div>
+          <span style="font-size: 12px; color: #667085;">0 of 444 cal</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div style="height: 1px; background: #F2F4F7; margin: 0 16px;"></div>
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px 16px 16px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 24px; height: 24px; border-radius: 9999px; border: 1.8px dashed #D0D5DD; flex-shrink: 0;"></div>
+            <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-size: 14px; font-weight: 600; color: #101828;">Bedtime</span>
+              <span style="font-size: 12px; color: #667085;">10:00 - 11:00 PM · Walnut, Chamomile tea</span>
+            </div>
+            <span style="font-size: 12px; color: #667085;">0 of 58 cal</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#98A2B3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+          </div>
+          <div style="display: flex; align-items: flex-start; gap: 10px; margin-left: 36px; padding: 10px 12px; background: #FFFDF5; border: 1px solid #FFF8E0; border-radius: 12px;">
+            <div style="width: 18px; height: 18px; border-radius: 9999px; border: 1.8px solid #D0D5DD; background: #FFFFFF; flex-shrink: 0; margin-top: 1px;"></div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+              <span style="display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: #101828;">Soak 5 almonds for tomorrow
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#667085" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              </span>
+              <span style="font-size: 12px; line-height: 18px; color: #667085;">In a small bowl of water, before bed. Peel them in the morning.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Journey + water -->
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="background: #FFFFFF; border: 1px solid #F2F4F7; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: flex-start; gap: 12px;">
+          <div style="width: 36px; height: 36px; border-radius: 12px; background: #FFFBEE; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A68A2D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>
+          </div>
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 14px; font-weight: 700; color: #101828;">Day 3 of 7 · keep going</span>
+            <span style="font-size: 12px; line-height: 18px; color: #667085;">You are building a habit. Protein is the gap to watch this week.</span>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div style="display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px;">
+            <div style="height: 6px; border-radius: 9999px; background: #299D6B;"></div>
+            <div style="height: 6px; border-radius: 9999px; background: #299D6B;"></div>
+            <div style="height: 6px; border-radius: 9999px; background: #299D6B;"></div>
+            <div style="height: 6px; border-radius: 9999px; background: #E4E7EC;"></div>
+            <div style="height: 6px; border-radius: 9999px; background: #E4E7EC;"></div>
+            <div style="height: 6px; border-radius: 9999px; background: #E4E7EC;"></div>
+            <div style="height: 6px; border-radius: 9999px; background: #E4E7EC;"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="font-size: 11px; color: #667085;">3 days logged</span>
+            <span style="font-size: 11px; color: #667085;">First weekly insight unlocks in 4 days</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: #FFFFFF; border: 1px solid #F2F4F7; border-radius: 16px; min-height: 68px; padding: 0 16px; display: flex; align-items: center; gap: 12px;">
+        <div style="width: 36px; height: 36px; border-radius: 12px; background: #EEFFFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="#2DA6A6" stroke="#2DA6A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        </div>
+        <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+          <span style="font-size: 14px; font-weight: 700; color: #101828;">Water</span>
+          <span style="font-size: 12px; color: #667085;">4 glasses today, about 1,000ml</span>
+        </div>
+        <div style="height: 44px; padding: 0 4px; display: flex; align-items: center; font-size: 13px; font-weight: 700; color: #299D6B;">Change</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Kaira FAB -->
+  <div style="position: absolute; right: 18px; bottom: 96px; width: 48px; height: 48px; border-radius: 9999px; background: linear-gradient(135deg, #444CE7 0%, #2DA6A6 100%); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.10), 0 8px 10px -6px rgba(0,0,0,0.10); display: flex; align-items: center; justify-content: center;">
+    <svg width="22" height="24" viewBox="0 0 22 24" fill="none"><path d="M11 1.2 20.1 6.6v10.8L11 22.8 1.9 17.4V6.6z" stroke="#FFFFFF" stroke-width="1.7" stroke-linejoin="round"/></svg>
+  </div>
+
+  <!-- Bottom nav -->
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: #FFFFFF; border-top: 1px solid #E4E7EC; padding: 10px 6px 22px 6px;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 44px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#667085" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      <span style="font-size: 11px; font-weight: 500; color: #667085;">Back</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 44px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#299D6B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
+      <span style="font-size: 11px; font-weight: 700; color: #299D6B;">Eat</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 44px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#667085" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg>
+      <span style="font-size: 11px; font-weight: 500; color: #667085;">Trend</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 44px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#667085" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      <span style="font-size: 11px; font-weight: 500; color: #667085;">Learn</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

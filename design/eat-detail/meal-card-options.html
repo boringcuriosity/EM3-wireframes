@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meal card, four options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0; --brand-600:#299D6B; --brand-700:#2A805A;
+    --ok-600:#039855;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-200:#C7D7FE; --in-600:#444CE7;
+    --gold-600:#E7C144;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1500px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:760px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 6px}
+  .lede b{color:var(--g-900)}
+  .src{max-width:760px;font-size:13px;line-height:21px;color:var(--g-500);margin:0 0 32px}
+
+  .grid{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start}
+  .col{width:390px;flex:0 0 390px}
+  .cap{margin-bottom:14px;min-height:112px}
+  .cap h2{font-size:17px;line-height:24px;font-weight:600;margin:0 0 6px}
+  .cap p{font-size:13px;line-height:20px;color:var(--g-600);margin:0 0 6px}
+  .cap .risk{font-size:12px;line-height:18px;color:var(--g-500)}
+  .cap .risk b{color:var(--g-700);font-weight:600}
+  .phone{padding:16px;background:#fff;border:1px solid var(--g-200);border-radius:20px}
+
+  /* shared innards */
+  .rows{padding:6px 0 12px;margin:0 16px}
+  .row{display:flex;align-items:center;gap:10px;min-height:38px;font-size:14px}
+  .row+.row{border-top:1px dashed var(--g-200)}
+  .tk{width:22px;height:22px;border-radius:9999px;background:var(--ok-600);display:grid;place-items:center;flex-shrink:0}
+  .tk.off{background:#fff;border:1.5px solid var(--g-300)}
+  .tk svg{width:12px;height:12px}
+  .nm{flex:1;min-width:0;font-weight:700}.nm span{color:var(--g-500);font-weight:400}
+  .kc{color:var(--g-500);font-size:13px;white-space:nowrap}
+  .hd{display:flex;align-items:flex-start;gap:8px;padding:16px}
+  .t{flex:1;min-width:0}
+  .n{font:600 16px/22px Roboto}
+  .s{font-size:12px;line-height:18px;color:var(--g-500);margin-top:2px}
+  .disc{width:22px;height:22px;border-radius:9999px;background:var(--brand-600);display:grid;place-items:center;flex-shrink:0;margin-top:5px}
+  .oldplus{width:32px;height:32px;border-radius:9999px;border:1px solid var(--g-300);color:var(--g-700);display:grid;place-items:center;flex-shrink:0}
+
+  /* A, today */
+  .a{background:#fff;border:1px solid var(--g-100);border-radius:16px;margin-bottom:16px;
+     box-shadow:0 1px 3px rgba(16,24,40,.10),0 1px 2px -1px rgba(16,24,40,.10)}
+  .a .n{font:600 14px/20px Roboto}
+  .a .rows{border-top:1px solid var(--g-100)}
+
+  /* B, the real recipe in green */
+  .b{border-radius:24px;margin-bottom:16px;border:1px solid transparent;box-shadow:2px 2px 0 var(--g-200);
+     background:linear-gradient(180deg,#F3FCF8 0%,#FFF 29%,#FFF 100%) padding-box,
+       conic-gradient(from 0deg,#299D6B 0deg,#E4E7EC 43deg,#E4E7EC 317deg,#299D6B 360deg) border-box}
+  .b .rows{border-top:1px solid var(--g-100)}
+
+  /* C, the same recipe in indigo */
+  .c{border-radius:24px;margin-bottom:16px;border:1px solid transparent;box-shadow:2px 2px 0 var(--g-200);
+     background:linear-gradient(180deg,#F5F8FF 0%,#FFF 29%,#FFF 100%) padding-box,
+       conic-gradient(from 0deg,#444CE7 0deg,#E4E7EC 43deg,#E4E7EC 317deg,#444CE7 360deg) border-box}
+  .c .rows{border-top:1px solid var(--g-100)}
+
+  /* D, edges only, colour earned from state */
+  .d{border-radius:24px;margin-bottom:16px;border:1px solid transparent;box-shadow:2px 2px 0 var(--g-200);
+     background:linear-gradient(#fff,#fff) padding-box,
+       conic-gradient(from 0deg,#299D6B 0deg,#E4E7EC 43deg,#E4E7EC 317deg,#299D6B 360deg) border-box}
+  .d.part{background:linear-gradient(#fff,#fff) padding-box,
+       conic-gradient(from 0deg,#E7C144 0deg,#E4E7EC 43deg,#E4E7EC 317deg,#E7C144 360deg) border-box}
+  .d.none{background:linear-gradient(#fff,#fff) padding-box,
+       conic-gradient(from 0deg,#E4E7EC 0deg,#E4E7EC 360deg) border-box}
+  .d .rows{border-top:1px solid var(--g-100)}
+
+  @media (max-width:900px){ .page{padding:24px 16px 60px} .col{width:100%;flex:1 1 100%} .phone{padding:0;border:0} }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Meal card, four options</h1>
+  <p class="lede">All four keep the layout, the content and the interactions exactly as they are. Only the dressing changes: colour, gradient, border, depth and the add control. Each column shows <b>three meals in three different states</b>, because the real test is what happens when the card repeats six to eight times down a scroll.</p>
+  <p class="src">Drawn from GoodFlip's own repeating card stack on the ring Home page, node <code>5834:34325</code>, where three of the six cards are one component instanced three times. That is the only true precedent in the Figma files for a list like ours.</p>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+var TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+var PLUSW = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" style="width:14px;height:14px"><path d="M12 5v14M5 12h14"/></svg>';
+var PLUSG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" style="width:18px;height:18px"><path d="M12 5v14M5 12h14"/></svg>';
+var DISC = '<span class="disc">' + PLUSW + '</span>';
+var OLD  = '<span class="oldplus">' + PLUSG + '</span>';
+
+/* three meals, three states, so repetition is visible */
+var MEALS = [
+  { n:"Breakfast", s:"Suggested 8:00 - 10:00 AM · 486 of 382 cal",
+    rows:[["Boiled egg","2 x 1 egg","146 cal",1],["Lauki oats chilla","2 x 1 piece","153 cal",1]], state:"" },
+  { n:"Lunch", s:"Suggested 1:00 - 3:00 PM · 210 of 464 cal",
+    rows:[["Multigrain roti","2 x 1 piece","160 cal",1],["Mixed veg sabzi","1 katori","114 cal",0]], state:"part" },
+  { n:"Evening snack", s:"Suggested 5:00 - 6:30 PM · nothing logged",
+    rows:[["Roasted makhana","1 bowl","98 cal",0],["Roasted chana","1 handful","180 cal",0]], state:"none" }
+];
+
+function rows(m){
+  return '<div class="rows">' + m.rows.map(function(r){
+    return '<div class="row"><span class="tk' + (r[3] ? '' : ' off') + '">' + (r[3] ? TICK : '') + '</span>' +
+      '<span class="nm">' + r[0] + ' <span>· ' + r[1] + '</span></span>' +
+      '<span class="kc">' + r[2] + '</span></div>';
+  }).join('') + '</div>';
+}
+function card(cls, m, act, useState){
+  var k = cls + (useState && m.state ? ' ' + m.state : '');
+  return '<div class="' + k + '"><div class="hd"><div class="t"><div class="n">' + m.n +
+    '</div><div class="s">' + m.s + '</div></div>' + act + '</div>' + rows(m) + '</div>';
+}
+
+var OPTS = [
+  { cls:"a", act:OLD, state:false, title:"A. What we have now",
+    body:"White, a grey hairline, a soft shadow, 16px radius, and a 32px grey outline circle for add.",
+    risk:"<b>Honest read:</b> correct and completely flat. Eight identical boxes." },
+  { cls:"b", act:DISC, state:false, title:"B. GoodFlip's repeating card recipe",
+    body:"The real thing, values unchanged: radius 24, a tint on the top 29% only, a 1px conic border with green at dead top centre fading to grey by 43° each side, and a lighter #E4E7EC letterpress.",
+    risk:"<b>Risk at eight repeats:</b> the tint is far subtler than it sounds, but it is still eight green arcs marching down a white page." },
+  { cls:"c", act:DISC, state:false, title:"C. The same recipe, indigo",
+    body:"Identical geometry, indigo instead of green. Indigo is the system's colour for logging, so this keeps the whole green budget for the score.",
+    risk:"<b>Risk:</b> competes with the calorie block, which is already an #EEF4FF indigo wash and should stay the anchor." },
+  { cls:"d", act:DISC, state:true, title:"D. Edges only, colour earned from state",
+    body:"Same recipe, white field, and the arc's colour comes from the meal rather than from decoration: green when the meal is complete, gold when part done, plain grey when nothing is logged.",
+    risk:"<b>Risk:</b> least decorative of the four, so it lives or dies on whether the state reads. Green appears only where a meal is actually finished." }
+];
+
+document.getElementById('grid').innerHTML = OPTS.map(function(o){
+  return '<div class="col"><div class="cap"><h2>' + o.title + '</h2><p>' + o.body + '</p>' +
+    '<div class="risk">' + o.risk + '</div></div><div class="phone">' +
+    MEALS.map(function(m){ return card(o.cls, m, o.act, o.state); }).join('') +
+    '</div></div>';
+}).join('');
+</script>
+</body>
+</html>

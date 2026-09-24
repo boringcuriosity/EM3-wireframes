@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily averages, seven options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="icons/glyph-masks.css">
+<style>
+  :root{
+    --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0; --brand-600:#299D6B; --brand-700:#2A805A;
+    --ok-50:#ECFDF3; --ok-100:#D1FADF; --ok-500:#12B76A; --ok-600:#039855;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-50:#EEF4FF; --in-600:#444CE7;
+    --am-50:#FFFAEB; --am-100:#FEF0C7; --am-500:#F79009; --am-600:#DC6803;
+    --red-600:#D92D20;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1900px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:840px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 6px}
+  .lede b{color:var(--g-900)}
+  .src{max-width:840px;font-size:13px;line-height:21px;color:var(--g-500);margin:0 0 32px}
+  .grid{display:flex;flex-wrap:wrap;gap:30px;align-items:flex-start}
+  .col{width:390px;flex:0 0 390px}
+  .cap{margin-bottom:14px;min-height:186px}
+  .cap h2{font-size:16px;line-height:23px;font-weight:600;margin:0 0 6px}
+  .cap p{font-size:13px;line-height:20px;color:var(--g-600);margin:0 0 6px}
+  .cap .risk{font-size:12px;line-height:18px;color:var(--g-500)}
+  .cap .risk b{color:var(--g-700);font-weight:600}
+  .cap .h{display:inline-block;margin-top:6px;font-size:11px;line-height:16px;font-weight:600;
+    letter-spacing:.4px;text-transform:uppercase;color:var(--g-500);
+    background:var(--g-100);border-radius:9999px;padding:2px 8px}
+
+  /* the card each option lives in, identical everywhere so only the innards differ */
+  .card{background:#fff;border:1px solid var(--g-100);border-radius:16px;padding:16px;
+    box-shadow:0 1px 3px rgba(16,24,40,.10),0 1px 2px -1px rgba(16,24,40,.10)}
+  .card h3{margin:0 0 16px;font:600 14px/20px Roboto,sans-serif}
+  .g{background:var(--g-500);-webkit-mask-size:contain;mask-size:contain;
+    -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+    -webkit-mask-position:center;mask-position:center;flex-shrink:0;display:block}
+
+  /* ---------------------------------------------------------------- A, today */
+  .a .row{display:flex;align-items:center;gap:10px}
+  .a .r+.r{margin-top:16px}
+  .a .g{width:28px;height:28px;background:var(--ok-600)}
+  .a .lab{font:600 14px/21px Roboto,sans-serif}
+  .a .chip{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:9999px;
+    font:400 12px/19px Roboto,sans-serif;background:var(--ok-50);color:var(--ok-600)}
+  .a .sp{flex:1}
+  .a .v{font:400 14px/21px Roboto,sans-serif;color:var(--g-500);white-space:nowrap}
+  .a .v b{font-weight:600;color:var(--g-900)}
+  .a .track{display:block;height:8px;margin-top:8px;border-radius:9999px;background:var(--g-200);overflow:hidden}
+  .a .track i{display:block;height:100%;border-radius:9999px;background:var(--ok-500)}
+  .a .r.short .g{background:var(--am-600)}
+  .a .r.short .chip{background:var(--am-50);color:var(--am-600)}
+  .a .r.short .track i{background:var(--am-500)}
+
+  /* ------------------------------------------------------------ B, bullet rail */
+  .b .r{display:flex;align-items:center;gap:8px;height:22px}
+  .b .r+.r{margin-top:14px}
+  .b .g{width:16px;height:16px}
+  .b .lab{width:48px;flex:0 0 48px;font:400 14px/17px Roboto,sans-serif}
+  .b .rail{position:relative;width:180px;flex:0 0 180px;height:10px;border-radius:5px;background:var(--g-100)}
+  /* the 90 to 110% zone, so arriving is a position rather than a length */
+  .b .band{position:absolute;left:147px;right:0;top:0;bottom:0;border-radius:5px;background:var(--ok-100)}
+  .b .meas{position:absolute;left:0;top:3px;height:4px;border-radius:2px;background:var(--brand-600)}
+  .b .tick{position:absolute;left:163px;top:-3px;width:2px;height:16px;border-radius:1px;background:var(--g-700)}
+  .b .st{flex:1;text-align:right;font:400 12px/14px Roboto,sans-serif;color:var(--ok-600);white-space:nowrap}
+  .b .r.short .meas{background:var(--am-600)}
+  .b .r.short .st{color:var(--am-600)}
+  .b .foot{margin:14px 0 0;padding-top:12px;border-top:1px solid var(--g-100);
+    font:400 12px/18px Roboto,sans-serif;color:var(--g-500)}
+
+  /* ------------------------------------------------------------ C, paired grid */
+  .c .wrap{display:flex;flex-wrap:wrap;gap:16px}
+  .c .cell{flex:1 1 calc(50% - 8px);min-width:0}
+  .c .lr{display:flex;align-items:center;gap:4px;height:14px}
+  .c .g{width:14px;height:14px}
+  .c .lr span{font:400 12px/14px Roboto,sans-serif;color:var(--g-500)}
+  .c .v{margin-top:4px;font:400 14px/17px Roboto,sans-serif;color:var(--g-500)}
+  .c .v b{font-weight:600;color:var(--g-900)}
+  .c .track{display:block;height:4px;margin-top:8px;border-radius:9999px;background:var(--g-200);overflow:hidden}
+  .c .track i{display:block;height:100%;border-radius:9999px;background:var(--brand-600)}
+  .c .st{margin-top:4px;font:400 12px/14px Roboto,sans-serif;color:var(--ok-600)}
+  .c .cell.short .track i{background:var(--am-600)}
+  .c .cell.short .st{color:var(--am-600)}
+
+  /* ------------------------------------------------------------- D, half gauge */
+  .d .wrap{display:flex;flex-wrap:wrap;gap:16px}
+  .d .tile{position:relative;flex:1 1 calc(50% - 8px);min-width:0;height:108px;border-radius:8px;padding:12px;
+    overflow:hidden;background:linear-gradient(180deg,var(--g-50),#fff)}
+  .d .tile.short{background:linear-gradient(180deg,var(--am-50),#fff)}
+  .d .top{display:flex;align-items:baseline;justify-content:space-between}
+  .d .top span{font:400 12px/14px Roboto,sans-serif;color:var(--g-500)}
+  .d .top b{font:400 14px/17px Roboto,sans-serif;color:var(--g-900)}
+  .d svg{position:absolute;left:50%;bottom:8px;transform:translateX(-50%)}
+  .d .mouth{position:absolute;left:0;right:0;bottom:12px;display:flex;flex-direction:column;
+    align-items:center;gap:1px}
+  .d .g{width:16px;height:16px;background:var(--brand-600)}
+  .d .tile.short .g{background:var(--am-600)}
+  .d .mouth i{font-style:normal;font:400 12px/14px Roboto,sans-serif;color:var(--ok-600)}
+  .d .tile.short .mouth i{color:var(--am-600)}
+
+  /* ----------------------------------------------------------- E, seven dots */
+  .e .r{display:flex;align-items:center;gap:8px;height:22px}
+  .e .r+.r{margin-top:14px}
+  .e .g{width:16px;height:16px}
+  .e .lab{width:48px;flex:0 0 48px;font:400 14px/17px Roboto,sans-serif}
+  .e .dots{display:flex;gap:6px;flex:1}
+  .e .dots i{width:14px;height:14px;border-radius:9999px;background:var(--ok-500)}
+  .e .dots i.off{background:#fff;border:1.5px solid var(--g-300)}
+  .e .dots i.none{background:var(--g-100);border:0}
+  .e .st{font:400 12px/14px Roboto,sans-serif;color:var(--g-500);white-space:nowrap}
+
+  /* --------------------------------------------------------- F, compact four up */
+  .f .wrap{display:flex;gap:8px}
+  .f .cell{flex:1;min-width:0;text-align:center}
+  .f .disc{width:32px;height:32px;margin:0 auto;border-radius:9999px;background:var(--g-100);
+    display:grid;place-items:center}
+  .f .g{width:18px;height:18px}
+  .f .lab{margin-top:6px;font:400 12px/14px Roboto,sans-serif;color:var(--g-500)}
+  .f .v{margin-top:2px;font:600 15px/20px Roboto,sans-serif;color:var(--g-900)}
+  .f .v s{text-decoration:none;font-weight:400;font-size:12px;color:var(--g-500)}
+  .f .track{display:block;height:4px;margin-top:8px;border-radius:9999px;background:var(--g-200);overflow:hidden}
+  .f .track i{display:block;height:100%;border-radius:9999px;background:var(--ok-500)}
+  .f .cell.short .disc{background:var(--am-50)}
+  .f .cell.short .g{background:var(--am-600)}
+  .f .cell.short .track i{background:var(--am-500)}
+
+  /* ------------------------------------------------------- G, twin distribution */
+  .gg .lab{font:400 12px/18px Roboto,sans-serif;color:var(--g-500);margin-bottom:6px}
+  .gg .stack{display:flex;height:16px;border-radius:9999px;overflow:hidden;background:var(--g-100)}
+  .gg .stack i{display:block;height:100%}
+  .gg .stack i+i{border-left:1px solid #fff}
+  .gg .stack.plan{opacity:.42;margin-top:10px}
+  .gg .key{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px}
+  .gg .key span{display:inline-flex;align-items:center;gap:6px;font:400 12px/18px Roboto,sans-serif;color:var(--g-500)}
+  .gg .key b{width:10px;height:10px;border-radius:3px}
+  .gg .foot{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--g-100);
+    font:400 12px/18px Roboto,sans-serif;color:var(--g-500)}
+  .gg .foot b{color:var(--g-900);font-weight:600}
+
+  @media (max-width:900px){ .page{padding:24px 16px 60px} .col{width:100%;flex:1 1 100%} }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Daily averages, seven options</h1>
+  <p class="lede">The same four numbers every time: <b>protein 71 of 94g, carbs 219 of 236, fats 57 of 62, fibre 27 of 30</b>. Protein is the one short of target. Every option shows the shortfall in a word as well as a colour, because the design system does not allow a health state to be signalled by colour alone.</p>
+  <p class="src">Drawn from what GoodFlip already has: the 2 x 2 macro grid on the ring nutrition sheet (node <code>8888:55261</code>), the half gauge tile (<code>1572:16980</code>), the distribution pill used for sleep and stress stages, and the four up meal facts strip. Height under each one matters, because this card sits under a big number and a seven day chart that both need the room.</p>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+var M = [
+  { k:"protein", lab:"Protein", had:71,  goal:94,  days:1 },
+  { k:"carbs",   lab:"Carbs",   had:219, goal:236, days:4 },
+  { k:"fats",    lab:"Fats",    had:57,  goal:62,  days:4 },
+  { k:"fibre",   lab:"Fibre",   had:27,  goal:30,  days:3 }
+];
+/* one threshold, the same for all four, so a row's colour never needs explaining */
+function pct(m){ return Math.round(m.had / m.goal * 100); }
+function short(m){ return pct(m) < 85; }
+function st(m){ return short(m) ? (m.goal - m.had) + "g short" : "On target"; }
+function gl(m, cls){ return '<span class="g glyph-' + m.k + (cls ? " " + cls : "") + '"></span>'; }
+
+/* -------------------------------------------------------------------- A */
+function A(){
+  return '<div class="card a"><h3>Daily averages</h3>' + M.map(function(m){
+    return '<div class="r' + (short(m) ? " short" : "") + '">' +
+      '<div class="row">' + gl(m) + '<span class="lab">' + m.lab + '</span>' +
+      '<span class="chip">' + (short(m) ? "Short" : "On target") + '</span><span class="sp"></span>' +
+      '<span class="v"><b>' + m.had + 'g</b> of ' + m.goal + 'g</span></div>' +
+      '<span class="track"><i style="width:' + Math.min(100, pct(m)) + '%"></i></span></div>';
+  }).join("") + '</div>';
+}
+
+/* -------------------------------------------------------------------- B */
+/* 180px of rail is 110% of target, so 1% is 1.636px. The tick sits at 100%
+   and the tinted band is the 90 to 110 zone. */
+function B(){
+  return '<div class="card b"><h3>Daily averages</h3>' + M.map(function(m){
+    var w = Math.round(pct(m) * 1.636);
+    return '<div class="r' + (short(m) ? " short" : "") + '">' + gl(m) +
+      '<span class="lab">' + m.lab + '</span>' +
+      '<span class="rail"><i class="band"></i><i class="meas" style="width:' + w + 'px"></i>' +
+      '<i class="tick"></i></span>' +
+      '<span class="st">' + st(m) + '</span></div>';
+  }).join("") +
+  '<p class="foot">The tinted stretch is your target zone. The mark is the target itself.</p></div>';
+}
+
+/* -------------------------------------------------------------------- C */
+function C(){
+  return '<div class="card c"><h3>Daily averages</h3><div class="wrap">' + M.map(function(m){
+    return '<div class="cell' + (short(m) ? " short" : "") + '">' +
+      '<div class="lr">' + gl(m) + '<span>' + m.lab + '</span></div>' +
+      '<div class="v"><b>' + m.had + '</b>/' + m.goal + 'g</div>' +
+      '<span class="track"><i style="width:' + Math.min(100, pct(m)) + '%"></i></span>' +
+      '<div class="st">' + st(m) + '</div></div>';
+  }).join("") + '</div></div>';
+}
+
+/* -------------------------------------------------------------------- D */
+/* a 150 wide semicircle, clipped by the tile, drawn as a stroked arc */
+function D(){
+  var R = 52, C0 = Math.PI * R;
+  return '<div class="card d"><h3>Daily averages</h3><div class="wrap">' + M.map(function(m){
+    var p = Math.min(100, pct(m)) / 100;
+    var col = short(m) ? "var(--am-600)" : "var(--brand-600)";
+    return '<div class="tile' + (short(m) ? " short" : "") + '">' +
+      '<div class="top"><span>' + m.lab + '</span><b>' + m.had + '/' + m.goal + 'g</b></div>' +
+      '<svg width="124" height="62" viewBox="0 0 124 62">' +
+        '<path d="M6 58a52 52 0 0 1 104 0" fill="none" stroke="#E4E7EC" stroke-width="8" stroke-linecap="round"/>' +
+        '<path d="M6 58a52 52 0 0 1 104 0" fill="none" stroke="' + col + '" stroke-width="8" stroke-linecap="round"' +
+          ' stroke-dasharray="' + (p * C0).toFixed(1) + ' ' + C0.toFixed(1) + '"/>' +
+      '</svg>' +
+      '<div class="mouth">' + gl(m) + '<i>' + st(m) + '</i></div>' +
+      '</div>';
+  }).join("") + '</div></div>';
+}
+
+/* -------------------------------------------------------------------- E */
+function E(){
+  return '<div class="card e"><h3>Days each target was met</h3>' + M.map(function(m){
+    var dots = "";
+    for (var i = 0; i < 7; i++) {
+      dots += '<i class="' + (i > 4 ? "none" : i < m.days ? "" : "off") + '"></i>';
+    }
+    return '<div class="r">' + gl(m) + '<span class="lab">' + m.lab + '</span>' +
+      '<span class="dots">' + dots + '</span>' +
+      '<span class="st">' + m.days + ' of 5</span></div>';
+  }).join("") + '</div>';
+}
+
+/* -------------------------------------------------------------------- F */
+function F(){
+  return '<div class="card f"><h3>Daily averages</h3><div class="wrap">' + M.map(function(m){
+    return '<div class="cell' + (short(m) ? " short" : "") + '">' +
+      '<span class="disc">' + gl(m) + '</span>' +
+      '<div class="lab">' + m.lab + '</div>' +
+      '<div class="v">' + m.had + '<s>/' + m.goal + 'g</s></div>' +
+      '<span class="track"><i style="width:' + Math.min(100, pct(m)) + '%"></i></span></div>';
+  }).join("") + '</div></div>';
+}
+
+/* -------------------------------------------------------------------- G */
+/* share of the day's grams, yours over your plan's */
+function G(){
+  var HUE = { protein:"#299D6B", carbs:"#444CE7", fats:"#E7C144", fibre:"#2DA6A6" };
+  function bar(key, cls){
+    var tot = M.reduce(function(a,m){ return a + m[key]; }, 0);
+    return '<div class="stack' + (cls || "") + '">' + M.map(function(m){
+      return '<i style="width:' + (m[key] / tot * 100).toFixed(1) + '%;background:' + HUE[m.k] + '"></i>';
+    }).join("") + '</div>';
+  }
+  return '<div class="card gg"><h3>How your week was made up</h3>' +
+    '<div class="lab">Your week</div>' + bar("had") +
+    '<div class="lab" style="margin-top:14px">Your plan</div>' + bar("goal", " plan") +
+    '<div class="key">' + M.map(function(m){
+      return '<span><b style="background:' + HUE[m.k] + '"></b>' + m.lab + '</span>';
+    }).join("") + '</div>' +
+    '<p class="foot">Protein was <b>18% of your week</b> against <b>22% of your plan</b>.</p></div>';
+}
+
+var OPTS = [
+  { fn:A, h:"about 216", title:"A. What we have now",
+    body:"Four full width rows. Icon, label, a status chip, the grams, then a track across the whole card.",
+    risk:"<b>Honest read:</b> every row looks the same whatever the number says. A plain 0 to 100 track makes 76% and 93% siblings, and four of them is the tallest thing on the screen after the chart." },
+  { fn:B, h:"130", title:"B. Bullet rail",
+    body:"The track carries a tinted target zone and a mark at the target itself, so arriving is a position rather than a length. 93% lands inside the band, 76% visibly does not.",
+    risk:"<b>Risk:</b> the band is a new idea here and needs its one line of explanation, which is why the card has a footnote. Closest existing part is the range meter, which would need a variant." },
+  { fn:C, h:"146", title:"C. Paired grid",
+    body:"Today's rows folded into two columns, with the chip becoming a status line. The eaten number is dark and the target grey, one number split in two weights.",
+    risk:"<b>Risk:</b> a folded row is still a row, so it fixes the height and only half fixes the flatness. A 4px track cannot tell 90% from 93%. <b>Already drawn in Figma with this exact data.</b>" },
+  { fn:D, h:"240", title:"D. Half gauge tiles",
+    body:"Four tiles, each a clipped semicircle with the macro's own glyph sitting in its mouth. An arc reads a percentage better than a 4px line, because the eye is good at sweep.",
+    risk:"<b>Risk:</b> the tallest option, and four arcs is a lot of curve on a screen that already has a big number and a bar chart. It sits in Figma's archive page rather than the shipped set." },
+  { fn:E, h:"116", title:"E. Days each target was met",
+    body:"Stops averaging. One dot per day, filled on the days that actually hit the target, hollow on the days that did not, and flat grey for the two days with no log.",
+    risk:"<b>Risk:</b> it answers a different question, consistency rather than amount, and it will read as a second seven day chart directly under the first one." },
+  { fn:F, h:"104", title:"F. Compact four up",
+    body:"One row, four columns, the glyph on a tinted disc above the label. This is the meal facts strip that already ships, with a track added under each.",
+    risk:"<b>Risk:</b> almost no presence, and it is tight. 219/236g barely fits a 90px column, so the target has to shrink to 12px to survive." },
+  { fn:G, h:"146", title:"G. Twin distribution",
+    body:"Your week's split of grams stacked over your plan's split, so the two shapes can be compared directly. The shortest way to show all four at once.",
+    risk:"<b>Argue against this one.</b> It answers share of total, not whether you hit target. It would tell someone their carbs were high in a week when carbs were at 93% of plan and only protein moved. In a metabolic product that is not a styling choice." }
+];
+
+document.getElementById("grid").innerHTML = OPTS.map(function(o){
+  return '<div class="col"><div class="cap"><h2>' + o.title + '</h2><p>' + o.body + '</p>' +
+    '<div class="risk">' + o.risk + '</div><span class="h">' + o.h + 'px tall</span></div>' +
+    o.fn() + '</div>';
+}).join("");
+</script>
+</body>
+</html>

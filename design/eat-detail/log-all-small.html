@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log all, small controls examined</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --brand-25:#FAFFFD; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0;
+    --brand-600:#299D6B; --brand-700:#2A805A; --ok-600:#039855;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-600:#444CE7;
+    --red-600:#D92D20;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1700px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:840px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 10px}
+  .lede b{color:var(--g-900)}
+  .callout{max-width:840px;padding:14px 16px;border-radius:12px;background:var(--g-50);
+    border:1px solid var(--g-200);font-size:13px;line-height:21px;color:var(--g-700);margin:0 0 32px}
+  .callout b{color:var(--g-900)}
+
+  .grid{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start;margin-bottom:44px}
+  .col{width:330px;flex:0 0 330px}
+  .cap h2{font-size:15px;line-height:22px;font-weight:600;margin:0 0 6px}
+  .cap p{font-size:12.5px;line-height:19px;color:var(--g-600);margin:0 0 10px}
+  .score{font-size:11.5px;line-height:18px;margin:0 0 12px}
+  .score div{display:flex;gap:6px}
+  .score i{font-style:normal;width:13px;flex-shrink:0}
+  .ok{color:var(--brand-600)}.no{color:var(--red-600)}.mid{color:var(--g-500)}
+
+  /* the shipping card */
+  .meal{margin-bottom:14px;border-radius:24px;border:1px solid transparent;box-shadow:2px 2px 0 var(--g-200);
+    background:linear-gradient(180deg,var(--in-25) 0%,#fff 29%,#fff 100%) padding-box,
+      conic-gradient(from 0deg,var(--in-600) 0deg,var(--g-200) 43deg,var(--g-200) 317deg,var(--in-600) 360deg) border-box}
+  .hd{display:flex;align-items:flex-start;gap:10px;padding:16px}
+  .t{flex:1;min-width:0}.n{font:600 16px/22px Roboto}
+  .s{font-size:12px;line-height:18px;color:var(--g-500);margin-top:2px}
+  .plus{width:26px;height:26px;border-radius:9999px;border:1.5px solid var(--brand-600);background:#fff;
+    color:var(--brand-600);display:grid;place-items:center;flex-shrink:0;margin-top:4px}
+  .rows{padding:6px 0 10px;margin:0 16px;border-top:1px solid var(--g-100)}
+  .row{display:flex;align-items:center;gap:10px;min-height:36px;font-size:14px}
+  .row+.row{border-top:1px dashed var(--g-200)}
+  .tk{width:22px;height:22px;border-radius:9999px;background:var(--ok-600);display:grid;place-items:center;flex-shrink:0}
+  .tk.off{background:#fff;border:1.5px solid var(--g-300)}.tk svg{width:12px;height:12px}
+  .nm{flex:1;min-width:0;font-weight:700}.nm span{color:var(--g-500);font-weight:400}
+  .kc{color:var(--g-500);font-size:13px;white-space:nowrap}
+  .tag{font-size:11px;line-height:17px;color:var(--g-600);background:var(--g-100);
+    border-radius:9999px;padding:1px 8px;white-space:nowrap}
+  .plan{margin-top:4px;padding-top:10px;border-top:1px dashed var(--g-200)}
+  .plab{font:600 11px/16px Roboto;letter-spacing:.7px;text-transform:uppercase;color:var(--g-400);margin-bottom:8px}
+  .opts{display:flex;gap:6px;margin-bottom:4px;flex-wrap:wrap}
+  .opt{display:inline-flex;align-items:center;gap:5px;height:30px;padding:0 11px;border-radius:9999px;
+    border:1px solid var(--g-200);background:#fff;color:var(--g-600);font:600 13px/1 Roboto;white-space:nowrap}
+  .opt.on{background:var(--brand-100);border-color:var(--brand-600);color:var(--brand-600)}
+
+  /* the controls, all 44px hit, all small visually */
+  .chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;margin-block:-4px;padding:0 12px;
+    border-radius:9999px;border:0;background:var(--brand-50);color:var(--brand-700);
+    font:600 13px/1 Roboto;letter-spacing:.25px;white-space:nowrap;cursor:pointer}
+  .chip svg{width:13px;height:13px}
+  .chip.line{background:#fff;border:1px solid var(--brand-600);color:var(--brand-600)}
+  .chip.grey{background:var(--g-100);color:var(--g-700)}
+
+  /* the control sits on the same 36px rhythm as a food row, so a 44px target
+     needs exactly -4px of block margin, no more */
+  .inrow{display:flex;align-items:center;gap:10px;min-height:36px;border-top:1px dashed var(--g-200)}
+  .inrow .sp{width:22px;flex-shrink:0}
+  .link{display:inline-flex;align-items:center;gap:4px;min-height:44px;margin-block:-4px;padding:0 4px;margin-left:-4px;
+    border:0;background:none;color:var(--brand-600);font:400 14px/1 Roboto;letter-spacing:.25px;cursor:pointer}
+  .link svg{width:12px;height:12px}
+  .hdrow{display:flex;justify-content:flex-end;margin:0 16px;padding-bottom:10px}
+
+  /* The established pattern: a parent control in the group header that ticks
+     its children, with a partial state when only some are done. GoodFlip ships
+     exactly these three states (_Checkbox base 1120:148: Default white,
+     Checked #299D6B, Nill #E6FAF1). Drawn as our own circular tick so it
+     matches the rows it commands. */
+  .allrow{display:flex;align-items:center;gap:10px;min-height:36px;border-top:1px dashed var(--g-200);
+    background:none;border-left:0;border-right:0;border-bottom:0;padding:0;width:100%;cursor:pointer;text-align:left}
+  .mtk{width:22px;height:22px;border-radius:9999px;border:1.5px solid var(--brand-600);background:#fff;
+    display:grid;place-items:center;flex-shrink:0;color:var(--brand-600)}
+  .mtk.part{background:var(--brand-100)}
+  .mtk svg{width:12px;height:12px}
+  .alab{flex:1;min-width:0;font:600 14px/20px Roboto;color:var(--brand-700)}
+  .acount{color:var(--g-500);font-size:13px;white-space:nowrap}
+  @media (max-width:820px){.page{padding:24px 16px 60px}.col{width:100%;flex:1 1 100%}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Log all, five small controls, examined</h1>
+  <p class="lede">All five are small and all five have a <b>44px tap target</b>, held open by a negative block margin so the row never grows. What separates them is affordance, and where they sit.</p>
+  <div class="callout">
+    <b>The principles disagree with Mobbin on position.</b> Every nutrition app puts its per-meal control in the card header, but their control opens the meal. Ours acts on <b>the food rows</b>. By the Law of Common Region and Uniform Connectedness, a control belongs inside the region of the content it acts on, sharing its edge. That argues for the control sitting <b>with the rows, aligned to them</b>, not up in the header describing the meal.
+    <br><br>
+    <b>The affordance trap.</b> On a touch screen there is no hover, so a bare word has only its colour to say it is pressable. Our food names are already tappable and they are near black and bold. Two tappable texts with two different looks breaks the Law of Similarity: same behaviour should look the same. A container solves it; that is what a chip is for.
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+var TICK='<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+var PLUS='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="width:15px;height:15px"><path d="M12 5v14M5 12h14"/></svg>';
+var DBL='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 12.5l4 4L14 8"/><path d="M9 16.5l1.5 1.5L19 9.5"/></svg>';
+var DASH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 12h12"/></svg>';
+var ARR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>';
+
+var MEALS=[
+ {n:"Breakfast",s:"Suggested 8:00 - 10:00 AM · 104 of 382 cal",left:3,opts:[0,1,2],
+  manual:["Banana","1 piece","104 cal",1,1],
+  rows:[["Boiled egg","2 x 1 egg","146 cal",0],["Lauki oats chilla","2 x 1 piece","153 cal",0],["Green chutney","2 x 1 spoon","8 cal",0]]},
+ {n:"Lunch",s:"Suggested 1:00 - 3:00 PM · 249 of 464 cal",left:2,opts:[0,1],
+  manual:["Buttermilk","1 glass","89 cal",1,1],
+  rows:[["Multigrain roti","2 x 1 piece","160 cal",1],["Mixed veg sabzi","1 katori","114 cal",0],["Dal","1 katori","152 cal",0]]}
+];
+function foodRow(r){
+  return '<div class="row"><span class="tk'+(r[3]?'':' off')+'">'+(r[3]?TICK:'')+'</span>'+
+   '<span class="nm">'+r[0]+' <span>· '+r[1]+'</span></span>'+
+   (r[4]?'<span class="tag">Manual</span>':'')+
+   '<span class="kc">'+r[2]+'</span></div>';}
+/* A real card holds one food the person logged themselves, then the coach's
+   plan with its options, then the plan's own foods. The control has to hold up
+   with all of that above it, not just three bare rows. */
+function rowsHTML(m,tail){
+  return '<div class="rows">'+ foodRow(m.manual) +
+    '<div class="plan"><div class="plab">Your coach\u2019s plan</div><div class="opts">'+
+    m.opts.map(function(o,k){ return '<span class="opt'+(k===0?' on':'')+'">Option '+(k+1)+(k===0?' ✓':'')+'</span>'; }).join('')+
+    '</div>'+ m.rows.map(foodRow).join('') + (tail||'') + '</div></div>';}
+
+function build(k,m){
+  var head='<div class="hd"><div class="t"><div class="n">'+m.n+'</div><div class="s">'+m.s+'</div></div>';
+  if(k==='hdchip') head+='<button class="chip">'+DBL+'Log all '+m.left+'</button>';
+  head+='<span class="plus">'+PLUS+'</span></div>';
+  var tail='';
+  if(k==='rowchip') tail='<div class="inrow"><span class="sp"></span><button class="chip">'+DBL+'Log all '+m.left+'</button></div>';
+  if(k==='rowline') tail='<div class="inrow"><span class="sp"></span><button class="chip line">'+DBL+'Log all '+m.left+'</button></div>';
+  if(k==='rowgrey') tail='<div class="inrow"><span class="sp"></span><button class="chip grey">'+DBL+'Log all '+m.left+'</button></div>';
+  if(k==='rowlink') tail='<div class="inrow"><span class="sp"></span><button class="link">Log all '+m.left+ARR+'</button></div>';
+  if(k==='master')  tail='<button class="allrow"><span class="mtk'+(m.left<m.rows.length?' part':'')+'">'+
+      (m.left<m.rows.length?DASH:'')+'</span><span class="alab">Log all '+m.left+'</span>'+
+      '<span class="acount">'+m.left+' left</span></button>';
+  return '<div class="meal">'+head+rowsHTML(m,tail)+'</div>';
+}
+
+var OPTS=[
+ {k:"master",title:"1. Parent tick, the pattern the web actually uses",
+  body:"A control row in the plan group that ticks all of its foods, drawn as the same tick the rows use. Partial state when some are already logged. No pill, no new component.",
+  sc:[["ok","Affordance: it is a tick, and every row has one"],
+      ["ok","Similarity: identical control to the thing it commands"],
+      ["ok","Common region and connectedness: it is a row of the plan"],
+      ["ok","Recognition: the label says exactly what it does"],
+      ["ok","System: GoodFlip ships all three states already"]]},
+ {k:"rowchip",title:"2. Tinted chip, aligned with the rows",
+  body:"Sits as the last row, indented to the food names so it reads as belonging to them. Brand-50 fill, brand-700 label.",
+  sc:[["ok","Affordance: a fill says pressable without a hover"],
+      ["ok","Common region: inside the rows it acts on"],
+      ["ok","Uniform connectedness: shares the rows' left edge"],
+      ["ok","Similarity: a chip, distinct from the bold food names"],
+      ["mid","Minimalism: adds one tinted shape per card"]]},
+ {k:"rowline",title:"2. Outlined chip, same place",
+  body:"Identical geometry, a 1px green hairline instead of a fill.",
+  sc:[["ok","Affordance: a border still reads as a control"],
+      ["ok","Common region and connectedness: same as 1"],
+      ["ok","Similarity: matches the outlined plus in the header"],
+      ["mid","Six hairlines on a page that has six card edges"],
+      ["ok","Minimalism: introduces no new colour"]]},
+ {k:"rowgrey",title:"3. Neutral chip, same place",
+  body:"No green at all. Grey fill, near black label.",
+  sc:[["ok","Affordance: a fill reads as pressable"],
+      ["ok","Common region and connectedness: same as 1"],
+      ["no","Similarity: grey is our disabled token elsewhere"],
+      ["ok","Von Restorff: cannot compete with the primary"],
+      ["mid","Recognition: reads as inactive at a glance"]]},
+ {k:"rowlink",title:"4. Text and arrow, aligned with the rows",
+  body:"GoodFlip's own pattern, moved down beside the rows it acts on.",
+  sc:[["no","Affordance: colour alone, no container, no hover on touch"],
+      ["ok","Common region and connectedness: same as 1"],
+      ["no","Similarity: a second tappable text, unlike the food names"],
+      ["ok","Minimalism: the lightest of the five"],
+      ["ok","Consistency: the system does use this, quietly"]]},
+ {k:"hdchip",title:"5. Tinted chip, up in the header",
+  body:"Where every nutrition app puts it. Beside the add control.",
+  sc:[["ok","Affordance: same chip, same fill"],
+      ["no","Common region: sits with the meal, acts on the rows"],
+      ["no","Connectedness: separated from its target by a rule"],
+      ["mid","Proximity: two controls 10px apart doing different jobs"],
+      ["ok","Consistency: matches MyFitnessPal, Yazio, Lifesum"]]}
+];
+document.getElementById('grid').innerHTML=OPTS.map(function(o){
+ return '<div class="col"><div class="cap"><h2>'+o.title+'</h2><p>'+o.body+'</p></div>'+
+  '<div class="score">'+o.sc.map(function(r){
+     var m={ok:'✓',no:'✗',mid:'–'}[r[0]];
+     return '<div class="'+r[0]+'"><i>'+m+'</i><span>'+r[1]+'</span></div>';}).join('')+'</div>'+
+  MEALS.map(function(m){return build(o.k,m);}).join('')+'</div>';
+}).join('');
+</script>
+</body>
+</html>
