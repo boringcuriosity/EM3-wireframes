@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The score, in glass</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --brand-25:#FAFFFD; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0;
+    --brand-300:#ABE6CC; --brand-400:#79CCA8; --brand-600:#299D6B; --brand-700:#2A805A;
+    --ok-600:#039855;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-50:#EEF4FF; --in-600:#444CE7;
+    --r-lg:16px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1760px;margin:0 auto;padding:40px 24px 90px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 10px}
+  .lede{max-width:900px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 8px}
+  .lede b{color:var(--g-900)}
+  .src{max-width:900px;font-size:13px;line-height:21px;color:var(--g-500);margin:0 0 36px}
+  h2.sec{margin:44px 0 6px;font-size:20px;line-height:28px;font-weight:600}
+  .secnote{max-width:900px;margin:0 0 24px;font-size:13px;line-height:21px;color:var(--g-500)}
+
+  .grid{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+  .col{width:390px;flex:0 0 390px}
+  .cap{min-height:132px;margin-bottom:12px}
+  .cap h3{margin:0 0 6px;font-size:16px;line-height:23px;font-weight:600}
+  .cap p{margin:0 0 7px;font-size:13px;line-height:20px;color:var(--g-600)}
+  .cap .tr{font-size:12px;line-height:18px;color:var(--g-500)}
+  .cap .tr b{color:var(--g-700);font-weight:600}
+  .tag{display:inline-block;margin-bottom:6px;font-size:11px;line-height:16px;font-weight:600;
+    letter-spacing:.4px;text-transform:uppercase;color:var(--g-500);background:var(--g-100);
+    border-radius:9999px;padding:2px 8px}
+  .tag.pick{color:var(--brand-700);background:var(--brand-100)}
+
+  /* ------------------------------------------------- the screen it sits on */
+  /* The reference washes green down from the very top of the screen and lets
+     it die out before the content starts. So the gradient belongs to the
+     page, not to the plate: it runs from under the status bar, which is why
+     it reads as light in the room rather than as a panel behind the score. */
+  .phone{position:relative;width:390px;height:470px;border:1px solid var(--g-200);
+    border-radius:20px;background:#fff;overflow:hidden}
+  .wash{position:absolute;left:0;right:0;top:0;height:330px;pointer-events:none}
+  .head{position:relative;display:flex;align-items:center;gap:8px;padding:16px 16px 0;
+    font:600 16px/22px Roboto,sans-serif}
+  .head s{text-decoration:none;font:400 13px/20px Roboto,sans-serif;color:var(--g-500)}
+  .chip{position:relative;display:flex;justify-content:center;gap:10px;padding:14px 0 0;
+    font:600 15px/22px Roboto,sans-serif}
+  .stage{position:relative;display:grid;place-items:center;height:330px}
+  .hero{position:relative;width:342px;height:320px}
+
+  /* the bubble sits between the plate's dots and its number */
+  .bub{position:absolute;left:50%;top:158px;transform:translate(-50%,-50%);
+    border-radius:9999px;pointer-events:none;z-index:1}
+  .hero > div:last-child{z-index:2}
+
+  /* ============================================================== A ====== */
+  /* the reference: a frosted disc, its edge dissolving rather than drawn */
+  .va .bub{width:172px;height:172px;
+    background:radial-gradient(closest-side,rgba(255,255,255,.92),rgba(255,255,255,.62) 62%,rgba(255,255,255,0));
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+
+  /* ============================================================== B ====== */
+  /* no disc at all, only light: the softest thing that still lifts a number */
+  .vb .bub{width:200px;height:200px;
+    background:radial-gradient(closest-side,rgba(255,255,255,.95),rgba(255,255,255,.5) 45%,rgba(255,255,255,0) 78%)}
+
+  /* ============================================================== C ====== */
+  /* glass with a rim: a bright crescent at the top left, a soft shadow
+     under, so the disc has a surface and a thickness */
+  .vc .bub{width:168px;height:168px;
+    background:linear-gradient(155deg,rgba(255,255,255,.88),rgba(255,255,255,.45) 58%,rgba(255,255,255,.7));
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    box-shadow:inset 0 1.5px 0 rgba(255,255,255,.95),
+      inset 0 -1px 0 rgba(41,157,107,.10),
+      0 14px 30px -14px rgba(36,102,73,.35)}
+
+  /* ============================================================== D ====== */
+  /* liquid glass: the blur is stronger, the highlight is a real specular
+     crescent rather than a gradient, and a hairline catches the light all
+     the way round */
+  .vd .bub{width:170px;height:170px;overflow:hidden;
+    background:rgba(255,255,255,.42);
+    -webkit-backdrop-filter:blur(14px) saturate(1.4);backdrop-filter:blur(14px) saturate(1.4);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.75),
+      0 18px 40px -18px rgba(36,102,73,.4)}
+  .vd .bub::before{content:"";position:absolute;left:-12%;top:-18%;width:124%;height:70%;
+    border-radius:9999px;
+    background:radial-gradient(60% 52% at 36% 40%,rgba(255,255,255,.95),rgba(255,255,255,0) 72%)}
+
+  /* ============================================================== E ====== */
+  /* a well rather than a bead: the light comes from inside the page and the
+     disc is pressed into it */
+  .ve .bub{width:166px;height:166px;background:rgba(255,255,255,.34);
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    box-shadow:inset 0 6px 14px -6px rgba(36,102,73,.28),
+      inset 0 -6px 14px -6px rgba(255,255,255,.9),
+      0 1px 0 rgba(255,255,255,.8)}
+
+  /* ============================================================== F ====== */
+  /* the disc plus one faint ring, which is the only variant that draws a
+     boundary at all */
+  .vf .bub{width:164px;height:164px;
+    background:radial-gradient(closest-side,rgba(255,255,255,.9),rgba(255,255,255,.55));
+    -webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+    box-shadow:0 0 0 1px rgba(171,230,204,.55),0 0 0 9px rgba(171,230,204,.16)}
+
+
+  /* ================================================== the liquid bead =====
+     Read frame by frame off main.mp4 and main (1).mp4 at 60fps.
+
+     The bead: a glass sphere with a bright specular rim, and inside it a
+     dense blob of colour that drifts, morphs and travels in hue on a long
+     loop, coral to magenta to violet to almost nothing and back. The blob is
+     never a disc; its edge is soft and irregular, which is what makes it read
+     as liquid rather than as a coloured circle.
+
+     The entry, from the second video: an empty ring sits alone for about a
+     beat, then a gradient field blooms up from below and saturates, the
+     sphere lights inside it, and the field drains away leaving the content.
+     Colour arrives from underneath, not from the middle.
+
+     Hues are GoodFlip's, not Wabi's coral and magenta: brand green through
+     teal to indigo. The construction is transcribed, the palette is ours. */
+  .bead{position:absolute;left:50%;top:158px;width:166px;height:166px;
+    transform:translate(-50%,-50%);border-radius:9999px;overflow:hidden;z-index:1;
+    pointer-events:none;
+    -webkit-backdrop-filter:blur(10px) saturate(1.15);backdrop-filter:blur(10px) saturate(1.15);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.8),
+      inset 0 10px 22px -10px rgba(255,255,255,.95),
+      0 16px 36px -18px rgba(36,102,73,.32)}
+  /* the liquid: three soft masses on their own orbits, blurred past their own
+     edges so none of them ever reads as a shape */
+  .bead i{position:absolute;display:block;border-radius:9999px;filter:blur(18px);mix-blend-mode:multiply}
+  .bead .i1{left:-16%;top:-10%;width:92%;height:92%;background:var(--brand-400);
+    animation:bead1 9s ease-in-out infinite}
+  .bead .i2{right:-20%;top:6%;width:86%;height:86%;background:#5BC8C8;
+    animation:bead2 11s ease-in-out infinite}
+  .bead .i3{left:12%;bottom:-18%;width:80%;height:80%;background:#8098F9;
+    animation:bead3 13s ease-in-out infinite}
+  @keyframes bead1{0%,100%{transform:translate(0,0) scale(1)}
+    33%{transform:translate(28%,18%) scale(1.15)}66%{transform:translate(6%,-14%) scale(.9)}}
+  @keyframes bead2{0%,100%{transform:translate(0,0) scale(1)}
+    40%{transform:translate(-30%,20%) scale(1.2)}70%{transform:translate(-8%,-10%) scale(.92)}}
+  @keyframes bead3{0%,100%{transform:translate(0,0) scale(1.05)}
+    45%{transform:translate(14%,-26%) scale(.88)}75%{transform:translate(-18%,-6%) scale(1.12)}}
+  /* the specular crescent, which is the thing that says glass rather than paint */
+  .bead::after{content:"";position:absolute;left:-10%;top:-16%;width:120%;height:66%;
+    border-radius:9999px;pointer-events:none;
+    background:radial-gradient(58% 50% at 34% 42%,rgba(255,255,255,.92),rgba(255,255,255,0) 70%)}
+
+  /* the field that blooms up from below on arrival */
+  .field{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:3;
+    background:
+      radial-gradient(70% 34% at 50% 62%, rgba(41,157,107,.55), rgba(41,157,107,0) 70%),
+      linear-gradient(180deg, rgba(68,76,231,.42) 0%, rgba(91,200,200,.30) 42%,
+        rgba(121,204,168,.45) 62%, rgba(255,255,255,0) 92%)}
+  .go .field{animation:fieldIn 4.2s cubic-bezier(.22,1,.36,1) both}
+  @keyframes fieldIn{
+    0%,14%{opacity:0;transform:translateY(22%) scale(1.08)}
+    34%{opacity:1;transform:translateY(0) scale(1)}
+    62%{opacity:1;transform:translateY(0) scale(1)}
+    100%{opacity:0;transform:translateY(-6%) scale(1.02)}}
+  /* the ring that waits alone before any colour arrives */
+  .go .bead{animation:beadIn 4.2s cubic-bezier(.22,1,.36,1) both}
+  @keyframes beadIn{
+    0%{opacity:0;transform:translate(-50%,-50%) scale(.82)}
+    10%{opacity:.35;transform:translate(-50%,-50%) scale(.94)}
+    30%{opacity:1;transform:translate(-50%,-50%) scale(1.04)}
+    40%,100%{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+  .go .hero > div:last-child{animation:numIn 4.2s ease-out both}
+  @keyframes numIn{0%,26%{opacity:0}46%,100%{opacity:1}}
+
+  .replay{position:absolute;right:10px;bottom:10px;z-index:9;height:30px;padding:0 12px;
+    border-radius:9999px;border:1px solid var(--g-200);background:rgba(255,255,255,.92);
+    color:var(--g-600);font:600 12px/28px Roboto,sans-serif;cursor:pointer}
+  @media (prefers-reduced-motion:reduce){
+    .bead i,.go .field,.go .bead,.go .hero>div:last-child{animation:none}
+    .field{opacity:0}}
+
+  /* ------------------------------------------------------ the two washes -- */
+  .w1{background:linear-gradient(180deg,rgba(171,230,204,.55) 0%,rgba(230,250,241,.45) 32%,rgba(255,255,255,0) 82%)}
+  .w2{background:radial-gradient(120% 70% at 50% 6%,rgba(121,204,168,.42),rgba(243,252,248,.5) 46%,rgba(255,255,255,0) 78%)}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>The score, in glass</h1>
+  <p class="lede">A wash of colour down from the top of the screen, and behind the number itself a
+    soft glass bubble. Both are live, and each one is sitting on the <b>real plate</b> rather than
+    a picture of it, so the blur has the actual dots to refract and the bubble can be judged on
+    what it does to them.</p>
+  <p class="src">The wash belongs to the page, not to the plate: in the reference it starts under
+    the status bar and dies out before the content, which is what makes it read as light in the
+    room rather than a panel behind the score. All six share the same wash so only the bubble
+    differs.</p>
+
+  <h2 class="sec">1. The bubble</h2>
+  <p class="secnote">Six ways to lift a number off its own artwork, from no edge at all to a
+    drawn one.</p>
+  <div class="grid" id="bubbles"></div>
+
+
+  <h2 class="sec">3. Liquid glass, and the arrival</h2>
+  <p class="secnote">Read frame by frame off both videos. The bead is a glass sphere with three
+    soft masses drifting inside it on different orbits, so the colour travels and never settles
+    into a shape. The arrival is the second video's: a ring alone for a beat, then a field of
+    colour blooming <b>up from below</b>, then draining away and leaving the score. Press Replay.</p>
+  <div class="grid" id="liquid"></div>
+
+  <h2 class="sec">2. The wash</h2>
+  <p class="secnote">The same bubble under two different washes, so the ground can be decided
+    separately from the object on it.</p>
+  <div class="grid" id="washes"></div>
+
+</div>
+
+<script src="r3/heroes/plate.js"></script>
+<script>
+var B = [
+  { cls: "va", tag: "Closest to the reference", tagKind: "pick", title: "A. Frosted disc",
+    body: "A white disc at 92 percent fading to nothing at its edge, over a 6px backdrop blur. " +
+      "The edge is never drawn, it dissolves.",
+    trade: "<b>For it:</b> the dots stay visible through it, so the number sits in the artwork " +
+      "rather than on a plate laid over it." },
+  { cls: "vb", title: "B. Light only",
+    body: "No disc and no blur. A radial fall of white light, nothing more.",
+    trade: "<b>For it:</b> the least that could work. <b>Against:</b> without refraction it is a " +
+      "glow, not glass, and the reference is clearly glass." },
+  { cls: "vc", title: "C. Glass with a rim",
+    body: "A diagonal sheen across the face, a bright line along the top edge and a soft green " +
+      "shadow beneath, so the disc has both a surface and a thickness.",
+    trade: "<b>Against it:</b> the drop shadow makes it an object lying on the plate, which is " +
+      "the opposite of what the wash is doing." },
+  { cls: "vd", title: "D. Liquid glass",
+    body: "A heavier blur with saturation pushed, a hairline catching light all the way round, " +
+      "and a real specular crescent in the upper left rather than a gradient.",
+    trade: "<b>For it:</b> the only one that looks like a material. <b>Against:</b> 14px of " +
+      "backdrop blur on a live canvas is the most expensive thing on this screen." },
+  { cls: "ve", title: "E. A well",
+    body: "Inverted: the light comes from inside the page and the disc is pressed into it, dark " +
+      "at the top edge and bright at the bottom.",
+    trade: "<b>Against it:</b> a recess puts the number below the surface, and this number is the " +
+      "thing the screen is about." },
+  { cls: "vf", title: "F. Disc and ring",
+    body: "The frosted disc with one hairline at its edge and a wider, fainter ring outside it, " +
+      "echoing the plate's own rim.",
+    trade: "<b>Against it:</b> the only variant that draws a boundary, and a boundary is what " +
+      "every other one is carefully avoiding." }
+];
+
+var W = [
+  { cls: "va", wash: "w1", title: "Wash 1. Linear from the top",
+    body: "A straight vertical fall from brand-300 through brand-100 to nothing by 82 percent. " +
+      "The reference's own construction.",
+    trade: "<b>For it:</b> it is light entering from above, so it never reads as a shape." },
+  { cls: "va", wash: "w2", title: "Wash 2. Radial behind the plate",
+    body: "A wide ellipse centred just above the plate, so the colour is strongest exactly where " +
+      "the score is and falls away in every direction.",
+    trade: "<b>Against it:</b> it centres attention twice, once with the wash and once with the " +
+      "bubble, and the two centres have to agree." }
+];
+
+function screen(cls, wash) {
+  return '<div class="phone ' + cls + '">' +
+    '<div class="wash ' + (wash || "w1") + '"></div>' +
+    '<div class="head">🍴 Eat <s>Fuel your body right each day.</s></div>' +
+    '<div class="chip">‹ &nbsp;Today&nbsp; ›</div>' +
+    '<div class="stage"><div class="hero"><span class="bub"></span></div></div>' +
+  "</div>";
+}
+
+function build(host, list, isWash) {
+  host.innerHTML = list.map(function (v) {
+    return '<div class="col"><div class="cap">' +
+      (v.tag ? '<span class="tag ' + (v.tagKind || "") + '">' + v.tag + "</span>" : "") +
+      "<h3>" + v.title + "</h3><p>" + v.body + "</p>" +
+      (v.trade ? '<p class="tr">' + v.trade + "</p>" : "") + "</div>" +
+      screen(v.cls, v.wash) + "</div>";
+  }).join("");
+  /* the real hero, one per screen, so the glass has the actual dots to work on */
+  [].forEach.call(host.querySelectorAll(".hero"), function (el) {
+    window.HEROES.plate(el, { state: "full" });
+  });
+}
+
+build(document.getElementById("bubbles"), B);
+build(document.getElementById("washes"), W, true);
+
+var L = [
+  { title: "G. The bead, at rest",
+    body: "The sphere alone, looping. Three masses in brand green, teal and indigo drift on 9, " +
+      "11 and 13 second orbits so they never repeat together, each blurred past its own edge.",
+    trade: "<b>Why three:</b> two masses read as a two-tone gradient. Three never resolve into a " +
+      "shape you can name, which is what makes it liquid." },
+  { title: "H. The arrival", go: true,
+    body: "The full sequence: the bead waits at 35 percent for a beat, the field blooms up from " +
+      "below and saturates, the number fades in, then the field drains away.",
+    trade: "<b>From the video:</b> colour arrives from underneath, not from the middle, and the " +
+      "ring is on screen before any colour at all. That pause is what makes the bloom land." }
+];
+
+var host = document.getElementById("liquid");
+host.innerHTML = L.map(function (v) {
+  return '<div class="col"><div class="cap"><h3>' + v.title + "</h3><p>" + v.body + "</p>" +
+    '<p class="tr">' + v.trade + "</p></div>" +
+    '<div class="phone va' + (v.go ? " go" : "") + '">' +
+      '<div class="wash w1"></div>' +
+      '<div class="head">\uD83C\uDF74 Eat <s>Fuel your body right each day.</s></div>' +
+      '<div class="chip">\u2039 &nbsp;Today&nbsp; \u203A</div>' +
+      '<div class="stage"><div class="hero">' +
+        '<span class="bead"><i class="i1"></i><i class="i2"></i><i class="i3"></i></span>' +
+      "</div></div>" +
+      (v.go ? '<div class="field"></div><button class="replay">Replay</button>' : "") +
+    "</div></div>";
+}).join("");
+[].forEach.call(host.querySelectorAll(".hero"), function (el) {
+  window.HEROES.plate(el, { state: "full" });
+});
+[].forEach.call(host.querySelectorAll(".replay"), function (b) {
+  b.onclick = function () {
+    var ph = b.closest(".phone");
+    ph.classList.remove("go");
+    void ph.offsetWidth;
+    ph.classList.add("go");
+  };
+});
+
+</script>
+</body>
+</html>

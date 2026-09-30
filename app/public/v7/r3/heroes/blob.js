@@ -204,8 +204,8 @@
       ctx.filter = blur ? "blur(" + (6 * dpr) + "px)" : "none";
       ctx.fillStyle = "#fff";
       var num = String(shown);
-      var big = '600 72px "Playfair Display", Georgia, serif';
-      var small = '600 24px "Playfair Display", Georgia, serif';
+      var big = '600 72px Roboto, Arial, sans-serif';
+      var small = '600 24px Roboto, Arial, sans-serif';
       ctx.font = big; var mb = ctx.measureText(num);
       var nw = mb.actualBoundingBoxRight != null ? mb.actualBoundingBoxRight : mb.width;
       ctx.font = small; var pw = ctx.measureText("%").width;

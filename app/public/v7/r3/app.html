@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Eat prototype</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; }
@@ -94,7 +94,7 @@
 
   .foot { border-top: 1px solid #E4E7EC; margin-top: 12px; padding-top: 12px; }
   .flags {
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: Roboto, sans-serif;
     font-size: 12px; line-height: 18px; color: #344054;
     background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 10px;
     padding: 8px 10px; word-break: break-all; user-select: all;
@@ -354,6 +354,8 @@ function storyLabel(state) {
   return label(STORY_NOPLAN.concat(STORY_PLAN), state);
 }
 
+var WINS = [{ id: "rise", label: "Rise" }, { id: "nova", label: "Supernova" }, { id: "classic", label: "Classic" }];
+function winPick() { try { return localStorage.getItem("gfWin2") || "rise"; } catch (e) { return "rise"; } }
 var GROUPS = [
   {
     id: "screen", title: "Screen",
@@ -454,6 +456,20 @@ var GROUPS = [
       });
     },
     note: function () { return logNote; }
+  },
+  {
+    /* what happens between "Log n items" and the day: assets/win-moment.js.
+       Picked here and remembered, so it holds for every log from then on. */
+    id: "win", title: "Win moment",
+    value: function () { return label(WINS, winPick()); },
+    chips: function () {
+      return WINS.map(function (v) {
+        return { label: v.label, on: winPick() === v.id, go: function () {
+          try { localStorage.setItem("gfWin2", v.id); } catch (e) {}
+          M.screen = "log"; M.log = "plan"; } };
+      });
+    },
+    note: function () { return "Pick one, then tap Log in the phone. The day view catches it: the score steps up from where it was."; }
   },
   {
     id: "entry", title: "Opened from",

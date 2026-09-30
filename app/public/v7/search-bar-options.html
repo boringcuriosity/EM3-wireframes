@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The search bar, softened</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-600:#444CE7; --in-700:#3538CD;
+    --brand-600:#299D6B; --brand-700:#2A805A; --brand-100:#E6FAF1; --red-600:#D92D20;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1760px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:900px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 10px}
+  .lede b{color:var(--g-900)}
+  .callout{max-width:900px;padding:14px 16px;border-radius:12px;background:var(--g-50);
+    border:1px solid var(--g-200);font-size:13px;line-height:21px;color:var(--g-700);margin:0 0 24px}
+  .callout b{color:var(--g-900)}
+  .bar{display:flex;gap:10px;align-items:center;margin:0 0 28px;flex-wrap:wrap}
+  .tgl{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 15px;border-radius:9999px;
+    border:1px solid var(--g-200);background:#fff;color:var(--g-700);font:600 13px/1 Roboto;cursor:pointer}
+  .tgl.dark{background:var(--g-900);border-color:var(--g-900);color:#fff}
+  .hint{font-size:12.5px;color:var(--g-500)}
+  .grid{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+  .col{width:392px;flex:0 0 392px}
+  .cap h2{font-size:15px;line-height:22px;font-weight:600;margin:0 0 6px}
+  .cap p{font-size:12.5px;line-height:19px;color:var(--g-600);margin:0 0 8px}
+  .cap code{font:400 11.5px/17px 'JetBrains Mono',ui-monospace,monospace;color:var(--g-500);
+    display:block;white-space:pre-wrap;margin-bottom:10px}
+  .tag{display:inline-block;font:600 10.5px/16px Roboto;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--in-600);background:var(--in-50);border-radius:9999px;padding:1px 8px;margin:0 0 6px}
+  .tag.now{color:var(--g-600);background:var(--g-100)}
+  .phone{width:392px;height:300px;border:1px solid var(--g-200);border-radius:20px;overflow:hidden;
+    background:#fff;position:relative}
+  .phone iframe{width:390px;height:700px;border:0;display:block}
+  .ctrls{position:absolute;right:10px;top:10px;z-index:5;display:flex;gap:6px}
+  .ctrls button{height:26px;padding:0 10px;border-radius:9999px;border:0;
+    background:rgba(16,24,40,.78);color:#fff;font:600 11px/1 Roboto;cursor:pointer}
+  @media (max-width:900px){.page{padding:24px 16px 60px}.col{width:100%;flex:1 1 100%}.phone{width:100%}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>The search bar, softened</h1>
+  <p class="lede">The field and the strip are one object now, so the field should carry the same care. Six treatments of the same bar, each shown with the strip under it, because <b>the pair is what you are really judging</b>. Press Focus on any phone to see the focused state, which is where a soft bar most often falls apart.</p>
+  <div class="callout">
+    <b>The trap with a shadow on a search field.</b> A field is a place to put something into, so it wants to read as recessed. A drop shadow says raised. Most of the beautiful versions below resolve that by keeping the shadow very soft and very close, so it reads as the card lifting off the page rather than the field lifting off the card.
+    <br><br>
+    <b>And the strip has to keep working.</b> It tucks 22px behind the bar, so anything the bar gains at its bottom edge, a shadow included, lands on the strip. Watch that seam.
+  </div>
+  <div class="bar">
+    <button class="tgl dark" id="focusAll">Focus all</button>
+    <button class="tgl" id="blurAll">Blur all</button>
+    <span class="hint">The first column is what ships today, for comparison.</span>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+var V = [
+  { key:"now", now:true,
+    title:"Today, for comparison",
+    body:"A grey fill with a hairline. Correct and completely quiet. Nothing is wrong with it, which is why the others have to earn their change.",
+    code:"background:#F9FAFB; border:1px solid #E4E7EC;\nborder-radius:12px; no shadow",
+    css:"" },
+
+  { key:"lift",
+    title:"A. White, with a close soft lift",
+    body:"The field goes white and the whole bar gets a very soft, very close shadow. The white is what makes it read as a place to type; the shadow only separates it from the page.",
+    code:"background:#fff; border:1px solid #EFF1F5;\nbox-shadow:0 1px 2px rgba(16,24,40,.04),\n           0 4px 12px -4px rgba(16,24,40,.06)",
+    css:".sbar{background:#fff;border-color:#EFF1F5;"+
+        "box-shadow:0 1px 2px rgba(16,24,40,.04),0 4px 12px -4px rgba(16,24,40,.06)}" },
+
+  { key:"well",
+    title:"B. A well, not a card",
+    body:"No outer shadow at all. A one pixel inner shadow along the top edge instead, so the field reads as pressed into the page. The most honest answer to what a search field is.",
+    code:"background:#F7F8FA; border:1px solid #E7E9EE;\nbox-shadow:inset 0 1px 2px rgba(16,24,40,.05)",
+    css:".sbar{background:#F7F8FA;border-color:#E7E9EE;"+
+        "box-shadow:inset 0 1px 2px rgba(16,24,40,.05)}" },
+
+  { key:"round",
+    title:"C. Softer corner, no border",
+    body:"The hairline goes and a 16px radius comes in, with the edge carried entirely by shadow. Rounder and friendlier, and it sits better against the strip's own 12px bottom corners.",
+    code:"background:#fff; border:0; border-radius:16px;\nbox-shadow:0 0 0 1px rgba(16,24,40,.04),\n           0 6px 16px -6px rgba(16,24,40,.10)",
+    css:".sbar{background:#fff;border:0;border-radius:16px;"+
+        "box-shadow:0 0 0 1px rgba(16,24,40,.04),0 6px 16px -6px rgba(16,24,40,.10)}"+
+        ".kstrip-in{border-radius:0 0 16px 16px}" },
+
+  { key:"her",
+    title:"D. Her light, under the field",
+    body:"White field, and the shadow is tinted with Kaira's indigo rather than black. The bar and the strip then share one colour temperature, so the pair reads as one object lit from the same place.",
+    code:"background:#fff; border:1px solid #E6E9F5;\nbox-shadow:0 1px 2px rgba(68,76,231,.06),\n           0 6px 16px -6px rgba(68,76,231,.14)",
+    css:".sbar{background:#fff;border-color:#E6E9F5;"+
+        "box-shadow:0 1px 2px rgba(68,76,231,.06),0 6px 16px -6px rgba(68,76,231,.14)}" },
+
+  { key:"plate",
+    title:"E. The pair on one plate",
+    body:"The bar and the strip are wrapped in a single shadowed plate, so they stop being two shapes that happen to touch. The strip's tint becomes the plate's lower half rather than a separate band.",
+    code:"wrapper: border-radius:14px;\n  box-shadow:0 1px 2px rgba(16,24,40,.04),\n             0 8px 20px -8px rgba(16,24,40,.10)\nfield: white, no border, no shadow",
+    css:".srch{position:relative}"+
+        ".srch::before{content:'';position:absolute;left:16px;right:16px;top:0;bottom:10px;"+
+        "border-radius:14px;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.04),"+
+        "0 8px 20px -8px rgba(16,24,40,.10);z-index:0}"+
+        ".sbar{background:transparent;border:0;box-shadow:none}"+
+        ".kstrip{left:17px;right:17px}"+
+        ".kstrip-in{border-radius:0 0 13px 13px;background:#F0F4FF}" }
+];
+
+document.getElementById('grid').innerHTML = V.map(function(v,i){
+  return '<div class="col"><div class="cap">'+
+    (v.now?'<div class="tag now">Ships today</div>':'<div class="tag">Variant</div>')+
+    '<h2>'+v.title+'</h2><p>'+v.body+'</p><code>'+v.code+'</code></div>'+
+    '<div class="phone"><div class="ctrls">'+
+      '<button data-f="'+i+'">Focus</button><button data-b="'+i+'">Blur</button></div>'+
+    '<iframe data-i="'+i+'" src="r3/log.html?entry=plus&meal=bf" title="'+v.title+'"></iframe></div></div>';
+}).join('');
+
+var ST=[];
+function mount(i){
+  var fr=document.querySelector('iframe[data-i="'+i+'"]'), v=V[i], doc;
+  try{ doc=fr.contentDocument; }catch(e){ return; }
+  if(!doc||!doc.querySelector('.sbar')) return;
+  if(v.css){ var st=doc.createElement('style'); st.textContent=v.css; doc.head.appendChild(st); }
+  ST[i]={doc:doc};
+}
+function focus(i,on){
+  var s=ST[i]; if(!s) return;
+  var q=s.doc.getElementById('q'); if(!q) return;
+  if(on) q.focus(); else q.blur();
+}
+[].forEach.call(document.querySelectorAll('iframe[data-i]'),function(fr){
+  fr.addEventListener('load',function(){ mount(+fr.dataset.i); });
+});
+document.getElementById('grid').addEventListener('click',function(e){
+  var f=e.target.closest('[data-f]'), b=e.target.closest('[data-b]');
+  if(f) focus(+f.dataset.f,true);
+  if(b) focus(+b.dataset.b,false);
+});
+document.getElementById('focusAll').onclick=function(){ V.forEach(function(_,i){focus(i,true);}); };
+document.getElementById('blurAll').onclick=function(){ V.forEach(function(_,i){focus(i,false);}); };
+</script>
+</body>
+</html>

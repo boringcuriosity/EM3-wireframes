@@ -61,13 +61,13 @@
     var measure = document.createElement("canvas").getContext("2d");
     var digitsCx = W / 2 - 12;
     function layout() {
-      measure.font = "600 " + FONT_PX + "px 'Playfair Display', Georgia, serif";
+      measure.font = "600 " + FONT_PX + "px Roboto, Arial, sans-serif";
       var dw = measure.measureText(String(score)).width;
       measure.font = "600 30px Roboto, system-ui, sans-serif";
       var pw = measure.measureText("%").width;
       var total = dw - 6 + pw;
       digitsCx = (W - total) / 2 + dw / 2;
-      measure.font = "600 " + FONT_PX + "px 'Playfair Display', Georgia, serif";
+      measure.font = "600 " + FONT_PX + "px Roboto, Arial, sans-serif";
       var mt = measure.measureText(String(score));
       var asc = mt.actualBoundingBoxAscent || FONT_PX * 0.7, desc = mt.actualBoundingBoxDescent || 0;
       // ink centred in the 26..204 band
@@ -119,7 +119,7 @@
     function drawDigits(g, text, color, scale) {
       g.save();
       g.scale(scale, scale);
-      g.font = "600 " + FONT_PX + "px 'Playfair Display', Georgia, serif";
+      g.font = "600 " + FONT_PX + "px Roboto, Arial, sans-serif";
       g.textAlign = "center";
       g.textBaseline = "alphabetic";
       g.fillStyle = color;
@@ -139,7 +139,7 @@
       r.save();
       r.setTransform(dpr, 0, 0, -dpr, 0, 0);
       r.globalAlpha = 0.14;
-      r.font = "600 " + FONT_PX + "px 'Playfair Display', Georgia, serif";
+      r.font = "600 " + FONT_PX + "px Roboto, Arial, sans-serif";
       r.textAlign = "center";
       r.fillStyle = "#299D6B";
       r.fillText(String(v), digitsCx, -4 - reflOffset);

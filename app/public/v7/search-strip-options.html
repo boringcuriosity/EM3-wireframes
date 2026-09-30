@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The strip behind the search bar</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --brand-600:#299D6B; --brand-700:#2A805A; --brand-100:#E6FAF1; --brand-50:#F3FCF8;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-600:#444CE7; --in-700:#3538CD;
+    --teal-800:#2DA6A6; --red-600:#D92D20;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1760px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:900px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 10px}
+  .lede b{color:var(--g-900)}
+  .callout{max-width:900px;padding:14px 16px;border-radius:12px;background:var(--g-50);
+    border:1px solid var(--g-200);font-size:13px;line-height:21px;color:var(--g-700);margin:0 0 24px}
+  .callout b{color:var(--g-900)}
+  .bar{display:flex;gap:10px;align-items:center;margin:0 0 28px;flex-wrap:wrap}
+  .tgl{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 15px;border-radius:9999px;
+    border:1px solid var(--g-200);background:#fff;color:var(--g-700);font:600 13px/1 Roboto;cursor:pointer}
+  .tgl.dark{background:var(--g-900);border-color:var(--g-900);color:#fff}
+  .hint{font-size:12.5px;color:var(--g-500)}
+  .grid{display:flex;flex-wrap:wrap;gap:30px;align-items:flex-start}
+  .col{width:392px;flex:0 0 392px}
+  .cap h2{font-size:15px;line-height:22px;font-weight:600;margin:0 0 6px}
+  .cap p{font-size:12.5px;line-height:19px;color:var(--g-600);margin:0 0 10px}
+  .tag{display:inline-block;font:600 10.5px/16px Roboto;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--in-600);background:var(--in-50);border-radius:9999px;padding:1px 8px;margin:0 0 6px}
+  .phone{width:392px;height:430px;border:1px solid var(--g-200);border-radius:20px;overflow:hidden;
+    background:#fff;position:relative}
+  .phone iframe{width:390px;height:700px;border:0;display:block}
+  .ctrls{position:absolute;right:10px;top:10px;z-index:5;display:flex;gap:6px}
+  .ctrls button{height:28px;padding:0 10px;border-radius:9999px;border:0;
+    background:rgba(16,24,40,.78);color:#fff;font:600 11px/1 Roboto;cursor:pointer}
+  @media (max-width:900px){.page{padding:24px 16px 60px}.col{width:100%;flex:1 1 100%}.phone{width:100%}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>The strip behind the search bar</h1>
+  <p class="lede">The camera and the microphone come out of the field. In their place a slim strip sits <b>behind the bar</b> and shows only its lower edge, so it reads as something tucked under rather than a second control bar. It says the two hands free ways in, and it <b>retracts the moment somebody starts typing</b>, because once they are typing they have already chosen.</p>
+  <div class="callout">
+    <b>Why the icons had to go.</b> Two 44px targets inside a 52px field crowd the one thing the field is for, and neither icon on its own says you can log a whole day by talking. A strip has room for words, and words are what make the offer legible.
+    <br><br>
+    <b>The test is the retract.</b> Press Type on any phone. A strip that is charming on arrival and clumsy on the way out is worse than no strip, so watch the exit as closely as the entrance.
+  </div>
+  <div class="bar">
+    <button class="tgl dark" id="typeAll">Type in all five</button>
+    <button class="tgl" id="clearAll">Clear all five</button>
+    <span class="hint">Or use the controls on each phone.</span>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+var MIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+var CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2L8 5h8l1.5 2h2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.2"/></svg>';
+
+/* Shared: pull the two icons out of the field, and give .srch a place for the
+   strip to hide behind. The bar keeps its own background and border, so
+   anything positioned under it and pulled up disappears behind it. */
+var SHARED = [
+  "#sTools{display:none!important}",
+  /* The lip needs room of its own, or the strip simply covers the tabs below.
+     52 of bar, 24 of visible lip, 10 of gap: the strip is 46 tall starting at
+     30, so 22 of it hides behind the bar and 24 shows. */
+  ".srch{position:relative;padding-bottom:34px}",
+  ".sbar{position:relative;z-index:2}",
+  ".xs{position:absolute;left:16px;right:16px;top:30px;z-index:1;pointer-events:none;overflow:hidden}",
+  ".xs .inner{height:46px;align-items:flex-end;padding-bottom:5px}",
+  ".xs b{font-weight:600}",
+  ".xs svg{width:13px;height:13px;flex-shrink:0}",
+  /* every variant retracts the same way: up, behind the bar, and out */
+  ".xs .inner{transition:transform .34s cubic-bezier(.3,0,.8,.15),opacity .2s ease-out}",
+  ".typing .xs .inner{transform:translateY(-100%);opacity:0}",
+  ".xs .inner{transition:transform .42s cubic-bezier(.05,.7,.1,1),opacity .26s ease-out}",
+  "@media (prefers-reduced-motion:reduce){.xs .inner{transition-duration:.15s!important;transform:none!important}",
+  ".typing .xs{opacity:0}}"
+].join("");
+
+var A = {
+  key:"tab",
+  title:"A. A tab tucked under the bar",
+  body:"Only the lower 24px shows, with the corners rounded at the bottom alone, so it reads as one card slipped behind another. Narrow rather than full width, which is what makes it a tab and not a second bar.",
+  css:[
+    ".xs{left:auto;right:16px;width:auto}",
+    ".xs .inner{display:flex;align-items:center;gap:7px;height:46px;padding:0 14px;",
+    "border-radius:0 0 12px 12px;background:#EEF4FF;color:#3538CD;",
+    "font:400 11.5px/16px Roboto;align-items:flex-end;padding-bottom:6px}"
+  ].join(""),
+  html:'<div class="xs"><div class="inner">'+MIC+'<span>Or <b>say it</b>, or <b>snap it</b></span></div></div>'
+};
+
+var B = {
+  key:"shelf",
+  title:"B. A full width shelf",
+  body:"The strip matches the bar's width exactly and shows a 26px lip, so the two read as one object with a drawer. The words sit left, the two marks right, which is the order a sentence is read in.",
+  css:[
+    ".xs .inner{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;",
+    "padding:0 14px;border-radius:0 0 12px 12px;",
+    "background:#F5F8FF;border:1px solid #E0EAFF;border-top:0;color:#3538CD;",
+    "font:400 11.5px/16px Roboto}",
+    ".xs .marks{display:flex;gap:8px;align-items:center;opacity:.75}"
+  ].join(""),
+  html:'<div class="xs"><div class="inner"><span>Log a whole day by <b>voice</b> or <b>photo</b></span>'+
+       '<span class="marks">'+MIC+CAM+'</span></div></div>'
+};
+
+var C = {
+  key:"kaira",
+  title:"C. Her edge, on a white shelf",
+  body:"The same shelf, but the lip carries Kaira's indigo to teal gradient as a hairline along its bottom, and her mark opens the line. The strip is hers, so the offer is visibly her offer rather than the app's.",
+  css:[
+    ".xs .inner{position:relative;display:flex;align-items:flex-end;gap:8px;",
+    "padding:0 14px;border-radius:0 0 12px 12px;",
+    "background:#fff;border:1px solid #E4E7EC;border-top:0;color:#344054;",
+    "font:400 11.5px/16px Roboto}",
+    ".xs .inner::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;",
+    "background:linear-gradient(100deg,#444CE7,#2DA6A6);border-radius:0 0 12px 12px}",
+    ".xs .km{display:flex;align-items:center}"
+  ].join(""),
+  html:'<div class="xs"><div class="inner"><span class="km" data-kmark></span>'+
+       '<span><b>KAIRA</b> can log your day. Just say it, or snap it.</span></div></div>'
+};
+
+var D = {
+  key:"doors",
+  title:"D. Two doors, not a sentence",
+  body:"The lip is split into two halves by a hairline, each one a target of its own. It offers less prose and more control, and it is the only variant where the strip is a thing you press rather than a thing you read.",
+  css:[
+    ".xs{pointer-events:auto}",
+    ".xs .inner{display:flex;border-radius:0 0 12px 12px;overflow:hidden;",
+    "background:#fff;border:1px solid #E0EAFF;border-top:0}",
+    ".xs .half{flex:1;display:flex;align-items:flex-end;justify-content:center;gap:6px;",
+    "padding:0 8px;color:#3538CD;font:600 11.5px/16px Roboto;cursor:pointer}",
+    ".xs .half+.half{border-left:1px solid #E0EAFF}",
+    ".xs .half:active{background:#F5F8FF}"
+  ].join(""),
+  html:'<div class="xs"><div class="inner">'+
+       '<span class="half">'+MIC+'Say your day</span>'+
+       '<span class="half">'+CAM+'Snap a plate</span></div></div>'
+};
+
+var E = {
+  key:"wash",
+  title:"E. A gradient wash, white words",
+  body:"The loudest of the five. The lip is a soft indigo to teal wash with the line reversed out of it, so the offer is impossible to miss on first open. The question is whether it is still welcome on the fiftieth.",
+  css:[
+    ".xs .inner{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;",
+    "padding:0 14px;border-radius:0 0 12px 12px;",
+    "background:linear-gradient(100deg,#444CE7,#2DA6A6);color:#fff;",
+    "font:400 11.5px/16px Roboto}",
+    ".xs .marks{display:flex;gap:8px;align-items:center;opacity:.9}"
+  ].join(""),
+  html:'<div class="xs"><div class="inner"><span>Log a whole day by <b>voice</b> or <b>photo</b></span>'+
+       '<span class="marks">'+MIC+CAM+'</span></div></div>'
+};
+
+var VARIANTS=[A,B,C,D,E];
+
+document.getElementById('grid').innerHTML = VARIANTS.map(function(v,i){
+  return '<div class="col"><div class="cap"><div class="tag">Variant</div>'+
+    '<h2>'+v.title+'</h2><p>'+v.body+'</p></div>'+
+    '<div class="phone"><div class="ctrls">'+
+      '<button data-t="'+i+'">Type</button><button data-c="'+i+'">Clear</button></div>'+
+    '<iframe data-i="'+i+'" src="r3/log.html?entry=plus&meal=bf" title="'+v.title+'"></iframe></div></div>';
+}).join('');
+
+var ST=[];
+function mount(i){
+  var fr=document.querySelector('iframe[data-i="'+i+'"]');
+  var v=VARIANTS[i], doc;
+  try{ doc=fr.contentDocument; }catch(e){ return; }
+  if(!doc||!doc.querySelector('.srch')) return;
+  var st=doc.createElement('style'); st.textContent=SHARED+v.css; doc.head.appendChild(st);
+  doc.querySelector('.srch').insertAdjacentHTML('beforeend', v.html);
+  /* her real mark, from the product's own file, wherever a variant asks for it */
+  var slot=doc.querySelector('[data-kmark]');
+  if(slot && doc.defaultView.GFKaira) slot.innerHTML=doc.defaultView.GFKaira.mark(13,{halo:false});
+  ST[i]={doc:doc, win:doc.defaultView};
+}
+function type(i,on){
+  var s=ST[i]; if(!s) return;
+  var q=s.doc.getElementById('q');
+  s.doc.body.classList.toggle('typing', on);
+  if(q){ q.value = on ? 'paneer' : ''; }
+}
+[].forEach.call(document.querySelectorAll('iframe[data-i]'),function(fr){
+  fr.addEventListener('load',function(){ mount(+fr.dataset.i); });
+});
+document.getElementById('grid').addEventListener('click',function(e){
+  var t=e.target.closest('[data-t]'), c=e.target.closest('[data-c]');
+  if(t) type(+t.dataset.t,true);
+  if(c) type(+c.dataset.c,false);
+});
+document.getElementById('typeAll').onclick=function(){ VARIANTS.forEach(function(_,i){type(i,true);}); };
+document.getElementById('clearAll').onclick=function(){ VARIANTS.forEach(function(_,i){type(i,false);}); };
+</script>
+</body>
+</html>

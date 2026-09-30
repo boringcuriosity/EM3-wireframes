@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Macro glyph stroke, every version</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 40px 32px 80px; background: #F9FAFB;
+    font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .25px; color: #101828; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0 0 6px; }
+  .sub { font-size: 14px; line-height: 21px; color: #667085; max-width: 780px; margin: 0 0 12px; }
+  .sub code { background: #F2F4F7; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  .ctl { display: flex; align-items: center; gap: 10px; margin: 20px 0 30px;
+    font-size: 13px; color: #344054; }
+  .ctl button { border: 1px solid #D0D5DD; background: #fff; border-radius: 8px;
+    padding: 7px 12px; font: 600 13px Roboto; color: #344054; cursor: pointer; }
+  .ctl button.on { background: #101828; border-color: #101828; color: #fff; }
+  .grid { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+  .tile { width: 390px; background: #fff; border: 1px solid #E4E7EC; border-radius: 16px;
+    overflow: hidden; box-shadow: 0 1px 3px rgba(16,24,40,.06); }
+  .cap { padding: 13px 16px 12px; border-bottom: 1px solid #F2F4F7; }
+  .cap .k { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px;
+    border-radius: 6px; background: #101828; color: #fff; font-size: 11px; font-weight: 700; margin-right: 8px; }
+  .cap b { font-size: 14px; font-weight: 600; }
+  .cap .spec { display: block; margin-top: 7px; font: 400 11.5px/16px ui-monospace, Menlo, monospace;
+    color: #667085; letter-spacing: 0; }
+  .cap p { margin: 7px 0 0; font-size: 12.5px; line-height: 18px; color: #667085; }
+  .cap .tag { display: inline-block; margin-top: 8px; padding: 2px 8px; border-radius: 9999px;
+    background: #FFF8E0; color: #A68A2D; font-size: 11px; font-weight: 600; }
+  .cap .tag.now { background: #E0EAFF; color: #3538CD; }
+  .stagebox { position: relative; overflow: hidden; background: #fff; }
+  .stagebox iframe { position: absolute; left: 0; width: 390px; height: 1400px; border: 0; }
+  /* the 4x rail: the same four glyphs, blown up, so the hairline is judgeable */
+  .big { padding: 14px 16px 18px; background: #EEF4FF; overflow: hidden; }
+  .big .inner { transform-origin: 0 0; }
+</style>
+</head>
+<body>
+
+<h1>Macro glyph stroke, every version</h1>
+<p class="sub">Only the hairline changes. The fill is held at the graphite you picked, and the card, the
+ground and the glyph artwork are the live ones from <code>r3/eat.html</code>. Each tile shows the card at
+real size, then the first glyph at 4x underneath, because a 0.5px hairline cannot be judged at 1x. The
+blown-up glyph is the same live element as the one in the card above it, not a copy.</p>
+<p class="sub">The stroke is eight zero-blur drop shadows on <code>.gwrap</code>, one per compass point,
+because a CSS mask cannot take a stroke. So a variant can change three things: the <b>colour</b>, the
+<b>offset</b> (which reads as thickness), and <b>how many</b> shadows (four gives a softer, slightly
+broken edge on diagonals, eight gives a continuous one).</p>
+
+<div class="ctl">
+  <span>Fill:</span>
+  <button data-fill="live" class="on">As shipped</button>
+  <button data-fill="ref">liquid-score graphite</button>
+  <button data-fill="indigo">The old indigo</button>
+</div>
+
+<div class="grid" id="grid"></div>
+
+<script>
+/* The three fills this stroke has had to sit on. Held identical across all
+   tiles so the only thing moving is the hairline. */
+var FILLS = {
+  live: { name: "as shipped",
+    ramp: "var(--g-900) 0%,var(--g-700) calc(var(--f)*.34),var(--g-500) calc(var(--f)*.72)," +
+      "var(--g-400) calc(var(--f) - 6%),var(--g-400) calc(var(--f) - 1.5%),#C4CBD6 var(--f),#D3D9E2 100%" },
+  /* lifted verbatim from app/public/liquid-score/index.html, [data-v="graphite"].
+     Note where it ends: #c3cad5 is LIGHTER than the #b4bcc9 hairline, which is
+     why the rim reads as a dark line there and not as a halo. */
+  ref: { name: "liquid-score graphite",
+    ramp: "#344054 0%,#475467 calc(var(--f)*.34),#5d6b80 calc(var(--f)*.72)," +
+      "#7e8a9c calc(var(--f) - 6%),#c3cad5 calc(var(--f) - 1.5%),#c4cbd6 var(--f),#d3d9e2 100%" },
+  indigo: { name: "the old indigo",
+    ramp: "var(--in-900) 0%,var(--in-700) calc(var(--f)*.35),var(--in-600) calc(var(--f)*.78)," +
+      "var(--in-500) calc(var(--f) - 5%),var(--in-300) calc(var(--f) - .5%),#C4CBD6 var(--f),#D3D9E2 100%" }
+};
+
+/* d = offset in px, n = 8 compass points or 4 cardinal ones */
+function strokeCSS(v) {
+  if (!v.col) return ".gwrap { filter: none !important; }";
+  var d = v.d, c = v.col, p;
+  if (v.n === 4) p = [[d,0],[-d,0],[0,d],[0,-d]];
+  else p = [[d,0],[-d,0],[0,d],[0,-d],[d,d],[-d,d],[d,-d],[-d,-d]];
+  return ".gwrap { filter:" + p.map(function (xy) {
+    return " drop-shadow(" + xy[0] + "px " + xy[1] + "px 0 " + c + ")";
+  }).join("") + " !important; }";
+}
+
+var VARIANTS = [
+  { k: "A", name: "No stroke", col: null,
+    spec: "filter: none",
+    why: "Where this started. The glyph is a bare mask with no edge at all, so it floats on the tint with nothing holding it. This is the version the hairline was added to fix." },
+
+  { k: "B", name: "The original", col: "#B4BCC9", d: .5, n: 8, ref: true,
+    spec: "#B4BCC9 · 0.5px · 8 points",
+    why: "The value this treatment was built with in liquid-score/index.html, and what shipped until today. Tuned against a fill that ends lighter than the rim, which is the pairing it was designed for." },
+
+  { k: "C", name: "Original, thinner", col: "#B4BCC9", d: .4, n: 8,
+    spec: "#B4BCC9 · 0.4px · 8 points",
+    why: "The same colour at a shorter offset. This is the thinning that was tried once before and undone. On a non-retina screen it drops below a device pixel and starts to break up." },
+
+  { k: "D", name: "Original, heavier", col: "#B4BCC9", d: .75, n: 8,
+    spec: "#B4BCC9 · 0.75px · 8 points",
+    why: "The same colour pushed the other way. Continuous and obvious, but it starts to read as a drawn outline rather than as the edge of a solid object." },
+
+  { k: "E", name: "Four points", col: "#B4BCC9", d: .5, n: 4,
+    spec: "#B4BCC9 · 0.5px · 4 points",
+    why: "Cardinal directions only, no diagonals. Lighter and softer overall, at the cost of a slightly broken edge on curves, which on these rounded glyphs is most of the outline." },
+
+  { k: "F", name: "One step darker", col: "#A6AFBE", d: .5, n: 8,
+    spec: "#A6AFBE · 0.5px · 8 points",
+    why: "Halfway between the original and the grey ramp. Holds together against the darker fill without changing the character of the edge." },
+
+  { k: "G", name: "Matched to g-400", col: "#98A2B3", d: .5, n: 8,
+    spec: "#98A2B3 · 0.5px · 8 points",
+    why: "The same value as the fill's lightest stop, so the rim and the waterline are one colour. Clean where the glyph is dark, invisible where it is not." },
+
+  { k: "H", name: "Clear of the fill", col: "#8A94A6", d: .5, n: 8, now: true,
+    spec: "#8A94A6 · 0.5px · 8 points",
+    why: "Darker than every stop in the current fill, so the edge reads the whole way round. What is on the screen right now, and what you said is still wrong." },
+
+  { k: "I", name: "Darkest", col: "#7B8698", d: .5, n: 8,
+    spec: "#7B8698 · 0.5px · 8 points",
+    why: "The strongest that still counts as a hairline. Unambiguous at 1x, and the closest this gets to a deliberate ink outline." }
+];
+
+var grid = document.getElementById("grid");
+var fillKey = "live";
+var tiles = [];
+
+VARIANTS.forEach(function (v) {
+  var tile = document.createElement("div");
+  tile.className = "tile";
+  tile.innerHTML =
+    '<div class="cap"><b><span class="k">' + v.k + '</span>' + v.name + '</b>' +
+      '<span class="spec">' + v.spec + '</span>' +
+      '<p>' + v.why + '</p>' +
+      (v.ref ? '<span class="tag">the original</span>' : "") +
+      (v.now ? '<span class="tag now">on screen now</span>' : "") +
+    '</div>' +
+    '<div class="stagebox"><iframe src="r3/eat.html?state=mid" scrolling="no"></iframe></div>' +
+    '<div class="big"><div class="inner"></div></div>';
+  grid.appendChild(tile);
+
+  var box = tile.querySelector(".stagebox");
+  var fr = tile.querySelector("iframe");
+  var big = tile.querySelector(".big");
+  var inner = tile.querySelector(".big .inner");
+  var rec = { v: v, fr: fr, inner: inner };
+  tiles.push(rec);
+
+  fr.addEventListener("load", function () {
+    var d = fr.contentDocument;
+    var st = d.createElement("style");
+    st.id = "vstyle";
+    d.head.appendChild(st);
+    rec.doc = d;
+    rec.style = st;
+    apply(rec);
+
+    function frame() {
+      var sec = d.getElementById("railSect");
+      if (!sec) return;
+
+      /* The 4x rail is built INSIDE the iframe, not cloned out of it. A clone
+         lifted into this page keeps its markup and loses everything else:
+         .gwrap, .gfill and the glyph masks all live in eat.html's own style
+         block, so out here it renders as unstyled text. Kept in the document
+         that owns those rules, the clone picks up the injected stroke
+         automatically and cannot drift from the card above it. */
+      var gridEl = d.querySelector(".mgrid");
+      if (!gridEl) return;
+      var old = d.getElementById("bigrail");
+      if (old) old.remove();
+      var rail = d.createElement("div");
+      rail.id = "bigrail";
+      rail.style.cssText = "height:176px;overflow:hidden;background:#EEF4FF;" +
+        "border-radius:12px;margin:12px 16px 0;";
+      var c = gridEl.cloneNode(true);
+      /* 4x of the first two glyphs: all four would be 1300px wide */
+      c.style.cssText = "transform:scale(4);transform-origin:0 0;width:326px;";
+      rail.appendChild(c);
+      sec.appendChild(rail);
+
+      /* re-measure now the rail has changed the section's height */
+      var r2 = sec.getBoundingClientRect();
+      var top2 = r2.top + (d.documentElement.scrollTop || d.body.scrollTop || 0);
+      box.style.height = Math.round(r2.height + 24) + "px";
+      fr.style.top = "-" + Math.round(top2 - 12) + "px";
+      big.style.display = "none";
+    }
+    frame();
+    setTimeout(frame, 500);
+    setTimeout(frame, 1300);
+    rec.frame = frame;
+  });
+});
+
+function filterFor(v) {
+  if (!v.col) return "none";
+  var d = v.d, p;
+  if (v.n === 4) p = [[d,0],[-d,0],[0,d],[0,-d]];
+  else p = [[d,0],[-d,0],[0,d],[0,-d],[d,d],[-d,d],[d,-d],[-d,-d]];
+  return p.map(function (xy) {
+    return "drop-shadow(" + xy[0] + "px " + xy[1] + "px 0 " + v.col + ")";
+  }).join(" ");
+}
+
+function bg(key) {
+  return "radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.34), rgba(255,255,255,0) 58%)," +
+    "linear-gradient(to top," + FILLS[key].ramp + ")";
+}
+
+function apply(rec) {
+  if (!rec.style) return;
+  rec.style.textContent = strokeCSS(rec.v) +
+    ".gfill { background:" + bg(fillKey) + " !important; transition: none !important; }";
+}
+
+document.querySelectorAll(".ctl button").forEach(function (b) {
+  b.addEventListener("click", function () {
+    document.querySelectorAll(".ctl button").forEach(function (x) { x.classList.remove("on"); });
+    b.classList.add("on");
+    fillKey = b.dataset.fill;
+    tiles.forEach(function (rec) { apply(rec); if (rec.frame) rec.frame(); });
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Macro fill, neutral options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 40px 32px 80px; background: #F9FAFB;
+    font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .25px; color: #101828; }
+  h1 { font-size: 22px; font-weight: 600; margin: 0 0 6px; }
+  .sub { font-size: 14px; line-height: 21px; color: #667085; max-width: 720px; margin: 0 0 36px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; }
+  .tile { width: 390px; background: #fff; border: 1px solid #E4E7EC; border-radius: 16px;
+    overflow: hidden; box-shadow: 0 1px 3px rgba(16,24,40,.06); }
+  .cap { padding: 14px 16px 12px; border-bottom: 1px solid #F2F4F7; }
+  .cap .k { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px;
+    border-radius: 6px; background: #101828; color: #fff; font-size: 11px; font-weight: 700; margin-right: 8px; }
+  .cap b { font-size: 14px; font-weight: 600; }
+  .cap p { margin: 8px 0 0; font-size: 12.5px; line-height: 18px; color: #667085; }
+  .sw { display: flex; gap: 4px; margin-top: 10px; }
+  .sw i { width: 26px; height: 10px; border-radius: 3px; display: block; }
+  .tag { display: inline-block; margin-top: 10px; padding: 2px 8px; border-radius: 9999px;
+    background: #F2F4F7; color: #667085; font-size: 11px; font-weight: 600; letter-spacing: .3px; }
+  /* the live card, clipped out of the real Eat screen */
+  .stagebox { position: relative; overflow: hidden; background: #fff; }
+  .stagebox iframe { position: absolute; left: 0; width: 390px; height: 1400px; border: 0; }
+  .note { margin-top: 40px; font-size: 13px; line-height: 20px; color: #667085; max-width: 720px; }
+</style>
+</head>
+<body>
+
+<h1>Macro fill, neutral options</h1>
+<p class="sub">The same card from <code>r3/eat.html</code>, five times. Nothing here borrows a GoodFlip family
+colour: no green, no indigo, no gold, no teal. The card's own indigo ground and the glyph hairline are
+untouched, so what you are comparing is the ink in the vessels.
+<b>A</b> and <b>D</b> are exactly as you saw them. <b>G</b>, <b>H</b> and <b>I</b> are the different ones,
+and they differ in how the fill is drawn, not in which grey it is: a material, an inversion, and a flat
+graphic with no liquid at all.</p>
+
+<div class="grid" id="grid"></div>
+
+<p class="note">Each tile is the live screen, not a mock. A and D are unchanged from the first round.
+G, H and I vary the <em>treatment</em> rather than the hue: one is a material, one inverts the lightness,
+one throws the liquid metaphor away entirely.</p>
+
+<script>
+/* A and D share one recipe: a liquid gradient, deep at the base, brightest at
+   the waterline, over a faint two-stop empty. G, H and I each supply their own
+   background outright, because the whole point of them is that the recipe is
+   different, not the palette. */
+function liquid(v) {
+  return "radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.34), rgba(255,255,255,0) 58%)," +
+    "linear-gradient(to top," +
+      v.deep + " 0%," +
+      v.mid + " calc(var(--f) * .34)," +
+      v.high + " calc(var(--f) * .72)," +
+      v.lip + " calc(var(--f) - 6%)," +
+      v.lip + " calc(var(--f) - 1.5%)," +
+      v.e1 + " var(--f)," +
+      v.e2 + " 100%)";
+}
+
+var VARIANTS = [
+  { k: "A", name: "Graphite", keep: true,
+    why: "The text ink, used as liquid. Cool, precise, and already on the screen in every number above it, so it adds no new hue at all.",
+    sw: ["#101828","#344054","#667085","#98A2B3","#C4CBD6"],
+    deep: "#101828", mid: "#344054", high: "#667085", lip: "#98A2B3",
+    e1: "#C4CBD6", e2: "#D3D9E2",
+    done: "linear-gradient(to top,#101828,#667085 55%,#98A2B3)" },
+
+  { k: "D", name: "Slate", keep: true,
+    why: "Cool blue-grey, a shade off the text ink. Feels measured and instrument-like, which suits a number you are being held to.",
+    sw: ["#1B2430","#2F3D4D","#74828F","#9BA6B1","#C9D0D6"],
+    deep: "#1B2430", mid: "#2F3D4D", high: "#74828F", lip: "#9BA6B1",
+    e1: "#C9D0D6", e2: "#DCE1E5",
+    done: "linear-gradient(to top,#1B2430,#74828F 55%,#9BA6B1)" },
+
+  /* ---- the three that are actually different ---- */
+
+  { k: "G", name: "Chrome",
+    why: "Not a colour, a material. A specular band crosses the liquid where light would catch it, so the vessel reads as polished steel holding something rather than as a shape tinted grey. The most tactile of the five, and the only one that changes as it fills.",
+    sw: ["#2B3440","#5C6875","#DEE4EA","#9AA4AF","#EDF0F3"],
+    raw: "radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.5), rgba(255,255,255,0) 52%)," +
+      "linear-gradient(to top," +
+        "#2B3440 0%," +
+        "#3E4956 calc(var(--f) * .26)," +
+        "#7D8894 calc(var(--f) * .5)," +
+        "#E4E9ED calc(var(--f) * .63)," +
+        "#66707C calc(var(--f) * .78)," +
+        "#9AA4AF calc(var(--f) - 3%)," +
+        "#D6DCE2 calc(var(--f) - .5%)," +
+        "#EDF0F3 var(--f)," +
+        "#F7F9FA 100%)",
+    done: "linear-gradient(to top,#2B3440,#7D8894 42%,#E4E9ED 62%,#8B95A1)" },
+
+  { k: "H", name: "Porcelain",
+    why: "The lightness inverted. The glass is bone white and the liquid is a soft shadow rising into it, so the card gets quieter as the day fills rather than heavier. Delicate and expensive-looking. The risk is legibility: at a glance a low reading and an empty vessel look closer than they do in A.",
+    sw: ["#8D949C","#A8AFB7","#C6CCD3","#E3E7EB","#FAFBFC"],
+    raw: "radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.55), rgba(255,255,255,0) 60%)," +
+      "linear-gradient(to top," +
+        "#8D949C 0%," +
+        "#9DA4AC calc(var(--f) * .4)," +
+        "#B4BBC3 calc(var(--f) * .74)," +
+        "#CFD5DB calc(var(--f) - 5%)," +
+        "#E3E7EB calc(var(--f) - 1.5%)," +
+        "#FAFBFC var(--f)," +
+        "#FFFFFF 100%)",
+    done: "linear-gradient(to top,#8D949C,#B4BBC3 55%,#DDE1E5)" },
+
+  { k: "I", name: "Duotone",
+    why: "The liquid metaphor dropped. Flat ink below the waterline, flat pale above, one hard line between them and no highlight anywhere. It stops being a vessel and becomes a bar chart in the shape of food, which is the most honest reading of what the number is. Crisp, and the only one that will survive being shrunk.",
+    sw: ["#101828","#101828","#E4E7EC","#E4E7EC","#E4E7EC"],
+    raw: "linear-gradient(to top," +
+        "#101828 0%," +
+        "#101828 var(--f)," +
+        "#E4E7EC var(--f)," +
+        "#E4E7EC 100%)",
+    done: "linear-gradient(to top,#101828,#101828)" }
+];
+
+function fillCSS(v) {
+  var bg = v.raw || liquid(v);
+  return ".gfill { background:" + bg + " !important; }" +
+    ".m.done .gfill { background:" + v.done + " !important; }";
+}
+
+var grid = document.getElementById("grid");
+
+VARIANTS.forEach(function (v) {
+  var tile = document.createElement("div");
+  tile.className = "tile";
+  tile.innerHTML =
+    '<div class="cap"><b><span class="k">' + v.k + '</span>' + v.name + '</b>' +
+      '<p>' + v.why + '</p>' +
+      '<div class="sw">' + v.sw.map(function (c, i) {
+        /* the pale end needs an inset hairline or it vanishes on the white cap */
+        return '<i style="background:' + c +
+          (i > 2 ? ';box-shadow:inset 0 0 0 1px rgba(16,24,40,.08)' : '') + '"></i>';
+      }).join("") + '</div>' +
+      (v.keep ? '<span class="tag">kept from round one</span>' : "") +
+    '</div>' +
+    '<div class="stagebox"><iframe src="r3/eat.html?state=mid" scrolling="no"></iframe></div>';
+  grid.appendChild(tile);
+
+  var box = tile.querySelector(".stagebox");
+  var fr = tile.querySelector("iframe");
+
+  fr.addEventListener("load", function () {
+    var d = fr.contentDocument;
+    var s = d.createElement("style");
+    /* transitions off: the registered --f property animates on load, and a
+       tile screenshotted mid-flight is not the variant it claims to be */
+    s.textContent = fillCSS(v) + " .gfill { transition: none !important; }";
+    d.head.appendChild(s);
+
+    /* Clip the iframe down to just the macro card. Measuring beats guessing:
+       the stage above it changes height with the verdict pill. */
+    function frame() {
+      var sec = d.getElementById("railSect");
+      if (!sec) return;
+      var r = sec.getBoundingClientRect();
+      var top = r.top + (d.documentElement.scrollTop || d.body.scrollTop || 0);
+      box.style.height = Math.round(r.height + 24) + "px";
+      fr.style.top = "-" + Math.round(top - 12) + "px";
+    }
+    frame();
+    /* the hero draws late and reflows the section below it */
+    setTimeout(frame, 400);
+    setTimeout(frame, 1200);
+  });
+});
+</script>
+</body>
+</html>

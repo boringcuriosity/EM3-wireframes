@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kaira speaks first, five ways</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --brand-600:#299D6B; --brand-700:#2A805A; --brand-100:#E6FAF1;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-600:#444CE7; --in-700:#3538CD;
+    --teal-800:#2DA6A6; --red-600:#D92D20;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1760px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:880px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 10px}
+  .lede b{color:var(--g-900)}
+  .callout{max-width:880px;padding:14px 16px;border-radius:12px;background:var(--g-50);
+    border:1px solid var(--g-200);font-size:13px;line-height:21px;color:var(--g-700);margin:0 0 20px}
+  .callout b{color:var(--g-900)}
+  .bar{display:flex;gap:10px;align-items:center;margin:0 0 28px;flex-wrap:wrap}
+  .tgl{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 15px;border-radius:9999px;
+    border:1px solid var(--g-200);background:#fff;color:var(--g-700);font:600 13px/1 Roboto;cursor:pointer}
+  .tgl.dark{background:var(--g-900);border-color:var(--g-900);color:#fff}
+  .hint{font-size:12.5px;color:var(--g-500)}
+  .grid{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start}
+  .col{width:392px;flex:0 0 392px}
+  .cap h2{font-size:15px;line-height:22px;font-weight:600;margin:0 0 6px}
+  .cap p{font-size:12.5px;line-height:19px;color:var(--g-600);margin:0 0 8px}
+  .tag{display:inline-block;font:600 10.5px/16px Roboto;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--in-600);background:var(--in-50);border-radius:9999px;padding:1px 8px;margin:0 0 6px}
+  .tag.yours{color:var(--brand-700);background:var(--brand-100)}
+  .score{font-size:11.5px;line-height:18px;margin:0 0 10px}
+  .score div{display:flex;gap:6px}
+  .score i{font-style:normal;width:13px;flex-shrink:0}
+  .ok{color:var(--brand-600)}.no{color:var(--red-600)}.mid{color:var(--g-500)}
+  .phone{width:392px;height:720px;border:1px solid var(--g-200);border-radius:20px;overflow:hidden;
+    background:#fff;position:relative}
+  .phone iframe{width:390px;height:718px;border:0;display:block}
+  .replay{position:absolute;left:10px;top:10px;z-index:5;height:30px;padding:0 12px;border-radius:9999px;
+    border:0;background:rgba(16,24,40,.78);color:#fff;font:600 11.5px/1 Roboto;cursor:pointer}
+  @media (max-width:900px){.page{padding:24px 16px 60px}.col{width:100%;flex:1 1 100%}.phone{width:100%}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Kaira speaks first, five ways</h1>
+  <p class="lede">Each phone is <b>the real Eat screen</b> running in an iframe, with <b>Kaira's real launcher</b>, its gradient rim and rotating sweeps untouched. Only the way she announces herself differs. Scroll a phone or press Replay to trigger it; each one also fires on its own after a short dwell, which is how it would behave in the app.</p>
+  <div class="callout">
+    <b>The job is one sentence and two doors.</b> She is saying that a whole day of food can go in by talking or by pointing a camera, and that it takes about a minute. Anything that does not serve that sentence is decoration.
+    <br><br>
+    <b>A thing that speaks unprompted has to be easy to ignore.</b> None of these traps a tap, and each either retracts on its own or carries a dismiss. But be honest about the cost while you compare them: every one of them sits over the lower part of the screen for as long as it is open, and on this screen that is the macro card. D is the only one that gives the space back without being asked.
+  </div>
+  <div class="bar">
+    <button class="tgl dark" id="playAll">Replay all five</button>
+    <button class="tgl" id="slowmo">Slow motion</button>
+    <span class="hint">Motion runs at 0.25x in slow motion, so the stagger is visible.</span>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+/* Each variant is a stylesheet plus a build() that returns the node, injected
+   into the real screen's document. Nothing about eat.html changes: the FAB is
+   the product's own, and the announcement is a sibling inside its container,
+   anchored to the FAB's right edge so it can only grow leftward. */
+/* "Log your whole day in a minute" measures about 210px at 13px, which puts the
+   pill near 282 and eats 77% of a 390 screen. It stops reading as something
+   that came out of the launcher and starts reading as a banner. The shorter
+   line keeps the promise and the time cost, which is the part that works. */
+var COPY = {
+  line: "Log your day in a minute",
+  sub: "Say it, or snap it",
+  short: "Tell me what you ate"
+};
+var MIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+var CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2L8 5h8l1.5 2h2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.2"/></svg>';
+var X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+/* shared chrome for every variant: the pill's own surface, her two-tone edge,
+   and the two doors. Written once so the five differ in MOTION, not in looks. */
+var SHARED = [
+  /* The bar ends at the launcher's CENTRE, not its far edge. Collapsed, its
+     zero-width point is still under the disc, so it is just as hidden and it
+     still has to travel out from behind her, but it stops spending 30px on
+     clearance it does not need. That 30 was a fifth of the bar. */
+  ".kx{position:absolute;right:30px;bottom:0;height:60px;display:flex;align-items:center;pointer-events:none}",
+  ".kx *{box-sizing:border-box}",
+  /* the surface: white over her gradient edge, the same recipe her card uses */
+  ".kxp{position:relative;display:flex;align-items:center;gap:10px;height:52px;padding:0 38px 0 16px;",
+  "border:1.5px solid transparent;border-radius:26px;pointer-events:auto;cursor:pointer;",
+  "background:linear-gradient(180deg,#F5F8FF,#fff 70%) padding-box,",
+  "linear-gradient(100deg,#444CE7,#2DA6A6) border-box;",
+  "box-shadow:0 6px 22px rgba(68,76,231,.18);white-space:nowrap}",
+  ".kxt{display:flex;flex-direction:column;min-width:0}",
+  ".kxt b{font:700 13px/17px Roboto;color:#101828;letter-spacing:.1px}",
+  ".kxt i{font:400 11.5px/15px Roboto;font-style:normal;color:#667085;margin-top:1px}",
+  /* the two doors, as marks not words: the sentence already says what they do */
+  ".kxa{display:flex;gap:6px;flex-shrink:0}",
+  ".kxa span{width:32px;height:32px;border-radius:9999px;display:grid;place-items:center;",
+  "background:#EEF4FF;color:#3538CD}",
+  ".kxa svg{width:16px;height:16px}",
+  /* The way back in, at the far end and half outside the bar, so it reads as a
+     handle on the bar rather than a control in it. It points RIGHT because
+     right is where the bar goes: back into her. It is a sibling of the pill,
+     not a child, because the pill is clipped and a child would be clipped with
+     it and never appear. */
+  ".kxc{position:absolute;left:-11px;top:50%;margin-top:-12px;width:24px;height:24px;",
+  "border-radius:9999px;border:1px solid #E0EAFF;background:#fff;color:#3538CD;",
+  "display:grid;place-items:center;cursor:pointer;pointer-events:auto;",
+  "box-shadow:0 2px 8px rgba(16,24,40,.14)}",
+  ".kxc svg{width:12px;height:12px}",
+  ".kxc::after{content:'';position:absolute;left:50%;top:50%;width:44px;height:44px;",
+  "transform:translate(-50%,-50%)}",
+  /* the FAB must sit above whatever the pill does */
+  "#kairaFab .gfkfab{position:relative;z-index:2;",
+  /* Anticipation. The mark dips 6% and comes back while the bar travels, which
+     is the whole difference between "a bar appeared" and "Kaira spoke". Disney's
+     one principle that survives contact with UI, at UI scale. */
+  "transition:transform .12s cubic-bezier(.2,0,0,1)}",
+  "#kairaFab.dip .gfkfab{transform:scale(.94)}",
+  /* Reduced motion is a shorter, quieter version, not a dead one. WCAG's
+     guidance is to replace large movement with a fade, so the pill still
+     arrives, in 150ms, with no travel and no stagger. */
+  "@media (prefers-reduced-motion:reduce){",
+  ".kx .kxp{clip-path:none!important;transform:none!important;transition:opacity .15s linear!important;opacity:0}",
+  ".kx.on .kxp{opacity:1}",
+  ".kx .kxt,.kx .kxa,.kx .kxc,.kx .kxl{transition-delay:0s!important;transition-duration:.15s!important;transform:none!important}",
+  ".kx .kxr{animation:none!important}",
+  "#kairaFab.dip .gfkfab{transform:none}}"
+].join("");
+
+var CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+
+function pill(extra){
+  return '<div class="kxp'+(extra||"")+'">' +
+    '<span class="kxt"><b>'+COPY.line+'</b><i>'+COPY.sub+'</i></span>' +
+    '<span class="kxa"><span>'+MIC+'</span><span>'+CAM+'</span></span>' +
+    '</div><button class="kxc" aria-label="Put it back">'+CHEV+'</button>';
+}
+
+/* ------------------------------------------------------------------ A ---- */
+var A = {
+  key:"extend", tagYours:true,
+  title:"A. The bar grows out of her",
+  body:"What you described. The pill is clipped to nothing behind the launcher and opens leftward, so it reads as coming out of her rather than flying in from off screen. The words arrive after the shape has settled, never with it.",
+  sc:[["ok","Origin: the motion starts at the launcher, so she is the author"],
+      ["ok","Order: shape first, words second, doors last"],
+      ["ok","M3: this is the extended FAB's own size transform"],
+      ["mid","Width: the sentence sets how far it reaches"],
+      ["ok","Retracts the same way it came, back into her"]],
+  /* The timings are M3's, not invented. A 280px bar growing out of a 60px disc
+     is a LARGE expansion, which Carbon puts at 400ms, not the 250 a small one
+     gets. The arrival curve is emphasized-decelerate, 70% of its travel by 30%
+     of its time, so it lands confidently and settles with no overshoot.
+     The label CLIPS AND FADES, it never slides: M3's extended FAB composes
+     expandHorizontally with fadeIn and has no translate in it at all, and a
+     sliding label is the thing that reads cheap. It also lags the container by
+     100ms on purpose, so the box visibly arrives before the words. */
+  css:[
+    ".kx-extend .kxp{transform-origin:100% 50%;clip-path:inset(0 0 0 100% round 26px);",
+    "transition:clip-path .4s cubic-bezier(.05,.7,.1,1)}",
+    ".kx-extend.on .kxp{clip-path:inset(0 0 0 0 round 26px)}",
+    ".kx-extend .kxt,.kx-extend .kxa,.kx-extend .kxc{opacity:0;",
+    "transition:opacity .2s cubic-bezier(0,0,0,1)}",
+    ".kx-extend.on .kxt{opacity:1;transition-delay:.1s}",
+    /* 60ms between the two doors: 20 is texture, 120 reads as forgotten */
+    ".kx-extend.on .kxa{opacity:1;transition-delay:.24s}",
+    ".kx-extend.on .kxc{opacity:1;transition-delay:.3s}",
+    /* Going away is faster than arriving, and on the accelerate curve. The
+       words leave first so they are never caught inside a shrinking box. */
+    ".kx-extend.off .kxp{transition:clip-path .25s cubic-bezier(.3,0,.8,.15)}",
+    ".kx-extend.off .kxt,.kx-extend.off .kxa,.kx-extend.off .kxc{",
+    "transition:opacity .1s cubic-bezier(.3,0,1,1);transition-delay:0s}"
+  ].join(""),
+  html:function(){ return '<div class="kx kx-extend">'+pill()+'</div>'; }
+};
+
+/* ------------------------------------------------------------------ B ---- */
+var B = {
+  key:"bubble",
+  title:"B. She says it, with a tail",
+  body:"A speech bubble lifts off the launcher with a tail still pointing at her, so the words are visibly hers and not the app's. It rises and settles rather than sliding, which is how something spoken arrives.",
+  sc:[["ok","Voice: a tail is the one shape that means somebody said this"],
+      ["ok","Sits above the launcher, so it never covers the tab bar"],
+      ["ok","Origin: scales out of her corner, not out of the edge"],
+      ["mid","Two shapes on screen, the bubble and the launcher"],
+      ["no","A tail costs a notch that has to be drawn per direction"]],
+  css:[
+    ".kx-bubble{bottom:72px;right:4px;height:auto;align-items:flex-end}",
+    /* it sits ABOVE the launcher rather than behind it, so it needs no room
+       cleared on the right, and it keeps the cross: a bubble that retracted
+       sideways would contradict the direction it arrived from */
+    ".kx-bubble{right:4px}",".kx-bubble .kxp{padding:0 14px 0 16px}",
+    ".kx-bubble .kxc{display:none}",
+    ".kx-bubble .kxp{border-radius:26px 26px 6px 26px;transform-origin:100% 100%;",
+    "opacity:0;transform:scale(.86) translate(10px,10px);",
+    "transition:opacity .3s ease-out,transform .5s cubic-bezier(.2,0,0,1)}",
+    ".kx-bubble.on .kxp{opacity:1;transform:none}",
+    ".kx-bubble .kxt,.kx-bubble .kxa{opacity:0;transition:opacity .3s ease-out}",
+    ".kx-bubble.on .kxt{opacity:1;transition-delay:.18s}",
+    ".kx-bubble.on .kxa{opacity:1;transition-delay:.28s}"
+  ].join(""),
+  html:function(){ return '<div class="kx kx-bubble">'+pill()+'</div>'; }
+};
+
+/* ------------------------------------------------------------------ C ---- */
+var C = {
+  key:"ripple",
+  title:"C. A ring leaves her and becomes the words",
+  body:"Her halo pushes out once, and as it fades the pill is already unrolling through the space the ring just crossed. The colour ends in the launcher, which is the object the moment is about.",
+  sc:[["ok","Delight: one gesture, two states, nothing appears from nowhere"],
+      ["ok","Reuses her halo, which the launcher already owns"],
+      ["ok","The ring buys the eye half a second before any words"],
+      ["mid","Longest of the five at about 1.1s end to end"],
+      ["mid","The ring reads as a notification ping on first sight"]],
+  css:[
+    ".kx-ripple .kxr{position:absolute;right:16px;bottom:16px;width:28px;height:28px;border-radius:9999px;",
+    "border:2px solid #444CE7;opacity:0;pointer-events:none}",
+    ".kx-ripple.on .kxr{animation:kxring .72s cubic-bezier(.22,.7,.3,1) forwards}",
+    "@keyframes kxring{0%{opacity:.55;transform:scale(.5)}100%{opacity:0;transform:scale(3.4)}}",
+    ".kx-ripple .kxp{transform-origin:100% 50%;clip-path:inset(0 0 0 100% round 26px);",
+    "transition:clip-path .5s cubic-bezier(.2,0,0,1) .3s}",
+    ".kx-ripple.on .kxp{clip-path:inset(0 0 0 0 round 26px)}",
+    ".kx-ripple .kxt,.kx-ripple .kxa,.kx-ripple .kxc{opacity:0;transition:opacity .28s ease-out}",
+    ".kx-ripple.on .kxt{opacity:1;transition-delay:.52s}",
+    ".kx-ripple.on .kxa{opacity:1;transition-delay:.62s}",
+    ".kx-ripple.on .kxc{opacity:1;transition-delay:.7s}"
+  ].join(""),
+  html:function(){ return '<div class="kx kx-ripple"><span class="kxr"></span>'+pill()+'</div>'; }
+};
+
+/* ------------------------------------------------------------------ D ---- */
+var D = {
+  key:"peek",
+  title:"D. A peek, then it gets out of the way",
+  body:"The full sentence comes out, holds for two and a half seconds, then pulls back to a single word on her rim. She has said her piece and stopped. Scroll again later and the short form is already there to tap.",
+  sc:[["ok","The only one that ends smaller than it started"],
+      ["ok","Never needs dismissing, because it dismisses itself"],
+      ["ok","Leaves a live affordance rather than nothing"],
+      ["ok","Repeat exposure costs a word, not a sentence"],
+      ["mid","The sentence is on screen for a fixed time, not the reader's"]],
+  css:[
+        ".kx-peek .kxp{transform-origin:100% 50%;clip-path:inset(0 0 0 100% round 26px);",
+    "transition:clip-path .5s cubic-bezier(.2,0,0,1)}",
+    ".kx-peek.on .kxp{clip-path:inset(0 0 0 0 round 26px)}",
+    ".kx-peek .kxt,.kx-peek .kxa{opacity:0;transition:opacity .26s ease-out}",
+    ".kx-peek.on .kxt{opacity:1;transition-delay:.2s}",
+    ".kx-peek.on .kxa{opacity:1;transition-delay:.3s}",
+    ".kx-peek .kxc{display:none}",
+    /* the short form it retreats to */
+    /* the 68 of right padding stays in the short form too, or the word slides
+       under the launcher it is supposed to sit beside */
+    ".kx-peek.mini .kxp{clip-path:inset(0 0 0 0 round 26px);height:34px;padding:0 38px 0 14px}",
+    ".kx-peek.mini .kxt i,.kx-peek.mini .kxa{display:none}",
+    ".kx-peek.mini .kxt b{font-size:12px}",
+    ".kx-peek .kxp{transition:clip-path .5s cubic-bezier(.2,0,0,1),height .4s cubic-bezier(.2,0,0,1),padding .4s cubic-bezier(.2,0,0,1)}"
+  ].join(""),
+  html:function(){ return '<div class="kx kx-peek">'+pill()+'</div>'; },
+  after:function(node, win){
+    /* the retreat is part of the variant, so it is scripted here rather than
+       left to the deck's own timer */
+    return win.setTimeout(function(){
+      var t = node.querySelector(".kxt b");
+      if (t) t.textContent = COPY.short;
+      node.classList.add("mini");
+    }, 2500);
+  }
+};
+
+/* ------------------------------------------------------------------ E ---- */
+var E = {
+  key:"thread",
+  title:"E. A thread is drawn, then the words run along it",
+  body:"A hairline of her gradient draws leftward first, the sentence wipes in along it, and only then does the line thicken into a surface. The words arrive before the container, which is the reverse of every other one here.",
+  sc:[["ok","The one that reads as writing rather than opening"],
+      ["ok","Lightest first frame: a 2px line covers almost nothing"],
+      ["ok","The sentence is legible before the pill exists"],
+      ["no","Three staged parts is the most that can go wrong"],
+      ["mid","A wipe on text is a typewriter, and typewriters imply waiting"]],
+  css:[
+        ".kx-thread .kxl{position:absolute;right:62px;bottom:29px;height:2px;width:0;border-radius:2px;",
+    "background:linear-gradient(270deg,#444CE7,#2DA6A6);pointer-events:none;",
+    "transition:width .42s cubic-bezier(.2,0,0,1)}",
+    ".kx-thread.on .kxl{width:236px}",
+    ".kx-thread .kxp{opacity:0;transform:scaleY(.12);transform-origin:50% 50%;",
+    "transition:opacity .2s ease-out .44s,transform .42s cubic-bezier(.2,0,0,1) .44s}",
+    ".kx-thread.on .kxp{opacity:1;transform:none}",
+    ".kx-thread .kxt{clip-path:inset(0 100% 0 0);transition:clip-path .44s cubic-bezier(.4,0,.2,1) .5s}",
+    ".kx-thread.on .kxt{clip-path:inset(0 0 0 0)}",
+    ".kx-thread .kxa,.kx-thread .kxc{opacity:0;transition:opacity .26s ease-out}",
+    ".kx-thread.on .kxa{opacity:1;transition-delay:.86s}",
+    ".kx-thread.on .kxc{opacity:1;transition-delay:.94s}"
+  ].join(""),
+  html:function(){ return '<div class="kx kx-thread"><span class="kxl"></span>'+pill()+'</div>'; }
+};
+
+var VARIANTS = [A,B,C,D,E];
+
+/* ---------------------------------------------------------------- deck ---- */
+var SLOW = false;
+document.getElementById('grid').innerHTML = VARIANTS.map(function(v,i){
+  return '<div class="col"><div class="cap">'+
+    (v.tagYours?'<div class="tag yours">Your idea</div>':'<div class="tag">Variant</div>')+
+    '<h2>'+v.title+'</h2><p>'+v.body+'</p></div>'+
+    '<div class="score">'+v.sc.map(function(r){
+      var m={ok:'✓',no:'✗',mid:'–'}[r[0]];
+      return '<div class="'+r[0]+'"><i>'+m+'</i><span>'+r[1]+'</span></div>';}).join('')+'</div>'+
+    '<div class="phone"><button class="replay" data-i="'+i+'">Replay</button>'+
+    '<iframe data-i="'+i+'" src="r3/eat.html?state=mid" title="'+v.title+'"></iframe></div></div>';
+}).join('');
+
+var STATE = [];
+function mount(i){
+  var fr = document.querySelector('iframe[data-i="'+i+'"]');
+  var v = VARIANTS[i], doc, win;
+  try { doc = fr.contentDocument; win = fr.contentWindow; } catch(e){ return; }
+  if(!doc || !doc.getElementById('kairaFab')) return;
+  var st = doc.createElement('style');
+  st.textContent = SHARED + v.css + (SLOW ? ".kx *{transition-duration:calc(var(--d,1s)*4)!important;animation-duration:2.8s!important}" : "");
+  doc.head.appendChild(st);
+  var fab = doc.getElementById('kairaFab');
+  fab.style.width = 'auto';
+  fab.style.height = '60px';
+  fab.style.display = 'flex';
+  fab.style.justifyContent = 'flex-end';
+  fab.insertAdjacentHTML('afterbegin', v.html());
+  var node = fab.querySelector('.kx');
+  node.querySelector('.kxc') && node.querySelector('.kxc').addEventListener('click', function(e){
+    e.stopPropagation();
+    /* .off carries the faster exit timings; it is cleared once the bar is home
+       so the next arrival uses the arrival curves again */
+    node.classList.add('off');
+    node.classList.remove('on');
+    win.setTimeout(function(){ node.classList.remove('off'); }, 420);
+  });
+  STATE[i] = { doc:doc, win:win, node:node, v:v, timer:null };
+  /* the real trigger: a dwell on the screen, and a scroll past the fold */
+  var fired = false;
+  function fire(){ if(fired) return; fired = true; play(i); }
+  win.addEventListener('scroll', function(){ if(win.scrollY > 240) fire(); }, {passive:true});
+  win.setTimeout(fire, 2600);
+}
+function play(i){
+  var s = STATE[i]; if(!s) return;
+  s.node.classList.remove('on','mini');
+  var t = s.node.querySelector('.kxt b'); if(t) t.textContent = COPY.line;
+  s.win.clearTimeout(s.timer);
+  /* A forced reflow, not requestAnimationFrame. rAF does not fire in an iframe
+     the browser has throttled, which is every one of these the moment the deck
+     is not the focused tab, so the class went on with no transition to run. */
+  s.node.classList.remove('off');
+  void s.node.offsetWidth;
+  /* The dip runs first and the bar leaves while the mark is coming back up, so
+     the two overlap rather than queue. Queued, it reads as two events. */
+  var fab = s.doc.getElementById('kairaFab');
+  fab.classList.add('dip');
+  s.win.setTimeout(function(){ fab.classList.remove('dip'); }, 120);
+  s.win.setTimeout(function(){
+    s.node.classList.add('on');
+    if(s.v.after) s.timer = s.v.after(s.node, s.win);
+  }, 110);
+}
+[].forEach.call(document.querySelectorAll('iframe[data-i]'), function(fr){
+  fr.addEventListener('load', function(){ mount(+fr.dataset.i); });
+});
+document.getElementById('grid').addEventListener('click', function(e){
+  var b = e.target.closest('.replay'); if(b) play(+b.dataset.i);
+});
+document.getElementById('playAll').onclick = function(){ VARIANTS.forEach(function(_,i){ play(i); }); };
+document.getElementById('slowmo').onclick = function(){
+  SLOW = !SLOW; this.classList.toggle('dark', SLOW);
+  [].forEach.call(document.querySelectorAll('iframe[data-i]'), function(fr){
+    var d = fr.contentDocument; if(!d) return;
+    var id = 'kxslow', old = d.getElementById(id);
+    if(old) old.remove();
+    if(SLOW){ var s = d.createElement('style'); s.id = id;
+      s.textContent = ".kx .kxp,.kx .kxt,.kx .kxa,.kx .kxc,.kx .kxl{transition-duration:1.8s!important}"+
+        ".kx .kxr{animation-duration:2.4s!important}";
+      d.head.appendChild(s); }
+  });
+};
+</script>
+</body>
+</html>

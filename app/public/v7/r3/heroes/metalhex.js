@@ -166,7 +166,7 @@
     // Number
     var label = el("div", "position:absolute;left:0;right:0;top:" + (TOP + cy + 2) + "px;transform:translateY(-50%);" +
       "display:flex;flex-direction:column;align-items:center;pointer-events:none;", stage);
-    var numRow = el("div", "display:flex;align-items:flex-start;color:#1D4D38;font-family:'Playfair Display',Georgia,serif;font-weight:600;", label);
+    var numRow = el("div", "display:flex;align-items:flex-start;color:#1D4D38;font-family:Roboto,Arial,sans-serif;font-weight:600;", label);
     var num = el("span", "font-size:58px;line-height:60px;letter-spacing:-1px;font-variant-numeric:lining-nums tabular-nums;", numRow);
     el("span", "font-size:21px;line-height:28px;margin-left:2px;", numRow).textContent = "%";
     el("div", "margin-top:3px;font-family:Roboto,system-ui,sans-serif;font-size:10.5px;font-weight:600;letter-spacing:2.4px;color:#2A805A;", label).textContent = "SUFFICIENT";

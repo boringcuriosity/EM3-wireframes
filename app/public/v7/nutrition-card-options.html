@@ -1,0 +1,649 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One card for calories and macros</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="icons/glyph-masks.css">
+<style>
+  :root{
+    --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0; --brand-600:#299D6B; --brand-700:#2A805A;
+    --ok-600:#039855;
+    --g-25:#FCFCFD; --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD;
+    --g-400:#98A2B3; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-200:#C7D7FE; --in-300:#A4BCFD;
+    --in-400:#8098F9; --in-500:#6172F3; --in-600:#444CE7; --in-700:#3538CD; --in-900:#2D31A6;
+    --am-50:#FFFAEB; --am-500:#F79009; --am-600:#DC6803;
+    --r-md:12px; --r-lg:16px; --r-xl:24px; --r-pill:9999px;
+    --ease:cubic-bezier(.4,0,.2,1);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1760px;margin:0 auto;padding:40px 24px 90px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 10px}
+  .lede{max-width:880px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 8px}
+  .lede b{color:var(--g-900)}
+  .src{max-width:880px;font-size:13px;line-height:21px;color:var(--g-500);margin:0 0 36px}
+
+  .grid{display:flex;flex-wrap:wrap;gap:30px;align-items:flex-start}
+  .col{width:390px;flex:0 0 390px}
+  .cap{min-height:196px;margin-bottom:14px}
+  .cap h2{margin:0 0 6px;font-size:17px;line-height:24px;font-weight:600}
+  .cap p{margin:0 0 8px;font-size:13px;line-height:20px;color:var(--g-600)}
+  .cap .tr{font-size:12px;line-height:18px;color:var(--g-500)}
+  .cap .tr b{color:var(--g-700);font-weight:600}
+  .tag{display:inline-block;margin-bottom:6px;font-size:11px;line-height:16px;font-weight:600;
+    letter-spacing:.4px;text-transform:uppercase;color:var(--g-500);background:var(--g-100);
+    border-radius:9999px;padding:2px 8px}
+  .tag.pick{color:var(--brand-700);background:var(--brand-100)}
+
+  /* the phone, cropped to the part being decided */
+  .phone{width:390px;padding:0 16px 28px;border:1px solid var(--g-200);border-radius:20px;background:#fff}
+  .phone h3{margin:24px 0 12px;font-size:16px;line-height:22px;font-weight:600}
+
+  /* ------------------------------------------------- the filling glyph ---- */
+  /* Lifted from r3/eat.html unchanged, because it is the one device that has
+     to survive the merge: the nutrient icon is the gauge, filling from the
+     bottom like liquid with a lighter band at the waterline. A hard stop would
+     read as a cut, so the fill runs through seven stops and is animated with a
+     registered property, which is the only way a gradient stop can transition. */
+  @property --f { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+  .gwrap{position:relative}
+  .gfill{position:absolute;inset:0;--f:0%;
+    background:linear-gradient(to top,
+      var(--in-900) 0%,
+      var(--in-700) calc(var(--f) * .35),
+      var(--in-600) calc(var(--f) * .78),
+      var(--in-500) calc(var(--f) - 5%),
+      var(--in-300) calc(var(--f) - .5%),
+      var(--g-200) var(--f),
+      var(--g-100) 100%);
+    transition:--f .9s var(--ease)}
+  .gfill.glyph-fats{-webkit-mask-size:auto 80%;mask-size:auto 80%}
+  .gfill.glyph-fibre{-webkit-mask-size:auto 84%;mask-size:auto 84%}
+  .m.done .gfill{background:linear-gradient(to top,var(--in-900),var(--in-600) 55%,var(--in-400))}
+
+  /* the flame, the filled cut in house ink */
+  .flame{flex-shrink:0}
+
+
+  /* ============================================================ A, grey ===
+     Macros first, calories underneath and quiet.
+
+     The macros are what the card is about: four things you are trying to hit,
+     each one moving. Calories are the sum, and a sum does not need to shout to
+     be found. Putting the big number on top gave it the affordance of a thing
+     to act on when the only thing you can act on is eating, so it now sits in
+     a footer strip: still exact, still first thing your eye lands on if that
+     is what you came for, no longer the headline. */
+  .va{border:1px solid var(--g-200);border-radius:var(--r-lg);background:#fff;overflow:hidden}
+  .va .body{padding:18px 16px 16px}
+  .va .mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .va .m{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+  .va .v{font:400 12px/17px Roboto,sans-serif;color:var(--g-500);white-space:nowrap}
+  .va .v b{font-weight:700;color:var(--g-900);font-size:13.5px}
+  .va .nm{font:400 11px/15px Roboto,sans-serif;color:var(--g-400)}
+
+  /* The fill, with the delight in the layering rather than in the hue.
+     Three things stack inside the same mask:
+       a soft sheen from the upper left, so the surface catches light,
+       a brighter band right at the waterline, which is the meniscus,
+       and the grey ramp itself, deepest at the base.
+     The ramp is not neutral grey: the base is a touch blue and the top a
+     touch warm, which is what stops a column of grey reading as dead. */
+  .va .gfill{background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.34), rgba(255,255,255,0) 58%),
+      linear-gradient(to top,
+        #0B1220 0%,
+        var(--g-800, #1D2939) calc(var(--f) * .34),
+        var(--g-700) calc(var(--f) * .72),
+        var(--g-600) calc(var(--f) - 6%),
+        #B4BCC8 calc(var(--f) - 1.5%),
+        #D7DCE3 var(--f),
+        #E9ECF1 100%)}
+  /* home: the whole vessel lit, no empty track left to draw */
+  .va .m.done .gfill{background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.36), rgba(255,255,255,0) 58%),
+      linear-gradient(to top, #0B1220, var(--g-700) 52%, var(--g-500))}
+
+  /* the footer: tinted, full bleed, and the only rule on the card */
+  .va .foot{display:flex;align-items:baseline;gap:8px;padding:12px 16px;
+    background:var(--g-50);border-top:1px solid var(--g-100)}
+  .va .foot .lab{display:flex;align-items:center;gap:6px;font:400 13px/18px Roboto,sans-serif;color:var(--g-600)}
+  .va .foot .n{margin-left:auto;font:700 15px/20px Roboto,sans-serif;color:var(--g-900)}
+  .va .foot .n s{text-decoration:none;font-weight:400;color:var(--g-500)}
+  .va .foot .flame{width:15px;height:15px}
+
+  /* ========================================================= B, the slab ===
+     Figma already drew this merge: "calorie and meal score", node 3560:2333
+     on the Food Logging with Kaira canvas, 358 x 117. An --in-50 ground with
+     no stroke and no shadow, the frond bleeding off the right, calories over
+     the macro breakdown row. Flat is the house rule, not a preference: across
+     both Figma files it is 10,388 flat surfaces to 998 lifted. */
+  .vb{position:relative;border-radius:var(--r-lg);background:var(--in-50);padding:16px;overflow:hidden}
+  .vb .wm{position:absolute;right:-84px;top:-70px;width:131px;height:156px;pointer-events:none;opacity:.9}
+  .vb .top{position:relative;display:flex;align-items:center;gap:8px}
+  .vb .top .lab{display:flex;align-items:center;gap:6px;font:400 14px/17px Roboto,sans-serif;color:var(--g-900)}
+  .vb .top .n{margin-left:auto;font:600 20px/26px Roboto,sans-serif;color:var(--g-900)}
+  .vb .top .n s{text-decoration:none;font:400 12px/18px Roboto,sans-serif;color:var(--g-500)}
+  .vb .bar{position:relative;display:block;height:4px;margin-top:10px;border-radius:var(--r-md);
+    background:var(--in-200);overflow:hidden}
+  .vb .bar i{display:block;height:100%;border-radius:var(--r-md);background:var(--in-600)}
+  .vb .rule{position:relative;height:1px;margin:20px 0 16px;background:var(--in-100)}
+  .vb .mgrid{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .vb .m{display:flex;flex-direction:column;align-items:center;gap:7px;min-width:0}
+  .vb .v{font:400 14px/20px Roboto,sans-serif;color:var(--g-500);white-space:nowrap}
+  .vb .v b{font-weight:700;color:var(--g-900)}
+  .vb .nm{font:400 12px/16px Roboto,sans-serif;color:var(--g-500)}
+  /* the empty part is the ground's own tint, so the vessel sits in its field */
+  .vb .gfill{background:linear-gradient(to top,
+      var(--in-900) 0%, var(--in-700) calc(var(--f) * .35), var(--in-600) calc(var(--f) * .78),
+      var(--in-500) calc(var(--f) - 6%), var(--in-300) calc(var(--f) - 1.5%),
+      var(--in-100) var(--f), #DCE6FF 100%)}
+
+  /* ================================================== C, the fifth glyph ===
+     Calories get a vessel too, so the card is one family at two sizes. */
+  .vc{border:1px solid var(--g-100);border-radius:var(--r-lg);background:#fff;padding:16px;
+    display:flex;align-items:center;gap:14px}
+  .vc .cal{display:flex;align-items:center;gap:11px;flex-shrink:0}
+  .vc .cal .fw{width:44px;height:52px;position:relative}
+  .vc .cal .t b{display:block;font:700 22px/26px Roboto,sans-serif;letter-spacing:-.4px}
+  .vc .cal .t s{display:block;text-decoration:none;font:400 12px/17px Roboto,sans-serif;color:var(--g-500)}
+  .vc .sep{width:1px;align-self:stretch;background:var(--g-100);flex-shrink:0}
+  .vc .mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex:1;min-width:0}
+  .vc .m{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0}
+  .vc .v{font:700 12px/16px Roboto,sans-serif;white-space:nowrap}
+  .vc .v s{text-decoration:none;font-weight:400;color:var(--g-500)}
+  .vc .nm{font:400 10px/14px Roboto,sans-serif;color:var(--g-400)}
+  /* the flame fills like the rest, which is the idea and also the risk */
+  .vc .fw .gfill{-webkit-mask-image:var(--flame);mask-image:var(--flame);
+    -webkit-mask-size:contain;mask-size:contain;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+    -webkit-mask-position:center;mask-position:center}
+
+  /* ================================================ D, the recessed shelf ==
+     Containment carries the relationship instead of size: the macros sit in
+     a sub-panel visibly inside the calorie card. Bevel's pattern. */
+  .vd{border:1px solid var(--g-100);border-radius:var(--r-lg);background:#fff;padding:16px}
+  .vd .top{display:flex;align-items:baseline;gap:8px}
+  .vd .top .lab{display:flex;align-items:center;gap:6px;font:400 13px/18px Roboto,sans-serif;color:var(--g-600)}
+  .vd .top .n{margin-left:auto;font:700 24px/28px Roboto,sans-serif;letter-spacing:-.5px}
+  .vd .top .n s{text-decoration:none;font:400 13px/18px Roboto,sans-serif;color:var(--g-500)}
+  .vd .shelf{margin-top:14px;padding:14px 10px 12px;border-radius:var(--r-md);background:var(--in-50);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.9)}
+  .vd .mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .vd .m{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0}
+  .vd .v{font:400 12px/17px Roboto,sans-serif;color:var(--g-500);white-space:nowrap}
+  .vd .v b{font-weight:700;color:var(--g-900);font-size:13px}
+  .vd .nm{font:400 11px/15px Roboto,sans-serif;color:var(--g-400)}
+  .vd .gfill{background:linear-gradient(to top,
+      var(--in-900) 0%, var(--in-700) calc(var(--f) * .35), var(--in-600) calc(var(--f) * .78),
+      var(--in-500) calc(var(--f) - 6%), var(--in-300) calc(var(--f) - 1.5%),
+      var(--in-100) var(--f), #DCE6FF 100%)}
+
+  /* ======================================= E to H, A on B's ground =========
+     A's arrangement, macros first and calories underneath, wearing the slab's
+     clothes: the --in-50 field Figma uses 35 times for a card that informs,
+     and the frond bleeding off the top right corner. What differs between
+     these four is only how the ground is handled, because that is the part
+     still being decided. */
+  .slab{position:relative;border-radius:var(--r-lg);overflow:hidden}
+  .slab .wm{position:absolute;right:-84px;top:-70px;width:131px;height:156px;pointer-events:none}
+  /* Everything on the 4pt grid. 18 was the one number that was not, and an
+     off-grid value is felt rather than seen: it makes the row above the
+     glyphs sit half a step out from every other edge on the card. */
+  .slab .body{position:relative;padding:16px}
+  .slab .mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  /* Proximity does the grouping: the two lines of text belong to each other
+     more than either belongs to the glyph, so 8 above and 4 between.
+     Two gaps, so two containers. M3 is explicit that gaps belong on the
+     parent and margins on children are the thing to avoid, because a child
+     margin is rarely uniform and needs its own token. Wrapping the value and
+     its name makes the grouping structural rather than a margin that happens
+     to look like grouping. */
+  .slab .m{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+  .slab .mt{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+  .slab .v{font:400 13px/18px Roboto,sans-serif;color:var(--g-500);white-space:nowrap}
+  .slab .v b{font-weight:700;color:var(--g-900)}
+  /* Same colour as the Calories label below, because they do the same job:
+     both name a measure. 15px line-height was off-grid too. */
+  .slab .nm{font:400 11px/16px Roboto,sans-serif;color:var(--g-500)}
+  .slab .foot{position:relative;display:flex;align-items:baseline;gap:8px;padding:12px 16px}
+  .slab .foot .lab{font:400 11px/16px Roboto,sans-serif;color:var(--g-500)}
+  .slab .foot .n{margin-left:auto;font:700 13px/18px Roboto,sans-serif;color:var(--g-900)}
+  .slab .foot .n s{text-decoration:none;font-weight:400;color:var(--g-500)}
+  .slab .foot .flame{width:15px;height:15px}
+  /* the grey ramp from A, with its sheen and its warm-to-cool shift */
+  .slab .gfill{background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.34), rgba(255,255,255,0) 58%),
+      linear-gradient(to top,
+        #0B1220 0%, #1D2939 calc(var(--f) * .34), var(--g-700) calc(var(--f) * .72),
+        var(--g-600) calc(var(--f) - 6%), #B4BCC8 calc(var(--f) - 1.5%),
+        #D7DCE3 var(--f), #E9ECF1 100%)}
+  /* indigo, for the one that keeps the card in a single hue */
+  .slab.hue .gfill{background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.34), rgba(255,255,255,0) 58%),
+      linear-gradient(to top,
+        var(--in-900) 0%, var(--in-700) calc(var(--f) * .34), var(--in-600) calc(var(--f) * .72),
+        var(--in-500) calc(var(--f) - 6%), var(--in-300) calc(var(--f) - 1.5%),
+        #CBD8FB var(--f), #DCE6FF 100%)}
+
+  .ve{background:var(--in-50)}
+  .ve .foot{border-top:1px solid var(--in-100)}
+
+  .vf{background:var(--in-50)}
+  .vf .foot{border-top:1px solid var(--in-100)}
+
+  /* two tone: the field carries the macros, the footer steps back to white */
+  .vg{background:var(--in-50)}
+  .vg .foot{background:#fff;border-top:1px solid var(--in-100)}
+
+  /* the field fades out downward, so the card has a horizon rather than an edge */
+  .vh{background:linear-gradient(180deg,var(--in-50) 0%,#FFFFFF 78%);border:1px solid var(--in-100)}
+  .vh .foot{border-top:1px solid var(--in-100)}
+
+  /* ============================================== O, no pattern, even air ==
+     E with the frond taken off. The watermark was the only thing on the card
+     that was not on a column or a baseline, and with it gone the four
+     nutrients can be set out on their own terms.
+
+     Spacing here is the M3 scale read properly: the base unit is 8dp, and 12
+     is space150, a defined step. The outer columns are pulled to the card's
+     own padding edges with space-between, so the first glyph and the last sit
+     exactly 16 from the edges, the same 16 the card is padded by. Equal
+     columns put the outer glyphs 18px inside that line, which is what made
+     the row look loose in the middle and tight at the ends. */
+  .vo{background:var(--in-50);--out:#8D97A8;--w:.5px}
+  /* I's empty as well as I's edge: the two were tuned against each other, and
+     an outline over the lighter empty draws a line around almost nothing. */
+  .vo .gfill{background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.34), rgba(255,255,255,0) 58%),
+      linear-gradient(to top,
+        #0B1220 0%, #1D2939 calc(var(--f) * .34), var(--g-700) calc(var(--f) * .72),
+        var(--g-600) calc(var(--f) - 6%), #AAB3C0 calc(var(--f) - 1.5%),
+        #C4CBD6 var(--f), #D3D9E2 100%)}
+  .vo .foot{border-top:1px solid var(--in-100)}
+  .vo .mgrid{display:flex;justify-content:space-between;gap:12px}
+  .vo .m{flex:0 0 auto}
+
+  /* ================================= I to L, making the empty half visible ==
+     The problem E leaves: on an --in-50 field the unfilled part of a vessel
+     sits at #E9ECF1, which is within a few points of the ground, so the top
+     of each glyph dissolves into the card and you read a half shape rather
+     than a shape that is half full. Four ways to stop that. */
+
+  /* a 1px outline, drawn as four zero-blur drop shadows around the masked
+     result, because a mask cannot take a stroke */
+  .outl .gwrap{filter:
+    drop-shadow(var(--w) 0 0 var(--out)) drop-shadow(calc(var(--w) * -1) 0 0 var(--out))
+    drop-shadow(0 var(--w) 0 var(--out)) drop-shadow(0 calc(var(--w) * -1) 0 var(--out))}
+
+  /* a white tile under each vessel, so the empty half never touches the tint */
+  .plate .gwrap{border-radius:10px;background:#fff;padding:3px;
+    box-shadow:inset 0 0 0 1px rgba(16,24,40,.05)}
+  .plate .gfill{inset:3px}
+
+  /* I: outline, and an empty half two steps darker than E's */
+  .vi{background:var(--in-50);--out:#8D97A8;--w:.5px}
+  .vi .foot{border-top:1px solid var(--in-100)}
+  .vi .gfill{background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.34), rgba(255,255,255,0) 58%),
+      linear-gradient(to top,
+        #0B1220 0%, #1D2939 calc(var(--f) * .34), var(--g-700) calc(var(--f) * .72),
+        var(--g-600) calc(var(--f) - 6%), #AAB3C0 calc(var(--f) - 1.5%),
+        #C4CBD6 var(--f), #D3D9E2 100%)}
+
+  /* J: no outline, the vessel just sits on its own white tile */
+  .vj{background:var(--in-50)}
+  .vj .foot{border-top:1px solid var(--in-100)}
+  .vj .gfill{background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.34), rgba(255,255,255,0) 58%),
+      linear-gradient(to top,
+        #0B1220 0%, #1D2939 calc(var(--f) * .34), var(--g-700) calc(var(--f) * .72),
+        var(--g-600) calc(var(--f) - 6%), #B4BCC8 calc(var(--f) - 1.5%),
+        #D0D6DF var(--f), #E2E6EC 100%)}
+
+  /* K: no outline, no tile, the empty half simply gets dark enough to hold */
+  .vk{background:var(--in-50)}
+  .vk .foot{border-top:1px solid var(--in-100)}
+  .vk .gfill{background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.32), rgba(255,255,255,0) 58%),
+      linear-gradient(to top,
+        #0B1220 0%, #1D2939 calc(var(--f) * .34), var(--g-700) calc(var(--f) * .72),
+        var(--g-600) calc(var(--f) - 6%), #9AA4B4 calc(var(--f) - 1.5%),
+        #AEB7C4 var(--f), #BFC6D1 100%)}
+
+  /* L: both, which is the belt and braces version */
+  .vl{background:var(--in-50);--out:#7D879A;--w:.5px}
+  .vl .foot{border-top:1px solid var(--in-100)}
+  .vl .gfill{background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.34), rgba(255,255,255,0) 58%),
+      linear-gradient(to top,
+        #0B1220 0%, #1D2939 calc(var(--f) * .34), var(--g-700) calc(var(--f) * .72),
+        var(--g-600) calc(var(--f) - 6%), #B4BCC8 calc(var(--f) - 1.5%),
+        #CFD5DE var(--f), #E1E5EB 100%)}
+
+  /* ============================================================= page === */
+  .slot{min-height:140px;border:1px dashed var(--g-300);border-radius:var(--r-lg);
+    display:grid;place-items:center;color:var(--g-400);font-size:13px}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>One card for calories and macros</h1>
+  <p class="lede">Today these are two cards: four filling glyphs in one, a flame and a bar in the
+    other. Merging them is not only a layout job, because <b>calories are the sum and the macros
+    are its parts</b>, so a single card has to make that relationship legible rather than
+    presenting five equal facts.</p>
+  <p class="src">Every variant below is live, flat, and carries no shadow, so it reads as
+    information rather than as something to press. The filling glyph is the one device carried
+    over unchanged. Variants are filled in once the Figma and Mobbin passes land.</p>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+/* The day the cards are showing, so every variant is compared on identical
+   numbers. Straight from eat.html's `mid` state. */
+var DAY = {
+  cal: { eaten: 942, goal: 1900 },
+  macros: [
+    { k: "protein", name: "Protein", had: 43, goal: 95 },
+    { k: "carbs",   name: "Carbs",   had: 121, goal: 238 },
+    { k: "fats",    name: "Fats",    had: 32, goal: 63 },
+    { k: "fibre",   name: "Fibre",   had: 21, goal: 30 }
+  ]
+};
+
+var FLAME = '<svg class="flame" width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+  '<path fill="#101828" d="m6.156 9.323-.002.002-.004.003-.01.008a2 2 0 0 0-.126.104 5 5 0 0 0-.302.291c-.24.253-.548.629-.837 1.132-.582 1.015-1.071 2.528-.796 4.551.271 1.997 1.11 3.666 2.528 4.83C8.021 21.404 9.935 22 12.25 22c2.387 0 4.293-.895 5.554-2.43 1.25-1.521 1.808-3.596 1.675-5.864-.128-2.176-1.313-3.827-2.36-5.285l-.299-.417c-1.142-1.612-2.043-3.097-1.824-5.175A.75.75 0 0 0 14.25 2c-.382 0-.82.118-1.242.296a6.5 6.5 0 0 0-1.373.8c-.925.698-1.85 1.75-2.343 3.156C8.8 7.654 9.05 8.99 9.41 9.963c.237.639-.02 1.27-.407 1.454a.706.706 0 0 1-.927-.31L7.27 9.576a.75.75 0 0 0-1.113-.252"/></svg>';
+
+/* the flame as a mask, so it can fill like the nutrient vessels do */
+document.documentElement.style.setProperty("--flame",
+  "url(\"data:image/svg+xml;utf8," +
+  encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
+    '<path d="m6.156 9.323-.002.002-.004.003-.01.008a2 2 0 0 0-.126.104 5 5 0 0 0-.302.291c-.24.253-.548.629-.837 1.132-.582 1.015-1.071 2.528-.796 4.551.271 1.997 1.11 3.666 2.528 4.83C8.021 21.404 9.935 22 12.25 22c2.387 0 4.293-.895 5.554-2.43 1.25-1.521 1.808-3.596 1.675-5.864-.128-2.176-1.313-3.827-2.36-5.285l-.299-.417c-1.142-1.612-2.043-3.097-1.824-5.175A.75.75 0 0 0 14.25 2c-.382 0-.82.118-1.242.296a6.5 6.5 0 0 0-1.373.8c-.925.698-1.85 1.75-2.343 3.156C8.8 7.654 9.05 8.99 9.41 9.963c.237.639-.02 1.27-.407 1.454a.706.706 0 0 1-.927-.31L7.27 9.576a.75.75 0 0 0-1.113-.252"/></svg>') +
+  "\")");
+
+var fmt = function (n) { return n.toLocaleString("en-GB"); };
+var pct = function (m) { return Math.min(1, m.had / m.goal); };
+
+/* one glyph, at whatever size the variant sets, filled to its own level */
+function glyph(m, px) {
+  return '<span class="gwrap" style="width:' + px + "px;height:" + px + 'px">' +
+    '<span class="gfill glyph-' + m.k + '" style="--f:' + (pct(m) * 100).toFixed(1) + '%"></span></span>';
+}
+
+/* The variants. Each is {tag, tagKind, title, body, trade, build} where build
+   returns the card's markup. Filled in from the research. */
+var VARIANTS = [
+  {
+    tag: "Grey macros", tagKind: "",
+    title: "A. One number, four parts",
+    body: "The macros are the subject: four things you are trying to hit, each one moving. " +
+      "Calories are their sum, and a sum can be found without shouting, so they sit in a " +
+      "tinted footer strip underneath.",
+    trade: "<b>The fill:</b> three layers inside the same mask. A sheen from the upper left so " +
+      "the surface catches light, a brighter band at the waterline for the meniscus, and a ramp " +
+      "that runs a touch blue at the base to a touch warm at the top, because a column of " +
+      "neutral grey reads as dead.",
+    build: function () {
+      return '<div class="va">' +
+        '<div class="body"><div class="mgrid">' + DAY.macros.map(function (m) {
+          return '<div class="m' + (pct(m) >= 1 ? " done" : "") + '">' + glyph(m, 40) +
+            '<span class="mt"><span class="v"><b>' + m.had + "</b>/" + m.goal + "g</span>" +
+            '<span class="nm">' + m.name + "</span></span></div>";
+        }).join("") + "</div></div>" +
+        '<div class="foot"><span class="lab">Calories</span>' +
+          '<span class="n">' + fmt(DAY.cal.eaten) + "<s> of " + fmt(DAY.cal.goal) + " kcal</s></span></div>" +
+      "</div>";
+    }
+  }  ,
+  {
+    tag: "Figma has it", title: "B. The slab",
+    body: "Figma already drew this merge: node 3560:2333, an --in-50 ground with no stroke and " +
+      "no shadow, the frond bleeding off the right, calories over the macro row.",
+    trade: "<b>Evidence:</b> across both Figma files it is 10,388 flat surfaces to 998 lifted, " +
+      "so flat is the house rule rather than a preference, and this exact tint has been used " +
+      "35 times for a card that informs.",
+    build: function () {
+      return '<div class="vb">' +
+        '<img class="wm" src="icons/calorie-frond.svg" alt="" aria-hidden="true">' +
+        '<div class="top"><span class="lab">' + FLAME + "Calories</span>" +
+          '<span class="n">' + fmt(DAY.cal.eaten) + "<s> / " + fmt(DAY.cal.goal) + " kcal</s></span></div>" +
+        '<span class="bar"><i style="width:' + (DAY.cal.eaten / DAY.cal.goal * 100).toFixed(1) + '%"></i></span>' +
+        '<div class="rule"></div>' +
+        '<div class="mgrid">' + DAY.macros.map(function (m) {
+          return '<div class="m' + (pct(m) >= 1 ? " done" : "") + '">' + glyph(m, 38) +
+            '<span class="mt"><span class="v"><b>' + m.had + "</b>/" + m.goal + "g</span>" +
+            '<span class="nm">' + m.name + "</span></span></div>";
+        }).join("") + "</div></div>";
+    }
+  },
+  {
+    title: "C. The fifth glyph",
+    body: "Calories get a vessel too, so the whole card is one family of filling shapes at two " +
+      "sizes, split by a vertical hairline.",
+    trade: "<b>The risk, stated plainly:</b> a flame is not a container, so a half-full flame is " +
+      "odd in a way a half-full bean is not. Every real filling gauge found in the research was " +
+      "a vessel.",
+    build: function () {
+      var cp = Math.min(1, DAY.cal.eaten / DAY.cal.goal) * 100;
+      return '<div class="vc">' +
+        '<div class="cal"><span class="fw gwrap">' +
+          '<span class="gfill" style="--f:' + cp.toFixed(1) + '%"></span></span>' +
+          '<span class="t"><b>' + fmt(DAY.cal.eaten) + "</b><s>of " + fmt(DAY.cal.goal) + " kcal</s></span></div>" +
+        '<span class="sep"></span>' +
+        '<div class="mgrid">' + DAY.macros.map(function (m) {
+          return '<div class="m' + (pct(m) >= 1 ? " done" : "") + '">' + glyph(m, 28) +
+            '<span class="v">' + m.had + "<s>/" + m.goal + "</s></span>" +
+            '<span class="nm">' + m.name + "</span></div>";
+        }).join("") + "</div></div>";
+    }
+  },
+  {
+    title: "D. The recessed shelf",
+    body: "Calories sit directly on the white with no container of their own; the macros are in " +
+      "a sub-panel visibly inside the card. Containment carries the relationship instead of size.",
+    trade: "<b>Against it:</b> two radii and two grounds to keep in sync across every state, the " +
+      "most height of the four, and nowhere good for the frond.",
+    build: function () {
+      return '<div class="vd">' +
+        '<div class="top"><span class="lab">' + FLAME + "Calories</span>" +
+          '<span class="n">' + fmt(DAY.cal.eaten) + "<s> of " + fmt(DAY.cal.goal) + " kcal</s></span></div>" +
+        '<div class="shelf"><div class="mgrid">' + DAY.macros.map(function (m) {
+          return '<div class="m' + (pct(m) >= 1 ? " done" : "") + '">' + glyph(m, 36) +
+            '<span class="mt"><span class="v"><b>' + m.had + "</b>/" + m.goal + "g</span>" +
+            '<span class="nm">' + m.name + "</span></span></div>";
+        }).join("") + "</div></div></div>";
+    }
+  },
+  {
+    tag: "A on B's ground", tagKind: "pick", title: "E. Grey on the field",
+    body: "A exactly as it is, moved onto the slab: the --in-50 field and the frond bleeding off " +
+      "the top right. The card loses its hairline, because the tint is already saying it is an " +
+      "object.",
+    trade: "<b>For it:</b> grey vessels in an indigo field are the only combination here where " +
+      "the fill is clearly not the ground.",
+    build: function () {
+      return '<div class="slab ve">' +
+        '<img class="wm" src="icons/calorie-frond.svg" alt="" aria-hidden="true">' +
+        '<div class="body"><div class="mgrid">' + DAY.macros.map(function (m) {
+          return '<div class="m' + (pct(m) >= 1 ? " done" : "") + '">' + glyph(m, 40) +
+            '<span class="mt"><span class="v"><b>' + m.had + "</b>/" + m.goal + "g</span>" +
+            '<span class="nm">' + m.name + "</span></span></div>";
+        }).join("") + "</div></div>" +
+        '<div class="foot"><span class="lab">Calories</span>' +
+          '<span class="n">' + fmt(DAY.cal.eaten) + "<s> of " + fmt(DAY.cal.goal) + " kcal</s></span></div>" +
+      "</div>";
+    }
+  },
+  {
+    title: "F. One hue",
+    body: "The same card with the vessels back in indigo, so the field and the fill are the same " +
+      "family at two strengths.",
+    trade: "<b>Against it:</b> the empty part of a vessel and the ground behind it are now close " +
+      "enough to merge, which is the exact thing the darker empty track was meant to fix.",
+    build: function () {
+      return '<div class="slab vf hue">' +
+        '<img class="wm" src="icons/calorie-frond.svg" alt="" aria-hidden="true">' +
+        '<div class="body"><div class="mgrid">' + DAY.macros.map(function (m) {
+          return '<div class="m' + (pct(m) >= 1 ? " done" : "") + '">' + glyph(m, 40) +
+            '<span class="mt"><span class="v"><b>' + m.had + "</b>/" + m.goal + "g</span>" +
+            '<span class="nm">' + m.name + "</span></span></div>";
+        }).join("") + "</div></div>" +
+        '<div class="foot"><span class="lab">Calories</span>' +
+          '<span class="n">' + fmt(DAY.cal.eaten) + "<s> of " + fmt(DAY.cal.goal) + " kcal</s></span></div>" +
+      "</div>";
+    }
+  },
+  {
+    title: "G. Two tone",
+    body: "The field carries the macros; the calorie footer steps back to white. The sum sits on " +
+      "a different ground from its parts, so the relationship is stated by the surface rather " +
+      "than by size.",
+    trade: "<b>For it:</b> the strongest separation of the four without adding a single line. " +
+      "<b>Against:</b> two grounds to keep right across every state.",
+    build: function () {
+      return '<div class="slab vg">' +
+        '<img class="wm" src="icons/calorie-frond.svg" alt="" aria-hidden="true">' +
+        '<div class="body"><div class="mgrid">' + DAY.macros.map(function (m) {
+          return '<div class="m' + (pct(m) >= 1 ? " done" : "") + '">' + glyph(m, 40) +
+            '<span class="mt"><span class="v"><b>' + m.had + "</b>/" + m.goal + "g</span>" +
+            '<span class="nm">' + m.name + "</span></span></div>";
+        }).join("") + "</div></div>" +
+        '<div class="foot"><span class="lab">Calories</span>' +
+          '<span class="n">' + fmt(DAY.cal.eaten) + "<s> of " + fmt(DAY.cal.goal) + " kcal</s></span></div>" +
+      "</div>";
+    }
+  },
+  {
+    title: "H. A horizon",
+    body: "The field fades out downward, from --in-50 at the glyphs to white by the footer, with " +
+      "one hairline around the whole card. The card has a horizon rather than an edge.",
+    trade: "<b>For it:</b> the tint is strongest exactly where the vessels are, and the calorie " +
+      "line sits in clear air. <b>Against:</b> a gradient is harder to keep honest across states.",
+    build: function () {
+      return '<div class="slab vh">' +
+        '<img class="wm" src="icons/calorie-frond.svg" alt="" aria-hidden="true">' +
+        '<div class="body"><div class="mgrid">' + DAY.macros.map(function (m) {
+          return '<div class="m' + (pct(m) >= 1 ? " done" : "") + '">' + glyph(m, 40) +
+            '<span class="mt"><span class="v"><b>' + m.had + "</b>/" + m.goal + "g</span>" +
+            '<span class="nm">' + m.name + "</span></span></div>";
+        }).join("") + "</div></div>" +
+        '<div class="foot"><span class="lab">Calories</span>' +
+          '<span class="n">' + fmt(DAY.cal.eaten) + "<s> of " + fmt(DAY.cal.goal) + " kcal</s></span></div>" +
+      "</div>";
+    }
+  },
+  {
+    tag: "E, outlined", title: "I. A drawn edge",
+    body: "A 1px outline around each vessel, plus an empty half two steps darker than E's. The " +
+      "outline is four zero-blur drop shadows around the masked shape, because a mask cannot " +
+      "take a stroke.",
+    trade: "<b>For it:</b> the vessel keeps its full silhouette at every level, so a glyph at 10 " +
+      "percent still reads as the same object as one at 90.",
+    build: function () {
+      return '<div class="slab vi outl">' +
+        '<img class="wm" src="icons/calorie-frond.svg" alt="" aria-hidden="true">' +
+        '<div class="body"><div class="mgrid">' + DAY.macros.map(function (m) {
+          return '<div class="m' + (pct(m) >= 1 ? " done" : "") + '">' + glyph(m, 40) +
+            '<span class="mt"><span class="v"><b>' + m.had + "</b>/" + m.goal + "g</span>" +
+            '<span class="nm">' + m.name + "</span></span></div>";
+        }).join("") + "</div></div>" +
+        '<div class="foot"><span class="lab">Calories</span>' +
+          '<span class="n">' + fmt(DAY.cal.eaten) + "<s> of " + fmt(DAY.cal.goal) + " kcal</s></span></div>" +
+      "</div>";
+    }
+  },
+  {
+    title: "J. On a white tile",
+    body: "No outline. Each vessel sits on its own small white tile, so the empty half never " +
+      "touches the tint and the contrast is guaranteed whatever the ground becomes.",
+    trade: "<b>For it:</b> survives any future ground colour without retuning. <b>Against:</b> " +
+      "four tiles is four more shapes on a card that was meant to be quiet.",
+    build: function () {
+      return '<div class="slab vj plate">' +
+        '<img class="wm" src="icons/calorie-frond.svg" alt="" aria-hidden="true">' +
+        '<div class="body"><div class="mgrid">' + DAY.macros.map(function (m) {
+          return '<div class="m' + (pct(m) >= 1 ? " done" : "") + '">' + glyph(m, 40) +
+            '<span class="mt"><span class="v"><b>' + m.had + "</b>/" + m.goal + "g</span>" +
+            '<span class="nm">' + m.name + "</span></span></div>";
+        }).join("") + "</div></div>" +
+        '<div class="foot"><span class="lab">Calories</span>' +
+          '<span class="n">' + fmt(DAY.cal.eaten) + "<s> of " + fmt(DAY.cal.goal) + " kcal</s></span></div>" +
+      "</div>";
+    }
+  },
+  {
+    title: "K. A darker empty",
+    body: "Nothing added at all. The empty half simply goes dark enough to hold its own against " +
+      "the field, running from #BFC6D1 at the top to #9AA4B4 at the waterline.",
+    trade: "<b>For it:</b> the least machinery of the four, and the vessel stays one shape. " +
+      "<b>Against:</b> a dark empty half reads a little like a shortfall rather than a blank.",
+    build: function () {
+      return '<div class="slab vk">' +
+        '<img class="wm" src="icons/calorie-frond.svg" alt="" aria-hidden="true">' +
+        '<div class="body"><div class="mgrid">' + DAY.macros.map(function (m) {
+          return '<div class="m' + (pct(m) >= 1 ? " done" : "") + '">' + glyph(m, 40) +
+            '<span class="mt"><span class="v"><b>' + m.had + "</b>/" + m.goal + "g</span>" +
+            '<span class="nm">' + m.name + "</span></span></div>";
+        }).join("") + "</div></div>" +
+        '<div class="foot"><span class="lab">Calories</span>' +
+          '<span class="n">' + fmt(DAY.cal.eaten) + "<s> of " + fmt(DAY.cal.goal) + " kcal</s></span></div>" +
+      "</div>";
+    }
+  },
+  {
+    title: "L. Edge and tile",
+    body: "Both devices together: the white tile for contrast and the outline for silhouette, " +
+      "with the fill back at E's lighter empty.",
+    trade: "<b>Against it:</b> belt and braces. Worth seeing so the cost of each one separately " +
+      "is obvious, but two solutions to one problem is usually one too many.",
+    build: function () {
+      return '<div class="slab vl outl plate">' +
+        '<img class="wm" src="icons/calorie-frond.svg" alt="" aria-hidden="true">' +
+        '<div class="body"><div class="mgrid">' + DAY.macros.map(function (m) {
+          return '<div class="m' + (pct(m) >= 1 ? " done" : "") + '">' + glyph(m, 40) +
+            '<span class="mt"><span class="v"><b>' + m.had + "</b>/" + m.goal + "g</span>" +
+            '<span class="nm">' + m.name + "</span></span></div>";
+        }).join("") + "</div></div>" +
+        '<div class="foot"><span class="lab">Calories</span>' +
+          '<span class="n">' + fmt(DAY.cal.eaten) + "<s> of " + fmt(DAY.cal.goal) + " kcal</s></span></div>" +
+      "</div>";
+    }
+  },
+  {
+    tag: "I, no pattern", tagKind: "pick", title: "O. Even air",
+    body: "I with the frond removed and the four nutrients set out on their own terms: the " +
+      "outer columns pulled to the card's own padding edges rather than floating inside equal " +
+      "columns. Same 0.5px edge and the same darker empty as I.",
+    trade: "<b>The spacing:</b> first and last glyph now sit exactly 16 from the edges, the same " +
+      "16 the card is padded by, so the row and the container share one edge. Equal columns put " +
+      "them 18px inside that line, which read as loose in the middle and tight at the ends.",
+    build: function () {
+      return '<div class="slab vo outl">' +
+        '<div class="body"><div class="mgrid">' + DAY.macros.map(function (m) {
+          return '<div class="m' + (pct(m) >= 1 ? " done" : "") + '">' + glyph(m, 40) +
+            '<span class="mt"><span class="v"><b>' + m.had + "</b>/" + m.goal + "g</span>" +
+            '<span class="nm">' + m.name + "</span></span></div>";
+        }).join("") + "</div></div>" +
+        '<div class="foot"><span class="lab">Calories</span>' +
+          '<span class="n">' + fmt(DAY.cal.eaten) + "<s> of " + fmt(DAY.cal.goal) + " kcal</s></span></div>" +
+      "</div>";
+    }
+  }
+];
+
+var host = document.getElementById("grid");
+host.innerHTML = VARIANTS.map(function (v) {
+  return '<div class="col"><div class="cap">' +
+    (v.tag ? '<span class="tag ' + (v.tagKind || "") + '">' + v.tag + "</span>" : "") +
+    "<h2>" + v.title + "</h2><p>" + v.body + "</p>" +
+    (v.trade ? '<p class="tr">' + v.trade + "</p>" : "") + "</div>" +
+    '<div class="phone"><h3>What shaped your score?</h3>' + v.build() + "</div></div>";
+}).join("");
+</script>
+</body>
+</html>

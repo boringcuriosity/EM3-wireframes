@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meal card buttons, on the system</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* Tokens from r3/goodflip-ui.css. The CARD block is copied from r3/eat.html so the
+     buttons are judged on the shipping card. Only the BUTTONS block is this deck's own,
+     and every button in it is one of the system's four: primary, secondary, and the
+     Kaira pair, taken from goodflip-ui.css (.gf-btn) and eat.html (.kbtn). */
+  :root{
+    --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0; --brand-600:#299D6B; --brand-700:#2A805A;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-600:#444CE7;
+    --red-600:#D92D20; --r-sm:8px; --r-lg:16px; --r-xl:24px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1600px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:860px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 12px}
+  .lede b{color:var(--g-900)}
+  .callout{max-width:860px;padding:14px 16px;border-radius:12px;background:var(--g-50);border:1px solid var(--g-200);
+    font-size:13px;line-height:21px;color:var(--g-700);margin:0 0 32px}
+  .callout b{color:var(--g-900)}
+  .grid{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start}
+  .col{width:358px;flex:0 0 358px}
+  .cap h2{font-size:15px;line-height:22px;font-weight:600;margin:0 0 6px}
+  .cap p{font-size:13px;line-height:20px;color:var(--g-600);margin:0 0 10px}
+  .pill{display:inline-block;font:600 11px/16px Roboto;letter-spacing:.6px;text-transform:uppercase;border-radius:9999px;padding:1px 8px;margin:0 0 8px;
+    color:var(--g-600);background:var(--g-100)}
+  .pill.rec{color:var(--brand-700);background:var(--brand-100)}
+  .pill.now{color:var(--red-600);background:#FEF3F2}
+  .score{font-size:12.5px;line-height:19px;margin:12px 0 0;display:grid;gap:3px}
+  .score div{display:flex;gap:6px}
+  .score i{font-style:normal;width:14px;flex-shrink:0}
+  .ok{color:var(--brand-600)}.no{color:var(--red-600)}.mid{color:var(--g-500)}
+
+  /* ============================ CARD (from r3/eat.html) ============================ */
+  .meal{border-radius:var(--r-xl);border:1px solid transparent;box-shadow:2px 2px 0 var(--g-200);
+    background:linear-gradient(180deg,var(--in-25) 0%,#fff 29%,#fff 100%) padding-box,
+      conic-gradient(from 0deg,var(--in-600) 0deg,var(--g-200) 43deg,var(--g-200) 317deg,var(--in-600) 360deg) border-box}
+  .mh{padding:16px}
+  .mh .n{font-size:16px;line-height:22px;font-weight:600}
+  .mh .s{font-size:12px;line-height:18px;color:var(--g-500);margin-top:2px}
+  .mbi{margin:0 16px;padding:12px 0 16px;border-top:1px solid var(--g-100)}
+  .lab{font-size:12px;line-height:16px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:var(--g-500);margin:0 0 8px}
+  .item{display:flex;align-items:flex-start;gap:12px}
+  .tick{width:24px;height:24px;border-radius:50%;background:var(--brand-600);display:grid;place-items:center;flex-shrink:0}
+  .item b{display:block;font-size:14px;line-height:20px;font-weight:500}
+  .item span{display:block;font-size:12px;line-height:18px;color:var(--g-500)}
+  .item em{margin-left:auto;font-style:normal;font-size:12px;line-height:20px;color:var(--g-500)}
+  .textrow{margin-top:12px;padding-top:12px;border-top:1px dashed var(--g-200)}
+  .acts{display:flex;gap:8px}
+
+  /* ============================ BUTTONS ============================ */
+  /* A: today, as shipped. Pills, 13px/600, a tint fill that is not a button type, and
+     Kaira in indigo, which her buttons never use. */
+  .achip{flex:1;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;margin-block:-4px;
+    padding:0 13px;border:0;border-radius:9999px;background:var(--brand-50);color:var(--brand-700);font-size:13px;font-weight:600;white-space:nowrap}
+  .achip.k{background:#fff;border:1px solid var(--in-100);color:var(--in-600)}
+  .achip>svg{width:19px;height:19px}
+
+  /* system secondary (.gf-btn.secondary): white, brand border, bold label, 8px radius,
+     a 7px lip. At md the whole control is 40px: a 33px face on the lip. */
+  .sec,.pri{flex:1;min-width:0;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:33px;margin-bottom:7px;
+    padding:0 12px;border-radius:var(--r-sm);font:700 14px/16.8px Roboto,sans-serif;letter-spacing:.25px;white-space:nowrap;cursor:pointer}
+  .sec{background:#fff;color:var(--brand-600);border:1px solid var(--brand-600);box-shadow:0 7px 0 0 var(--brand-200)}
+  .pri{background:var(--brand-600);color:#fff;border:0;box-shadow:0 7px 0 0 var(--brand-700)}
+  .sec:active,.pri:active{transform:translateY(7px);box-shadow:none}
+  /* flat: the system's own answer for a row too tight for the travel. Same 40px, no lip. */
+  .flat{height:40px;margin-bottom:0;box-shadow:none}
+  .flat:active{transform:none;background:var(--brand-50)}
+  .sec svg{width:18px;height:18px;flex-shrink:0}
+
+  /* the Kaira pair (.kbtn): a 2px gradient ring, a 12px-radius face, 14/20 at 400 */
+  .kbtn{flex:1;min-width:0;display:inline-flex;padding:2px;border:0;border-radius:14px;cursor:pointer;
+    background:linear-gradient(0deg,#299D6B 6.47%,#2A805A 91.92%)}
+  .kbtn>span{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;height:36px;padding:0 12px;border-radius:12px;
+    font:400 14px/20px Roboto,sans-serif;letter-spacing:.25px;white-space:nowrap;background:linear-gradient(114deg,#299D6B 6.47%,#2A805A 91.92%);color:#fff}
+  .kbtn.out>span{background:#fff}
+  .kbtn.out b{font-weight:400;background:linear-gradient(108deg,#299D6B 6.47%,#2A805A 91.92%);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .kbtn svg{width:16px;height:16px;flex-shrink:0}
+  .kbtn.out svg{color:#299D6B}
+
+  /* tertiary (.gf-link): bold, underlined, no fill */
+  .lnk{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin-block:-4px;border:0;background:none;
+    font:700 14px/16.8px Roboto,sans-serif;letter-spacing:.25px;color:var(--brand-600);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+  .lnk svg{width:18px;height:18px}
+  .dot{align-self:center;width:1px;height:18px;background:var(--g-200)}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Meal card buttons, on the system</h1>
+  <p class="lede">Under <b>I have eaten something else</b> every planned meal card carries two ways in: <b>Search and log</b> and <b>Log with Kaira</b>. Today neither is a GoodFlip button. Each card below is the shipping card with only those two changed, so they can be judged where they live.</p>
+  <div class="callout"><b>What the system gives us.</b> Five button types and no others: primary, secondary, error, and the Kaira pair. The type decides the colour. The Kaira gradient is reserved for handing work to Kaira and must not be borrowed for an ordinary action. <b>Flat</b> (no lip) exists for rows too tight for the press travel. One primary per screen. Every meal card repeats this row, so whatever goes here appears four to six times on one screen.</div>
+
+  <div class="grid" id="grid"></div>
+</div>
+
+<script src="r3/assets/kaira.js"></script>
+<script>
+const PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>';
+const SEARCH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>';
+/* Kaira's hexagon as a flat icon, the way the Kaira pair carries a flat camera or mic */
+const HEX = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"><path d="M12 2.8 20 7.4v9.2L12 21.2 4 16.6V7.4z"/></svg>';
+const MARK = GFKaira.mark(16, { halo: false });
+
+const V = [
+  { tag: 'Today', cls: 'now', name: 'A. As shipped',
+    note: 'Two pills that belong to no family. The search pill is a tint, not a button; Kaira is indigo, a colour her buttons never wear.',
+    acts: `<button class="achip">${PLUS}Search and log</button><button class="achip k">${MARK}Log with Kaira</button>`,
+    score: [['no', 'Not a system button type, either of them'], ['no', 'Pill radius and 13px/600 type are off-scale'], ['no', 'Kaira in indigo, her buttons are green gradient'], ['ok', 'Light, fine repeated on every card']] },
+
+  { tag: 'Recommended', cls: 'rec', name: 'B. Secondary, flat + Kaira secondary',
+    note: 'Search is the house secondary; Kaira is her own secondary, gradient ring and gradient word. Flat, because a two-up row inside a card is the tight row flat is for, and it lands both at the same 40px.',
+    acts: `<button class="sec flat">${SEARCH}Search and log</button><button class="kbtn out"><span>${HEX}<b>Log with Kaira</b></span></button>`,
+    score: [['ok', 'Both are real system buttons, each in its own family'], ['ok', 'Kaira reads as Kaira: the gradient means she does the work'], ['ok', 'Equal height and weight, neither is the afterthought'], ['mid', 'Two label weights side by side (700 and 400), as the system has them']] },
+
+  { tag: 'Option', name: 'C. Secondary with lip + Kaira secondary',
+    note: 'The same pair with the secondary keeping its 7px press. Truer to the button as drawn, but the lip sits under one button and not the other.',
+    acts: `<button class="sec">${SEARCH}Search and log</button><button class="kbtn out"><span>${HEX}<b>Log with Kaira</b></span></button>`,
+    score: [['ok', 'Both system buttons'], ['ok', 'Search keeps its physical press'], ['no', 'Faces are different heights, the row looks uneven'], ['no', 'A lip on every card adds a lot of weight down the screen']] },
+
+  { tag: 'Option', name: 'D. Kaira primary + secondary, flat',
+    note: 'Steers to Kaira: her filled gradient leads, search steps back. Worth it only if the product wants every meal to point at Kaira.',
+    acts: `<button class="sec flat">${SEARCH}Search and log</button><button class="kbtn"><span>${HEX}<b>Log with Kaira</b></span></button>`,
+    score: [['ok', 'System buttons, Kaira unmistakable'], ['ok', 'Clear nudge toward the faster way'], ['no', 'Four to six filled gradients on one screen, plus Snap in the Kaira card above'], ['no', 'Reads as a primary per card, against one primary per screen']] },
+
+  { tag: 'Option', name: 'E. Two secondaries, flat',
+    note: 'One family for both. Kaira is named by her mark only, no gradient.',
+    acts: `<button class="sec flat">${SEARCH}Search and log</button><button class="sec flat">${HEX}Log with Kaira</button>`,
+    score: [['ok', 'Perfectly consistent, calmest row'], ['ok', 'Light enough to repeat on every card'], ['no', 'Kaira stops looking like Kaira, the gradient is how people recognise her'], ['mid', 'Two identical twins for two different jobs']] },
+
+  { tag: 'Option', name: 'F. Tertiary links',
+    note: 'Both as the system link. Least ink of all, but links are for Back, Skip, Not now, and logging is this row\'s whole purpose.',
+    acts: `<button class="lnk">${SEARCH}Search and log</button><span class="dot"></span><button class="lnk">${HEX}Log with Kaira</button>`,
+    score: [['ok', 'System component, almost no weight'], ['no', 'Too quiet for the main way to add food'], ['no', 'Link is the tertiary action, this is not tertiary']] },
+];
+
+document.getElementById('grid').innerHTML = V.map(v => `
+  <div class="col">
+    <div class="cap"><span class="pill ${v.cls || ''}">${v.tag}</span><h2>${v.name}</h2><p>${v.note}</p></div>
+    <section class="meal">
+      <div class="mh"><div class="n">Pre-breakfast</div><div class="s">Suggested 6:00 - 7:00 AM · 10 of 10 cal</div></div>
+      <div class="mbi">
+        <div class="lab">Your coach's plan</div>
+        <div class="item"><span class="tick"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+          <div><b>Black tea with cinnamon</b><span>1 cup</span></div><em>10 cal</em></div>
+        <div class="textrow">
+          <div class="lab">I have eaten something else</div>
+          <div class="acts">${v.acts}</div>
+        </div>
+      </div>
+    </section>
+    <div class="score">${v.score.map(([c, t]) => `<div class="${c}"><i>${c === 'ok' ? '✓' : c === 'no' ? '✕' : '·'}</i>${t}</div>`).join('')}</div>
+  </div>`).join('');
+</script>
+</body>
+</html>

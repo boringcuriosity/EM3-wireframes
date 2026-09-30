@@ -150,12 +150,16 @@
 
       var ink = cfg.muted ? "#475467" : "#101828";
       var pctInk = cfg.muted ? "#667085" : "#2A805A";
-      var serif = "'Playfair Display',Georgia,serif";
+      /* Roboto, not Playfair. A serif at 66px was doing the hierarchy work
+         that size and weight should do, and it was the only typeface on the
+         screen that appeared once. Roboto needs a heavier weight and tighter
+         tracking to carry the same presence at the same size. */
+      var face = "Roboto,Arial,sans-serif";
       var head = "";
       if (cfg.centre === "num") {
         head =
-          '<div style="display:flex;align-items:flex-start;color:' + ink + ';font-family:' + serif + ';font-weight:600;line-height:1">' +
-          '<span class="n" style="font-size:66px;letter-spacing:-1px">0</span>' +
+          '<div style="display:flex;align-items:flex-start;color:' + ink + ';font-family:' + face + ';font-weight:700;line-height:1">' +
+          '<span class="n" style="font-size:66px;letter-spacing:-2.6px">0</span>' +
           '<span style="font-size:22px;margin:8px 0 0 2px;color:' + pctInk + '">%</span></div>';
       } else if (cfg.centre === "setting") {
         /* the same pictogram the logging screen's empty Recent tab uses, so

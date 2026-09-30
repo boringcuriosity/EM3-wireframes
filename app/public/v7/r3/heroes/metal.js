@@ -103,7 +103,7 @@
     // number
     var label = el("div", "position:absolute;left:0;right:0;top:" + (18 + BOX / 2) + "px;transform:translateY(-50%);" +
       "display:flex;flex-direction:column;align-items:center;pointer-events:none;", stage);
-    var numRow = el("div", "display:flex;align-items:flex-start;color:#1D4D38;font-family:'Playfair Display',Georgia,serif;font-weight:600;", label);
+    var numRow = el("div", "display:flex;align-items:flex-start;color:#1D4D38;font-family:Roboto,Arial,sans-serif;font-weight:600;", label);
     var num = el("span", "font-size:60px;line-height:62px;letter-spacing:-1px;font-variant-numeric:lining-nums tabular-nums;", numRow);
     el("span", "font-size:22px;line-height:30px;margin-left:2px;", numRow).textContent = "%";
     el("div", "margin-top:4px;font-family:Roboto,system-ui,sans-serif;font-size:10.5px;font-weight:600;letter-spacing:2.4px;color:#2A805A;", label).textContent = "SUFFICIENT";

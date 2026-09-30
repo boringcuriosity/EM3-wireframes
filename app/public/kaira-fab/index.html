@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kaira Speaks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body { background: #ebe9e6; display: grid; place-items: center; overflow: hidden; font-family: Roboto, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; }
+  .stage { position: relative; width: 100vw; height: 100dvh; overflow: hidden; background: #fff; }
+  @media (min-width: 520px) {
+    .stage { width: auto; height: min(874px, calc(100dvh - 64px)); aspect-ratio: 402 / 874; border-radius: 54px;
+      box-shadow: 0 0 0 11px #121216, 0 0 0 12px #3b3b42, 0 50px 90px -30px rgba(30, 40, 50, .45); }
+  }
+  /* the page underneath is the real Eat screen, live and scrollable */
+  .page { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  /* effects stop at the top of the page's bottom nav. Height and overflow, not clip-path: a clip-path would make
+     this layer a backdrop root, and the glass and mist would stop seeing the page behind them */
+  .fx { position: absolute; left: 0; right: 0; top: 0; height: 100%; overflow: hidden; pointer-events: none; }
+  .fx canvas { position: absolute; left: 0; top: 0; width: 100%; }
+
+  /* Glass: real liquid glass. The page behind is refracted through an SVG displacement map built from the pill's
+     own shape (thick rounded bezel, clear middle), with a little colour fringing, almost no frost and lit edges.
+     Chromium renders the refraction; other browsers fall back to a light blur. */
+  .glass { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0;
+    background: radial-gradient(120% 90% at 20% 0%, rgba(255, 255, 255, .3), rgba(255, 255, 255, .08) 60%), rgba(255, 255, 255, .34);
+    -webkit-backdrop-filter: blur(2px) saturate(160%); backdrop-filter: url(#lg) blur(2.2px) saturate(170%) brightness(1.05);
+    box-shadow: inset 1.5px 1.5px 0 -.5px rgba(255, 255, 255, .95), inset -1px -1px 0 -.5px rgba(255, 255, 255, .6),
+      inset 0 0 14px rgba(255, 255, 255, .28), 0 10px 26px -10px rgba(16, 24, 40, .22); }
+  /* Mist: a low frosted wave; its top edge is clipped to the same wave the canvas draws */
+  .mist { position: absolute; left: 0; right: 0; top: 0; height: 200px; opacity: 0;
+    background: linear-gradient(180deg, rgba(255, 255, 255, .66), rgba(238, 244, 255, .82));
+    -webkit-backdrop-filter: blur(20px) saturate(150%); backdrop-filter: blur(20px) saturate(150%); }
+
+  /* the message */
+  .msg { position: absolute; left: 0; top: 0; color: #fff; pointer-events: none; cursor: pointer; }
+  .msg.live { pointer-events: auto; }
+  .msg .t { font: 500 15px/20px Roboto, sans-serif; letter-spacing: .1px; white-space: nowrap; }
+  .msg .s { margin-top: 2px; font: 400 14px/18px Roboto, sans-serif; opacity: .88; white-space: nowrap; }
+  .msg .s b { font-weight: 500; letter-spacing: .04em; }
+  .msg span { display: inline-block; will-change: transform, opacity, filter; }
+  .ink-dark .msg { color: #101828; text-shadow: 0 0 10px rgba(255, 255, 255, .7); }
+  .ink-dark .msg .s b { color: #444ce7; }
+  /* three chevrons between the message and the FAB, lighting up in turn like a current flowing into it */
+  .cues { position: absolute; left: 0; top: 0; display: flex; gap: 1px; color: #fff; opacity: 0; pointer-events: none; }
+  .ink-dark .cues { color: #444ce7; }
+  .cues svg { width: 9px; height: 14px; animation: cue 1.5s ease-in-out infinite; }
+  .cues svg:nth-child(2) { animation-delay: .17s; }
+  .cues svg:nth-child(3) { animation-delay: .34s; }
+  @keyframes cue { 0%, 100% { opacity: .25; transform: translateX(0); } 40% { opacity: 1; transform: translateX(2px); } }
+  /* collapse: a small white circle on the ribbon's left end, half outside it */
+  .collapse { position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
+    display: grid; place-items: center; background: #fff; color: #444ce7; opacity: 0; pointer-events: none;
+    box-shadow: 0 2px 8px -2px rgba(16, 24, 40, .3), 0 0 0 1px rgba(16, 24, 40, .06); }
+  .collapse.live { pointer-events: auto; }
+  .collapse:focus-visible { outline: 2px solid #444ce7; outline-offset: 2px; }
+  .fab { position: absolute; right: 16px; bottom: 100px; width: 60px; height: 60px; will-change: transform; }
+
+  /* controls, top right, clear of the page's own bottom nav */
+  .ctl { position: absolute; top: calc(12px + env(safe-area-inset-top)); right: 12px; display: flex; gap: 6px; }
+  .ctl button { font: 500 14px/1 Roboto, sans-serif; color: #344054; padding: 9px 14px; border-radius: 999px; cursor: pointer;
+    background: rgba(255, 255, 255, .82); border: 1px solid #e4e7ec; -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+  .ctl button:focus-visible, .sheet button:focus-visible { outline: 2px solid #444ce7; outline-offset: 2px; }
+  /* variant sheet: title top left, circle X top right, no drag handle, at most 90% tall */
+  .scrim { position: absolute; inset: 0; background: rgba(16, 24, 40, .28); opacity: 0; pointer-events: none; transition: opacity .3s; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; overflow-y: auto; background: #fff;
+    border-radius: 24px 24px 0 0; padding: 20px 16px calc(24px + env(safe-area-inset-bottom));
+    transform: translateY(100%); transition: transform .35s cubic-bezier(.2, .8, .2, 1); }
+  .stage.sheet-open .scrim { opacity: 1; pointer-events: auto; }
+  .stage.sheet-open .sheet { transform: none; }
+  .sheet header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .sheet h2 { font: 500 18px/24px Roboto, sans-serif; color: #101828; }
+  .sheet h3 { margin: 16px 0 8px; font: 500 12px/16px Roboto, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #667085; }
+  .sheet .x { width: 32px; height: 32px; border-radius: 50%; border: 0; background: #f2f4f7; color: #475467; display: grid; place-items: center; cursor: pointer; }
+  .opts { display: grid; gap: 8px; }
+  .opts button { text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid #e4e7ec; background: #fff; cursor: pointer;
+    font: 500 14px/20px Roboto, sans-serif; color: #101828; }
+  .opts button small { display: block; font: 400 12px/16px Roboto, sans-serif; color: #667085; margin-top: 2px; }
+  .opts button[aria-pressed="true"] { border-color: #8098f9; background: #eef4ff; }
+</style>
+</head>
+<body>
+<!-- liquid glass: refraction through a displacement map, split per channel for a little dispersion -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="lg" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
+    <feImage id="lgMap" x="0" y="0" width="300" height="56" preserveAspectRatio="none" result="map"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="-44" xChannelSelector="R" yChannelSelector="G" result="dr"/>
+    <feColorMatrix in="dr" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="r"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="-40" xChannelSelector="R" yChannelSelector="G" result="dg"/>
+    <feColorMatrix in="dg" type="matrix" values="0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0" result="g"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="-36" xChannelSelector="R" yChannelSelector="G" result="db"/>
+    <feColorMatrix in="db" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0" result="b"/>
+    <feBlend in="r" in2="g" mode="screen" result="rg"/>
+    <feBlend in="rg" in2="b" mode="screen"/>
+  </filter>
+</svg>
+<main class="stage" id="stage">
+  <iframe class="page" id="page" src="../v7/r3/eat.html" title="Eat"></iframe>
+  <div class="fx" id="fx">
+    <div class="mist" id="mist"></div>
+    <div class="glass" id="glass"></div>
+    <canvas id="c"></canvas>
+    <canvas id="c2"></canvas>
+    <div class="msg" id="msg" role="status" aria-live="polite">
+      <div class="t" id="line1"></div>
+      <div class="s" id="line2"></div>
+    </div>
+    <div class="cues" id="cues" aria-hidden="true">
+      <svg viewBox="0 0 9 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l5 5-5 5"/></svg><svg viewBox="0 0 9 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l5 5-5 5"/></svg><svg viewBox="0 0 9 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l5 5-5 5"/></svg>
+    </div>
+  </div>
+  <button class="collapse" id="collapse" aria-label="Hide message"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 2.5 8 6l-3.5 3.5"/></svg></button>
+  <div class="fab" id="fab"></div>
+  <div class="ctl">
+    <button id="replay">Play again</button>
+    <button id="openSheet" aria-haspopup="dialog">Variants</button>
+  </div>
+  <div class="scrim" id="scrim"></div>
+  <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <header><h2 id="sheetTitle">Variants</h2>
+      <button class="x" id="closeSheet" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l10 10M12 2 2 12"/></svg></button>
+    </header>
+    <div id="opts"></div>
+  </section>
+</main>
+
+<script src="kaira.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const stage = $('stage'), cv = $('c'), c2 = $('c2'), fabEl = $('fab'), msg = $('msg'), glass = $('glass'), mist = $('mist');
+fabEl.innerHTML = GFKaira.fab('Ask Kaira');
+
+// the Eat screen brings its own FAB; ours replaces it in the same spot
+$('page').addEventListener('load', e => {
+  const k = e.target.contentDocument?.getElementById('kairaFab');
+  if (k) k.style.display = 'none';
+  const nav = e.target.contentDocument?.querySelector('.nav');
+  if (nav) navTop = () => nav.getBoundingClientRect().top;
+});
+
+// message, split into words so they can arrive one at a time
+const L1 = 'Log your whole day in a minute', L2 = 'with KAIRA';
+$('line1').innerHTML = L1.split(' ').map(w => `<span>${w}</span>`).join(' ');
+$('line2').innerHTML = '<span>with</span> <span><b>KAIRA</b></span>';
+const WORDS = [...msg.querySelectorAll('span')];
+
+// ---------------------------------------------------------------- variants
+// dark: dark text for light treatments; layer: which renderer draws the body
+const VARIANTS = [
+  { group: 'Kaira speaks', name: 'Ribbon', note: 'A liquid ribbon squeezes out from behind the FAB and carries the message' },
+  { group: 'Kaira speaks', name: 'Glass', note: 'Real liquid glass: the page bends through a clear pill with lit edges', dark: 1 },
+  { group: 'Tides', name: 'Tide', note: 'A wave of KAIRA’s ink rises from the bottom and the FAB floats in it' },
+  { group: 'Tides', name: 'Mist', note: 'A low frosted wave with a luminous waterline, the page still readable through it', dark: 1 },
+  { group: 'Tides', name: 'Aurora', note: 'No body at all: curtains of indigo and teal light rise from the bottom edge', dark: 1 },
+  { group: 'Tides', name: 'Shoreline', note: 'One glowing wave line rolls in from the right, foam sparkling along it', dark: 1 },
+  { group: 'Something else', name: 'Ink trail', note: 'A comet arcs out of the FAB and writes the message as it underlines it', dark: 1 },
+  { group: 'Something else', name: 'Particles', note: 'Ink particles stream out of the FAB and gather into the words', dark: 1 },
+];
+const M = Object.fromEntries(VARIANTS.map((v, i) => [v.name, i]));
+let mode = M.Ribbon;
+let lastGroup = '';
+VARIANTS.forEach((v, i) => {
+  if (v.group !== lastGroup) { $('opts').insertAdjacentHTML('beforeend', `<h3>${v.group}</h3><div class="opts"></div>`); lastGroup = v.group; }
+  const b = document.createElement('button');
+  b.innerHTML = `${v.name}<small>${v.note}</small>`;
+  b.setAttribute('aria-pressed', i === mode);
+  b.addEventListener('click', () => {
+    mode = i; document.querySelectorAll('.opts button').forEach((x, j) => x.setAttribute('aria-pressed', j === i));
+    openSheet(false); talk();
+  });
+  $('opts').lastElementChild.append(b);
+});
+const openSheet = on => stage.classList.toggle('sheet-open', on);
+$('openSheet').addEventListener('click', () => openSheet(true));
+$('closeSheet').addEventListener('click', () => openSheet(false));
+$('scrim').addEventListener('click', () => openSheet(false));
+addEventListener('keydown', e => { if (e.key === 'Escape') openSheet(false); });
+
+// ---------------------------------------------------------------- shader
+// modes: 0 ribbon, 1 glass, 2 bubble, 3 tide, 4 mist, 5 aurora, 6 shoreline; 7 and 8 only use it for the sonar rings
+const FS = `
+precision highp float;
+uniform vec2 uRes;
+uniform float uDpr, uTime, uMode, uShine;
+uniform vec3 uFab, uTide;
+uniform vec4 uPill, uRings;
+uniform vec2 uVeil;
+uniform float uBase;   // top of the page's bottom nav: everything rises from here, never over it   // light treatments: a white fog from the bottom up to just above the message, so words sit on light
+
+float hash(vec2 p){ p = fract(p*vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x*p.y); }
+float noise(vec2 p){ vec2 i = floor(p), f = fract(p), u = f*f*(3. - 2.*f);
+  return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y); }
+float fbm(vec2 p){ float v = 0., a = .5; mat2 m = mat2(1.6, 1.2, -1.2, 1.6);
+  for (int i = 0; i < 4; i++) { v += a*noise(p); p = m*p + 3.1; a *= .5; } return v; }
+float smin(float a, float b, float k){ float h = clamp(.5 + .5*(b - a)/k, 0., 1.); return mix(b, a, h) - k*h*(1. - h); }
+
+float sdPill(vec2 p){ float h = uPill.w, a = uPill.x + h, b = max(a, uPill.y - h);
+  return length(p - vec2(clamp(p.x, a, b), uPill.z)) - h; }
+float tideTop(float x){ return uTide.x + uTide.y*(.6*sin(x*.021 + uTime*1.6) + .4*sin(x*.047 - uTime*1.1)); }
+
+bool isPill(){ return uMode < 2.5; }
+bool isTide(){ return uMode > 2.5 && uMode < 4.5; }
+
+float scene(vec2 p){
+  float d = length(p - uFab.xy) - uFab.z;
+  if (isPill() && uPill.w > .3) {
+    d = smin(d, sdPill(p), 18.);
+  } else if (isTide() && uTide.z > .5) d = smin(d, tideTop(p.x) - p.y, 18.);
+  return d;
+}
+
+// Kaira's own ink: deep indigo running to teal, with slow currents inside
+vec3 liquid(vec2 p){
+  float t = uTime*.12;
+  vec2 q = p/140.;
+  vec2 w = vec2(fbm(q + vec2(t, -t*.7)), fbm(q + vec2(4.1 - t*.8, 1.7 + t)));
+  float f = fbm(q*1.4 + 2.*w + t);
+  float g = isPill() ? clamp((p.x - uPill.x)/max(uFab.x - uPill.x, 1.), 0., 1.) : p.x/uRes.x;
+  vec3 c = mix(vec3(.176, .192, .651), vec3(.267, .298, .906), smoothstep(.25, .75, f));
+  c = mix(c, vec3(.45, .38, .96), smoothstep(.55, .85, w.x)*.4);
+  return mix(c, vec3(.1, .62, .76), smoothstep(.45, 1.05, g + (f - .5)*.6)*.85);
+}
+vec4 over(vec4 o, vec3 c, float a){ return o*(1. - a) + vec4(c*a, a); }
+
+void main(){
+  vec2 p = vec2(gl_FragCoord.x, uRes.y*uDpr - gl_FragCoord.y)/uDpr;
+  vec4 o = vec4(0.);
+  o = over(o, vec3(.975, .98, 1.), uVeil.y*smoothstep(uVeil.x, uVeil.x + 46., p.y)*.9);
+  // sonar: the FAB clears its throat before it speaks
+  float lf = length(p - uFab.xy);
+  float ring = uRings.y*exp(-pow((lf - uRings.x)/2.4, 2.)) + uRings.w*exp(-pow((lf - uRings.z)/2.4, 2.));
+  o += vec4(vec3(.2, .7, .85)*ring*.35, ring*.35);
+
+  if (uMode > 4.5 && uMode < 5.5) {
+    // Aurora: curtains of light rising from the bottom edge, no body
+    float y = (uBase - p.y)/max(uTide.x, 1.);
+    float band = fbm(vec2(p.x*.011 + uTime*.05, uTime*.08));
+    float streak = .55 + .45*sin(p.x*.05 + fbm(vec2(p.x*.02, uTime*.15))*6. + uTime*.7);
+    float k = pow(1. - smoothstep(0., 1., y), 1.6)*(.55 + .45*streak)*uTide.z;
+    vec3 c = mix(vec3(.27, .3, .9), vec3(.52, .38, .96), smoothstep(.3, .7, band));
+    c = mix(c, vec3(.13, .7, .78), smoothstep(.45, .9, p.x/uRes.x + (band - .5)*.8));
+    o = over(o, c, k*.42);
+  }
+  else if (uMode > 5.5 && uMode < 6.5) {
+    // Shoreline: a single luminous wave line rolls in from the right, foam along it, the faintest tint beneath
+    float top = tideTop(p.x);
+    float lit = smoothstep(uTide.z - 6., uTide.z + 40., p.x);
+    vec3 c = mix(vec3(.27, .3, .9), vec3(.1, .66, .8), p.x/uRes.x);
+    float dy = p.y - top;
+    float line = exp(-pow(dy/1.3, 2.)) + exp(-abs(dy)/9.)*.3;
+    vec2 cell = floor(vec2(p.x - uTime*14., dy)/vec2(7., 5.));
+    float foam = step(.9, hash(cell))*exp(-pow(dy/5., 2.))*(.5 + .5*sin(uTime*6. + hash(cell)*20.));
+    o = over(o, c, clamp(line*.85 + foam*.6, 0., 1.)*lit);
+    o = over(o, c, smoothstep(0., 90., dy)*.06*lit*step(0., dy));
+  }
+  else if (uMode < 4.5) {
+    float d = scene(p);
+    if (d < 46.) {
+      bool mistM = uMode > 3.5, glassM = uMode > .5 && uMode < 1.5;
+      if (!mistM && !glassM) {
+        // a soft glow on the page around the liquid, then a lift shadow under it
+        float glow = exp(-max(d, 0.)/16.)*.16*step(0., d);
+        o = over(o, mix(vec3(.27, .3, .9), vec3(.2, .75, .85), clamp((p.x - uPill.x)/300., 0., 1.)), glow);
+        float sh = (1. - smoothstep(-8., 24., scene(p - vec2(0., 8.))))*.16*step(0., d);
+        o = over(o, vec3(.08, .08, .3), sh);
+      }
+      if (d < 1.5) {
+        float inside = smoothstep(1., -1., d);
+        vec3 c = liquid(p);
+        if (glassM) {
+          // the DOM pill does the refraction; here only a thin spectral rim and the liquid neck at the FAB
+          float rim = smoothstep(1.4, .2, abs(d + .7));
+          vec3 spec = .5 + .5*cos(6.2831*(vec3(0., .33, .67) + p.x/260. + uTime*.08));
+          o = over(o, mix(vec3(1.), mix(spec, c, .5), .45), rim*.55);
+          float neck = inside*step(uFab.x - uFab.z - 2., p.x)*step(0., length(p - uFab.xy) - uFab.z)*.35;
+          o = over(o, vec3(1.), neck);
+        } else if (mistM) {
+          float top = tideTop(p.x), dy = p.y - top;
+          o = over(o, mix(c, vec3(1.), .55), inside*(.06 + .16*smoothstep(0., 170., dy)));
+          o = over(o, mix(vec3(1.), vec3(.3, .78, .9), .35), exp(-pow(d/1.2, 2.))*.9);   // luminous waterline
+          o = over(o, vec3(.35, .5, .95), exp(-max(-d, 0.)/10.)*inside*.12);
+        } else {
+          // Ribbon and Tide: a body of liquid glass
+          c += exp(d/5.)*.2;
+          float top = isTide() ? tideTop(p.x) + 7. : uPill.z - uPill.w*.58;
+          c += exp(-pow(p.y - top, 2.)/16.)*.14;
+          c *= 1. - smoothstep(0., 26., p.y - (isTide() ? uBase - 60. : uPill.z))*.12;
+          float sx = mix(uPill.x - 80., uFab.x + 40., uShine);
+          float sd = (p.x - sx) + (p.y - uFab.y)*.55;
+          c += exp(-sd*sd/260.)*.26*step(0., uShine);
+          o = over(o, c, inside);
+        }
+      }
+    }
+  }
+  gl_FragColor = o;
+}`;
+
+const gl = cv.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: false });
+function shader(type, src) {
+  const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw gl.getShaderInfoLog(s);
+  return s;
+}
+const pr = gl.createProgram();
+gl.attachShader(pr, shader(gl.VERTEX_SHADER, 'attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}'));
+gl.attachShader(pr, shader(gl.FRAGMENT_SHADER, FS));
+gl.bindAttribLocation(pr, 0, 'a'); gl.linkProgram(pr); gl.useProgram(pr);
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+const U = {};
+['uBase', 'uVeil', 'uRes', 'uDpr', 'uTime', 'uMode', 'uShine', 'uFab', 'uTide', 'uPill', 'uRings'].forEach(n => U[n] = gl.getUniformLocation(pr, n));
+const x2 = c2.getContext('2d');
+
+let W, H, DPR;
+// the page's bottom nav stays on top of every effect; until the page loads, assume its usual 81px
+let navTop = () => H - 81;
+function resize() {
+  DPR = Math.min(devicePixelRatio || 1, 2); W = stage.clientWidth; H = stage.clientHeight;
+  cv.width = c2.width = W * DPR | 0; cv.height = c2.height = H * DPR | 0; cv.style.height = c2.style.height = H + 'px'; gl.viewport(0, 0, cv.width, cv.height);
+  targets = null;
+}
+new ResizeObserver(resize).observe(stage);
+
+const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => cl((t - a) / (b - a));
+const eOut = x => 1 - Math.pow(1 - x, 3);
+const eIO = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const mix = (a, b, k) => a + (b - a) * k;
+
+// ---------------------------------------------------------------- liquid glass map
+// A displacement map for a capsule: at the rim the page is pulled from further inside, which reads as a thick,
+// rounded glass edge bending light; the flat middle passes the page through untouched.
+function glassMap(w, h) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d'), img = x.createImageData(w, h), r = h / 2, bezel = Math.min(18, r);
+  for (let j = 0; j < h; j++) for (let i = 0; i < w; i++) {
+    const cx = cl(i + .5, r, w - r), dx = i + .5 - cx, dy = j + .5 - r, len = Math.hypot(dx, dy) || 1;
+    const t = cl(1 - (r - len) / bezel), m = t * t * (len < r ? 1 : 0);
+    const k = (j * w + i) * 4;
+    img.data[k] = 128 + dx / len * m * 127; img.data[k + 1] = 128 + dy / len * m * 127; img.data[k + 2] = 128; img.data[k + 3] = 255;
+  }
+  x.putImageData(img, 0, 0);
+  return c.toDataURL();
+}
+let mapKey = '';
+
+// ---------------------------------------------------------------- particles
+let targets = null, parts = null;
+function buildTargets(ox, oy) {
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.fillStyle = '#000'; x.textBaseline = 'alphabetic';
+  x.font = '500 15px Roboto'; x.fillText(L1, ox, oy + 15);
+  x.font = '400 14px Roboto'; x.fillText(L2, ox, oy + 22 + 14);
+  const d = x.getImageData(0, 0, W, H).data, out = [];
+  for (let j = Math.max(0, oy - 4); j < Math.min(H, oy + 44); j += 2)
+    for (let i = Math.max(0, ox - 4); i < Math.min(W, ox + 300); i += 2)
+      if (d[(j * W + i) * 4 + 3] > 110) out.push([i, j]);
+  return out;
+}
+function spawnParticles(fx, fy) {
+  // each particle gets its own curved route: out of the FAB, up and over, down into its spot in a letter
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  parts = targets.map(([tx, ty]) => ({
+    sx: fx + rnd(-8, 8), sy: fy + rnd(-8, 8), tx, ty,
+    cx: mix(fx, tx, .5) + rnd(-70, 70), cy: Math.min(fy, ty) - rnd(10, 100),
+    del: (fx - tx) / W * .45 + rnd(0, .25), ph: rnd(0, 6.28), c: tx / W, back: rnd(0, .12),
+  }));
+}
+
+// ---------------------------------------------------------------- timeline
+// "after some time" the FAB speaks; tapping the FAB or Play again makes it speak again; tapping the message dismisses it
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const T0 = performance.now();
+let talkAt = T0 + 1600, dismissAt = Infinity, lastNow = T0, spawned = false;
+function talk() { talkAt = performance.now(); dismissAt = Infinity; spawned = false; }
+$('replay').addEventListener('click', talk);
+fabEl.addEventListener('click', talk);
+let pressAt = -1e9;
+const dismiss = () => { dismissAt = Math.min(dismissAt, performance.now()); };
+msg.addEventListener('click', () => { pressAt = performance.now(); dismiss(); });   // in the app this opens KAIRA
+$('collapse').addEventListener('click', dismiss);
+
+const HOLD = 7.2;
+const bez = (p0, p1, p2, p3, t) => { const u = 1 - t; return [0, 1].map(k => u*u*u*p0[k] + 3*u*u*t*p1[k] + 3*u*t*t*p2[k] + t*t*t*p3[k]); };
+
+function frame(now) {
+  if (W === undefined) resize();
+  const time = (now - T0) / 1000, dt = Math.min(.05, (now - lastNow) / 1000); lastNow = now;
+  let T = (now - talkAt) / 1000;
+  if (REDUCED && T > 0) T = 3;
+  const exit = dismissAt < now ? seg((now - dismissAt) / 1000, 0, 1) : seg(T, HOLD, HOLD + 1);
+  const V = VARIANTS[mode];
+  stage.classList.toggle('ink-dark', !!V.dark);
+
+  const fabR = 30, fabCx = W - 16 - 30, fabCy = H - 100 - 30, base = navTop();
+  $('fx').style.height = base + 'px';
+  const r1 = seg(T, 0, 1.1);
+  // one small, soft ripple as the FAB draws breath
+  const ring = [fabR + 28 * eOut(r1), T > 0 && r1 < 1 ? (1 - r1) : 0, 0, 0];
+  const swell = .07 * Math.sin(Math.PI * seg(T, .15, .7)) + .05 * Math.sin(Math.PI * seg(exit, .85, 1));
+  const press = Math.sin(Math.PI * seg((now - pressAt) / 1000, 0, .32)) * .08;   // the FAB dips as if tapped
+  fabEl.style.transform = `scale(${1 + swell - press})`;
+  fabEl.querySelectorAll('.sweep').forEach(s => s.style.animationDuration = T > 0 && exit < 1 ? '1.4s' : '3s');
+
+  // shared shape clock: squeezes out thin, fattens, runs left; drains back the same way
+  const grow = eIO(seg(T, .5, 1.6)) * (1 - eIO(seg(exit, 0, .85)));
+  const fat = eOut(seg(T, .45, .95)) * (1 - eIO(seg(exit, .55, 1)));
+  const wob = Math.sin(time * 2.1) * .6;
+  let h = Math.max(0, 28 * fat + wob * fat), x0 = mix(fabCx, 16, grow) + Math.sin(time * 1.3) * 1.5 * grow, x1 = fabCx + 10, cy = fabCy;
+  let tide = [H, 0, 0];
+  let textX = 38, textY = fabCy - 20, room = seg(grow, .55, .9);
+
+  if (['Tide', 'Mist'].includes(V.name)) {
+    const full = base - (fabCy - 50);   // up from the nav to just over the FAB
+    const th = full * eIO(seg(T, .4, 1.5)) * (1 - eIO(seg(exit, 0, 1)));
+    tide = [base - th, (V.name === 'Tide' ? 9 : 6) - 3 * seg(T, 1.5, 3), th > 1 ? 1 : 0];
+    textX = 24; room = seg(th, full * .7, full);
+  }
+  if (V.name === 'Aurora') {
+    const k = eIO(seg(T, .3, 1.6)) * (1 - eIO(seg(exit, 0, 1)));
+    tide = [250 * (.6 + .4 * k), 0, k]; textX = 24; room = seg(k, .5, .8);
+  }
+  if (V.name === 'Shoreline') {
+    const k = eIO(seg(T, .4, 1.7));
+    tide = [base - 12, 4, mix(W + 60, -60, k) + (W + 120) * eIO(seg(exit, 0, 1))];
+    textX = 24; room = seg(k, .5, .75);
+  }
+
+  // words arrive one by one once there is room, and leave together before the drain
+  const ink = V.name === 'Ink trail', dots = V.name === 'Particles';
+  WORDS.forEach((w, i) => {
+    let k = eOut(seg(T, 1.05 + i * .065, 1.5 + i * .065)) * (room > 0 ? 1 : 0);
+    if (ink) k = 1;
+    if (dots) k = eOut(seg(T, 2.2, 2.8));
+    k *= 1 - eIO(seg(exit, 0, .3));
+    w.style.opacity = k;
+    w.style.filter = k < 1 && !ink ? `blur(${(1 - k) * 6}px)` : '';
+    w.style.transform = ink ? '' : `translateY(${(1 - k) * 7}px)`;
+  });
+  msg.classList.toggle('live', T > 1 && exit === 0);
+  msg.style.transform = `translate(${textX}px, ${textY}px)`;
+
+  // chevrons point into the FAB once the words are in
+  const cueK = eOut(seg(T, 1.7, 2.2)) * (1 - eIO(seg(exit, 0, .25))) * (room > 0 || ink || dots ? 1 : 0);
+  $('cues').style.opacity = cueK;
+  $('cues').style.transform = `translate(${fabCx - fabR - 36}px, ${fabCy - 7}px)`;
+  // collapse sits on the ribbon's left end, for the two ribbon treatments
+  const colK = ['Ribbon', 'Glass'].includes(V.name) ? eOut(seg(T, 1.6, 2)) * (1 - eIO(seg(exit, 0, .2))) : 0;
+  const col = $('collapse');
+  col.style.opacity = colK;
+  col.style.transform = `translate(${x0 - 13}px, ${cy - 13}px) scale(${.7 + .3 * colK})`;
+  col.classList.toggle('live', colK > .5);
+
+  // Glass: the refracting pill, with a displacement map sized to it
+  const glassOn = V.name === 'Glass' && h > .5;
+  glass.style.opacity = glassOn ? 1 : 0;
+  if (glassOn) {
+    const w = Math.max(2 * h, x1 - x0), hh = 2 * h;
+    Object.assign(glass.style, { left: x0 + 'px', top: cy - h + 'px', width: w + 'px', height: hh + 'px', borderRadius: h + 'px' });
+    const key = Math.round(x1 - 16) + 'x56';
+    if (key !== mapKey) { mapKey = key; $('lgMap').setAttribute('href', glassMap(Math.round(x1 - 16), 56)); }
+    $('lgMap').setAttribute('width', w); $('lgMap').setAttribute('height', hh);
+  }
+  // Mist: the frosted body, its top edge clipped to the wave
+  mist.style.opacity = V.name === 'Mist' && tide[2] ? 1 : 0;
+  if (V.name === 'Mist' && tide[2]) {
+    const pts = [];
+    for (let i = 0; i <= 24; i++) {
+      const x = i / 24 * W, y = tide[0] + tide[1] * (.6 * Math.sin(x * .021 + time * 1.6) + .4 * Math.sin(x * .047 - time * 1.1));
+      pts.push(`${x}px ${y - (base - 200)}px`);
+    }
+    mist.style.transform = `translateY(${base - 200}px)`;
+    mist.style.clipPath = `polygon(${pts.join(',')}, ${W}px 200px, 0 200px)`;
+  }
+
+  // ---- 2D layer: Ink trail and Particles
+  x2.setTransform(DPR, 0, 0, DPR, 0, 0); x2.clearRect(0, 0, W, H);
+  msg.style.webkitMaskImage = msg.style.maskImage = '';
+  if (ink) drawInk(T, exit, fabCx, fabCy, textX, textY);
+  if (dots) drawParticles(T, exit, dt, fabCx, fabCy, textX, textY);
+
+  const gmode = { Ribbon: 0, Glass: 1, Tide: 3, Mist: 4, Aurora: 5, Shoreline: 6 }[V.name] ?? 7;
+  gl.uniform2f(U.uRes, W, H);
+  gl.uniform1f(U.uBase, base);
+  gl.uniform1f(U.uDpr, DPR);
+  gl.uniform1f(U.uTime, time);
+  gl.uniform1f(U.uMode, gmode);
+  gl.uniform1f(U.uShine, T > 2.2 && T < 3.4 && exit === 0 && gmode !== 1 ? eIO(seg(T, 2.2, 3.4)) : -1);
+  gl.uniform3f(U.uFab, fabCx, fabCy, fabR);
+  gl.uniform4f(U.uPill, x0, x1, cy, gmode <= 2 ? h : 0);
+  gl.uniform3f(U.uTide, ...tide);
+  gl.uniform4f(U.uRings, ...ring);
+  const veilOn = ['Aurora', 'Shoreline', 'Ink trail', 'Particles'].includes(V.name);
+  gl.uniform2f(U.uVeil, textY - 40, veilOn ? eIO(seg(T, .15, .9)) * (1 - eIO(seg(exit, .35, 1))) : 0);
+  gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  requestAnimationFrame(frame);
+}
+
+// Ink trail: a comet leaves the FAB, arcs out over the message, then writes the underline back toward the FAB,
+// revealing the words as its head passes beneath them
+function drawInk(T, exit, fx, fy, tx, ty) {
+  const A = [fx - 26, fy], B = [tx - 6, ty + 50];
+  const arc = [A, [fx - 90, fy - 90], [tx + 40, fy - 80], B];
+  const p1 = eIO(seg(T, .35, 1.15)), p2 = eIO(seg(T, 1.15, 2.4));
+  const endX = fx - 40, gradient = x2.createLinearGradient(tx, 0, fx, 0);
+  gradient.addColorStop(0, '#444ce7'); gradient.addColorStop(.6, '#6b5cf0'); gradient.addColorStop(1, '#22b3c9');
+  x2.lineCap = 'round';
+  // the arc: a fading tail behind the head
+  if (p1 > 0 && p2 < .35) {
+    const tail = Math.max(0, p1 - .35);
+    x2.beginPath();
+    for (let i = 0; i <= 30; i++) { const q = bez(...arc, mix(tail, p1, i / 30)); i ? x2.lineTo(...q) : x2.moveTo(...q); }
+    x2.strokeStyle = gradient; x2.globalAlpha = (1 - seg(p2, 0, .35)) * .75; x2.lineWidth = 2; x2.stroke(); x2.globalAlpha = 1;
+  }
+  // the underline, written left to right, with a slow shimmer once it lands
+  let hx = null;
+  if (p2 > 0) {
+    const start = mix(B[0], endX, eIO(seg(exit, .15, .8))), head = mix(B[0], endX, p2);
+    x2.beginPath(); x2.moveTo(start, B[1]);
+    for (let x = start; x <= head; x += 4) x2.lineTo(x, B[1] + Math.sin(x * .06 + T * 2) * 1.2 * (1 - p2 * .6));
+    x2.strokeStyle = gradient; x2.lineWidth = 2.2; x2.globalAlpha = 1 - seg(exit, .6, .9);
+    x2.shadowColor = 'rgba(68, 76, 231, .45)'; x2.shadowBlur = 10; x2.stroke(); x2.shadowBlur = 0; x2.globalAlpha = 1;
+    if (p2 < 1) hx = head;
+    msg.style.webkitMaskImage = msg.style.maskImage = `linear-gradient(90deg, #000 ${head - tx - 10}px, transparent ${head - tx + 18}px)`;
+  } else msg.style.webkitMaskImage = msg.style.maskImage = 'linear-gradient(90deg, transparent, transparent)';
+  // the comet head
+  const hp = p2 > 0 ? (hx === null ? null : [hx, B[1]]) : (p1 > 0 ? bez(...arc, p1) : null);
+  if (hp && exit === 0) {
+    const g = x2.createRadialGradient(hp[0], hp[1], 0, hp[0], hp[1], 14);
+    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(120,200,255,.9)'); g.addColorStop(1, 'rgba(68,76,231,0)');
+    x2.fillStyle = g; x2.beginPath(); x2.arc(hp[0], hp[1], 14, 0, 7); x2.fill();
+  }
+}
+
+// Particles: a burst out of the FAB that swirls together into the words, then hands over to crisp text;
+// on exit they come back out of the words and are drawn home into the FAB
+function drawParticles(T, exit, dt, fx, fy, tx, ty) {
+  if (!targets) targets = buildTargets(tx, ty);
+  if (T < 0) return;
+  if (!spawned) { spawnParticles(fx, fy); spawned = true; }
+  // driven by the clock, not integrated, so it plays the same at any frame rate
+  const q = (a, b, c, t) => (1 - t) * (1 - t) * a + 2 * (1 - t) * t * b + t * t * c;
+  const home = exit > .2;
+  const cols = ['#444ce7', '#5a55ea', '#6b5cf0', '#3a8fd8', '#22b3c9'];
+  for (const p of parts) {
+    let x, y, a;
+    if (!home) {
+      const k = eIO(seg(T, .3 + p.del, 1.45 + p.del)), w = (1 - k) * 7;
+      x = q(p.sx, p.cx, p.tx, k) + Math.sin(T * 5 + p.ph) * w;
+      y = q(p.sy, p.cy, p.ty, k) + Math.cos(T * 4.3 + p.ph) * w;
+      a = 1 - seg(T, 2.25, 2.8);
+    } else {
+      const k = eIO(seg(exit, .25 + p.back, .8 + p.back)), w = Math.sin(Math.PI * k) * 8;
+      x = q(p.tx, p.cx, fx, k) + Math.sin(exit * 9 + p.ph) * w;
+      y = q(p.ty, p.cy + 40, fy, k) + Math.cos(exit * 8 + p.ph) * w;
+      a = seg(exit, .2, .3) * (1 - seg(k, .85, 1));
+    }
+    if (a <= 0) continue;
+    x2.globalAlpha = a;
+    x2.fillStyle = cols[Math.min(4, p.c * 5 | 0)];
+    x2.fillRect(x - .7, y - .7, 1.5, 1.5);
+  }
+  x2.globalAlpha = 1;
+}
+
+document.fonts.ready.then(() => { targets = null; requestAnimationFrame(frame); });
+</script>
+</body>
+</html>

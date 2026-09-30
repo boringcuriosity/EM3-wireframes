@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Device frame</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap">
+<style>
+  /* ==========================================================================
+     One screen, in an iPhone 17 Pro.
+
+     Every measurement below is read off the artwork, not guessed. The frame
+     is 1071x2190 and its screen cutout, found by walking the alpha channel,
+     is x 58..1012 and y 55..2133. That is a 955x2079 hole, 0.4594:1, which is
+     the 402x874 logical screen of a 17 Pro.
+
+     The app is drawn at 390, its own design width, so the screen renders at
+     390 x 849 and everything else is that same 390/955 scale factor.
+     Change SCREEN_W alone and the whole frame follows.
+     ========================================================================== */
+  :root {
+    --shot-w: 955;          /* screen cutout, in artwork pixels */
+    --shot-h: 2079;
+    --shot-x: 58;
+    --shot-y: 55;
+    --art-w: 1071;          /* the artwork itself */
+    --art-h: 2190;
+
+    --screen-w: 390px;      /* the app's design width, and the only knob here */
+    --k: calc(var(--screen-w) / var(--shot-w));   /* artwork px -> css px */
+
+    --screen-h: calc(var(--shot-h) * var(--k));
+    --frame-w: calc(var(--art-w) * var(--k));
+    --frame-h: calc(var(--art-h) * var(--k));
+    --screen-l: calc(var(--shot-x) * var(--k));
+    --screen-t: calc(var(--shot-y) * var(--k));
+    /* The corner is a squircle, so there is no single true radius. Measured
+       off the alpha it runs out at about 150 artwork px, which is 61 here and
+       matches Apple's published 62pt for this display. */
+    --screen-r: calc(150 * var(--k));
+    /* The status bar plate is 1608x248, a 4x asset for the 402pt screen, so
+       its height is fixed by its own aspect and never by a magic number. */
+    --status-h: calc(var(--screen-w) * 248 / 1608);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: #F2F4F7;
+    font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: .25px; color: #101828;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 28px 16px 40px;
+  }
+
+  .bar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+    width: 100%; max-width: var(--frame-w); }
+  .bar .name { flex: 1; min-width: 0; font-size: 13px; color: #667085;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar a, .bar button { border: 1px solid #D0D5DD; background: #fff; border-radius: 8px;
+    padding: 6px 11px; font: 600 12px Roboto, sans-serif; color: #344054;
+    text-decoration: none; cursor: pointer; flex-shrink: 0; }
+  .bar a:hover, .bar button:hover { background: #F9FAFB; }
+
+  /* ------------------------------------------------------------- the phone */
+  /* The device is 894px tall, which overflows most laptop viewports. It is
+     scaled to fit rather than shrunk: --screen-w stays 390 so the app lays
+     itself out at its true design width, and only the finished pixels are
+     resized. Shrinking --screen-w instead would reflow the app and the shot
+     would stop being the thing it claims to show.
+     .stage reserves the scaled box, because a transform does not. */
+  .stage { width: calc(var(--frame-w) * var(--fit, 1));
+    height: calc(var(--frame-h) * var(--fit, 1)); flex-shrink: 0; }
+  .phone { position: relative; width: var(--frame-w); height: var(--frame-h);
+    transform: scale(var(--fit, 1)); transform-origin: 0 0; }
+
+  /* The artwork's own body is only the bezel: the glass is a hole in it. So
+     the phone needs something opaque behind the screen or the page shows
+     through the cutout. This is that, inset to the cutout exactly. */
+  .glass {
+    position: absolute; left: var(--screen-l); top: var(--screen-t);
+    width: var(--screen-w); height: var(--screen-h);
+    border-radius: var(--screen-r); overflow: hidden; background: #fff;
+    /* the glass sits under the bezel, which is drawn over its edge */
+    z-index: 1;
+  }
+  .glass iframe { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
+
+  /* The real iOS status bar, because the artwork carries no island and no
+     indicators. It is transparent, so it lays straight over the app's own
+     status band, which frame.js empties out to make room. */
+  /* A CHILD of .glass, so the glass's radius and overflow clip it. As a
+     sibling pinned to the phone it was unclipped, which was fine while the
+     plate was pure transparency but not once it carries a background: a
+     white rectangle would square off the screen's rounded corners and spill
+     onto the bezel.
+
+     The background is the fix for content sliding under the indicators. The
+     plate's artwork is transparent, so without it the page shows straight
+     through the clock and the island. chrome.js already declares this bar as
+     background:#fff, so this is the app's own intent, restored.
+
+     Opaque rather than blurred on purpose: this app's pages are white to the
+     top edge, so a blur would have nothing to work with for most of a scroll
+     and would only show as a smear when a tinted card passed behind it. */
+  .status {
+    position: absolute; left: 0; top: 0;
+    width: 100%; height: var(--status-h);
+    z-index: 2; pointer-events: none; user-select: none;
+    background-color: #fff;
+    background-image: url("frames/status-bar-black.webp");
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: 100% 100%;
+  }
+
+  /* The bezel last, so its inner edge and its rounded corners are painted
+     over the screen rather than under it. */
+  .bezel {
+    position: absolute; inset: 0; z-index: 4; pointer-events: none; user-select: none;
+    width: var(--frame-w); height: var(--frame-h);
+  }
+
+  .miss { position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
+    padding: 24px; font-size: 13px; line-height: 20px; color: #667085; }
+
+  @media (max-width: 500px) {
+    :root { --screen-w: 320px; }
+    body { padding: 16px 8px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <span class="name" id="name">&nbsp;</span>
+  <button id="copy" type="button">Copy link</button>
+  <a id="bare" href="#" target="_blank" rel="noopener">Open without frame</a>
+</div>
+
+<div class="stage">
+  <div class="phone">
+    <div class="glass" id="glass">
+      <div class="status" aria-hidden="true"></div>
+    </div>
+    <img class="bezel" src="frames/iphone-17-pro-cosmic-orange.webp" alt="" aria-hidden="true">
+  </div>
+</div>
+
+<script>
+/* Fit the device to the window. Never scales above 1: a 390pt phone blown up
+   past life size looks like a bug, not a feature. */
+(function () {
+  var root = document.documentElement;
+  var phone = document.querySelector(".phone");
+  function fit() {
+    /* offsetWidth/Height, not getPropertyValue. A custom property holding a
+       calc() comes back as the literal string "calc(2190 * calc(390px/955))",
+       so parseFloat gives null and the scale never applies. The element's own
+       layout box is already the resolved number, and a transform does not
+       change it, so it stays correct across repeated fits. */
+    var h = phone.offsetHeight, w = phone.offsetWidth;
+    if (!h || !w) return;
+    /* 96 for the toolbar and its margin, 64 for the body's own padding */
+    var room = window.innerHeight - 96 - 64;
+    var roomW = window.innerWidth - 32;
+    root.style.setProperty("--fit", Math.min(1, room / h, roomW / w).toFixed(4));
+  }
+  fit();
+  addEventListener("resize", fit);
+})();
+
+(function () {
+  var q = new URLSearchParams(location.search);
+  var src = q.get("src");
+  var glass = document.getElementById("glass");
+
+  /* Same-origin only. This page injects CSS into the frame it loads, and a
+     src pointing somewhere else would either fail that or, worse, put an
+     arbitrary site inside something that looks like the product. */
+  function safe(u) {
+    try {
+      var a = new URL(u, location.href);
+      return a.origin === location.origin ? a : null;
+    } catch (e) { return null; }
+  }
+
+  var url = src && safe(src);
+  if (!url) {
+    glass.innerHTML = '<div class="miss">No screen to show.<br>' +
+      'This page expects <b>?src=</b> pointing at a screen on this site.</div>';
+    document.getElementById("name").textContent = "";
+    return;
+  }
+
+  /* The app draws its own status bar through r3/chrome.js. Left alone there
+     would be two, the drawn one under the real one. It cannot simply be
+     turned off with chrome=0 either: that also removes the home indicator,
+     and the 54px it reserves is what keeps page content clear of the notch.
+     So the band stays and is emptied, then resized to the real plate's
+     height, and the artwork lands exactly in the space it was holding. */
+  var PATCH =
+    ".gf-status{height:" + getComputedStyle(document.documentElement)
+      .getPropertyValue("--status-h").trim() + " !important;}" +
+    ".gf-status>*{visibility:hidden !important;}" +
+    /* A phone has no scrollbar. The desktop one lands inside the glass and
+       over the app's right gutter, which is the one thing in this whole page
+       that could never appear on the device it is pretending to be.
+       Hidden, not disabled: the screen still scrolls. */
+    "html{scrollbar-width:none !important;-ms-overflow-style:none !important;}" +
+    "html::-webkit-scrollbar,body::-webkit-scrollbar{width:0 !important;" +
+      "height:0 !important;display:none !important;}";
+
+  var fr = document.createElement("iframe");
+  fr.setAttribute("title", "Screen preview");
+  fr.src = url.pathname + url.search + url.hash;
+  fr.addEventListener("load", function () {
+    try {
+      var d = fr.contentDocument;
+      if (!d) return;
+      var st = d.createElement("style");
+      st.id = "device-frame-patch";
+      st.textContent = PATCH;
+      d.head.appendChild(st);
+    } catch (e) { /* cross-origin, nothing to patch */ }
+  });
+  glass.appendChild(fr);
+
+  /* ---------------------------------------------------------------------
+     The screens behave differently inside a frame, and this page has to hold
+     up both halves of that or it shows a phone that does not work.
+
+     1. The score. Inside a frame the hero waits to be told it is on screen,
+        because the galleries run dozens of phones at once and Chrome drops
+        the oldest WebGL contexts past about sixteen. It announces itself with
+        "hero:ready" and stays blank until someone answers. One phone here, so
+        the answer is always yes and it is never unmounted.
+
+     2. Navigation. Inside a frame the bottom nav, Snap, Voice and + do not
+        navigate: they post {nav, flags} up and expect the shell to move the
+        screen. Unanswered, every one of those taps does nothing at all.
+        What follows is the same thing eat.html does when it runs as a bare
+        page, which is the behaviour being previewed.
+     --------------------------------------------------------------------- */
+  var DIR = url.pathname.replace(/[^/]*$/, "");
+  var SCREENS = { eat: 1, log: 1, logged: 1, trend: 1, learn: 1 };
+
+  window.addEventListener("message", function (e) {
+    if (e.source !== fr.contentWindow) return;
+    var d = e.data;
+    if (d === "hero:ready") {
+      fr.contentWindow.postMessage("hero:mount", "*");
+      return;
+    }
+    if (!d || typeof d !== "object" || !d.nav || !SCREENS[d.nav]) return;
+    var f = d.flags || {};
+    var q = Object.keys(f)
+      .filter(function (k) { return f[k] !== "" && f[k] != null; })
+      .map(function (k) { return k + "=" + encodeURIComponent(f[k]); })
+      .join("&");
+    go(DIR + d.nav + ".html" + (q ? "?" + q : ""));
+  });
+
+  function go(href) {
+    fr.src = href;
+    var label = href.split("/").pop();
+    document.getElementById("name").textContent = label;
+    document.title = label + " · iPhone 17 Pro";
+    document.getElementById("bare").href = href;
+  }
+
+  var label = url.pathname.split("/").pop() + url.search;
+  document.getElementById("name").textContent = label;
+  document.title = label + " · iPhone 17 Pro";
+  document.getElementById("bare").href = fr.src;
+
+  document.getElementById("copy").addEventListener("click", function () {
+    var btn = this;
+    navigator.clipboard.writeText(location.href).then(function () {
+      btn.textContent = "Copied";
+      setTimeout(function () { btn.textContent = "Copy link"; }, 1400);
+    });
+  });
+})();
+</script>
+</body>
+</html>

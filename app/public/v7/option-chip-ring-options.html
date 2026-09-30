@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The ring, four ways</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0; --brand-400:#79CCA8;
+    --brand-600:#299D6B; --brand-700:#2A805A;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-50:#EEF4FF; --in-600:#444CE7; --red-600:#D92D20;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1300px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:880px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 10px}
+  .lede b{color:var(--g-900)}
+  .callout{max-width:880px;padding:14px 16px;border-radius:12px;background:var(--g-50);
+    border:1px solid var(--g-200);font-size:13px;line-height:21px;color:var(--g-700);margin:0 0 28px}
+  .callout b{color:var(--g-900)}
+  .v{margin:0 0 40px;padding:0 0 30px;border-bottom:1px solid var(--g-200)}
+  .v:last-child{border-bottom:0}
+  .vh{max-width:880px;margin:0 0 16px}
+  .vh h2{font-size:17px;line-height:24px;font-weight:600;margin:0 0 6px}
+  .vh p{font-size:13px;line-height:21px;color:var(--g-600);margin:0}
+  .tag{display:inline-block;font:600 10.5px/16px Roboto;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--in-600);background:var(--in-50);border-radius:9999px;padding:1px 8px;margin:0 0 6px}
+  .matrix{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;margin-bottom:14px}
+  .cell{width:188px}
+  .cell .st{font:600 11px/16px Roboto;letter-spacing:.5px;text-transform:uppercase;color:var(--g-400);margin-bottom:8px}
+  .cell .box{padding:14px;border:1px solid var(--g-200);border-radius:12px;background:#fff;
+    min-height:72px;display:flex;align-items:center}
+  /* the real row: three chips together, which is the only way to judge width */
+  .row3{margin-top:4px;padding:14px 16px;border:1px dashed var(--g-300);border-radius:12px;
+    width:390px;background:#fff}
+  .row3 .rl{font:600 11px/16px Roboto;letter-spacing:.5px;text-transform:uppercase;color:var(--g-400);margin-bottom:8px}
+  .row3 .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .score{display:flex;flex-wrap:wrap;gap:0 28px;max-width:880px;font-size:11.5px;line-height:19px;margin-top:14px}
+  .score div{display:flex;gap:6px;width:400px}
+  .score i{font-style:normal;width:13px;flex-shrink:0}
+  .ok{color:var(--brand-600)}.no{color:var(--red-600)}.mid{color:var(--g-500)}
+
+  .chip{position:relative;flex-shrink:0;display:inline-flex;align-items:center;gap:8px;
+    height:32px;padding:0 14px;border-radius:9999px;border:1px solid var(--g-200);
+    background:#fff;color:var(--g-500);cursor:pointer;font:400 14px/18px Roboto}
+  .chip b{font-weight:600;color:var(--g-700);white-space:nowrap}
+  .chip.on{background:var(--brand-100);border-color:var(--brand-600)}
+  .chip.on b{color:var(--brand-600)}
+  .chip.part,.chip.done{border-color:var(--brand-200)}
+  .chip.on.part,.chip.on.done{border-color:var(--brand-600)}
+
+  /* the ring, shared */
+  .ring{position:relative;width:22px;height:22px;flex-shrink:0;display:grid;place-items:center}
+  /* :not(.tk) matters. This rule turns the arc so it starts at twelve
+     o'clock, and it was catching the tick too: a checkmark rotated a quarter
+     turn is a chevron, which is exactly what the full state was drawing. */
+  .ring svg:not(.tk){position:absolute;inset:0;transform:rotate(-90deg)}
+  .ring circle{fill:none;stroke-width:2.5}
+  .ring .bg{stroke:var(--g-200)}
+  .ring .fg{stroke:var(--brand-600);stroke-linecap:round}
+  .chip.on .ring .bg{stroke:var(--brand-200)}
+  .ring .n{font:700 11px/1 Roboto;color:var(--g-600)}
+  .chip.on .ring .n{color:var(--brand-700)}
+  .ring .tk{width:12px;height:12px;color:#fff}
+  /* at full, the ring becomes a disc and the mark inside becomes a tick */
+  .ring.full::before{content:"";position:absolute;inset:0;border-radius:9999px;background:var(--brand-600)}
+  .ring.full .tk{position:relative}
+
+  /* ---- A: the ordinal lives in the ring, the word is dropped ---- */
+  .a .chip{padding:0 6px;gap:0}
+  .a .chip.on{padding:0 12px 0 6px;gap:8px}
+
+  /* ---- C: progress traced around the pill itself ---- */
+  .c .chip{overflow:visible}
+  .c .track{position:absolute;inset:-1px;pointer-events:none}
+  .c .track rect{fill:none;stroke-width:2;rx:17;ry:17}
+  .c .track .tb{stroke:var(--g-200)}
+  .c .track .tf{stroke:var(--brand-600);stroke-linecap:round}
+  .c .chip{border-color:transparent}
+  .c .chip.on{background:var(--brand-100)}
+
+  /* ---- D: the word only on the one you are reading ---- */
+  .d .chip{padding:0 6px;gap:0}
+  .d .chip.on{padding:0 12px 0 6px;gap:8px}
+  @media (max-width:900px){.page{padding:24px 16px 60px}.cell,.row3{width:100%}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>The ring, four ways</h1>
+  <p class="lede">D had two faults and both are fixable. The <b>1 was written twice</b>, once in the ring and once in the label, and the ring <b>kept showing a number after it was full</b>, which wastes the one moment it has something to celebrate. In all four below the completed ring becomes a solid disc with a tick in it, and none of them says the ordinal twice.</p>
+  <div class="callout">
+    <b>The trade being made.</b> Dropping the word buys a row that fits three options easily and puts progress on the thing that names the option. It spends the word "Option", which is the only thing telling a first time reader what these chips are. A and D pay that price in different ways: A never says it, D says it only on the one you are reading.
+    <br><br>
+    <b>Each row is shown at 390px with all three chips</b>, under the dashed frame, because a chip that is elegant alone can still make a row that wraps.
+  </div>
+  <div id="out"></div>
+</div>
+<script>
+var TK = '<svg class="tk" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+
+var STATES = [
+  { st:"Not viewing, nothing logged", on:0, done:0, of:4, n:1 },
+  { st:"Not viewing, 2 of 4 logged",  on:0, done:2, of:4, n:1 },
+  { st:"Not viewing, all 4 logged",   on:0, done:4, of:4, n:1 },
+  { st:"Viewing, nothing logged",     on:1, done:0, of:4, n:1 },
+  { st:"Viewing, 2 of 4 logged",      on:1, done:2, of:4, n:1 },
+  { st:"Viewing, all 4 logged",       on:1, done:4, of:4, n:1 }
+];
+function cls(s){ return "chip"+(s.on?" on":"")+(s.done===s.of?" done":s.done?" part":""); }
+
+/* the ring, with the ordinal inside until it is full and a tick after */
+function ring(s){
+  var r=9, c=2*Math.PI*r, off=c*(1-s.done/s.of), full=s.done===s.of;
+  return '<span class="ring'+(full?' full':'')+'">'+
+    (full?'' : '<svg viewBox="0 0 22 22"><circle class="bg" cx="11" cy="11" r="'+r+'"/>'+
+      '<circle class="fg" cx="11" cy="11" r="'+r+'" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg>')+
+    (full ? TK : '<span class="n">'+s.n+'</span>')+'</span>';
+}
+
+var V = [
+  { key:"a", title:"A. The ring is the option",
+    body:"The word goes entirely. Three rings in a row, each holding its ordinal, each closing as its foods go in. The chip you are reading widens to take a tint. Nothing is written twice because nothing is written at all.",
+    sc:[["ok","The tightest row of the four, by a long way"],
+        ["ok","Progress and identity are the same object"],
+        ["ok","Complete is a filled disc with a tick, unmistakable"],
+        ["no","Never says Option, so a first time reader has to infer it"],
+        ["mid","Three small circles can read as a step indicator"]],
+    chip:function(s){ return '<button class="'+cls(s)+'">'+ring(s)+(s.on?'<b>Option '+s.n+'</b>':'')+'</button>'; }},
+
+  { key:"b", title:"B. The word, and a bare ring",
+    body:"The label keeps the ordinal and the ring drops it, so the number appears once. The ring is pure progress: an arc that closes, then a disc with a tick. The most conservative fix, and the only one that changes nothing about how the row reads today.",
+    sc:[["ok","Nothing is repeated, and nothing is lost"],
+        ["ok","Reads correctly with no prior knowledge of the pattern"],
+        ["ok","The ring is free to be only about progress"],
+        ["mid","Widest of the four: three chips fill the row"],
+        ["ok","Closest to what ships, so the smallest change to make"]],
+    chip:function(s){
+      var r=9,c=2*Math.PI*r,off=c*(1-s.done/s.of),full=s.done===s.of;
+      return '<button class="'+cls(s)+'"><span class="ring'+(full?' full':'')+'">'+
+        (full?TK:'<svg viewBox="0 0 22 22"><circle class="bg" cx="11" cy="11" r="'+r+'"/>'+
+          '<circle class="fg" cx="11" cy="11" r="'+r+'" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg>')+
+        '</span><b>Option '+s.n+'</b></button>';
+    }},
+
+  { key:"c", title:"C. The pill is the ring",
+    body:"No circle at all. The progress is traced around the chip's own outline, so the border you already see becomes the meter. At full the outline is closed in green and a tick joins the label.",
+    sc:[["ok","No new object on the card: the border was already there"],
+        ["ok","A long perimeter shows 1 of 6 far better than a 22px circle"],
+        ["ok","Nothing is repeated and nothing is added to the width"],
+        ["no","The outline is also how viewing is shown, so the two collide"],
+        ["mid","A partly drawn border can read as a rendering fault"]],
+    chip:function(s){
+      var w=104,h=32,rx=16;
+      var per=2*((w-2*rx)+(h-2*rx))+2*Math.PI*rx;
+      var off=per*(1-s.done/s.of);
+      /* No tick appended. The chip is a fixed width because its track is drawn
+         at that width, so anything added to the content overflows it. Complete
+         is carried by the pill itself instead: the outline closes in green and
+         the ground takes the tint. */
+      var full = s.done === s.of;
+      return '<button class="'+cls(s)+'" style="width:'+w+'px;justify-content:center'+
+        (full && !s.on ? ';background:var(--brand-50)' : '')+'">'+
+        '<svg class="track" viewBox="0 0 '+(w+2)+' '+(h+2)+'" preserveAspectRatio="none">'+
+          '<rect class="tb" x="1" y="1" width="'+w+'" height="'+h+'"/>'+
+          '<rect class="tf" x="1" y="1" width="'+w+'" height="'+h+'" '+
+            'stroke-dasharray="'+per.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/>'+
+        '</svg><b>Option '+s.n+'</b></button>';
+    }},
+
+  { key:"d", title:"D. The word, only where you are",
+    body:"A carries the risk that nobody learns the word. This answers it: the chip you are reading spells out Option 1, the others are rings alone. The label is taught on whichever one is open, and the row stays tight.",
+    sc:[["ok","The word is always on screen, exactly once"],
+        ["ok","Nearly as tight as A, and self teaching"],
+        ["ok","The selected chip is unmistakable: it is the wide one"],
+        ["mid","The row reflows as you switch, so chips move under the thumb"],
+        ["no","Two things change on select, width and tint, which is a lot"]],
+    chip:function(s){ return '<button class="'+cls(s)+'">'+ring(s)+(s.on?'<b>Option '+s.n+'</b>':'')+'</button>'; }}
+];
+
+/* the live row: option 1 half done and being read, 2 untouched, 3 complete */
+var ROW = [ {on:1,done:2,of:4,n:1}, {on:0,done:0,of:4,n:2}, {on:0,done:3,of:3,n:3} ];
+
+document.getElementById('out').innerHTML = V.map(function(v){
+  return '<section class="v '+v.key+'"><div class="vh"><div class="tag">Variant</div>'+
+    '<h2>'+v.title+'</h2><p>'+v.body+'</p></div>'+
+    '<div class="matrix">'+STATES.map(function(s){
+      return '<div class="cell"><div class="st">'+s.st+'</div><div class="box">'+v.chip(s)+'</div></div>';
+    }).join('')+
+    '<div class="row3"><div class="rl">All three, on a 390 screen</div><div class="chips">'+
+      ROW.map(v.chip).join('')+'</div></div></div>'+
+    '<div class="score">'+v.sc.map(function(r){
+      var m={ok:'✓',no:'✗',mid:'–'}[r[0]];
+      return '<div class="'+r[0]+'"><i>'+m+'</i><span>'+r[1]+'</span></div>';
+    }).join('')+'</div></section>';
+}).join('');
+</script>
+</body>
+</html>

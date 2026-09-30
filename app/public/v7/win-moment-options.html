@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Win Moment Options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* Every phone is the real logger (r3/log.html) with the real win moment (r3/assets/win-moment.js).
+     ?auto=1 adds the plan's foods and taps Log by itself; ?stay=1 holds on the final screen so it can be read. */
+  :root { --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-600:#299D6B; --brand-700:#2A805A; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; font-family: Roboto, system-ui, sans-serif; letter-spacing: .25px; color: var(--g-900); }
+  .page { max-width: 1400px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 28px; line-height: 36px; font-weight: 600; margin: 0 0 8px; }
+  .lede { max-width: 860px; font-size: 15px; line-height: 24px; color: var(--g-600); margin: 0 0 12px; }
+  .callout { max-width: 860px; padding: 14px 16px; border-radius: 12px; background: var(--g-50); border: 1px solid var(--g-200);
+    font-size: 13px; line-height: 21px; color: var(--g-700); margin: 0 0 36px; }
+  .callout b { color: var(--g-900); }
+  section { margin-bottom: 52px; }
+  .head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+  .head h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .pill { font: 600 11px/16px Roboto; letter-spacing: .6px; text-transform: uppercase; border-radius: 999px; padding: 1px 8px; color: var(--g-600); background: var(--g-100); }
+  .pill.rec { color: var(--brand-700); background: var(--brand-100); }
+  .why { max-width: 860px; margin: 0 0 16px; font-size: 13.5px; line-height: 21px; color: var(--g-600); }
+  .row { display: flex; flex-wrap: wrap; gap: 28px; }
+  figure { margin: 0; }
+  figcaption { font: 500 14px/20px Roboto; margin-bottom: 8px; color: var(--g-700); }
+  .phone { position: relative; width: calc(390px * .62); height: calc(844px * .62); border-radius: 30px; overflow: hidden;
+    box-shadow: 0 0 0 8px #121216, 0 0 0 9px #3b3b42, 0 30px 60px -30px rgba(16, 24, 40, .45); background: #fff; }
+  .phone iframe { width: 390px; height: 844px; border: 0; transform: scale(.62); transform-origin: 0 0; display: block; }
+  .play { position: absolute; inset: 0; display: grid; place-items: center; background: linear-gradient(160deg, #2A805A, #299D6B 55%, #12B76A);
+    color: #fff; border: 0; cursor: pointer; font: 600 15px/20px Roboto; }
+  .play span { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,.2);
+    border: 1px solid rgba(255,255,255,.4); margin: 0 auto 10px; }
+  .again { margin-top: 12px; font: 500 14px/20px Roboto; color: var(--brand-600); background: none; border: 0; padding: 6px 0; cursor: pointer; }
+  .again:focus-visible, .play:focus-visible { outline: 2px solid var(--brand-600); outline-offset: 3px; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Win moment options</h1>
+  <p class="lede">What happens after you tap <b>Log 2 items</b>. Each phone is the real logger: it adds the plan's two foods, taps Log, plays the animation and holds on the final screen. Every row is one design for that final screen; every column is one way of getting there.</p>
+  <div class="callout"><b>The hierarchy all of them follow.</b> The gain is the reward, so it leads and is the largest thing on screen. The tick only confirms, so it is solid and small, not a thin outline that reads as disabled. What moved most gets its macro's own glyph. Where it went (the meal, the count) is the quietest line. Press <b>Play</b> on any phone; the first run takes about four seconds.</div>
+  <div id="rows"></div>
+</div>
+<script>
+const LAYOUTS = [
+  ['A', 'As today', '', 'The current screen, for reference: a thin outlined ring for the tick, and a gain that shares its weight with the word "points".'],
+  ['B', 'Solid tick, gain first', 'rec', 'A white disc carries the tick with two soft rings around it. The gain is 72px and "points on today\'s score" sits under it, so the number reads first. The macro that moved most is a chip with its own glyph, and the meal and count are the quietest line.'],
+  ['C', 'The score, stepping up', '', 'The day\'s gauge itself, sweeping from where the day stood to where it is now, with the tick in its centre and a "+9 points" badge. Ties the moment straight to the score the day view shows next.'],
+  ['D', 'Every macro', '', 'The gain leads, then all four macros with the grams this meal added. The one that moved most is the lit white card. The most informative, but the busiest.'],
+  ['E', 'Receipt', '', 'Left aligned, in the lower half: a small ticked line naming the meal, a very large gain, and a receipt of what went in with the calories. Calm and editorial.'],
+];
+const ANIMS = [['nova', 'Supernova'], ['rise', 'Rise']];
+const src = (a, l) => `r3/log.html?state=plan&entry=plus&meal=snack&picker=0&win=${a}&layout=${l}&auto=1&stay=1&t=${Date.now()}`;
+
+document.getElementById('rows').innerHTML = LAYOUTS.map(([id, name, tag, why]) => `
+  <section>
+    <div class="head"><h2>${id}. ${name}</h2>${tag ? '<span class="pill rec">Recommended</span>' : ''}</div>
+    <p class="why">${why}</p>
+    <div class="row">${ANIMS.map(([a, an]) => `
+      <figure>
+        <figcaption>${an}</figcaption>
+        <div class="phone" data-a="${a}" data-l="${id}">
+          <button class="play" aria-label="Play ${an} with layout ${id}"><div><span><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></span>Play</div></button>
+        </div>
+        <button class="again" hidden>Play again</button>
+      </figure>`).join('')}
+    </div>
+  </section>`).join('');
+
+// only one phone runs at a time: each is a whole logger with a canvas
+document.querySelectorAll('figure').forEach(f => {
+  const ph = f.querySelector('.phone'), again = f.querySelector('.again');
+  const run = () => {
+    document.querySelectorAll('.phone iframe').forEach(fr => { if (!ph.contains(fr)) { const p = fr.parentElement; fr.remove(); p.querySelector('.play').hidden = false; p.parentElement.querySelector('.again').hidden = true; } });
+    ph.querySelector('iframe')?.remove();
+    const fr = document.createElement('iframe'); fr.title = 'Logger'; fr.src = src(ph.dataset.a, ph.dataset.l);
+    ph.append(fr); ph.querySelector('.play').hidden = true; again.hidden = false;
+  };
+  ph.querySelector('.play').addEventListener('click', run);
+  again.addEventListener('click', run);
+});
+</script>
+</body>
+</html>

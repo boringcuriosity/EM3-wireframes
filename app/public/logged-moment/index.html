@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Logged Moment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../liquid-score/glyph-masks.css">
+<style>
+  :root { --brand-50:#F3FCF8; --brand-200:#CBF0E0; --brand-600:#299D6B; --brand-700:#2A805A;
+    --g-200:#E4E7EC; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467; --g-900:#101828; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body { background: #ebe9e6; display: grid; place-items: center; overflow: hidden; font-family: Roboto, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased; }
+  .stage { position: relative; width: 100vw; height: 100dvh; overflow: hidden; background: #fff; --ink: #101828; --sub: #667085; }
+  @media (min-width: 520px) {
+    .stage { width: auto; height: min(874px, calc(100dvh - 64px)); aspect-ratio: 402 / 874; border-radius: 54px;
+      box-shadow: 0 0 0 11px #121216, 0 0 0 12px #3b3b42, 0 50px 90px -30px rgba(30, 40, 50, .45); }
+  }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+
+  /* the logged food */
+  .food { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 8px;
+    border-radius: 999px; background: #fff; box-shadow: 0 8px 24px -10px rgba(16, 24, 40, .28), 0 0 0 1px rgba(16, 24, 40, .06);
+    white-space: nowrap; will-change: transform, opacity; }
+  .food .ic { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--brand-50); font-size: 18px; }
+  .food .ok { background: var(--brand-600); color: #fff; }
+  .food b { display: block; font: 500 14px/18px Roboto, sans-serif; color: #101828; }
+  .food span { display: block; font: 400 12px/16px Roboto, sans-serif; color: #667085; }
+
+  /* the score, drawn gauge on canvas, number in DOM */
+  .score { position: absolute; left: 0; top: 0; text-align: center; color: var(--ink); will-change: transform; }
+  .score .n { font: 500 44px/1 Roboto, sans-serif; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .score .n i { font-style: normal; font-size: .38em; vertical-align: .95em; margin-left: 2px; font-weight: 400; }
+  .score .w { margin-top: 2px; font: 400 14px/1 Roboto, sans-serif; color: var(--ink); opacity: .8; }
+  .delta { position: absolute; left: 0; top: 0; padding: 4px 10px; border-radius: 999px; background: var(--brand-600); color: #fff;
+    font: 700 14px/16px Roboto, sans-serif; opacity: 0; box-shadow: 0 6px 16px -6px rgba(41, 157, 107, .6); will-change: transform, opacity; }
+
+  /* the four macros: vessel glyphs that fill, as on the Eat card */
+  .macros { position: absolute; left: 20px; right: 20px; top: 0; display: flex; justify-content: space-between; }
+  .m { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 72px; }
+  .vs { position: relative; width: 44px; height: 44px; --out: #B4BCC9;
+    filter: drop-shadow(.5px 0 0 var(--out)) drop-shadow(-.5px 0 0 var(--out)) drop-shadow(0 .5px 0 var(--out)) drop-shadow(0 -.5px 0 var(--out)); }
+  .vs span { position: absolute; inset: 0; }
+  .gfill { --f: 0%; background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.34), transparent 58%),
+      linear-gradient(to top, #344054 0%, #475467 calc(var(--f) * .34), #5d6b80 calc(var(--f) * .72), #7e8a9c calc(var(--f) - 6%),
+        #c3cad5 calc(var(--f) - 1.5%), #d7dce4 var(--f), #e6e9ee 100%); }
+  /* the portion this meal added, lit in brand green and fading back to the vessel's own slate */
+  .gnew { --o: 0%; --f: 0%; opacity: 0;
+    background: linear-gradient(to top, transparent var(--o), #32D583 var(--o), #12B76A var(--f), transparent var(--f)); }
+  .glyph-fats { -webkit-mask-size: auto 80% !important; mask-size: auto 80% !important; }
+  .glyph-fibre { -webkit-mask-size: auto 84% !important; mask-size: auto 84% !important; }
+  .m b { font: 700 14px/18px Roboto, sans-serif; color: var(--mink, var(--ink)); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .m b s { text-decoration: none; font-weight: 400; color: var(--msub, var(--sub)); }
+  .m .nm { font: 400 12px/16px Roboto, sans-serif; color: var(--msub, var(--sub)); }
+  .m .dl { position: absolute; top: -26px; left: 50%; padding: 2px 8px; border-radius: 999px; background: #ECFDF3; color: #039855;
+    font: 700 12px/16px Roboto, sans-serif; white-space: nowrap; opacity: 0; will-change: transform, opacity; }
+
+  .cta { position: absolute; left: 20px; right: 20px; bottom: calc(40px + env(safe-area-inset-bottom)); opacity: 0; }
+  .cta button { width: 100%; height: 41px; margin-bottom: 7px; border-radius: 8px; border: 1px solid var(--brand-600); background: #fff;
+    color: var(--brand-600); font: 700 14px/16.8px Roboto, sans-serif; letter-spacing: .25px; box-shadow: 0 7px 0 0 var(--brand-200); cursor: pointer; }
+  .cta button:active { transform: translateY(7px); box-shadow: none; }
+  .cta p { margin-top: 12px; text-align: center; font: 400 14px/20px Roboto, sans-serif; color: var(--sub); }
+
+  /* controls */
+  .ctl { position: absolute; top: calc(14px + env(safe-area-inset-top)); right: 14px; display: flex; gap: 6px; z-index: 5; }
+  .ctl button { font: 500 14px/1 Roboto, sans-serif; color: #344054; padding: 9px 14px; border-radius: 999px; cursor: pointer;
+    background: rgba(255,255,255,.85); border: 1px solid #e4e7ec; }
+  .vn { position: absolute; top: calc(26px + env(safe-area-inset-top)); left: 22px; z-index: 5; font: 500 14px/1 Roboto; color: #98A2B3; }
+  .ctl button:focus-visible, .sheet button:focus-visible { outline: 2px solid var(--brand-600); outline-offset: 2px; }
+  .scrim { position: absolute; inset: 0; background: rgba(16,24,40,.28); opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 6; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; overflow-y: auto; background: #fff; z-index: 7;
+    border-radius: 24px 24px 0 0; padding: 20px 16px calc(24px + env(safe-area-inset-bottom));
+    transform: translateY(100%); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
+  .stage.sheet-open .scrim { opacity: 1; pointer-events: auto; }
+  .stage.sheet-open .sheet { transform: none; }
+  .sheet header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .sheet h2 { font: 500 18px/24px Roboto, sans-serif; color: #101828; }
+  .sheet .x { width: 32px; height: 32px; border-radius: 50%; border: 0; background: #f2f4f7; color: #475467; display: grid; place-items: center; cursor: pointer; }
+  .opts { display: grid; gap: 8px; }
+  .opts button { text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid #e4e7ec; background: #fff; cursor: pointer;
+    font: 500 14px/20px Roboto, sans-serif; color: #101828; }
+  .opts button small { display: block; font: 400 12px/16px Roboto, sans-serif; color: #667085; margin-top: 2px; }
+  .opts button[aria-pressed="true"] { border-color: #32D583; background: #ECFDF3; }
+</style>
+</head>
+<body>
+<main class="stage" id="stage" aria-label="Vegetable poha logged. Nutrition sufficiency rose from 54 to 67 percent.">
+  <canvas id="back"></canvas>
+  <div class="food" id="food" aria-hidden="true"><span class="ic" id="foodIc">🥣</span><div><b id="foodT">Vegetable poha</b><span id="foodS">1 bowl · 242 kcal</span></div></div>
+  <div class="score" id="score" aria-hidden="true"><div class="n"><span id="num">54</span><i>%</i></div><div class="w">Sufficient</div></div>
+  <div class="delta" id="delta" aria-hidden="true">+13</div>
+  <div class="macros" id="macros" aria-hidden="true"></div>
+  <div class="cta" id="cta"><button>Back to your day</button><p>Breakfast · 8:30 AM</p></div>
+  <canvas id="front"></canvas>
+  <span class="vn" id="vname"></span>
+  <div class="ctl"><button id="replay">Play again</button><button id="openSheet" aria-haspopup="dialog">Variants</button></div>
+  <div class="scrim" id="scrim"></div>
+  <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <header><h2 id="sheetTitle">Variants</h2>
+      <button class="x" id="closeSheet" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l10 10M12 2 2 12"/></svg></button>
+    </header>
+    <div class="opts" id="opts"></div>
+  </section>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const stage = $('stage'), back = $('back'), front = $('front'), bx = back.getContext('2d'), fx = front.getContext('2d');
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ------------------------------------------------------------------ the data
+// Poha into a day that stood at 54%: each macro capped at its target, then averaged, gives 67%.
+const MAC = [
+  { key: 'protein', name: 'Protein', a: 43, b: 51, t: 95 },
+  { key: 'carbs', name: 'Carbs', a: 121, b: 163, t: 238 },
+  { key: 'fats', name: 'Fats', a: 32, b: 39, t: 63 },
+  { key: 'fibre', name: 'Fibre', a: 21, b: 25, t: 30 },
+];
+const suff = k => Math.round(MAC.reduce((s, m) => s + Math.min(1, (m.a + (m.b - m.a) * k) / m.t), 0) / 4 * 100);
+const S0 = suff(0), S1 = suff(1);          // 54, 67
+const P = 30, ORB0 = S0 / 100 * P, ORB1 = S1 / 100 * P;   // 16.2 → 20.1 orbs
+$('delta').textContent = '+' + (S1 - S0);
+
+$('macros').innerHTML = MAC.map(m => `<div class="m"><span class="dl">+${m.b - m.a}g</span>
+  <span class="vs"><span class="gfill glyph-${m.key}"></span><span class="gnew glyph-${m.key}"></span></span>
+  <b><span class="v">${m.a}</span><s>/${m.t}g</s></b><span class="nm">${m.name}</span></div>`).join('');
+const CELLS = [...document.querySelectorAll('.m')].map((el, i) => ({ el, m: MAC[i],
+  fill: el.querySelector('.gfill'), neu: el.querySelector('.gnew'), v: el.querySelector('.v'), dl: el.querySelector('.dl'), vs: el.querySelector('.vs') }));
+
+// ------------------------------------------------------------------ layout
+let W, H, DPR, L;
+const orbImg = new Image(); orbImg.src = '../liquid-score/orb.svg';
+function resize() {
+  DPR = Math.min(devicePixelRatio || 1, 2); W = stage.clientWidth; H = stage.clientHeight;
+  for (const c of [back, front]) { c.width = W * DPR | 0; c.height = H * DPR | 0; }
+  const cx = W / 2, gy = H * .365;
+  L = { cx, gy, R: 70, ring: 92, foodY: H * .13, macY: H * .63 };
+  $('macros').style.top = L.macY + 'px';
+  $('score').style.transform = `translate(${cx}px,${gy}px) translate(-50%,-50%)`;
+  const sr = stage.getBoundingClientRect();
+  L.vessels = CELLS.map(c => { const r = c.vs.getBoundingClientRect(); return { x: r.left - sr.left + r.width / 2, y: r.top - sr.top + r.height / 2 }; });
+  seedFx();
+}
+// the gauge: 270°, bottom-left over the top to bottom-right, orbs in a zigzag as on the score
+const ARC0 = 1.25 * Math.PI, SWEEP = 1.5 * Math.PI;
+function slot(i) {
+  const a = ARC0 - i / (P - 1) * SWEEP, r = i % 2 ? 128 : 112;
+  return { x: L.cx + Math.cos(a) * r, y: L.gy - Math.sin(a) * r, r: i % 2 ? 6.5 : 9.5, a };
+}
+
+// ------------------------------------------------------------------ easing
+const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => cl((t - a) / (b - a));
+const eOut = x => 1 - Math.pow(1 - x, 3);
+const eIO = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const eBack = x => 1 + 2.2 * Math.pow(x - 1, 3) + 1.2 * Math.pow(x - 1, 2);   // a small overshoot, for pops only
+const mix = (a, b, k) => a + (b - a) * k;
+const bez = (p0, p1, p2, k) => [mix(mix(p0[0], p1[0], k), mix(p1[0], p2[0], k), k), mix(mix(p0[1], p1[1], k), mix(p1[1], p2[1], k), k)];
+const buzz = () => { try { navigator.vibrate?.(8); } catch (e) {} };
+
+// ------------------------------------------------------------------ shared drawing
+function drawGauge(ctx, lit, glow) {
+  // lit(i) → 0..1 how lit orb i is; glow: extra light behind the new ones
+  const fillA = ARC0 - cl((ORB0 + (ORB1 - ORB0) * glow.k) / P) * SWEEP;
+  // soft green bed behind the filled orbs
+  const g = ctx.createRadialGradient(L.cx, L.gy, 90, L.cx, L.gy, 150);
+  g.addColorStop(0, 'rgba(50,213,131,0)'); g.addColorStop(.5, 'rgba(50,213,131,.12)'); g.addColorStop(1, 'rgba(50,213,131,0)');
+  ctx.save(); ctx.beginPath(); ctx.moveTo(L.cx, L.gy); ctx.arc(L.cx, L.gy, 160, -ARC0, -fillA); ctx.closePath(); ctx.fillStyle = g; ctx.fill(); ctx.restore();
+  // the ring
+  ctx.lineWidth = 3; ctx.lineCap = 'round';
+  ctx.strokeStyle = '#D5D9E0'; ctx.beginPath(); ctx.arc(L.cx, L.gy, L.ring, -ARC0, -(ARC0 - SWEEP)); ctx.stroke();
+  const rg = ctx.createLinearGradient(L.cx - 100, L.gy + 80, L.cx + 100, L.gy - 80);
+  rg.addColorStop(0, '#32D583'); rg.addColorStop(1, '#039855');
+  ctx.strokeStyle = rg; ctx.beginPath(); ctx.arc(L.cx, L.gy, L.ring, -ARC0, -fillA); ctx.stroke();
+  // orbs
+  for (let i = 0; i < P; i++) {
+    const s = slot(i), k = lit(i);
+    if (k < 1) {
+      const e = ctx.createRadialGradient(s.x - s.r * .3, s.y - s.r * .35, 0, s.x, s.y, s.r);
+      e.addColorStop(0, 'rgba(255,255,255,.95)'); e.addColorStop(.6, 'rgba(214,218,226,.9)'); e.addColorStop(1, 'rgba(186,192,202,.85)');
+      ctx.globalAlpha = 1 - k; ctx.fillStyle = e; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+    }
+    if (k > 0) {
+      const pop = k < 1 ? eBack(k) : 1, rr = s.r * pop;
+      if (glow.halo && i >= Math.floor(ORB0)) {   // a flare as a new orb lights
+        const h = Math.sin(Math.PI * cl(k)) * glow.halo;
+        const hg = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r * 4);
+        hg.addColorStop(0, `rgba(108,233,166,${.55 * h})`); hg.addColorStop(1, 'rgba(108,233,166,0)');
+        ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(s.x, s.y, s.r * 4, 0, 7); ctx.fill();
+      }
+      ctx.globalAlpha = cl(k * 2); if (orbImg.complete) ctx.drawImage(orbImg, s.x - rr, s.y - rr, rr * 2, rr * 2); ctx.globalAlpha = 1;
+    }
+  }
+}
+function drawBubble(ctx, o = {}) {
+  const { cx, gy, R } = L, sc = 1 + (o.pulse || 0), r = R * sc;
+  // shadow
+  const sh = ctx.createRadialGradient(cx, gy + r * .95, 0, cx, gy + r * .95, r * .9);
+  sh.addColorStop(0, 'rgba(16,40,30,.12)'); sh.addColorStop(1, 'rgba(16,40,30,0)');
+  ctx.fillStyle = sh; ctx.beginPath(); ctx.ellipse(cx, gy + r * .95, r * .9, r * .22, 0, 0, 7); ctx.fill();
+  // milky cloud glass
+  const b = ctx.createRadialGradient(cx - r * .25, gy - r * .3, r * .1, cx, gy, r);
+  b.addColorStop(0, '#FFFFFF'); b.addColorStop(.55, '#F2FBF6'); b.addColorStop(1, '#D6EEE2');
+  ctx.fillStyle = b; ctx.beginPath(); ctx.arc(cx, gy, r, 0, 7); ctx.fill();
+  // liquid inside (Pour, Tide)
+  if (o.level > 0) {
+    ctx.save(); ctx.beginPath(); ctx.arc(cx, gy, r - 1, 0, 7); ctx.clip();
+    const top = gy + r - 2 * r * o.level, t = o.time || 0;
+    ctx.beginPath(); ctx.moveTo(cx - r, gy + r);
+    for (let x = -r; x <= r; x += 4) ctx.lineTo(cx + x, top + Math.sin(x * .07 + t * 4) * 3 * (o.wave ?? 1) + Math.sin(x * .13 - t * 3) * 1.5);
+    ctx.lineTo(cx + r, gy + r); ctx.closePath();
+    const lg = ctx.createLinearGradient(0, top, 0, gy + r);
+    lg.addColorStop(0, `rgba(108,233,166,${.85 * o.alpha})`); lg.addColorStop(1, `rgba(3,152,85,${.95 * o.alpha})`);
+    ctx.fillStyle = lg; ctx.fill(); ctx.restore();
+  }
+  // rim and highlights
+  ctx.lineWidth = 1.5; ctx.strokeStyle = 'rgba(41,157,107,.28)'; ctx.beginPath(); ctx.arc(cx, gy, r - .75, 0, 7); ctx.stroke();
+  const hl = ctx.createRadialGradient(cx - r * .38, gy - r * .45, 0, cx - r * .38, gy - r * .45, r * .35);
+  hl.addColorStop(0, 'rgba(255,255,255,.95)'); hl.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = hl; ctx.beginPath(); ctx.arc(cx - r * .38, gy - r * .45, r * .35, 0, 7); ctx.fill();
+  // ripple rings
+  (o.ripples || []).forEach(k => {
+    if (k <= 0 || k >= 1) return;
+    ctx.strokeStyle = `rgba(50,213,131,${.5 * (1 - k)})`; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(cx, gy, r + 60 * eOut(k), 0, 7); ctx.stroke();
+  });
+}
+function glowDot(ctx, x, y, r, a = 1, core = '#ffffff', edge = '108,233,166') {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, core); g.addColorStop(.3, `rgba(${edge},${.9 * a})`); g.addColorStop(1, `rgba(${edge},0)`);
+  ctx.globalAlpha = a; ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+}
+function drop(ctx, x, y, r, stretch = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(1 - stretch * .3, 1 + stretch);
+  const g = ctx.createRadialGradient(-r * .3, -r * .35, 0, 0, 0, r);
+  g.addColorStop(0, '#A6F4C5'); g.addColorStop(.5, '#32D583'); g.addColorStop(1, '#039855');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, r, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.beginPath(); ctx.arc(-r * .35, -r * .35, r * .22, 0, 7); ctx.fill();
+  ctx.restore();
+}
+
+// ------------------------------------------------------------------ shared DOM state per frame
+function applyState(s) {
+  const f = $('food');
+  f.style.opacity = s.food.a; f.style.transform = `translate(${L.cx + s.food.dx}px,${L.foodY + s.food.dy}px) translate(-50%,-50%) scale(${s.food.s})`;
+  $('foodIc').className = 'ic' + (s.food.done ? ' ok' : ''); $('foodIc').textContent = s.food.done ? '✓' : '🥣';
+  $('foodT').textContent = s.food.done ? 'Vegetable poha logged' : 'Vegetable poha';
+  $('num').textContent = Math.round(mix(S0, S1, s.score));
+  $('score').style.transform = `translate(${L.cx}px,${L.gy}px) translate(-50%,-50%) scale(${1 + (s.numPop || 0)})`;
+  $('score').style.opacity = s.scoreA ?? 1;
+  const d = $('delta'); d.style.opacity = s.delta; d.style.transform = `translate(${L.cx + 32}px,${L.gy - 52 - (1 - s.delta) * 10}px) scale(${.8 + .2 * eBack(s.delta)})`;
+  CELLS.forEach((c, i) => {
+    const k = s.mac[i], m = c.m, lo = m.a / m.t * 100, hi = Math.min(100, m.b / m.t * 100);
+    c.fill.style.setProperty('--f', mix(lo, hi, k).toFixed(2) + '%');
+    c.neu.style.setProperty('--o', lo + '%'); c.neu.style.setProperty('--f', mix(lo, hi, k).toFixed(2) + '%');
+    c.neu.style.opacity = s.macGlow ? s.macGlow[i] : 0;
+    c.v.textContent = Math.round(mix(m.a, m.b, k));
+    const dk = s.chip[i]; c.dl.style.opacity = dk; c.dl.style.transform = `translate(-50%,${(1 - dk) * 8}px) scale(${.85 + .15 * eBack(cl(dk))})`;
+    c.vs.style.transform = `scale(${1 + (s.vpop ? s.vpop[i] : 0)})`;
+  });
+  $('cta').style.opacity = s.cta; $('cta').style.transform = `translateY(${(1 - s.cta) * 12}px)`;
+  if (s.ink) { stage.style.setProperty('--ink', s.ink); stage.style.setProperty('--sub', s.sub); }
+  stage.style.setProperty('--mink', s.mink || s.ink); stage.style.setProperty('--msub', s.msub || s.sub);
+}
+// a macro's fill, chip and glow from the moment it is reached
+const macFrom = (t, at, dur = .7) => { const k = seg(t, at, at + dur); return { k: eOut(k), chip: eOut(seg(t, at + .1, at + .45)) * (1 - seg(t, at + 2.2, at + 2.8)), glow: Math.sin(Math.PI * cl(seg(t, at, at + 1.8))) , pop: Math.sin(Math.PI * seg(t, at, at + .35)) * .12 }; };
+const litFrom = (t, starts) => i => i < Math.floor(ORB0) ? 1 : (starts[i - Math.floor(ORB0)] == null ? 0 : seg(t, starts[i - Math.floor(ORB0)], starts[i - Math.floor(ORB0)] + .45));
+const NEW = Math.round(ORB1) - Math.floor(ORB0);   // orbs that light: 4
+const foodIn = t => ({ a: eOut(seg(t, 0, .45)), dy: (1 - eOut(seg(t, 0, .5))) * -30, dx: 0, s: 1, done: false });
+
+// ------------------------------------------------------------------ effect state, seeded per play
+let FX = {};
+function seedFx() {
+  const R = (a, b) => a + Math.random() * (b - a);
+  // Orbit: orbs flung from the food
+  FX.shards = Array.from({ length: 16 }, (_, i) => ({ a: R(0, 6.28), sp: R(60, 160), ph: R(0, 6.28), rr: R(5, 9), tgt: i < NEW ? 'orb' : 'mac', mi: i % 4, del: R(0, .25) }));
+  // Constellation and Supernova: particle targets
+  if (!L) return;
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+  x.font = '500 22px Roboto'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('Vegetable poha', L.cx, L.foodY);
+  const d = x.getImageData(0, 0, W, H).data, pts = [];
+  for (let j = Math.max(0, L.foodY - 20 | 0); j < L.foodY + 20; j += 2) for (let i = 0; i < W; i += 2) if (d[(j * W + i) * 4 + 3] > 120) pts.push([i, j]);
+  FX.text = pts.map((p, n) => ({ sx: p[0], sy: p[1], mi: n % 5 === 4 ? -1 : n % 4, oi: Math.floor(ORB0) + (n % NEW), del: R(0, .5), ph: R(0, 6.28),
+    cx: R(-90, 90), cy: R(-40, 80) }));
+  FX.sparks = Array.from({ length: 420 }, (_, n) => ({ a: R(0, 6.28), sp: R(120, 520), del: R(0, .12), ph: R(0, 6.28), size: R(1, 2.6),
+    kind: n % 6 === 0 ? 'orb' : n % 6 === 1 ? 'num' : 'mac', mi: n % 4, oi: Math.floor(ORB0) + (n % NEW), hue: Math.random() }));
+}
+
+// ------------------------------------------------------------------ the variants
+// Each returns the frame's state and draws its own layers. They share one ending.
+const REST = { food: { a: 1, dx: 0, dy: 0, s: 1, done: true }, score: 1, delta: 1, mac: [1, 1, 1, 1], chip: [0, 0, 0, 0], cta: 1 };
+const V = [
+{ name: 'Pour', note: 'The food drops into the bubble as liquid, the score rises with it, and four drops carry it down into the macros', end: 5,
+  run(t) {
+    const food = foodIn(t); food.s = 1 - .06 * Math.sin(Math.PI * seg(t, .6, 1)); food.done = t > 1.05;
+    const hit = 1.25, lvl = t < hit ? 0 : mix(S0 / 100, S1 / 100, eIO(seg(t, hit + .1, 2.4)));
+    const liquid = seg(t, hit, hit + .3) * (1 - eIO(seg(t, 3.6, 4.4)));
+    const starts = Array.from({ length: NEW }, (_, i) => 1.8 + i * .16);
+    const at = [3.0, 3.14, 3.28, 3.42], M = at.map(a => macFrom(t, a));
+    drawGauge(bx, litFrom(t, starts), { k: eIO(seg(t, 1.5, 2.6)), halo: 1 });
+    drawBubble(bx, { pulse: .07 * Math.sin(Math.PI * seg(t, hit, hit + .5)), level: lvl, alpha: liquid, time: t,
+      ripples: [seg(t, hit, hit + 1), seg(t, hit + .25, hit + 1.25)] });
+    // the drop falls from the pill
+    if (t > .7 && t < hit) { const k = eIO(seg(t, .75, hit)); drop(fx, L.cx, mix(L.foodY + 20, L.gy - L.R, k), 11, k * .5); }
+    // four drops leave the bubble for the vessels
+    L.vessels.forEach((v, i) => {
+      const k = seg(t, at[i] - .5, at[i]); if (k <= 0 || k >= 1) return;
+      const p = bez([L.cx, L.gy + L.R * .6], [mix(L.cx, v.x, .5), L.gy + 150], [v.x, v.y - 14], eIO(k)); drop(fx, p[0], p[1], 7, .25);
+    });
+    at.forEach((a, i) => { if (Math.abs(t - a) < .02) buzz(); });
+    return { food, score: eIO(seg(t, hit + .1, 2.4)), numPop: .06 * Math.sin(Math.PI * seg(t, 2.3, 2.7)), delta: eOut(seg(t, 2.4, 2.8)),
+      mac: M.map(m => m.k), chip: M.map(m => m.chip), macGlow: M.map(m => m.glow), vpop: M.map(m => m.pop), cta: eOut(seg(t, 4, 4.6)) };
+  } },
+
+{ name: 'Orbit', note: 'The food shatters into orbs that circle the score; four take the empty seats, the rest dive into the macros', end: 5,
+  run(t) {
+    const food = foodIn(t); const burst = seg(t, .6, .7);
+    food.a = t < .6 ? food.a : 1 - burst; if (t > 3.4) { food.a = eOut(seg(t, 3.4, 3.8)); food.done = true; }
+    const land = Array.from({ length: NEW }, (_, i) => 2.0 + i * .18), mAt = [2.9, 3.05, 3.2, 3.35], M = mAt.map(a => macFrom(t, a));
+    drawGauge(bx, litFrom(t, land), { k: eIO(seg(t, 2, 2.7)), halo: 1.2 });
+    drawBubble(bx, { pulse: .05 * Math.sin(Math.PI * seg(t, 2, 2.9)) });
+    if (t > .6) FX.shards.forEach((s, n) => {
+      const t0 = .62 + s.del;
+      // flung out, then caught into an orbit around the bubble
+      const out = eOut(seg(t, t0, t0 + .5));
+      let x = L.cx + Math.cos(s.a) * s.sp * out, y = L.foodY + Math.sin(s.a) * s.sp * .6 * out;
+      const orbA = s.ph + t * 3.2, oR = 150 - 20 * Math.sin(t * 2 + n);
+      const ox = L.cx + Math.cos(orbA) * oR, oy = L.gy + Math.sin(orbA) * oR * .75;
+      const catchK = eIO(seg(t, t0 + .4, 1.6));
+      x = mix(x, ox, catchK); y = mix(y, oy, catchK);
+      let tx, ty, go, r = s.rr;
+      if (s.tgt === 'orb') { const sl = slot(Math.floor(ORB0) + n); go = eIO(seg(t, land[n] - .45, land[n])); tx = sl.x; ty = sl.y; r = mix(s.rr, sl.r, go); if (t > land[n]) return; }
+      else { const v = L.vessels[s.mi]; go = eIO(seg(t, mAt[s.mi] - .5, mAt[s.mi])); tx = v.x; ty = v.y; r = s.rr * (1 - go * .7); if (t > mAt[s.mi]) return; }
+      x = mix(x, tx, go); y = mix(y, ty, go);
+      glowDot(fx, x, y, r * 3, .5); if (orbImg.complete) fx.drawImage(orbImg, x - r, y - r, r * 2, r * 2);
+    });
+    land.concat(mAt).forEach(a => { if (Math.abs(t - a) < .02) buzz(); });
+    return { food, score: eIO(seg(t, 2, 2.9)), numPop: .06 * Math.sin(Math.PI * seg(t, 2.8, 3.1)), delta: eOut(seg(t, 2.9, 3.3)),
+      mac: M.map(m => m.k), chip: M.map(m => m.chip), macGlow: M.map(m => m.glow), vpop: M.map(m => m.pop), cta: eOut(seg(t, 4, 4.6)) };
+  } },
+
+{ name: 'Tide', note: 'A green wave rises through the whole screen carrying the macros up, pours into the score, then drains away', end: 5.2,
+  run(t) {
+    const food = foodIn(t); food.done = t > 2.6;
+    const rise = eIO(seg(t, .5, 1.9)), fall = eIO(seg(t, 2.8, 3.9));
+    const top = mix(H + 30, L.gy + L.R * .2, rise) + (H + 60 - (L.gy + L.R * .2)) * fall;
+    const macK = L.vessels.map(v => seg((H - top) - (H - v.y - 22), 0, 44));   // a vessel fills as the wave passes up through it
+    const inBubble = seg(t, 1.7, 2.4) * (1 - seg(t, 3.2, 4.2));
+    drawGauge(bx, litFrom(t, Array.from({ length: NEW }, (_, i) => 2.1 + i * .12)), { k: eIO(seg(t, 2, 2.7)), halo: 1 });
+    drawBubble(bx, { pulse: .05 * Math.sin(Math.PI * seg(t, 1.8, 2.6)), level: mix(0, S1 / 100, eIO(seg(t, 1.7, 2.5))), alpha: inBubble, time: t, wave: 1.6,
+      ripples: [seg(t, 2, 3)] });
+    if (top < H + 20) {
+      // the wave, under the DOM so the numbers ride on it
+      const g = bx.createLinearGradient(0, top, 0, H);
+      g.addColorStop(0, 'rgba(108,233,166,.78)'); g.addColorStop(.25, 'rgba(18,183,106,.62)'); g.addColorStop(1, 'rgba(5,96,58,.55)');
+      bx.beginPath(); bx.moveTo(0, H);
+      for (let x = 0; x <= W; x += 6) bx.lineTo(x, top + Math.sin(x * .025 + t * 3.4) * 9 + Math.sin(x * .061 - t * 2.3) * 4);
+      bx.lineTo(W, H); bx.closePath(); bx.fillStyle = g; bx.fill();
+      // bright crest
+      bx.beginPath(); for (let x = 0; x <= W; x += 6) { const y = top + Math.sin(x * .025 + t * 3.4) * 9 + Math.sin(x * .061 - t * 2.3) * 4; x ? bx.lineTo(x, y) : bx.moveTo(x, y); }
+      bx.strokeStyle = 'rgba(255,255,255,.85)'; bx.lineWidth = 2.5; bx.stroke();
+      // rising bubbles in the water
+      for (let n = 0; n < 26; n++) { const bxp = (n * 97) % W, by = H - ((t * (60 + n * 7) + n * 53) % (H - top + 40)); if (by < top + 6) continue;
+        bx.strokeStyle = 'rgba(255,255,255,.55)'; bx.lineWidth = 1.2; bx.beginPath(); bx.arc(bxp + Math.sin(t * 2 + n) * 5, by, 2 + n % 4, 0, 7); bx.stroke(); }
+    }
+    const ink = top < L.macY + 30 ? 1 : 0;
+    const M = macK.map(k => ({ k: eOut(k), chip: eOut(seg(k, .6, 1)) * (1 - seg(t, 4.2, 4.8)), glow: Math.sin(Math.PI * cl(k)), pop: 0 }));
+    return { food, score: eIO(seg(t, 1.9, 2.7)), numPop: .06 * Math.sin(Math.PI * seg(t, 2.6, 3)), delta: eOut(seg(t, 2.7, 3.1)),
+      mac: M.map(m => m.k), chip: M.map(m => m.chip), macGlow: M.map(m => m.glow), cta: eOut(seg(t, 4.2, 4.8)),
+      mink: ink && fall < .6 ? '#ffffff' : '#101828', msub: ink && fall < .6 ? 'rgba(255,255,255,.8)' : '#667085' };
+  } },
+
+{ name: 'Constellation', note: 'The food’s name comes apart into light, streams into each vessel and the empty orbs, then comes back together as logged', end: 5.2,
+  run(t) {
+    const food = foodIn(t); const gone = seg(t, .55, .7);
+    if (t > .55) food.a = 1 - gone; if (t > 3.3) { food.a = eOut(seg(t, 3.3, 3.8)); food.done = true; }
+    const mAt = [1.55, 1.75, 1.95, 2.15], M = mAt.map(a => macFrom(t, a, .9)), oAt = Array.from({ length: NEW }, (_, i) => 2.45 + i * .14);
+    drawGauge(bx, litFrom(t, oAt), { k: eIO(seg(t, 2.4, 3)), halo: 1 });
+    drawBubble(bx, { pulse: .04 * Math.sin(Math.PI * seg(t, 2.4, 3.2)) });
+    if (t > .5 && t < 3.3) FX.text.forEach(p => {
+      const t0 = .55 + p.del * .6;
+      let tx, ty, end;
+      if (p.mi >= 0) { const v = L.vessels[p.mi]; tx = v.x + Math.sin(p.ph) * 10; ty = v.y + Math.cos(p.ph) * 10; end = mAt[p.mi] + p.del * .4; }
+      else { const s = slot(p.oi); tx = s.x; ty = s.y; end = oAt[p.oi - Math.floor(ORB0)]; }
+      const k = eIO(seg(t, t0, end)); if (k >= 1) return;
+      const mid = [mix(p.sx, tx, .5) + p.cx, mix(p.sy, ty, .5) + p.cy];
+      const q = bez([p.sx, p.sy], mid, [tx, ty], k), w = Math.sin(Math.PI * k) * 5;
+      fx.globalAlpha = .9; fx.fillStyle = k < .5 ? '#12B76A' : '#32D583';
+      fx.fillRect(q[0] + Math.sin(t * 7 + p.ph) * w, q[1] + Math.cos(t * 6 + p.ph) * w, 1.8, 1.8);
+    });
+    fx.globalAlpha = 1;
+    mAt.concat(oAt).forEach(a => { if (Math.abs(t - a) < .02) buzz(); });
+    return { food, score: eIO(seg(t, 2.4, 3.1)), numPop: .06 * Math.sin(Math.PI * seg(t, 3, 3.3)), delta: eOut(seg(t, 3.1, 3.5)),
+      mac: M.map(m => m.k), chip: M.map(m => m.chip), macGlow: M.map(m => m.glow), vpop: M.map(m => m.pop), cta: eOut(seg(t, 4.2, 4.8)) };
+  } },
+
+{ name: 'Pulse', note: 'The calm one: a single comet of light visits each vessel in turn, then runs up the gauge lighting the new orbs', end: 5,
+  run(t) {
+    const food = foodIn(t); food.done = t > .9;
+    const path = [[L.cx, L.foodY + 20], ...L.vessels.map(v => [v.x, v.y + 30]), [L.cx + 150, L.macY - 40]];
+    const legT = [.7, 1.25, 1.6, 1.95, 2.3, 2.7];   // arrive at each point
+    const mAt = legT.slice(1, 5), M = mAt.map(a => macFrom(t, a, .6));
+    const arcS = 2.7, arcE = 3.5, oAt = Array.from({ length: NEW }, (_, i) => mix(arcS + .35, arcE, (i + 1) / NEW));
+    drawGauge(bx, litFrom(t, oAt), { k: eIO(seg(t, arcS + .3, arcE)), halo: 1.3 });
+    drawBubble(bx, { pulse: .04 * Math.sin(Math.PI * seg(t, arcE, arcE + .5)), ripples: [seg(t, arcE, arcE + 1)] });
+    // comet position
+    let head = null, trail = [];
+    const at = tt => {
+      if (tt < legT[0]) return null;
+      for (let i = 0; i < legT.length - 1; i++) if (tt < legT[i + 1]) { const k = eIO(seg(tt, legT[i], legT[i + 1])); const a = path[i], b = path[i + 1];
+        return bez(a, [mix(a[0], b[0], .5), Math.max(a[1], b[1]) + 40], b, k); }
+      if (tt < arcE) { // run up the gauge from its bottom-right end, anticlockwise through the fill point
+        const k = eIO(seg(tt, arcS, arcE)), a = mix(ARC0 - SWEEP - .15, ARC0 - (ORB1 / P) * SWEEP, k), r = mix(150, 120, seg(k, 0, .25));
+        return [L.cx + Math.cos(a) * r, L.gy - Math.sin(a) * r]; }
+      return null;
+    };
+    for (let i = 0; i < 18; i++) { const p = at(t - i * .018); if (p) trail.push(p); }
+    trail.forEach((p, i) => glowDot(fx, p[0], p[1], 14 * (1 - i / 18), (1 - i / 18) * .8));
+    if (trail[0]) glowDot(fx, trail[0][0], trail[0][1], 18, 1);
+    mAt.concat(oAt).forEach(a => { if (Math.abs(t - a) < .02) buzz(); });
+    return { food, score: eIO(seg(t, arcS + .3, arcE)), numPop: .06 * Math.sin(Math.PI * seg(t, arcE, arcE + .35)), delta: eOut(seg(t, arcE, arcE + .4)),
+      mac: M.map(m => m.k), chip: M.map(m => m.chip), macGlow: M.map(m => m.glow), vpop: M.map(m => m.pop), cta: eOut(seg(t, 4, 4.6)) };
+  } },
+
+{ name: 'Supernova', note: 'Full screen: the lights go down, the food collapses into a star and explodes into sparks that paint the macros, the orbs and the number', end: 5.6,
+  run(t) {
+    const dark = eIO(seg(t, .2, .8)) * (1 - eIO(seg(t, 2.6, 3.6)));
+    const food = foodIn(t); food.dy += (L.gy - L.foodY) * eIO(seg(t, .5, 1)) * (1 - seg(t, 1.2, 1.2001));
+    food.s = t < 1.2 ? mix(1, .05, eIO(seg(t, .85, 1.2))) : 1; food.a = t < 1.2 ? food.a : eOut(seg(t, 3.4, 3.9)); food.done = t > 3;
+    if (t >= 1.2) food.dy = 0;
+    const mAt = [2.0, 2.1, 2.2, 2.3], M = mAt.map(a => macFrom(t, a, .8)), oAt = Array.from({ length: NEW }, (_, i) => 2.05 + i * .1);
+    drawGauge(bx, litFrom(t, oAt), { k: eIO(seg(t, 2, 2.6)), halo: 1.5 });
+    drawBubble(bx, { pulse: .06 * Math.sin(Math.PI * seg(t, 2.2, 3)) });
+    if (dark > 0) { bx.fillStyle = `rgba(4,26,18,${.93 * dark})`; bx.fillRect(0, 0, W, H); }
+    // the star, then the blast
+    if (t > .95 && t < 1.35) { const k = seg(t, .95, 1.35); glowDot(fx, L.cx, L.gy, 10 + 70 * Math.sin(Math.PI * k), 1); }
+    if (t > 1.2 && t < 1.8) { const k = seg(t, 1.2, 1.8); fx.strokeStyle = `rgba(166,244,197,${.7 * (1 - k)})`; fx.lineWidth = 3 * (1 - k); fx.beginPath(); fx.arc(L.cx, L.gy, 20 + 420 * eOut(k), 0, 7); fx.stroke(); }
+    if (t > 1.2 && t < 3.2) FX.sparks.forEach(s => {
+      const t0 = 1.2 + s.del, fly = seg(t, t0, t0 + .6), home = eIO(seg(t, t0 + .5, t0 + 1.4));
+      let tx, ty;
+      if (s.kind === 'orb') { const q = slot(s.oi); tx = q.x; ty = q.y; }
+      else if (s.kind === 'num') { tx = L.cx + Math.cos(s.ph) * 24; ty = L.gy + Math.sin(s.ph) * 14; }
+      else { const v = L.vessels[s.mi]; tx = v.x + Math.cos(s.ph) * 12; ty = v.y + Math.sin(s.ph) * 12; }
+      const ox = L.cx + Math.cos(s.a) * s.sp * eOut(fly), oy = L.gy + Math.sin(s.a) * s.sp * eOut(fly);
+      const x = mix(ox, tx, home), y = mix(oy, ty, home);
+      if (home >= 1) return;
+      const px = mix(L.cx + Math.cos(s.a) * s.sp * eOut(seg(t - .03, t0, t0 + .6)), tx, eIO(seg(t - .03, t0 + .5, t0 + 1.4)));
+      const py = mix(L.gy + Math.sin(s.a) * s.sp * eOut(seg(t - .03, t0, t0 + .6)), ty, eIO(seg(t - .03, t0 + .5, t0 + 1.4)));
+      fx.strokeStyle = s.hue < .33 ? '#ffffff' : s.hue < .66 ? '#6CE9A6' : '#32D583'; fx.lineWidth = s.size; fx.lineCap = 'round';
+      fx.globalAlpha = .95; fx.beginPath(); fx.moveTo(px, py); fx.lineTo(x, y); fx.stroke();
+    });
+    fx.globalAlpha = 1;
+    if (Math.abs(t - 1.2) < .02) buzz(); mAt.forEach(a => { if (Math.abs(t - a) < .02) buzz(); });
+    const inv = dark > .5;
+    return { food, scoreA: 1 - seg(t, .45, .7) + seg(t, 1.25, 1.6), score: eIO(seg(t, 2, 2.8)), numPop: .08 * Math.sin(Math.PI * seg(t, 2.6, 3)), delta: eOut(seg(t, 2.8, 3.2)),
+      mac: M.map(m => m.k), chip: M.map(m => m.chip), macGlow: M.map(m => m.glow), vpop: M.map(m => m.pop), cta: eOut(seg(t, 4.2, 4.8)),
+      ink: inv ? '#ffffff' : '#101828', sub: inv ? 'rgba(255,255,255,.7)' : '#667085' };
+  } },
+];
+
+// ------------------------------------------------------------------ sheet and timeline
+let vi = 0, t0 = performance.now();
+V.forEach((v, i) => {
+  const b = document.createElement('button');
+  b.innerHTML = `${v.name}<small>${v.note}</small>`; b.setAttribute('aria-pressed', i === vi);
+  b.addEventListener('click', () => { vi = i; [...$('opts').children].forEach((x, j) => x.setAttribute('aria-pressed', j === i)); openSheet(false); play(); });
+  $('opts').append(b);
+});
+const openSheet = on => stage.classList.toggle('sheet-open', on);
+$('openSheet').addEventListener('click', () => openSheet(true));
+$('closeSheet').addEventListener('click', () => openSheet(false));
+$('scrim').addEventListener('click', () => openSheet(false));
+addEventListener('keydown', e => { if (e.key === 'Escape') openSheet(false); });
+function play() { t0 = performance.now() + 350; seedFx(); }
+$('replay').addEventListener('click', play);
+
+function frame(now) {
+  if (W === undefined) resize();
+  const v = V[vi]; $('vname').textContent = v.name;
+  let t = window.HOLD ?? Math.max(0, (now - t0) / 1000);   // HOLD pins a moment, for reviewing a frame
+  if (REDUCED) t = v.end + 1;
+  for (const [c, x] of [[back, bx], [front, fx]]) { x.setTransform(DPR, 0, 0, DPR, 0, 0); x.clearRect(0, 0, W, H); }
+  const s = t > v.end + .5 ? (drawGauge(bx, i => i < Math.floor(ORB0) + NEW ? 1 : 0, { k: 1 }), drawBubble(bx), REST) : v.run(t);
+  s.ink = s.ink || '#101828'; s.sub = s.sub || '#667085';
+  applyState(s);
+  requestAnimationFrame(frame);
+}
+new ResizeObserver(() => { resize(); }).observe(stage);
+document.fonts.ready.then(() => { resize(); play(); requestAnimationFrame(frame); });
+</script>
+</body>
+</html>

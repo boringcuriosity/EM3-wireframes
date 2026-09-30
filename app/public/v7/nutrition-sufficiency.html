@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nutrition sufficiency, every case</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
 <style>
   /* GoodFlip tokens, only the ones this document uses.
      The rule this file follows: green marks the score, the verdict and the one
@@ -60,7 +60,7 @@
   }
   /* the single green mark the header is allowed */
   .eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 9999px; background: var(--brand-600); }
-  h1 { font-family: "Playfair Display", Georgia, serif; font-weight: 600; font-size: 48px; line-height: 56px; letter-spacing: -.2px; margin: 20px 0 12px; }
+  h1 { font-family: Roboto, Arial, sans-serif; font-weight: 600; font-size: 48px; line-height: 56px; letter-spacing: -.2px; margin: 20px 0 12px; }
   .lede { max-width: 720px; margin: 0; font-size: 18px; line-height: 28px; color: var(--gray-600); }
   .meta { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 10px 24px; font-size: 14px; line-height: 20px; color: var(--gray-500); }
   .meta b { color: var(--gray-700); font-weight: 600; }
@@ -80,7 +80,7 @@
   /* the variant switch sits above the size control and wears the same clothes,
      because both do the same kind of job: they change how the page is read
      without changing what it says */
-  .vsw button { flex: 1; min-width: 0; padding: 0 10px; }
+  .vsw button, .hsw button { flex: 1; min-width: 0; padding: 0 10px; }
   .zoom .zlab { width: 100%; font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); }
   .zoom button { min-width: 44px; min-height: 44px; padding: 0 12px; font: 600 14px/20px Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .25px; border: 1px solid var(--gray-200); background: #fff; color: var(--gray-600); border-radius: 9999px; cursor: pointer; }
   .zoom button:hover { border-color: var(--gray-300); color: var(--gray-900); }
@@ -168,7 +168,7 @@
   /* captions sit at the bottom of their slot, so the phones in a row line up */
   figcaption { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: flex-end; margin-bottom: 12px; min-height: 76px; }
   figcaption b { display: block; font-size: 16px; line-height: 24px; font-weight: 600; }
-  figcaption .id { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; font-weight: 400; color: var(--gray-400); }
+  figcaption .id { font-family: Roboto, sans-serif; font-size: 12px; font-weight: 400; color: var(--gray-400); }
   figcaption p { margin: 4px 0 0; font-size: 14px; line-height: 20px; color: var(--gray-600); }
   .phone {
     width: calc(390px * var(--z)); height: calc(780px * var(--z)); overflow: hidden;
@@ -193,7 +193,7 @@
   }
   .protocard:hover { transform: translate(-1px, -1px); box-shadow: var(--shadow-card-lift); }
   .pc-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); }
-  .pc-title { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 20px; line-height: 28px; color: var(--gray-900); }
+  .pc-title { font-family: Roboto, sans-serif; font-size: 20px; line-height: 28px; color: var(--gray-900); }
   .pc-line { font-size: 14px; line-height: 21px; color: var(--gray-500); }
   .pc-go {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px;
@@ -227,7 +227,7 @@
   .legend ul.plain { margin-bottom: 16px; }
   .legend li { font-size: 14px; line-height: 22px; }
   .legend p { font-size: 14px; line-height: 22px; color: var(--gray-500); }
-  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: var(--gray-100); border-radius: 4px; padding: 1px 6px; color: var(--gray-700); }
+  .mono { font-family: Roboto, sans-serif; font-size: 12px; background: var(--gray-100); border-radius: 4px; padding: 1px 6px; color: var(--gray-700); }
 
   footer { grid-column: 1 / -1; border-top: 1px solid var(--gray-200); padding-top: 24px; font-size: 14px; line-height: 20px; color: var(--gray-500); display: flex; flex-wrap: wrap; gap: 10px 24px; }
 
@@ -265,6 +265,13 @@
     <div class="zoom vsw">
       <span class="zlab">Macros</span>
       <button data-rail="icons" class="on">One card</button><button data-rail="cards">A card each</button>
+    </div>
+
+    <!-- Which score sits at the top of every day view: the liquid Cloud Drop, or
+         the Plate it replaced, kept one tap away so the two can be compared. -->
+    <div class="zoom hsw">
+      <span class="zlab">Score</span>
+      <button data-hero="cloud" class="on">Cloud Drop</button><button data-hero="plate">Plate</button>
     </div>
 
     <div class="zoom">
@@ -816,13 +823,15 @@ document.getElementById("raillist").innerHTML = SHOWN
    in the document's own query string, so a link to this page carries the
    variant with it and two people reading it see the same thing. */
 let RAIL = new URLSearchParams(location.search).get("rail") === "cards" ? "cards" : "icons";
+/* Which score every day view carries. Cloud Drop is the default; the Plate stays one tap away. */
+let HERO = new URLSearchParams(location.search).get("hero") === "plate" ? "plate" : "cloud";
 
 const fig = ([q, name, id, line]) => {
   /* a case is either a flag on the day view, or a whole path to another screen */
   let href = q.includes(".html") ? q : `r3/eat.html?${q}`;
   /* only the day view has the two variants; the log, trend and learn phones
      are the same screen either way and are left alone */
-  if (href.startsWith("r3/eat.html")) href += `&rail=${RAIL}`;
+  if (href.startsWith("r3/eat.html")) href += `&rail=${RAIL}` + (HERO === "plate" ? "&hero=plate" : "");
   return `
   <figure>
     <figcaption><b>${name} <span class="id">${id}</span></b><p>${line}</p></figcaption>
@@ -850,6 +859,20 @@ document.querySelectorAll(".vsw button").forEach((b) => {
     paintCases();
   });
 });
+document.querySelectorAll(".hsw button").forEach((b) => {
+  b.addEventListener("click", () => {
+    HERO = b.dataset.hero;
+    document.querySelectorAll(".hsw button").forEach((x) => x.classList.toggle("on", x === b));
+    const q = new URLSearchParams(location.search);
+    HERO === "plate" ? q.set("hero", "plate") : q.delete("hero");
+    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
+    paintCases();
+    setTimeout(check, 60);
+  });
+});
+if (HERO === "plate") {
+  document.querySelectorAll(".hsw button").forEach((x) => x.classList.toggle("on", x.dataset.hero === "plate"));
+}
 if (RAIL === "cards") {
   document.querySelectorAll(".vsw button").forEach((x) =>
     x.classList.toggle("on", x.dataset.rail === "cards"));
@@ -913,15 +936,16 @@ function spy() {
 /* :not(.vsw) matters. The macro switch wears the same clothes as the size
    control, so without it a click on "A card each" also ran this handler, set
    --z to undefined and left every phone unsized. */
-document.querySelectorAll(".zoom:not(.vsw) button").forEach((b) => {
+document.querySelectorAll(".zoom:not(.vsw):not(.hsw) button").forEach((b) => {
   b.onclick = () => {
     document.documentElement.style.setProperty("--z", b.dataset.z);
-    document.querySelectorAll(".zoom:not(.vsw) button").forEach((x) => x.classList.toggle("on", x === b));
+    document.querySelectorAll(".zoom:not(.vsw):not(.hsw) button").forEach((x) => x.classList.toggle("on", x === b));
     setTimeout(check, 60);
   };
 });
 
 check();
 </script>
+<script src="frame.js" defer></script>
 </body>
 </html>

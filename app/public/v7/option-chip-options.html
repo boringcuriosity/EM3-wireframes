@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The option chip, when a meal can span options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --brand-25:#FAFFFD; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0;
+    --brand-400:#79CCA8; --brand-600:#299D6B; --brand-700:#2A805A; --ok-600:#039855;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-600:#444CE7; --red-600:#D92D20;
+    --r-pill:9999px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1300px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:880px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 10px}
+  .lede b{color:var(--g-900)}
+  .callout{max-width:880px;padding:14px 16px;border-radius:12px;background:var(--g-50);
+    border:1px solid var(--g-200);font-size:13px;line-height:21px;color:var(--g-700);margin:0 0 28px}
+  .callout b{color:var(--g-900)}
+  .v{margin:0 0 44px;padding:0 0 32px;border-bottom:1px solid var(--g-200)}
+  .v:last-child{border-bottom:0}
+  .vh{max-width:880px;margin:0 0 18px}
+  .vh h2{font-size:17px;line-height:24px;font-weight:600;margin:0 0 6px}
+  .vh p{font-size:13px;line-height:21px;color:var(--g-600);margin:0}
+  .tag{display:inline-block;font:600 10.5px/16px Roboto;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--in-600);background:var(--in-50);border-radius:9999px;padding:1px 8px;margin:0 0 6px}
+  .matrix{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start;margin-bottom:16px}
+  .cell{width:196px}
+  .cell .st{font:600 11px/16px Roboto;letter-spacing:.5px;text-transform:uppercase;
+    color:var(--g-400);margin-bottom:8px}
+  .cell .box{padding:14px;border:1px solid var(--g-200);border-radius:12px;background:#fff;
+    min-height:76px;display:flex;align-items:center}
+  .score{display:flex;flex-wrap:wrap;gap:0 28px;max-width:880px;font-size:11.5px;line-height:19px}
+  .score div{display:flex;gap:6px;width:400px}
+  .score i{font-style:normal;width:13px;flex-shrink:0}
+  .ok{color:var(--brand-600)}.no{color:var(--red-600)}.mid{color:var(--g-500)}
+
+  /* ---- the chip, as it ships today: one shape, two states ---- */
+  .chip{position:relative;flex-shrink:0;display:inline-flex;align-items:center;gap:6px;
+    height:32px;padding:0 14px;border-radius:9999px;border:1px solid var(--g-200);
+    background:#fff;color:var(--g-500);cursor:pointer;font:400 14px/18px Roboto}
+  .chip b{font-weight:600;color:var(--g-700);white-space:nowrap}
+  .chip.on{background:var(--brand-100);border-color:var(--brand-600)}
+  .chip.on b{color:var(--brand-600)}
+  .tick{width:14px;height:14px;flex-shrink:0;color:var(--brand-600)}
+
+  /* ================= A. a tick, then a count ================= */
+  .a .chip.part b, .a .chip.done b{color:var(--brand-700)}
+  .a .chip.part, .a .chip.done{border-color:var(--brand-200);background:var(--brand-50)}
+  .a .chip.on.part, .a .chip.on.done{background:var(--brand-100);border-color:var(--brand-600)}
+  .a .cnt{font:400 12px/16px Roboto;color:var(--g-500);white-space:nowrap}
+  .a .chip.on .cnt{color:var(--brand-700)}
+
+  /* ================= B. the chip fills ================= */
+  /* the fill sits ABOVE the chip's white ground and below its label. At
+     z-index -1 it was painting behind the white and never showed at all. */
+  .b .chip{overflow:hidden;isolation:isolate}
+  .b .chip .fill{position:absolute;left:0;top:0;bottom:0;z-index:0;
+    background:var(--brand-100);transition:width .4s cubic-bezier(.05,.7,.1,1)}
+  .b .chip > span:not(.fill), .b .chip .tick{position:relative;z-index:1}
+  .b .chip.part, .b .chip.done{border-color:var(--brand-200)}
+  .b .chip.on{background:#fff}
+  .b .chip.on{border-color:var(--brand-600);box-shadow:0 0 0 1px var(--brand-600)}
+  .b .chip.done .fill{background:var(--brand-200)}
+
+  /* ================= C. pips under the label ================= */
+  .c .chip{height:auto;padding:5px 14px 6px;flex-direction:column;align-items:flex-start;gap:3px}
+  .c .pips{display:flex;gap:3px}
+  .c .pips i{width:5px;height:5px;border-radius:9999px;background:var(--g-200);display:block}
+  .c .pips i.f{background:var(--brand-600)}
+  .c .chip.on .pips i{background:var(--brand-200)}
+  .c .chip.on .pips i.f{background:var(--brand-600)}
+
+  /* ================= D. a ring on the ordinal ================= */
+  .d .chip{padding:0 14px 0 6px;gap:8px}
+  .d .ring{position:relative;width:22px;height:22px;flex-shrink:0;display:grid;place-items:center}
+  .d .ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
+  .d .ring circle{fill:none;stroke-width:2.5}
+  .d .ring .bg{stroke:var(--g-200)}
+  .d .ring .fg{stroke:var(--brand-600);stroke-linecap:round;
+    transition:stroke-dashoffset .5s cubic-bezier(.05,.7,.1,1)}
+  .d .ring span{font:700 11px/1 Roboto;color:var(--g-600)}
+  .d .chip.on .ring span{color:var(--brand-700)}
+  .d .chip.done .ring .fg{stroke:var(--brand-600)}
+  @media (max-width:900px){.page{padding:24px 16px 60px}.cell{width:100%}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>The option chip, when a meal can span options</h1>
+  <p class="lede">Today the chip carries two things: which option you are <b>looking at</b>, and a tick on the one you <b>started</b>. Once food can be logged from more than one option, that is not enough. The chip has to answer a third question at a glance: <b>how much of this option is already in your day.</b></p>
+  <div class="callout">
+    <b>Six states, not two.</b> Viewing is one axis and progress is the other, and they are independent: you can be looking at an option you have logged nothing from, or have half of an option in your day while reading a different one. Every variant below is shown across all six, because a chip that reads beautifully in two and falls apart in the other four is not a solution.
+    <br><br>
+    <b>The sentence is gone.</b> "You have started option 2, which is how your coach planned this meal" has been removed from the card. A paragraph that restates what a control already shows is a second copy of the same state, and it goes stale the moment the control can carry it.
+    <br><br>
+    <b>What to judge each on.</b> Can you find the started option without reading? Does viewing stay distinguishable from logged, given both want to be green? Does it survive three options on a 390px screen? And does the completed state feel like an end rather than just more of the same?
+  </div>
+  <div id="out"></div>
+</div>
+<script>
+var TICK = '<svg class="tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+
+/* viewing x progress. The names are what a reader would call them, not the
+   flags: the deck is for judging, so the labels say the situation. */
+var STATES = [
+  { k:"idle",      st:"Not viewing, nothing logged", on:0, done:0, of:4 },
+  { k:"part",      st:"Not viewing, 2 of 4 logged",  on:0, done:2, of:4 },
+  { k:"full",      st:"Not viewing, all 4 logged",   on:0, done:4, of:4 },
+  { k:"on-idle",   st:"Viewing, nothing logged",     on:1, done:0, of:4 },
+  { k:"on-part",   st:"Viewing, 2 of 4 logged",      on:1, done:2, of:4 },
+  { k:"on-full",   st:"Viewing, all 4 logged",       on:1, done:4, of:4 }
+];
+
+function cls(s){
+  return "chip" + (s.on ? " on" : "") + (s.done === s.of ? " done" : s.done ? " part" : "");
+}
+
+var V = [
+  { key:"a", title:"A. A tick, then a count",
+    body:"The tick says something from this option is in your day. The count says how much. Progress is written out, so nothing has to be inferred from a colour or a length, and the option you started is findable without reading the others.",
+    sc:[["ok","Explicit: the number is the state, not a proxy for it"],
+        ["ok","A tick is already this card's mark for done"],
+        ["mid","Three chips with counts is a lot of small type in one row"],
+        ["no","Viewing and logged are both green, so they compete"],
+        ["ok","Complete reads as complete: the count closes"]],
+    chip:function(s){
+      return '<button class="'+cls(s)+'"><span><b>Option '+1+'</b></span>'+
+        (s.done ? TICK + '<span class="cnt">'+s.done+' of '+s.of+'</span>' : '')+'</button>';
+    }},
+
+  { key:"b", title:"B. The chip fills",
+    body:"The tint runs left to right in proportion to what is logged, so the chip is its own progress bar. Viewing is carried by a ring around the outside instead of a fill, which keeps the two axes on different properties.",
+    sc:[["ok","Viewing and progress never collide: one is the ring, one is the fill"],
+        ["ok","Readable at a glance across three chips, no small type"],
+        ["ok","Full is unmistakable: the chip is solid"],
+        ["no","Proportion is approximate: 2 of 4 and 3 of 6 look alike"],
+        ["mid","A half filled pill can read as a loading state"]],
+    chip:function(s){
+      var pct = Math.round(s.done / s.of * 100);
+      return '<button class="'+cls(s)+'"><span class="fill" style="width:'+pct+'%"></span>'+
+        '<span><b>Option 1</b></span>'+(s.done===s.of?TICK:'')+'</button>';
+    }},
+
+  { key:"c", title:"C. Pips under the label",
+    body:"One pip per food in the option, filled as each goes in. The chip shows the shape of the option as well as its progress: a four pip chip and a six pip chip are visibly different meals before anything is logged.",
+    sc:[["ok","Exact: four pips, two filled, no arithmetic"],
+        ["ok","Shows how big each option is before you open it"],
+        ["ok","Progress is a separate row, so green can mean viewing"],
+        ["mid","Taller chip, and the row grows from 32 to about 44"],
+        ["no","Breaks down past six or seven foods in an option"]],
+    chip:function(s){
+      var p = "";
+      for (var i = 0; i < s.of; i++) p += '<i class="'+(i < s.done ? "f" : "")+'"></i>';
+      return '<button class="'+cls(s)+'"><span><b>Option 1</b></span>'+
+        '<span class="pips">'+p+'</span></button>';
+    }},
+
+  { key:"d", title:"D. A ring on the ordinal",
+    body:"The option number sits inside a ring that closes as its foods go in. The ordinal is the thing you already read to tell options apart, so the progress is attached to the thing being identified rather than added beside it.",
+    sc:[["ok","Compact: the row stays 32 tall and the chip barely widens"],
+        ["ok","The ring is a shape, so it survives being small"],
+        ["ok","Progress sits on the ordinal, which is what names the option"],
+        ["mid","A ring at 22px cannot show 1 of 6 precisely"],
+        ["mid","Another circular progress mark on a screen that has a score"]],
+    chip:function(s){
+      var r = 9, c = 2 * Math.PI * r, off = c * (1 - s.done / s.of);
+      return '<button class="'+cls(s)+'"><span class="ring">'+
+        '<svg viewBox="0 0 22 22"><circle class="bg" cx="11" cy="11" r="'+r+'"/>'+
+        '<circle class="fg" cx="11" cy="11" r="'+r+'" stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'"/></svg>'+
+        '<span>1</span></span><b>Option 1</b>'+(s.done===s.of?TICK:'')+'</button>';
+    }}
+];
+
+document.getElementById('out').innerHTML = V.map(function(v){
+  return '<section class="v '+v.key+'"><div class="vh"><div class="tag">Variant</div>'+
+    '<h2>'+v.title+'</h2><p>'+v.body+'</p></div>'+
+    '<div class="matrix">'+STATES.map(function(s){
+      return '<div class="cell"><div class="st">'+s.st+'</div><div class="box">'+v.chip(s)+'</div></div>';
+    }).join('')+'</div>'+
+    '<div class="score">'+v.sc.map(function(r){
+      var m={ok:'✓',no:'✗',mid:'–'}[r[0]];
+      return '<div class="'+r[0]+'"><i>'+m+'</i><span>'+r[1]+'</span></div>';
+    }).join('')+'</div></section>';
+}).join('');
+</script>
+</body>
+</html>

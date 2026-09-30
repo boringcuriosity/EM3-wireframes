@@ -18,7 +18,7 @@ of the artboard (just above the nav).
 <body>
 <x-dc>
 <helmet>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
   <style>
     body { margin: 0; background: #F9FAFB; font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: 0.25px; color: #101828; -webkit-font-smoothing: antialiased; }
     a { color: #299D6B; } a:hover { color: #2A805A; }
@@ -39,7 +39,7 @@ of the artboard (just above the nav).
 - Icons: inline SVG only, stroke 1.8-2, round caps/joins, `fill="none"`. Never emoji.
 - Hit targets 44px min for interactive controls (the glyph can be smaller inside).
 - Copy: plain friendly English, NO em dashes anywhere (use comma, period, colon; en dash only in number ranges like 6:00 - 7:00 AM as written below). No exclamation stacking. No AI jargon.
-- Fonts: Roboto for everything; Playfair Display 600 only for at most ONE display moment per screen, never below 24px.
+- Fonts: Roboto for everything, including the score. Playfair was used for the score and is gone: one typeface, sized and weighted for hierarchy.
 - Aim for generous white space; 16px screen gutters minimum (20-24 fine).
 - Report the root height you used.
 

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Log a meal</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Roboto:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="../icons/glyph-masks.css">
 <style>
   /* ============================================================
@@ -26,6 +26,10 @@
      on screen instead of hiding under them */
   @supports (height: 100dvh) { .col { height: 100dvh; min-height: 100dvh; } }
   .ico { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  /* The back arrow is its own shape, not a chevron: a stroked line with a
+     flared tail. It is fill based, so it cannot wear .ico, which sets
+     fill:none and stroke:currentColor and would render it invisible. */
+  .backico { width: 22px; height: 22px; fill: currentColor; stroke: none; flex-shrink: 0; }
 
   /* header */
   .hd { flex-shrink: 0; display: flex; align-items: center; gap: 8px; padding: 10px 16px; }
@@ -47,13 +51,178 @@
   .daynote svg { color: #667085; }
 
   /* search */
-  .srch { flex-shrink: 0; padding: 0 16px 10px; }
-  .sbar { display: flex; align-items: center; gap: 8px; background: #F9FAFB; border: 1px solid #E4E7EC; border-radius: 12px; padding: 0 4px 0 12px; height: 52px; }
+  /* 38 of padding: 52 of bar, 18 of tab hidden behind it, 28 of lip showing,
+     10 of clear before the tabs. The room is reserved whether or not the tab
+     is showing, so typing does not make the tabs hop. */
+  /* ---- the bar stands down while you read ----
+     ONE layout property animates, the block's height, and everything else is
+     transform and opacity. The first version animated width, height, padding
+     and a transform together: three of those force a reflow on every frame,
+     the whole column re-laid out sixty times a second, and it juddered. The
+     magnifier reappears in the header as a bare glyph, with no plate under it,
+     because a filled square in a header row reads as a second button competing
+     with Back rather than as the field having stepped aside. */
+  /* No padding-bottom. The 90 already reserves the strip's room: the bar is 52
+     at the top and the strip runs 34 to 80, both inside it. Padding would
+     survive height:0 and leave 38px of dead space behind, and collapsing it
+     too would mean animating a second layout property. */
+  .srch { position: relative; flex-shrink: 0; padding: 0 16px; height: 90px;
+    overflow: hidden;
+    transition: height .36s cubic-bezier(.05,.7,.1,1); }
+  .srch.away { height: 0; }
+  /* it lifts and dims as the block closes over it, transform only */
+  .sbar { transition: transform .36s cubic-bezier(.05,.7,.1,1), opacity .2s ease-out,
+      background .3s ease-out, box-shadow .3s ease-out, border-color .3s ease-out; }
+  .srch.away .sbar { transform: translateY(-12px); opacity: 0; }
+  .srch.away .kstrip .kstrip-in { transform: translateY(-100%); opacity: 0; }
+
+  /* the glyph that takes its place, in the header's own right slot */
+  .hfind { width: 44px; height: 44px; margin-right: -10px; border: 0; background: none;
+    padding: 0; display: grid; place-items: center; color: #344054; cursor: pointer;
+    border-radius: 9999px;
+    opacity: 0; transform: scale(.82); pointer-events: none;
+    transition: opacity .2s ease-out, transform .36s cubic-bezier(.05,.7,.1,1); }
+  .hfind:active { background: #F2F4F7; }
+  /* it arrives a beat after the bar has gone, so the two never overlap */
+  body.findup .hfind { opacity: 1; transform: none; pointer-events: auto;
+    transition-delay: .1s; }
+  .sbar { position: relative; z-index: 2; }
+  /* Her shelf, tucked under the bar and showing only its lower edge, so it
+     reads as one card slipped behind another rather than a second control bar.
+     Full width, matching the bar exactly, so the two line up as one object. */
+  .kstrip { position: absolute; left: 16px; right: 16px; top: 34px; z-index: 1; overflow: hidden; }
+  /* Centred, with her mark closing the line rather than opening it: the
+     sentence names the two ways in, and she is the signature under them. */
+  .kstrip-in { display: flex; align-items: flex-end; justify-content: center; gap: 7px;
+    width: 100%; height: 46px; padding: 0 13px 6px;
+    border: 0; border-radius: 0 0 12px 12px; background: #EEF4FF; color: #3538CD;
+    font: 400 11.5px/16px Roboto, sans-serif; letter-spacing: .25px; cursor: pointer;
+    transition: transform .34s cubic-bezier(.3,0,.8,.15), opacity .2s ease-out; }
+  .kstrip-in b { font-weight: 600; }
+  .kstrip .km { display: flex; align-items: center; padding-bottom: 1px; }
+  .kstrip-in:active { background: #E0EAFF; }
+  /* up, behind the bar, and out. Leaving is quicker than arriving. */
+  .kstrip.gone .kstrip-in { transform: translateY(-100%); opacity: 0; }
+  .kstrip:not(.gone) .kstrip-in { transition: transform .42s cubic-bezier(.05,.7,.1,1), opacity .26s ease-out; }
+
+  /* ================= Kaira's logger, transcribed from production =================
+     src/components/organisms/KairaLogger/FoodLogger. Every value below is the
+     shipped one: the screen's radial bloom, the frosted header band, the
+     "Kaira AI" pill with its 0.5px rim, the hexagon sheet, the 8/8 dashed
+     rules, and the composer's blurred indigo to cyan seam. The folder has not
+     been touched since May, so this is what the app renders today. */
+  /* Below the status bar, not over it. The phone chrome's .gf-status is 54px
+     and sits at z-index 60, so a sheet at inset:0 with the same z-index paints
+     straight over the notch. --klog-top is measured from the real element when
+     the sheet opens, so it stays right if the chrome ever changes. */
+  .klog { position: absolute; top: var(--klog-top, 54px); left: 0; right: 0; bottom: 0;
+    z-index: 55; display: flex; flex-direction: column;
+    overflow: hidden; background: #fff;
+    /* centred BELOW the bottom edge, so the bloom rises behind the composer */
+    background-image: radial-gradient(1000px 400px at 50% 120%, rgba(197,228,255,.30) 0%, rgba(255,255,255,0) 65%);
+    transform: translateY(100%); transition: transform .34s cubic-bezier(.05,.7,.1,1); }
+  .klog.on { transform: none; }
+  .klog-hd { position: relative; flex: 0 0 auto; z-index: 11;
+    background: linear-gradient(to bottom, rgba(255,255,255,.7), rgba(255,255,255,.3));
+    backdrop-filter: blur(4px); }
+  .klog-bar { position: relative; height: 48px; display: flex; align-items: center; padding: 0 16px; }
+  /* three spans, tapered 20 / 16 / 12, not an icon */
+  .klog-burger { width: 36px; height: 36px; border: 0; background: none; border-radius: 9999px;
+    display: flex; flex-direction: column; justify-content: center; cursor: pointer; }
+  .klog-burger i { display: block; height: 2px; background: #111827; border-radius: 4px; }
+  .klog-burger i:nth-child(1) { width: 20px; }
+  .klog-burger i:nth-child(2) { width: 16px; margin-top: 4px; }
+  .klog-burger i:nth-child(3) { width: 12px; margin-top: 4px; }
+  /* square at the top, 24 at the bottom: it hangs off the top edge as a tab */
+  .klog-pill { position: absolute; left: 50%; transform: translateX(-50%);
+    border-radius: 4px 4px 24px 24px; padding: .5px; overflow: hidden;
+    background-image: linear-gradient(45deg, #36f0e4, #dec8f3 100%); }
+  .klog-pill span { display: block; padding: 4px 24px; border-radius: 4px 4px 24px 24px;
+    background: #F5F8FF; font-size: 14px; line-height: 20px; font-weight: 500; color: #1F2933; }
+  .klog-x { margin-left: auto; width: 36px; height: 36px; border: 0; border-radius: 9999px;
+    background: #f3f4f6; color: #667085; display: grid; place-items: center; cursor: pointer; }
+  /* the header's own drop, 16px of it, sitting below the band */
+  .klog-hd::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 16px;
+    transform: translateY(100%); pointer-events: none;
+    background: linear-gradient(to bottom, rgba(0,0,0,.08), rgba(0,0,0,.04), transparent); }
+  .klog-body { position: relative; flex: 1 1 auto; overflow-y: auto; padding: 0 16px; }
+  /* one sheet, not a tile. The fade lives inside the asset: its strokes run
+     from #F2F4F7 at the top to white at the bottom. */
+  .klog-bg { position: absolute; left: 0; top: -20px; width: 100%; z-index: 0; pointer-events: none; }
+  .klog-in { position: relative; z-index: 1; padding-top: 20px; }
+  .klog-row { display: flex; align-items: flex-start; gap: 12px; }
+  .klog-row .gfk { flex-shrink: 0; }
+  .klog-col { flex: 1; min-width: 0; }
+  .klog-say { font-size: 15px; line-height: 24px; color: #1F2933; }
+  /* a painted 8 on, 8 off gradient, not border-style dashed, so the rhythm is
+     exact and never renders as dots */
+  .klog-rule { margin: 16px 0; border: 0; height: 1px;
+    background-image: repeating-linear-gradient(to right, #D1D5DB 0px, #D1D5DB 8px, transparent 8px, transparent 16px); }
+  .klog-lab { font-size: 12px; line-height: 16px; color: #6b7280; margin-bottom: 4px; }
+  .klog-eg b { font-weight: 600; }
+  .klog-eg u { text-decoration: none; font-weight: 800; }
+  /* the composer */
+  .klog-foot { flex: 0 0 auto; padding-top: 8px; background: #fff; }
+  .klog-sheet { position: relative; width: 99%; margin: 0 auto; display: flex; flex-direction: column;
+    gap: 4px; border-radius: 24px 24px 0 0; background: #fff; overflow: hidden;
+    box-shadow: 1px -10px 13px 10px rgba(69,94,231,.05); }
+  /* the seam: an 8px bar blurred 20 at 60%, indigo on the right, cyan on the left */
+  .klog-seam { position: absolute; left: 0; right: 0; top: 0; height: 8px; pointer-events: none;
+    filter: blur(20px); opacity: .6;
+    background: linear-gradient(270deg, rgba(69,94,231,.49) 0%, rgba(68,215,231,.6) 100%); }
+  .klog-ta { width: 100%; padding: 16px 56px 16px 16px; border: 0; outline: none; resize: none;
+    background: #fff; font: 400 15px/22px Roboto, sans-serif; color: #1F2933; }
+  .klog-ta::placeholder { color: #9ca3af; }
+  .klog-acts { display: flex; align-items: center; justify-content: space-between; padding: 0 12px 12px; }
+  .klog-snap { display: flex; align-items: center; gap: 4px; padding: 6px; border: 0;
+    border-radius: 24px; background: #F2F4F7; color: #667085; font-size: 14px; cursor: pointer; }
+  .klog-right { display: flex; align-items: center; gap: 16px; }
+  .klog-mic { width: 32px; height: 32px; border: 0; border-radius: 9999px; background: #F2F4F7;
+    color: #667085; display: grid; place-items: center; cursor: pointer; }
+  /* White, with her light under it. The shadow is tinted with Kaira's indigo
+     rather than black, so the field and the strip tucked below it share one
+     colour temperature and read as a single object lit from the same place.
+     Kept very soft and very close, so it is the card lifting off the page
+     rather than the field lifting off the card: a field is a thing you put
+     something into, and a hard drop shadow would say raised. */
+  .sbar { display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #E6E9F5; border-radius: 12px; padding: 0 4px 0 12px; height: 52px;
+    box-shadow: 0 1px 2px rgba(68,76,231,.06), 0 6px 16px -6px rgba(68,76,231,.14); }
   /* indigo is the house colour for a focused input */
   .sbar { transition: border-color .18s ease-out, box-shadow .18s ease-out, background .18s ease-out; }
   .sbar:focus-within { border-color: #444CE7; background: #fff; box-shadow: 0 0 0 3px #EEF4FF; }
   .sbar input { flex: 1; min-width: 0; min-height: 44px; border: 0; outline: none; background: transparent; font-size: 14px; color: #101828; }
   .sbar input::placeholder { color: #98A2B3; }
+  /* A rolling placeholder. The real one is emptied and this sits in its place,
+     because an input's ::placeholder cannot be animated: it is not an element,
+     so it has no box to move. Two lines stacked in a 20px window, the strip
+     rolling between them with a long hold on each, so it reads as a slot
+     coming to rest rather than a ticker that never stops.
+     It is aria-hidden and the input keeps its own aria-label, so a screen
+     reader hears one stable name rather than a moving target. */
+  /* right:12, not 56. The 56 was clearance for the clear button, but that
+     button only exists once there is text, and by then the placeholder is
+     already hidden. Reserving for it just squeezed the longest line to the
+     pixel. */
+  .phroll { position: absolute; left: 38px; right: 12px; top: 50%; height: 20px; margin-top: -10px;
+    overflow: hidden; pointer-events: none; z-index: 1;
+    transition: opacity .16s ease-out; }
+  .phroll i { display: block; height: 20px; font: 400 14px/20px Roboto, sans-serif;
+    font-style: normal; color: #98A2B3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* Three lines, each held about 3s, with a short roll between. 13.5s round
+     trip, and the fourth stop is the first line repeated so the loop closes
+     on itself instead of racing back up through the other two. */
+  .phroll span { display: block; animation: slot 13.5s cubic-bezier(.4,0,.2,1) infinite; }
+  @keyframes slot {
+    0%, 22%   { transform: translateY(0); }
+    27%, 49%  { transform: translateY(-20px); }
+    54%, 76%  { transform: translateY(-40px); }
+    81%, 100% { transform: translateY(-60px); }
+  }
+  /* it has done its job the moment there is a cursor or a character */
+  .sbar:focus-within .phroll, .srch.typed .phroll { opacity: 0; }
+  @media (prefers-reduced-motion: reduce) {
+    .phroll span { animation: none; }
+  }
   .sbar .sep { width: 1px; height: 20px; background: #E4E7EC; }
   .iconbtn { width: 44px; height: 44px; border: 0; background: none; border-radius: 9999px; display: grid; place-items: center; color: #344054; cursor: pointer; flex-shrink: 0; }
   .iconbtn:hover { background: #F2F4F7; }
@@ -71,7 +240,22 @@
      active label, which we deliberately leave out: the option chips directly
      below are green tinted pills, and two of them stacked read as one control
      repeated, which is the confusion the underline was chosen to avoid. */
-  .tabs { position: relative; flex-shrink: 0; padding: 0 16px; margin-bottom: 10px; }
+  /* No margin under the tabs. The rail is drawn at this element's bottom edge,
+     so any gap below it is a white band the scrolling content cannot reach,
+     and rows slide under a floating line instead of under the rail itself.
+     The breathing room at rest comes from the list's own first label, which
+     already carries 12 above it. */
+  .tabs { position: relative; flex-shrink: 0; padding: 0 16px; }
+  /* A rail for the indicator to sit on. Without it the active tab carries the
+     only mark on the row, so the other two read as headings rather than as
+     places you can go, which is the whole job of an underline tab. The Figma
+     frame omits it; M3's primary tabs carry a divider for exactly this reason,
+     and on this screen the two inactive labels were doing nothing to say they
+     were live. Full bleed, so it also separates the row from the list below. */
+  .tabs::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0;
+    height: 1px; background: var(--g-200, #E4E7EC); }
+  /* the travelling indicator rides above the rail */
+  .tabind { z-index: 1; }
   .tabbtns { display: flex; gap: 4px; }
   /* One indicator that travels, rather than a pseudo on each tab that can only
      blink. It outlives the re-render, which is what lets it animate at all. */
@@ -88,8 +272,15 @@
   .tab.on { color: #299D6B; }
 
   /* list */
-  .list { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 2px 16px 8px; }
-  .glab { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: #667085; margin: 12px 0 4px; display: flex; align-items: center; gap: 8px; }
+  /* The tray is not a flat edge: its ::before lays a 40px white fade over the
+     list, and the tally strip stands another 30 proud of the tray on top of
+     that. Eight pixels of bottom padding left the last row sitting under both,
+     half read and untappable. This is scroll room, so the final row can come
+     clear of the fade, rather than a shorter list. */
+  .list { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 0 16px 52px; }
+  /* with something in the tray the strip is there too, so it needs more */
+  .col:has(.tally) .list { padding-bottom: 96px; }
+  .glab { font-family: Roboto, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: #667085; margin: 12px 0 4px; display: flex; align-items: center; gap: 8px; }
   /* the tint runs edge to edge, the text and controls stand on the 16px gutter */
   .row { display: flex; align-items: center; gap: 8px; padding: 8px 16px; margin: 0 -16px; border-bottom: 1px solid #F2F4F7; transition: background .15s ease-out; }
   .row.has { background: #F9FAFB; }
@@ -130,15 +321,24 @@
   @keyframes bdot { 0% { transform: translate(0,0) scale(.3); opacity: 1; }
     55% { opacity: 1; }
     100% { transform: translate(var(--tx), var(--ty)) scale(.3); opacity: 0; } }
-  /* a row affordance repeats ten times over, so it stays quiet. No depth bar. */
-  .add { width: 44px; height: 44px; border-radius: 12px; border: 0; background: #F2F4F7; color: #101828; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
-  .add:hover { background: #E4E7EC; }
-  .add:active { background: #D0D5DD; }
+  /* A row affordance repeats ten times over, so it stays quiet: no depth bar,
+     and the secondary green fill rather than the primary's solid one. Grey
+     said nothing about what the control does, and grey is this system's
+     disabled tone, so a row of them read as a list you could not act on. */
+  .add { width: 44px; height: 44px; border-radius: 12px; border: 0; background: #E6FAF1; color: #299D6B; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+  .add:hover { background: #CBF0E0; }
+  .add:active { background: #A9E3C9; }
   .step { display: flex; align-items: center; background: #fff; border: 1px solid #E4E7EC; border-radius: 12px; flex-shrink: 0; }
-  .step button { width: 44px; height: 44px; border: 0; background: none; border-radius: 9999px; color: #101828; display: grid; place-items: center; cursor: pointer; }
-  .step button:hover { background: #F2F4F7; }
-  /* the count is the green mark that says this row is in the meal */
-  .step b { min-width: 24px; text-align: center; font-size: 14px; font-weight: 700; color: #299D6B; }
+  /* the minus and the plus carry the same green as the count between them, so
+     the whole stepper reads as one control in one colour */
+  .step button { width: 44px; height: 44px; border: 0; background: none; border-radius: 9999px; color: #299D6B; display: grid; place-items: center; cursor: pointer; }
+  .step button:hover { background: #E6FAF1; }
+  /* The count is a value, not a control, so it is near black while the two
+     buttons either side of it carry the green. It used to be green itself,
+     back when it was the only thing saying this row was in the meal; now the
+     minus and the plus say that, and three greens in one pill left nothing to
+     read. */
+  .step b { min-width: 24px; text-align: center; font-size: 14px; font-weight: 700; color: #101828; }
 
   /* the coach's plan: one option is chosen, its items tick off one tap each */
   .opts { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0 2px; }
@@ -148,7 +348,14 @@
   .opt { position: relative; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px; border-radius: 9999px;
     border: 1px solid #E4E7EC; background: #fff; font-size: 14px; font-weight: 600; color: #667085; cursor: pointer; }
   .opt::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
-  .opt.on { background: #E6FAF1; border-color: #299D6B; color: #299D6B; }
+  /* Two axes on two properties, the same as the meal card's chips: the fill is
+     how much of this option is in the tray, the ring is the one being read.
+     Both want to be green, so they cannot share a property.
+     Explored in ../option-chip-options.html, variant B. */
+  /* anything added from an option gives it a tint, an edge and a check; no fill */
+  .opt.done { border-color: #CBF0E0; background: #F3FCF8; }
+  .opt.on { background: #fff; border-color: #299D6B; color: #299D6B;
+    box-shadow: 0 0 0 1px #299D6B; }
   .opt svg { width: 15px; height: 15px; }
   .opt .ot { display: block; text-align: left; }
   .opt .ot b { display: block; font-size: 13px; font-weight: 700; line-height: 17px; }
@@ -246,7 +453,7 @@
      action rather than the one that is left. */
   .empty p b { font-weight: 700; color: #101828; }
   /* at the scale the other two empty states set their object */
-  .empty .eart > svg { width: 54px; height: 59px; }
+
 
   /* the house primary, with its depth bar, because on this screen finding a
      food is not one option among several, it is the job */
@@ -281,6 +488,27 @@
     width: 100%; min-height: 44px; margin: -30px 0 6px; padding: 4px 12px 4px 10px;
     border: 0; border-radius: 9999px; background: #fff; cursor: pointer;
     box-shadow: 0 1px 3px rgba(16,24,40,.10), 0 6px 16px -6px rgba(16,24,40,.22); }
+  /* One band of light crossing the strip when something lands in it. Pale
+     indigo rather than white, so it reads on a white bar, and it travels once
+     and resolves rather than looping. It is a pseudo element inside the
+     strip's own radius, so nothing is displaced and nothing has to move. */
+  .tally { overflow: hidden; }
+  .tally::after { content: ""; position: absolute; inset: 0; border-radius: inherit;
+    pointer-events: none; opacity: 0; transform: translateX(-110%);
+    background: linear-gradient(105deg, rgba(68,76,231,0) 36%, rgba(68,76,231,.13) 50%,
+      rgba(68,76,231,0) 64%); }
+  .tally.lit::after { animation: tallyShine .85s cubic-bezier(.4,0,.2,1) both; }
+  /* Opacity is held across the middle rather than easing with the travel. On
+     one curve for both, the light was at full strength while it was still off
+     the left edge and down to a quarter by the time it reached the middle, so
+     the brightest part of the sweep happened where nobody could see it. */
+  @keyframes tallyShine {
+    0%   { opacity: 0; transform: translateX(-110%); }
+    16%  { opacity: 1; }
+    74%  { opacity: 1; }
+    100% { opacity: 0; transform: translateX(110%); }
+  }
+  @media (prefers-reduced-motion: reduce) { .tally.lit::after { animation: none; } }
   .tally .stack { display: flex; flex-shrink: 0; }
   /* a fixed width however many are in it, because the third becomes a +N */
   .tally .tok { width: 28px; height: 28px; border-radius: 9999px; flex-shrink: 0;
@@ -407,16 +635,35 @@
      the food, and everything here belongs to it. */
   .qfacts { border-radius: 16px; overflow: hidden; border: 1px solid #F2F4F7;
     background: linear-gradient(180deg, #FCFCFD 0%, #F9FAFB 100%); }
-  .qcal { display: flex; align-items: baseline; gap: 8px; padding: 16px 16px 14px; }
+  /* the total sits under the four parts, on its own line, with its own word */
+  .qcal { display: flex; align-items: center; gap: 8px; padding: 14px 16px;
+    border-top: 1px solid #F2F4F7; }
+  .qcal .cl { flex: 1; min-width: 0; font-size: 13px; color: #667085; }
+  /* the same grey the four macro glyphs carry, so the five marks in this panel
+     read as one set. Near black made the flame the heaviest thing in a panel
+     that is only stating facts, and it competed with the figure beside it. */
   .qcal svg { align-self: center; flex-shrink: 0; }
-  .qcal b { font-size: 26px; line-height: 32px; font-weight: 700; color: #101828;
-    letter-spacing: -.4px; }
-  .qcal span { font-size: 14px; color: #667085; }
+  .qcal svg path { fill: #667085; }
+  /* 20, not 26. The macro figures below are 15, and a 26 against a 15 is not a
+     hierarchy, it is two different sizes of type in one small panel. 20 still
+     leads, because calories is the headline number and it keeps the heavier
+     weight, but the five figures now read as one set of facts rather than one
+     headline with four footnotes. The unit drops to 13 for the same reason,
+     one step above the macro labels instead of two. */
+  /* the same 15 the macro figures carry, one weight heavier because it is the
+     total of them rather than another one of them */
+  .qcal b { font-size: 15px; line-height: 20px; font-weight: 700; color: #101828; }
+  .qcal .cu { font-size: 13px; color: #667085; }
 
-  .qmac { display: flex; border-top: 1px solid #F2F4F7; }
+  .qmac { display: flex; }
   .qmac div { flex: 1; min-width: 0; text-align: center; padding: 14px 4px 16px; }
   .qmac div + div { border-left: 1px solid #F2F4F7; }
-  .qmac .g { width: 22px; height: 22px; margin: 0 auto; background: var(--in-600, #444CE7);
+  /* Neutral, not indigo. The four glyphs are identification, not measurement:
+     nothing here is scored, so a saturated colour claimed a meaning the row
+     does not carry, and four of them made a facts panel the loudest thing in
+     the sheet. Macros stay one colour with their own icons, which is the rule
+     everywhere else in this pillar; here that one colour is grey. */
+  .qmac .g { width: 22px; height: 22px; margin: 0 auto; background: #667085;
     -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
   .qmac b { display: block; margin-top: 8px; font-size: 15px; line-height: 20px;
@@ -431,11 +678,16 @@
   .qstep { display: flex; align-items: center; justify-content: space-between;
     height: 52px; margin-top: 22px; padding: 0 6px; border-radius: 12px;
     background: #299D6B; box-shadow: 0 4px 0 #2A805A; }
+  /* No plate behind the glyphs. Two lighter squares on a solid green bar read
+     as two more buttons sitting on a button, and the bar is already the
+     control: the minus and the plus are the only things in it you can press,
+     so nothing has to be drawn around them to say so. The 44px target is
+     unchanged, it is just no longer painted. */
   .qstep button { width: 44px; height: 44px; flex-shrink: 0; border: 0; border-radius: 10px;
-    background: rgba(255,255,255,.16); color: #fff;
+    background: none; color: #fff;
     display: grid; place-items: center; cursor: pointer;
     transition: transform .2s ease-out, background .2s ease-out; }
-  .qstep button:hover { background: rgba(255,255,255,.26); }
+  .qstep button:hover { background: rgba(255,255,255,.16); }
   .qstep button:active { transform: scale(.9); }
   .qstep .v { flex: 1; min-width: 0; display: flex; align-items: baseline;
     justify-content: center; gap: 6px; }
@@ -676,13 +928,16 @@
 
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
+<script src="assets/kaira.js"></script>
 </head>
 <body>
 <div class="col" id="col">
   <div class="hd">
-    <button class="back" id="back" aria-label="Back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <button class="back" id="back" aria-label="Back"><svg class="backico" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path fill="currentColor" d="M9.409 3.444c-.015-.015-.473-.13-1.018-.255s-.997-.208-1.004-.185-.064.401-.125.84c-.124.882-.424 1.911-.744 2.555-1 2.006-2.791 3.334-4.964 3.68L1 10.165v1.773l.502.084c3.286.551 5.429 3.008 5.83 6.686.026.24.057.436.069.436.11 0 1.947-.443 1.982-.478.025-.025.006-.25-.042-.5-.531-2.765-2.053-5.015-4.027-5.955l-.474-.226 9.74-.018 6.16-.01v-1.794l-6.176-.011-9.717-.018.598-.303c1.552-.786 2.78-2.328 3.503-4.397.206-.59.517-1.934.46-1.99"/></svg></button>
     <span class="t"><b id="hTitle">Log your meal</b><span id="hSub">Today</span></span>
-    <span class="hspace" aria-hidden="true"></span>
+    <button class="hfind" id="hFind" aria-label="Search" tabindex="-1">
+      <svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+    </button>
   </div>
 
   <div id="dayNote"></div>
@@ -690,9 +945,19 @@
   <div class="srch">
     <div class="sbar">
       <svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px;color:#667085"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
-      <input id="q" placeholder="Search a dish or ingredient" aria-label="Search a dish or ingredient" autocomplete="off">
+      <input id="q" placeholder=" " aria-label="Search and log what you ate" autocomplete="off">
+      <span class="phroll" aria-hidden="true"><span>
+        <i>Search &amp; log what you ate</i>
+        <i>Had something else? Find it here.</i>
+        <i>Ate off the plan? Search it here.</i>
+        <!-- the first line again, so the roll never snaps back two steps: it
+             lands here, and the restart at 0 shows the same words -->
+        <i>Search &amp; log what you ate</i>
+      </span></span>
       <span id="sTools"></span>
     </div>
+    <div class="kstrip" id="kstrip"><button class="kstrip-in" id="kstripBtn"
+      aria-label="Log your meal with voice or a photo, using KAIRA"><span>Log your meal easily with <b>Voice</b> or <b>Snap</b></span><span class="km" id="kstripMark"></span></button></div>
   </div>
 
   <div class="tabs" id="tabs"><div class="tabbtns" id="tabBtns"></div><span class="tabind" id="tabInd"></span></div>
@@ -742,8 +1007,8 @@ var FOODS = [
   f("dosa", "Dosa", "1 piece", 4, 29, 4, 2),
   f("idli", "Idli", "2 pieces", 4, 26, 1, 2),
   f("sambar", "Sambar", "1 katori", 4, 14, 3, 4),
-  f("rice", "Steamed rice", "1 katori", 3, 35, 0, 1),
-  f("roti", "Roti", "1 piece", 3, 15, 2, 2),
+  f("rice", "Steamed rice", "1 katori", 3, 35, 0, 1, ["freq"]),
+  f("roti", "Roti", "1 piece", 3, 15, 2, 2, ["freq"]),
   f("eggbhurji", "Egg bhurji", "2 eggs", 13, 2, 11, 0),
   f("chicken", "Chicken curry", "1 katori", 22, 6, 12, 1),
   f("curdrice", "Curd rice", "1 bowl", 7, 40, 5, 2),
@@ -753,12 +1018,12 @@ var FOODS = [
   f("paneer", "Paneer bhurji", "1 katori", 14, 5, 14, 1),
   f("rajma", "Rajma", "1 katori", 9, 25, 3, 7),
   f("biryani", "Chicken biryani", "1 plate", 12, 58, 14, 4),
-  f("upma", "Upma", "1 bowl", 5, 38, 7, 3),
-  f("coffee", "Filter coffee", "1 cup", 2, 8, 2, 0),
+  f("upma", "Upma", "1 bowl", 5, 38, 7, 3, ["freq"]),
+  f("coffee", "Filter coffee", "1 cup", 2, 8, 2, 0, ["freq"]),
   f("khichdi", "Dal khichdi", "1 bowl", 8, 38, 6, 5),
   f("blacktea", "Black tea with cinnamon", "1 cup", 0, 2.5, 0, 0),
   f("jeerawater", "Jeera water", "1 glass", 0, 0.7, 0, 0),
-  f("eggs", "Boiled egg", "1 egg", 6, 1, 5, 0),
+  f("eggs", "Boiled egg", "1 egg", 6, 1, 5, 0, ["freq"]),
   f("chilla", "Lauki oats besan chilla", "1 piece", 3.5, 10, 2.5, 2),
   f("chutney", "Green chutney", "1 spoon", 0, 1, 0, 0.5),
   f("dahi", "Dahi, low-fat", "1 bowl", 9, 12, 3, 0),
@@ -766,7 +1031,7 @@ var FOODS = [
   f("quinoa", "Vegetable quinoa pulao", "1 bowl", 6, 28, 4, 5),
   f("makhana", "Roasted makhana", "1 bowl", 3, 18, 1.5, 2),
   f("multiroti", "Multigrain roti", "1 piece", 2.5, 13, 2, 3),
-  f("sabzi", "Mixed veg sabzi", "1 katori", 3, 12, 6, 4),
+  f("sabzi", "Mixed veg sabzi", "1 katori", 3, 12, 6, 4, ["freq"]),
   f("walnut", "Walnut", "1 piece", 0.6, 0.5, 2.6, 0.3),
   f("chamomile", "Chamomile tea", "1 cup", 0, 0.5, 0, 0)
 ];
@@ -815,12 +1080,40 @@ function dayLong(off) {
   return WDL[d.getDay()] + ", " + d.getDate() + " " + MOL[d.getMonth()];
 }
 
-/* the coach's breakfast, written three ways */
-var PLAN = [
-  [{ id: "eggs", qty: 2 }, { id: "chilla", qty: 2 }, { id: "chutney", qty: 2 }, { id: "curd", qty: 1 }],
-  [{ id: "poha", qty: 1 }, { id: "curd", qty: 1 }, { id: "eggs", qty: 1 }],
-  [{ id: "idli", qty: 1 }, { id: "sambar", qty: 1 }, { id: "curd", qty: 1 }, { id: "eggs", qty: 1 }]
-];
+/* The coach's plan for every meal, not just breakfast. It used to hold
+   breakfast's three options alone, so opening this screen from Bedtime showed
+   breakfast's foods: the walnut you had just tapped was sitting in the tray
+   with no row of its own to show it, because it is not in breakfast's plan.
+   Same foods, same quantities and same order as the day view's MEALS table. */
+var PLANS = {
+  prebreakfast: [
+    [{ id: "blacktea", qty: 1 }],
+    [{ id: "jeerawater", qty: 1 }]
+  ],
+  breakfast: [
+    [{ id: "eggs", qty: 2 }, { id: "chilla", qty: 2 }, { id: "chutney", qty: 2 }, { id: "curd", qty: 1 }],
+    [{ id: "poha", qty: 1 }, { id: "curd", qty: 1 }, { id: "eggs", qty: 1 }],
+    [{ id: "idli", qty: 1 }, { id: "sambar", qty: 1 }, { id: "curd", qty: 1 }, { id: "eggs", qty: 1 }]
+  ],
+  lunch: [
+    [{ id: "dahi", qty: 1 }, { id: "gardensalad", qty: 1 }, { id: "quinoa", qty: 1 }, { id: "rajma", qty: 1 }],
+    [{ id: "roti", qty: 2 }, { id: "sabzi", qty: 1 }, { id: "dal", qty: 1 }, { id: "gardensalad", qty: 1 }]
+  ],
+  eveningsnack: [
+    [{ id: "makhana", qty: 1 }, { id: "chana", qty: 1 }],
+    [{ id: "chana", qty: 1 }, { id: "curd", qty: 1 }]
+  ],
+  dinner: [
+    [{ id: "multiroti", qty: 2 }, { id: "sabzi", qty: 1 }, { id: "dal", qty: 1 }, { id: "gardensalad", qty: 1 }],
+    [{ id: "khichdi", qty: 1 }, { id: "curd", qty: 1 }, { id: "sabzi", qty: 1 }, { id: "gardensalad", qty: 1 }]
+  ],
+  bedtime: [
+    [{ id: "walnut", qty: 2 }, { id: "chamomile", qty: 1 }]
+  ]
+};
+/* The day view names the same six meals with its own shorter ids, and a door
+   can arrive carrying either vocabulary, so both resolve here. */
+var DIV_ALIAS = { pre: "prebreakfast", bf: "breakfast", snack: "eveningsnack", bed: "bedtime" };
 
 /* ---------- icons ---------- */
 var I = {
@@ -831,19 +1124,26 @@ var I = {
      dish was mostly that macro, which is a different claim. */
   dish: '<svg viewBox="0 0 24 24" fill="none" stroke="#2D3282" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M3.5 11h17"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 7.5c0-1.2 1.1-1.5 1.1-2.7"/><path d="M8.6 7.5c0-1.2 1.1-1.5 1.1-2.7"/></svg>',
   /* the same flame the calorie card on the day view uses, gradient and all */
-  flame: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
-    '<defs><linearGradient id="calf2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FDB022"/><stop offset="1" stop-color="#F04438"/></linearGradient></defs>' +
-    '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="url(#calf2)"/></svg>',
+  /* Shaheer's flame, the filled cut rather than the outlined one, in the
+     house ink. Filled because at 16px an outline loses its inner
+     detail anyway, and a solid silhouette is the same mark every
+     glyph on this screen already is. */
+  flame: '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+    '<path fill="#101828" d="m6.156 9.323-.002.002-.004.003-.01.008a2 2 0 0 0-.126.104 5 5 0 0 0-.302.291c-.24.253-.548.629-.837 1.132-.582 1.015-1.071 2.528-.796 4.551.271 1.997 1.11 3.666 2.528 4.83C8.021 21.404 9.935 22 12.25 22c2.387 0 4.293-.895 5.554-2.43 1.25-1.521 1.808-3.596 1.675-5.864-.128-2.176-1.313-3.827-2.36-5.285l-.299-.417c-1.142-1.612-2.043-3.097-1.824-5.175A.75.75 0 0 0 14.25 2c-.382 0-.82.118-1.242.296a6.5 6.5 0 0 0-1.373.8c-.925.698-1.85 1.75-2.343 3.156C8.8 7.654 9.05 8.99 9.41 9.963c.237.639-.02 1.27-.407 1.454a.706.706 0 0 1-.927-.31L7.27 9.576a.75.75 0 0 0-1.113-.252"/></svg>',
   clock: '<svg class="ico" viewBox="0 0 24 24" style="stroke-width:1.8"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
   heartLine: '<svg class="ico" viewBox="0 0 24 24" style="stroke-width:1.8"><path d="M12 20s-7-4.4-7-9.2A4 4 0 0 1 12 8a4 4 0 0 1 7 2.8C19 15.6 12 20 12 20z"/></svg>',
   /* the same glass the search bar above carries, so the button and the field
      it sends you to are visibly the same thing */
-  /* Kaira's hexagon, lifted from the day view so she is the same mark
-     wherever she turns up */
-  kmark: '<svg width="34" height="37" viewBox="0 0 22 24" fill="none" aria-hidden="true">' +
-    '<defs><linearGradient id="klg" x1="0" y1="0" x2="1" y2="1">' +
-    '<stop offset="0" stop-color="#444CE7"/><stop offset="1" stop-color="#15B79E"/></linearGradient></defs>' +
-    '<path d="M11 1.2 20.1 6.6v10.8L11 22.8 1.9 17.4V6.6z" stroke="url(#klg)" stroke-width="2.4" stroke-linejoin="round"/></svg>',
+  /* her real mark, from assets/kaira.js, halo and all */
+  kmark: GFKaira.mark(64),
+  /* 13px, the size the tab's own 11.5px line can carry without the mark
+     outgrowing the words it belongs to */
+  kmarkTab: GFKaira.mark(13, { halo: false }),
+  /* MdClose and IoCamera / IoMicOutline, the three react-icons the production
+     logger uses, traced to path data so the prototype needs no icon library */
+  kx: '<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>',
+  kcam: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2L8 5h8l1.5 2h2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.4"/></svg>',
+  kmic: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
   kmarkSm: '<svg width="17" height="19" viewBox="0 0 22 24" fill="none" aria-hidden="true">' +
     '<path d="M11 1.2 20.1 6.6v10.8L11 22.8 1.9 17.4V6.6z" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/></svg>',
   search: '<svg class="ico" viewBox="0 0 24 24" style="stroke-width:1.9"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>',
@@ -882,6 +1182,12 @@ var MEAL_START = { prebreakfast: 6 * 60 + 30, breakfast: 8 * 60 + 30, lunch: 13 
      six doors fell through to the 8:30 default, which is why the + on Bedtime
      used to open a screen headed Breakfast. */
   pre: 6 * 60 + 30, bf: 8 * 60 + 30, snack: 17 * 60 + 30, bed: 22 * 60 + 30 };
+
+/* Which meal's plan the Your plan tab shows: the one the door was opened from,
+   falling back to breakfast when a door arrives naming no meal. Set here and
+   not further down, because S.option is clamped against PLAN.length below. */
+var PLAN_DIV = PLANS[DIV_ALIAS[MEAL] || MEAL] ? (DIV_ALIAS[MEAL] || MEAL) : "breakfast";
+var PLAN = PLANS[PLAN_DIV];
 
 var S = {
   items: [],          // [{id, qty}]
@@ -1023,7 +1329,9 @@ function toss(a, name, sub, row) {
   var fly = m.animate([
     { transform: "translate(0px,0px) scale(1)", opacity: 1, offset: 0,
       easing: "cubic-bezier(.2,.85,.35,1)" },
-    { transform: "translate(" + (dx * .1) + "px," + (-lift) + "px) scale(1.04)", opacity: 1, offset: .24,
+    /* no bulge on the way up: a card that grows before it leaves is the same
+       gimmick as the bar jumping when it lands */
+    { transform: "translate(" + (dx * .1) + "px," + (-lift) + "px) scale(1)", opacity: 1, offset: .24,
       easing: "cubic-bezier(.5,0,.85,.4)" },
     { transform: "translate(" + (dx * .82) + "px," + (dy * .86) + "px) scale(.52)", opacity: .92, offset: .78,
       easing: "cubic-bezier(.4,0,.2,1)" },
@@ -1036,18 +1344,22 @@ function toss(a, name, sub, row) {
     if (tok) {
       tok.style.transform = "";
       tok.style.opacity = "";
+      /* It settles, it does not spring. The old curve overshot to 1.16 and
+         came back, which on a token this small read as a pop rather than as
+         something arriving. */
       tok.animate([
-        { transform: "scale(.5)", opacity: 0 },
-        { transform: "scale(1.16)", opacity: 1, offset: .55 },
+        { transform: "scale(.72)", opacity: 0 },
         { transform: "scale(1)", opacity: 1 }
-      ], { duration: 300, easing: "cubic-bezier(.34,1.3,.64,1)" });
+      ], { duration: 280, easing: "cubic-bezier(.05,.7,.1,1)" });
     }
     if (strip) {
-      strip.animate([
-        { transform: "translateY(0)" },
-        { transform: "translateY(4px)", offset: .3 },
-        { transform: "translateY(0)" }
-      ], { duration: 340, easing: "cubic-bezier(.34,1.35,.64,1)" });
+      /* No nudge downward. The bar jumping 4px on every add was the gimmicky
+         part: the whole strip moved for one small thing joining it. A light
+         crosses it once instead, which says the same thing without displacing
+         anything the eye was already reading. */
+      strip.classList.remove("lit");
+      void strip.offsetWidth;
+      strip.classList.add("lit");
     }
   }, DUR * 0.8);
 
@@ -1169,8 +1481,8 @@ window.addEventListener("resize", moveTabInd);
    the phone and what the person reads back. The calorie total rides underneath
    so the three can still be compared without tapping each one in turn. */
 
-/* the coach wrote this plan for breakfast, so that is the meal its rows belong to */
-var PLAN_DIV = "breakfast";
+/* PLAN_DIV and PLAN are set up with MEAL, above, because S.option is clamped
+   against PLAN.length long before this point. */
 
 /* An empty tab is not an error, so it does not apologise. It names what the
    tab is for, says how it fills, and where a list would have been it puts one
@@ -1245,12 +1557,19 @@ function render() {
 
   el("dayNote").innerHTML = dayNoteHTML();
 
-  /* the two hands free ways in stand down once someone starts typing */
+  /* The field holds nothing but the field now. Two 44px targets inside a 52px
+     input crowded the one thing it is for, and neither glyph on its own said
+     that a whole meal can go in by talking. The offer moved to the tab tucked
+     under the bar, which has room for words. */
   el("sTools").innerHTML = q
     ? '<button class="iconbtn" id="clearQ" aria-label="Clear search">' + I.x + "</button>"
-    : '<span style="display:flex;align-items:center;gap:2px"><span class="sep" aria-hidden="true"></span>' +
-      '<button class="iconbtn ind" id="snapBtn" aria-label="Log with a photo">' + I.cam + "</button>" +
-      '<button class="iconbtn ind" id="voiceBtn" aria-label="Log by speaking">' + I.mic + "</button></span>";
+    : "";
+  /* and the tab stands down the moment somebody types, because by then they
+     have already chosen how they are logging */
+  el("kstrip").classList.toggle("gone", !!q);
+  document.querySelector(".srch").classList.toggle("typed", !!q);
+  var km = el("kstripMark");
+  if (km && !km.firstChild) km.innerHTML = I.kmarkTab;
 
   /* tabs */
   /* Recent, Favourites, then the plan. Frequent and Favourites were two
@@ -1286,9 +1605,14 @@ function render() {
   } else if (S.tab === "plan") {
     /* one option is chosen, the others are a tap away */
     html += '<div class="opts">' + PLAN.map(function (o, i) {
-      return '<button class="opt' + (i === S.option ? " on" : "") + '" data-opt="' + i + '">' +
-        (i === S.option ? I.check : "") +
-        '<span class="ot"><b>Option ' + (i + 1) + "</b></span></button>";
+      /* The same two axes the meal card uses: the fill is how much of this
+         option is already in the tray, the ring is the one you are reading. */
+      /* no progress fill: options share foods, so a check once any one is added */
+      var any = o.some(function (x) { return qtyOf(x.id) > 0; });
+      return '<button class="opt' + (i === S.option ? " on" : "") + (any ? " done" : "") + '" data-opt="' + i + '"' +
+          ' aria-label="Option ' + (i + 1) + (any ? ", added" : "") + '">' +
+        '<span class="ot"><b>Option ' + (i + 1) + "</b></span>" +
+        (any ? I.check : "") + "</button>";
     }).join("") + "</div>";
     /* One list, in the coach's own order. It used to be split into "in every
        option" and "only in option 2", which made the reader hold all three
@@ -1403,14 +1727,22 @@ function renderSheet() {
     title = "Add item";
     var q2 = inTray || 1;
     body = '<div class="qitem"><b>' + esc(fd.name) + "</b><span>" + esc(fd.unit) + "</span></div>" +
+      /* Macros first, calories under them. The four macros are what the food is
+         made of and the calorie figure is what they add up to, so it reads as
+         the total of the row above rather than a headline the macros footnote.
+         It is named now too: every other figure in this panel carries its own
+         word, and "98 kcal" alone left the reader to supply the only one that
+         did not. Label left, figure right, which is how the day view's own
+         calorie strip is built. */
       '<div class="qfacts">' +
-        '<div class="qcal">' + I.flame + "<b>" + fd.kcal + "</b><span>kcal</span></div>" +
         '<div class="qmac">' +
           [["protein", "Protein", fd.p], ["carbs", "Carbs", fd.c],
            ["fats", "Fats", fd.f], ["fibre", "Fibre", fd.fibre]].map(function (m) {
             return '<div><span class="g glyph-' + m[0] + '"></span><b>' +
               m[2] + "g</b><span>" + m[1] + "</span></div>";
           }).join("") + "</div>" +
+        '<div class="qcal">' + I.flame + '<span class="cl">Calories</span>' +
+          "<b>" + fd.kcal + "</b><span class=\"cu\">kcal</span></div>" +
       "</div>" +
       /* a coach's food is confirmed before it goes in: how much, and when */
       (s.plan ? timePart() : "") +
@@ -1766,10 +2098,25 @@ function movedMost() {
   return { name: NAME[top], share: per[top] };
 }
 
-function showWon(queued) {
+/* what the win says: the gain, the macro that moved most, and where it went */
+function winFacts(queued) {
   var m = movedMost();
-  /* a plausible move on a 0 to 100 score, from what actually went in */
-  var d = Math.max(1, Math.min(12, Math.round(m.share * 34)));
+  return { m: m, queued: queued,
+    /* a plausible move on a 0 to 100 score, from what actually went in */
+    d: Math.max(1, Math.min(12, Math.round(m.share * 34))),
+    moved: queued ? "Saved on your phone" : m.name + " moved most",
+    sub: count() + " into " + DIV_LABEL[divisionForTime(S.time)] + (queued ? ", it sends when you are back" : ""),
+    /* the detail the win screen layouts can use: grams per macro, the meal, and what went in */
+    meal: DIV_LABEL[divisionForTime(S.time)], n: count(), key: { Protein: "p", Carbs: "c", Fats: "f", Fibre: "fibre" }[m.name],
+    names: S.items.map(function (it) { return byId(it.id).name; }),
+    lines: S.items.map(function (it) { var fd = byId(it.id); return { name: fd.name, kcal: Math.round(fd.kcal * it.qty) }; }),
+    kcal: kcalTotal(),
+    g: S.items.reduce(function (t, it) { var fd = byId(it.id); if (fd) ["p", "c", "f", "fibre"].forEach(function (k) { t[k] += fd[k] * it.qty; }); return t; },
+      { p: 0, c: 0, f: 0, fibre: 0 }) };
+}
+function showWon(queued) {
+  var f = winFacts(queued), m = f.m, d = f.d;
+  try { sessionStorage.setItem("gfLogged", String(d)); } catch (e) {}
   /* clock angle, travel, kind and colour, read off the design system frame.
      Dots and arcs alternate and the arcs stay closer in. */
   var PIECES = [
@@ -1819,15 +2166,21 @@ function goEat() {
 
 function save() {
   if (!count()) return;
-  if (S.banner === "offline") {
-    showSaving();
-    setTimeout(function () { showWon(true); }, 900);
-    return;
-  }
-  showSaving();
+  /* the win moment (assets/win-moment.js) starts on the tap and covers the
+     save; without it, or for the classic overlay, the spinner does */
+  var ctl = window.WinMoment && WinMoment.begin(el("saveBtn").getBoundingClientRect(),
+    S.items.map(function (it) { return byId(it.id).name; }));
+  var finish = function (queued) {
+    if (!ctl) return showWon(queued);
+    var f = winFacts(queued);
+    try { sessionStorage.setItem("gfLogged", String(f.d)); } catch (e) {}
+    ctl.win(f, goEat);
+  };
+  if (!ctl) showSaving();
+  if (S.banner === "offline") { setTimeout(function () { finish(true); }, 900); return; }
   setTimeout(function () {
-    if (STATE === "failed") { el("savingHost").innerHTML = ""; S.banner = "failed"; render(); return; }
-    showWon(false);
+    if (STATE === "failed") { if (ctl) ctl.cancel(); el("savingHost").innerHTML = ""; S.banner = "failed"; render(); return; }
+    finish(false);
   }, 1100);
 }
 
@@ -1876,6 +2229,10 @@ document.addEventListener("click", function (e) {
     case "clearQ": S.query = ""; el("q").value = ""; return render();
     case "snapBtn": return openSheet({ kind: "snap", step: "frame" });
     case "voiceBtn": return runVoice();
+    /* The tab opens her logger, which carries BOTH doors in its own composer:
+       a Snap pill at the foot left and a mic at the foot right. So the line
+       promising voice or snap is honest, and neither route is lost. */
+    case "kstripBtn": return openKairaLog();
     case "shoot": S.sheet = { kind: "snap", step: "reading" }; render();
       return setTimeout(function () { S.sheet = { kind: "snap", step: "result" }; render(); }, 1900);
     case "retake": S.sheet = { kind: "snap", step: "frame" }; return render();
@@ -1908,6 +2265,115 @@ document.addEventListener("click", function (e) {
   }
   if (t === el("scrim")) closeSheet();
 });
+
+/* The bar stands down while you are reading the list and comes back the moment
+   you head up. Two guards keep it from flickering: it only reacts to a real
+   move of 6px or more, so a thumb resting on the list does nothing, and the
+   two thresholds are different, 40 down to collapse but any upward move to
+   restore, so a reader hovering around one number cannot make it flap. */
+function watchScroll() {
+  var list = document.getElementById("list");
+  var srch = document.querySelector(".srch");
+  if (!list || !srch) return;
+  /* The block is worth 90px, and handing that back to the list can remove the
+     very overflow that let it scroll. On a short list the browser then clamps
+     scrollTop to 0, this handler reads the clamp as a scroll upward, restores
+     the bar, the overflow returns, and the two fight each other: the list
+     appears frozen at the top. So it only stands down when the list will
+     still have room to scroll without it. */
+  var RESERVE = 90;
+  var last = 0, away = false, lock = false, lockT = null;
+  list.addEventListener("scroll", function () {
+    if (lock) return;
+    var y = list.scrollTop, d = y - last;
+    if (Math.abs(d) < 4) return;
+    var room = list.scrollHeight - list.clientHeight + (away ? RESERVE : 0);
+    if (room <= RESERVE + 8) {
+      if (away) { away = false; list.classList.remove("x");
+        document.querySelector(".srch").classList.remove("away");
+        document.body.classList.remove("findup"); }
+      last = y; return;
+    }
+    /* Down past 12 puts it away. Once away it STAYS away until the list is
+       back at the top, or until the glyph is tapped. Restoring on any upward
+       flick meant the bar reappeared every time somebody nudged back a row to
+       re-read something, and a control that comes and goes under the reading
+       is worse than one that simply waits. */
+    var want = away ? y > 6 : (y > 12 && d > 0);
+    if (want !== away) {
+      away = want;
+      srch.classList.toggle("away", away);
+      document.body.classList.toggle("findup", away);
+      /* the field cannot hold focus once it is not on screen */
+      if (away) { var q = document.getElementById("q"); if (q) q.blur(); }
+      /* Collapsing changes the list's height, and the browser answers that
+         with a scroll event of its own. Read as a gesture it looks like the
+         opposite direction, which flips the bar straight back. Ignoring the
+         next 420ms, the length of the transition, lets the layout settle
+         before this listens again. */
+      lock = true;
+      clearTimeout(lockT);
+      lockT = setTimeout(function () { lock = false; last = list.scrollTop; }, 420);
+    }
+    last = y;
+  }, { passive: true });
+  /* Tapping the glyph is a request for the field, so it brings the whole
+     block back and puts the cursor in it rather than only scrolling. */
+  var find = document.getElementById("hFind");
+  if (find) find.addEventListener("click", function () {
+    list.scrollTop = 0;
+    away = false; last = 0;
+    srch.classList.remove("away");
+    document.body.classList.remove("findup");
+    var q = document.getElementById("q");
+    if (q) setTimeout(function () { q.focus(); }, 260);
+  });
+}
+
+/* Her logger, as the product builds it. The sample exchange is permanent: it
+   sits above every real message rather than being a first-run state, because
+   the one thing a blank chat cannot do is teach you what to type into it. */
+function openKairaLog() {
+  var el = document.getElementById("klog");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "klog";
+    el.className = "klog";
+    el.setAttribute("role", "dialog");
+    el.setAttribute("aria-modal", "true");
+    el.innerHTML =
+      '<div class="klog-hd"><div class="klog-bar">' +
+        '<button class="klog-burger" aria-label="Open menu"><i></i><i></i><i></i></button>' +
+        '<div class="klog-pill"><span>Kaira AI</span></div>' +
+        '<button class="klog-x" id="klogX" aria-label="Close">' + I.kx + '</button>' +
+      '</div></div>' +
+      '<div class="klog-body">' +
+        '<img class="klog-bg" src="../icons/kaira-chat-bg.svg" alt="" aria-hidden="true">' +
+        '<div class="klog-in"><div class="klog-row">' +
+          /* 32px, and flat: the sample mark does not carry the halo */
+          GFKaira.mark(32, { halo: false }) +
+          '<div class="klog-col">' +
+            '<div class="klog-say">Hey! Just let me know what you ate and when, and I’ll log it for you</div>' +
+            '<hr class="klog-rule">' +
+            '<div class="klog-lab">Sample log:</div>' +
+            '<div class="klog-say klog-eg">I had <b>1 plate</b> <b>poha</b> at <u>8AM</u></div>' +
+            '<hr class="klog-rule">' +
+          '</div></div></div>' +
+      '</div>' +
+      '<div class="klog-foot"><div class="klog-sheet"><span class="klog-seam"></span>' +
+        '<textarea class="klog-ta" rows="1" placeholder="I had [quantity] of [food] at [time]"></textarea>' +
+        '<div class="klog-acts">' +
+          '<button class="klog-snap">' + I.kcam + 'Snap</button>' +
+          '<div class="klog-right"><button class="klog-mic" aria-label="Voice input">' + I.kmic + '</button></div>' +
+        '</div></div></div>';
+    document.querySelector(".col").appendChild(el);
+    el.querySelector("#klogX").onclick = function () { el.classList.remove("on"); };
+  }
+  var bar = document.querySelector(".gf-status");
+  el.style.setProperty("--klog-top", (bar ? bar.getBoundingClientRect().height : 0) + "px");
+  setTimeout(function () { el.classList.add("on"); }, 16);
+  return el;
+}
 
 function runVoice() {
   S.sheet = { kind: "voice", step: "listening" }; render();
@@ -1965,8 +2431,11 @@ document.addEventListener("keydown", function (e) { if (e.key === "Escape") clos
 
 el("q").value = S.query;
 render();
+watchScroll();
 if (p.saving) showSaving();
 </script>
 <script src="chrome.js"></script>
+<script src="assets/win-moment.js?v=11"></script>
+<script src="assets/search-push.js?v=4"></script>
 </body>
 </html>

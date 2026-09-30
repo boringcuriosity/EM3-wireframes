@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kaira, the ambitious five</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --brand-600:#299D6B; --brand-700:#2A805A; --brand-100:#E6FAF1;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-600:#444CE7; --in-700:#3538CD;
+    --teal-800:#2DA6A6; --red-600:#D92D20;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1760px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:900px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 10px}
+  .lede b{color:var(--g-900)}
+  .callout{max-width:900px;padding:14px 16px;border-radius:12px;background:var(--g-50);
+    border:1px solid var(--g-200);font-size:13px;line-height:21px;color:var(--g-700);margin:0 0 20px}
+  .callout b{color:var(--g-900)}
+  .callout a{color:var(--in-600)}
+  .bar{display:flex;gap:10px;align-items:center;margin:0 0 28px;flex-wrap:wrap}
+  .tgl{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 15px;border-radius:9999px;
+    border:1px solid var(--g-200);background:#fff;color:var(--g-700);font:600 13px/1 Roboto;cursor:pointer}
+  .tgl.dark{background:var(--g-900);border-color:var(--g-900);color:#fff}
+  .hint{font-size:12.5px;color:var(--g-500)}
+  .grid{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start}
+  .col{width:392px;flex:0 0 392px}
+  .cap h2{font-size:15px;line-height:22px;font-weight:600;margin:0 0 6px}
+  .cap p{font-size:12.5px;line-height:19px;color:var(--g-600);margin:0 0 8px}
+  .src{font-size:11.5px;line-height:17px;color:var(--g-500);margin:0 0 8px}
+  .src a{color:var(--in-600);text-decoration:none;border-bottom:1px solid var(--in-100)}
+  .tag{display:inline-block;font:600 10.5px/16px Roboto;letter-spacing:.6px;text-transform:uppercase;
+    color:var(--in-600);background:var(--in-50);border-radius:9999px;padding:1px 8px;margin:0 0 6px}
+  .phone{width:392px;height:720px;border:1px solid var(--g-200);border-radius:20px;overflow:hidden;
+    background:#fff;position:relative}
+  .phone iframe{width:390px;height:718px;border:0;display:block}
+  .replay{position:absolute;left:10px;top:10px;z-index:5;height:30px;padding:0 12px;border-radius:9999px;
+    border:0;background:rgba(16,24,40,.78);color:#fff;font:600 11.5px/1 Roboto;cursor:pointer}
+  @media (max-width:900px){.page{padding:24px 16px 60px}.col{width:100%;flex:1 1 100%}.phone{width:100%}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Kaira, the ambitious five</h1>
+  <p class="lede">Not a bar sliding out from behind a button. In all five the launcher <b>becomes</b> something, or something leaves it and comes back. Each is built on a technique I pulled from award work or from a shipping app, named under each one. Real Eat screen, real launcher, injected live.</p>
+  <div class="callout">
+    <b>The one that changed my mind.</b> Claude's own iOS listening state does not put a bar next to the button, it stretches the button into a capsule and puts the waveform inside it. The two circles flanking it are what the button split into. That is the whole transition, and it is better than anything I drew first.
+    <br><br>
+    <b>What I had to verify before designing.</b> An SVG goo filter only bridges two shapes across about one blur radius, so a launcher cannot "split in two and separate across the screen" and stay liquid. In A the mass therefore stays continuous: the capsule grows out of the disc and the two are welded the whole way.
+  </div>
+  <div class="bar">
+    <button class="tgl dark" id="playAll">Replay all five</button>
+    <button class="tgl" id="slowmo">Slow motion</button>
+    <span class="hint">Scroll a phone or wait to see each fire on its own.</span>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+var COPY = { line: "Log your day in a minute", sub: "Say it, or snap it" };
+var MIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+var CAM = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A1.5 1.5 0 0 1 4.5 7h2L8 5h8l1.5 2h2A1.5 1.5 0 0 1 21 8.5v9A1.5 1.5 0 0 1 19.5 19h-15A1.5 1.5 0 0 1 3 17.5z"/><circle cx="12" cy="13" r="3.2"/></svg>';
+var CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+
+/* The goo filter, once per screen. type="matrix" (not mode), and the host svg
+   needs a real layout box or Chrome drops the filter silently. Both cost me a
+   round of debugging, so they are written down here. */
+var GOO = '<svg class="kxdefs" style="position:absolute;width:1px;height:1px;overflow:hidden;left:-9999px" aria-hidden="true">' +
+  /* sRGB, or the filter converts to linearRGB first and the gradient washes out
+     on the way through, which costs a pass and looks worse for it. */
+  '<defs><filter id="kxgoo" color-interpolation-filters="sRGB">' +
+  '<feGaussianBlur in="SourceGraphic" stdDeviation="9" result="b"/>' +
+  '<feColorMatrix in="b" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 20 -8"/>' +
+  '</filter></defs></svg>';
+
+var SHARED = [
+  ".kx{position:absolute;right:30px;bottom:0;height:60px;pointer-events:none}",
+  ".kx *{box-sizing:border-box}",
+  ".kxw{position:absolute;right:0;bottom:4px;height:52px;display:flex;align-items:center}",
+  /* the words ride above whatever liquid or light is happening underneath */
+  ".kxt{position:absolute;right:38px;bottom:0;height:52px;display:flex;flex-direction:column;",
+  "justify-content:center;white-space:nowrap;pointer-events:none}",
+  ".kxt b{font:700 13px/17px Roboto;letter-spacing:.1px}",
+  ".kxt i{font:400 11.5px/15px Roboto;font-style:normal;margin-top:1px;opacity:.82}",
+  ".kxa{position:absolute;right:38px;bottom:14px;display:flex;gap:6px;pointer-events:auto}",
+  ".kxa span{width:24px;height:24px;border-radius:9999px;display:grid;place-items:center}",
+  ".kxa svg{width:14px;height:14px}",
+  ".kxc{position:absolute;top:50%;margin-top:-12px;width:24px;height:24px;border-radius:9999px;",
+  "border:1px solid #E0EAFF;background:#fff;color:#3538CD;display:grid;place-items:center;",
+  "cursor:pointer;pointer-events:auto;box-shadow:0 2px 8px rgba(16,24,40,.14);opacity:0;",
+  "transition:opacity .2s ease-out}",
+  ".kx.on .kxc{opacity:1;transition-delay:.42s}",
+  ".kxc svg{width:12px;height:12px}",
+  "#kairaFab .gfkfab{position:relative;z-index:3}",
+  "@media (prefers-reduced-motion:reduce){.kx,.kx *{animation:none!important;transition-duration:.15s!important}}"
+].join("");
+
+/* ------------------------------------------------------------------ A ---- */
+var A = {
+  key:"liquid",
+  title:"A. The launcher liquefies into the bar",
+  body:"She does not grow a bar beside her, she becomes one. The disc and the capsule are welded by a goo filter the whole way out, so the mass necks, stretches and settles like something poured. The words fade up once the surface stops moving.",
+  src:'Technique: SVG metaball (feGaussianBlur + feColorMatrix alpha threshold). Shape: <a href="https://mobbin.com/screens/cf19a222-e22f-4cdf-a030-6712ef5ab8b0" target="_blank">Claude iOS listening capsule</a>.',
+  css:[
+    ".kx-liquid .goo{position:absolute;right:-30px;bottom:0;width:360px;height:60px;filter:url(#kxgoo);pointer-events:none}",
+    ".kx-liquid .cap{position:absolute;right:30px;bottom:4px;height:52px;width:52px;border-radius:9999px;",
+    "background:linear-gradient(100deg,#3B49D6,#4EDAEF);",
+    "transition:width .62s cubic-bezier(.05,.7,.1,1)}",
+    ".kx-liquid.on .cap{width:282px}",
+    /* the label sits clear of the two marks, which own the right end of the
+       capsule just before it disappears under the launcher */
+    ".kx-liquid .kxt{color:#fff;right:104px;opacity:0;transition:opacity .24s ease-out}",
+    ".kx-liquid.on .kxt{opacity:1;transition-delay:.44s}",
+    ".kx-liquid .kxa{right:44px;bottom:18px}",
+    ".kx-liquid .kxa span{background:rgba(255,255,255,.22);color:#fff}",
+    ".kx-liquid .kxa{opacity:0;transition:opacity .24s ease-out}",
+    ".kx-liquid.on .kxa{opacity:1;transition-delay:.52s}",
+    ".kx-liquid .kxc{left:-274px;transition:opacity .2s ease-out,left .62s cubic-bezier(.05,.7,.1,1)}"
+  ].join(""),
+  html:function(){
+    return '<div class="kx kx-liquid">'+
+      '<div class="goo"><span class="cap"></span></div>'+
+      '<span class="kxt"><b>'+COPY.line+'</b></span>'+
+      '<span class="kxa"><span>'+MIC+'</span><span>'+CAM+'</span></span>'+
+      '<button class="kxc" aria-label="Put it back">'+CHEV+'</button></div>';
+  }
+};
+
+/* ------------------------------------------------------------------ B ---- */
+var B = {
+  key:"horizon",
+  title:"B. A horizon of light rises behind her",
+  body:"A wide blurred arc of her indigo and teal blooms out of the corner like a sunrise behind a hill, the sentence surfaces inside it, and then the whole glow drains back into the disc. The colour ends where the moment started.",
+  src:'Technique: blurred radial arc + mask. Shape: <a href="https://mobbin.com/screens/7559b133-5c92-4d0b-aa70-60cbecef2fec" target="_blank">Beside, AI receptionist</a>.',
+  css:[
+    ".kx-horizon .arc{position:absolute;right:-40px;bottom:-40px;width:420px;height:220px;pointer-events:none;",
+    "background:radial-gradient(60% 100% at 78% 100%,rgba(68,76,231,.36) 0%,rgba(45,166,166,.24) 38%,rgba(68,76,231,0) 72%);",
+    "filter:blur(14px);opacity:0;transform:scale(.5);transform-origin:82% 100%;",
+    "transition:opacity .5s ease-out,transform .8s cubic-bezier(.05,.7,.1,1)}",
+    ".kx-horizon.on .arc{opacity:1;transform:scale(1)}",
+    ".kx-horizon.settle .arc{opacity:0;transform:scale(.42);transition:opacity .7s ease-in,transform .9s cubic-bezier(.3,0,.8,.15)}",
+    ".kx-horizon .kxp{position:absolute;right:30px;bottom:4px;height:52px;border-radius:26px;",
+    "padding:0 46px 0 18px;display:flex;align-items:center;pointer-events:auto;cursor:pointer;",
+    "border:1.5px solid transparent;white-space:nowrap;",
+    "background:linear-gradient(180deg,#F5F8FF,#fff 70%) padding-box,",
+    "linear-gradient(100deg,#444CE7,#2DA6A6) border-box;",
+    "box-shadow:0 8px 26px rgba(68,76,231,.2);",
+    "opacity:0;transform:translateX(26px) scale(.96);",
+    "transition:opacity .34s ease-out,transform .55s cubic-bezier(.05,.7,.1,1)}",
+    ".kx-horizon.on .kxp{opacity:1;transform:none;transition-delay:.26s}",
+    ".kx-horizon .kxt{color:#101828;right:46px}",
+    ".kx-horizon .kxt i{color:#667085}",
+    ".kx-horizon .kxa{right:auto;left:100%;display:none}",
+    ".kx-horizon .kxc{left:-266px}"
+  ].join(""),
+  html:function(){
+    return '<div class="kx kx-horizon"><span class="arc"></span>'+
+      '<div class="kxp"></div>'+
+      '<span class="kxt"><b>'+COPY.line+'</b><i>'+COPY.sub+'</i></span>'+
+      '<button class="kxc" aria-label="Put it back">'+CHEV+'</button></div>';
+  },
+  after:function(node, win){ return win.setTimeout(function(){ node.classList.add('settle'); }, 900); }
+};
+
+/* ------------------------------------------------------------------ C ---- */
+var C = {
+  key:"mitosis",
+  title:"C. She divides, and the division is the choice",
+  body:"She inhales, stretches sideways past her own width, then pinches. Two orbs pull apart with a liquid neck that thins and snaps, and they land as the voice and the camera. The split is not decoration, it is the question: these are the two ways in, and she became them.",
+  src:'Technique: goo metaball pinch, transform only. Concept: the technique and the message are the same thing.',
+  css:[
+    ".kx-mitosis .goo{position:absolute;right:-20px;bottom:0;width:260px;height:60px;",
+    "filter:url(#kxgoo);pointer-events:none}",
+    /* one mass, three bodies. The middle one is the neck: it is wide and short
+       at the start, so the two orbs are welded, and it starves as they part. */
+    ".kx-mitosis .b{position:absolute;bottom:8px;right:20px;width:44px;height:44px;border-radius:9999px;",
+    "background:linear-gradient(143deg,#4EDAEF,#3B49D6);will-change:transform;",
+    "transition:transform .66s cubic-bezier(.05,.7,.1,1)}",
+    ".kx-mitosis .b1{transform:translateX(0) scale(.5)}",
+    ".kx-mitosis .b2{transform:translateX(0) scale(.5)}",
+    ".kx-mitosis.on .b1{transform:translateX(-64px) scale(1)}",
+    ".kx-mitosis.on .b2{transform:translateX(-128px) scale(1)}",
+    /* the marks ride on top of the liquid, outside the filter, or the goo
+       would smear them into the blobs */
+    /* right:11, not 31. The orbs live inside .goo, which is itself offset 20px
+       further right than .kx, so a mark aligned to .kx's own right edge lands
+       20px off the orb it belongs to. Measured, not guessed. */
+    ".kx-mitosis .mk{position:absolute;bottom:19px;right:11px;width:22px;height:22px;color:#fff;",
+    "pointer-events:auto;cursor:pointer;opacity:0;",
+    "transition:transform .66s cubic-bezier(.05,.7,.1,1),opacity .2s ease-out}",
+    ".kx-mitosis .mk svg{width:22px;height:22px;display:block}",
+    ".kx-mitosis.on .m1{transform:translateX(-64px);opacity:1;transition-delay:0s,.34s}",
+    ".kx-mitosis.on .m2{transform:translateX(-128px);opacity:1;transition-delay:0s,.4s}",
+    /* above the orbs, not below: below puts it over the tab bar */
+    ".kx-mitosis .cap{position:absolute;right:16px;bottom:62px;padding:8px 13px;border-radius:16px 16px 4px 16px;",
+    "background:#101828;color:#fff;font:600 12.5px/17px Roboto;white-space:nowrap;",
+    "transform-origin:100% 100%;opacity:0;transform:translateY(8px) scale(.94);",
+    "transition:opacity .28s ease-out,transform .46s cubic-bezier(.05,.7,.1,1)}",
+    ".kx-mitosis.on .cap{opacity:1;transform:none;transition-delay:.42s}",
+    ".kx-mitosis .kxt,.kx-mitosis .kxa{display:none}",
+    ".kx-mitosis .kxc{left:-176px}"
+  ].join(""),
+  html:function(){
+    return '<div class="kx kx-mitosis">'+
+      '<div class="goo"><span class="b b1"></span><span class="b b2"></span></div>'+
+      '<span class="mk m1">'+MIC+'</span><span class="mk m2">'+CAM+'</span>'+
+      '<span class="cap">'+COPY.line+'</span>'+
+      '<button class="kxc" aria-label="Put it back">'+CHEV+'</button></div>';
+  }
+};
+
+/* ------------------------------------------------------------------ D ---- */
+var D = {
+  key:"spark",
+  title:"D. A light runs the edge of what just woke",
+  body:"The bar opens plainly, and then one bright segment travels all the way round its border once and goes out. Nothing scales, nothing bounces. The only thing that says this is alive is a moving highlight on the edge.",
+  src:'Technique: conic-gradient border-box with an animated angle. Shape: <a href="https://mobbin.com/screens/596b55a3-0adf-4469-a46b-ad5bbbec6fe6" target="_blank">Hypelist’s travelling border</a>.',
+  css:[
+    "@property --kxang{syntax:'<angle>';inherits:false;initial-value:0deg}",
+    ".kx-spark .kxp{position:absolute;right:30px;bottom:4px;height:52px;border-radius:26px;",
+    "padding:0 46px 0 18px;display:flex;align-items:center;pointer-events:auto;cursor:pointer;",
+    "border:1.5px solid transparent;white-space:nowrap;--kxang:0deg;",
+    "background:linear-gradient(180deg,#F5F8FF,#fff 70%) padding-box,",
+    "conic-gradient(from var(--kxang),#E0EAFF 0deg,#E0EAFF 250deg,#2DA6A6 300deg,#7FE3FF 330deg,#444CE7 350deg,#E0EAFF 360deg) border-box;",
+    "box-shadow:0 6px 22px rgba(68,76,231,.14);",
+    "clip-path:inset(0 0 0 100% round 26px);",
+    "transition:clip-path .42s cubic-bezier(.05,.7,.1,1)}",
+    ".kx-spark.on .kxp{clip-path:inset(0 0 0 0 round 26px);",
+    "animation:kxspin 1.5s cubic-bezier(.4,0,.2,1) .34s 1 both}",
+    "@keyframes kxspin{from{--kxang:0deg}to{--kxang:720deg}}",
+    ".kx-spark .kxt{color:#101828;right:46px;opacity:0;transition:opacity .22s ease-out}",
+    ".kx-spark.on .kxt{opacity:1;transition-delay:.18s}",
+    ".kx-spark .kxt i{color:#667085}",
+    ".kx-spark .kxa{display:none}",
+    ".kx-spark .kxc{left:-266px}"
+  ].join(""),
+  html:function(){
+    return '<div class="kx kx-spark"><div class="kxp"></div>'+
+      '<span class="kxt"><b>'+COPY.line+'</b><i>'+COPY.sub+'</i></span>'+
+      '<button class="kxc" aria-label="Put it back">'+CHEV+'</button></div>';
+  }
+};
+
+/* ------------------------------------------------------------------ E ---- */
+var E = {
+  key:"ribbon",
+  title:"E. Her voice unfurls as a ribbon",
+  body:"A single ribbon runs out of the launcher, pinched to a hairline at rest and swelling where sound would be, her gradient mapped along its length. It holds as the sentence reads, then flattens back to a hairline, which is what an idle voice looks like.",
+  src:'Technique: SVG path + animated stroke. Shape: <a href="https://mobbin.com/screens/20154ce5-8f97-40e8-bf12-08acf5b5c482" target="_blank">OpenPhone’s ribbon</a>, colour from <a href="https://mobbin.com/screens/7aa9285e-1472-4a3e-99f3-d320d109fb3b" target="_blank">Suno</a>.',
+  _keep:1,
+  css:[
+    ".kx-ribbon .rib{position:absolute;right:26px;bottom:6px;width:280px;height:48px;pointer-events:none;",
+    "opacity:0;transition:opacity .28s ease-out}",
+    ".kx-ribbon.on .rib{opacity:1}",
+    ".kx-ribbon .rib path{stroke-dasharray:300;stroke-dashoffset:300;",
+    "transition:stroke-dashoffset .62s cubic-bezier(.05,.7,.1,1)}",
+    ".kx-ribbon.on .rib path{stroke-dashoffset:0}",
+    ".kx-ribbon.on .rib{animation:kxbreathe 2.4s ease-in-out .7s infinite}",
+    "@keyframes kxbreathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.42)}}",
+    ".kx-ribbon .rib{transform-origin:50% 50%}",
+    ".kx-ribbon .kxt{color:#101828;right:40px;bottom:-16px;opacity:0;transition:opacity .26s ease-out}",
+    ".kx-ribbon.on .kxt{opacity:1;transition-delay:.5s}",
+    ".kx-ribbon .kxt i{color:#667085}",
+    ".kx-ribbon .kxa{display:none}",
+    ".kx-ribbon .kxc{left:-250px}"
+  ].join(""),
+  html:function(){
+    return '<div class="kx kx-ribbon">'+
+      '<svg class="rib" viewBox="0 0 280 48" fill="none" preserveAspectRatio="none">'+
+        '<defs><linearGradient id="kxrib" x1="0" y1="0" x2="280" y2="0" gradientUnits="userSpaceOnUse">'+
+        '<stop offset="0" stop-color="#2DA6A6"/><stop offset=".55" stop-color="#4EDAEF"/>'+
+        '<stop offset="1" stop-color="#3B49D6"/></linearGradient></defs>'+
+        '<path d="M2 24 C 40 24, 44 6, 74 6 S 108 42, 138 42 S 172 8, 202 8 S 240 24, 278 24" '+
+          'stroke="url(#kxrib)" stroke-width="5" stroke-linecap="round"/>'+
+      '</svg>'+
+      '<span class="kxt"><b>'+COPY.line+'</b></span>'+
+      '<button class="kxc" aria-label="Put it back">'+CHEV+'</button></div>';
+  }
+};
+
+/* ------------------------------------------------------------------ F ---- */
+var F = {
+  key:"parting",
+  title:"F. The screen makes room for her",
+  body:"She does not grow. The card above lifts and the tab bar settles, each row moving a beat after the one before, and into the gap that opens the bar extrudes sideways out of her. Nothing is covered, because the space was given rather than taken. On dismiss the page closes back over it.",
+  src:'Technique: staggered translateY on the page itself, plus a clip-path anchored at the launcher. Compositor only, no layout.',
+  css:[
+    /* the page is pushed, not overlapped. This is the only variant where the
+       announcement costs no content, which is what makes it survivable daily. */
+    "#diary{transition:transform .5s cubic-bezier(.05,.7,.1,1)}",
+    "body.kxpart #diary{transform:translateY(-58px)}",
+    "#diary .meal:last-of-type{transition:opacity .4s ease-out}",
+    "body.kxpart #diary .meal:last-of-type{opacity:.35}",
+    ".kx-parting .kxp{position:absolute;right:30px;bottom:4px;height:52px;border-radius:26px;",
+    "padding:0 46px 0 18px;display:flex;align-items:center;pointer-events:auto;cursor:pointer;",
+    "border:1.5px solid transparent;white-space:nowrap;",
+    "background:linear-gradient(180deg,#F5F8FF,#fff 70%) padding-box,",
+    "linear-gradient(100deg,#444CE7,#2DA6A6) border-box;",
+    "box-shadow:0 8px 26px rgba(68,76,231,.16);",
+    "clip-path:inset(0 0 0 100% round 26px);",
+    "transition:clip-path .48s cubic-bezier(.05,.7,.1,1) .22s}",
+    ".kx-parting.on .kxp{clip-path:inset(0 0 0 0 round 26px)}",
+    ".kx-parting .kxt{color:#101828;right:46px;opacity:0;transition:opacity .24s ease-out}",
+    ".kx-parting.on .kxt{opacity:1;transition-delay:.44s}",
+    ".kx-parting .kxt i{color:#667085}",
+    ".kx-parting .kxa{display:none}",
+    ".kx-parting .kxc{left:-266px}"
+  ].join(""),
+  html:function(){
+    return '<div class="kx kx-parting"><div class="kxp"></div>'+
+      '<span class="kxt"><b>'+COPY.line+'</b><i>'+COPY.sub+'</i></span>'+
+      '<button class="kxc" aria-label="Put it back">'+CHEV+'</button></div>';
+  },
+  on:function(doc){ doc.body.classList.add('kxpart'); },
+  off:function(doc){ doc.body.classList.remove('kxpart'); }
+};
+
+var VARIANTS = [A,B,C,D,E,F];
+
+document.getElementById('grid').innerHTML = VARIANTS.map(function(v,i){
+  return '<div class="col"><div class="cap"><div class="tag">Variant</div>'+
+    '<h2>'+v.title+'</h2><p>'+v.body+'</p><p class="src">'+v.src+'</p></div>'+
+    '<div class="phone"><button class="replay" data-i="'+i+'">Replay</button>'+
+    '<iframe data-i="'+i+'" src="r3/eat.html?state=mid" title="'+v.title+'"></iframe></div></div>';
+}).join('');
+
+var STATE = [];
+function mount(i){
+  var fr = document.querySelector('iframe[data-i="'+i+'"]');
+  var v = VARIANTS[i], doc, win;
+  try { doc = fr.contentDocument; win = fr.contentWindow; } catch(e){ return; }
+  if(!doc || !doc.getElementById('kairaFab')) return;
+  var st = doc.createElement('style');
+  st.textContent = SHARED + v.css;
+  doc.head.appendChild(st);
+  doc.body.insertAdjacentHTML('beforeend', GOO);
+  var fab = doc.getElementById('kairaFab');
+  fab.style.width = 'auto'; fab.style.height = '60px';
+  fab.style.display = 'flex'; fab.style.justifyContent = 'flex-end';
+  fab.insertAdjacentHTML('afterbegin', v.html());
+  var node = fab.querySelector('.kx');
+  var c = node.querySelector('.kxc');
+  if(c) c.addEventListener('click', function(e){
+    e.stopPropagation(); node.classList.remove('on','settle');
+    if(v.off) v.off(doc);
+  });
+  STATE[i] = { doc:doc, win:win, node:node, v:v, fab:fab, timer:null };
+  var fired = false;
+  function fire(){ if(fired) return; fired = true; play(i); }
+  win.addEventListener('scroll', function(){ if(win.scrollY > 240) fire(); }, {passive:true});
+  win.setTimeout(fire, 2600);
+}
+function play(i){
+  var s = STATE[i]; if(!s) return;
+  s.node.classList.remove('on','settle');
+  s.win.clearTimeout(s.timer);
+  void s.node.offsetWidth;
+  s.fab.classList.add('dip');
+  s.win.setTimeout(function(){ s.fab.classList.remove('dip'); }, 120);
+  if(s.v.off) s.v.off(s.doc);
+  s.win.setTimeout(function(){
+    s.node.classList.add('on');
+    if(s.v.on) s.v.on(s.doc);
+    if(s.v.after) s.timer = s.v.after(s.node, s.win);
+  }, 100);
+}
+[].forEach.call(document.querySelectorAll('iframe[data-i]'), function(fr){
+  fr.addEventListener('load', function(){ mount(+fr.dataset.i); });
+});
+document.getElementById('grid').addEventListener('click', function(e){
+  var b = e.target.closest('.replay'); if(b) play(+b.dataset.i);
+});
+document.getElementById('playAll').onclick = function(){ VARIANTS.forEach(function(_,i){ play(i); }); };
+var SLOW=false;
+document.getElementById('slowmo').onclick = function(){
+  SLOW=!SLOW; this.classList.toggle('dark',SLOW);
+  [].forEach.call(document.querySelectorAll('iframe[data-i]'), function(fr){
+    var d=fr.contentDocument; if(!d) return;
+    var old=d.getElementById('kxslow'); if(old) old.remove();
+    if(SLOW){ var s=d.createElement('style'); s.id='kxslow';
+      s.textContent=".kx *,.kx{transition-duration:2s!important;animation-duration:4s!important}";
+      d.head.appendChild(s); }
+  });
+};
+</script>
+</body>
+</html>

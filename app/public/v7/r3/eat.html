@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Eat</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="../icons/glyph-masks.css">
 <link rel="stylesheet" href="goodflip-ui.css">
 <style>
@@ -18,11 +18,15 @@
     background: #FFFFFF; }
   .gut { padding-left: var(--gut); padding-right: var(--gut); }
   .ico { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  /* The back arrow is its own shape, not a chevron: a stroked line with a
+     flared tail. It is fill based, so it cannot wear .ico, which sets
+     fill:none and stroke:currentColor and would render it invisible. */
+  .backico { width: 22px; height: 22px; fill: currentColor; stroke: none; flex-shrink: 0; }
   /* one section rhythm: heading, 16 to its content, 40 to the next section */
   .sect { margin-top: 40px; }
   /* The first section under a plate with no verdict pill. The plate's canvas
      runs 32px past its own outermost dots, so clearing that dead band takes a
-     negative margin rather than a small positive one. */
+     negative margin rather than a small positive one.
      It has to be positioned as well as pulled up: the stage above is
      position:relative, so without a layer of its own a plain block sliding
      under it is painted over and loses its top edge. */
@@ -69,7 +73,7 @@
   #heroWrap { position: relative; z-index: 1; width: 222px; height: 208px; margin: 0 auto; }
   #hero { position: absolute; left: 0; top: 0; width: 342px; height: 320px; transform: scale(.65); transform-origin: 0 0; }
   .hero-missing { position: absolute; inset: 24px; border: 1.5px dashed var(--g-200); border-radius: var(--r-xl); display: grid; place-items: center; text-align: center; color: var(--g-400); font-size: 12px; }
-  .hero-missing b { display: block; font-family: "Playfair Display", Georgia, serif; font-size: 40px; color: var(--g-900); font-weight: 600; line-height: 1; margin-bottom: 8px; }
+  .hero-missing b { display: block; font-family: Roboto, Arial, sans-serif; font-size: 40px; color: var(--g-900); font-weight: 600; line-height: 1; margin-bottom: 8px; }
 
   /* ---------------------------------------------- what shaped your score */
   /* Two ways to answer the same question, picked with ?rail=.
@@ -95,17 +99,22 @@
      faint indigo wash, and a radial bloom sitting behind the glyph row, which is
      the ring designs' own device. It reads as lit rather than tinted, so it does
      not become a second flat slab under the score. */
-  /* Indigo, not green. Green is the verdict colour: it is what the score and
-     the sufficiency read are entitled to say. A macro is a fact, not a verdict,
-     so filling four glyphs green told the user four times over that something
-     was going well when all it meant was that a number had a value. Indigo is
-     the system's actionable hue and says the same thing without the praise. */
-  .macros { position: relative; border-radius: var(--r-lg); border: 1px solid var(--g-100);
-    background: radial-gradient(130% 80% at 50% 0%, var(--in-25), rgba(255,255,255,0) 68%), #fff;
-    padding: 16px; box-shadow: var(--shadow-card); overflow: hidden; }
-  .macros::after { content: ""; position: absolute; left: 50%; top: 44%; width: 320px; height: 140px;
-    transform: translate(-50%, -50%); border-radius: var(--r-pill); pointer-events: none;
-    background: radial-gradient(closest-side, rgba(164,188,253,.16), rgba(255,255,255,0)); }
+  /* Neutral, not green and no longer indigo either. Green is the verdict
+     colour, what the score and the sufficiency read are entitled to say, so
+     filling four glyphs green told the user four times over that something was
+     going well when all it meant was that a number had a value. Indigo said
+     the same thing more quietly but still spent a family colour on a fact, and
+     it sat on an indigo ground, so the vessels and the card were the same hue.
+     A macro is a measurement. It is drawn in ink.
+     Which ink is open: neutrals are compared in ../macro-fill-options.html
+     and this is variant A, graphite, the same ramp as the type. */
+  /* Variant O. The macro card and the calorie strip are one object now: one
+     tinted ground, no border, no shadow, the nutrients on top and their sum in
+     a footer under a hairline. Flat because the card informs rather than
+     invites, which is also the house rule; across both Figma files it is
+     10,388 flat surfaces to 998 lifted. */
+  .macros { position: relative; border: 0; box-shadow: none; overflow: hidden;
+    border-radius: var(--r-lg) var(--r-lg) 0 0; background: var(--in-50); padding: 16px; }
   .gf-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .gf-h .tag { font-size: 12px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; color: var(--g-500); background: var(--g-100); border-radius: var(--r-pill); padding: 2px 8px; }
   /* Four glyphs side by side, each one filling to its own level. The icon IS
@@ -114,35 +123,68 @@
      the fill is animated through a registered custom property, which is the
      only way a gradient stop can transition at all. */
   @property --f { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
-  .mgrid { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-  .m { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
-  .gwrap { position: relative; width: 38px; height: 38px; }
-  /* the bloom only shows when a nutrient is home, so it reads as an event */
-  .gwrap::before { content: ""; position: absolute; inset: -8px; border-radius: var(--r-pill);
-    background: radial-gradient(closest-side, var(--in-100), rgba(255,255,255,0));
-    opacity: 0; transition: opacity .5s var(--ease); }
-  .m.done .gwrap::before { opacity: 1; }
-  /* a soft cast shadow under each glyph, so it sits above the card rather than
-     on it. Neutral, not tinted: a coloured ellipse reads as a glow, not a shadow. */
-  .gwrap::after { content: ""; position: absolute; left: 7px; right: 7px; bottom: -5px; height: 7px;
-    border-radius: var(--r-pill); pointer-events: none;
+  /* space-between, so the first and last glyph sit exactly on the 16px the
+     card is padded by. Equal columns left them 18px inside that line, which
+     read as loose in the middle and tight at the ends. */
+  .mgrid { position: relative; display: flex; justify-content: space-between; gap: 12px; }
+  /* Two gaps, so two containers. M3 is explicit that gaps belong on the parent
+     and a margin on a child is the thing to avoid, so the value and its name
+     are wrapped rather than nudged: 8 from the glyph, 4 between the two lines,
+     because proximity is what says they belong together. */
+  .m { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; flex: 0 0 auto; }
+  /* A soft ellipse on the ground under each vessel, so it sits above the card
+     rather than on it. Neutral, not tinted: a coloured ellipse reads as a glow.
+     It hangs off .m, not off .gwrap, because the outline filter on .gwrap
+     catches its pseudo-elements too and would ring the ellipse in grey. 40px
+     is the glyph box, so the shadow meets the base of the vessel. */
+  .m::before { content: ""; position: absolute; top: 37px; left: 50%; width: 26px; height: 7px;
+    transform: translateX(-50%); border-radius: var(--r-pill); pointer-events: none;
     background: radial-gradient(closest-side, rgba(16,24,40,.16), rgba(16,24,40,.05) 62%, rgba(16,24,40,0)); }
+  .mtext { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+  /* A hairline around each vessel, built from eight zero-blur drop shadows
+     because a mask cannot take a stroke, and on the wrapper rather than the
+     masked element because CSS applies filter before mask: on the same node
+     the outline is drawn and then clipped away by its own mask. */
+  .gwrap { position: relative; width: 40px; height: 40px;
+    /* The shadows overlap, so an alpha here would stack into a dark ring. A
+       flat colour instead, which keeps the hairline even. #B4BCC9 is the
+       value this treatment was built with, in ../../liquid-score/index.html.
+       FOUR points, not eight: north, south, east, west, no diagonals.
+       Variant E in ../macro-stroke-options.html. The diagonal pair lands at
+       .71px from centre against the cardinal pair's .5px, so it thickens the
+       corners of the rim by half again and the edge reads heavier than it
+       measures. Dropping it leaves the hairline lighter, and slightly open
+       where a curve runs at 45 degrees, which on these rounded vessels is
+       most of the outline. That softness is the point. */
+    --out: #B4BCC9;
+    filter: drop-shadow(.5px 0 0 var(--out)) drop-shadow(-.5px 0 0 var(--out))
+      drop-shadow(0 .5px 0 var(--out)) drop-shadow(0 -.5px 0 var(--out)); }
+  /* the bloom only shows when a nutrient is home, so it reads as an event */
+  /* No bloom behind a nutrient that is home. The outline filter on .gwrap
+     applies to everything inside it, pseudo-elements included, so a round
+     bloom came back outlined as a grey disc. It was redundant anyway: a
+     vessel filled to the top is already the signal that the target is met. */
+  /* No cast shadow. It belonged to a white card that sat above the page; in a
+     flat card it puts back the elevation the card just gave up, and on a
+     tinted ground it reads as dirt rather than as lift. */
 
   /* The fill is liquid, not a flat block: deep at the base, lighter as it rises,
      and brightest right at the surface, which is what gives it a meniscus
      instead of a cut. The empty part carries its own faint gradient too, so the
      unfilled glyph never looks like a solid grey sticker. */
   .gfill { position: absolute; inset: 0; --f: 0%;
-    background: linear-gradient(to top,
-      var(--in-900) 0%,
-      var(--in-700) calc(var(--f) * .35),
-      var(--in-600) calc(var(--f) * .78),
-      var(--in-500) calc(var(--f) - 5%),
-      var(--in-300) calc(var(--f) - .5%),
-      var(--g-200) var(--f),
-      var(--g-100) 100%);
+    background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.34), rgba(255,255,255,0) 58%),
+      linear-gradient(to top,
+        var(--g-900) 0%,
+        var(--g-700) calc(var(--f) * .34),
+        var(--g-500) calc(var(--f) * .72),
+        var(--g-400) calc(var(--f) - 6%),
+        var(--g-400) calc(var(--f) - 1.5%),
+        #C4CBD6 var(--f),
+        #D3D9E2 100%);
     transition: --f .9s var(--ease); }
-  .m.done .gfill { background: linear-gradient(to top, var(--in-900), var(--in-600) 55%, var(--in-400)); }
+  .m.done .gfill { background: linear-gradient(to top, var(--g-900), var(--g-500) 55%, var(--g-400)); }
 
   /* Optical balance. The four masks fill their box differently: the droplet is
      a solid tall wedge and the fibre glyph is tall and busy, so both read
@@ -153,16 +195,26 @@
   .gfill.glyph-fats { -webkit-mask-size: auto 80%; mask-size: auto 80%; }
   .gfill.glyph-fibre { -webkit-mask-size: auto 84%; mask-size: auto 84%; }
   /* no target to measure against, so the glyph is a flat silhouette, not a gauge */
-  .gfill.flat { background: var(--g-400); }
+  /* Grams with no target: the glyph is full, so it is drawn as a full vessel of
+     the same slate liquid, deep at the base and lit from the top left, rather
+     than a flat grey sticker. */
+  .gfill.flat { background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.38), rgba(255,255,255,0) 58%),
+      linear-gradient(to top, #1D2939 0%, #344054 30%, #475467 62%, #667085 88%, #98A2B3 100%); }
   /* Targets set and nothing logged is not a lesser state, so the glyphs are
      the same solid grey a day with no targets gets. At --g-200 they read as
      ghosts of icons, which made the card look switched off rather than
      waiting. */
-  .gfill.empty { background: var(--g-400); }
-  .mval { font-size: 14px; line-height: 20px; white-space: nowrap; letter-spacing: 0; }
+  .gfill.empty { background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.4), rgba(255,255,255,0) 58%),
+      linear-gradient(to top, #475467 0%, #667085 40%, #98A2B3 80%, #B9C0CC 100%); }
+  /* The value and its target are one number read in two parts, so they are
+     one size and only weight separates them. */
+  .mval { font: 400 13px/18px Roboto, sans-serif; white-space: nowrap; letter-spacing: 0; color: var(--g-500); }
   .mval strong { font-weight: 700; color: var(--g-900); }
-  .mval span { color: var(--g-400); font-weight: 400; }
-  .mname { font-size: 12px; line-height: 16px; color: var(--g-500); }
+  .mval span { color: var(--g-500); font-weight: 400; }
+  /* the same colour the Calories label carries below: both name a measure */
+  .mname { font: 400 11px/16px Roboto, sans-serif; color: var(--g-500); }
   .mnote { position: relative; margin: 16px 0 0; font-size: 12px; line-height: 18px; color: var(--g-500); display: flex; gap: 8px; align-items: flex-start; }
 
   /* before the plan: the card explains instead of measuring */
@@ -170,9 +222,9 @@
      border and her clipped top-left corner rather than sitting in a grey
      strip that belongs to nothing. Same two-tone gradient border as .kaira
      below, same shadow, so the two read as one object in two places. */
-  .macros.kcard { border: 2px solid transparent; border-radius: 0 var(--r-lg) var(--r-lg) var(--r-lg);
+  .macros.kcard { border: 3px solid transparent; border-radius: 0 var(--r-lg) var(--r-lg) var(--r-lg);
     background: linear-gradient(180deg, var(--in-25) 0%, #FFFFFF 46%) padding-box,
-      linear-gradient(135deg, var(--in-200), var(--teal-200)) border-box; }
+      linear-gradient(100deg, var(--in-600), var(--teal-600)) border-box; }
   .mhead { margin: -16px -16px 16px; padding: 14px 16px; display: flex; gap: 12px;
     align-items: flex-start; border-bottom: 1px solid var(--in-100); }
   .mhead h4 { margin: 0; font-size: 16px; font-weight: 600; line-height: 24px; }
@@ -181,7 +233,8 @@
   /* ------------------------------------------------------- the calories */
   /* GoodFlip puts calories on an indigo wash with a warm flame, never on green.
      Green measures the score; this measures the budget, so it takes its own hue. */
-  #calstrip { width: 100%; margin-top: 12px; }
+  /* the footer of the card above, not a card of its own */
+  #calstrip { width: 100%; margin-top: 0; }
   /* The per-metric card's two additions: the macro's own glyph in place of a
      line icon, and a flat bar carrying the same level the glyph fills to in
      the other variant. Indigo, because a macro is a fact and not a verdict. */
@@ -197,7 +250,16 @@
      section's worth of air above it rather than a card's 12 */
   #nutSect.calonly { margin-top: 24px; }
   #nutSect.calonly #calstrip { margin-top: 0; }
-  .calc { position: relative; border-radius: var(--r-md); background: var(--in-50); padding: 12px; overflow: hidden; }
+  /* One line: the label, then the sum. The bar, the "left today" and the
+     frond all stand down, because the four gauges above already answer "how
+     far through", and a fifth filled shape in the same ink would claim to be
+     a fifth gauge by similarity when it is only a label. They stay in the DOM
+     so the live repaint still finds them. */
+  .calc { position: relative; display: flex; align-items: baseline; gap: 8px;
+    border-radius: 0 0 var(--r-lg) var(--r-lg); background: var(--in-50);
+    border-top: 1px solid var(--in-100); padding: 12px 16px; overflow: hidden; }
+  .calc .wm, .calc .cb, .calc .cr { display: none; }
+  .calc .ct svg { display: none; }
   /* No target means no bar and nothing on the right, so the card has no reason
      to be three rows tall. Label and figure share one line. */
   /* the frond bleeds off the right edge, so on one line the figure has to
@@ -210,17 +272,26 @@
      340x69 and the frond runs off the right edge; our block is shorter, so the
      same offset let too much of it sit over the number and the bar. */
   .calc .wm { position: absolute; right: -84px; top: -70px; width: 131px; height: 156px; pointer-events: none; user-select: none; }
-  .calc .ch { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-  .calc .ct { display: flex; align-items: center; gap: 4px; font-size: 14px; line-height: 16.8px; color: var(--g-900); }
+  .calc .ch { position: relative; flex: 0 0 auto; }
+  .calc .ct { font: 400 11px/16px Roboto, sans-serif; color: var(--g-500); }
   .calc .cr { font-size: 12px; line-height: 18px; color: var(--g-500); white-space: nowrap; }
-  .calc .cv { position: relative; margin-top: 4px; font-size: 12px; line-height: 20px; color: var(--g-500); white-space: nowrap; }
-  .calc .cv b { font-size: 20px; line-height: 26px; font-weight: 600; color: var(--g-900); }
+  .calc .cv { position: relative; margin: 0 0 0 auto; font: 400 13px/18px Roboto, sans-serif;
+    color: var(--g-500); white-space: nowrap; }
+  .calc .cv b { font: 700 13px/18px Roboto, sans-serif; color: var(--g-900); }
   .calc .cb { position: relative; display: block; height: 6px; margin-top: 8px; border-radius: var(--r-pill); background: var(--in-100); overflow: hidden; }
   .calc .cb i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--in-600); transition: width .6s var(--ease); }
   .calc.over .cb i { background: var(--amber-600); }
 
   /* kaira */
-  .kaira { border-radius: 0 var(--r-lg) var(--r-lg) var(--r-lg); padding: 16px; box-shadow: var(--shadow-card); background: linear-gradient(#fff, #fff) padding-box, linear-gradient(135deg, var(--in-200), var(--teal-200)) border-box; border: 2px solid transparent; }
+  /* Figma draws this as the Kaira insights nudge, 4719:3057: a 3px stroke in
+     her gradient at full strength, indigo #444CE7 on the left to cyan #44E7E7
+     on the right, running across rather than diagonally. Ours was 2px of
+     --in-200 to --teal-200, which are the 200 tints, so the edge was both
+     thinner and washed out and the card read as a faint box rather than as
+     hers. */
+  .kaira { border-radius: 0 var(--r-lg) var(--r-lg) var(--r-lg); padding: 16px;
+    box-shadow: var(--shadow-card); border: 3px solid transparent;
+    background: linear-gradient(#fff, #fff) padding-box, linear-gradient(100deg, var(--in-600), var(--teal-600)) border-box; }
   .kact { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--g-100); }
   .klab { display: block; font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--g-400); }
   .kact .btns { margin-top: 8px; }
@@ -302,15 +373,39 @@
   .plus { width: 44px; height: 44px; margin: -6px -6px -6px 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
   .plus i { width: 26px; height: 26px; border-radius: 9999px; border: 1.5px solid var(--brand-600); background: #fff; color: var(--brand-600); display: grid; place-items: center; }
   .plus:hover i { background: var(--brand-50); }
+  /* no coach plan: the square plus the rest of the logging doors use, not the plan card's circle */
+  .plus.sq i { width: auto; height: auto; border: 0; border-radius: 6px; background: none; }
+  .plus.sq:hover i { background: var(--brand-50); }
+  /* the glyph's square is 17 of its 24, so at 30px it matches the 26px circle the planned cards carry */
+  .plus.sq svg { width: 30px; height: 30px; stroke-width: 1.7; }   /* a touch lighter than the glyph's 2, since it is drawn larger */
   .mb > div { overflow: hidden; }
   .mbi { margin: 0 16px; padding: 12px 0 16px; border-top: 1px solid var(--g-100); }
-  .lab { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: var(--g-500); margin-bottom: 12px; }
+  /* One rule for every uppercase section label on this card. They used to sit
+     12/12, 12/6 and 12/16 above and below their content: one symmetric, one
+     correct, one inverted, so the Tips heading was further from the tips than
+     from the rule above it.
+     USWDS asks for at least 1.5x more space above a heading than below it and
+     Carbon ships 2:1, which is 24 above and 8 below here. Every label on this
+     card follows a divider, so THE RULE OWNS THE 24: 12 above it, 12 below it,
+     then the label, then 8 to its content. Stacking a 24 margin on top of the
+     divider's own 12 gave 36, which is a section break, not a heading.
+     line-height is declared so the space around them is a decision rather than
+     a font-metric accident, which is what made the old rhythm unmeasurable. */
+  .lab, .elselab { font-family: Roboto, sans-serif; font-size: 12px; line-height: 16px;
+    font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: var(--g-500);
+    margin: 12px 0 8px; }
+  /* the rule these two sit under already spends the 12 */
+  .textrow > .elselab, .tips > .lab { margin-top: 0; }
+  /* no extras above it, so the card's own header rule spends the 12 instead */
+  .mbi > .lab:first-child { margin-top: 0; }
   /* No scroll container. Declaring overflow-x alone forces overflow-y to
      auto, and every chip's 44px hit ::after stands 6px proud of the 32px row,
      so the rail became a 6px vertical scroller that stole the page's gesture.
      The options fit the card, so they wrap instead. */
+  /* 16, not 18. 18 appears on no published spacing ladder, M3's included, and
+     it was the one off-grid value doing structural work on this card. */
   .chips { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 8px;
-    margin-bottom: 18px; }
+    margin-bottom: 16px; }
   /* The chip is the option's ordinal, with what the whole option costs under
      it. The chip is its own 44px target because it holds two lines, so it no
      longer borrows one. */
@@ -322,25 +417,48 @@
   .chip::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
   .chip .ot { display: block; text-align: left; }
   .chip .ot b { display: block; font-size: 14px; font-weight: 600; line-height: 18px; color: var(--g-700); white-space: nowrap; }
-  /* A tint fill, not a border swap. White-on-white with only the border
-     changing colour is close to signalling state by colour alone, and the
-     logging screen already tints the same chip off the same plan. */
-  .chip.on { background: var(--brand-100); border-color: var(--brand-600); color: var(--brand-600); }
+  /* ---- The chip carries two things at once, on two different properties ----
+     Food can be logged from more than one option, so "selected" and "not
+     selected" cannot cover it. There are six states here, not two: viewing is
+     one axis and progress is the other, and they are independent.
+     The FILL is progress: the tint runs left to right in proportion to how
+     many of that option's foods are in the day, so the chip is its own meter.
+     The RING is viewing. Keeping them on separate properties is the whole
+     point, because both want to be green and would otherwise compete.
+     Explored in ../option-chip-options.html, variant B. */
+  /* An option with anything logged in it earns a tint, an edge and a check; there is
+     no progress fill, because options share foods and a fill would claim both. */
+  .chip.done { border-color: var(--brand-200); background: var(--brand-50); }
+  /* Viewing is a ring, not a fill: a filled chip is already saying progress,
+     so selection had to move to a property the fill does not use. */
+  .chip.on { background: #fff; border-color: var(--brand-600);
+    box-shadow: 0 0 0 1px var(--brand-600); }
   .chip.on .ot b { color: var(--brand-600); }
-  .item { display: flex; align-items: flex-start; gap: 8px; min-height: 44px; }
-  .item + .item { margin-top: 14px; }
-  /* same trick the tips use: the 24px mark sits in a 44px target, so the
-     button is pulled up by half the slack to put the mark on the name's own
-     centre line, and the matching negative bottom margin stops the 44px
-     stretching the row */
-  .item .tickbtn { margin-top: -12px; margin-bottom: -12px; margin-right: -6px; }
-  /* everything on the right settles onto the name's first line too, so the
-     row reads as one line with a helping under it rather than a drift */
+  /* The rhythm is one number on the parent, not a margin on each child. M3 is
+     explicit: "Define padding and gaps on the parent container" and "Avoid
+     defining margins on child elements as they usually aren't uniform".
+     12 is M3's own ItemBetweenSpace for a contained list. */
+  .items, .extras { display: flex; flex-direction: column; gap: 12px; }
+  /* 16 from the mark to the name. M3 ItemLeadingSpace, Compose
+     LeadingContentEndPadding, Flutter horizontalTitleGap and the iOS
+     imageToTextPadding all specify 16 for a list row's leading element. */
+  .item { display: flex; align-items: flex-start; gap: 16px; }
+  /* No min-height. It added 4px of dead space under every two-line row, so the
+     declared 14 between rows painted as 18, and a row whose name wrapped lost
+     the slack and painted as 14. There was no constant rhythm at all. */
+  /* everything on the right settles onto the name's first line, so the row
+     reads as one line with a helping under it rather than a drift */
   .item .kc { margin-top: 3px; }
   .item .manual, .item .skiptag { margin-top: 0; }
-  .item .dots { margin-top: -12px; margin-bottom: -12px; margin-left: -8px; }
-  /* the hit area is 44, the glyph is 24, the same as the logging screen */
-  .tickbtn { width: 44px; height: 44px; margin-left: -10px; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+  /* The mark is 24 and the target is 44, held by an overlay that costs no
+     layout, which is what .chip and .askk already do. Five different negative
+     margins used to hold the same 44 open, and the calorie figure ended 8px
+     INSIDE the overflow button because .kc and .dots each closed the same gap,
+     so tapping "146 cal" opened the options sheet. */
+  .tickbtn, .dots { position: relative; width: 24px; height: 24px; border: 0; background: none;
+    padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+  .tickbtn::after, .dots::after { content: ""; position: absolute; left: 50%; top: 50%;
+    width: 44px; height: 44px; transform: translate(-50%, -50%); }
   .tickbtn[disabled] { cursor: default; }
   .tick { width: 24px; height: 24px; border-radius: 9999px; border: 1.5px solid var(--g-300); background: #fff; display: grid; place-items: center; flex-shrink: 0; }
   .tick.on { background: var(--ok-600); border-color: var(--ok-600); }
@@ -352,61 +470,182 @@
   .item.done .nm { color: var(--g-700); }
   .manual { font-size: 12px; font-weight: 600; color: var(--g-500); background: var(--g-50); border: 1px solid var(--g-200); border-radius: 9999px; padding: 2px 8px; flex-shrink: 0; }
   .kc { font-size: 12px; color: var(--g-500); white-space: nowrap; }
-  /* closes the 8px gap to the overflow dots, so the figure sits nearer the edge */
-  .item .kc { margin-right: -8px; }
-  .dots { width: 44px; height: 44px; margin-right: -12px; border: 0; background: none; color: var(--g-400); display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+  .dots { color: var(--g-400); }
   .note { font-size: 12px; color: var(--g-500); line-height: 18px; margin: 0 0 8px; }
-  .extras { padding-bottom: 8px; margin-bottom: 12px; border-bottom: 1px dashed var(--g-200); }
+  /* 12 above the rule; the label below it brings its own 12, so the dashed
+     rule sits centred in 24 the same way every other divider here does */
+  .extras { padding-bottom: 12px; border-bottom: 1px dashed var(--g-200); }
   /* inside a meal card, too tight for 8px of travel, so the system's flat */
-  .gf-btn.logall { font-size: 14px; margin-top: 12px; }
 
-  /* the parent control: the same tick the rows carry, one level up, on the
-     rows' own 36px rhythm so it never sits pinched between them */
-  .allrow { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 40px;
-    margin: 0; padding: 10px 0 0; border: 0; border-top: 1px dashed var(--g-200); background: none;
-    text-align: left; cursor: pointer; }
-  .mtk { width: 24px; height: 24px; border-radius: var(--r-pill); border: 1.5px solid var(--brand-600);
-    background: #fff; display: grid; place-items: center; flex-shrink: 0; color: var(--brand-600); }
-  .mtk.part { background: var(--brand-100); }
-  .mtk svg { width: 13px; height: 13px; }
-  .alab { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; color: var(--brand-700); }
 
   /* GoodFlip's own quiet action, and the reverse, which is quieter still */
-  .textrow { display: flex; min-height: 40px; align-items: center; padding-top: 10px; border-top: 1px dashed var(--g-200); }
-  .textall { min-height: 44px; margin-block: -4px; margin-left: -4px; padding: 0 4px; border: 0;
-    background: none; color: var(--brand-600); font-size: 14px; font-weight: 600; cursor: pointer; }
-  .textall:hover { text-decoration: underline; text-underline-offset: 3px; }
-  .undoall { min-height: 44px; margin-block: -4px; margin-left: -4px; padding: 0 4px; border: 0;
-    background: none; color: var(--g-500); font-size: 13px; cursor: pointer; }
-  .undoall:hover { color: var(--g-700); text-decoration: underline; text-underline-offset: 3px; }
-  .gf-btn.logall:hover { background: var(--g-50); }
-  .allrow:hover .alab { text-decoration: underline; text-underline-offset: 3px; }
-  .tips { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--g-100); }
-  .tip { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; }
-  /* The mark is 24px inside a 44px target, so left alone it sits 10px below
-     the headline it belongs to. Pulling the button up by half the slack puts
-     the mark on the headline's own centre line, and the matching negative
-     bottom margin keeps the 44px from stretching the row. */
-  .tip .tickbtn { height: 44px; margin-top: -12px; margin-bottom: -12px; margin-right: -6px; }
-  .tip .tt { font-size: 14px; font-weight: 600; line-height: 20px;
-    display: flex; align-items: center; gap: 4px; }
+  /* a column now: the label sits above the two routes it names */
+  /* 12 above the rule as well as below it. There was nothing above it before,
+     so the rule sat hard against the last food and read as part of the list it
+     was supposed to be separating. All four dividers on this card are now 12
+     and 12. */
+  .textrow { display: flex; flex-direction: column; align-items: stretch;
+    margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--g-200); }
+  /* The words are the heading of a small group, not the button. Underneath,
+     the two ways to do it are named outright, so no glyph has to carry the
+     meaning on its own: a plus promises "you do the typing", Kaira's mark
+     promises "tell me and I will work it out", and those are different jobs.
+     Explored in ../else-row-options.html, variant G. */
+  /* its type and spacing come from the shared .lab rule above */
+  /* They fill the card rather than hugging their words, so the two routes read
+     as equal halves of one decision and neither looks like the afterthought. */
+  .acts { display: flex; gap: 8px; }
+  .achip { flex: 1; min-width: 0; display: inline-flex; align-items: center; justify-content: center;
+    gap: 7px; min-height: 44px; margin-block: -4px; padding: 0 13px; border: 0;
+    border-radius: var(--r-pill); background: var(--brand-50); color: var(--brand-700);
+    font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+  /* DIRECT CHILD ONLY. Kaira's mark is an svg nested inside her .gfk span,
+     which GFKaira.mark() has already sized and which the span's own box is
+     built around, so a bare ".achip svg" rule reaches in and resizes her
+     artwork inside a box that does not move with it: the hexagon grows out of
+     its own container and the chip's gap is measured against the stale box.
+     The plus is a direct child of the button, so ">" separates them.
+     19, because the square plus is a thin outline holding a small cross and
+     carries far less ink than her solid hexagon at the same nominal size. It
+     still sits under the label's 20px line, which is the ceiling before a mark
+     starts to outrank the words it belongs to. */
+  .achip > svg { width: 19px; height: 19px; flex-shrink: 0; }
+  .achip .gfk { flex-shrink: 0; }
+  /* Searching is the road most people take, so it keeps the fill. Kaira is the
+     way out when you cannot name the food, the rarer case, so she is outlined.
+     Drawing them as identical twins would be a false balance. */
+  .achip.k { background: #fff; border: 1px solid var(--in-100); color: var(--in-600); }
+  .tips { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--g-100); }
+  /* A tip row and a food row have the same anatomy, a 20px title over an 18px
+     line, so they get the same 12 between them and the same 16 from the mark.
+     They used to be 8 apart against the food rows' 18, which is the same job
+     drawn two ways. The side padding gives the tick's wash something to sit
+     in, and the negative margin puts the content back where it was. */
+  .tiplist { display: flex; flex-direction: column; gap: 12px; }
+  .tip { position: relative; display: flex; gap: 16px; align-items: flex-start;
+    padding: 0 8px; margin: 0 -8px; border-radius: var(--r-md); }
+  /* the mark sits on the headline's own line; the 44 is the overlay's job */
+  /* The headline carries Kaira's chip where the info circle used to sit, so a
+     question is asked about THIS tip rather than about tips in general. A tip
+     title can be long, so the line wraps and the chip follows it down rather
+     than squeezing the words. */
+  /* Text, not a flex row. As a flex container the words were one item and the
+     chip another, so the chip could only ever sit beside the whole title or
+     drop below all of it: it could not follow the last word. Left as plain
+     inline content the chip flows after the final word the way another word
+     would, and wraps with it, which is what makes it read as trailing the
+     title rather than as a second thing under it. */
+  .tip .tt { font-size: 14px; font-weight: 600; line-height: 20px; }
+  /* Her clipped corner: square top left, rounded elsewhere, the one shape that
+     is hers alone in this pillar. Her card and her sheet cut the same corner,
+     so the chip is recognisably hers before a word of it is read. A hairline,
+     not a fill: there is one of these on every tip, and at that count a filled
+     chip stops being a detail and becomes the texture of the screen.
+     Explored in ../ask-kaira-chip-options.html, variant D. */
+  .askk { position: relative; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+    vertical-align: middle; margin-left: 8px;
+    height: 24px; padding: 0 9px 0 6px; cursor: pointer;
+    font-size: 11.5px; font-weight: 600; letter-spacing: .3px; color: var(--in-700);
+    border: 1px solid transparent; border-radius: 0 var(--r-pill) var(--r-pill) var(--r-pill);
+    background: linear-gradient(180deg, var(--in-25), #FFFFFF 70%) padding-box,
+      linear-gradient(100deg, var(--in-600), var(--teal-600)) border-box;
+    transition: transform .22s var(--ease), box-shadow .3s var(--ease); }
+  /* the hit area is 44 while the chip stays 24, the same trick every small
+     control on this card uses */
+  .askk::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+  .askk:hover { box-shadow: 0 2px 10px rgba(68,76,231,.18); }
+  .askk:active { transform: scale(.97); }
+  .askk .gfk { flex-shrink: 0; }
+  /* Once a tip is done there is nothing left to ask about it, so her chip goes
+     rather than sitting there greyed. */
+  .tip.done .askk { display: none; }
   .tip .td { font-size: 12px; color: var(--g-500); line-height: 18px; margin-top: 2px; }
   .tip.done .tt { color: var(--g-500); }
+
+  /* ---- Ticking a tip, lifted from the To-do in the EM3 wireframes ----
+     Transcribed from app/public/v6/assets (taskPop, haloOut, confettiOut,
+     checkDraw, flashOut, strikeWipe). Every keyframe, duration, delay and
+     cubic-bezier below is the shipped value, including taskPop's overshoot at
+     1.56, which is the one place this pillar is allowed to bounce: it is what
+     the To-do already does when a task is done, and a tip is the same kind of
+     small win. Six things fire together, and the whole moment is over in
+     1.1s, which is how long the wireframe holds its own state. */
+  @keyframes taskPop { 0% { transform: scale(1); } 30% { transform: scale(1.32); }
+    55% { transform: scale(.92); } 75% { transform: scale(1.06); } 100% { transform: scale(1); } }
+  @keyframes haloOut { 0% { opacity: .5; transform: scale(.65); } 100% { opacity: 0; transform: scale(2.6); } }
+  @keyframes confettiOut { 0% { opacity: 0; transform: translate(0) scale(.4) rotate(0); }
+    15% { opacity: 1; } 70% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot)); } }
+  @keyframes checkDraw { to { stroke-dashoffset: 0; } }
+  @keyframes flashOut { 0% { opacity: .85; } 35% { opacity: .5; } 100% { opacity: 0; } }
+
+  /* 1. the mark pops */
+  .tmark.pop { animation: taskPop .55s cubic-bezier(.34,1.56,.64,1) both; }
+  /* 2. a ring leaves it and opens to 2.6x */
+  .tmark.pop::after { content: ""; position: absolute; inset: -3px; border-radius: 50%;
+    border: 2px solid var(--ok-600); pointer-events: none;
+    animation: haloOut .8s cubic-bezier(.22,.7,.3,1) forwards; }
+  /* 3. the check draws itself rather than appearing */
+  .tmark.pop svg path { stroke-dasharray: 1; stroke-dashoffset: 1;
+    animation: checkDraw .34s cubic-bezier(.4,0,.2,1) .12s forwards; }
+  /* 4. twelve pieces on fixed vectors, three colours, staggered 26ms apart */
+  .burst { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+  .burst i { position: absolute; left: 50%; top: 50%; display: block;
+    animation: confettiOut .72s cubic-bezier(.16,.7,.3,1) forwards; }
+  /* 5. the row itself flashes its pillar tint and drains */
+  .tip.cheer::before { content: ""; position: absolute; inset: 2px -10px; border-radius: 12px;
+    background: var(--brand-100); pointer-events: none; z-index: 0;
+    animation: flashOut .9s ease forwards; }
+  /* the flash is behind the words, never over them */
+  .tip > * { position: relative; z-index: 1; }
+  /* No strike-through. The To-do rules a task out because the line is a job
+     that is now closed. A tip is advice you took, so ruling it out reads as
+     cancelling it. The mark and the colour say done on their own. */
+  .tip .tt, .tip .td { transition: color .3s ease-out; }
   /* A tip is ticked off the same way a food is, so it wears the same mark:
      same 24px circle, same green. The two differ in what happens behind them,
      a food confirms quantity and time while a tip just toggles, but that is a
      difference in flow, not in what the control means, and "done" is "done". */
-  .tmark { width: 24px; height: 24px; border-radius: 9999px; border: 1.5px solid var(--g-300);
+  .tmark { position: relative; width: 24px; height: 24px; border-radius: 9999px; border: 1.5px solid var(--g-300);
     background: #fff; display: grid; place-items: center; flex-shrink: 0;
     transition: background .18s ease-out, border-color .18s ease-out, transform .18s cubic-bezier(.4,0,.2,1); }
   .tmark.on { background: var(--ok-600); border-color: var(--ok-600); }
 
-  /* one primary on the screen. Voice sits beside it as a quiet outline, and the
-     meal card's + is the way to search. */
-  .btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
-  /* Snap and Voice are the system's primary and secondary, with their own
-     depth. Nothing here overrides their colours. */
-  .btns .gf-btn { font-size: 14px; }
+  /* ---- Kaira's own pair, transcribed from the production app ----
+     src/components/atoms/Button/KairaButton.variants.ts, variants "kaira" and
+     "kaira-outline", as rendered by molecules/diet/KairaFoodLogWidget.tsx.
+
+     These are NOT the house .gf-btn. They carry no depth lip: the design
+     system says the depth bar is never present on the Kaira pair, and the
+     production component has no box-shadow and no pressed state either. What
+     reads as depth is a 2px gradient RING: the button itself is painted with
+     the gradient and padded 2px, and the face sits on top 2px smaller. The
+     ring runs 0deg and the face runs 114deg, so the two disagree by 114
+     degrees and the edge catches light on one side. That disagreement is the
+     whole effect. */
+  .btns { display: flex; gap: 8px; margin-top: 8px; }
+  .kbtn { flex: 1; min-width: 0; display: inline-flex; align-items: center; justify-content: center;
+    padding: 2px; border: 0; border-radius: 14px; overflow: hidden; cursor: pointer;
+    background: linear-gradient(0deg, #299D6B 6.47%, #2A805A 91.92%);
+    transition: all .15s cubic-bezier(.4,0,.2,1); }
+  .kbtn > span { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 8px 16px; border-radius: 12px;
+    /* 14/20 at weight 400, not the 700 our house buttons use. The production
+       CTA passes children rather than a label, so the bold label slot never
+       applies and the type comes from TextV2 label-medium. */
+    font: 400 14px/20px Roboto, sans-serif; letter-spacing: .25px; }
+  .kbtn svg { width: 16px; height: 16px; flex-shrink: 0; }
+  /* both labels are 400. The b element is only a hook for the gradient clip on
+     the secondary, so its own bold has to be undone. */
+  .kbtn b { font-weight: 400; }
+  /* primary: the face is the same two greens on a diagonal */
+  .kbtn > span { background: linear-gradient(114deg, #299D6B 6.47%, #2A805A 91.92%); color: #fff; }
+  /* secondary: white face, and the word itself is the gradient, clipped to the
+     glyphs at 108deg. The mic stays flat brand green. */
+  .kbtn.out > span { background: #fff; }
+  .kbtn.out b { font-weight: 400; background: linear-gradient(108deg, #299D6B 6.47%, #2A805A 91.92%);
+    -webkit-background-clip: text; background-clip: text; color: transparent; line-height: 1.25; }
+  .kbtn.out svg { color: #299D6B; }
 
   /* loading */
   .shim { background: linear-gradient(90deg, var(--g-100) 25%, var(--g-200) 37%, var(--g-100) 63%); background-size: 400% 100%; border-radius: 6px; animation: sweep 1.5s linear infinite; }
@@ -423,8 +662,12 @@
   /* Bottom right, as designed. It does overlap the meal card "+" and the row
      overflow menus at some scroll positions; that is the standard floating
      button trade and the fix belongs in those targets, not here. */
-  .fab { position: fixed; bottom: 92px; left: calc(50% + 195px - 64px); width: 48px; height: 48px; border-radius: 9999px; border: 0; background: linear-gradient(135deg, var(--in-600), var(--teal-800)); box-shadow: 0 20px 25px -5px rgba(0,0,0,.1), 0 8px 10px -6px rgba(0,0,0,.1); display: grid; place-items: center; cursor: pointer; z-index: 20; }
+  /* The launcher is the product's, drawn by assets/kaira.js, so this only
+     places it. It is 60px there, not 48, and carries its own rim and shadow. */
+  .fab { position: fixed; bottom: 100px; left: calc(50% + 195px - 76px); width: 60px; height: 60px; z-index: 20; }
   @media (max-width: 390px) { .fab { left: auto; right: var(--gut); } }
+  /* the card mark: the same hexagon, at the size a card sets it */
+  .kmark { width: 27px; height: 30px; background: none; display: block; }
   .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 390px; background: #fff; border-top: 1px solid var(--g-200); display: flex; padding: 8px 6px calc(8px + var(--gf-home-h, 20px) + env(safe-area-inset-bottom, 0px)); z-index: 20; }
   .nav button { flex: 1; border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; color: var(--g-500); cursor: pointer; min-height: 48px; justify-content: center; }
   .nav button.on { color: var(--brand-600); font-weight: 700; }
@@ -495,7 +738,7 @@
     background: linear-gradient(180deg, var(--in-100) 0%, rgba(255,255,255,0) 92%); }
   .ewash { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
   .ehero .in { position: relative; text-align: center; }
-  .enum { font-family: "Playfair Display", Georgia, serif; font-size: 40px; line-height: 1.05; font-weight: 600; color: var(--ok-600); }
+  .enum { font-family: Roboto, Arial, sans-serif; font-size: 40px; line-height: 1.05; font-weight: 600; color: var(--ok-600); }
   .enum .u { font-size: 24px; }
   .enum.warn { color: var(--amber-600); }
   .enum.bad { color: var(--red-600); }
@@ -534,6 +777,60 @@
   .esec p:last-child { margin-bottom: 0; }
   .edash { border: 0; border-top: 1px dashed var(--g-200); margin: 16px 0 0; }
   .esheet.on { transform: translate(-50%, 0); }
+
+  /* ---- Kaira's chat sheet ----
+     The tap that opened this WAS the question, so the thread starts with it
+     already sent. Asking somebody to retype what they just tapped is what
+     makes a chat feel like a form. She answers after a beat, because an
+     answer in the same frame reads as a lookup, and the point of her being
+     here is the half a card cannot hold.
+     Ported from app/src/components/KairaChatSheet.jsx, with three things put
+     right on the way: her mark there is green with a letter K, which the
+     design system explicitly forbids, so this uses her real indigo to teal
+     one; her bubble clipped the bottom-left when the top-left is her corner
+     everywhere else in this pillar; and the close was a bare glyph when the
+     house rule is a filled circle. */
+  .ksheet { height: 90vh; }
+  .ksheet .shead { align-items: center; gap: 10px; padding: 16px var(--gut) 12px;
+    border-bottom: 1px solid var(--g-100); }
+  .ksheet .kwho { flex: 1; min-width: 0; }
+  .ksheet .kwho b { display: block; font-size: 14px; line-height: 20px; font-weight: 700; color: var(--g-900); }
+  .ksheet .kwho span { display: block; font-size: 11px; line-height: 16px; color: var(--g-500); margin-top: 1px; }
+  .ksheet .sbody { flex: 1 1 auto; display: flex; flex-direction: column; padding-top: 16px; }
+  /* Sent, past tense. The mirrored corner of hers, so the two sides of the
+     conversation are visibly the same shape facing each other. */
+  .kme { align-self: flex-end; max-width: 82%; margin-bottom: 16px; padding: 10px 13px;
+    border-radius: var(--r-lg) var(--r-lg) 4px var(--r-lg);
+    background: var(--in-50); color: var(--in-800, #2D31A6);
+    font-size: 12.5px; line-height: 1.5; }
+  .krow { display: flex; gap: 8px; margin-bottom: 10px; }
+  /* Her mark rides beside the first line only, so a two part answer reads as
+     one person talking rather than as two notifications. The gutter is held
+     open on every row so the continuations stay aligned under it. */
+  .kgut { width: 22px; flex-shrink: 0; }
+  .kbub { max-width: 88%; padding: 11px 13px; border-radius: 4px var(--r-lg) var(--r-lg) var(--r-lg);
+    background: #fff; border: 1px solid var(--in-100);
+    font-size: 12.5px; line-height: 1.55; color: var(--g-900); }
+  .krow { animation: rise .32s cubic-bezier(.32,.72,0,1) both; }
+  /* Three dots out of step with each other. The stagger is what makes it read
+     as thinking rather than as a loading bar. */
+  .kdots { display: inline-flex; gap: 4px; padding: 4px 2px; }
+  .kdots i { width: 6px; height: 6px; border-radius: 9999px; background: var(--g-400);
+    animation: kpulse 1.1s ease-in-out infinite; }
+  .kdots i:nth-child(2) { animation-delay: .18s; }
+  .kdots i:nth-child(3) { animation-delay: .36s; }
+  @keyframes kpulse { 0%,100% { opacity: .35; transform: scale(1); } 50% { opacity: 0; transform: scale(1.45); } }
+  /* A real looking box that goes nowhere on purpose. This screen has one
+     answer to give and a working field would promise a second. */
+  .kfoot { flex: 0 0 auto; display: flex; gap: 9px; align-items: center;
+    padding: 10px var(--gut) calc(18px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--g-100); }
+  .kfield { flex: 1; min-width: 0; padding: 11px 15px; border-radius: var(--r-pill);
+    background: var(--g-50); border: 1px solid var(--g-200);
+    font-size: 12.5px; color: var(--g-400); }
+  .ksend { width: 38px; height: 38px; flex-shrink: 0; border-radius: 9999px;
+    background: var(--g-50); border: 1px solid var(--g-200); color: var(--g-400);
+    display: grid; place-items: center; }
   .open-edu .scrim { opacity: 1; pointer-events: auto; }
 
   /* ============================================================
@@ -588,12 +885,9 @@
   .toast button { border: 0; background: none; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
     text-decoration: underline; padding: 6px 8px; margin: -6px -4px -6px 0; border-radius: var(--r-sm); }
 
-  /* the day can be put back, so it can be shown again */
-  .reset { position: fixed; bottom: 100px; left: calc(50% - 195px + 16px); min-height: 36px; padding: 0 12px; border-radius: 9999px; border: 1px solid var(--g-200);
-    background: #fff; color: var(--g-500); font-size: 12px; font-weight: 600; cursor: pointer; display: none; align-items: center; gap: 4px; z-index: 21; }
-  @media (max-width: 390px) { .reset { left: var(--gut); } }
-  .reset.on { display: inline-flex; animation: rise .3s ease-out both; }
-  .reset:hover { color: var(--g-700); background: var(--g-50); }
+  /* No Reset day control. It only called location.reload(), which is what the
+     browser's own refresh already does, and it parked a demo affordance in the
+     corner of every screenshot of the real thing. */
 
   /* the item menu */
   .menurow { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; border: 0; background: none; text-align: left;
@@ -642,9 +936,6 @@
 <body>
 <div class="col" id="col">
 
-  <!-- demo only: puts the day back so the prototype can be shown again -->
-  <button class="reset" id="resetDay"><svg class="ico" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5"/></svg>Reset day</button>
-
   <div class="eatline gut">
     <svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px;color:var(--g-900)"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
     <b>Eat</b><span class="tag">Fuel your body right each day.</span>
@@ -683,7 +974,7 @@
   <div class="gut sect">
     <div class="kaira">
       <div class="say">
-        <span class="kmark"><svg width="21" height="23" viewBox="0 0 22 24" fill="none"><defs><linearGradient id="kg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--in-600)"/><stop offset="1" style="stop-color:var(--teal-600)"/></linearGradient></defs><path d="M11 1.2 20.1 6.6v10.8L11 22.8 1.9 17.4V6.6z" stroke="url(#kg1)" stroke-width="2.8" stroke-linejoin="round"/></svg></span>
+        <span class="kmark" id="kairaMark"></span>
         <p id="kairaSay"></p>
       </div>
       <div class="kact" id="kairaAct"></div>
@@ -698,10 +989,11 @@
 
   <div class="gf-footer" aria-hidden="true"></div>
 
-  <button class="fab" aria-label="Ask Kaira"><svg width="22" height="24" viewBox="0 0 22 24" fill="none"><path d="M11 1.2 20.1 6.6v10.8L11 22.8 1.9 17.4V6.6z" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"/></svg></button>
+  <!-- the product's own launcher, written by assets/kaira.js -->
+  <div class="fab" id="kairaFab"></div>
 
   <nav class="nav">
-    <button><svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:1.8"><path d="M15 18l-6-6 6-6"/></svg>Back</button>
+    <button><svg class="backico" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path fill="currentColor" d="M9.409 3.444c-.015-.015-.473-.13-1.018-.255s-.997-.208-1.004-.185-.064.401-.125.84c-.124.882-.424 1.911-.744 2.555-1 2.006-2.791 3.334-4.964 3.68L1 10.165v1.773l.502.084c3.286.551 5.429 3.008 5.83 6.686.026.24.057.436.069.436.11 0 1.947-.443 1.982-.478.025-.025.006-.25-.042-.5-.531-2.765-2.053-5.015-4.027-5.955l-.474-.226 9.74-.018 6.16-.01v-1.794l-6.176-.011-9.717-.018.598-.303c1.552-.786 2.78-2.328 3.503-4.397.206-.59.517-1.934.46-1.99"/></svg>Back</button>
     <button class="on"><svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:2.2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>Eat</button>
     <button data-nav="trend"><svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:1.8"><path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg>Trend</button>
     <button data-nav="learn"><svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Learn</button>
@@ -734,6 +1026,12 @@
 <!-- The chosen hero, and only the chosen hero. The other thirty live behind
      ?hero= and are fetched on demand, so the sixty phones in the companion
      document no longer pull three.js and thirty-one scripts each. -->
+<script src="assets/kaira.js"></script>
+<script>
+  /* Both are the product's components, so the screen only says where they go */
+  document.getElementById("kairaFab").innerHTML = GFKaira.fab("Ask KAIRA");
+  document.getElementById("kairaMark").innerHTML = GFKaira.mark(30, { halo: false });
+</script>
 <script src="heroes/plate.js"></script>
 <script>
 /* ============================================================
@@ -752,7 +1050,7 @@ var KAIRA = {
      says the one thing that matters now and hands over the ways to log. This
      line used to sit as a heading on the macro card, which split her across
      two blocks on a screen that only needed her once. */
-  noplan: "<strong>Keep logging.</strong> The more honest you log, the better your coach can read you. Nothing is judged.",
+  noplan: "<strong>Keep logging.</strong> The more honestly you log, the better your coach can read you. Nothing is judged.",
   empty: "<strong>Your targets are set.</strong> The score starts moving with your first meal, however small it is.",
   first: "One meal in. <strong>Protein is the one to keep an eye on</strong>, lunch is the easiest place to fix it.",
   mid: "Carbs, fats and fibre are past halfway, so today is in good shape. <strong>Protein is the one lagging at 43g of 95g</strong>: pick the roasted chana at your evening snack and it climbs by 9g.",
@@ -781,8 +1079,8 @@ var STATES = {
     hero: { score: 0, mealsIn: 0, mealSlots: 6 },
     /* nothing eaten yet, so the card shows what the day is aiming at rather
        than four zeros */
-    macros: { mode: "goals", title: "Today's targets", v: [[0, 95], [0, 238], [0, 63], [0, 30]],
-      note: "Log a meal and these start filling up." },
+    /* the plan has landed, nothing eaten yet: the same card as any scored day, every macro at 0 of its target */
+    macros: { mode: "targets", title: "What shaped your score?", v: [[0, 95], [0, 238], [0, 63], [0, 30]] },
     cal: { mode: "goal", goal: 1900 },
     kaira: { say: KAIRA.empty, act: "log" },
     diary: { mode: "plan", title: "Your meals", count: "", logged: "none" }
@@ -889,7 +1187,6 @@ var RAILMODE = Q.get("rail") === "cards" ? "cards" : "icons";
 /* How the meal card offers "log the rest of this plan". cta is the full width
    secondary button we shipped; tick is a parent control row that commands the
    food rows below it; text is GoodFlip's own quiet action. */
-var LOGALL = { tick: "tick", text: "text" }[Q.get("logall")] || "cta";
 var ICONRAIL = RAILMODE === "icons" && S.macros.mode !== "hide";
 
 var fmt = function (n) { return n.toLocaleString("en-US"); };
@@ -1158,7 +1455,7 @@ document.getElementById("dayLabel").textContent = S.day;
    and is pulled in only when one of those flags names it. */
 var LAZY = { three: "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js", shaders: "vendor/paper-shaders.js" };
 var HERO_DIR = {
-  orb: "", portal: "", smoke: "", metal: "", sunrise: "", metalhex: "", chrome: "", vortex: "",
+  cloud: "", orb: "", portal: "", smoke: "", metal: "", sunrise: "", metalhex: "", chrome: "", vortex: "",
   aura: "", planet: "", lotus: "", blob: "", citrus: "", broth: "",
   pebble: "backup/", gem: "backup/", stardust: "backup/", ferro: "backup/", pool: "backup/",
   dinnerplate: "backup/", thali: "backup/", hexfood: "backup/", scale: "backup/", halo3d: "backup/",
@@ -1178,14 +1475,15 @@ function loadScripts(list, done) {
 
 /* ---------- the plate ---------- */
 (function () {
-  var name = Q.get("hero") || "plate";
+  var name = Q.get("hero") || "cloud";   /* Cloud Drop is the score; ?hero=plate brings back the old one */
   var el = document.getElementById("hero");
   var shown = S.hero.score == null ? "" : S.hero.score + "%";
 
   /* an alternate hero is a flag, so it arrives with its dependencies when the
      flag is there and costs nothing when it is not */
   if (!(window.HEROES && window.HEROES[name]) && HERO_DIR[name] != null) {
-    loadScripts([LAZY.three, LAZY.shaders, "heroes/" + HERO_DIR[name] + name + ".js"], start);
+    /* the liquid score brings its own renderer, so it skips three.js */
+    loadScripts((name === "cloud" ? [] : [LAZY.three, LAZY.shaders]).concat("heroes/" + HERO_DIR[name] + name + ".js" + (name === "cloud" ? "?v=15" : "")), start);   /* ?v busts the cache when the liquid score is updated */
     return;
   }
   start();
@@ -1199,6 +1497,13 @@ function loadScripts(list, done) {
   /* ponytail: run the hero only while it is on screen. The gallery shows many
      phones at once and Chrome drops the oldest WebGL contexts past ~16. */
   var opts = { score: S.hero.score, state: S.id, mealsIn: S.hero.mealsIn, mealSlots: S.hero.mealSlots };
+  /* arriving from a log: the logger left the gain behind, so the score starts
+     where the day stood and steps up, rather than playing its intro again */
+  try {
+    var gained = +sessionStorage.getItem("gfLogged");
+    sessionStorage.removeItem("gfLogged");
+    if (gained > 0 && S.hero.score != null) opts.from = Math.max(0, S.hero.score - gained);
+  } catch (e) {}
   var live = null;
   var mount = function () {
     if (live) return;
@@ -1348,9 +1653,12 @@ function loadScripts(list, done) {
     var slot = document.getElementById("railMacros");
     slot.hidden = false;
     slot.appendChild(box);
+    /* and its footer with it. They are one card now, so they cannot live in
+       two sections with a section margin between them. */
+    slot.appendChild(document.getElementById("calstrip"));
+    nutSect.remove();
     document.getElementById("rail").hidden = true;
     h2.hidden = true;
-    nutSect.classList.add("calonly");
     h2 = document.getElementById("railTitle");
     h2.appendChild(document.createElement("span")).className = "gapslot";
   } else {
@@ -1416,8 +1724,8 @@ function loadScripts(list, done) {
       return '<div class="m' + done + '">' +
         '<span class="gwrap"><span class="gfill ' + g.cls + fillCls + '"' +
         (fillCls ? "" : ' style="--f:' + (pct * 100).toFixed(1) + '%"') + '></span></span>' +
-        '<span class="mval">' + val + '</span>' +
-        '<span class="mname">' + g.name + '</span></div>';
+        '<span class="mtext"><span class="mval">' + val + '</span>' +
+        '<span class="mname">' + g.name + '</span></span></div>';
     }).join("");
   }
 
@@ -1521,9 +1829,12 @@ function loadScripts(list, done) {
      sitting at x+238 of a 340 wide block, so it runs off the right edge. */
   var WM = '<img class="wm" src="../icons/calorie-frond.svg" alt="" aria-hidden="true">';
   /* the one warm gradient in the nutrition set, amber to red */
-  var FLAME = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
-    '<defs><linearGradient id="calf" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FDB022"/><stop offset="1" stop-color="#F04438"/></linearGradient></defs>' +
-    '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z" fill="url(#calf)"/></svg>';
+  /* Shaheer's flame, the filled cut rather than the outlined one, in the
+     house ink. Filled because at 16px an outline loses its inner
+     detail anyway, and a solid silhouette is the same mark every
+     glyph on this screen already is. */
+  var FLAME = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+    '<path fill="#101828" d="m6.156 9.323-.002.002-.004.003-.01.008a2 2 0 0 0-.126.104 5 5 0 0 0-.302.291c-.24.253-.548.629-.837 1.132-.582 1.015-1.071 2.528-.796 4.551.271 1.997 1.11 3.666 2.528 4.83C8.021 21.404 9.935 22 12.25 22c2.387 0 4.293-.895 5.554-2.43 1.25-1.521 1.808-3.596 1.675-5.864-.128-2.176-1.313-3.827-2.36-5.285l-.299-.417c-1.142-1.612-2.043-3.097-1.824-5.175A.75.75 0 0 0 14.25 2c-.382 0-.82.118-1.242.296a6.5 6.5 0 0 0-1.373.8c-.925.698-1.85 1.75-2.343 3.156C8.8 7.654 9.05 8.99 9.41 9.963c.237.639-.02 1.27-.407 1.454a.706.706 0 0 1-.927-.31L7.27 9.576a.75.75 0 0 0-1.113-.252"/></svg>';
 
   var shownCal = C.eaten || 0;
   var when = S.id === "past" || S.id === "missed" || C.past ? " that day" : " today";
@@ -1724,11 +2035,25 @@ function loadScripts(list, done) {
 
 /* ---------- diary ---------- */
 var I = {
-  check: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  /* pathLength="1" so a stroke-dasharray of 1 means the whole stroke, which is
+     what lets the tip's mark draw its check on rather than switch it on. It
+     changes nothing for the food ticks, which set no dasharray. */
+  check: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M20 6L9 17l-5-5"/></svg>',
   checkG: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
   plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
   dots: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>',
+  /* a plus in a square, so it is visibly not the round tick a planned food
+     carries: this adds something the plan never listed */
+  plusSq: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>',
   info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="stroke:var(--g-400)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
+  /* The production CTA icons: Font Awesome 5 solid via react-icons, which
+     stamps fill="currentColor" and stroke-width="0", so they are solid
+     silhouettes rather than the outlined pair the rest of this screen uses.
+     The microphone's viewBox is 352 x 512, and the app forces it into a
+     square 16 box, so it renders very slightly narrowed. Kept as the app has
+     it, because matching it is the point. */
+  camFill: '<svg viewBox="0 0 512 512" fill="currentColor" aria-hidden="true"><path d="M512 144v288c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V144c0-26.5 21.5-48 48-48h88l12.3-32.9c7-18.7 24.9-31.1 44.9-31.1h125.5c20 0 37.9 12.4 44.9 31.1L376 96h88c26.5 0 48 21.5 48 48zM376 288c0-66.2-53.8-120-120-120s-120 53.8-120 120 53.8 120 120 120 120-53.8 120-120zm-32 0c0 48.5-39.5 88-88 88s-88-39.5-88-88 39.5-88 88-88 88 39.5 88 88z"/></svg>',
+  micFill: '<svg viewBox="0 0 352 512" fill="currentColor" aria-hidden="true"><path d="M176 352c53.02 0 96-42.98 96-96V96c0-53.02-42.98-96-96-96S80 42.98 80 96v160c0 53.02 42.98 96 96 96zm160-160h-16c-8.84 0-16 7.16-16 16v48c0 74.8-64.49 134.82-140.79 127.38C96.71 376.89 48 317.11 48 250.3V208c0-8.84-7.16-16-16-16H16c-8.84 0-16 7.16-16 16v40.16c0 89.64 63.97 169.55 152 181.69V464H96c-8.84 0-16 7.16-16 16v16c0 8.84 7.16 16 16 16h160c8.84 0 16-7.16 16-16v-16c0-8.84-7.16-16-16-16h-56v-33.77C285.71 418.47 352 344.9 352 256v-48c0-8.84-7.16-16-16-16z"/></svg>',
   cam: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>',
   mic: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg>',
   dash: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M5 12h14"/></svg>',
@@ -1739,8 +2064,8 @@ var I = {
    Searching a food by name is the meal card's +, which is where a person is
    already looking when they know what the food was. */
 var DOORS = '<div class="btns">' +
-  '<button class="gf-btn" data-door="snap">' + I.cam + 'Snap</button>' +
-  '<button class="gf-btn secondary" data-door="voice">' + I.mic + 'Voice</button></div>';
+  '<button class="kbtn" data-door="snap"><span>' + I.camFill + '<b>Snap</b></span></button>' +
+  '<button class="kbtn out" data-door="voice"><span>' + I.micFill + '<b>Voice</b></span></button></div>';
 
 /* Every food carries its macros per unit, taken from the app's own food table
    (app/src/screens/log/foods.js), so calories are derived, not typed, and a
@@ -1770,7 +2095,7 @@ var MEALS = [
        f("Curd", "1 katori", 1, 5, 7, 3, 0, "Protein plus the culture your gut wants, and it cools the meal."),
        f("Boiled egg", "1 egg", 1, 6, 1, 5, 0, "One egg is the cheapest 6g of protein on the plan.")]
     ],
-    tips: [{ title: "Drink warm water with methi", tip: "Soak a spoon of seeds overnight. Drink the water first thing.", done: true }] },
+    tips: [{ title: "Drink warm methi seed water before breakfast", tip: "Soak a spoon of seeds overnight. Drink the water first thing.", done: true }] },
   { id: "lunch", name: "Lunch", time: "1:00 - 3:00 PM", core: true,
     opts: [
       [f("Dahi, low-fat", "1 bowl", 1, 9, 12, 3, 0, "Nine grams of protein for very little fat, and it sits well with a warm meal."),
@@ -1801,7 +2126,7 @@ var MEALS = [
   { id: "bed", name: "Bedtime", time: "10:00 - 11:00 PM", core: false,
     opts: [[f("Walnut", "1 piece", 2, 0.6, 0.5, 2.6, 0.3, "Two walnuts are for the fat, not the calories. They are the last small thing of the day."),
       f("Chamomile tea", "1 cup", 1, 0, 0.5, 0, 0, "It is here to end the day, not to feed you.")]],
-    tips: [{ title: "Soak 5 almonds for tomorrow", tip: "In a small bowl of water, before bed. Peel them in the morning.", done: false }] }
+    tips: [{ title: "Soak 5 almonds ready for tomorrow morning", tip: "In a small bowl of water, before bed. Peel them in the morning.", done: false }] }
 ];
 
 /* Each meal's suggested window, read back out of the line the card already
@@ -1966,7 +2291,6 @@ function refresh() {
   if (window.paintRail) window.paintRail();
   if (window.paintVerdict) window.paintVerdict(SHOWN, mealsIn());
   if (window.paintDelta) window.paintDelta(SHOWN, mealsIn());
-  document.getElementById("resetDay").classList.add("on");
 }
 
 /* ---------- rows ---------- */
@@ -1989,53 +2313,54 @@ function body(m) {
   h += '<div class="lab">Your coach\'s plan</div>';
   if (m.opts.length > 1) {
     h += '<div class="chips">' + m.opts.map(function (o, i) {
-      return '<button class="chip' + (i === m.show ? " on" : "") + '" data-meal="' + m.id + '" data-opt="' + i + '">' +
+      /* No progress on a chip: options often share foods, so a fill would claim
+         two options at once. The chip simply carries a check once any food in
+         it is logged. */
+      var any = o.some(function (x) { return x.done; });
+      return '<button class="chip' + (i === m.show ? " on" : "") + (any ? " done" : "") +
+          '" data-meal="' + m.id + '" data-opt="' + i + '"' +
+          ' aria-label="Option ' + (i + 1) + (any ? ", logged" : "") + '">' +
         '<span class="ot"><b>Option ' + (i + 1) + '</b></span>' +
-        (i === m.chosen ? I.checkG : "") + '</button>';
+        (any ? I.checkG : "") + '</button>';
     }).join("") + '</div>';
   }
   var items = m.opts[m.show];
   /* Another option, while one is already going. Nothing is disabled: what you
      actually ate always goes in. The line is guidance, and it says what the
      coach intended rather than what the screen will not let you do. */
-  var other = m.chosen >= 0 && m.show !== m.chosen;
-  if (other) h += '<p class="note">You have started option ' + (m.chosen + 1) +
-    ', which is how your coach planned this meal. Staying with it is best, ' +
-    'but log whatever you actually ate.</p>';
-  h += items.map(function (it, i) { return itemRow(it, { ref: m.id + "|" + m.show + "|" + i }); }).join("");
-  var left = items.filter(function (x) { return !x.done && !x.skip; }).length;
-  var inAll = items.filter(function (x) { return x.done; }).length;
+  /* No sentence explaining which option was started. The chip says it: a
+     paragraph that repeats what a control already shows is a second copy of
+     the same state, and it went stale the moment the chips were able to carry
+     progress themselves. */
+  /* wrapped, so the 12 between rows is one gap on the parent rather than a
+     margin repeated on every child */
+  h += '<div class="items">' +
+    items.map(function (it, i) { return itemRow(it, { ref: m.id + "|" + m.show + "|" + i }); }).join("") +
+    '</div>';
+  /* Neither Log all nor Undo all. Writing four foods at once was a shortcut
+     past the screen that asks for a quantity and a time, and the undo existed
+     only to make that shortcut reversible. What is left is the one thing a
+     plan cannot anticipate: that you ate something it does not list. */
   if (!RO) {
-    var label = left === items.length ? "Log all " + left : "Log the other " + left;
-    if (left >= 2) {
-      if (LOGALL === "tick") {
-        /* A parent control that commands the rows below it. It only earns the
-           checkbox grammar because it can be reversed, which is what the
-           undo row below provides once everything is in. */
-        h += '<button class="allrow logall" data-meal="' + m.id + '">' +
-          '<span class="mtk' + (inAll ? " part" : "") + '">' + (inAll ? I.dash : "") + '</span>' +
-          '<span class="alab">' + label + '</span></button>';
-      } else if (LOGALL === "text") {
-        h += '<div class="textrow"><button class="textall logall" data-meal="' + m.id + '">' + label + '</button></div>';
-      } else {
-        h += '<button class="gf-btn secondary flat logall" data-meal="' + m.id + '">' + label + '</button>';
-      }
-    } else if (inAll >= 2 && left === 0) {
-      /* Reversibility. One tap put several foods in, so one tap has to be able
-         to take them back out. Deliberately quieter than the way in: undoing is
-         a way out, not the job (heuristic 3, and it is what lets the parent
-         tick above claim the checkbox grammar honestly). */
-      h += '<div class="textrow"><button class="undoall" data-meal="' + m.id + '">Undo all ' + inAll + '</button></div>';
-    }
+    h += '<div class="textrow"><div class="elselab">Had something else?</div>' +
+      '<div class="acts">' +
+        '<button class="achip elsebtn" data-meal="' + m.id + '">' + I.plusSq + 'Search and log</button>' +
+        '<button class="achip k kairabtn" data-meal="' + m.id + '">' + GFKaira.mark(16, { halo: false }) + 'Log with KAIRA</button>' +
+      '</div></div>';
   }
   if (m.tips) {
-    h += '<div class="tips"><div class="lab">Tips from your coach</div>' + m.tips.map(function (t, i) {
+    h += '<div class="tips"><div class="lab">Tips from your coach</div><div class="tiplist">' + m.tips.map(function (t, i) {
       /* a tip's mark is square and grey, not the round green tick, because it
          does not open the confirm step a food's tick opens */
       return '<div class="tip' + (t.done ? " done" : "") + '" data-tip="' + m.id + "|" + i + '"><button class="tickbtn"' + (RO ? " disabled" : "") + ' aria-label="' + (t.done ? "Mark as not done: " : "Mark as done: ") + t.title + '" aria-pressed="' + (t.done ? "true" : "false") + '">' +
         '<span class="tmark' + (t.done ? " on" : "") + '">' + (t.done ? I.check : "") + '</span></button>' +
-        '<div><div class="tt">' + t.title + ' ' + I.info + '</div><div class="td">' + t.tip + '</div></div></div>';
-    }).join("") + '</div>';
+        /* Kaira's chip takes the info circle's place. A circle could only say
+           "there is more about this"; she can actually answer the question the
+           tip raises, and the chip says so in words. */
+        '<div><div class="tt"><span>' + t.title + '</span>' +
+          '<button class="askk" data-tipask="' + m.id + "|" + i + '">' + GFKaira.mark(12, { halo: false }) + 'Ask KAIRA</button>' +
+        '</div><div class="td">' + t.tip + '</div></div></div>';
+    }).join("") + '</div></div>';
   }
   return h;
 }
@@ -2055,12 +2380,13 @@ function card(m) {
   var target = sum(m.opts[m.show]);
   /* a meal with nothing in it says what it holds, or that the day passed it by,
      rather than opening with a zero */
-  var line = logged ? logged + " of " + target + " cal" : target + " cal planned";
+  var line = logged ? logged + " of " + target + " kcal" : target + " kcal planned";
   return '<section class="meal" id="meal-' + m.id + '">' +
     '<div class="mh">' +
       '<div class="t"><div class="n">' + m.name + '</div>' +
-      '<div class="s">Suggested ' + m.time + ' · ' + line + '</div></div>' +
-      (RO ? "" : '<button class="plus" aria-label="Log something for ' + m.name + '" data-meal="' + m.id + '" data-stop="1"><i>' + I.plus + '</i></button>') +
+      '<div class="s">Suggested ' + m.time.replace(" - ", "\u2013") + ' · ' + line + '</div></div>' +
+      /* no plus here: a planned meal carries "I have eaten something else" at
+         the foot of its own list, which says what the button was for */
     '</div>' +
     '<div class="mb"><div><div class="mbi">' + body(m) + '</div></div></div></section>';
 }
@@ -2073,8 +2399,8 @@ function freeCard(m) {
   var logged = freeSeed(m) + sum(m.manual);
   return '<section class="meal" id="meal-' + m.id + '"><div class="mh">' +
     '<div class="t"><div class="n">' + m.name + '</div>' +
-    '<div class="s">Suggested ' + m.time + (logged ? ' · ' + logged + ' cal logged' : '') + '</div></div>' +
-    '<button class="plus" aria-label="Log something for ' + m.name + '" data-meal="' + m.id + '" data-stop="1"><i>' + I.plus + '</i></button></div>' +
+    '<div class="s">Suggested ' + m.time.replace(" - ", "\u2013") + (logged ? ' · ' + logged + ' kcal logged' : '') + '</div></div>' +
+    '<button class="plus sq" aria-label="Log something for ' + m.name + '" data-meal="' + m.id + '" data-stop="1"><i>' + I.plusSq + '</i></button></div>' +
     (m.manual.length ? '<div class="mb"><div><div class="mbi"><div class="extras">' +
       m.manual.map(function (it, i) { return itemRow(it, { manual: true, ref: m.id + "|m|" + i }); }).join("") + '</div></div></div></div>' : "") +
     '</section>';
@@ -2196,10 +2522,9 @@ function mealsIn() {
       /* Before a plan there is no score, so there is nothing this heading can
          ask. The card below is four numbers with no target, and naming it
          does not change what it is. */
-      var text = S.macros.mode === "grams" ? ""
-        : SCORED && LIVE.cal > 0 ? "What shaped your score?"
-        : ICONRAIL && S.macros.mode === "goals" ? "Today's targets"
-        : PASTDAY ? "What was logged that day" : "Your day so far";
+      /* one heading for this card wherever there is a score to shape, so the
+         section reads the same from the first minute of a plan to the last */
+      var text = S.macros.mode === "grams" ? "" : "What shaped your score?";
       /* the gold gap badge is the macro card's, so it is kept rather than
          written over */
       var slot = title.querySelector(".gapslot");
@@ -2316,6 +2641,74 @@ function mealsIn() {
   var col = document.getElementById("col");
 
   /* ---------- one sheet builder, house rules baked in ---------- */
+  /* Her answers. Two bubbles each, because the first says the mechanism and
+     the second says what to do with it. She names one mechanism and nothing to
+     do: the tip already carries the ask, so a line ending in "so do it" is the
+     same request twice and the second one reads as nagging. */
+  var KANS = {
+    "Soak 5 almonds for tomorrow": [
+      "Almond skins carry tannins, which bind to the iron and zinc in the nut and to the enzymes your gut uses to break it down. Soaking pulls those tannins into the water, and the skin slips off with them.",
+      "You also soften the cell walls, so the vitamin E and the good fats underneath are easier to absorb. Overnight in plain water is enough. Peel them in the morning and throw the water away."
+    ],
+    "Drink warm water with methi": [
+      "Methi seeds are wrapped in a soluble fibre called galactomannan. In water it turns to gel, and that gel slows how fast your stomach empties into the gut.",
+      "So the sugar from breakfast arrives in a slow stream rather than a wave, and the spike your body has to answer is smaller. On an empty stomach the gel is already in place before the food lands, which is why the timing matters as much as the seeds."
+    ]
+  };
+  var KFALLBACK = [
+    "Your coach put this one in your day because it is small enough to hold on the days you have no time, and those are the days it counts.",
+    "Ask me again once you have run it for a week and I can tell you what it moved."
+  ];
+  /* The same ask, turned back into a question. Composed from the title rather
+     than written per tip, so a tip only ever has to say what it is. */
+  function askAbout(title) {
+    return "Tell me why I should " + title.charAt(0).toLowerCase() + title.slice(1) + ".";
+  }
+  var KSEND = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+
+  function askKaira(title) {
+    var el = document.getElementById("kairachat");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "kairachat";
+      el.setAttribute("role", "dialog");
+      el.setAttribute("aria-modal", "true");
+      host.appendChild(el);
+    }
+    window.closeSheets();
+    el.className = "sheet esheet ksheet";
+    el.innerHTML =
+      '<div class="shead">' + GFKaira.mark(30, { halo: false }) +
+        '<span class="kwho"><b>KAIRA</b><span>AI care assistant</span></span>' +
+        '<button class="x" aria-label="Close">' + XI + '</button></div>' +
+      '<div class="sbody" id="kchat">' +
+        '<div class="kme">' + askAbout(title) + '</div>' +
+        '<div class="krow" id="kthink"><span class="kgut">' + GFKaira.mark(22, { halo: false }) + '</span>' +
+          '<span class="kbub"><span class="kdots"><i></i><i></i><i></i></span></span></div>' +
+      '</div>' +
+      '<div class="kfoot"><div class="kfield">Ask KAIRA anything</div>' +
+        '<div class="ksend">' + KSEND + '</div></div>';
+    el.querySelector(".x").onclick = function () { window.closeSheets(); };
+    setTimeout(function () { el.classList.add("on"); col.classList.add("open-edu"); }, 16);
+    /* She answers after a beat, and the beat is the point. */
+    setTimeout(function () {
+      var thread = el.querySelector("#kchat"), think = el.querySelector("#kthink");
+      if (!think) return;
+      think.remove();
+      var lines = KANS[title] || KFALLBACK;
+      thread.insertAdjacentHTML("beforeend", lines.map(function (t, i) {
+        return '<div class="krow" style="animation-delay:' + (i * .12) + 's">' +
+          '<span class="kgut">' + (i === 0 ? GFKaira.mark(22, { halo: false }) : "") + '</span>' +
+          '<span class="kbub">' + t + '</span></div>';
+      }).join(""));
+      /* 2200, up from 1400. A real answer to "why should I" is a thing she
+         works out, and at 1400 the dots were gone before the eye had settled
+         on them. The ceiling is about 5s: past that a typing indicator needs
+         a status line or it reads as stuck. */
+    }, REDUCED ? 200 : 2200);
+    return el;
+  }
+
   function openSheet(id, title, html) {
     var el = document.getElementById(id);
     /* a sheet that swaps its own contents stays up, rather than bouncing out
@@ -2353,6 +2746,47 @@ function mealsIn() {
     function hide() { clearTimeout(tT); tEl.classList.remove("on"); }
   }
 
+  /* The twelve pieces, on the To-do's own vectors: [dx, dy, size]. They are a
+     fixed table rather than random, so the burst is the same shape every time
+     and can be judged, which is why the wireframe hard-codes it too. Every
+     third piece is a bar rather than a dot, and the colours cycle gold, the
+     pillar green, GoodFlip green. */
+  var BURST = [[-30,-18,8],[-14,-30,6],[4,-34,5],[22,-26,7],[34,-8,6],[32,12,5],
+               [18,26,7],[0,32,6],[-18,27,5],[-32,10,7],[-24,-4,4],[26,-2,4]];
+  /* The wireframe cycles gold, GoodFlip green, then the pillar's own colour,
+     and on Eat the last two are both #299D6B, so two pieces in three came out
+     the same green and the burst read as one flat colour. Four pillar hues
+     instead, which is what makes it actually read as confetti. The score is
+     the only thing that owns a pillar colour, so the rest of the palette is
+     free here. */
+  /* The four pillar colours the wireframes use: Measure gold, Move indigo,
+     Mind teal, Eat green. --teal-600 in this system is a pale cyan, so the
+     teal here is --teal-800, which is the Mind hue the wireframes actually
+     carry and the only one of the four that reads on white. */
+  var BURST_C = ["var(--gold-600)", "var(--in-600)", "var(--teal-800)", "var(--brand-600)"];
+  /* the To-do's own spread parameter, the value its toast uses, nudged up so a
+     burst off a 24px mark carries as far as one off the wireframe's 21px */
+  var SPREAD = 1.5;
+  function burst() {
+    var wrap = document.createElement("span");
+    wrap.className = "burst";
+    wrap.setAttribute("aria-hidden", "true");
+    BURST.forEach(function (p, a) {
+      var bar = a % 3 === 1, l = p[2] * Math.min(SPREAD, 2.4);
+      var i = document.createElement("i");
+      i.style.cssText =
+        "width:" + (bar ? l * .5 : l * .7) + "px;height:" + (bar ? l : l * .7) + "px;" +
+        "margin-left:" + (-l / 2) + "px;margin-top:" + (-l / 2) + "px;" +
+        "border-radius:" + (bar ? "1.5px" : "50%") + ";" +
+        "background:" + BURST_C[a % 4] + ";" +
+        "--dx:" + (p[0] * SPREAD).toFixed(1) + "px;--dy:" + (p[1] * SPREAD).toFixed(1) + "px;" +
+        "--rot:" + ((a % 2 ? 1 : -1) * (120 + a * 22)) + "deg;" +
+        "animation-delay:" + (a % 4) * 26 + "ms";
+      wrap.appendChild(i);
+    });
+    return wrap;
+  }
+
   /* ---------- repaint one meal, and let the tick finish its spring ---------- */
   function repaint(m, pop) {
     var sec = document.getElementById("meal-" + m.id);
@@ -2362,6 +2796,14 @@ function mealsIn() {
     if (pop) {
       var row = sec.querySelector('[data-ref="' + pop + '"] .tick');
       if (row) row.classList.add("pop");
+      /* the same hook carries a tip, which wears the mark rather than the tick
+         and gets its ring and its wash alongside the pop */
+      var tipEl = sec.querySelector('[data-tip="' + pop + '"]');
+      if (tipEl && tipEl.classList.contains("done")) {
+        tipEl.classList.add("cheer");
+        var tmk = tipEl.querySelector(".tmark");
+        if (tmk) { tmk.classList.add("pop"); tmk.appendChild(burst()); }
+      }
     }
     /* Celebrate a meal completing, once, on the repaint that completes it.
        This used to fire on every repaint where the shown option happened to be
@@ -2456,16 +2898,44 @@ function mealsIn() {
      the day can say is that it was not eaten, and that is the skip. */
   function itemMenu(ref) {
     var t = find(ref), it = t.list[t.i], m = t.m;
-    var html = (it.skip ? "" : mrow("qty", I.pen, "Change the quantity")) +
-      (t.manual ? "" : it.skip ? mrow("unskip", MI.back, "Put it back on the list") : mrow("skip", MI.skip, "Skip this today")) +
-      (it.why ? mrow("why", I.info, "Why this is in your plan") : "") +
-      (t.manual ? mrow("del", MI.bin, "Remove this", true) : "");
+    /* The menu answers the state the row is actually in, so it never offers a
+       thing that makes no sense for it. A logged food is edited or taken back.
+       A food still waiting is edited or skipped. Skip never shows on something
+       already eaten, and the way back out of a log lives here rather than on
+       the tick, where one stray tap used to undo it with no warning. */
+    /* Change the quantity only once there is a logged quantity to change.
+       Before that the tick opens the logging screen, where the row carries a
+       plus and minus of its own, so offering it here was a second door onto a
+       thing the first door already does better. */
+    var html = "";
+    if (it.done) {
+      html += mrow("qty", I.pen, "Change the quantity");
+      if (!t.manual) html += mrow("untick", MI.back, "Take it off your day");
+    } else if (!t.manual) {
+      html += it.skip ? mrow("unskip", MI.back, "Put it back on the list")
+                      : mrow("skip", MI.skip, "Skip this today");
+    }
+    html += (t.manual ? mrow("del", MI.bin, "Remove this", true) : "");
     var el = openSheet("it-sheet", it.name, html);
     el.querySelector(".sbody").addEventListener("click", function (e) {
       var b = e.target.closest("[data-act]");
       if (!b) return;
-      if (b.dataset.act === "why") return why(it);
       if (b.dataset.act === "qty") return qty(m, it, ref);
+      /* Taking a log back does not ask again, the sheet was the asking, but it
+         drops the score and the calories so it hands back the same way Skip
+         and Remove do. */
+      if (b.dataset.act === "untick") {
+        window.closeSheets();
+        setDone(m, it, false);
+        repaint(m, ref);
+        refresh();
+        toast(it.name + " taken off your day", function () {
+          setDone(m, it, true);
+          repaint(m, ref);
+          refresh();
+        });
+        return;
+      }
       if (b.dataset.act === "skip" || b.dataset.act === "unskip") {
         var on = b.dataset.act === "skip", was = it.done;
         setSkip(m, it, on);
@@ -2495,15 +2965,6 @@ function mealsIn() {
         refresh();
       });
     });
-  }
-
-  function why(it) {
-    openSheet("it-sheet", it.name, '<div class="why">' +
-      '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>' +
-      '<p>' + it.why + '</p></div>' +
-      '<div class="why quiet">' +
-      '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0M12 7v5l3 2"/></svg>' +
-      '<p>' + it.qty + ' carries ' + it.p * it.n + 'g protein, ' + it.c * it.n + 'g carbs, ' + it.fa * it.n + 'g fat and ' + it.fb * it.n + 'g fibre.</p></div>');
   }
 
   function qty(m, it, ref) {
@@ -2621,29 +3082,33 @@ function mealsIn() {
     var plus = e.target.closest(".plus");
     if (plus) return goLog("plus", plus.dataset.meal);
 
-    /* Log all is one of the six doors into the logging screen, not a shortcut
-       past it. Writing four foods at once with no quantity, no time and no way
-       back was the one unguarded action on a screen where a single tick asks
-       for all three. It opens the tray with the meal's remaining foods already
-       in, so one save writes them and one screen confirms them. */
-    var all = e.target.closest(".logall");
-    if (all) return goLog("logall", all.dataset.meal);
+    /* "I have eaten something else": the one way into logging a planned meal
+       leaves from, now that Log all is gone. It opens the tray empty, because
+       whatever is being added is by definition not on the plan. */
+    var els = e.target.closest(".elsebtn");
+    if (els) {
+      /* a push, not a cut: this screen eases left and dims while the logger
+         slides in over it (assets/search-push.js), and the logger opens with
+         the search field focused and the keyboard up */
+      try { sessionStorage.setItem("gfPush", "search"); } catch (err) {}
+      if (REDUCED || !document.body.animate) return goLog("plus", els.dataset.meal);
+      document.body.animate([{ transform: "none", opacity: 1 }, { transform: "translateX(-24%)", opacity: .55 }],
+        { duration: 220, easing: "cubic-bezier(.4,0,1,1)", fill: "forwards" });
+      return setTimeout(function () { goLog("plus", els.dataset.meal); }, 200);
+    }
 
-    /* The reverse of Log all. One tap put several foods in, so one tap takes
-       them back out, and the toast can put them back again. */
-    var un = e.target.closest(".undoall");
-    if (un) {
-      var um = MEALS.filter(function (x) { return x.id === un.dataset.meal; })[0];
-      if (!um) return;
-      var opt = um.opts[um.show] || [];
-      var undone = opt.filter(function (x) { return x.done; });
-      undone.forEach(function (x) { setDone(um, x, false); });
-      render(); refresh();
-      toast(undone.length + " foods taken off your day", function () {
-        undone.forEach(function (x) { setDone(um, x, true); });
-        render(); refresh();
-      });
-      return;
+    /* The two Kaira entries. The prototype has no conversation behind her yet,
+       so both open a sheet that says what she would do rather than pretending
+       to do it. ponytail: one sheet for both, split it when she is real. */
+    var kb = e.target.closest(".kairabtn");
+    if (kb) return openSheet("kairasheet", "Log with KAIRA",
+      '<div class="why quiet">' + GFKaira.mark(20, { halo: false }) +
+      '<p>Tell KAIRA what you ate in your own words, "two rotis and dal", and KAIRA works out the foods, ' +
+      'the quantities and the calories. Nothing is logged until you confirm it.</p></div>');
+    var ta = e.target.closest(".askk");
+    if (ta) {
+      var tq = ta.dataset.tipask.split("|"), qm = byId(tq[0]), qt = qm.tips[+tq[1]];
+      return askKaira(qt.title);
     }
 
     var tick = e.target.closest(".tickbtn");
@@ -2653,7 +3118,9 @@ function mealsIn() {
     if (tip) {
       var tp = tip.dataset.tip.split("|"), tm = byId(tp[0]), t = tm.tips[+tp[1]];
       t.done = !t.done;
-      repaint(tm);
+      /* only doing a tip is celebrated. Taking one back is a correction, and
+         a correction that throws confetti reads as mockery. */
+      repaint(tm, tip.dataset.tip);
       return;
     }
 
@@ -2668,21 +3135,17 @@ function mealsIn() {
        A food added by hand is not on the plan and has no option to open on, so
        it keeps the confirm sheet.
 
-       Taking a log back does not ask, but it does drop the score and the
-       calories, so it hands back the same way out the ⋮ menu's Skip and Remove
-       already hand back. */
+       Pressing the mark on a food already logged opens its menu rather than
+       undoing it. Undo was the one destructive thing on this card reachable in
+       a single tap, on a 24px mark sitting beside the name people press to
+       read about the food, and the toast was the only thing standing behind
+       it. The menu names what it is about to do first, and still holds Change
+       the quantity, which is what most of those taps actually wanted. */
     if (!item.done) {
       if (tgt.manual) return confirmLog(tgt.m, item, row.dataset.ref);
       return goLog("tick", tgt.m.id, { opt: tgt.m.show, food: LOGID[item.name], qty: item.n });
     }
-    setDone(tgt.m, item, false);
-    repaint(tgt.m, row.dataset.ref);
-    refresh();
-    toast(item.name + " taken off your day", function () {
-      setDone(tgt.m, item, true);
-      repaint(tgt.m, row.dataset.ref);
-      refresh();
-    });
+    return itemMenu(row.dataset.ref);
   });
 
   /* Snap and Voice, wherever Kaira offers them. They open the logging screen at
@@ -2697,9 +3160,6 @@ function mealsIn() {
     if (e.target.closest(".logday")) return goLog("search", nm && nm.id);
   });
 
-  document.getElementById("resetDay").onclick = function () { location.reload(); };
-  if (Q.get("dev") === "1") document.getElementById("resetDay").classList.add("on");
-
   /* cards arrive in order on open, which is enough to make the page feel built
      rather than dumped */
   if (!REDUCED) {
@@ -2711,5 +3171,6 @@ function mealsIn() {
 })();
 </script>
 <script src="chrome.js"></script>
+<script src="assets/kaira-aurora.js?v=2"></script>
 </body>
 </html>

@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ate something else, six ways</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0; --brand-300:#ABE6CC;
+    --brand-600:#299D6B; --brand-700:#2A805A;
+    --g-25:#FCFCFD; --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD;
+    --g-400:#98A2B3; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-50:#EEF4FF; --in-600:#444CE7;
+    --r-md:12px; --r-lg:16px; --r-pill:9999px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1760px;margin:0 auto;padding:40px 24px 90px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 10px}
+  .lede{max-width:900px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 8px}
+  .lede b{color:var(--g-900)}
+  .src{max-width:900px;font-size:13px;line-height:21px;color:var(--g-500);margin:0 0 36px}
+
+  .grid{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+  .col{width:390px;flex:0 0 390px}
+  .cap{min-height:150px;margin-bottom:12px}
+  .cap h2{margin:0 0 6px;font-size:16px;line-height:23px;font-weight:600}
+  .cap p{margin:0 0 7px;font-size:13px;line-height:20px;color:var(--g-600)}
+  .cap .tr{font-size:12px;line-height:18px;color:var(--g-500)}
+  .cap .tr b{color:var(--g-700);font-weight:600}
+  .tag{display:inline-block;margin-bottom:6px;font-size:11px;line-height:16px;font-weight:600;
+    letter-spacing:.4px;text-transform:uppercase;color:var(--g-500);background:var(--g-100);
+    border-radius:9999px;padding:2px 8px}
+  .tag.now{color:var(--brand-700);background:var(--brand-100)}
+
+  /* ------------------------------------------ the meal card, as it ships -- */
+  /* Rows above and the coach's tips below, because the whole question is how
+     this line sits between the two. On its own every version looks fine. */
+  .meal{border:1px solid var(--g-100);border-radius:var(--r-lg);background:#fff;overflow:hidden;
+    box-shadow:0 1px 3px rgba(16,24,40,.10),0 1px 2px -1px rgba(16,24,40,.10)}
+  .mh{display:flex;align-items:flex-start;gap:8px;padding:16px 16px 12px}
+  .mh .n{font:600 16px/22px Roboto,sans-serif}
+  .mh .s{margin-top:2px;font:400 12px/18px Roboto,sans-serif;color:var(--g-500)}
+  .mb{padding:0 16px 16px}
+  .lab{font:600 12px/16px Roboto,sans-serif;letter-spacing:.7px;text-transform:uppercase;
+    color:var(--g-500);margin-bottom:12px}
+  .item{display:flex;align-items:center;gap:12px;padding:8px 0}
+  .tick{width:24px;height:24px;border-radius:9999px;background:var(--brand-600);
+    display:grid;place-items:center;flex-shrink:0}
+  .tick svg{width:13px;height:13px}
+  .item .t{flex:1;min-width:0}
+  .item .t b{display:block;font:600 14px/20px Roboto,sans-serif}
+  .item .t span{display:block;font:400 12px/18px Roboto,sans-serif;color:var(--g-500)}
+  .item .cal{font:400 12px/18px Roboto,sans-serif;color:var(--g-500)}
+  .tips{margin-top:16px;padding-top:12px;border-top:1px solid var(--g-100)}
+  .tip{display:flex;gap:12px;padding:6px 0}
+  .tmark{width:24px;height:24px;border-radius:6px;border:1.5px solid var(--g-300);flex-shrink:0}
+  .tip .tt{font:600 14px/20px Roboto,sans-serif}
+  .tip .td{margin-top:2px;font:400 12px/18px Roboto,sans-serif;color:var(--g-500)}
+
+  /* the row the line sits in, shared by every variant */
+  .textrow{display:flex;min-height:40px;align-items:center;padding-top:10px;
+    border-top:1px dashed var(--g-200)}
+  .elsebtn{display:flex;align-items:center;gap:9px;min-height:44px;margin-block:-4px;
+    margin-left:-4px;padding:0 4px;border:0;background:none;color:var(--brand-600);
+    font:700 14px/20px Roboto,sans-serif;cursor:pointer}
+  .elsebtn:hover{text-decoration:underline;text-underline-offset:3px}
+
+  /* ---------------------------------------------------------- variants ---- */
+  /* B: centred */
+  .vb .textrow{justify-content:center}
+  .vb .elsebtn{margin-left:0}
+
+  /* C: a ghost row, on the food rows' own rhythm, so it reads as the next
+     line of the list rather than as a control under it */
+  .vc .ghost{display:flex;align-items:center;gap:12px;width:100%;min-height:44px;
+    margin-top:4px;padding:8px 0;border:0;background:none;cursor:pointer;text-align:left}
+  .vc .gm{width:24px;height:24px;border-radius:9999px;border:1.5px dashed var(--brand-300);
+    display:grid;place-items:center;flex-shrink:0;color:var(--brand-600)}
+  .vc .gt{font:600 14px/20px Roboto,sans-serif;color:var(--brand-600)}
+
+  /* D: a filled tint block, so it is unmistakably an action and not a row */
+  .vd .tintrow{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;
+    min-height:44px;margin-top:12px;border:0;border-radius:var(--r-md);background:var(--brand-50);
+    color:var(--brand-700);font:700 14px/20px Roboto,sans-serif;cursor:pointer}
+  .vd .tintrow:hover{background:var(--brand-100)}
+
+  /* E: a dashed outline, the universal "add one more" affordance */
+  .ve .dash{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;
+    min-height:46px;margin-top:12px;border:1.5px dashed var(--brand-200);border-radius:var(--r-md);
+    background:none;color:var(--brand-600);font:700 14px/20px Roboto,sans-serif;cursor:pointer}
+  .ve .dash:hover{background:var(--brand-50);border-color:var(--brand-300)}
+
+  /* F: left, but the icon is a disc rather than a bare glyph */
+  .vf .disc{width:26px;height:26px;border-radius:9999px;background:var(--brand-100);
+    display:grid;place-items:center;flex-shrink:0;color:var(--brand-700)}
+  .vf .elsebtn{gap:10px}
+
+  /* ------------------------------------------------------ the icon set ---- */
+  .iconrow{display:flex;gap:26px;align-items:flex-end;margin:0 0 34px;padding:18px 20px;
+    border:1px solid var(--g-100);border-radius:var(--r-lg);background:var(--g-25);width:max-content}
+  .iconrow figure{margin:0;text-align:center;color:var(--brand-600)}
+  .iconrow figcaption{margin-top:8px;font:400 11px/16px Roboto,sans-serif;color:var(--g-500)}
+  .iconrow b{display:block;font:600 12px/17px Roboto,sans-serif;color:var(--g-900)}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Ate something else, six ways</h1>
+  <p class="lede">The line at the foot of a planned meal, for the food the plan never listed.
+    Every version below is shown <b>in place</b>, with a logged row above it and the coach's tips
+    below, because that is the whole difficulty: on its own any of these looks fine, and the
+    question is only how it sits between a list and a second list.</p>
+  <p class="src">Centred is included so the problem is visible rather than described. The icon
+    variations are in the strip underneath.</p>
+
+  <div class="iconrow" id="icons"></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+var TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+
+/* Four ways to draw the same instruction. Square is what ships today: it is
+   visibly not the round tick a planned food carries, which is the point. */
+var ICONS = {
+  square: ['<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>',
+    "Square", "not the round tick"],
+  circle: ['<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/></svg>',
+    "Circle", "matches the tick's shape"],
+  bare: ['<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    "Bare plus", "quietest, no container"],
+  filled: ['<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="18" height="18" rx="5" fill="currentColor"/><path d="M12 8.5v7M8.5 12h7" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>',
+    "Filled square", "heaviest, reads as a button"]
+};
+
+document.getElementById("icons").innerHTML =
+  Object.keys(ICONS).map(function (k) {
+    var i = ICONS[k];
+    return "<figure>" + i[0] + "<figcaption><b>" + i[1] + "</b>" + i[2] + "</figcaption></figure>";
+  }).join("");
+
+var LABEL = "I have eaten something else";
+
+/* the card around it, identical every time except for the line itself */
+function card(cls, foot) {
+  return '<div class="meal ' + cls + '">' +
+    '<div class="mh"><div><div class="n">Breakfast</div>' +
+      '<div class="s">Suggested 8:00 - 10:00 AM · 312 of 420 cal</div></div></div>' +
+    '<div class="mb">' +
+      '<div class="lab">Your coach&rsquo;s plan</div>' +
+      '<div class="item"><span class="tick">' + TICK + "</span>" +
+        '<span class="t"><b>Vegetable poha</b><span>1 bowl</span></span>' +
+        '<span class="cal">242 cal</span></div>' +
+      '<div class="item"><span class="tick">' + TICK + "</span>" +
+        '<span class="t"><b>Masala chai</b><span>1 cup</span></span>' +
+        '<span class="cal">79 cal</span></div>' +
+      foot +
+      '<div class="tips"><div class="lab">Tips from your coach</div>' +
+        '<div class="tip"><span class="tmark"></span><div>' +
+          '<div class="tt">Finish breakfast before 10</div>' +
+          '<div class="td">An earlier first meal steadies the rest of the day.</div></div></div>' +
+      "</div>" +
+    "</div></div>";
+}
+
+var V = [
+  { cls: "va", tag: "Ships today", tagKind: "now", title: "A. Left, square plus",
+    body: "On the rows' own left edge, so it reads as the last line of the list it belongs to.",
+    trade: "<b>For it:</b> the eye is already at that edge, having just read two rows from it.",
+    foot: '<div class="textrow"><button class="elsebtn">' + ICONS.square[0] + LABEL + "</button></div>" },
+
+  { cls: "vb", title: "B. Centred",
+    body: "The version that did not work. Centred it floats between the list above and the tips " +
+      "below and belongs to neither, and the dashed rule above it makes the float obvious.",
+    trade: "<b>Against it:</b> two left-aligned lists with a centred line between them reads as " +
+      "a mistake rather than a hierarchy.",
+    foot: '<div class="textrow"><button class="elsebtn">' + ICONS.square[0] + LABEL + "</button></div>" },
+
+  { cls: "vc", title: "C. A ghost row",
+    body: "Drops the rule and becomes the next row of the list, on the same 44px rhythm, with a " +
+      "dashed circle where a tick would be.",
+    trade: "<b>For it:</b> the plan and the thing you actually ate sit in one column. " +
+      "<b>Against:</b> a dashed circle is close enough to the tick to be mistaken for one.",
+    foot: '<button class="ghost">' + '<span class="gm">' + ICONS.bare[0] + "</span>" +
+      '<span class="gt">' + LABEL + "</span></button>" },
+
+  { cls: "vd", title: "D. Tinted block",
+    body: "A filled brand-50 block, unmistakably an action rather than a row, and clearly the " +
+      "end of the list.",
+    trade: "<b>Against it:</b> it is a button in a card that is otherwise all information, and " +
+      "the tips underneath then look like they belong to it.",
+    foot: '<button class="tintrow">' + ICONS.square[0] + LABEL + "</button>" },
+
+  { cls: "ve", title: "E. Dashed outline",
+    body: "The universal add-one-more affordance: a dashed container the width of the list.",
+    trade: "<b>For it:</b> the dash says empty slot, which is exactly what this is. " +
+      "<b>Against:</b> a second dashed edge, since the rule above the line is dashed too.",
+    foot: '<button class="dash">' + ICONS.bare[0] + LABEL + "</button>" },
+
+  { cls: "vf", title: "F. Left, plus in a disc",
+    body: "A. with the glyph set in a brand-100 disc, so the line has a mark rather than an " +
+      "outline and reads a shade warmer.",
+    trade: "<b>Against it:</b> a filled disc is the heaviest thing on the row and pulls attention " +
+      "from the two logged foods above it.",
+    foot: '<div class="textrow"><button class="elsebtn"><span class="disc">' + ICONS.bare[0] +
+      "</span>" + LABEL + "</button></div>" }
+];
+
+document.getElementById("grid").innerHTML = V.map(function (v) {
+  return '<div class="col"><div class="cap">' +
+    (v.tag ? '<span class="tag ' + (v.tagKind || "") + '">' + v.tag + "</span>" : "") +
+    "<h2>" + v.title + "</h2><p>" + v.body + "</p>" +
+    (v.trade ? '<p class="tr">' + v.trade + "</p>" : "") + "</div>" +
+    card(v.cls, v.foot) + "</div>";
+}).join("");
+</script>
+</body>
+</html>

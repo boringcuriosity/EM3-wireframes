@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meal card spacing, before and after</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --brand-25:#FAFFFD; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0;
+    --brand-600:#299D6B; --brand-700:#2A805A; --ok-600:#039855; --ok-300:#32D583;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-600:#444CE7; --in-700:#3538CD;
+    --teal-600:#44E7E7; --teal-800:#2DA6A6; --gold-600:#E7C144; --red-600:#D92D20;
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px; --r-pill:9999px;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1500px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:860px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 10px}
+  .lede b{color:var(--g-900)}
+  .callout{max-width:860px;padding:14px 16px;border-radius:12px;background:var(--g-50);
+    border:1px solid var(--g-200);font-size:13px;line-height:21px;color:var(--g-700);margin:0 0 24px}
+  .callout b{color:var(--g-900)}
+  .bar{display:flex;gap:10px;align-items:center;margin:0 0 28px;flex-wrap:wrap}
+  .tgl{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 14px;border-radius:9999px;
+    border:1px solid var(--g-200);background:#fff;color:var(--g-700);font:600 13px/1 Roboto;cursor:pointer}
+  .tgl.on{background:var(--g-900);border-color:var(--g-900);color:#fff}
+  .cols{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap}
+  .col{width:392px;flex:0 0 392px}
+  .colhead{margin:0 0 12px}
+  .colhead h2{font-size:15px;line-height:22px;font-weight:600;margin:0 0 4px}
+  .colhead p{font-size:12.5px;line-height:19px;color:var(--g-600);margin:0}
+  .pill{display:inline-block;font:600 10.5px/16px Roboto;letter-spacing:.6px;text-transform:uppercase;
+    border-radius:9999px;padding:1px 8px;margin:0 0 6px}
+  .pill.a{color:var(--red-600);background:#FEF3F2}
+  .pill.b{color:var(--brand-700);background:var(--brand-100)}
+  .tablewrap{overflow-x:auto;margin-top:36px}
+  table{border-collapse:collapse;font-size:12.5px;line-height:19px;min-width:760px}
+  th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--g-200);vertical-align:top}
+  th{font-weight:600;color:var(--g-500);font-size:11px;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap}
+  td.n{font-family:'JetBrains Mono',ui-monospace,monospace;white-space:nowrap}
+  .bad{color:var(--red-600);font-weight:600}
+  .good{color:var(--brand-600);font-weight:600}
+
+  /* ============ the measuring overlay ============
+     Every number the deck prints is read off the live boxes with
+     getBoundingClientRect, never typed in by hand, so the two columns cannot
+     drift from what they actually render. */
+  .ruler{position:absolute;pointer-events:none;z-index:6;left:0;right:0;
+    background:rgba(217,45,32,.10);border-top:1px dashed rgba(217,45,32,.55);border-bottom:1px dashed rgba(217,45,32,.55)}
+  .ruler b{position:absolute;right:4px;top:50%;transform:translateY(-50%);
+    font:700 10px/1 'JetBrains Mono',ui-monospace,monospace;color:#fff;background:var(--red-600);
+    border-radius:4px;padding:2px 4px}
+  .ruler.ok{background:rgba(41,157,107,.10);border-color:rgba(41,157,107,.55)}
+  .ruler.ok b{background:var(--brand-600)}
+  .stage{position:relative}
+  /* the 44px hit rects, drawn so target collisions are visible */
+  .hits .tickbtn, .hits .dots, .hits .plus { outline:1px dashed rgba(68,76,231,.75); outline-offset:-1px; background:rgba(68,76,231,.07)!important; }
+  .hits .chip::after, .hits .askk::after { outline:1px dashed rgba(68,76,231,.75); background:rgba(68,76,231,.07); }
+  .hits .achip { outline:1px dashed rgba(68,76,231,.75); }
+
+  /* ================= SHARED CARD SHELL ================= */
+  .meal { border-radius: var(--r-xl); border: 1px solid transparent;
+    box-shadow: 2px 2px 0 var(--g-200);
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 29%, #fff 100%) padding-box,
+      conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; }
+  .mh { display: flex; align-items: flex-start; }
+  .mh .t { flex: 1; min-width: 0; }
+  .mh .n { display: flex; align-items: center; gap: 8px; font-size: 16px; line-height: 22px; font-weight: 600; }
+  .mh .s { font-size: 12px; line-height: 18px; color: var(--g-500); margin-top: 2px; }
+  .mb > div { overflow: hidden; }
+  .chip { position: relative; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px;
+    height: 32px; padding: 0 14px; border-radius: 9999px; border: 1px solid var(--g-200);
+    background: #fff; color: var(--g-500); cursor: pointer; }
+  .chip::after { content:""; position:absolute; left:0; right:0; top:50%; height:44px; transform:translateY(-50%); }
+  .chip .ot b { display: block; font-size: 14px; font-weight: 600; line-height: 18px; color: var(--g-700); white-space: nowrap; }
+  .chip.on { background: var(--brand-100); border-color: var(--brand-600); color: var(--brand-600); }
+  .chip.on .ot b { color: var(--brand-600); }
+  .tickbtn { width: 44px; height: 44px; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+  .tick { width: 24px; height: 24px; border-radius: 9999px; border: 1.5px solid var(--g-300); background: #fff; display: grid; place-items: center; flex-shrink: 0; }
+  .tick.on { background: var(--ok-600); border-color: var(--ok-600); }
+  .item .nm { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; line-height: 20px; }
+  .item .nm span { display: block; margin-top: 2px; color: var(--g-500); font-weight: 400; font-size: 12px; line-height: 18px; }
+  .manual { font-size: 12px; font-weight: 600; color: var(--g-500); background: var(--g-50); border: 1px solid var(--g-200); border-radius: 9999px; padding: 2px 8px; flex-shrink: 0; }
+  .kc { font-size: 12px; color: var(--g-500); white-space: nowrap; }
+  .dots { width: 44px; height: 44px; border: 0; background: none; color: var(--g-400); display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+  .achip { flex: 1; min-width: 0; display: inline-flex; align-items: center; justify-content: center;
+    gap: 7px; min-height: 44px; border: 0; border-radius: var(--r-pill); background: var(--brand-50);
+    color: var(--brand-700); font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+  .achip.k { background: #fff; border: 1px solid var(--in-100); color: var(--in-600); }
+  .tip .tt { font-size: 14px; font-weight: 600; line-height: 20px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; }
+  .tip .td { font-size: 12px; color: var(--g-500); line-height: 18px; margin-top: 2px; }
+  .tmark { position: relative; width: 24px; height: 24px; border-radius: 9999px; border: 1.5px solid var(--g-300);
+    background: #fff; display: grid; place-items: center; flex-shrink: 0; }
+  .tmark.on { background: var(--ok-600); border-color: var(--ok-600); }
+  .askk { position: relative; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+    height: 24px; padding: 0 9px 0 6px; font-size: 11.5px; font-weight: 600; letter-spacing: .3px; color: var(--in-700);
+    border: 1px solid transparent; border-radius: 0 var(--r-pill) var(--r-pill) var(--r-pill);
+    background: linear-gradient(180deg, var(--in-25), #FFFFFF 70%) padding-box,
+      linear-gradient(100deg, var(--in-600), var(--teal-800)) border-box; cursor:pointer; }
+  .askk::after { content:""; position:absolute; left:0; right:0; top:50%; height:44px; transform:translateY(-50%); }
+
+  /* ================= BEFORE: exactly what ships today =================
+     Copied from r3/eat.html unchanged. Every odd number here is a real number
+     in the shipping file. */
+  .before .meal { margin-bottom: 16px; }
+  .before .mh { gap: 8px; padding: 16px 16px 16px 16px; }
+  .before .mbi { margin: 0 16px; padding: 12px 0 16px; border-top: 1px solid var(--g-100); }
+  .before .lab { font-family: Roboto, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .7px;
+    text-transform: uppercase; color: var(--g-500); margin-bottom: 12px; }
+  .before .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .before .item { display: flex; align-items: flex-start; gap: 8px; min-height: 44px; }
+  .before .item + .item { margin-top: 14px; }
+  .before .item .tickbtn { margin-top: -12px; margin-bottom: -12px; margin-right: -6px; }
+  .before .tickbtn { margin-left: -10px; }
+  .before .item .kc { margin-top: 3px; margin-right: -8px; }
+  .before .item .manual { margin-top: 0; }
+  .before .item .dots { margin-top: -12px; margin-bottom: -12px; margin-left: -8px; }
+  .before .dots { margin-right: -12px; }
+  .before .extras { padding-bottom: 8px; margin-bottom: 12px; border-bottom: 1px dashed var(--g-200); }
+  .before .textrow { display: flex; flex-direction: column; align-items: stretch; padding-top: 12px; border-top: 1px dashed var(--g-200); }
+  .before .elselab { font-size: 12px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: var(--g-500); margin-bottom: 10px; }
+  .before .acts { display: flex; gap: 8px; }
+  .before .achip { margin-block: -4px; padding: 0 13px; }
+  .before .tips { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--g-100); }
+  .before .tip { position: relative; display: flex; gap: 8px; align-items: flex-start; padding: 4px 8px; margin: 0 -8px; border-radius: var(--r-md); }
+  .before .tip .tickbtn { height: 44px; margin-top: -12px; margin-bottom: -12px; margin-right: -6px; }
+
+  /* ================= AFTER: the six-value scale =================
+     2 leading only / 8 heading to content / 12 sibling rows and divider space
+     / 16 card padding, icon to text, card to card / 24 above a section heading
+     / 44 targets held by overlays that cost no layout. */
+  .after .meal { margin-bottom: 16px; }
+  .after .mh { gap: 8px; padding: 16px; }
+  .after .mbi { margin: 0 16px; padding: 12px 0 16px; border-top: 1px solid var(--g-100);
+    display: flex; flex-direction: column; }
+  /* One rule for all three labels, with a declared line-height so the space
+     around them is a decision rather than a font-metric accident.
+     The 24 a heading wants above it is SPLIT BY THE DIVIDER: 12 above the
+     rule, 12 below it, then the label, then 8 to its content. Stacking a 24
+     margin on top of the divider's own 12 padding gave 36, which is a section
+     break, not a heading. Every label in this card follows a divider, so the
+     rule owns the separation and the label only owns the 8 below it. */
+  .after .lab, .after .elselab { font-family: Roboto, sans-serif; font-size: 12px; line-height: 16px;
+    font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: var(--g-500);
+    margin: 12px 0 8px; }
+  .after .textrow > .elselab, .after .tips > .lab { margin-top: 0; }
+  .after .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 16px; }
+  /* no min-height: the row is its content, and the target is held by the
+     overlay below, so the rhythm is one number on the parent */
+  .after .items { display: flex; flex-direction: column; gap: 12px; }
+  .after .item { display: flex; align-items: flex-start; gap: 16px; }
+  .after .tickbtn { width: 24px; height: 24px; margin: 0; position: relative; }
+  .after .tickbtn::after { content:""; position:absolute; left:50%; top:50%; width:44px; height:44px; transform:translate(-50%,-50%); }
+  .after .item .kc { margin-top: 3px; }
+  .after .dots { width: 24px; height: 24px; margin: 0; position: relative; }
+  .after .dots::after { content:""; position:absolute; left:50%; top:50%; width:44px; height:44px; transform:translate(-50%,-50%); }
+  .after .extras { padding-bottom: 12px; border-bottom: 1px dashed var(--g-200); }
+  .after .textrow { display: flex; flex-direction: column; align-items: stretch; padding-top: 12px; border-top: 1px dashed var(--g-200); margin-top: 12px; }
+  .after .acts { display: flex; gap: 8px; }
+  .after .achip { padding: 0 13px; }
+  .after .tips { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--g-100); }
+  .after .tiplist { display: flex; flex-direction: column; gap: 12px; }
+  .after .tip { position: relative; display: flex; gap: 16px; align-items: flex-start; }
+  .after .tip .tickbtn { align-self: flex-start; }
+  @media (max-width:900px){.page{padding:24px 16px 60px}.col{width:100%;flex:1 1 100%}}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>The meal card, measured and respaced</h1>
+  <p class="lede">The same card twice. Left is <b>exactly what ships</b>, every rule copied out of <b>r3/eat.html</b> unchanged. Right is the same markup on a <b>six-value scale</b>. Every number in the table below is read off the live boxes with <b>getBoundingClientRect</b> rather than typed in, so neither column can drift from what it actually renders.</p>
+  <div class="callout">
+    <b>The rule underneath all of this, from M3:</b> "Define padding and gaps on the parent container to organize all elements inside" and "Avoid defining margins on child elements as they usually aren't uniform, and require more tokens." SPEC.md line 38 already says the same thing.
+    <br><br>
+    <b>And the one for headings, from USWDS:</b> "Use at least 1.5 times the amount of whitespace above the heading as below it." Carbon ships 2:1. The three uppercase labels in this card are currently 1:1, 2:1 and 0.75:1.
+  </div>
+  <div class="bar">
+    <button class="tgl on" id="tRuler">Show measured gaps</button>
+    <button class="tgl" id="tHits">Show 44px tap targets</button>
+  </div>
+  <div class="cols">
+    <div class="col">
+      <div class="colhead"><span class="pill a">Before</span>
+        <h2>As it ships today</h2>
+        <p>21 distinct spacing values, five different ways of holding a 44px target, four dividers with four different amounts of space above them.</p></div>
+      <div class="stage before" id="stageA"></div>
+    </div>
+    <div class="col">
+      <div class="colhead"><span class="pill b">After</span>
+        <h2>On the six-value scale</h2>
+        <p>2 leading, 8 heading to content, 12 rows and dividers, 16 card padding and icon to text, 24 above a heading, 44 targets held by overlays.</p></div>
+      <div class="stage after" id="stageB"></div>
+    </div>
+  </div>
+  <div class="tablewrap">
+    <table id="tbl"><thead><tr><th>Gap, top to bottom</th><th>Before</th><th>After</th><th>What decides it</th></tr></thead><tbody></tbody></table>
+  </div>
+</div>
+<script>
+var TICK='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+var DOTS='<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>';
+var PLUS='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+var KM='<svg width="12" height="13" viewBox="0 0 36 40" fill="none"><path d="M18 1.5 34.5 11v19L18 39.5 1.5 30V11z" fill="none" stroke="#444CE7" stroke-width="3"/></svg>';
+
+var ROWS=[{n:"Boiled egg",q:"2 x 1 egg",c:146,done:true},{n:"Lauki oats chilla",q:"2 x 1 piece",c:153},{n:"Green chutney",q:"2 x 1 spoon",c:8}];
+function item(r,manual,mark){
+  return '<div class="item'+(r.done?' done':'')+'"'+(mark?' data-m="'+mark+'"':'')+'>'+
+    '<button class="tickbtn"><span class="tick'+(r.done?' on':'')+'">'+(r.done?TICK:'')+'</span></button>'+
+    '<span class="nm">'+r.n+'<span>'+r.q+'</span></span>'+
+    (manual?'<span class="manual">Manual</span>':'')+
+    '<span class="kc">'+r.c+' cal</span>'+
+    '<button class="dots">'+DOTS+'</button></div>';
+}
+/* The AFTER column wraps its rows in a flex parent so the rhythm is one gap,
+   which is the whole point; BEFORE leaves them as bare siblings with margins. */
+/* Every measured element carries a data-m marker rather than being found by a
+   CSS selector, because the two columns have different DOM shapes: AFTER wraps
+   its rows in a flex parent so the rhythm can be one gap, BEFORE leaves them as
+   bare siblings with margins. A selector that matched both would be measuring
+   different things in each. */
+function card(after){
+  var rows=ROWS.map(function(r,i){return item(r,false,'food'+(i+1));}).join('');
+  if(after) rows='<div class="items">'+rows+'</div>';
+  var tips=['<div class="tip" data-m="tip1"><button class="tickbtn"><span class="tmark on">'+TICK+'</span></button>'+
+      '<div><div class="tt"><span>Drink warm water with methi</span></div>'+
+      '<div class="td">Soak a spoon of seeds overnight. Drink the water first thing.</div></div></div>',
+    '<div class="tip" data-m="tip2"><button class="tickbtn"><span class="tmark"></span></button>'+
+      '<div><div class="tt"><span>Keep the chutney thin</span><button class="askk">'+KM+'Ask Kaira</button></div>'+
+      '<div class="td">Less oil, more coriander, same taste for a third of the calories.</div></div></div>'].join('');
+  if(after) tips='<div class="tiplist">'+tips+'</div>';
+  return '<section class="meal" data-m="card">'+
+    '<div class="mh"><div class="t"><div class="n" data-m="name">Breakfast</div>'+
+      '<div class="s" data-m="sub">Suggested 8:00 - 10:00 AM · 104 of 382 cal</div></div></div>'+
+    '<div class="mb"><div><div class="mbi" data-m="mbi">'+
+      '<div class="extras" data-m="extras">'+item({n:"Banana",q:"1 piece",c:104,done:true},true,'manual')+'</div>'+
+      '<div class="lab" data-m="planlab">Your coach’s plan</div>'+
+      '<div class="chips" data-m="chips"><button class="chip on"><span class="ot"><b>Option 1</b></span></button>'+
+        '<button class="chip"><span class="ot"><b>Option 2</b></span></button>'+
+        '<button class="chip"><span class="ot"><b>Option 3</b></span></button></div>'+
+      rows+
+      '<div class="textrow" data-m="textrow"><div class="elselab" data-m="elselab">I have eaten something else</div>'+
+        '<div class="acts" data-m="acts"><button class="achip">'+PLUS+'Search and log</button>'+
+        '<button class="achip k">'+KM+'Log with Kaira</button></div></div>'+
+      '<div class="tips" data-m="tips"><div class="lab" data-m="tipslab">Tips from your coach</div>'+tips+'</div>'+
+    '</div></div></div></section>';
+}
+document.getElementById('stageA').innerHTML=card(false);
+document.getElementById('stageB').innerHTML=card(true);
+
+/* ---- measure, never assert ----
+   Each probe names two live elements and the distance between them is read
+   off the page. If a rule changes, the deck's own numbers change with it. */
+var PROBES=[
+  ["Card top to meal name",            "card","name","top-top","16 card padding, plus the 1px border"],
+  ["Meal name to suggested line",      "name","sub","bottom-top","2, text leading only"],
+  ["Suggested line to header rule",    "sub","mbi","bottom-top","16 card padding"],
+  ["Header rule to the manual row",    "mbi","manual","top-top","12 below a divider, plus the 1px rule"],
+  ["Manual row to dashed rule",        "extras","manual","bottom-bottom","12 above a divider"],
+  ["Dashed rule to PLAN label",        "extras","planlab","bottom-top","12 below a divider"],
+  ["PLAN label to option chips",       "planlab","chips","bottom-top","8, heading to its content"],
+  ["Option chips to first food",       "chips","food1","bottom-top","16"],
+  ["Food row to food row",             "food1","food2","bottom-top","12, M3 ItemBetweenSpace"],
+  ["Last food to the ELSE rule",       "food3","textrow","bottom-top","12 above a divider"],
+  ["ELSE rule to its label",           "textrow","elselab","top-top","12 below a divider"],
+  ["ELSE label to action chips",       "elselab","acts","bottom-top","8, heading to its content"],
+  ["Action chips to the TIPS rule",    "acts","tips","bottom-top","12 above a divider"],
+  ["TIPS rule to its label",           "tips","tipslab","top-top","12 below a divider"],
+  ["TIPS label to first tip",          "tipslab","tip1","bottom-top","8, heading to its content"],
+  ["Tip row to tip row",               "tip1","tip2","bottom-top","12, the same as food rows"],
+  ["Last tip to card bottom",          "card","tip2","bottom-bottom","16 card padding"]
+];
+function gap(stage,p){
+  var a=stage.querySelector('[data-m="'+p[1]+'"]'), b=stage.querySelector('[data-m="'+p[2]+'"]');
+  if(!a||!b) return null;
+  var ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
+  var m=p[3];
+  if(m==="top-top") return rb.top-ra.top;
+  if(m==="bottom-top") return rb.top-ra.bottom;
+  if(m==="bottom-bottom") return ra.bottom-rb.bottom;
+  return 0;
+}
+var A=document.getElementById('stageA'), B=document.getElementById('stageB');
+function paint(){
+  var tb=document.querySelector('#tbl tbody'); tb.innerHTML='';
+  [].forEach.call(document.querySelectorAll('.ruler'),function(r){r.remove();});
+  var showR=document.getElementById('tRuler').classList.contains('on');
+  PROBES.forEach(function(p){
+    var ga=gap(A,p), gb=gap(B,p);
+    if(ga===null||gb===null) return;
+    var ra=Math.round(ga*10)/10, rb=Math.round(gb*10)/10;
+    /* Flagged only when the gap actually changed. A value that is identical in
+       both columns is the card's own geometry, usually a 1px border sitting
+       inside the measurement, not a spacing decision anybody made. */
+    var off=(ra!==rb);
+    tb.innerHTML+='<tr><td>'+p[0]+'</td>'+
+      '<td class="n '+(off?'bad':'')+'">'+ra+'px'+(off?' ✗':'')+'</td>'+
+      '<td class="n good">'+rb+'px</td><td>'+p[4]+'</td></tr>';
+    if(showR){ rule(A,p,ra,off); rule(B,p,rb,false); }
+  });
+}
+/* the band is drawn over the gap it measured, so a number and the space it
+   describes are never separated */
+function rule(stage,p,v,bad){
+  if(v<=0) return;
+  var a=stage.querySelector('[data-m="'+p[1]+'"]'), b=stage.querySelector('[data-m="'+p[2]+'"]');
+  var sr=stage.getBoundingClientRect(), ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
+  var top,h;
+  if(p[3]==="bottom-top"){ top=ra.bottom-sr.top; h=rb.top-ra.bottom; }
+  else if(p[3]==="top-top"){ top=ra.top-sr.top; h=rb.top-ra.top; }
+  else { top=rb.bottom-sr.top; h=ra.bottom-rb.bottom; }
+  if(h<=0.5) return;
+  var d=document.createElement('div');
+  d.className='ruler'+(bad?'':' ok');
+  d.style.cssText='top:'+top+'px;height:'+h+'px';
+  d.innerHTML='<b>'+v+'</b>';
+  stage.appendChild(d);
+}
+document.getElementById('tRuler').onclick=function(){this.classList.toggle('on');paint();};
+document.getElementById('tHits').onclick=function(){
+  this.classList.toggle('on');
+  A.classList.toggle('hits'); B.classList.toggle('hits');
+};
+paint();
+window.addEventListener('resize',paint);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(paint);
+</script>
+</body>
+</html>
