@@ -379,7 +379,23 @@
     background: linear-gradient(180deg, var(--in-25) 0%, #fff 29%, #fff 100%) padding-box,
       conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; }
   .mh { display: flex; align-items: flex-start; gap: 8px; padding: 16px 16px 16px 16px; }
+  /* a quiet scene behind the meal's header (icons/meals/bg, one Gemini scene per
+     meal): pinned to the top right, fading out to the left and downward so
+     the title and the list sit on white */
+  .meal.scene { position: relative; isolation: isolate; }
+  /* the scene shows through the divider under the header */
+  .meal.scene .mbi { border-top-color: rgb(234 236 240 / .35); }
+  [data-art="pic"] .meal.scene::before { display: none; }
+  [data-art="pic"] .meal.scene .mbi { border-top-color: var(--g-100); }
+  [data-art="scene"] .mh .mpic { display: none; }
+  .meal.scene::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 132px; z-index: -1;
+    border-radius: var(--r-xl) var(--r-xl) 0 0; opacity: .55;
+    background: var(--scene) right top / auto 132px no-repeat;
+    -webkit-mask: linear-gradient(90deg, transparent 18%, #000 62%), linear-gradient(180deg, #000 45%, transparent);
+    -webkit-mask-composite: source-in; mask-composite: intersect; }
   .mh .t { flex: 1; min-width: 0; }
+  /* each meal's GoodFlip pictogram (icons/meals/gemini), the same height as its two lines */
+  .mh .mpic { width: 44px; height: 44px; flex-shrink: 0; margin: -1px 4px -1px -4px; object-fit: contain; }
   .mh .n { display: flex; align-items: center; gap: 8px; font-size: 16px; line-height: 22px; font-weight: 600; }
   .mh .s { font-size: 12px; line-height: 18px; color: var(--g-500); margin-top: 2px; }
   /* Outlined, not filled. GoodFlip's repeating cards carry a filled green disc,
@@ -1204,6 +1220,8 @@ S.id = STATES[NAME] ? NAME : "mid";
    to measure at all, noplanempty, there are no macros to show, so that state
    keeps the cards whichever way the flag is set. */
 var RAILMODE = Q.get("rail") === "cards" ? "cards" : "icons";
+/* meal card art: both (default), ?art=pic for the pictogram only, ?art=scene for the scene only */
+document.documentElement.dataset.art = Q.get("art") || "both";
 /* How the meal card offers "log the rest of this plan". cta is the full width
    secondary button we shipped; tick is a parent control row that commands the
    food rows below it; text is GoodFlip's own quiet action. */
@@ -2453,8 +2471,8 @@ function card(m) {
   /* a meal with nothing in it says what it holds, or that the day passed it by,
      rather than opening with a zero */
   var line = logged ? logged + " of " + target + " kcal" : target + " kcal planned";
-  return '<section class="meal" id="meal-' + m.id + '">' +
-    '<div class="mh">' +
+  return '<section class="meal scene" style="--scene:url(../icons/meals/bg/' + m.id + '.webp)" id="meal-' + m.id + '">' +
+    '<div class="mh">' + '<img class="mpic" src="../icons/meals/gemini/' + m.id + '.png?v=2" alt="" aria-hidden="true">' +
       '<div class="t"><div class="n">' + m.name + '</div>' +
       '<div class="s">Suggested ' + m.time.replace(" - ", "\u2013") + ' · ' + line + '</div></div>' +
       /* no plus here: a planned meal carries "I have eaten something else" at
@@ -2469,7 +2487,7 @@ function freeSeed(m) {
 }
 function freeCard(m) {
   var logged = freeSeed(m) + sum(m.manual);
-  return '<section class="meal" id="meal-' + m.id + '"><div class="mh">' +
+  return '<section class="meal scene" style="--scene:url(../icons/meals/bg/' + m.id + '.webp)" id="meal-' + m.id + '"><div class="mh">' + '<img class="mpic" src="../icons/meals/gemini/' + m.id + '.png?v=2" alt="" aria-hidden="true">' +
     '<div class="t"><div class="n">' + m.name + '</div>' +
     '<div class="s">Suggested ' + m.time.replace(" - ", "\u2013") + (logged ? ' · ' + logged + ' kcal logged' : '') + '</div></div>' +
     '<button class="plus sq" aria-label="Log something for ' + m.name + '" data-meal="' + m.id + '" data-stop="1"><i>' + I.plusSq + '</i></button></div>' +

@@ -84,7 +84,7 @@
   /* the variant switch sits above the size control and wears the same clothes,
      because both do the same kind of job: they change how the page is read
      without changing what it says */
-  .vsw button, .hsw button, .psw button { flex: 1; min-width: 0; padding: 0 10px; }
+  .vsw button, .hsw button, .psw button, .asw button { flex: 1; min-width: 0; padding: 0 10px; }
   .zoom .zlab { width: 100%; font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); }
   .zoom button { min-width: 44px; min-height: 44px; padding: 0 12px; font: 600 14px/20px Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .25px; border: 1px solid var(--gray-200); background: #fff; color: var(--gray-600); border-radius: 9999px; cursor: pointer; }
   .zoom button:hover { border-color: var(--gray-300); color: var(--gray-900); }
@@ -281,6 +281,13 @@
     <div class="zoom psw">
       <span class="zlab">Plan logging</span>
       <button data-plog="card" class="on">On the card</button><button data-plog="logger">In the logger</button>
+    </div>
+
+    <!-- What sits on each meal card in Your meals: the pictogram, the scene behind
+         the header, or both (default). -->
+    <div class="zoom asw">
+      <span class="zlab">Meal cards</span>
+      <button data-art="both" class="on">Both</button><button data-art="pic">Pictogram</button><button data-art="scene">Scene</button>
     </div>
 
     <div class="zoom hsw">
@@ -592,6 +599,7 @@
     <section id="trend">
       <div class="snum">Section</div>
       <h2>The Trend tab</h2>
+      <p>The week, in three cards. KAIRA's card leads: while the week fills it counts the days to her insight; when the week is done a gift box peeks from its corner and Unlock my insight opens it in a burst of gold into her analysis (what went well, the one gap and how to close it), which folds away with Show less. Under it, Your week so far: the week's score and tag, then each day as a small version of the day view's gauge. Then Your macros this week, four quiet tiles with an arc each.</p>
 
       <div class="grouphead"><b>The week</b></div>
       <div class="cases" data-cases="trend"></div>
@@ -783,18 +791,20 @@ const CASES = {
     ["r3/logged.html?moment=0&state=undo", "Undone", "state=undo", "The score goes back where it was."],
   ],
   trend: [
-    ["r3/trend.html?state=wc", "The first full week", "state=wc",
-     "One week finished, nothing to compare it to yet."],
-    ["r3/trend.html?state=w2", "A second week", "state=w2",
-     "A delta appears, and the chip can go back a week."],
-    ["r3/trend.html?state=cg", "Two weeks flat", "state=cg",
-     "Protein has not moved, so the consult is offered."],
     ["r3/trend.html?state=ft", "Not started", "state=ft",
-     "No week to read. Kaira says what fills it in."],
+     "Nothing logged yet. KAIRA says her insight unlocks in 7 days."],
     ["r3/trend.html?state=fad", "One day in", "state=fad",
-     "A day is not a pattern, and the page says so."],
+     "One day in, so the week's score is that day's, with its verdict."],
     ["r3/trend.html?state=kg", "Three days in", "state=kg",
-     "Halfway. The days already in are drawn solid."]
+     "Three days in. The week's score is the average so far, with its verdict. Only the insight waits."],
+    ["r3/trend.html?state=wc&insight=ready", "The week is done", "insight=ready",
+     "The gift peeks from KAIRA's card. Unlock my insight opens it in a burst of gold."],
+    ["r3/trend.html?state=w2&insight=open", "The insight, open", "insight=open",
+     "What went well, the one gap and how to close it. Show less folds it."],
+    ["r3/trend.html?state=w2&week=0", "An earlier week", "week=0",
+     "Opened before, so it comes back folded."],
+    ["r3/trend.html?state=cg&insight=open", "Three weeks flat", "state=cg",
+     "Protein has not moved, so KAIRA suggests talking it through with the coach."]
   ],
   learn: [
     ["r3/learn.html?view=list", "The Learn tab", "view=list",
@@ -853,13 +863,15 @@ let RAIL = new URLSearchParams(location.search).get("rail") === "cards" ? "cards
 let HERO = new URLSearchParams(location.search).get("hero") === "plate" ? "plate" : "cloud";
 /* How plan foods get logged on every day view: on the card (default), or in the logger. */
 let PLOG = new URLSearchParams(location.search).get("plog") === "logger" ? "logger" : "card";
+/* What each meal card carries: both (default), the pictogram only, or the scene only. */
+let ART = new URLSearchParams(location.search).get("art") || "both";
 
 const fig = ([q, name, id, line]) => {
   /* a case is either a flag on the day view, or a whole path to another screen */
   let href = q.includes(".html") ? q : `r3/eat.html?${q}`;
   /* only the day view has the two variants; the log, trend and learn phones
      are the same screen either way and are left alone */
-  if (href.startsWith("r3/eat.html")) href += `&rail=${RAIL}&plog=${PLOG}` + (HERO === "plate" ? "&hero=plate" : "");
+  if (href.startsWith("r3/eat.html")) href += `&rail=${RAIL}&plog=${PLOG}` + (HERO === "plate" ? "&hero=plate" : "") + (ART !== "both" ? "&art=" + ART : "");
   /* the logger follows the same switch: no Your plan tab when the plan is logged on the card */
   else if (href.startsWith("r3/log.html"))
     /* a tick or Log all only reaches the logger in the "In the logger" variant, so those two always show it */
@@ -920,6 +932,18 @@ document.querySelectorAll(".psw button").forEach((b) => {
     const q = new URLSearchParams(location.search);
     PLOG === "logger" ? q.set("plog", "logger") : q.delete("plog");
     document.body.classList.toggle("plog-card", PLOG === "card");
+    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
+    paintCases();
+    setTimeout(check, 60);
+  });
+});
+document.querySelectorAll(".asw button").forEach((b) => {
+  b.classList.toggle("on", b.dataset.art === ART);
+  b.addEventListener("click", () => {
+    ART = b.dataset.art;
+    document.querySelectorAll(".asw button").forEach((x) => x.classList.toggle("on", x === b));
+    const q = new URLSearchParams(location.search);
+    ART === "both" ? q.delete("art") : q.set("art", ART);
     history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
     paintCases();
     setTimeout(check, 60);
@@ -1004,10 +1028,10 @@ function spy() {
 /* :not(.vsw) matters. The macro switch wears the same clothes as the size
    control, so without it a click on "A card each" also ran this handler, set
    --z to undefined and left every phone unsized. */
-document.querySelectorAll(".zoom:not(.vsw):not(.hsw):not(.psw) button").forEach((b) => {
+document.querySelectorAll(".zoom:not(.vsw):not(.hsw):not(.psw):not(.asw) button").forEach((b) => {
   b.onclick = () => {
     document.documentElement.style.setProperty("--z", b.dataset.z);
-    document.querySelectorAll(".zoom:not(.vsw):not(.hsw):not(.psw) button").forEach((x) => x.classList.toggle("on", x === b));
+    document.querySelectorAll(".zoom:not(.vsw):not(.hsw):not(.psw):not(.asw) button").forEach((x) => x.classList.toggle("on", x === b));
     setTimeout(check, 60);
   };
 });

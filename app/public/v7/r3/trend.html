@@ -369,7 +369,10 @@
   .nav .ico { width: 22px; height: 22px; stroke-width: 1.8; }
   .nav .on .ico { stroke-width: 2.4; }
 </style>
+<link rel="stylesheet" href="assets/trend-week.css?v=3">
 <script src="assets/kaira.js"></script>
+<script src="assets/lottie_light.min.js"></script>
+<script src="assets/trend-week.js?v=4"></script>
 </head>
 <body>
 
@@ -447,25 +450,6 @@ var ICON = "../icons/";
 /* How many days are in, for the three waiting states */
 var FILLED = { ft: 0, fad: 1, kg: 3 };
 
-/* Kaira's line while the week is still filling. Straight from the app. */
-var WAITING = {
-  ft:  "Seven days tells me things one day never can. Start whenever you are ready.",
-  fad: "One day down. Nothing to read into yet, and that is exactly as it should be.",
-  kg:  "You are over halfway. The shape of your week is starting to show."
-};
-
-/* What the lock is waiting for. The condition is never explained as a rule,
-   it is just shown: how far through the week you are, and when it opens. */
-var LOCKHEAD = {
-  ft:  ["Your first weekly read", "Unlocks once you have logged a week"],
-  fad: ["Your first weekly read", "Unlocks this Sunday"],
-  kg:  ["Your first weekly read", "Unlocks this Sunday"]
-};
-
-/* The week ahead, drawn at a plausible set of heights so the empty state
-   has a shape rather than a flat row. */
-var AHEAD = [46, 62, 38, 54, 58, 44, 50];
-
 /* Three complete weeks. The score is never stored: it is the mean of the
    days that were logged, computed below, so the number and the bars can
    never drift apart the way they did in the wireframe. */
@@ -529,179 +513,36 @@ function gapOf(w) {
   })[0];
 }
 
-var ICO = {
-  check: '<svg class="ico" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>',
-  gift: '<svg class="ico" viewBox="0 0 24 24"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>',
-  scope: '<svg class="ico" viewBox="0 0 24 24"><path d="M4.8 2.3v5.4a5.2 5.2 0 0 0 10.4 0V2.3M4.8 2.3H3M4.8 2.3h1.8M15.2 2.3h-1.8M15.2 2.3H17"/><path d="M10 12.9v2.6a5.5 5.5 0 0 0 11 0v-2"/><circle cx="21" cy="11.4" r="2"/></svg>',
-  lock: '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="4" y="10" width="16" height="11" rx="2.5"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>',
-  arrow: '<svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M5 12h14M13 6l6 6-6 6"/></svg>'
+/* The week's insight, written from the week itself: a one line lead, the
+   week in a sentence, what went well, then the one gap and how to close it. */
+var SUGGEST = {
+  protein: "Add eggs, paneer or curd at breakfast on 3 mornings",
+  fibre: "Add a bowl of salad or sprouts at lunch",
+  fats: "Add a spoon of nuts or seeds to one meal a day",
+  carbs: "Add a roti or a small bowl of rice at dinner"
 };
-/* Her mark is the product's own, from assets/kaira.js. It was a hexagon
-   outline here and a different one on every other screen; there is one now. */
-var KMARK = GFKaira.mark(30, { halo: false });
-var KSMALL = GFKaira.mark(25, { halo: false });
-
-function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
-
-/* ---------------------------------------------------------- the pieces */
-
-/* Her mark, her line, nothing else. */
-function kairaCard(line) {
-  return '<div class="kaira"><div class="say"><span class="kmark">' + KMARK + '</span>' +
-    '<p class="lead">' + line + '</p></div></div>';
-}
-
-function chart(w) {
-  var top = 100;
-  var bars = w.bars.map(function (b, i) {
-    var none = b === null;
-    var h = none ? 8 : Math.max(4, Math.round((b / top) * 132));
-    var best = !none && b === Math.max.apply(null, w.bars.filter(function (x) { return x !== null; }));
-    return '<span class="d' + (none ? " none" : best ? " best" : "") + '">' +
-      (none ? "" : '<span class="val">' + b + '</span>') +
-      '<span class="bar" style="height:' + h + 'px"' +
-      (none ? ' title="Not logged"' : ' title="' + b + '%"') + '></span></span>';
-  }).join("");
-  var labels = DAYS.map(function (d, i) {
-    return '<span class="' + (w.bars[i] === null ? "off" : "") + '">' + d + '</span>';
-  }).join("");
-  var goalPx = Math.round((GOAL / top) * 132);
-  return '<div class="chart">' +
-    '<div class="plot">' +
-      '<span class="goal" style="bottom:' + goalPx + 'px"><b>Target ' + GOAL + '</b></span>' +
-      bars +
-    '</div>' +
-    '<div class="days">' + labels + '</div>' +
-    '<div class="legend">' +
-      '<span><i class="sw"></i>Logged</span>' +
-      '<span><i class="sw none"></i>No log</span>' +
-      '<span><i class="sw goal"></i>Target</span>' +
-    '</div></div>';
-}
-
-function scoreCard(wi) {
-  var w = WEEKS[wi], s = scoreOf(w), prev = wi > 0 ? scoreOf(WEEKS[wi - 1]) : null;
-  var delta = "";
-  if (prev !== null) {
-    var d = s - prev;
-    delta = d >= 3
-      ? '<span class="delta up">up from ' + prev + '%</span>'
-      : '<span class="delta">about the same as last week</span>';
+function insightOf(wi) {
+  var w = WEEKS[wi], s = scoreOf(w), n = loggedOf(w), prev = wi > 0 ? scoreOf(WEEKS[wi - 1]) : null, gap = gapOf(w);
+  var most = WEEKS.slice(0, wi).every(function (x) { return loggedOf(x) < n; });   /* only when it beats every week before */
+  var close = w.macros.filter(function (x) { return x !== gap && x.had / x.goal >= .9; }).map(function (x) { return x.lab.toLowerCase(); });
+  var top = Math.max.apply(null, w.bars.filter(function (b) { return b !== null; }));
+  var well = [most && wi > 0 ? "Your most consistent week yet, " + n + " days logged" : n + " days logged this week"];
+  if (close.length) {
+    var list = close.length === 1 ? close[0] : close.slice(0, -1).join(", ") + " and " + close[close.length - 1];
+    well.push(list.charAt(0).toUpperCase() + list.slice(1) + " landed close to target");
   }
-  /* The same words the day view uses, so a week and a day never disagree
-     about what a number means. A week is judged more gently than a day:
-     one bad Tuesday does not make the week a failure. */
-  var verdict = s >= 80 ? ["", "A strong week"]
-    : s >= 65 ? ["", "You’re on track"]
-    : s >= 45 ? ["warn", "Room to improve"]
-    : ["bad", "Let’s work on this"];
-  return '<div class="card">' +
-    '<div class="scorehead"><h3>Sufficiency</h3>' +
-      '<span class="gf-verdict ' + verdict[0] + '">' + verdict[1] + '</span></div>' +
-    '<div class="num"><b data-count="' + s + '">0</b><i>%</i>' + delta + '</div>' +
-    '<p class="caption">How much of your targets your meals met.</p>' +
-    '<div class="facts">' +
-      '<div class="f"><div class="k">Days logged</div><div class="v">' + loggedOf(w) + ' of 7</div></div>' +
-      '<div class="f"><div class="k">Best day</div><div class="v">' + bestOf(w) + '</div></div>' +
-    '</div>' +
-    chart(w) +
-    '<p class="note">Averaged over the days you logged.</p>' +
-    '</div>';
+  well.push("<b>" + bestOf(w) + "</b> was your best day, at " + top + "%");
+  var flat = STATE === "cg" && wi === 2;
+  return {
+    head: (s >= 70 ? "A solid week" : s >= 50 ? "A steady week" : "A week to build on") + ", held back by one thing: " + gap.lab.toLowerCase() + ".",
+    p1: "You logged <b>" + n + " of 7 days</b> and landed at <b>" + s + "%</b>" +
+      (prev === null ? "." : s > prev ? ", up " + (s - prev) + " on last week." : s < prev ? ", down " + (prev - s) + " on last week." : ", level with last week."),
+    well: well,
+    gap: gap.lab + " sat at about <b>" + gap.had + gap.unit + " a day</b>, " + (gap.goal - gap.had) + gap.unit + " under your " + gap.goal + gap.unit + "." +
+      (flat ? " It has stayed near the same mark for three weeks, so it is the shape of the day, not effort." : ""),
+    steps: [SUGGEST[gap.k], flat ? "Worth talking through with your coach this week" : s < 80 ? "That alone takes your week past 80" : "Keep the rest just as it is"]
+  };
 }
-
-
-
-/* Anything at 85% of its target or better is on target. One threshold, the
-   same for all four, so a row's colour never needs explaining. */
-function isShort(m) { return m.had / m.goal < .85; }
-
-function avgCard(wi) {
-  var w = WEEKS[wi];
-  var R = 88, HALF = Math.PI * R;
-  return '<div class="sect"><div class="avghead"><h3>Daily averages</h3>' +
-    '<span>a day, against target</span></div><div class="avgrail">' +
-    w.macros.map(function (m) {
-      var p = Math.min(1, m.had / m.goal);
-      var sh = isShort(m);
-      var col = sh ? "var(--amber-600)" : "var(--ok-600)";
-      return '<div class="gtile' + (sh ? " short" : "") + '">' +
-        '<span class="lab">' + m.lab + '</span>' +
-        '<span class="v">' + m.had + '<s>/' + m.goal + m.unit + '</s></span>' +
-        '<svg width="196" height="102" viewBox="0 0 196 102" aria-hidden="true">' +
-          '<path d="M10 98a88 88 0 0 1 176 0" fill="none" stroke="var(--g-200)" stroke-width="16"/>' +
-          '<path d="M10 98a88 88 0 0 1 176 0" fill="none" stroke="' + col + '" stroke-width="16"' +
-            ' stroke-dasharray="' + (p * HALF).toFixed(1) + ' ' + HALF.toFixed(1) + '"/>' +
-        '</svg>' +
-        '<span class="mouth"><span class="g glyph-' + m.k + '"></span>' +
-        '<span class="st">' + (sh ? (m.goal - m.had) + m.unit + " short" : "On target") + '</span></span>' +
-        '</div>';
-    }).join("") + '</div></div>';
-}
-
-function consultCard() {
-  return '<div class="card"><div class="consult">' +
-    '<span class="thumb">' + ICO.scope + '</span>' +
-    '<div class="t"><span class="eyebrow">' + ICO.gift + 'A small gift for you</span>' +
-    '<div class="h">A free consult, on us</div>' +
-    '<p>Twenty minutes with a GoodFlip dietitian to rebuild your meal pattern.</p></div>' +
-    '</div>' +
-    '<button class="gf-btn" style="margin-top:16px">Claim my free consult</button></div>';
-}
-
-/* Not in Kaira's voice. She has already had her say at the top, and a second
-   first person block further down is what made the wireframe feel narrated.
-   This just says what happens next. */
-function hookCard(state) {
-  var line = state === "cg"
-    ? "Keep logging while the consult is booked, so any change has a full week either side of it."
-    : state === "w2"
-    ? "Log through next week and this page reads it back on Sunday."
-    : "Log through next week and this page reads it back on Sunday.";
-  return '<div class="hook"><div class="k">Next week</div><p>' + line + '</p></div>';
-}
-
-/* ------------------------------------------------------ the two layouts */
-
-function renderWaiting(state) {
-  var n = FILLED[state], head = LOCKHEAD[state];
-  var ahead = AHEAD.map(function (h, i) {
-    return '<span class="d' + (i < n ? "" : " off") + '" style="height:' + h + 'px"></span>';
-  }).join("");
-  return '<div class="card locked">' +
-    '<div class="lockrow"><span class="lk">' + ICO.lock + '</span>' +
-    '<span class="t"><b>' + head[0] + '</b><span>' + head[1] + '</span></span></div>' +
-    '<div class="ahead">' + ahead + '</div>' +
-    '<div class="days">' + DAYS.map(function (d, i) {
-      return '<span class="' + (i < n ? "" : "off") + '">' + d + '</span>';
-    }).join("") + '</div>' +
-    '<span class="fill"><i style="width:' + Math.round((n / 7) * 100) + '%"></i></span>' +
-    '<p class="filllab"><strong>' + n + ' of 7 days</strong> logged this week.</p>' +
-    '</div>' +
-    '<div style="margin-top:16px">' + kairaCard(WAITING[state]) + '</div>' +
-    '<button class="gf-btn" style="margin-top:20px" data-nav="eat">Log a meal</button>';
-}
-
-/* The data goes first and Kaira reads it back at the end, which is the order
-   the vitals pages use: chart, then Kaira's Analysis under it. She had been
-   opening the page and appearing again inside the gap card, and the week
-   ended up narrated rather than measured. */
-function renderWeek(state, wi) {
-  return scoreCard(wi) +
-    avgCard(wi) +
-    '<div style="margin-top:16px">' + kairaCard(READ[state]) + '</div>' +
-    (state === "cg" ? '<div style="margin-top:16px">' + consultCard() + '</div>' : "") +
-    '<div style="margin-top:16px">' + hookCard(state) + '</div>';
-}
-
-/* One line each, and never a readout. The cards above have already said
-   what the week was, so hers is the only place that says what it means for
-   the body: what sufficiency is actually measuring, why this target matters
-   metabolically, and when a flat line stops being about effort. */
-var READ = {
-  wc: "Sufficiency is not about eating less. It is about your body getting what it asked for, and protein is the one it notices missing first.",
-  w2: "Protein is what holds muscle while the rest of the plan does its work. Two weeks of lifting it is what changes how you feel, not just the number.",
-  cg: "When one target stays flat while the others hold, it is usually the shape of the day, not effort. That is worth talking through with someone."
-};
 
 /* ------------------------------------------------------------ the shell */
 
@@ -709,81 +550,39 @@ var week = LAST[STATE] === undefined ? 0 : LAST[STATE];
 var qw = parseInt(Q.get("week"), 10);
 if (!isNaN(qw) && qw >= 0 && qw <= LAST[STATE]) week = qw;
 
-/* Gives every measured thing a frame at zero before it travels to its value.
-   The transitions were already in the CSS and dead, because a node created
-   with its final value inline has nothing to animate from. */
-function release() {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  var bars = [].slice.call(document.querySelectorAll(".plot .bar"));
-  var arcs = [].slice.call(document.querySelectorAll(".gtile svg path:last-child"));
-  var fills = [].slice.call(document.querySelectorAll(".fill i"));
-  bars.forEach(function (b) { b.dataset.h = b.style.height; b.style.height = "0px"; });
-  arcs.forEach(function (a) {
-    a.dataset.d = a.getAttribute("stroke-dasharray");
-    var total = a.dataset.d.split(" ")[1];
-    a.setAttribute("stroke-dasharray", "0 " + total);
-    a.style.transition = "stroke-dasharray .9s cubic-bezier(.4,0,.2,1)";
-  });
-  fills.forEach(function (f) { f.dataset.w = f.style.width; f.style.width = "0%"; });
-  requestAnimationFrame(function () {
-    requestAnimationFrame(function () {
-      /* 30ms a bar, capped, so the week reads left to right without the last
-         day waiting most of a second to start */
-      bars.forEach(function (b, i) {
-        b.style.transitionDelay = Math.min(i, 6) * 30 + "ms";
-        b.style.height = b.dataset.h;
-      });
-      arcs.forEach(function (a, i) {
-        a.style.transitionDelay = Math.min(i, 3) * 60 + "ms";
-        a.setAttribute("stroke-dasharray", a.dataset.d);
-      });
-      fills.forEach(function (f) { f.style.width = f.dataset.w; });
-    });
-  });
-}
-
-/* The headline number arrives rather than printing, which the house rules ask
-   for and which the day view already does. */
-function countUp(el, to) {
-  if (!el) return;
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { el.textContent = to; return; }
-  var t0 = null;
-  requestAnimationFrame(function step(ts) {
-    if (t0 === null) t0 = ts;
-    var k = Math.min(1, (ts - t0) / 620);
-    el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3)));
-    if (k < 1) requestAnimationFrame(step);
-  });
-}
+/* The insight opens once, with the gift, for the newest week; earlier weeks
+   were opened before and come back folded. ?insight=open shows it open,
+   ?insight=ready parks the gift. */
+var OPENED = {};
+try { OPENED = JSON.parse(sessionStorage.getItem("gfTrendOpen") || "{}"); } catch (e) {}
+var FILLING_WEEK = [62, 74, 55, 68, 81, 70, 76];
 
 function paint() {
-  var waiting = FILLED[STATE] !== undefined;
-  document.getElementById("stack").innerHTML =
-    waiting ? renderWaiting(STATE) : renderWeek(STATE, week);
-  var n = document.querySelector(".num b[data-count]");
-  if (n) countUp(n, +n.dataset.count);
-  release();
-  document.getElementById("range").textContent =
-    waiting ? "This week" : WEEKS[week].range;
+  var waiting = FILLED[STATE] !== undefined, m;
+  if (waiting) {
+    var n = FILLED[STATE];
+    m = { mode: "filling", filled: n, kaira: "locked",
+      days: FILLING_WEEK.map(function (b, i) { return i < n ? b : null; }),
+      macros: WEEKS[0].macros.map(function (x) { return { k: x.k, lab: x.lab, goal: x.goal, unit: x.unit, had: n ? x.had : null }; }) };
+  } else {
+    var w = WEEKS[week], s = scoreOf(w), key = STATE + ":" + week, force = Q.get("insight");
+    var newest = week === LAST[STATE];
+    m = { mode: "week", days: w.bars, score: s, tag: s >= 70 ? "solid" : s >= 50 ? "grow" : "attention", macros: w.macros,
+      insight: insightOf(week),
+      kaira: force === "open" ? "revealed" : force === "ready" ? "ready" : newest && !OPENED[key] ? "ready" : "revealed",
+      folded: force !== "open" && !newest,
+      onUnlock: function () { OPENED[key] = 1; try { sessionStorage.setItem("gfTrendOpen", JSON.stringify(OPENED)); } catch (e) {} } };
+  }
+  GFTrendWeek.render(document.getElementById("stack"), m);
+  document.getElementById("range").textContent = waiting ? "This week" : WEEKS[week].range;
   document.getElementById("prev").disabled = waiting || week === 0;
   document.getElementById("next").disabled = waiting || week === LAST[STATE];
   /* Nothing to pick from while the first week is still filling in. */
   document.getElementById("weekBtn").disabled = waiting;
-
-  /* The delta beside the chip, the same grey line the day view carries.
-     Green is saved for the score itself, inside the card. When empty, the
-     week pill centres so the row does not look unfinished on the right. */
+  /* the week pill always centres: KAIRA's insight carries the comparison */
   var d = document.getElementById("weekDelta");
-  var line = d && d.closest(".dateline");
-  if (waiting || week === 0) {
-    d.textContent = "";
-    if (line) line.classList.add("solo");
-    return;
-  }
-  var diff = scoreOf(WEEKS[week]) - scoreOf(WEEKS[week - 1]);
-  d.textContent = diff === 0 ? "level with last week"
-    : (diff > 0 ? "+" : "") + diff + " on last week";
-  if (line) line.classList.remove("solo");
+  d.textContent = "";
+  d.closest(".dateline").classList.add("solo");
 }
 
 document.getElementById("prev").onclick = function () { if (week > 0) { week--; paint(); } };

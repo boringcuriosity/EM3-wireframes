@@ -80,7 +80,7 @@ const DIRS = [
     score: [['ok', 'Quietest; closest to the line icons already on the card'], ['ok', 'The badge carries the time of day as a system, easy to extend'],
       ['no', 'Least delight; risks looking like the generic cards we are trying to fix'], ['mid', 'Sunrise and sunset badges are close at 40px']] },
   { dir: 'gemini', ext: 'png', name: 'D. GoodFlip pictograms, generated', tag: 'From the design system prompt', gemini: true,
-    why: 'Made in Gemini with the design system\'s own pictogram prompt, untouched, one subject per meal and no secondary elements: warm lemon water, a breakfast bowl with a sun, a steel tiffin, cutting chai, a thali, a mug of milk with a moon. The real house style, not a redraw.',
+    why: 'Made in Gemini with the design system\'s own pictogram prompt, untouched, one subject per meal and no secondary elements: warm lemon water, a breakfast bowl with a sun, a steel tiffin, cutting chai, a handi with its lid, a mug of milk with a moon. The real house style, not a redraw.',
     score: [['ok', 'Exactly the house pictogram language: extruded face, dotted side wall, navy cap and outline'], ['ok', 'Indian, specific objects; the tiffin and cutting chai read instantly'],
       ['no', 'The design system keeps pictograms for one important, tappable card. Six in a column is heavy'],
       ['mid', 'All one green, so shape alone tells them apart; the two glasses are the closest pair']] },
@@ -88,8 +88,8 @@ const DIRS = [
 
 const src = (d, id) => `icons/meals/${d.dir}/${id}.${d.ext}`;
 const img = (d, id, cls) => d.gemini
-  ? `<img class="${cls}" src="${src(d, id)}" alt="" onerror="this.outerHTML='<div class=&quot;${cls} miss&quot;></div>'">`
-  : `<img class="${cls}" src="${src(d, id)}" alt="">`;
+  ? `<img class="${cls}" src="${src(d, id)}${d.gemini ? '?v=2' : ''}" alt="" onerror="this.outerHTML='<div class=&quot;${cls} miss&quot;></div>'">`
+  : `<img class="${cls}" src="${src(d, id)}${d.gemini ? '?v=2' : ''}" alt="">`;
 
 document.getElementById('dirs').innerHTML = DIRS.map(d => `
   <section class="dir">
@@ -102,7 +102,6 @@ document.getElementById('dirs').innerHTML = DIRS.map(d => `
     <div class="row">
       <div>
         <div class="strip">${MEALS.map(m => `<figure>${img(d, m.id, '')}<figcaption>${m.name}</figcaption></figure>`).join('')}</div>
-        ${d.gemini ? `<p class="note" id="gnote">Coming. The dashed slots fill in once the six files land in icons/meals/gemini/.</p>` : ''}
       </div>
       <div class="cards">${MEALS.filter(m => IN_CONTEXT.includes(m.id)).map(m => `
         <section class="meal"><div class="mh">${img(d, m.id, 'ico')}
@@ -112,11 +111,6 @@ document.getElementById('dirs').innerHTML = DIRS.map(d => `
     </div>
   </section>`).join('');
 
-/* once every Gemini file has loaded, the "coming" note has nothing left to say */
-const gImgs = [...document.querySelectorAll('img[src*="/gemini/"]')];
-Promise.all(gImgs.map(i => i.decode().then(() => true, () => false))).then(r => {
-  if (r.every(Boolean)) { const n = document.getElementById('gnote'); if (n) n.remove(); }
-});
 </script>
 </body>
 </html>

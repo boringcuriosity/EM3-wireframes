@@ -59,17 +59,22 @@
 
   /* -------------------------------------------------------------- copy */
   var COPY = {
-    lockT: "Your insight unlocks on Monday",
-    lockS: "I read the whole week before I say anything. 4 days to go.",
+    lockT: "Your insight unlocks in 4 days",
+    lockS: "Keep logging your food consistently to get your personalised insight.",
     readyT: "Your insight is ready",
-    readyS: "One thing stood out in your week.",
+    readyS: "Your personalised insight, made from this week's food logs.",
     readyBtn: "Unlock my insight",
-    eyebrow: 'KAIRA <span>&middot; 8 to 14 Mar</span>',
-    head: "Protein held your week back",
-    p1: "It fell short on <b>4 of 5 days</b>, about <b>23g a day</b> under your 94g.",
-    p2: "Your two best days, <b>Tuesday and Friday</b>, both started with eggs or paneer.",
-    tryL: "Try this week",
-    tryT: "A protein at breakfast on 3 mornings. It is the quickest way past 80."
+    eyebrow: "KAIRA's analysis",
+    head: "A solid week, held back by one thing: protein.",
+    p1: "You logged <b>5 of 7 days</b> and landed at <b>74%</b>, up 6 on last week.",
+    wellL: "What went well",
+    well: ["Your most consistent week yet, 5 days logged",
+      "Carbs and fats landed close to target on most days",
+      "<b>Tuesday and Friday</b> were your best, both started with eggs or paneer"],
+    gapL: "The one gap, and how to close it",
+    gap: "Protein fell short on <b>4 of 5 days</b>, about <b>23g a day</b> under your 94g.",
+    steps: ["Add eggs, paneer or curd at breakfast on 3 mornings",
+      "That alone takes your week past 80"]
   };
 
   /* ------------------------------------------------------- KAIRA cards */
@@ -81,16 +86,28 @@
       '<div class="krow"><span class="kmk">' + mark(30) + '</span><div><div class="kt">' + COPY.lockT + '</div>' +
       '<div class="ks">' + COPY.lockS + '</div></div></div>' +
       '<div class="prog" aria-hidden="true">' + seg + '</div>' +
-      '<div class="plab"><b>3 of 7 days</b> in. Your week closes Sunday night.</div>' +
+      '<div class="plab"><b>3 of 7 days</b> are in.</div>' +
       '</div></div>';
   }
 
+  /* The unlocked insight, all type and no boxes: a one-line lead, the week in
+     a sentence, What went well, then The one gap and how to close it. Below
+     the lead it folds away (Show less), so the card can sit small. */
+  /* every bullet in the card is the same gold elbow arrow */
+  var BUL = '<img src="trend-options/bullet.svg" width="16" height="16" alt="">';
+  var CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 15 6-6 6 6"/></svg>';
   function revBody(cls) {
-    cls = cls || "";
-    return '<div class="kh ' + cls + '">' + COPY.head + '</div>' +
-      '<p class="kp ' + cls + '">' + COPY.p1 + '</p>' +
-      '<p class="kp ' + cls + '">' + COPY.p2 + '</p>' +
-      '<div class="ktry ' + cls + '"><b>' + COPY.tryL + '</b><span>' + COPY.tryT + '</span></div>';
+    cls = cls ? " " + cls : "";
+    return '<div class="kh' + cls + '">' + COPY.head + '</div>' +
+      '<p class="kp' + cls + '">' + COPY.p1 + '</p>' +
+      '<div class="kmore"><div>' +
+        '<div class="ksec' + cls + '">' + COPY.wellL + '</div>' +
+        '<ul class="kl well">' + COPY.well.map(function (t) { return '<li class="' + cls.trim() + '"><i>' + BUL + '</i><span>' + t + '</span></li>'; }).join("") + '</ul>' +
+        '<div class="ksec' + cls + '">' + COPY.gapL + '</div>' +
+        '<p class="kp' + cls + '">' + COPY.gap + '</p>' +
+        '<ul class="kl next">' + COPY.steps.map(function (t) { return '<li class="' + cls.trim() + '"><i>' + BUL + '</i><span>' + t + '</span></li>'; }).join("") + '</ul>' +
+      '</div></div>' +
+      '<button class="kfold' + cls + '" type="button" aria-expanded="true"><span>Show less</span>' + CHEV + '</button>';
   }
   function revHead() {
     return '<div class="krow"><span class="kmk">' + mark(28) + '</span><div class="keb">' + COPY.eyebrow + '</div></div>';
@@ -102,6 +119,14 @@
   var BTN = '<button class="unlock" type="button">' + IC.unlock + COPY.readyBtn + '</button>';
 
   function kReady(kind) {
+    /* Gift: the Metabolic Kickstarter's gift box peeks in from the card's bottom
+       right corner, clipped by it; the button is sized to its words so the box
+       has the corner to itself. */
+    if (kind === "gift") {
+      return '<div class="kc ready gift"><div class="kgift"><div class="gbox"></div></div>' +
+        '<div class="kin in-ready">' + readyHead() + BTN + '</div>' +
+        '<div class="kin in-rev" style="display:none">' + revHead() + revBody() + '</div></div>';
+    }
     if (kind === "seal") {
       return '<div class="kc ready"><div class="kin">' +
         '<div class="stack hs"><div class="h-ready">' + readyHead() + '</div><div class="h-rev" style="opacity:0">' + revHead() + '</div></div>' +
@@ -122,12 +147,10 @@
   function cardHead(mode) {
     if (mode === "filling") {
       return '<div class="ch"><div><div class="l">This week so far</div>' +
-        '<div class="cn wait"><b>&ndash;</b><span class="stag" data-s="none">Score on Monday</span></div></div>' +
-        '<div class="r"><b>3 of 7</b>days logged</div></div>';
+        '<div class="cn wait"><b>&ndash;</b><span class="stag" data-s="none">Score on Monday</span></div></div></div>';
     }
     return '<div class="ch"><div><div class="l">Your week</div>' +
-      '<div class="cn"><b>' + WEEK + '<i>%</i></b><span class="stag" data-s="solid">Solid Week</span></div></div>' +
-      '<div class="r"><b>' + logged.length + ' of 7</b>days logged</div></div>';
+      '<div class="cn"><b>' + WEEK + '<i>%</i></b><span class="stag" data-s="solid">Solid Week</span></div></div></div>';   /* days logged is KAIRA's line, not repeated here */
   }
   function dayState(i, mode) {
     var fut = mode === "filling" && i > TODAY;
@@ -173,17 +196,17 @@
       var x = 22 + Math.cos(a) * r, y = 22 - Math.sin(a) * r;
       dots += '<circle cx="' + x.toFixed(2) + '" cy="' + y.toFixed(2) + '" r="' + rr + '" fill="' + (i < n ? "#12B76A" : "#D3D9E2") + '"/>';
     }
-    return '<svg width="44" height="40" viewBox="0 0 44 40" aria-hidden="true">' + dots +
+    return '<svg width="64" height="58" viewBox="0 0 44 40" aria-hidden="true">' + dots +
       '<text x="22" y="26.5" text-anchor="middle" font-family="Roboto, sans-serif" font-size="13" font-weight="600" fill="' + (s === null ? "#98A2B3" : "#101828") + '">' +
       (s === null ? "&ndash;" : s) + '</text></svg>';
   }
   function chartA(o) {
     var cols = DAYS.map(function (d, i) {
       var st = dayState(i, o.mode);
-      return '<div class="' + colCls(st, i, o.sel) + '"' + dayAttr(i, st) + ' style="gap:8px"><span class="gz">' + gauge(st.s) + '</span><span class="dk">' + d.k + '</span></div>';
+      return '<div class="' + colCls(st, i, o.sel) + '"' + dayAttr(i, st) + '><span class="gz">' + gauge(st.s) + '</span><span class="dk">' + d.k + '</span></div>';
     }).join("");
-    return '<div class="cc">' + cardHead(o.mode) + '<div class="plot" style="padding-left:0;margin-top:20px">' + cols + '</div>' +
-      '<div class="lg note"><span>Each ring is that day&rsquo;s gauge from the day view, in miniature.</span></div></div>';
+    return '<div class="cc">' + cardHead(o.mode) + '<div class="plot az">' + cols + '</div>' +
+      '</div>';
   }
 
   /* B: seven small bubbles, filled to the day's score. The liquid is the
@@ -255,6 +278,92 @@
       '<div class="shb">Open ' + d.name + ' in Eat</div></div>';
   }
 
+
+  /* ------------------------------------------------- your macros this week */
+  /* One week of macros, consistent with KAIRA's insight: protein was the gap
+     (71g a day of 94g, on target on 1 of the 5 logged days). Neutral by
+     design: ink and grey carry the data, the only colour is one amber mark on
+     the gap, the same amber as a Room To Grow day. */
+  var MAC = [
+    { k: "protein", n: "Protein", g: 71, t: 94, met: [0, 1, 0, 0, 0], d: [64, 96, 58, 66, 71] },
+    { k: "carbs",   n: "Carbs",   g: 221, t: 238, met: [1, 1, 0, 1, 1], d: [240, 246, 180, 238, 241] },
+    { k: "fats",    n: "Fats",    g: 55, t: 63, met: [1, 1, 0, 0, 1], d: [64, 66, 41, 44, 63] },
+    { k: "fibre",   n: "Fibre",   g: 24, t: 30, met: [0, 1, 0, 0, 1], d: [22, 31, 18, 20, 30] }
+  ];
+  var GAP = "protein";
+  function pc(m) { return Math.round(m.g / m.t * 100); }
+  function gl(k) { return '<i class="mg glyph-' + k + '"></i>'; }
+  function macHead(t, r) { return '<div class="mh2"><span>' + t + '</span>' + (r ? '<span class="mr">' + r + '</span>' : "") + '</div>'; }
+
+  var MACROS = {
+    /* Gauge tiles: the old Daily averages tiles, made quiet. The glyph sits
+       top right in grey, there is no word under it, no shadow and no tinted
+       background, so the tiles read as information, not buttons. The arc is
+       one colour, GoodFlip's primary green on a grey track, whether or not the target was reached. */
+    tiles: function () {
+      var R = 88, HALF = Math.PI * R;
+      return '<div class="mt2"><div class="mh2"><span>Your macros this week</span></div><div class="trail">' +
+        MAC.map(function (m) {
+          var p = Math.min(1, m.g / m.t);
+          return '<div class="gt">' + gl(m.k) +
+            '<span class="gl">' + m.n + '</span><span class="gv">' + m.g + '<s>/' + m.t + 'g</s></span>' +
+            '<svg width="196" height="102" viewBox="0 0 196 102" aria-hidden="true">' +
+              '<path d="M10 98a88 88 0 0 1 176 0" fill="none" stroke="#EAECF0" stroke-width="16"/>' +
+              '<path d="M10 98a88 88 0 0 1 176 0" fill="none" stroke="#299D6B" stroke-width="16"' +
+                ' stroke-dasharray="' + (p * HALF).toFixed(1) + ' ' + HALF.toFixed(1) + '"/></svg></div>';
+        }).join("") + '</div></div>';
+    },
+    /* A: quiet rows, a thin ink bar each */
+    rows: function () {
+      return '<div class="mc">' + macHead("Your macros this week", "Daily average") + MAC.map(function (m) {
+        return '<div class="mrow' + (m.k === GAP ? " gap" : "") + '">' + gl(m.k) +
+          '<div class="mm"><div class="mt"><b>' + m.n + '</b>' + (m.k === GAP ? '<span class="gp">The gap</span>' : "") +
+          '<span class="mv"><b>' + m.g + '</b> of ' + m.t + 'g</span></div>' +
+          '<div class="tr"><i style="width:' + Math.min(100, pc(m)) + '%"></i></div></div></div>';
+      }).join("") + '</div>';
+    },
+    /* B: four dials, the glyph in the middle */
+    dials: function () {
+      return '<div class="mc">' + macHead("Your macros this week", "Of your targets") + '<div class="dials">' + MAC.map(function (m) {
+        var r = 22, c = 2 * Math.PI * r, f = Math.min(1, m.g / m.t);
+        return '<div class="dl2' + (m.k === GAP ? " gap" : "") + '"><span class="dw"><svg width="56" height="56" viewBox="0 0 56 56">' +
+          '<circle cx="28" cy="28" r="' + r + '" fill="none" stroke="#EAECF0" stroke-width="4"/>' +
+          '<circle cx="28" cy="28" r="' + r + '" fill="none" stroke="' + (m.k === GAP ? "#F79009" : "#344054") + '" stroke-width="4" stroke-linecap="round" stroke-dasharray="' + (c * f).toFixed(1) + " " + c.toFixed(1) + '" transform="rotate(-90 28 28)"/></svg>' + gl(m.k) + '</span>' +
+          '<b>' + pc(m) + '%</b><span>' + m.n + '</span></div>';
+      }).join("") + '</div></div>';
+    },
+    /* C: days on target, a dot per day */
+    days: function () {
+      var hd = '<div class="drow dhd"><span class="mg" style="visibility:hidden"></span><b></b><span class="dts">' +
+        DAYS.map(function (d) { return '<span class="dl3">' + d.k + '</span>'; }).join("") + '</span><span class="dc"></span></div>';
+      return '<div class="mc">' + macHead("Days on target", "Met that day") + hd + MAC.map(function (m) {
+        var hit = m.met.reduce(function (a, b) { return a + b; }, 0);
+        var dots = [0, 1, 2, 3, 4, 5, 6].map(function (i) {
+          return '<span class="dt ' + (i > 4 ? "nl" : m.met[i] ? "on" : "off") + '"></span>';
+        }).join("");
+        return '<div class="drow' + (m.k === GAP ? " gap" : "") + '">' + gl(m.k) + '<b>' + m.n + '</b><span class="dts">' + dots + '</span><span class="dc">' + hit + ' of 5</span></div>';
+      }).join("") + '</div>';
+    },
+    /* D: one scale to 100% of your targets, four glyphs placed on it */
+    scale: function () {
+      var marks = MAC.map(function (m, i) {
+        /* the line runs 50% to 100%: every week lands in that half, and on 0 to 100 the four bunch together */
+        return '<span class="sm' + (m.k === GAP ? " gap" : "") + '" style="left:' + ((pc(m) - 50) * 2) + '%;--lift:' + (i % 2 ? 30 : 0) + 'px">' + gl(m.k) + '<b>' + pc(m) + '%</b></span>';
+      }).join("");
+      return '<div class="mc">' + macHead("Your macros this week", "Daily average") +
+        '<div class="sc"><div class="sl"><i></i></div>' + marks + '<span class="s0">50%</span><span class="s1">Target</span></div>' +
+        '<p class="snote">Carbs came closest. Protein sat furthest from its target.</p></div>';
+    },
+    /* E: a sentence first, the numbers as quiet chips */
+    words: function () {
+      return '<div class="mc">' + macHead("Your macros this week") +
+        '<p class="ws">Carbs and fats were close to target. <b>Protein was the gap</b>, about 23g a day short.</p>' +
+        '<div class="chips2">' + MAC.map(function (m) {
+          return '<span class="ch2' + (m.k === GAP ? " gap" : "") + '">' + gl(m.k) + m.n + ' <b>' + pc(m) + '%</b></span>';
+        }).join("") + '</div></div>';
+    }
+  };
+
   /* ------------------------------------------------------- the screen */
   /* opts: state "filling" | "ready" | "revealed", chart "A".."D", anim
      "gather" | "aurora" | "seal", sel (day index), sheet (day index), green */
@@ -264,14 +373,14 @@
     var k = o.state === "filling" ? kLocked() : o.state === "ready" ? kReady(o.anim || "gather") : kRevealed();
     /* Filling weeks have no comparison yet, so the pill centres alone.
        Once a prior week exists, "+N on last week" sits on the right. */
-    var solo = mode === "filling";
+    var solo = true;   /* the date always centres; no "+N on last week" */
     var dl = solo ? "" : "<b>+" + (WEEK - LAST_WEEK) + "</b> on last week";
     return '<div class="scr' + (o.sheet != null ? " sheet-on" : "") + '">' + STATUS_BAR +
       '<div class="hd">' + IC.trend + '<b>Trend</b><span class="tg">How your weeks are going.</span>' + IC.info + '</div>' +
       '<div class="wk' + (solo ? " solo" : "") + '"><div class="wpill"><span class="arr">' + IC.left + '</span><span class="lbl">' + IC.cal + '8 - 14 Mar</span>' +
       '<span class="arr off">' + IC.right + '</span></div><span class="dl">' + dl + '</span></div>' +
-      '<div class="bd">' + (o.anim === "aurora" ? '<div class="aur"><i></i><i></i><i></i></div>' : "") + k +
-      (CHARTS[o.chart || "C"])({ mode: mode, sel: sel, green: o.green }) + '</div>' +
+      '<div class="bd">' + (o.anim === "aurora" ? '<div class="aur"><i></i><i></i><i></i></div>' : "") + (o.noK ? "" : k) +
+      (CHARTS[o.chart || "C"])({ mode: mode, sel: sel, green: o.green }) + (o.mac ? MACROS[o.mac]() : "") + '</div>' +
       NAV + '<div class="fx"></div>' + sheet(o.sheet != null ? o.sheet : 1) + '</div>';
   }
 
@@ -304,9 +413,39 @@
     scr.querySelector(".scrim").onclick = close;
   }
 
+  /* The gift box Lottie (mk-dynamic, Metabolic-kickstarter/src/assets/Gift_animation.json):
+     100 frames at 60fps. 15 to 60 the lid hops and the ribbons wiggle, 18 to 100
+     the gold stars bloom. Resting, it plays the hop alone now and then. */
+  var giftData = null, giftWait = [];
+  function giftJSON(cb) {
+    if (giftData) return cb(giftData);
+    giftWait.push(cb);
+    if (giftWait.length > 1) return;
+    fetch("trend-options/gift.json").then(function (r) { return r.json(); }).then(function (d) {
+      giftData = d; giftWait.splice(0).forEach(function (f) { f(d); });
+    });
+  }
+  function initGift(scr) {
+    var g = scr.querySelector(".gbox");
+    if (!g || !window.lottie) return;
+    giftJSON(function (d) {
+      var an = lottie.loadAnimation({ container: g, renderer: "svg", loop: false, autoplay: false,
+        animationData: JSON.parse(JSON.stringify(d)) });
+      an.goToAndStop(0, true);
+      scr._gift = an;
+      if (REDUCED) return;
+      var t = setInterval(function () {
+        if (!document.contains(g)) { clearInterval(t); return; }
+        if (!scr._opened && !scr._busy) an.playSegments([15, 62], true);
+      }, 4200);
+      setTimeout(function () { if (!scr._opened) an.playSegments([15, 62], true); }, 900);
+    });
+  }
+
   function mount(host, o) {
     host.innerHTML = screen(o);
     var scr = host.firstElementChild;
+    initGift(scr);
     scr._opts = o;
     wireSheet(scr);
     if (o.sheet != null) { var g = scr.querySelector(".shg"); if (io) io.observe(g); else startGauge(g); }
@@ -340,7 +479,9 @@
       rdy.style.display = "none"; rev.style.display = "";
       items.forEach(function (n) { n.style.opacity = 0; });
       var h2 = card.offsetHeight;
-      A(card, [{ height: h1 + "px" }, { height: h2 + "px" }], dur, 0, INOUT);
+      /* released once it lands: a held height would pin the card at full size, and Show less could not fold it */
+      var grow = A(card, [{ height: h1 + "px" }, { height: h2 + "px" }], dur, 0, INOUT);
+      if (grow) grow.onfinish = function () { grow.cancel(); };
       items.forEach(function (n, i) { resolveIn(n, (revealAt - at) + i * 110); });
     });
   }
@@ -363,6 +504,7 @@
     if (REDUCED) { reduced(scr, kind); return; }
     if (kind === "aurora") return aurora(scr);
     if (kind === "seal") return seal(scr);
+    if (kind === "gift") return gift(scr);
     return gather(scr);
   }
 
@@ -375,6 +517,7 @@
       return;
     }
     var card = scr.querySelector(".kc");
+    var kg = card.querySelector(".kgift"); if (kg) kg.style.display = "none";
     card.querySelector(".in-ready").style.display = "none";
     var rev = card.querySelector(".in-rev"); rev.style.display = "";
     A(rev, [{ opacity: 0 }, { opacity: 1 }], 200);
@@ -440,6 +583,74 @@
     });
   }
 
+  /* Gift: the box lifts out of its corner to the middle of the card and opens
+     (lid hops, ribbons, gold stars), then the card grows to full height under
+     a soft shimmer and KAIRA's insight arrives line by line. About 3.4s. */
+  function gift(scr) {
+    var card = scr.querySelector(".kc"), g = card.querySelector(".gbox"), fx = scr.querySelector(".fx");
+    var an = scr._gift, btn = card.querySelector(".unlock");
+    scr._opened = true;
+    later(scr, 3900, function () { scr._busy = false; });
+    A(btn, [{ opacity: 1, transform: "scale(1)" }, { opacity: 0, transform: "scale(.94)" }], 260, 60);
+    A(card.querySelector(".in-ready .krow"), [{ opacity: 1 }, { opacity: 0 }], 300, 120);
+    if (!g) { morph(scr, 600, 600, 1300); return; }
+    /* lift the box out of the card's clip into the screen's effects layer */
+    var p = at(scr, g), c = at(scr, card), S = 92;
+    fx.appendChild(g);
+    g.style.cssText = "position:absolute;left:0;top:0;width:" + S + "px;height:" + S + "px;will-change:transform,opacity";
+    var from = "translate(" + (p.x - S / 2) + "px," + (p.y - S / 2) + "px)";
+    var to = "translate(" + (c.x - S / 2) + "px," + (c.y - S / 2) + "px)";
+    A(g, [{ transform: from + " scale(1)" }, { transform: to + " scale(1.7)" }], 650, 120, INOUT);
+    shine(fx, g, c);
+    later(scr, 760, function () { if (an) { an.goToAndStop(0, true); an.setSpeed(1.15); an.play(); } });
+    A(g, [{ transform: to + " scale(1.7)", opacity: 1 }, { transform: to + " scale(2)", opacity: 0 }], 420, 2050, EASE);
+    /* the card grows, a shimmer holds the space, then the words */
+    var AT = 2150, DUR = 600, REVEAL = AT + DUR + 650;
+    morph(scr, AT, DUR, REVEAL);
+    later(scr, AT, function () {
+      var sk = document.createElement("div"); sk.className = "ksk";
+      sk.innerHTML = "<i style=\"width:86%\"></i><i style=\"width:64%\"></i><i style=\"width:92%\"></i><i style=\"width:78%\"></i><i style=\"width:58%\"></i><i style=\"width:84%\"></i>";
+      card.appendChild(sk);
+      A(sk, [{ opacity: 0 }, { opacity: 1 }], 260, 80);
+      A(sk, [{ opacity: 1 }, { opacity: 0 }], 260, REVEAL - AT - 180);
+      later(scr, REVEAL - AT + 120, function () { sk.remove(); });
+    });
+    later(scr, 3600, function () { if (g.parentNode === fx) g.remove(); });
+  }
+
+  /* The shine behind the gift, after the Metabolic Kickstarter's own reveal: a
+     warm gold glow, sixteen sunrays turning slowly, a white flash as the lid
+     pops, and small gold stars twinkling round it. It swells in as the box
+     reaches the middle and drains away as the card grows. */
+  function shine(fx, g, c) {
+    var rays = "", sp = "";
+    for (var i = 0; i < 16; i++) rays += '<i style="transform:rotate(' + (i * 22.5) + 'deg);width:' + (i % 2 ? 120 : 175) + 'px"></i>';
+    var SP = [[-20, 88, 1], [35, 120, .7], [80, 70, .9], [125, 110, .6], [160, 84, 1], [200, 130, .7], [240, 76, .8], [285, 116, .6], [320, 92, 1],
+      [10, 150, .5], [60, 160, .6], [105, 145, .5], [150, 162, .6], [190, 150, .5], [230, 165, .6], [270, 148, .5], [300, 158, .6], [345, 142, .5]];
+    SP.forEach(function (q) {
+      var a = q[0] * Math.PI / 180;
+      sp += '<b style="left:' + (Math.cos(a) * q[1]).toFixed(1) + 'px;top:' + (Math.sin(a) * q[1] * .8).toFixed(1) + 'px;--s:' + q[2] + '"></b>';
+    });
+    var sh = document.createElement("div");
+    sh.className = "gshine";
+    sh.style.left = c.x + "px"; sh.style.top = c.y + "px";
+    sh.innerHTML = '<i class="glow"></i><div class="rays">' + rays + '</div><i class="flash"></i>' + sp;
+    fx.insertBefore(sh, g);
+    var C = "translate(-50%,-50%) ";
+    A(sh.querySelector(".glow"), [{ opacity: 0, transform: C + "scale(.3)" }, { opacity: 1, transform: C + "scale(1)", offset: .3 },
+      { opacity: .9, transform: C + "scale(1.12)", offset: .75 }, { opacity: 0, transform: C + "scale(1.3)" }], 2000, 560, EASE);
+    A(sh.querySelector(".rays"), [{ opacity: 0, scale: ".4" }, { opacity: 1, scale: "1", offset: .3 }, { opacity: 1, scale: "1.08", offset: .78 },
+      { opacity: 0, scale: "1.15" }], 1950, 680, EASE);
+    A(sh.querySelector(".flash"), [{ opacity: 0, transform: C + "scale(.4)" }, { opacity: .95, transform: C + "scale(1)", offset: .3 },
+      { opacity: 0, transform: C + "scale(1.7)" }], 700, 1080, OUT);
+    [].slice.call(sh.querySelectorAll("b")).forEach(function (b, i) {
+      A(b, [{ opacity: 0, transform: "translate(-50%,-50%) scale(0) rotate(0deg)" },
+        { opacity: 1, transform: "translate(-50%,-50%) scale(var(--s)) rotate(45deg)", offset: .45 },
+        { opacity: 0, transform: "translate(-50%,-50%) scale(0) rotate(90deg)" }], 900, 960 + (i % 9) * 110 + (i > 8 ? 260 : 0), EASE);
+    });
+    setTimeout(function () { sh.remove(); }, 3300);
+  }
+
   /* 3. Seal lift: one pass of light across the frosted read, the button
      folds away, then each line clears in turn, top to bottom. About 2s. */
   function seal(scr) {
@@ -455,6 +666,15 @@
     });
     void h1;
   }
+
+  /* Show less / Read the full insight: the card folds to its lead and grows back */
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest(".kfold"); if (!b) return;
+    var c = b.closest(".kc"), shut = !c.classList.contains("folded");
+    c.classList.toggle("folded", shut);
+    b.setAttribute("aria-expanded", String(!shut));
+    b.querySelector("span").textContent = shut ? "Read the full insight" : "Show less";
+  });
 
   window.TM = { screen: screen, mount: mount, play: play, DAYS: DAYS, WEEK: WEEK, gauge: gauge, chartC: chartC, COPY: COPY };
 })();
