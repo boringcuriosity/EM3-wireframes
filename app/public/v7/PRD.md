@@ -14,7 +14,7 @@ The Eat pillar's day view. It answers three things in order: how the day is goin
 
 | # | Block | What it holds |
 |---|---|---|
-| 1 | Eat line | "Eat · Fuel your body right each day." with an info icon that opens the sufficiency sheet. |
+| 1 | Eat line | "Eat · Fuel your body right", with an info icon that opens the sufficiency sheet and the Earn chip that opens the FlipCoins sheet. |
 | 2 | Week strip | Seven days as bars, each at that day's sufficiency. Today is solid, and open capped while the day is still running. Tapping a bar loads that day. |
 | 3 | Date chip | The day being viewed, with a step back arrow and a step forward arrow. Opens the date sheet. To its right, the change from yesterday, in grey, and only once today's plan is complete. |
 | 4 | Score | Nutrition sufficiency as the Plate: a ring of dots with a fork and knife either side. The number and the word SUFFICIENT, nothing else. Under it, one verdict pill. |

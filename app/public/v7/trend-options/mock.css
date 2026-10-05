@@ -1,0 +1,228 @@
+/* Trend options: the phone screens. Everything is scoped under .scr so the
+   options page around it keeps its own styles. Tokens come from
+   r3/goodflip-ui.css, which the page links. */
+
+.scr { position: relative; width: 390px; height: 844px; overflow: hidden; background: #fff;
+  font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .25px; color: var(--g-900);
+  -webkit-font-smoothing: antialiased; transform-origin: 0 0; text-align: left; }
+.scr *, .scr *::before, .scr *::after { box-sizing: border-box; }
+.scr svg { display: block; }
+.scr button { font: inherit; letter-spacing: inherit; color: inherit; }
+.scr .ico { stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+/* ---------------------------------------------------------- phone chrome */
+.scr .sb { height: 54px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 22px 10px; }
+.scr .sb .t { font: 600 15px/20px Roboto, sans-serif; letter-spacing: 0; }
+.scr .sb .i { display: flex; align-items: center; gap: 5px; }
+.scr .home { position: absolute; left: 50%; bottom: 8px; width: 134px; height: 5px; margin-left: -67px;
+  border-radius: 9999px; background: var(--g-900); opacity: .28; z-index: 61; }
+
+/* ------------------------------------------------- title and week rows */
+.scr .hd { display: flex; align-items: center; gap: 8px; min-height: 52px; padding: 0 16px; }
+.scr .hd b { font: 600 18px/24px Roboto, sans-serif; }
+.scr .hd .tg { flex: 1; min-width: 0; font: 400 14px/20px Roboto, sans-serif; color: var(--g-500);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.scr .hd .inf { width: 20px; height: 20px; color: var(--g-400); }
+.scr .wk { display: flex; align-items: center; justify-content: space-between; padding: 0 16px 0 4px; height: 48px; }
+/* No week comparison yet: centre the pill, same rule as Eat / Trend. */
+.scr .wk.solo { justify-content: center; padding-left: 16px; padding-right: 16px; }
+.scr .wk.solo .dl { display: none; }
+.scr .wk .wpill { display: flex; align-items: center; }
+.scr .wk .arr { width: 44px; height: 44px; display: grid; place-items: center; color: var(--g-500); }
+.scr .wk .arr.off { color: var(--g-300); }
+.scr .wk .lbl { display: flex; align-items: center; gap: 6px; padding: 0 6px; font: 600 16px/22px Roboto, sans-serif; white-space: nowrap; }
+.scr .wk .dl { font: 400 14px/20px Roboto, sans-serif; color: var(--g-500); white-space: nowrap; }
+.scr .wk .dl b { font-weight: 600; color: var(--g-700); }
+
+.scr .bd { position: relative; padding: 8px 16px 0; display: flex; flex-direction: column; gap: 16px; }
+
+/* ------------------------------------------------------------ bottom nav */
+.scr .nav { position: absolute; left: 0; right: 0; bottom: 0; z-index: 20; display: flex; background: #fff;
+  border-top: 1px solid var(--g-200); padding: 8px 6px 28px; }
+.scr .nav span { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; min-height: 48px; font-size: 12px; color: var(--g-500); }
+.scr .nav .on { color: var(--brand-600); font-weight: 700; }
+.scr .nav .ico { width: 22px; height: 22px; stroke-width: 1.8; }
+.scr .nav .on .ico { stroke-width: 2.4; }
+.scr .nav .back { width: 22px; height: 22px; }
+
+/* ------------------------------------------------------------ KAIRA card */
+/* The house KAIRA card from eat.html and trend.html: a notched top left
+   corner and a 3px edge in her indigo to teal. */
+.scr .kc { position: relative; z-index: 1; border-radius: 0 16px 16px 16px; padding: 16px; overflow: hidden;
+  border: 3px solid transparent; box-shadow: var(--shadow-card);
+  background: linear-gradient(#fff, #fff) padding-box, linear-gradient(100deg, var(--in-600), var(--teal-600)) border-box; }
+/* waiting: the same card, quieter edge, nothing to press */
+.scr .kc.soft { border-width: 2px; padding: 17px;
+  background: linear-gradient(#fff, #fff) padding-box, linear-gradient(100deg, var(--in-300), var(--teal-200)) border-box; }
+/* ready: the card breathes a soft glow, slow enough to read as alive, not urgent */
+.scr .kc.ready { animation: tkGlow 4s ease-in-out infinite; }
+@keyframes tkGlow {
+  0%, 100% { box-shadow: 0 10px 28px -14px rgba(68, 76, 231, .45), var(--shadow-card); }
+  50%      { box-shadow: 0 14px 36px -12px rgba(46, 166, 166, .55), var(--shadow-card); }
+}
+.scr .kin { position: relative; z-index: 1; }
+.scr .krow { display: flex; gap: 12px; align-items: flex-start; }
+.scr .kmk { position: relative; flex-shrink: 0; display: grid; place-items: center; }
+.scr .kt { font: 600 16px/22px Roboto, sans-serif; color: var(--g-900); }
+.scr .ks { margin-top: 2px; font: 400 14px/20px Roboto, sans-serif; color: var(--g-500); text-wrap: pretty; }
+.scr .keb { padding-top: 5px; font: 500 14px/20px Roboto, sans-serif; color: var(--in-700); }
+.scr .keb span { color: var(--g-500); font-weight: 400; }
+
+/* Seal-lift option only: a light pass across the frosted read (not a skeleton) */
+.scr .frost::after { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .9) 50%, transparent 70%);
+  transform: translateX(-110%); animation: tkShim 3.6s cubic-bezier(.4, 0, .2, 1) infinite; }
+@keyframes tkShim { 0% { transform: translateX(-110%); } 55%, 100% { transform: translateX(110%); } }
+
+/* how far through the week: seven segments, one per day */
+.scr .prog { display: flex; gap: 4px; margin-top: 14px; }
+.scr .prog span { flex: 1; height: 6px; border-radius: 3px; background: var(--g-200); }
+.scr .prog span.on { background: var(--in-600); }
+.scr .plab { margin-top: 8px; font: 400 14px/20px Roboto, sans-serif; color: var(--g-500); }
+.scr .plab b { font-weight: 600; color: var(--g-900); }
+
+/* Unlock: GoodFlip primary green CTA (brand-600 fill, brand-700 depth bar) */
+.scr .unlock { position: relative; width: 100%; height: 41px; margin: 14px 0 7px; padding: 0 16px; border: 0;
+  border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  font: 700 14px/16.8px Roboto, sans-serif; letter-spacing: .25px; color: #fff;
+  background: var(--brand-600); box-shadow: 0 7px 0 0 var(--brand-700);
+  transition: transform .2s ease-out, box-shadow .2s ease-out; }
+.scr .unlock:active { transform: translateY(7px); box-shadow: 0 0 0 0 var(--brand-700); }
+.scr .unlock svg { width: 18px; height: 18px; }
+
+/* the read itself */
+.scr .kh { margin: 12px 0 0; font: 600 18px/24px Roboto, sans-serif; color: var(--g-900); }
+.scr .kp { margin: 6px 0 0; font: 400 14px/21px Roboto, sans-serif; color: var(--g-700); text-wrap: pretty; }
+.scr .kp b { font-weight: 600; color: var(--g-900); }
+.scr .ktry { margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: var(--in-25); border: 1px solid var(--in-100); }
+.scr .ktry b { display: block; font: 600 12px/16px Roboto, sans-serif; letter-spacing: .5px; text-transform: uppercase; color: var(--in-700); }
+.scr .ktry span { display: block; margin-top: 2px; font: 400 14px/20px Roboto, sans-serif; color: var(--g-900); }
+
+/* seal variant: the read is there from the start, frosted */
+.scr .stack { display: grid; }
+.scr .stack > * { grid-area: 1 / 1; }
+.scr .frost { position: absolute; inset: -4px; border-radius: 12px; overflow: hidden; pointer-events: none;
+  background: linear-gradient(180deg, rgba(249, 250, 251, .35), rgba(249, 250, 251, .6)); }
+.scr .sealed { position: relative; }
+.scr .sealed > .blur { filter: blur(6px); opacity: .45; }
+
+/* ------------------------------------------------------------ the chart card */
+.scr .cc { position: relative; z-index: 1; background: #fff; border: 1px solid var(--g-100); border-radius: 16px;
+  padding: 16px; box-shadow: var(--shadow-card); }
+.scr .ch { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.scr .ch .l { font: 400 14px/20px Roboto, sans-serif; color: var(--g-500); }
+.scr .ch .r { text-align: right; font: 400 14px/20px Roboto, sans-serif; color: var(--g-500); }
+.scr .ch .r b { display: block; font-weight: 600; color: var(--g-900); }
+.scr .cn { display: flex; align-items: center; gap: 10px; margin-top: 2px; }
+/* the week's score: the one green number on the page */
+.scr .cn b { font: 600 32px/36px Roboto, sans-serif; letter-spacing: -.5px; color: var(--ok-600); font-variant-numeric: tabular-nums; }
+.scr .cn b i { font-style: normal; font-size: 16px; font-weight: 500; margin-left: 1px; vertical-align: 12px; }
+.scr .cn.wait b { color: var(--g-300); }
+
+/* status tags, from liquid-score/index.html (GoodFlip Figma chips 6875:9957) */
+.stag { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 8px;
+  border-radius: 8px; white-space: nowrap; font: 400 12px/1 Roboto, sans-serif; letter-spacing: .25px;
+  border: 1px solid transparent; color: var(--t-ink); background: var(--t-fill) padding-box, var(--t-line) border-box; }
+.stag[data-s="solid"] { --t-ink: #039855;
+  --t-fill: linear-gradient(112.36deg, #d1fadf 3%, #ecfdf3 20.1%, #ecfdf3 79.9%, #d1fadf 94.4%);
+  --t-line: conic-gradient(from 90deg, #32d583 0deg, #039855 11.51deg, #32d583 36.77deg, #32d583 175.4deg, #039855 193.58deg, #32d583 224.26deg, #32d583 360deg); }
+.stag[data-s="grow"] { --t-ink: #dc6803;
+  --t-fill: linear-gradient(120.65deg, #fef0c7 3%, #fffaeb 20.1%, #fffaeb 79.8%, #fef0c7 94.3%);
+  --t-line: conic-gradient(from 90deg, #fdb022 0deg, #dc6803 8.04deg, #fdb022 27.41deg, #fdb022 176.8deg, #dc6803 189.51deg, #fdb022 214.06deg, #fdb022 360deg); }
+.stag[data-s="attention"] { --t-ink: #d92d20;
+  --t-fill: linear-gradient(122.66deg, #fee4e2 3%, #fef3f2 20.1%, #fef3f2 79.8%, #fee4e2 94.3%);
+  --t-line: conic-gradient(from 90deg, #f97066 0deg, #d92d20 7.44deg, #f97066 25.61deg, #f97066 177.04deg, #d92d20 188.81deg, #f97066 212.01deg, #f97066 360deg); }
+.stag[data-s="none"] { --t-ink: #667085;
+  --t-fill: linear-gradient(124.82deg, #f2f4f7 3%, #f9fafb 20.1%, #f9fafb 79.8%, #f2f4f7 94.3%);
+  --t-line: conic-gradient(from 90deg, #f2f4f7 0deg, #e4e7ec 6.87deg, #f2f4f7 23.84deg, #f2f4f7 177.28deg, #e4e7ec 188.13deg, #f2f4f7 209.95deg, #f2f4f7 360deg); }
+
+/* shared plot pieces */
+.scr .plot { position: relative; margin-top: 16px; padding-left: 24px; display: flex; }
+.scr .plot .c { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
+.scr .plot .c.fut, .scr .plot .c.none { cursor: default; }
+.scr .plot .v { height: 16px; font: 600 12px/16px Roboto, sans-serif; color: var(--g-700); font-variant-numeric: tabular-nums; }
+.scr .plot .dk { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 9999px;
+  font: 400 12px/16px Roboto, sans-serif; color: var(--g-700); }
+.scr .plot .none .dk, .scr .plot .fut .dk { color: var(--g-400); }
+.scr .plot .sel .dk { background: var(--g-900); color: #fff; font-weight: 600; }
+.scr .plot .sel .v { color: var(--g-900); font-weight: 700; }
+.scr .plot .tk { position: absolute; left: 0; font: 400 12px/16px Roboto, sans-serif; color: var(--g-400); }
+.scr .plot .tl { position: absolute; left: 24px; right: 0; height: 0; border-top: 1.5px dashed var(--g-300); z-index: 0; }
+.scr .orb { display: block; width: 20px; height: 20px; }
+
+/* C: tubes. Every day is a 0 to 100 tube, the same scale as the day view's
+   arc. Grey fill, and only the orb on top carries the day's status. */
+.scr .tube { position: relative; width: 24px; height: 108px; border-radius: 12px; background: var(--g-50);
+  box-shadow: inset 0 0 0 1px var(--g-100); }
+.scr .tube .fill { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 12px; background: var(--g-200);
+  transition: background .3s cubic-bezier(.4, 0, .2, 1); }
+.scr .tube .fill .orb { position: absolute; left: 2px; top: 2px; border-radius: 50%; }
+.scr .sel .tube .fill { background: var(--g-300); }
+.scr .sel .tube .fill .orb { box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--g-900); }
+.scr .tube .hol { position: absolute; left: 2px; bottom: 2px; width: 20px; height: 20px; border-radius: 50%;
+  border: 1.5px dashed var(--g-300); background: #fff; }
+.scr .fut .tube { background: #fff; box-shadow: inset 0 0 0 1.5px var(--g-100); }
+/* the colour of today's page, for the comparison only */
+.scr .green .tube .fill { background: var(--ok-500); }
+.scr .green .v { color: var(--ok-600); }
+.scr .green .tl { border-top-color: var(--ok-300); }
+
+/* A: gauges. B: bubbles. */
+.scr .gz { position: relative; width: 44px; height: 40px; }
+.scr .sel .gz::before { content: ""; position: absolute; left: 0; top: 0; width: 44px; height: 44px; border-radius: 50%;
+  background: var(--g-50); box-shadow: inset 0 0 0 1px var(--g-200); }
+.scr .bb { width: 40px; height: 40px; }
+
+/* D: the orb string */
+.scr .str { position: relative; height: 150px; flex: 1; }
+.scr .str svg { position: absolute; left: 0; top: 0; }
+.scr .str .pt { position: absolute; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; cursor: pointer; }
+.scr .str .pv { position: absolute; width: 30px; margin-left: -15px; text-align: center; font: 600 12px/16px Roboto, sans-serif; color: var(--g-700); }
+.scr .str .ph { position: absolute; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; border: 1.5px dashed var(--g-300); background: #fff; }
+.scr .strdays { display: flex; padding-left: 24px; margin-top: 6px; }
+.scr .strdays span { flex: 1; display: grid; place-items: center; }
+
+.scr .lg { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--g-100); }
+.scr .lg span { display: inline-flex; align-items: center; gap: 6px; font: 400 12px/16px Roboto, sans-serif; color: var(--g-500); }
+.scr .lg .orb { width: 14px; height: 14px; }
+.scr .lg .ho { width: 14px; height: 14px; border-radius: 50%; border: 1.5px dashed var(--g-300); }
+.scr .lg .ln { width: 16px; height: 0; border-top: 1.5px dashed var(--g-300); }
+.scr .lg.note span { color: var(--g-500); }
+
+/* ------------------------------------------------------------ the day sheet */
+.scr .scrim { position: absolute; inset: 0; z-index: 40; background: rgba(16, 24, 40, .5); opacity: 0; pointer-events: none;
+  transition: opacity .3s ease-out; }
+.scr .sh { position: absolute; left: 0; right: 0; bottom: 0; z-index: 41; max-height: 90%; display: flex; flex-direction: column;
+  background: #fff; border-radius: 16px 16px 0 0; transform: translateY(100%); transition: transform .3s ease-out;
+  box-shadow: 0 -8px 24px -8px rgba(16, 24, 40, .1); }
+.scr.sheet-on .scrim { opacity: 1; pointer-events: auto; }
+.scr.sheet-on .sh { transform: none; }
+.scr .shh { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 0; }
+.scr .shh h4 { margin: 0; font: 600 18px/24px Roboto, sans-serif; }
+.scr .shh .x { width: 44px; height: 44px; margin-right: -6px; display: grid; place-items: center; border: 0; background: none; cursor: pointer; }
+.scr .shg { position: relative; height: 300px; margin-top: -4px; }
+.scr .shg iframe { display: block; width: 100%; height: 100%; border: 0; background: transparent; pointer-events: none; }
+.scr .shp { margin: 0; padding: 0 16px; text-align: center; font: 400 14px/20px Roboto, sans-serif; color: var(--g-600); }
+.scr .shp b { font-weight: 600; color: var(--g-900); }
+.scr .shb { margin: 16px 16px 44px; height: 48px; border-radius: 12px; border: 1px solid var(--g-300); background: #fff;
+  display: flex; align-items: center; justify-content: center; font: 600 16px/22px Roboto, sans-serif; color: var(--g-900); }
+
+/* ------------------------------------------------------------ motion layers */
+.scr .fx { position: absolute; inset: 0; z-index: 30; pointer-events: none; }
+.scr .fx img { position: absolute; left: 0; top: 0; width: 20px; height: 20px; will-change: transform, opacity, filter; }
+.scr .fx .ripple { position: absolute; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--in-400); opacity: 0; }
+.scr .aur { position: absolute; left: -40px; right: -40px; top: -30px; z-index: 0; pointer-events: none; }
+.scr .aur i { position: absolute; bottom: 0; width: 240px; height: 170px; border-radius: 50%; filter: blur(38px); opacity: 0; }
+.scr .kveil { position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0;
+  background: radial-gradient(120% 70% at 30% 110%, rgba(68, 76, 231, .22), transparent 70%),
+              radial-gradient(90% 60% at 85% 110%, rgba(68, 231, 231, .22), transparent 70%); }
+
+@media (prefers-reduced-motion: reduce) {
+  .scr .kc.ready, .scr .frost::after { animation: none; }
+}
+.scr .strdays .dk { width: 24px; height: 24px; display: grid; place-items: center; border-radius: 9999px;
+  font: 400 12px/16px Roboto, sans-serif; color: var(--g-700); }
+.scr .strdays .none .dk, .scr .strdays .fut .dk { color: var(--g-400); }
+.scr .strdays .sel .dk { background: var(--g-900); color: #fff; font-weight: 600; }
+.scr .str .pt.sel { box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--g-900); }

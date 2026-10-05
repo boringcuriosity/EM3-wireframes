@@ -35,16 +35,32 @@
   /* ---------------------------------------------------------------- header */
   .eatline { display: flex; align-items: center; gap: 8px; height: 52px; font-size: 14px; color: var(--g-500); }
   .eatline b { color: var(--g-900); font-weight: 600; font-size: 16px; }
-  .eatline .tag { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* the tagline takes its own width, so the info mark sits right after it; the Earn chip holds the right end */
+  .eatline .info { position: relative; width: 28px; height: 28px; margin: 0 0 0 -4px; flex-shrink: 0; }
+  .eatline .info::after { content: ""; position: absolute; inset: -8px; }   /* still a 44px target */
+  .eatline .tag { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .info { width: 44px; height: 44px; margin-right: -12px; border: 0; background: none; display: grid; place-items: center;
     color: var(--g-400); cursor: pointer; border-radius: var(--r-pill); flex-shrink: 0; }
   .info:hover { color: var(--g-500); background: var(--g-100); }
 
-  /* the day chip. The delta is grey on purpose, never green. */
+  /* the day chip. The delta is grey on purpose, never green.
+     When there is no comparison yet, .solo centres the pill so the row
+     does not read as empty on the right. */
   .dateline { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 4px; }
+  .dateline.solo { justify-content: center; }
+  .dateline.solo .pill { margin-left: 0; }
+  .dateline.solo .dayd { display: none; }
   .pill { display: flex; align-items: center; gap: 2px; margin-left: -12px; }
   .pill .arr { width: 44px; height: 44px; border: 0; background: none; display: grid; place-items: center; color: var(--g-500); cursor: pointer; border-radius: var(--r-pill); }
   .pill .arr:hover:not([disabled]) { background: var(--g-50); }
+  /* the arrows hug "Today": a 24px box each (just the chevron), the label's own padding trimmed,
+     and a 44px target kept by an invisible ring that reaches past the box */
+  .pill { margin-left: -2px; gap: 0; }
+  .pill .arr { position: relative; width: 24px; }
+  .pill .arr::after { content: ""; position: absolute; inset: 0 -10px; }
+  .dateline .pill .lbl { padding: 0 5px; }   /* .dateline so it wins over the base .pill .lbl rule below */
+  /* "Today" ends in text, whose side bearing plus the chevron's own inset left a wider gap than the calendar icon does on the left */
+  #nextDay { margin-left: -6px; }   /* measured: keeps both sides equal, about 13px */
   .pill .arr[disabled] { color: var(--g-300); cursor: default; }
   .pill .lbl { display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 8px; border: 0; background: none; cursor: pointer;
     border-radius: var(--r-sm); font-size: 14px; font-weight: 600; color: var(--g-900); }
@@ -494,11 +510,15 @@
   /* its type and spacing come from the shared .lab rule above */
   /* They fill the card rather than hugging their words, so the two routes read
      as equal halves of one decision and neither looks like the afterthought. */
-  .acts { display: flex; gap: 8px; }
+  /* One segmented control, two halves: a white box with a hairline edge, split by a hairline.
+     Neither half is filled, so the two routes read as equal choices of one decision. */
+  .acts { display: flex; border: 1px solid var(--g-200); border-radius: var(--r-md); background: #fff; overflow: hidden; }
   .achip { flex: 1; min-width: 0; display: inline-flex; align-items: center; justify-content: center;
-    gap: 7px; min-height: 44px; margin-block: -4px; padding: 0 13px; border: 0;
-    border-radius: var(--r-pill); background: var(--brand-50); color: var(--brand-700);
-    font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+    gap: 7px; min-height: 48px; padding: 0 12px; border: 0; border-radius: 0;
+    background: #fff; color: var(--brand-700);
+    font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+  .achip + .achip { border-left: 1px solid var(--g-200); }
+  .achip:active { background: var(--g-50); }
   /* DIRECT CHILD ONLY. Kaira's mark is an svg nested inside her .gfk span,
      which GFKaira.mark() has already sized and which the span's own box is
      built around, so a bare ".achip svg" rule reaches in and resizes her
@@ -514,7 +534,7 @@
   /* Searching is the road most people take, so it keeps the fill. Kaira is the
      way out when you cannot name the food, the rarer case, so she is outlined.
      Drawing them as identical twins would be a false balance. */
-  .achip.k { background: #fff; border: 1px solid var(--in-100); color: var(--in-600); }
+  .achip.k { color: var(--in-600); }
   .tips { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--g-100); }
   /* A tip row and a food row have the same anatomy, a 20px title over an 18px
      line, so they get the same 12 between them and the same 16 from the mark.
@@ -732,20 +752,17 @@
   .dsshim { position: relative; width: 32px; height: 32px; border-radius: 9999px; }
   .dsshim i { position: absolute; inset: 3px; border-radius: 9999px; background: #fff; }
 
-  /* education sheets: a tinted hero carrying the number, a white card of the
-     rows that make it, then short sections split by dashed rules */
-  .ehero { position: relative; margin: 0 calc(var(--gut) * -1); padding: 28px var(--gut) 32px; overflow: hidden;
-    background: linear-gradient(180deg, var(--in-100) 0%, rgba(255,255,255,0) 92%); }
-  .ewash { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
-  .ehero .in { position: relative; text-align: center; }
-  .enum { font-family: Roboto, Arial, sans-serif; font-size: 40px; line-height: 1.05; font-weight: 600; color: var(--ok-600); }
-  .enum .u { font-size: 24px; }
-  .enum.warn { color: var(--amber-600); }
-  .enum.bad { color: var(--red-600); }
-  .enum.word { font-family: Roboto, sans-serif; font-size: 20px; font-weight: 700; color: var(--g-500); }
-  .ecap { margin-top: 8px; font-size: 12px; line-height: 18px; color: var(--g-500); }
-  .elock { width: 56px; height: 56px; margin: 0 auto 8px; border-radius: 9999px; background: #fff; border: 1px solid var(--g-200); display: grid; place-items: center; color: var(--g-400); box-shadow: 0 1px 3px rgba(16,24,40,.06); }
-  .ecard { position: relative; margin: -16px 0 0; background: #fff; border: 1px solid var(--g-200); border-radius: var(--r-lg); padding: 2px 16px;
+  /* education sheets: the same Cloud Drop score as the day view (compact),
+     a white card of the rows behind it, then short sections by dashed rules */
+  .ehero { position: relative; margin: 0 calc(var(--gut) * -1); padding: 4px var(--gut) 0; overflow: hidden;
+    background: linear-gradient(180deg, var(--g-50) 0%, #fff 78%); }
+  /* Day view mounts the gauge at 300px; the sheet uses the same frame so the
+     12px status tag stays at real pixels (never scaled below the house minimum). */
+  .ehero .eg { position: relative; width: 100%; height: 280px; margin: 0 auto; overflow: hidden; }
+  .ehero .eg iframe { display: block; width: 100%; height: 300px; border: 0; background: transparent; pointer-events: none;
+    margin-top: -10px; }
+  .ecap { margin: -4px 0 10px; text-align: center; font-size: 12px; line-height: 18px; color: var(--g-500); }
+  .ecard { position: relative; margin: 0; background: #fff; border: 1px solid var(--g-200); border-radius: var(--r-lg); padding: 2px 16px;
     box-shadow: var(--shadow-card); }
   .er { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 44px; padding: 6px 0;
     border: 0; border-bottom: 1px solid var(--g-100); background: none; text-align: left; font: inherit; letter-spacing: inherit; }
@@ -753,10 +770,10 @@
   .er .k { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--g-600); }
   .er .v { display: flex; align-items: center; gap: 4px; font-size: 14px; color: var(--g-900); white-space: nowrap; }
   .er.tot .k, .er.tot .v { font-weight: 700; color: var(--g-900); }
-  /* the glyphs are a flat grey silhouette in the Figma, one colour for all four.
-     The class is applied by string concatenation in renderIntake, so a search
-     for the literal "eglyph" in the markup will not find it. */
+  /* Macros and calories share one filled silhouette treatment (grey ink). */
   .eglyph { width: 18px; height: 18px; flex-shrink: 0; background: var(--g-500); }
+  .eglyph.svg { background: none; color: var(--g-500); }
+  .eglyph.svg svg { width: 18px; height: 18px; display: block; }
   .esec { padding: 16px 0 0; }
   .esec h5 { margin: 0 0 8px; font-size: 14px; line-height: 16.8px; font-weight: 600; color: var(--g-900); }
   .ehd { padding: 12px 16px 2px; font-size: 12px; line-height: 18px; color: var(--g-400); }
@@ -938,7 +955,7 @@
 
   <div class="eatline gut">
     <svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px;color:var(--g-900)"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
-    <b>Eat</b><span class="tag">Fuel your body right each day.</span>
+    <b>Eat</b><span class="tag">Fuel your body right</span>
     <button class="info" id="infoBtn" aria-label="What is nutrition sufficiency?"><svg class="ico" viewBox="0 0 24 24" style="width:20px;height:20px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button>
   </div>
 
@@ -1033,6 +1050,9 @@
   document.getElementById("kairaMark").innerHTML = GFKaira.mark(30, { halo: false });
 </script>
 <script src="heroes/plate.js"></script>
+<script src="assets/flipcoin-toast.js?v=1"></script>
+<script src="assets/plan-tray.js?v=4"></script>
+<script src="assets/flipcoin-earn.js?v=6"></script>
 <script>
 /* ============================================================
    One table, every state. Everything below reads from it: the
@@ -1414,9 +1434,11 @@ document.getElementById("dayLabel").textContent = S.day;
 
   /* The delta beside the date. Grey, always, whichever way it went. A day that
      has barely started has nothing to compare, so it says nothing rather than
-     reporting a drop that is only the clock. */
+     reporting a drop that is only the clock. When empty, .solo centres the
+     date pill so the row does not look unfinished on the right. */
   window.paintDelta = function (score, mealsIn) {
     var el = document.getElementById("dayDelta");
+    var line = el && el.closest(".dateline");
     if (!el) return;
     /* A day still being lived has no number to compare. Yesterday is a whole
        day; today is however much of one has happened. Showing "-7" against a
@@ -1426,12 +1448,17 @@ document.getElementById("dayLabel").textContent = S.day;
       (mealsIn == null ? S.hero.mealsIn : mealsIn) < (S.hero.mealSlots || 6);
     var prev = new Date(SEL_TS - DAY_MS);
     var was = CAL.score[dkey(prev.getUTCFullYear(), prev.getUTCMonth() + 1, prev.getUTCDate())];
-    if (score == null || was == null || running) { el.textContent = ""; return; }
+    if (score == null || was == null || running) {
+      el.textContent = "";
+      if (line) line.classList.add("solo");
+      return;
+    }
     var n = Math.round(score - was);
     el.innerHTML = '<svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px">' +
       (n < 0 ? '<path d="M22 17l-8.5-8.5-5 5L2 7"/><path d="M16 17h6v-6"/>'
              : '<path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/>') +
       "</svg>" + (n > 0 ? "+" : "") + n + " from yesterday";
+    if (line) line.classList.remove("solo");
   };
   window.paintDelta(S.hero.score);
 
@@ -1483,7 +1510,7 @@ function loadScripts(list, done) {
      flag is there and costs nothing when it is not */
   if (!(window.HEROES && window.HEROES[name]) && HERO_DIR[name] != null) {
     /* the liquid score brings its own renderer, so it skips three.js */
-    loadScripts((name === "cloud" ? [] : [LAZY.three, LAZY.shaders]).concat("heroes/" + HERO_DIR[name] + name + ".js" + (name === "cloud" ? "?v=15" : "")), start);   /* ?v busts the cache when the liquid score is updated */
+    loadScripts((name === "cloud" ? [] : [LAZY.three, LAZY.shaders]).concat("heroes/" + HERO_DIR[name] + name + ".js" + (name === "cloud" ? "?v=17" : "")), start);   /* ?v busts the cache when the liquid score is updated */
     return;
   }
   start();
@@ -1504,6 +1531,10 @@ function loadScripts(list, done) {
     sessionStorage.removeItem("gfLogged");
     if (gained > 0 && S.hero.score != null) opts.from = Math.max(0, S.hero.score - gained);
   } catch (e) {}
+  /* a log earns FlipCoins: the app's coin toast lands once the score has finished stepping up. Only after a log:
+     gfLogged is set by the logger alone and cleared above on first read, so a reload never replays it */
+  if (gained > 0 && window.GFFlipcoin)
+    setTimeout(window.GFFlipcoin.show, 2000);
   var live = null;
   var mount = function () {
     if (live) return;
@@ -1902,24 +1933,17 @@ function loadScripts(list, done) {
 })();
 
 /* ---------- the nutrition sufficiency sheet ----------
-   One sheet, opened from the info icon and from the plate. It follows the
-   house pattern: the number on a tinted band, a card of the rows behind it,
-   then short sections split by dashed rules. Three states: a day with a
-   score, a day before the plan exists, and a finished earlier day.        */
+   One sheet, opened from the info icon and from the score. The hero is the
+   same Cloud Drop as the day view (compact), so the number, orbs and status
+   tag match what the person just saw. A quiet grey wash sits behind it, then
+   the intake card and short sections. Three states: a day with a score, a day
+   before the plan exists, and a finished earlier day.                     */
 (function () {
   var col = document.getElementById("col"), host = document.getElementById("eduSheets");
 
   var XICON = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg>';
-  var LOCKBIG = '<svg class="ico" viewBox="0 0 24 24" style="width:26px;height:26px;stroke-width:1.8"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
-  /* The wash: soft organic cells, drawn rather than photographed. Every sheet in
-     the system opens on a pale indigo caustic, not on the pillar's own colour. */
-  var WASH = '<svg class="ewash" viewBox="0 0 390 170" preserveAspectRatio="none" aria-hidden="true">' +
-    '<defs><pattern id="ewv" width="78" height="62" patternUnits="userSpaceOnUse" patternTransform="rotate(-6)">' +
-      '<path d="M-8 28 C 8 8, 30 8, 44 24 S 74 42, 90 24" fill="none" style="stroke:var(--in-200)" stroke-width="1.4"/>' +
-      '<path d="M-8 58 C 10 42, 28 44, 40 56 S 70 68, 90 54" fill="none" style="stroke:var(--in-100)" stroke-width="1" opacity=".65"/>' +
-      '<ellipse cx="20" cy="43" rx="17" ry="11" fill="none" style="stroke:var(--in-200)" stroke-width="1" opacity=".8"/>' +
-      '<ellipse cx="62" cy="13" rx="14" ry="9" fill="none" style="stroke:var(--in-100)" stroke-width="1" opacity=".5"/>' +
-    '</pattern></defs><rect width="390" height="170" fill="url(#ewv)" opacity=".9"/></svg>';
+  /* Filled flame, same cut as the logger: one solid silhouette like the macros. */
+  var FLAME = '<span class="eglyph svg" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path fill="currentColor" d="m6.156 9.323-.002.002-.004.003-.01.008a2 2 0 0 0-.126.104 5 5 0 0 0-.302.291c-.24.253-.548.629-.837 1.132-.582 1.015-1.071 2.528-.796 4.551.271 1.997 1.11 3.666 2.528 4.83C8.021 21.404 9.935 22 12.25 22c2.387 0 4.293-.895 5.554-2.43 1.25-1.521 1.808-3.596 1.675-5.864-.128-2.176-1.313-3.827-2.36-5.285l-.299-.417c-1.142-1.612-2.043-3.097-1.824-5.175A.75.75 0 0 0 14.25 2c-.382 0-.82.118-1.242.296a6.5 6.5 0 0 0-1.373.8c-.925.698-1.85 1.75-2.343 3.156C8.8 7.654 9.05 8.99 9.41 9.963c.237.639-.02 1.27-.407 1.454a.706.706 0 0 1-.927-.31L7.27 9.576a.75.75 0 0 0-1.113-.252"/></svg></span>';
 
   /* what this day knows */
   var M = S.macros || {}, TGT = [95, 238, 63, 30];
@@ -1951,22 +1975,37 @@ function loadScripts(list, done) {
     : fmt(CAL.eaten || 0) + " of " + fmt(CAL.goal || 1900) + " kcal";
   var head = SCORE == null && !LOCKED ? "Your intake, nothing logged" : "Your intake";
   var card = '<div class="ecard"><div class="ehd">' + head + "</div>" + rows +
-    '<div class="er"><span class="k"><svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px;color:var(--g-500)"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>Calories</span>' +
+    '<div class="er"><span class="k">' + FLAME + "Calories</span>" +
     '<span class="v">' + calRow + "</span></div></div>";
 
-  /* the hero: the number, or a lock when there is nothing to measure against */
-  var hero;
-  if (LOCKED) {
-    hero = '<div class="ehero">' + WASH + '<div class="in"><div class="elock">' + LOCKBIG + "</div>" +
-      '<div class="ecap">Your score unlocks once your plan is ready</div></div></div>';
-  } else if (SCORE == null) {
-    hero = '<div class="ehero">' + WASH + '<div class="in"><div class="enum word">No score</div>' +
-      '<div class="ecap">Nothing was logged on ' + S.day + "</div></div></div>";
-  } else {
-    /* the number follows the same band the verdict pill does */
-    var band = SCORE >= 85 ? "" : SCORE >= 50 ? " warn" : " bad";
-    hero = '<div class="ehero">' + WASH + '<div class="in"><div class="enum' + band + '">' + SCORE + '<span class="u">%</span></div>' +
-      '<div class="ecap">' + (PAST ? "sufficient on " + S.day : "sufficient today") + "</div></div></div>";
+  /* Hero: the day view's Cloud Drop, shorter. The score, orbs and tag live
+     inside it; a quiet caption only adds the day when it is not today. */
+  var caption = LOCKED ? "Your score unlocks once your plan is ready"
+    : SCORE == null ? "Nothing was logged on " + S.day
+    : PAST ? S.day : "";
+  var hero = '<div class="ehero"><div class="eg" id="esGauge"></div>' +
+    (caption ? '<div class="ecap">' + caption + "</div>" : "") + "</div>";
+
+  /* Mount the liquid score only while the sheet is open, so it shares one
+     WebGL context with the day view rather than holding a second forever. */
+  function sheetHeroSrc() {
+    /* still=1: settle at the final score, no pour / spin — the day view already
+       played that once. */
+    var q = "heroes/cloud/index.html?build=17&embed=1&y=.03&v=Cloud%20Drop&still=1";
+    if (LOCKED) return q + "&lock=" + (S.id === "noplanempty" ? "lit" : "quiet");
+    if (SCORE == null) return q + "&score=0&tag=none";
+    q += "&score=" + Math.round(SCORE);
+    if ((S.hero.mealsIn || 0) === 0) q += "&tag=log";
+    return q;
+  }
+  function mountSheetHero() {
+    var el = document.getElementById("esGauge");
+    if (!el || el.querySelector("iframe")) return;
+    el.innerHTML = '<iframe title="" tabindex="-1" aria-hidden="true" src="' + sheetHeroSrc() + '"></iframe>';
+  }
+  function unmountSheetHero() {
+    var el = document.getElementById("esGauge");
+    if (el) el.innerHTML = "";
   }
 
   var C = S.cal || {};
@@ -2011,13 +2050,19 @@ function loadScripts(list, done) {
     '<div class="sbody">' + hero + card + secs + "</div></div>";
 
   var sheet = document.getElementById("es-suff");
-  var open = function () { window.closeSheets(); sheet.classList.add("on"); col.classList.add("open-edu"); };
+  var open = function () {
+    window.closeSheets();
+    sheet.classList.add("on");
+    col.classList.add("open-edu");
+    mountSheetHero();
+  };
   /* the backdrop and Escape close whichever sheet is up, including the ones the
      interactive layer adds later */
   var close = function () {
     [].forEach.call(document.querySelectorAll(".esheet.on"), function (s) { s.classList.remove("on"); });
     col.classList.remove("open-edu");
     col.classList.remove("open-date");
+    unmountSheetHero();
   };
   window.closeSheets = close;
   document.getElementById("infoBtn").onclick = open;
@@ -2210,6 +2255,33 @@ var GOAL = S.cal.goal || 0;
 
 var LIVE = { cal: S.cal.eaten || 0 };
 MK.forEach(function (k, i) { LIVE[k] = ((S.macros.v || [])[i] || [0])[0] || 0; });
+
+/* How a coach's plan food gets logged: "card" (the default) logs it on this
+   screen from a bar at the bottom; "logger" sends the tick to the logging
+   screen as before. ?plog= picks, and the choice is remembered. */
+var PLOG = (function () {
+  var v = Q.get("plog");
+  try { if (v) localStorage.setItem("gfPlog", v); else v = localStorage.getItem("gfPlog"); } catch (e) {}
+  return v === "logger" ? "logger" : "card";
+})();
+/* a log made from the bar comes back here as the page reloads under the win
+   moment: those foods are ticked and counted, once, and only on the same day */
+(function inlineLogs() {
+  var raw = null;
+  try { raw = JSON.parse(sessionStorage.getItem("gfInline") || "null"); sessionStorage.removeItem("gfInline"); } catch (e) {}
+  if (!raw || Date.now() - raw.t > 20000 || raw.state !== (Q.get("state") || "")) return;
+  var m = MEALS.filter(function (x) { return x.id === raw.meal; })[0];
+  if (!m) return;
+  raw.refs.forEach(function (ref) {
+    var p = ref.split("|"), it = (m.opts[+p[1]] || [])[+p[2]];
+    if (it && !it.done) { it.done = true; it.skip = false; apply(it, 1); }
+  });
+  if (m.chosen < 0) m.chosen = raw.opt;
+  m.show = raw.opt;
+  /* land at the top, where the score is stepping up, as a log from the logger does */
+  try { history.scrollRestoration = "manual"; } catch (e) {}
+  window.scrollTo(0, 0);
+})();
 
 function rawScore(t) {
   if (!SCORED) return null;
@@ -2729,6 +2801,7 @@ function mealsIn() {
     setTimeout(function () { el.classList.add("on"); col.classList.add("open-edu"); }, 16);
     return el;
   }
+  window.GFOpenSheet = openSheet;   /* for assets/flipcoin-earn.js */
 
   /* ---------- undo lives in a toast, so nothing needs a confirm ---------- */
   var tEl = null, tT = null;
@@ -2862,8 +2935,15 @@ function mealsIn() {
      it. The third argument carries them, and both routes out of here, the frame
      and the bare page, carry the same set. */
   function goLog(entry, meal, more) {
-    var flags = { entry: entry, meal: meal || "" };
+    var flags = { entry: entry, meal: meal || "", plog: PLOG };
     for (var k in more || {}) if (more[k] !== undefined && more[k] !== "") flags[k] = String(more[k]);
+    /* the meal's logged foods ride along, so the logger ticks exactly what this card ticks (2A) */
+    var lm = MEALS.filter(function (m) { return m.id === meal; })[0];
+    if (lm && lm.chosen > -1) {
+      var ids = lm.opts[lm.chosen].concat(lm.manual || []).filter(function (it) { return it.done && LOGID[it.name]; })
+        .map(function (it) { return LOGID[it.name]; });
+      if (ids.length) { flags.had = ids.join(","); flags.hadopt = String(lm.chosen); }
+    }
     if (window.parent !== window) return parent.postMessage({ nav: "log", flags: flags }, "*");
     var q = [];
     for (var j in flags) if (flags[j] !== "") q.push(j + "=" + encodeURIComponent(flags[j]));
@@ -3143,6 +3223,9 @@ function mealsIn() {
        the quantity, which is what most of those taps actually wanted. */
     if (!item.done) {
       if (tgt.manual) return confirmLog(tgt.m, item, row.dataset.ref);
+      /* the "On the card" variant (the default): the plan is logged right here,
+         one meal at a time, from a bar at the bottom (assets/plan-tray.js) */
+      if (PLOG === "card" && window.GFPlanTray) return GFPlanTray.toggle({ m: tgt.m, ref: row.dataset.ref, it: item });
       return goLog("tick", tgt.m.id, { opt: tgt.m.show, food: LOGID[item.name], qty: item.n });
     }
     return itemMenu(row.dataset.ref);
@@ -3171,6 +3254,6 @@ function mealsIn() {
 })();
 </script>
 <script src="chrome.js"></script>
-<script src="assets/kaira-aurora.js?v=2"></script>
+<script src="assets/kaira-aurora.js?v=3"></script>
 </body>
 </html>

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask KAIRA on Tips</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* The tips block of the Bedtime card, copied from r3/eat.html. Only the way KAIRA is offered changes. */
+  :root { --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467;
+    --g-700:#344054; --g-900:#101828; --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-600:#444CE7; --in-700:#3538CD;
+    --teal-600:#0E9384; --brand-100:#E6FAF1; --brand-700:#2A805A; --red-600:#D92D20; --r-md:12px; --r-xl:24px; --r-pill:9999px; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; font-family: Roboto, system-ui, sans-serif; letter-spacing: .25px; color: var(--g-900); }
+  .page { max-width: 1500px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 28px; line-height: 36px; font-weight: 600; margin: 0 0 8px; }
+  .lede { max-width: 860px; font-size: 15px; line-height: 24px; color: var(--g-600); margin: 0 0 32px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+  .v { width: 360px; }
+  .cap h2 { margin: 0 0 4px; font: 600 15px/22px Roboto; }
+  .cap p { margin: 0 0 12px; font-size: 13px; line-height: 20px; color: var(--g-600); min-height: 60px; }
+  .tagp { display: inline-block; margin: 0 0 6px; padding: 1px 8px; border-radius: 999px; font: 600 11px/16px Roboto; letter-spacing: .6px;
+    text-transform: uppercase; color: var(--g-600); background: var(--g-100); }
+  .tagp.rec { color: #027A48; background: #ECFDF3; }
+  .tagp.now { color: var(--red-600); background: #FEF3F2; }
+  .score { margin-top: 10px; font-size: 12.5px; line-height: 19px; display: grid; gap: 2px; }
+  .ok { color: #039855; } .no { color: var(--red-600); } .mid { color: var(--g-500); }
+
+  /* ---- card, as on eat.html ---- */
+  .meal { border-radius: var(--r-xl); border: 1px solid transparent; box-shadow: 2px 2px 0 var(--g-200);
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 29%) padding-box,
+      conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; }
+  .mh { padding: 16px; }
+  .mh .n { font: 600 16px/22px Roboto; } .mh .s { font-size: 12px; line-height: 18px; color: var(--g-500); margin-top: 2px; }
+  .mbi { margin: 0 16px; padding: 12px 0 16px; border-top: 1px solid var(--g-100); }
+  .lab { font: 600 12px/16px Roboto; letter-spacing: .7px; text-transform: uppercase; color: var(--g-500); margin: 0 0 10px; }
+  .tiplist { display: flex; flex-direction: column; gap: 12px; }
+  .tip { position: relative; display: flex; gap: 16px; align-items: flex-start; }
+  .tmark { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--g-300); flex-shrink: 0; }
+  .tt { font: 600 14px/20px Roboto; }
+  .td { font-size: 12px; color: var(--g-500); line-height: 18px; margin-top: 2px; }
+  .gfk { vertical-align: middle; }
+  button { font: inherit; letter-spacing: inherit; }
+  .sec { flex-basis: 100%; margin: 16px 0 -16px; font: 600 20px/28px Roboto; }
+  .sub { flex-basis: 100%; margin: 0 0 -8px; font-size: 14px; line-height: 22px; color: var(--g-600); }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Ask KAIRA on tips</h1>
+  <p class="lede">The chip after each tip title is the loudest thing in the tips block today. Each card below is the Bedtime card with two tips; only the way KAIRA is offered changes, from today's chip down to almost nothing. Every version keeps a 44px tap area even when the mark is tiny.</p>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script src="r3/assets/kaira.js"></script>
+<script>
+const M = (px) => GFKaira.mark(px, { halo: false });
+const TIPS = [
+  { t: 'Soak 5 almonds ready for tomorrow morning', d: 'In a small bowl of water, before bed. Peel them in the morning.' },
+  { t: 'Drink warm methi seed water before breakfast', d: 'Soak a spoon of seeds overnight. Drink the water first thing.' },
+];
+
+const V = [
+  { id: 'A', name: 'As today', tag: 'Today', cls: 'now',
+    why: 'An outlined chip with a gradient border after every title. Reads as a second button on every tip.',
+    css: `.vA .k{display:inline-flex;align-items:center;gap:5px;margin-left:8px;height:24px;padding:0 9px 0 6px;vertical-align:middle;cursor:pointer;
+      font:600 11.5px/1 Roboto;letter-spacing:.3px;color:var(--in-700);border:1px solid transparent;border-radius:0 999px 999px 999px;
+      background:linear-gradient(180deg,var(--in-25),#fff 70%) padding-box,linear-gradient(100deg,var(--in-600),var(--teal-600)) border-box}`,
+    row: t => `<div class="tt"><span>${t.t}</span><button class="k">${M(12)}Ask KAIRA</button></div><div class="td">${t.d}</div>`,
+    score: [['no', 'Heaviest thing in the block'], ['ok', 'Clear what it does']] },
+
+  { id: 'E', name: 'Trailing icon button', tag: 'Option', why: 'KAIRA\'s mark at the right end of the tip row, in the slot the food rows keep for their ⋮ menu. Out of the reading line entirely.',
+    css: `.vE .tip>div:nth-child(2){flex:1;min-width:0;display:flex;gap:8px;align-items:flex-start}.vE .tip>div:nth-child(2)>div{flex:1;min-width:0}
+      .vE .k{width:32px;height:32px;margin:-4px -6px 0 0;display:grid;place-items:center;border:0;border-radius:50%;background:none;cursor:pointer;flex-shrink:0}
+      .vE .k:active{background:var(--in-50)}`,
+    row: t => `<div><div class="tt">${t.t}</div><div class="td">${t.d}</div></div><button class="k" aria-label="Ask KAIRA about this tip">${M(16)}</button>`,
+    score: [['ok', 'Consistent with the food rows\' trailing control'], ['ok', 'Title reads uninterrupted']] },
+
+  { id: 'F', name: 'Ghost "Ask"', tag: 'Option', why: 'The chip shape kept but stripped back: no border, no gradient, the word "Ask" then KAIRA\'s mark, in 11px indigo.',
+    css: `.vF .k{display:inline-flex;align-items:center;gap:3px;margin-left:6px;height:20px;padding:0 4px 0 6px;vertical-align:middle;border:0;border-radius:6px;
+      background:var(--in-25);color:var(--in-600);font:600 11px/1 Roboto;cursor:pointer}`,
+    row: t => `<div class="tt"><span>${t.t}</span><button class="k">Ask${M(10)}</button></div><div class="td">${t.d}</div>`,
+    score: [['ok', 'Half the weight of today'], ['mid', 'Still a chip on every tip']] },
+
+  { id: 'G', name: 'Once per section', tag: 'Option', why: 'No control on each tip. One small "Ask KAIRA" link on the "Tips from your coach" heading line asks about the tips as a set; tapping a tip\'s title also opens her for that tip.',
+    head: `<div class="lab" style="display:flex;justify-content:space-between;align-items:center">Tips from your coach<button class="hk">${M(11)}Ask KAIRA</button></div>`,
+    css: `.vG .hk{display:inline-flex;align-items:center;gap:4px;border:0;background:none;padding:0;color:var(--in-600);font:500 12px/16px Roboto;letter-spacing:0;text-transform:none;cursor:pointer}`,
+    row: t => `<div class="tt">${t.t}</div><div class="td">${t.d}</div>`,
+    score: [['ok', 'Cleanest tips; one entry instead of one per tip'], ['mid', 'Per-tip question becomes a tap on the title']] },
+
+];
+
+
+const V2 = [
+  { id: 'K', name: 'Neutral chip, coloured mark', tag: 'Option',
+    why: 'A\'s shape with a hairline grey border and grey text. Only KAIRA\'s mark carries colour, so the chip sits back with the description.',
+    css: `.vK .k{display:inline-flex;align-items:center;gap:4px;margin-left:6px;height:20px;padding:0 8px 0 5px;vertical-align:1px;cursor:pointer;
+      border:1px solid var(--g-200);border-radius:0 999px 999px 999px;background:#fff;color:var(--g-600);font:500 12px/1 Roboto;letter-spacing:.2px}`,
+    row: t => `<div class="tt"><span>${t.t}</span><button class="k">${M(10)}Ask KAIRA</button></div><div class="td">${t.d}</div>`,
+    score: [['ok', 'Calmest of the chips'], ['mid', 'Grey can read as disabled']] },
+
+  { id: 'N', name: 'F, mark in a chip', tag: 'Option',
+    why: 'F\'s fill as a 20px round chip with only the mark. The name is in the label for screen readers; KAIRA\'s sheet opens with "Ask KAIRA about this tip" as its title.',
+    css: `.vN .k{display:inline-grid;place-items:center;width:20px;height:20px;margin-left:6px;vertical-align:-3px;border:0;padding:0;border-radius:0 999px 999px 999px;
+      background:var(--in-50);cursor:pointer;position:relative}.vN .k::after{content:"";position:absolute;inset:-12px}`,
+    row: t => `<div class="tt"><span>${t.t}</span><button class="k" aria-label="Ask KAIRA about this tip">${M(12)}</button></div><div class="td">${t.d}</div>`,
+    score: [['ok', 'Smallest chip, still A\'s shape'], ['mid', 'No words, relies on the mark']] },
+];
+
+const V3 = [
+  { id: 'P', name: 'Open the tip', tag: 'New',
+    why: 'Nothing on the closed tip but a quiet chevron. Tapping a tip opens it (the first one is shown open) with "Ask KAIRA about this" inside, next to the detail it is about.',
+    css: `.vP .tip>div:nth-child(2){flex:1;min-width:0}.vP .tt{display:flex;gap:8px;justify-content:space-between}
+      .vP .chev{flex-shrink:0;margin-top:2px;color:var(--g-400)}.vP .open .chev{transform:rotate(180deg)}
+      .vP .k{display:inline-flex;align-items:center;gap:6px;margin-top:8px;border:0;background:none;padding:0;color:var(--in-600);font:500 12px/16px Roboto;cursor:pointer}`,
+    row: (t, i) => `<div class="${i ? '' : 'open'}"><div class="tt"><span>${t.t}</span><svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></div>${i ? '' : `<div class="td">${t.d}</div><button class="k">${M(12)}Ask KAIRA about this</button>`}</div>`,
+    score: [['ok', 'Zero weight until someone is curious'], ['mid', 'Hides the detail behind a tap too']] },
+
+  { id: 'Q', name: 'One line at the end', tag: 'New',
+    why: 'Tips stay clean. A single line closes the block: "Questions about these tips?" with "Ask KAIRA" on the right, after the person has read them.',
+    foot: `<div class="qf"><span>Questions about these tips?</span><button class="k">Ask KAIRA${M(12)}</button></div>`,
+    css: `.vQ .qf{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px dashed var(--g-200);font-size:12px;line-height:16px;color:var(--g-500)}
+      .vQ .k{display:inline-flex;align-items:center;gap:4px;border:0;background:none;padding:0;color:var(--in-600);font:600 12px/16px Roboto;cursor:pointer}`,
+    row: t => `<div class="tt">${t.t}</div><div class="td">${t.d}</div>`,
+    score: [['ok', 'Asked at the right moment, after reading'], ['mid', 'One entry for all tips, like G']] },
+
+  { id: 'W', name: 'One line, with A\'s chip', tag: 'New',
+    why: 'Q\'s closing line, but the action is today\'s gradient chip from A. The chip you liked, shown once per card instead of once per tip.',
+    foot: `<div class="qf"><span>Questions about these tips?</span><button class="k">${M(12)}Ask KAIRA</button></div>`,
+    css: `.vW .qf{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px dashed var(--g-200);font-size:12px;line-height:16px;color:var(--g-500)}
+      .vW .k{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px 0 6px;cursor:pointer;font:600 12px/1 Roboto;letter-spacing:.3px;color:var(--in-700);
+      border:1px solid transparent;border-radius:0 999px 999px 999px;background:linear-gradient(180deg,var(--in-25),#fff 70%) padding-box,linear-gradient(100deg,var(--in-600),var(--teal-600)) border-box}`,
+    row: t => `<div class="tt">${t.t}</div><div class="td">${t.d}</div>`,
+    score: [['ok', 'Keeps A\'s look, a seventh of the noise'], ['mid', 'One entry for all tips']] },
+
+  { id: 'X', name: 'One soft row', tag: 'New',
+    why: 'The closing line becomes a full-width tinted row: KAIRA\'s mark, "Not sure about a tip? Ask KAIRA", and a chevron. The whole row is the button, so it is easy to hit.',
+    foot: `<button class="qr">${M(16)}<span class="qt">Not sure about a tip? <b>Ask KAIRA</b></span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button>`,
+    css: `.vX .qr{display:flex;align-items:center;gap:8px;width:100%;margin-top:12px;min-height:40px;padding:0 12px;border:0;border-radius:12px;background:var(--in-25);
+      color:var(--g-600);font:400 12px/16px Roboto;text-align:left;cursor:pointer}.vX .qr .qt{flex:1}.vX .qr b{font-weight:600;color:var(--in-700)}.vX .qr svg{color:var(--in-600)}`,
+    row: t => `<div class="tt">${t.t}</div><div class="td">${t.d}</div>`,
+    score: [['ok', 'Biggest target, still quiet'], ['mid', 'Adds a filled block to the card']] },
+
+  { id: 'S', name: 'Speech bubble on the right', tag: 'New',
+    why: 'E\'s trailing slot, but the button is a small speech bubble in A\'s shape with KAIRA\'s mark inside. Says "talk about this" without words.',
+    css: `.vS .tip>div:nth-child(2){flex:1;min-width:0;display:flex;gap:8px;align-items:flex-start}.vS .tip>div:nth-child(2)>div{flex:1;min-width:0}
+      .vS .k{width:28px;height:28px;margin-top:-2px;display:grid;place-items:center;border:0;padding:0;border-radius:0 999px 999px 999px;background:var(--in-50);cursor:pointer;flex-shrink:0;position:relative}
+      .vS .k::after{content:"";position:absolute;inset:-8px}`,
+    row: t => `<div><div class="tt">${t.t}</div><div class="td">${t.d}</div></div><button class="k" aria-label="Ask KAIRA about this tip">${M(14)}</button>`,
+    score: [['ok', 'Out of the reading line, clearly a conversation'], ['mid', 'A button on every row']] },
+
+  { id: 'T', name: 'Ready-made questions', tag: 'New',
+    why: 'Instead of a generic "Ask", the questions people actually have, as small chips under the tips. Each opens KAIRA with that question already asked.',
+    foot: `<div class="qs">${M(12)}<button class="q">Why almonds at night?</button><button class="q">Can I skip the methi water?</button></div>`,
+    css: `.vT .qs{display:flex;gap:6px;align-items:center;margin-top:12px;overflow-x:auto;scrollbar-width:none}
+      .vT .q{flex-shrink:0;height:28px;padding:0 10px;border:1px solid var(--in-100);border-radius:0 999px 999px 999px;background:#fff;color:var(--in-700);font:500 12px/1 Roboto;cursor:pointer;white-space:nowrap}`,
+    row: t => `<div class="tt">${t.t}</div><div class="td">${t.d}</div>`,
+    score: [['ok', 'Gives a reason to tap, not just a door'], ['mid', 'Needs a question written per tip']] },
+
+  { id: 'V', name: 'The title is the link', tag: 'New',
+    why: 'No control at all. The tip title gets a soft dotted underline, like a dictionary word; tapping it asks KAIRA about that tip.',
+    css: `.vV .tt span{text-decoration:underline dotted var(--in-600);text-decoration-thickness:1.5px;text-underline-offset:4px;cursor:pointer}`,
+    row: t => `<div class="tt"><span role="button" aria-label="${t.t}. Ask KAIRA about this tip">${t.t}</span></div><div class="td">${t.d}</div>`,
+    score: [['ok', 'Lightest possible; nothing added'], ['no', 'Hard to discover; dotted lines mean "definition" to most']] },
+];
+
+const ALL = [...V2, ...V, ...V3];
+document.head.insertAdjacentHTML('beforeend', '<style>' + ALL.map(v => v.css).join('\n') + '</style>');
+const card = v => `
+  <div class="v v${v.id}">
+    <div class="cap"><span class="tagp ${v.cls || ''}">${v.tag}</span><h2>${v.id}. ${v.name}</h2><p>${v.why}</p></div>
+    <section class="meal"><div class="mh"><div class="n">Bedtime</div><div class="s">Suggested 10:00–11:00 PM · 58 kcal planned</div></div>
+      <div class="mbi">${v.head || '<div class="lab">Tips from your coach</div>'}<div class="tiplist">
+        ${TIPS.map((t, i) => `<div class="tip">${v.mark ? v.mark() : '<span class="tmark"></span>'}<div>${v.row(t, i)}</div></div>`).join('')}
+      </div>${v.foot || ''}</div></section>
+    <div class="score">${v.score.map(([c, s]) => `<div class="${c}">${c === 'ok' ? '✓' : c === 'no' ? '✕' : '·'} ${s}</div>`).join('')}</div>
+  </div>`;
+const pick = id => ALL.find(v => v.id === id);
+document.getElementById('grid').innerHTML =
+  `<h2 class="sec">Kept</h2><p class="sub">A stays as it is. F now reads "Ask" then KAIRA's mark.</p>` +
+  ['A', 'F', 'E', 'G', 'K', 'N'].map(pick).map(card).join('') +
+  `<h2 class="sec">New directions</h2><p class="sub">Different ways in, rather than smaller chips: open the tip, ask at the end, a bubble, ready-made questions, or no control at all.</p>` +
+  V3.map(card).join('');
+</script>
+</body>
+</html>

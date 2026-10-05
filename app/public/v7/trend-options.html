@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trend Options</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="r3/goodflip-ui.css">
+<link rel="stylesheet" href="trend-options/mock.css?v=2">
+<style>
+  /* The page around the phones, in the same format as the other options pages. */
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; font-family: Roboto, system-ui, sans-serif; letter-spacing: .25px; color: var(--g-900); }
+  .page { max-width: 1400px; margin: 0 auto; padding: 40px 24px 96px; }
+  h1 { font-size: 28px; line-height: 36px; font-weight: 600; margin: 0 0 8px; }
+  .lede { max-width: 860px; font-size: 16px; line-height: 25px; color: var(--g-600); margin: 0 0 12px; }
+  .callout { max-width: 860px; padding: 14px 16px; border-radius: 12px; background: var(--g-50); border: 1px solid var(--g-200);
+    font-size: 14px; line-height: 22px; color: var(--g-700); margin: 0 0 16px; }
+  .callout b { color: var(--g-900); }
+  section { margin-top: 64px; }
+  section > h2 { margin: 0 0 6px; font-size: 22px; line-height: 30px; font-weight: 600; }
+  section > .sub { max-width: 860px; margin: 0 0 24px; font-size: 15px; line-height: 24px; color: var(--g-600); }
+  .head { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 6px; }
+  .head h3 { margin: 0; font-size: 17px; line-height: 24px; font-weight: 600; }
+  .pill { font: 600 12px/16px Roboto; letter-spacing: .6px; text-transform: uppercase; border-radius: 999px; padding: 2px 8px;
+    color: var(--g-600); background: var(--g-100); }
+  .pill.rec { color: var(--brand-700); background: var(--brand-100); }
+  .why { margin: 0 0 10px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .pm { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 14px; line-height: 20px; }
+  .pm li { display: flex; gap: 8px; color: var(--g-700); }
+  .pm li::before { flex-shrink: 0; width: 14px; font-weight: 700; }
+  .pm .plus::before { content: "+"; color: var(--ok-600); }
+  .pm .minus::before { content: "\2212"; color: var(--red-600); }
+
+  .row { display: flex; flex-wrap: wrap; gap: 36px 32px; align-items: flex-start; }
+  figure { margin: 0; width: 258px; }
+  figure.wide { width: 300px; }
+  figcaption { margin-bottom: 12px; }
+  .step { display: block; font: 600 12px/16px Roboto; letter-spacing: .6px; text-transform: uppercase; color: var(--g-500); margin-bottom: 4px; }
+  .phone { position: relative; width: calc(390px * .62); height: calc(844px * .62); border-radius: 30px; overflow: hidden;
+    margin: 8px 0 0 8px; background: #fff;
+    box-shadow: 0 0 0 8px #121216, 0 0 0 9px #3b3b42, 0 30px 60px -30px rgba(16, 24, 40, .45); }
+  .phone > .scr { transform: scale(.62); }
+  .phone > iframe { width: 390px; height: 844px; border: 0; transform: scale(.62); transform-origin: 0 0; display: block; }
+  .notes { margin-top: 16px; }
+  .ctl { display: flex; align-items: center; gap: 12px; margin-top: 14px; margin-left: 8px; }
+  .play { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px 0 12px; border-radius: 999px;
+    border: 1px solid var(--g-300); background: #fff; color: var(--g-900); font: 600 14px/20px Roboto; cursor: pointer; }
+  .play svg { width: 18px; height: 18px; }
+  .play:active { transform: scale(.98); }
+  .play:focus-visible { outline: 2px solid var(--in-600); outline-offset: 3px; }
+  .ctl small { font-size: 13px; line-height: 18px; color: var(--g-500); }
+
+  .audit { display: flex; flex-wrap: wrap; gap: 40px; align-items: flex-start; }
+  .audit ol { flex: 1 1 420px; max-width: 760px; margin: 8px 0 0; padding-left: 22px; display: grid; gap: 12px;
+    font-size: 15px; line-height: 23px; color: var(--g-700); }
+  .audit ol b { color: var(--g-900); }
+
+  .compare { display: flex; flex-wrap: wrap; gap: 28px; margin: 8px 0 40px; }
+  .compare figure { width: auto; }
+  .scr.flat { width: 390px; height: auto; padding: 16px; border-radius: 20px; border: 1px solid var(--g-200); background: #fff; }
+
+  table.copy { width: 100%; max-width: 1080px; border-collapse: collapse; font-size: 14px; line-height: 21px; }
+  table.copy th, table.copy td { text-align: left; vertical-align: top; padding: 14px 16px 14px 0; border-top: 1px solid var(--g-200); }
+  table.copy th { font: 600 12px/16px Roboto; letter-spacing: .6px; text-transform: uppercase; color: var(--g-500); border-top: 0; padding-bottom: 8px; }
+  table.copy td.t { font-weight: 600; color: var(--g-900); width: 32%; }
+  table.copy td.s { color: var(--g-600); }
+  table.copy .pill { margin-left: 6px; }
+  .copyhead { margin: 28px 0 8px; font: 600 16px/22px Roboto; }
+
+  .rec-block { margin-top: 64px; max-width: 900px; padding: 24px; border-radius: 20px; border: 1px solid var(--brand-200);
+    background: linear-gradient(180deg, var(--brand-50), #fff 70%); }
+  .rec-block h2 { margin: 0 0 12px; font-size: 22px; line-height: 30px; font-weight: 600; }
+  .rec-block ul { margin: 0; padding-left: 20px; display: grid; gap: 10px; font-size: 15px; line-height: 23px; color: var(--g-700); }
+  .rec-block b { color: var(--g-900); }
+  @media (max-width: 600px) { .scr.flat { width: 100%; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Trend options</h1>
+  <p class="lede">A redesign of the Eat pillar's Trend tab. KAIRA moves to the top and holds her weekly insight until the week is done, then hands it over with a small moment. The chart drops the wall of green and draws each day the way the day view draws it. Daily averages are gone. Every phone below runs on the same week: five days logged at 70, 82, 60, 75 and 83, two not logged, a week score of 74 (the mean of the logged days) and 68 the week before.</p>
+  <div class="callout"><b>The phones are live.</b> Tap any logged day to open its score in a sheet (the real liquid gauge from the day view). Press <b>Play</b> under a phone to run its unlock, or tap <b>Unlock my insight</b> inside it.</div>
+
+  <!-- ============================================================ 1 -->
+  <section id="audit">
+    <h2>1. What is wrong today</h2>
+    <p class="sub">The current tab, in its second complete week (<code>r3/trend.html?state=w2</code>).</p>
+    <div class="audit">
+      <figure>
+        <figcaption><span class="step">Today</span></figcaption>
+        <div class="phone"><iframe title="Trend today" src="r3/trend.html?state=w2" loading="lazy"></iframe></div>
+      </figure>
+      <ol>
+        <li><b>Everything is green.</b> The bars, the headline number, the verdict chip, the target line and the delta all share one green, so nothing stands out and green stops meaning anything.</li>
+        <li><b>Daily averages repeat the day view.</b> Four more gauges below the chart, read on a page that is meant to be about the week. Removed.</li>
+        <li><b>KAIRA is at the bottom.</b> Her read is the reason to open a week, and it sits below the fold after the numbers.</li>
+        <li><b>Nothing marks a finished week.</b> Seven days of logging end in silence; the page looks the same on day 7 as on day 6.</li>
+        <li><b>The chart does not look like the day view.</b> A day is a gauge of orbs on the Eat tab and a green bar here, so a user cannot connect Tuesday here to the Tuesday they saw.</li>
+        <li><b>It is monotonous.</b> Card after card of the same shape and weight, with no focal point.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ============================================================ 2 -->
+  <section id="flow">
+    <h2>2. The flow</h2>
+    <p class="sub">One week, start to finish. KAIRA is always the first card. The chart under her is chart C from section 3, and the unlock is Orbs gather from section 4. The week selector and the bottom nav are unchanged.</p>
+    <div class="row" id="flowRow"></div>
+  </section>
+
+  <!-- ============================================================ 3 -->
+  <section id="charts">
+    <h2>3. How each day relates to the gauge</h2>
+    <p class="sub">The day view shows a score as a liquid bubble inside an arc of orbs, filled from 0 to 100, with a status tag under it. Here the same seven days need to read as seven of those, and still compare at a glance.</p>
+
+    <div class="callout"><b>Should it be neutral? Yes.</b> The forms that carry the data (bars, rings, lines) go grey. Colour appears only where it means something: each day's status (green for Solid Day, amber for Room To Grow, red for Needs Attention), drawn as the day view's own orb. The pillar green is spent on one thing, the week's score. The 70 line is where a day becomes Solid, so the line, the orbs and the tags all say the same thing.</div>
+    <div class="compare" id="compare"></div>
+
+    <div class="row" id="chartRow"></div>
+  </section>
+
+  <!-- ============================================================ 4 -->
+  <section id="unlock">
+    <h2>4. The unlock</h2>
+    <p class="sub">What happens when the user taps Unlock my insight. Each one takes between 2 and 2.6 seconds, uses smooth eases only (no springs or bounce), and ends on a calm, light card. With reduced motion turned on, the insight simply fades in.</p>
+    <div class="row" id="unlockRow"></div>
+  </section>
+
+  <!-- ============================================================ 5 -->
+  <section id="copy">
+    <h2>5. KAIRA's lines</h2>
+    <p class="sub">KAIRA speaks in the first person, in short plain lines. Each pair is a title and the line under it.</p>
+    <div class="copyhead">While the week is filling</div>
+    <table class="copy">
+      <tr><th>Title</th><th>Line under it</th><th>Why</th></tr>
+      <tr><td class="t">Your insight unlocks on Monday<span class="pill rec">Recommended</span></td><td>I read the whole week before I say anything. 4 days to go.</td><td class="s">A date, a reason and a countdown. Sets the expectation without a rule to learn.</td></tr>
+      <tr><td class="t">4 more days, then your weekly insight</td><td>A full week shows me what one day can't.</td><td class="s">Leads with the countdown, so it feels closer. Changes daily, which breaks "labels stay put".</td></tr>
+      <tr><td class="t">I'm reading your week as it happens</td><td>Your insight opens once Sunday is done.</td><td class="s">Warmest, and says KAIRA is paying attention, but gives no sense of how far along you are.</td></tr>
+    </table>
+    <div class="copyhead">When the insight is ready</div>
+    <table class="copy">
+      <tr><th>Title</th><th>Line under it, and the button</th><th>Why</th></tr>
+      <tr><td class="t">Your insight is ready<span class="pill rec">Recommended</span></td><td>One thing stood out in your week. <br><b>Unlock my insight</b></td><td class="s">Plain title, and the line gives a reason to tap without giving the answer away.</td></tr>
+      <tr><td class="t">I've read your week</td><td>Want to see what I found? <br><b>Show me</b></td><td class="s">More personal and conversational. "Show me" is a little casual for the most important button on the page.</td></tr>
+      <tr><td class="t">Your week, read</td><td>What helped, what held you back, and one thing to try. <br><b>Open my insight</b></td><td class="s">Promises the structure of the card. Clear, but quieter, so the moment lands less.</td></tr>
+    </table>
+  </section>
+
+  <div class="rec-block">
+    <h2>Recommendation</h2>
+    <ul>
+      <li><b>Flow:</b> KAIRA's card always on top. While the week fills, she says when her insight unlocks and shows the week filling as seven segments. On Monday the card glows and offers <b>Unlock my insight</b>. After the unlock, her insight stays on top and the chart sits under it. Daily averages are removed.</li>
+      <li><b>Chart: C, Tubes with a status orb.</b> Every day is a 0 to 100 tube on the same scale as the day view's arc, filled in grey, capped with the day view's own orb in the day's status colour. Tapping a day opens its real gauge in a sheet.</li>
+      <li><b>Colour:</b> neutral greys for the data, status colour only on the orbs and tags, the pillar green only on the week's score of 74.</li>
+      <li><b>Unlock: 2, Orbs gather.</b> The week's five orbs lift off the chart, take on KAIRA's colour and become her insight. It tells the story the feature is about. Seal lift is the fallback if Orbs gather proves costly to build.</li>
+      <li><b>Copy:</b> "Your insight unlocks on Monday" while filling, "Your insight is ready" with "One thing stood out in your week." once it is done.</li>
+    </ul>
+  </div>
+</div>
+
+<script src="r3/assets/kaira.js"></script>
+<script src="trend-options/mock.js?v=2"></script>
+<script>
+const PLAY_ICO = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+const AGAIN_ICO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>';
+
+function notes(why, plus, minus) {
+  return `<p class="why">${why}</p><ul class="pm">${plus.map(p => `<li class="plus">${p}</li>`).join('')}${minus.map(m => `<li class="minus">${m}</li>`).join('')}</ul>`;
+}
+
+/* one figure: caption, phone, optional Play control, notes */
+function figure(row, { step, title, rec, opts, why = '', plus = [], minus = [], play }) {
+  const f = document.createElement('figure');
+  f.innerHTML = `<figcaption><div class="head" style="margin-bottom:4px;min-height:20px">${step ? `<span class="step" style="margin:0">${step}</span>` : ''}${rec ? '<span class="pill rec">Recommended</span>' : ''}</div><div class="head"><h3>${title}</h3></div></figcaption>
+    <div class="phone"></div>${play ? `<div class="ctl"><button class="play" type="button">${PLAY_ICO}<span>Play</span></button><small></small></div>` : ''}
+    <div class="notes">${why || plus.length ? notes(why, plus, minus) : ''}</div>`;
+  row.append(f);
+  const ph = f.querySelector('.phone');
+  let scr = TM.mount(ph, opts);
+  if (play) {
+    const b = f.querySelector('.play');
+    const label = b.querySelector('span');
+    let ran = false;
+    b.addEventListener('click', () => {
+      if (!ran) { ran = true; TM.play(scr, opts.anim); }
+      else {
+        scr = TM.mount(ph, opts);            // back to the ready card, a beat to see it, then unlock
+        setTimeout(() => TM.play(scr, opts.anim), 700);
+      }
+      b.innerHTML = AGAIN_ICO + '<span>Play again</span>';
+    });
+    ph.addEventListener('click', e => { if (e.target.closest('.unlock')) { ran = true; b.innerHTML = AGAIN_ICO + '<span>Play again</span>'; } });
+  }
+  return f;
+}
+
+/* ---------------------------------------------------------------- 2. flow */
+const flow = document.getElementById('flowRow');
+figure(flow, { step: 'a. Day 3 of 7', title: 'The week is filling', opts: { state: 'filling', chart: 'C' },
+  why: 'KAIRA leads, with a date for her insight. Seven segments show how far through the week you are. No shimmer: there is nothing to preview yet. The chart shows the days so far and leaves the rest as empty tubes. No week score yet, so the one moment it appears is the finished week.' });
+figure(flow, { step: 'b. Monday', title: 'Your insight is ready', opts: { state: 'ready', chart: 'C', anim: 'gather' },
+  why: 'The week closed. The card breathes a slow indigo to teal glow, the mark is alive, and Unlock my insight is the GoodFlip primary green button. The week score, 74, is already there below.' });
+figure(flow, { step: 'c. Unlocking', title: 'Orbs gather', opts: { state: 'ready', chart: 'C', anim: 'gather' }, play: true,
+  why: 'Press Play. The five logged days lift off the chart into KAIRA\'s mark, it draws one breath, and her insight resolves out of it.' });
+figure(flow, { step: 'd. Revealed', title: 'KAIRA\'s weekly insight', opts: { state: 'revealed', chart: 'C' },
+  why: 'One headline, two specific lines and one thing to try. It reads the week rather than narrating it: the gap that mattered, what the best days had in common, and the smallest step past 80.' });
+
+/* --------------------------------------------------------------- 3. charts */
+const cmp = document.getElementById('compare');
+cmp.innerHTML = `
+  <figure><figcaption><span class="step">Today's colour</span><div class="head"><h3>Green everywhere</h3></div></figcaption>
+    <div class="scr flat">${TM.chartC({ mode: 'week', green: true })}</div></figure>
+  <figure><figcaption><span class="step">Recommended colour</span><div class="head"><h3>Grey forms, colour where it means something</h3></div></figcaption>
+    <div class="scr flat">${TM.chartC({ mode: 'week' })}</div></figure>`;
+
+const charts = document.getElementById('chartRow');
+figure(charts, { step: 'Option A', title: 'Seven mini gauges', opts: { state: 'revealed', chart: 'A' },
+  why: 'Each day is the day view\'s gauge in miniature: the same 270 degree arc of 30 orbs, filled to the day\'s score, the number inside.',
+  plus: ['The most literal link to the day view', 'Unlogged days read as an empty ring'],
+  minus: ['Hard to compare: arcs do not line up like heights', 'Status lives in the number only, so 60 looks like 70', '30 orbs at this size are close to the limit'] });
+figure(charts, { step: 'Option B', title: 'Seven mini bubbles', opts: { state: 'revealed', chart: 'B' },
+  why: 'Each day is the day view\'s bubble, filled to its score in the liquid score\'s pearl grey. Only the surface line takes the day\'s status colour.',
+  plus: ['Fill levels compare well side by side', 'Feels like the liquid score, soft and friendly'],
+  minus: ['A thin coloured line is easy to miss', 'Round shapes hide small differences (75 against 82)'] });
+figure(charts, { step: 'Option C', title: 'Tubes with a status orb', rec: true, opts: { state: 'revealed', chart: 'C' },
+  why: 'Each day is a 0 to 100 tube, the same scale as the arc, filled in grey and capped with one of the day view\'s orbs in the day\'s status colour. A dashed line at 70 marks where a day becomes Solid.',
+  plus: ['Heights compare instantly, and the number is printed above', 'The orb is the day view\'s own atom, so each day reads as "my gauge, as a level"', 'Colour only where the meaning is', 'Unlogged days are a hollow orb, never a zero'],
+  minus: ['Less literal than A until you tap a day'] });
+figure(charts, { step: 'Option D', title: 'The orb string', opts: { state: 'revealed', chart: 'D' },
+  why: 'Each day is one orb, placed at its score and joined to the next by a quiet grey thread, over a soft band for Solid days (70 and up).',
+  plus: ['The most distinctive, and shows the shape of the week', 'Very little ink'],
+  minus: ['A line implies the days flow into each other, which they do not', 'Starts at 40, not 0, which flatters low days', 'Unlogged days break the thread'] });
+figure(charts, { step: 'Tap a day', title: 'Tuesday opens its gauge', opts: { state: 'revealed', chart: 'C', sheet: 1 },
+  why: 'Any day opens its own score in a sheet: the real liquid gauge from the day view, at 82 with its Solid Day tag, how it sits against the week, and a way into that day. Title top left, circle close top right, no handle.',
+  plus: ['The direct answer to "which gauge was this?"'], minus: [] });
+
+/* --------------------------------------------------------------- 4. unlock */
+const unl = document.getElementById('unlockRow');
+figure(unl, { step: 'Option 1', title: 'Aurora veil', opts: { state: 'ready', chart: 'C', anim: 'aurora' }, play: true,
+  why: 'KAIRA\'s indigo, violet and teal light rises behind the card, a soft veil lifts inside it, the headline arrives word by word, and the light drains away. The same language as her aurora on the day view.',
+  plus: ['Already part of KAIRA\'s visual language', 'Feels like an occasion'],
+  minus: ['Says "KAIRA" but not "your week"', 'Blurred light can look muddy on low end phones'] });
+figure(unl, { step: 'Option 2', title: 'Orbs gather', rec: true, opts: { state: 'ready', chart: 'C', anim: 'gather' }, play: true,
+  why: 'The five logged days lift off the chart, curve up into KAIRA\'s mark and take on her colour on the way. The mark draws one breath, a soft ring goes out, and the insight resolves out of it. The chart keeps its orbs: they dim while their copies travel, then come back.',
+  plus: ['Tells the story: your days became her insight', 'Ties the chart, KAIRA and the reward together', 'Colour resolves into the focal object, then the page settles light'],
+  minus: ['The most work to build', 'Needs the chart on screen; if it is scrolled away, fall back to Seal lift'] });
+figure(unl, { step: 'Option 3', title: 'Seal lift', opts: { state: 'ready', chart: 'C', anim: 'seal' }, play: true,
+  why: 'The insight is there from the start, frosted. On unlock one pass of light crosses it, the button folds away, and each line clears in turn from top to bottom.',
+  plus: ['Calmest, and the cheapest to build', 'The shape of the insight is visible before it opens'],
+  minus: ['Least special', 'The frosted text can tempt people to squint rather than tap'] });
+</script>
+</body>
+</html>

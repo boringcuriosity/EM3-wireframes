@@ -88,7 +88,7 @@ Macro colours: you may give the four macros distinct hues for data viz if the va
 Context: Care program user, coach plan assigned. Today is Tuesday 15 Sep, 1:30 PM.
 
 1. **Date control**: "Today" with previous/next day arrows; tapping it opens a calendar bottom sheet (show the chip/control only, maybe a small calendar glyph).
-2. **Pillar line**: "Eat" + tagline "Fuel your body right each day."
+2. **Pillar line**: "Eat" + tagline "Fuel your body right"
 3. **Sufficiency score**: 54% sufficient. Title "Today's sufficiency". Status line: "3 of 6 meals logged. Your sufficiency increases as you log the rest of your meals." Info button (opens "What is sufficiency?" sheet). Score is the mean of four capped macro ratios.
 4. **Weakest macro insight**: "Protein is the one furthest from where it should be, at 43g of 95g." (keep it short; may add "It keeps you full and protects muscle." as the why)
 5. **Four macros** (value / target, %):

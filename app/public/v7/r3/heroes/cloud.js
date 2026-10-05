@@ -47,7 +47,7 @@
        data is not a general-purpose tag, so it is not used here. */
     /* nothing logged on a planned day is an invitation, not missing data */
     var tag = lock ? "" : opts.mealsIn === 0 ? "log" : "";
-    fr.src = BASE + "cloud/index.html?build=15&embed=1&y=.03&v=Cloud%20Drop" + (lock ? "&lock=" + lock : "&score=" + Math.round(opts.score)) + (tag ? "&tag=" + tag : "") +
+    fr.src = BASE + "cloud/index.html?build=17&embed=1&y=.03&v=Cloud%20Drop" + (lock ? "&lock=" + lock : "&score=" + Math.round(opts.score)) + (tag ? "&tag=" + tag : "") +
       (opts.from != null && !lock ? "&from=" + Math.round(opts.from) : "");
     fr.title = ""; fr.tabIndex = -1; fr.setAttribute("aria-hidden", "true");
     /* taps go to the hero wrap underneath, which opens the sufficiency sheet */

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Learn</title>
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap">
 <link rel="stylesheet" href="goodflip-ui.css">
 <style>
   /* ============================================================
@@ -285,6 +285,24 @@
     color: var(--g-400); }
   .artend .gf-link { margin-top: 4px; }
 
+
+  /* ------------------------------------------------- the category list (app) */
+  /* Matches the app's category screen: a pale header with the category in
+     Playfair, then one plain list. Measured off the app at 390 wide. */
+  .nl-h { padding: 20px 18px 27px; background: linear-gradient(180deg, #EEF2FB 0%, #FFFFFF 100%); }
+  .nl-h h1 { margin: 0; font: 700 26px/34px "Playfair Display", Georgia, serif; letter-spacing: 0; color: #101010; }
+  .nl { padding: 0 18px 24px; }
+  .nl-row { display: flex; gap: 16px; padding: 18px 0 16px; border-bottom: 1px solid var(--g-200); cursor: pointer; }
+  .nl-row:last-child { border-bottom: 0; }
+  .nl-row .th { flex: 0 0 88px; height: 88px; border-radius: 10px; overflow: hidden; border: 1px solid var(--g-200);
+    box-shadow: 2px 3px 0 0 var(--g-200); background: var(--g-50); }
+  .nl-row .th img { width: 100%; height: 100%; object-fit: cover; }
+  .nl-row .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; min-height: 88px; }
+  .nl-row h3 { margin: 4px 0 0; font: 600 18px/25px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-900);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .nl-row .mt { margin-top: 10px; font: 400 14px/20px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-500); }
+  .nl-row .sk { border-radius: 6px; }
+
   /* ------------------------------------------------------------- bottom nav */
   .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%;
     max-width: var(--col); background: #fff; border-top: 1px solid var(--g-200); display: flex;
@@ -305,15 +323,8 @@
 
   <!-- ============================ the listing ============================ -->
   <div id="listView">
-    <div class="gf-feed-band">
-      <img class="arcs" src="../icons/feed-hero-arcs.svg" alt="" aria-hidden="true">
-      <div class="cap">
-        <h1>Learn how eating well works</h1>
-        <p class="trust">Clinically reviewed . Science backed guidance</p>
-      </div>
-    </div>
-
-    <div class="stack" id="stack"></div>
+    <div class="nl-h"><h1>Nutrition &amp; Metabolic Health</h1></div>
+    <div class="nl" id="stack"></div>
   </div>
 
   <!-- ============================ the article ============================ -->
@@ -323,8 +334,6 @@
         <img src="../icons/feed-back-arrow.svg" alt="" aria-hidden="true">Back
       </button>
       <div class="acts">
-        <button class="disc" id="artMark" aria-label="Save this article" aria-pressed="false">
-          <img src="../icons/feed-bookmark-off.svg" alt="" aria-hidden="true"></button>
         <button class="disc" aria-label="Share this article">
           <img src="../icons/feed-share-off.svg" alt="" aria-hidden="true"></button>
       </div>
@@ -400,10 +409,6 @@
           useful thing you can do is keep logging, even on the days it is not going well.</p>
       </div>
 
-      <div class="artend">
-        <p class="said">That is the end of this one.</p>
-        <button class="gf-link" id="endSave">Save it for later</button>
-      </div>
     </div>
 
     <div class="gf-section" style="margin-top:40px" id="related"></div>
@@ -590,36 +595,21 @@ function headSk(seeAll) {
 
 function section(cls, inner) { return '<div class="gf-section ' + (cls || "") + '">' + inner + '</div>'; }
 
+function nlRow(id) {
+  var it = ITEMS[id];
+  return '<div class="nl-row" role="link" tabindex="0" data-go="' + id + '">' +
+    '<span class="th"><img src="../img/art-' + it.art + '.jpg" alt="" loading="lazy"></span>' +
+    '<div class="tx"><h3>' + esc(it.t) + '</h3><span class="mt">' + esc(metaOf(it).replace(/’$/, "")) + '</span></div></div>';
+}
+
 function renderList() {
-  var s = "";
-  s += section("", '<div class="gf-rail gf-feed-rail hero">' +
-    heroCard(1) + heroCard(4) + heroCard(2) + '</div>' + dots(0, 3));
-
-  s += section("", head("feed-sec-heart.svg", "For you") +
-    '<div class="gf-rail gf-feed-rail">' + youCard(3) + youCard(6) + youCard(9) + '</div>');
-
-  s += section("", head("feed-sec-food.svg", "Start with the basics", true) +
-    '<div>' + row(5) + row(7) + '</div>');
-
-  s += section("", head("feed-sec-clipboard.svg", "Your plan, explained", true) +
-    '<div>' + row(4) + row(10) + '</div>');
-
-  s += section("", tabs(0));
-  s += section("", '<div>' + row(2) + row(3) + row(6) + row(8) + row(9) + '</div>' +
-    '<div class="loader"><img src="' + ICON + 'feed-loader-spinner.png" alt="">' +
-    '<span>Loading more</span></div>');
-
-  document.getElementById("stack").innerHTML = s;
+  document.getElementById("stack").innerHTML = [1, 2, 3, 6, 8, 10, 5, 7, 4, 9].map(nlRow).join("");
 }
 
 function renderLoading() {
-  var s = "";
-  s += section("", '<div class="gf-rail gf-feed-rail hero">' + heroSk() + heroSk() + '</div>' + dots(0, 3));
-  s += section("", headSk(false) + '<div class="gf-rail gf-feed-rail">' + youSk() + youSk() + '</div>');
-  s += section("", headSk(true) + '<div>' + rowSk() + rowSk() + '</div>');
-  s += section("", tabs(0));
-  s += section("", '<div>' + rowSk() + rowSk() + rowSk() + '</div>');
-  document.getElementById("stack").innerHTML = s;
+  var r = '<div class="nl-row" aria-hidden="true"><span class="th"><span class="sk" style="display:block;width:100%;height:100%;border-radius:0"></span></span>' +
+    '<div class="tx"><span style="display:block;margin-top:4px">' + sk(220, 20) + sk(160, 20, "margin-top:5px") + '</span>' + sk(130, 14) + '</div></div>';
+  document.getElementById("stack").innerHTML = r + r + r + r + r;
   document.getElementById("stack").setAttribute("aria-busy", "true");
 }
 
@@ -649,7 +639,7 @@ function renderState(kind) {
 function renderArticle() {
   document.getElementById("related").innerHTML =
     head("feed-sec-book.svg", "More on eating well", true) +
-    '<div>' + row(2) + row(3) + row(7) + '</div>';
+    '<div class="nl" style="padding-bottom:0">' + nlRow(2) + nlRow(3) + nlRow(7) + '</div>';
 }
 
 /* --------------------------------------------------------------- routing */
@@ -705,11 +695,6 @@ document.addEventListener("keydown", function (e) {
 var back = document.getElementById("artBack");
 if (back) back.addEventListener("click", function () { location.search = "?view=list"; });
 
-var endSave = document.getElementById("endSave");
-if (endSave) endSave.addEventListener("click", function () {
-  document.getElementById("artMark").click();
-  endSave.textContent = "Saved for later";
-});
 
 /* The back nav is not sticky in the drawing, but a 1983px article with no way
    back to the list is the one real usability hole in it. It sticks, and the

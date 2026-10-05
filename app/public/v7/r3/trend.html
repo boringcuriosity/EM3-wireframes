@@ -62,8 +62,12 @@
 
   /* The period chip. The day view picks a day with it, this picks a week.
      One control, one behaviour, two scales. */
+  /* When there is no week comparison yet, .solo centres the week pill. */
   .dateline { display: flex; align-items: center; justify-content: space-between;
     gap: 8px; padding-top: 4px; }
+  .dateline.solo { justify-content: center; }
+  .dateline.solo .pill { margin-left: 0; }
+  .dateline.solo .dayd { display: none; }
   .pill { display: flex; align-items: center; gap: 2px; margin-left: -12px; }
   .pill .arr { width: 44px; height: 44px; border: 0; background: none; display: grid;
     place-items: center; color: var(--g-500); cursor: pointer; border-radius: var(--r-pill); }
@@ -767,12 +771,19 @@ function paint() {
   document.getElementById("weekBtn").disabled = waiting;
 
   /* The delta beside the chip, the same grey line the day view carries.
-     Green is saved for the score itself, inside the card. */
+     Green is saved for the score itself, inside the card. When empty, the
+     week pill centres so the row does not look unfinished on the right. */
   var d = document.getElementById("weekDelta");
-  if (waiting || week === 0) { d.textContent = ""; return; }
+  var line = d && d.closest(".dateline");
+  if (waiting || week === 0) {
+    d.textContent = "";
+    if (line) line.classList.add("solo");
+    return;
+  }
   var diff = scoreOf(WEEKS[week]) - scoreOf(WEEKS[week - 1]);
   d.textContent = diff === 0 ? "level with last week"
     : (diff > 0 ? "+" : "") + diff + " on last week";
+  if (line) line.classList.remove("solo");
 }
 
 document.getElementById("prev").onclick = function () { if (week > 0) { week--; paint(); } };

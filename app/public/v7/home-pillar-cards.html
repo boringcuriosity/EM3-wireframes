@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home Pillar Cards</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* Home screen entry points for the four EM3 pillars. Each pillar keeps its own colour and the same orb
+     language the Eat score uses: Eat green, Move indigo, Mind teal, Measure gold. Later the four combine
+     into one metabolic score, so several variants already show them as parts of one whole. */
+  :root { --g-25:#FCFCFD; --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828; --in-100:#E0EAFF; --in-200:#C7D7FE; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; font-family: Roboto, system-ui, sans-serif; letter-spacing: .25px; color: var(--g-900); }
+  .page { max-width: 1500px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 28px; line-height: 36px; font-weight: 600; margin: 0 0 8px; }
+  .lede { max-width: 900px; font-size: 15px; line-height: 24px; color: var(--g-600); margin: 0 0 12px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 36px; }
+  .legend > span { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--g-50);
+    border: 1px solid var(--g-200); font: 500 13px/16px Roboto; color: var(--g-700); }
+  .grid { display: flex; flex-wrap: wrap; gap: 36px 32px; align-items: flex-start; }
+  .v { width: 390px; }
+  /* the chosen one leads, on a row of its own; the rest follow underneath */
+  .v:first-child { flex: 0 0 100%; padding-bottom: 28px; margin-bottom: 8px; border-bottom: 1px solid var(--g-200); }
+  .v:first-child > * { max-width: 390px; }
+  .cap h2 { margin: 0 0 4px; font: 600 16px/22px Roboto; }
+  .cap p { margin: 0 0 12px; font-size: 13px; line-height: 20px; color: var(--g-600); min-height: 60px; }
+  .tag { display: inline-block; margin: 0 0 6px; padding: 1px 8px; border-radius: 999px; font: 600 11px/16px Roboto; letter-spacing: .6px;
+    text-transform: uppercase; color: var(--g-600); background: var(--g-100); }
+  .tag.rec { color: #027A48; background: #ECFDF3; }
+  /* a slice of the home screen, so each card is judged where it lives */
+  .home { border-radius: 28px; background: linear-gradient(180deg, #F5F8FF 0, #fff 120px); padding: 20px 16px 24px;
+    box-shadow: 0 0 0 1px var(--g-100), 0 20px 40px -24px rgba(16, 24, 40, .25); }
+  .home .hh { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 14px; }
+  .home h3 { margin: 0; font: 700 18px/24px Roboto; }
+  .home .hh span { font: 400 12px/16px Roboto; color: var(--g-500); }
+
+  /* ---------- shared pieces ---------- */
+  /* the orb is the Figma orb itself (icons/orbs/<pillar>.svg); empty ones are grey glass */
+  .orb { position: absolute; border-radius: 50%; transform: translate(-50%, -50%); background: var(--orb) center / 100% 100% no-repeat;
+    box-shadow: 0 1px 2px rgba(16,24,40,.16); }
+  .orb.off { background: radial-gradient(circle at 34% 30%, #fff 0 10%, #EEF0F4 40%, #D3D8E0 85%, #BEC4CE); box-shadow: inset 0 -1px 1px rgba(0,0,0,.06); }
+  .ico { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  /* every tile wears GoodFlip's own light indigo edge and lip, whatever the pillar: colour lives inside the card */
+  .card { position: relative; background: #fff; border-radius: 16px; border: 1.5px solid #C7D7FE; box-shadow: 3px 4px 0 #C7D7FE; }
+  .pic { display: block; object-fit: contain; }
+  .lab { font: 600 14px/18px Roboto; color: var(--g-900); }
+  .sub { font: 400 12px/16px Roboto; color: var(--g-500); }
+  .num { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Home pillar cards</h1>
+  <p class="lede">Four entry points on the home screen, one card per pillar. Each card carries only three things: the pillar's pictogram, its score, and one small picture of that score in the score's own orbs. They share one visual system: the Figma orbs, one colour per pillar; GoodFlip's pictograms (Nutrition, Movement, Stress, Lab tests); and GoodFlip's tiles with their light indigo edge and lip, the same on every pillar so colour lives only inside the card. Sample day: Eat 67, Move 54, Mind 72, Measure 81. Measure's score has no name yet, so it reads as "Measure".</p>
+  <div class="legend" id="legend"></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script>
+// ------------------------------------------------------------------ data
+const P = [
+  { k: 'eat', name: 'Eat', score: 67, metric: 'Sufficiency', act: 'Log lunch', note: 'Protein is the gap',
+    c: ['#D1FADF', '#32D583', '#12B76A', '#039855', '#05603A'], tint: '#ECFDF3', edge: '#A6F4C5', lip: '#6CE9A6' },
+  { k: 'move', name: 'Move', score: 54, metric: 'Momentum', act: '2,400 steps to go', note: 'A 15 minute walk closes it',
+    c: ['#E0EAFF', '#8098F9', '#6172F3', '#444CE7', '#2D31A6'], tint: '#EEF4FF', edge: '#C7D7FE', lip: '#A4BCFD' },
+  { k: 'mind', name: 'Mind', score: 72, metric: 'Rhythm', act: 'Wind down by 10 PM', note: 'Two calm nights in a row',
+    c: ['#CCFBEF', '#5FE9D0', '#2ED3B7', '#0E9384', '#134E48'], tint: '#F0FDF9', edge: '#99F6E0', lip: '#5FE9D0' },
+  { k: 'measure', name: 'Measure', score: 81, metric: 'Measure', act: 'Check your glucose', note: 'Fasting reading due',
+    c: ['#FEF7C3', '#FDE272', '#FAC515', '#CA8504', '#713B12'], tint: '#FEFBE8', edge: '#FEEE95', lip: '#FDE272' },
+];
+// GoodFlip pictograms (goodflip-design.vercel.app/foundations/pictograms): Nutrition, Movement, Stress ("stress and mind"), Lab tests
+const PIC = { eat: 'Nutrition', move: 'Movement', mind: 'Stress', measure: 'Lab-tests' };
+const icon = (k, sz = 22) => `<img class="pic" src="icons/pictograms/${PIC[k]}.png" alt="" width="${sz}" height="${sz}">`;
+const vars = p => `--orb:url(icons/orbs/${p.k}.svg);--o0:${p.c[0]};--o1:${p.c[1]};--o2:${p.c[2]};--o3:${p.c[3]};--o4:${p.c[4]};--edge:#C7D7FE;--lip:#C7D7FE;--tint:${p.tint};--ink:${p.c[3]};--deep:${p.c[4]}`;
+const orb = (x, y, r, on) => `<span class="orb${on ? '' : ' off'}" style="left:${x}px;top:${y}px;width:${2 * r}px;height:${2 * r}px"></span>`;
+// the score's own gauge in miniature: a 270° arc of orbs, filled up to the score
+function ring(p, size, n = 14, r0 = .2) {
+  const c = size / 2, R = size / 2 - size * r0 / 2, on = Math.round(p.score / 100 * n);
+  let h = '';
+  for (let i = 0; i < n; i++) { const a = (225 - i / (n - 1) * 270) * Math.PI / 180; h += orb(c + Math.cos(a) * R, c - Math.sin(a) * R, size * r0 * (i % 2 ? .3 : .38), i < on); }
+  return h;
+}
+
+// ------------------------------------------------------------------ variants
+const V = [];
+function arc(p, cx, cy, R, a0, a1, n, rBig, rSmall) {
+  const on = Math.round(p.score / 100 * n); let h = '';
+  for (let i = 0; i < n; i++) { const a = (a0 + (a1 - a0) * i / (n - 1)) * Math.PI / 180;
+    h += orb(cx + Math.cos(a) * R, cy - Math.sin(a) * R, i % 2 ? rSmall : rBig, i < on); }
+  return h;
+}
+const scoreBig = (p, sz = 28) => `<b class="num" style="font:700 ${sz}px/1 Roboto;letter-spacing:-.5px;color:${p.c[4]}">${p.score}</b>`;
+
+
+// 0. Sunrise, names below: the score in the arc's bowl, the pictogram top right, the score's name inside, the pillar's name under the card
+V.push({ name: 'Sunrise, names below', tag: 'Recommended', why: 'Sunrise with the pieces swapped: the score now sits in the bowl of the rising arc and the pictogram moves to the top right. Inside the card, top left, the score\'s own name (Sufficiency, Momentum, Rhythm). The pillar\'s name sits below the card, as on GoodFlip\'s service tiles.', css: `
+  .s0{display:grid;grid-template-columns:1fr 1fr;gap:16px 12px}
+  .s0 a{display:grid;gap:8px;justify-items:center;text-decoration:none;color:inherit}
+  .s0 .card{width:100%;height:132px;overflow:hidden;padding:10px 12px}
+  .s0 .top{display:flex;justify-content:space-between;align-items:flex-start}
+  .s0 .top .sub{font:500 13px/18px Roboto;color:var(--g-600)}
+  .s0 .sun{position:absolute;left:0;right:0;bottom:0;height:84px}
+  .s0 .sun .n{position:absolute;left:0;right:0;bottom:8px;text-align:center}
+  .s0 .nm{font:600 14px/18px Roboto;color:var(--g-900)}`,
+  html: () => `<div class="s0">${P.map(p => `<a href="#" style="${vars(p)}"><span class="card"><span class="top"><span class="sub">${p.metric}</span>${icon(p.k, 34)}</span>
+    <span class="sun">${arc(p, 81, 84, 62, 180, 0, 13, 6, 4.2)}<span class="n"><b class="num" style="font:700 28px/1 Roboto;letter-spacing:-.5px;color:#101828">${p.score}</b></span></span></span><span class="nm">${p.name}</span></a>`).join('')}</div>` });
+
+// 1. Orb gauge tiles: GoodFlip's square service tiles, the icon replaced by the score's own miniature gauge
+V.push({ name: 'Orb gauge tiles', why: 'GoodFlip\'s square service tiles, four across. The illustration slot holds a miniature of each pillar\'s real gauge, so the home screen previews exactly what opens.', css: `
+  .t1{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .t1 a{display:grid;justify-items:center;gap:8px;text-decoration:none;color:inherit}
+  .t1 .card{width:100%;aspect-ratio:1;display:grid;place-items:center}
+  .t1 .g{position:relative;width:62px;height:62px}
+  .t1 .g b{position:absolute;inset:0;display:grid;place-items:center;font:700 17px/1 Roboto;color:var(--deep)}
+  .t1 .lab{text-align:center}.t1 .sub{display:block;text-align:center;margin-top:1px}`,
+  html: () => `<div class="t1">${P.map(p => `<a href="#" style="${vars(p)}"><span class="card"><span class="g">${ring(p, 62, 12, .24)}<b class="num">${p.score}</b></span></span><span><span class="lab">${p.name}</span><span class="sub">${p.metric}</span></span></a>`).join('')}</div>` });
+
+// 2. Action tiles with a score badge: the job leads, the score rides on the corner
+V.push({ name: 'Pictogram tile, score on the corner', why: 'GoodFlip\'s two-up card: the pictogram and the pillar\'s name, with the score as a small orb badge riding the corner.', css: `
+  .t2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .t2 .card{display:flex;flex-direction:column;gap:12px;padding:14px;min-height:104px;text-decoration:none;color:inherit}
+  .t2 .ic{width:44px;height:44px;display:grid;place-items:center}
+  .t2 .ic .ico{width:22px;height:22px}
+  .t2 .badge{position:absolute;top:-9px;right:12px;display:flex;align-items:center;gap:6px;padding:3px 9px 3px 3px;border-radius:999px;background:#fff;
+    border:1.5px solid var(--edge);font:700 13px/16px Roboto;color:var(--deep)}
+  .t2 .badge .b{position:relative;width:18px;height:18px}
+  .t2 .lab{font-size:15px;line-height:20px}`,
+  html: () => `<div class="t2">${P.map(p => `<a href="#" class="card" style="${vars(p)}"><span class="badge"><span class="b">${orb(9, 9, 9, true)}</span><span class="num">${p.score}</span></span>
+    <span class="ic">${icon(p.k, 44)}</span><span><span class="lab" style="display:block;font-size:16px">${p.name}</span><span class="sub">${p.metric}</span></span></a>`).join('')}</div>` });
+
+
+// ---- new: pictogram, score, one small visual, one card each ----
+
+// arcs built from orbs: a stretch of a circle (start/end angles in degrees, 0 = right, counter-clockwise), lit up to the score
+
+// A. Sunrise: a half gauge rising from the card's bottom edge, the pictogram sitting in its bowl
+V.push({ name: 'Sunrise', tag: 'New', why: 'The score\'s semicircle of orbs rises out of the bottom edge of each card like a sunrise, the pictogram sitting in its bowl. Score and name sit above. One glance gives all three.', css: `
+  .a1{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .a1 .card{height:150px;overflow:hidden;padding:12px 14px;text-decoration:none;color:inherit}
+  .a1 .top{display:flex;justify-content:space-between;align-items:baseline}
+  .a1 .sun{position:absolute;left:0;right:0;bottom:0;height:90px}
+  .a1 .sun img{position:absolute;left:50%;bottom:6px;transform:translateX(-50%)}`,
+  html: () => `<div class="a1">${P.map(p => `<a href="#" class="card" style="${vars(p)}"><span class="top"><span class="lab">${p.name}</span>${scoreBig(p, 24)}</span>
+    <span class="sun">${arc(p, 81, 86, 66, 180, 0, 13, 6.5, 4.5)}${icon(p.k, 52)}</span></a>`).join('')}</div>` });
+
+// B. Halo: the pictogram inside a full ring of orbs, the number under it
+V.push({ name: 'Halo', tag: 'New', why: 'The score\'s ring wraps the pictogram itself, so the pillar and how full it is read as one object. The number sits underneath, alone. Four squares, the cleanest of the set.', css: `
+  .a2{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .a2 .card{display:grid;justify-items:center;gap:4px;padding:12px 4px 10px;text-decoration:none;color:inherit}
+  .a2 .h{position:relative;width:64px;height:64px}
+  .a2 .h img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}`,
+  html: () => `<div class="a2">${P.map(p => `<a href="#" class="card" style="${vars(p)}"><span class="h">${arc(p, 32, 32, 27, 225, -45, 13, 4.6, 3.4)}${icon(p.k, 32)}</span>${scoreBig(p, 20)}<span class="sub">${p.name}</span></a>`).join('')}</div>` });
+
+// C. Corner arc: a quarter of the gauge hugging the top-right corner
+V.push({ name: 'Corner arc', tag: 'New', why: 'A quarter of the gauge hugs the top-right corner of each card, lit from the bottom up to the score. The pictogram and the number stack on the left. Feels like a crop of the real score.', css: `
+  .a3{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .a3 .card{height:116px;overflow:hidden;padding:12px 14px;text-decoration:none;color:inherit}
+  .a3 .q{position:absolute;right:0;top:0;width:100px;height:100px}
+  .a3 .meta{position:absolute;left:14px;bottom:12px}`,
+  html: () => `<div class="a3">${P.map(p => `<a href="#" class="card" style="${vars(p)}"><span class="q">${arc(p, 100, 0, 62, 258, 192, 8, 6, 4.4)}</span>${icon(p.k, 40)}<span class="meta">${scoreBig(p, 26)}<span class="sub" style="display:block">${p.name}</span></span></a>`).join('')}</div>` });
+
+// D. Smile: a shallow arc under the pictogram, the score at its tip
+V.push({ name: 'Smile', tag: 'New', why: 'A shallow arc of orbs curves under the pictogram like a smile, lit left to right to the score, with the number set at the arc\'s right tip where the fill would reach 100. Friendly and compact.', css: `
+  .a4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .a4 .card{min-width:0;display:grid;justify-items:center;padding:12px 4px 8px;text-decoration:none;color:inherit}
+  .a4 .s{position:relative;width:64px;height:26px;margin-top:-6px}`,
+  html: () => `<div class="a4">${P.map(p => `<a href="#" class="card" style="${vars(p)}">${icon(p.k, 40)}<span class="s">${arc(p, 32, -24, 42, 235, 305, 9, 3.8, 2.9)}</span>${scoreBig(p, 18)}<span class="sub">${p.name}</span></a>`).join('')}</div>` });
+
+// E. Orb meter: a row of ten orbs along the card's foot, pictogram and score above
+V.push({ name: 'Orb meter', tag: 'New', why: 'Ten orbs run along the foot of each card, lit to the score: the simplest possible meter, still in the score\'s own orbs. Pictogram left, number right.', css: `
+  .a5{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .a5 .card{padding:12px 14px 14px;text-decoration:none;color:inherit}
+  .a5 .r{display:flex;justify-content:space-between;align-items:center}
+  .a5 .m{position:relative;height:12px;margin-top:10px}`,
+  html: () => `<div class="a5">${P.map(p => `<a href="#" class="card" style="${vars(p)}"><span class="r">${icon(p.k, 40)}<span style="text-align:right">${scoreBig(p, 24)}<span class="sub" style="display:block">${p.name}</span></span></span>
+    <span class="m">${Array.from({ length: 10 }, (_, i) => orb(6 + i * 14.2, 6, 5.4, i < Math.round(p.score / 10))).join('')}</span></a>`).join('')}</div>` });
+
+// F. Moon: the pictogram is the planet, a crescent of orbs orbits its lower half
+V.push({ name: 'Moonrise', tag: 'New', why: 'A wide, low card per pillar in a list. A crescent of orbs swings under the pictogram from left to right, filled to the score, the number large on the right. Calm, reads beautifully stacked.', css: `
+  .a6{display:grid;gap:10px}
+  .a6 .card{display:flex;align-items:center;gap:14px;padding:10px 16px;text-decoration:none;color:inherit}
+  .a6 .m{position:relative;width:64px;height:64px;flex:none}
+  .a6 .m img{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%)}
+  .a6 .n{margin-left:auto}`,
+  html: () => `<div class="a6">${P.map(p => `<a href="#" class="card" style="${vars(p)}"><span class="m">${arc(p, 32, 30, 28, 200, 340, 9, 4.6, 3.4)}${icon(p.k, 36)}</span><span><span class="lab" style="font-size:16px">${p.name}</span><span class="sub" style="display:block">${p.metric}</span></span><span class="n">${scoreBig(p, 28)}</span></a>`).join('')}</div>` });
+
+// G. Rising dome: the gauge as a big dome in the lower half, number inside, pictogram above
+V.push({ name: 'Dome', tag: 'New', why: 'Taller cards where the lower half is the score\'s dome: a semicircle of orbs cut by the card\'s bottom edge with the number inside it, the pictogram floating above. The closest to the real Eat score at a glance.', css: `
+  .a7{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .a7 .card{height:168px;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding-top:12px;text-decoration:none;color:inherit}
+  .a7 .d{position:absolute;left:0;right:0;bottom:0;height:96px}
+  .a7 .d .n{position:absolute;left:0;right:0;bottom:12px;text-align:center}`,
+  html: () => `<div class="a7">${P.map(p => `<a href="#" class="card" style="${vars(p)}">${icon(p.k, 44)}<span class="lab" style="margin-top:2px">${p.name}</span>
+    <span class="d">${arc(p, 81, 100, 64, 175, 5, 13, 6.2, 4.4)}<span class="n">${scoreBig(p, 30)}</span></span></a>`).join('')}</div>` });
+
+// H. Spine: orbs stacked up the card's left edge like a thermometer
+V.push({ name: 'Spine', tag: 'New', why: 'A column of orbs climbs the card\'s left edge, filling from the bottom to the score like a thermometer. Pictogram and number to the right. Four tall slim cards side by side.', css: `
+  .a8{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .a8 .card{height:132px;padding:10px 8px 10px 26px;display:flex;flex-direction:column;justify-content:space-between;text-decoration:none;color:inherit}
+  .a8 .sp{position:absolute;left:12px;top:10px;bottom:10px;width:10px}`,
+  html: () => `<div class="a8">${P.map(p => `<a href="#" class="card" style="${vars(p)}"><span class="sp">${Array.from({ length: 8 }, (_, i) => orb(5, 107 - i * 14.6, 4.6, i < Math.round(p.score / 12.5))).join('')}</span>${icon(p.k, 36)}<span>${scoreBig(p, 22)}<span class="sub" style="display:block">${p.name}</span></span></a>`).join('')}</div>` });
+
+
+// ---- names below the cards, after GoodFlip's service tiles; each built on one Gestalt principle ----
+// a tile, then the pillar's name under it: proximity binds the name to its tile, similarity binds the four tiles together
+const under = (p, inner, cls = '') => `<a href="#" class="ut ${cls}" style="${vars(p)}"><span class="card">${inner}</span><span class="nm"><span class="lab">${p.name}</span><span class="sub">${p.metric}</span></span></a>`;
+const UT = `.ut{display:grid;justify-items:center;gap:8px;text-decoration:none;color:inherit;min-width:0}
+  .ut .card{width:100%;aspect-ratio:1;overflow:hidden}
+  .ut .nm{display:grid;justify-items:center;gap:1px;text-align:center}
+  .u4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}`;
+
+// U1. Closure: a 270° arc of orbs round the pictogram, the score pill closing the gap
+V.push({ name: 'Closed by the score', tag: 'Gestalt: closure', why: 'An open ring of orbs circles the pictogram, and the score sits in the ring\'s gap as a small pill, so the eye closes the circle through the number. Name under the tile.', css: UT + `
+  .b1 .card{display:grid;place-items:center}
+  .b1 .r{position:relative;width:66px;height:66px}
+  .b1 .r img{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%)}
+  .b1 .pill{position:absolute;left:50%;bottom:-3px;transform:translateX(-50%);padding:1px 7px;border-radius:999px;background:#fff;
+    box-shadow:0 0 0 1.5px var(--edge);font:700 13px/16px Roboto;color:var(--deep)}`,
+  html: () => `<div class="u4 b1">${P.map(p => under(p, `<span class="r">${arc(p, 33, 33, 28, 240, -60, 13, 4.4, 3.2)}${icon(p.k, 34)}<b class="pill num">${p.score}</b></span>`)).join('')}</div>` });
+
+// U2. Continuity: the gauge's arc runs out of the tile's foot and the name sits in its bowl
+V.push({ name: 'The arc carries on', tag: 'Gestalt: continuity', why: 'The top half of the score\'s arc lives inside the tile around the pictogram and number; the eye follows it down past the tile\'s edge to the name sitting where the circle would close. Tile and name read as one figure.', css: UT + `
+  .b2 .card{position:relative}
+  .b2 .in{position:absolute;inset:0;display:grid;justify-items:center;align-content:end;padding-bottom:8px;gap:0}
+  .b2 .g{position:absolute;inset:0}`,
+  html: () => `<div class="u4 b2">${P.map(p => under(p, `<span class="g">${arc(p, 41, 64, 34, 180, 0, 11, 4.4, 3.2)}</span><span class="in">${icon(p.k, 32)}${scoreBig(p, 17)}</span>`)).join('')}</div>` });
+
+// U3. Common fate: the score badge breaks the tile's bottom border, half in, half out
+V.push({ name: 'Badge on the edge', tag: 'Gestalt: common region', why: 'Just the pictogram inside the tile, as on GoodFlip\'s service tiles. The score is a badge with its own orb, straddling the tile\'s bottom edge, so it belongs to the tile and points down to the name.', css: UT + `
+  .u4.b3 .card{overflow:visible;display:grid;place-items:center}
+  .b3 .bd{position:absolute;left:50%;bottom:-11px;transform:translateX(-50%);display:flex;align-items:center;gap:4px;padding:2px 8px 2px 3px;
+    border-radius:999px;background:#fff;border:1.5px solid var(--edge);font:700 13px/16px Roboto;color:var(--deep)}
+  .b3 .bd i{position:relative;width:14px;height:14px}
+  .b3 .nm{margin-top:10px}`,
+  html: () => `<div class="u4 b3">${P.map(p => under(p, `${icon(p.k, 48)}<span class="bd"><i>${orb(7, 7, 7, true)}</i><span class="num">${p.score}</span></span>`)).join('')}</div>` });
+
+// U4. Continuity round the edge: the tile's own outline is drawn in orbs, lit to the score
+function perimeter(p, w, h, r, n) {
+  // points round a rounded rectangle, clockwise from the middle of the bottom edge
+  const pts = [], L = 2 * (w - 2 * r) + 2 * (h - 2 * r) + 2 * Math.PI * r;
+  for (let i = 0; i < n; i++) {
+    let d = (i / n) * L + (w / 2 - r) + (h - 2 * r) + Math.PI * r / 2 + (w - 2 * r) + Math.PI * r / 2;   // start at bottom middle
+    d %= L; let x, y; const segs = [[w - 2 * r, (t) => [r + t, 0]], [Math.PI * r / 2, (t) => [w - r + r * Math.sin(t / r), r - r * Math.cos(t / r)]],
+      [h - 2 * r, (t) => [w, r + t]], [Math.PI * r / 2, (t) => [w - r + r * Math.cos(t / r), h - r + r * Math.sin(t / r)]],
+      [w - 2 * r, (t) => [w - r - t, h]], [Math.PI * r / 2, (t) => [r - r * Math.sin(t / r), h - r + r * Math.cos(t / r)]],
+      [h - 2 * r, (t) => [0, h - r - t]], [Math.PI * r / 2, (t) => [r - r * Math.cos(t / r), r - r * Math.sin(t / r)]]];
+    for (const [len, f] of segs) { if (d <= len) { [x, y] = f(d); break; } d -= len; }
+    pts.push([x, y]);
+  }
+  const on = Math.round(p.score / 100 * n);
+  return pts.map(([x, y], i) => orb(x, y, 3.4, i < on)).join('');
+}
+V.push({ name: 'Orb outline', tag: 'Gestalt: continuity', why: 'The tile\'s border itself is a string of orbs, lit clockwise from the bottom to the score, so the card is the gauge. Pictogram and number inside, name under it. No ring needed: the edge is the ring.', css: UT + `
+  .u4.b4 .card{border:0;box-shadow:none;background:transparent;overflow:visible}
+  .b4 .o{position:absolute;left:5px;top:5px}
+  .b4 .in{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:2px}`,
+  html: () => `<div class="u4 b4">${P.map(p => under(p, `<span class="o">${perimeter(p, 68, 68, 14, 22)}</span><span class="in">${icon(p.k, 32)}${scoreBig(p, 16)}</span>`)).join('')}</div>` });
+
+// U5. Figure-ground: the tile fills with the pillar's tint to its score, orbs riding the waterline
+V.push({ name: 'Filled tile', tag: 'Gestalt: figure-ground', why: 'The tile\'s own ground rises in a pale tint to the score, with a line of orbs riding the waterline. The level is the background, so the pictogram and number stay the figure. Name under it.', css: UT + `
+  .b5 .card{display:grid;place-content:center;justify-items:center;gap:2px}
+  .b5 .lv{position:absolute;left:0;right:0;bottom:0;height:var(--h);background:linear-gradient(180deg,var(--tint),color-mix(in srgb,var(--o1) 30%,#fff))}
+  .b5 .wl{position:absolute;left:0;right:0;bottom:var(--h);height:0}
+  .b5 img,.b5 b{position:relative}`,
+  html: () => `<div class="u4 b5">${P.map(p => under(p, `<span class="lv" style="--h:${p.score}%"></span><span class="wl" style="--h:${p.score}%">${Array.from({ length: 6 }, (_, i) => orb(8 + i * 13, 0, i % 2 ? 2.6 : 3.4, true)).join('')}</span>${icon(p.k, 34)}${scoreBig(p, 16)}`)).join('')}</div>` });
+
+// U6. Two-up: a wider tile pairing pictogram and a half gauge, name and score name below
+V.push({ name: 'Pictogram and gauge, side by side', tag: 'Gestalt: proximity', why: 'Two across. Each tile pairs the pictogram on the left with the score\'s half gauge on the right, number inside it; the name and score name sit below, outside, in GoodFlip\'s service-tile style. Roomier, so every part breathes.', css: UT + `
+  .u2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .b6 .card{aspect-ratio:auto;height:88px;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
+  .b6 .g{position:relative;width:70px;height:44px;margin-top:10px}
+  .b6 .g b{position:absolute;left:0;right:0;bottom:-2px;text-align:center}`,
+  html: () => `<div class="u2 b6">${P.map(p => under(p, `${icon(p.k, 46)}<span class="g">${arc(p, 35, 40, 31, 180, 0, 11, 4.2, 3)}<b>${scoreBig(p, 18)}</b></span>`)).join('')}</div>` });
+
+// 9. Swatches: a horizontal carousel of tall cards, each a cut of its own gauge
+V.push({ name: 'Tall carousel', why: 'Tall cards in a horizontal scroll, each a crop of its pillar\'s gauge running off the top edge, number under it, pictogram at the foot. Rich and immersive, at the cost of one swipe to see Measure.', css: `
+  .t9{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;margin:0 -16px;padding:4px 16px 8px}
+  .t9 .card{flex:0 0 140px;height:186px;padding:0 12px 12px;overflow:hidden;text-decoration:none;color:inherit;display:flex;flex-direction:column;background:linear-gradient(180deg,var(--tint),#fff 70%)}
+  .t9 .g{position:relative;width:150px;height:150px;margin:-62px 0 0 -17px;flex:none}
+  .t9 .n{margin-top:-30px;font:700 30px/1 Roboto;color:var(--deep)}
+  .t9 .foot{margin-top:auto;display:flex;align-items:center;gap:6px;color:var(--ink);font:600 12px/16px Roboto}`,
+  html: () => `<div class="t9">${P.map(p => `<a href="#" class="card" style="${vars(p)}"><span class="g">${ring(p, 150, 16, .16)}</span><span class="n num">${p.score}</span><span class="sub">${p.name} · ${p.metric}</span><span class="foot">${icon(p.k, 30)}</span></a>`).join('')}</div>` });
+
+// ------------------------------------------------------------------ render
+document.getElementById('legend').innerHTML = P.map(p => `<span style="${vars(p)}"><span style="position:relative;width:18px;height:18px">${orb(9, 9, 9, true)}</span>${p.name} · ${p.metric} ${p.score}</span>`).join('');
+const style = document.createElement('style'); style.textContent = V.map(v => v.css).join('\n'); document.head.append(style);
+document.getElementById('grid').innerHTML = V.map((v, i) => `<div class="v"><div class="cap">${v.tag ? `<span class="tag${v.tag === 'Recommended' ? ' rec' : ''}">${v.tag}</span>` : ''}<h2>${i + 1}. ${v.name}</h2><p>${v.why}</p></div>
+  <div class="home"><div class="hh"><h3>Your day</h3><span>Tap one to open it</span></div>${v.html()}</div></div>`).join('');
+document.querySelectorAll('a[href="#"]').forEach(a => a.addEventListener('click', e => e.preventDefault()));
+</script>
+</body>
+</html>

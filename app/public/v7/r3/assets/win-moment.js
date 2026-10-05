@@ -38,6 +38,8 @@
     ".wm .disc path{fill:none;stroke:#fff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:76;stroke-dashoffset:76}",
     ".wm .d{font:700 46px/46px Roboto,sans-serif;letter-spacing:-1px}",
     ".wm .d s{text-decoration:none;font-size:20px;opacity:.72}",
+    /* the gain is a share of the day, so it reads in % like the score: a small raised sign, as on the score */
+    ".wm .pc{display:inline-block;vertical-align:top;margin-left:.06em;font-size:.4em;line-height:1;letter-spacing:0;opacity:.85}",
     ".wm p{margin:10px 0 0;font:400 15px/22px Roboto,sans-serif;color:rgba(255,255,255,.94)}",
     ".wm .m{display:block;margin-top:4px;font:400 14px/20px Roboto,sans-serif;color:rgba(255,255,255,.74)}",
     /* ---- final screen layouts ---- */
@@ -256,29 +258,29 @@
       var meta = d.n + (d.n === 1 ? " item" : " items") + " · " + d.meal + (d.queued ? ", sends when you are back" : "");
       var from = +(Q.get("from") || 45), to = Math.min(100, from + d.d);
       if (LAYOUT === "A") return '<div class="disc">' + TICK.replace('width="34" height="34"', 'width="40" height="40"') + '</div>' +
-        '<div class="d" data-in=".1">+<b data-from="0" data-to="' + d.d + '">0</b><s> points</s></div><p data-in=".25">' + d.moved + '</p><span class="m" data-in=".35">' + d.sub + "</span>";
+        '<div class="d" data-in=".1">+<b data-from="0" data-to="' + d.d + '">0</b><span class="pc">%</span></div><p data-in=".25">' + d.moved + '</p><span class="m" data-in=".35">' + d.sub + "</span>";
       /* B: as little as possible. The tick, the gain, and one plain line saying what earned it. */
       /* B: the tick names what was logged, the gain stands alone, one line says what it is */
       if (LAYOUT === "B") return '<span class="logged"><span class="disc solid">' + TICK.replace(/34/g, "16") + '</span>' + d.meal + ' logged</span>' +
-        '<span class="n" data-in=".12">+<span data-from="0" data-to="' + d.d + '">0</span></span>' +
+        '<span class="n" data-in=".12">+<span data-from="0" data-to="' + d.d + '">0</span><span class="pc">%</span></span>' +
         '<p class="say" data-in=".3">' + (d.queued ? "Saved on your phone. Your score updates when you're back online."
-          : "points added to your sufficiency score") + "</p>";
+          : "added to your sufficiency score") + "</p>";
       if (LAYOUT === "C") {
         var r = 84, len = 2 * Math.PI * r;
         return '<div class="gauge"><svg viewBox="0 0 188 188"><circle cx="94" cy="94" r="' + r + '" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="8" stroke-dasharray="' + len * .75 + ' ' + len + '" stroke-linecap="round" transform="rotate(135 94 94)"/>' +
           '<circle class="arc" data-len="' + len + '" data-a="' + from / 100 + '" data-b="' + to / 100 + '" cx="94" cy="94" r="' + r + '" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-dasharray="' + len + '" stroke-dashoffset="' + len + '" transform="rotate(135 94 94)"/></svg>' +
           '<div class="in"><div class="disc solid" style="width:30px;height:30px;margin:0 0 6px;box-shadow:none">' + TICK.replace(/34/g, "18") + '</div><div class="pct"><span data-from="' + from + '" data-to="' + to + '" data-at=".2">' + from + '</span><s>%</s></div>' +
-          '<span class="gain" data-in=".6">+' + d.d + ' points</span></div></div>' +
+          '<span class="gain" data-in=".6">+' + d.d + '%</span></div></div>' +
           '<div class="ttl" data-in=".3">' + d.meal + ' is logged</div><div class="sub2" data-in=".42">' + (d.queued ? d.moved : NAME[d.key] + " moved most") + " · " + d.n + (d.n === 1 ? " item" : " items") + "</div>";
       }
       if (LAYOUT === "D") return '<div class="disc solid">' + TICK + '</div>' +
-        '<div class="big" data-in=".1">+<span data-from="0" data-to="' + d.d + '">0</span><small>points on today\'s score</small></div>' +
+        '<div class="big" data-in=".1">+<span data-from="0" data-to="' + d.d + '">0</span><span class="pc">%</span><small>added to today\'s score</small></div>' +
         '<div class="macs">' + ["p", "c", "f", "fibre"].map(function (k, i) {
           return '<div class="mc' + (k === d.key ? " top" : "") + '" data-in="' + (.3 + i * .08) + '"><i class="glyph-' + GLY[k] + '"></i><b>+<span data-from="0" data-to="' + Math.round(d.g[k]) + '" data-at="' + (.35 + i * .08) + '">0</span>g</b><span>' + (k === d.key ? "Moved most" : NAME[k]) + "</span></div>";
         }).join("") + '</div><span class="meta" data-in=".7">' + meta + "</span>";
       /* E */
       return '<div class="row1" data-in="0"><div class="disc solid">' + TICK.replace(/34/g, "18") + '</div>' + d.meal + ' is logged</div>' +
-        '<div class="huge" data-in=".1">+<span data-from="0" data-to="' + d.d + '">0</span></div><p data-in=".2">points on today\'s score, ' + (d.queued ? "saved on your phone" : NAME[d.key].toLowerCase() + " moved most") + '</p>' +
+        '<div class="huge" data-in=".1">+<span data-from="0" data-to="' + d.d + '">0</span><span class="pc">%</span></div><p data-in=".2">added to today\'s score, ' + (d.queued ? "saved on your phone" : NAME[d.key].toLowerCase() + " moved most") + '</p>' +
         '<div class="rcpt" data-in=".35">' + (d.lines || []).map(function (l) { return "<div><span>" + l.name + "</span><span>" + l.kcal + " kcal</span></div>"; }).join("") +
         '<div class="tot"><span>' + d.n + (d.n === 1 ? " item" : " items") + '</span><span>' + d.kcal + ' kcal</span></div></div>';
     }

@@ -71,7 +71,7 @@
     "  float k = pow(1. - smoothstep(0., 1., y), 1.6)*(.55 + .45*streak)*uK;",
     "  vec3 c = mix(vec3(.27, .3, .9), vec3(.52, .38, .96), smoothstep(.3, .7, band));",
     "  c = mix(c, vec3(.13, .7, .78), smoothstep(.45, .9, p.x/uRes.x + (band - .5)*.8));",
-    "  o = over(o, c, k*.42);",
+    "  o = over(o, c, k*.26);   // a lighter curtain, so it sits under the page rather than on it",
     "  gl_FragColor = o;",
     "}"
   ].join("\n");

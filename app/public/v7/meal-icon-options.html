@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meal Icon Options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root { --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467;
+    --g-700:#344054; --g-900:#101828; --in-25:#F5F8FF; --in-50:#EEF4FF; --in-600:#444CE7; --red-600:#D92D20;
+    --r-xl:24px; --r-pill:9999px; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; font-family: Roboto, system-ui, sans-serif; letter-spacing: .25px; color: var(--g-900); }
+  .page { max-width: 1240px; margin: 0 auto; padding: 40px 24px 80px; }
+  h1 { font-size: 28px; line-height: 36px; font-weight: 600; margin: 0 0 8px; }
+  .lede { max-width: 860px; font-size: 15px; line-height: 24px; color: var(--g-600); margin: 0 0 40px; }
+  section.dir { padding: 32px 0; border-top: 1px solid var(--g-100); }
+  .dhead h2 { margin: 0 0 4px; font: 600 20px/28px Roboto; }
+  .dhead p { margin: 0 0 8px; max-width: 760px; font-size: 14px; line-height: 22px; color: var(--g-600); }
+  .tagp { display: inline-block; margin: 0 0 6px; padding: 1px 8px; border-radius: 999px; font: 600 11px/16px Roboto; letter-spacing: .6px;
+    text-transform: uppercase; color: var(--g-600); background: var(--g-100); }
+  .tagp.rec { color: #027A48; background: #ECFDF3; }
+  .score { margin: 8px 0 24px; font-size: 13px; line-height: 20px; display: grid; gap: 2px; }
+  .ok { color: #039855; } .no { color: var(--red-600); } .mid { color: var(--g-500); }
+  .row { display: flex; flex-wrap: wrap; gap: 48px; align-items: flex-start; }
+  .strip { display: flex; gap: 16px; padding: 16px 20px; border: 1px solid var(--g-100); border-radius: 16px; }
+  .strip figure { margin: 0; width: 64px; display: grid; justify-items: center; gap: 8px; }
+  .strip img { width: 40px; height: 40px; display: block; }
+  .strip figcaption { font-size: 11px; line-height: 14px; color: var(--g-500); text-align: center; }
+  .cards { width: 360px; display: grid; gap: 16px; }
+  .miss { width: 40px; height: 40px; border-radius: 12px; border: 1.5px dashed var(--g-200); }
+  .note { font-size: 12px; line-height: 18px; color: var(--g-500); margin: 12px 0 0; }
+
+  /* ---- card header, as on r3/eat.html ---- */
+  .meal { border-radius: var(--r-xl); border: 1px solid transparent; box-shadow: 2px 2px 0 var(--g-200);
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 29%, #fff 100%) padding-box,
+      conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; }
+  .mh { display: flex; align-items: center; gap: 12px; padding: 16px; }
+  .mh .ico { width: 40px; height: 40px; flex-shrink: 0; display: block; }
+  .mh .t { flex: 1; min-width: 0; }
+  .mh .n { font-size: 16px; line-height: 22px; font-weight: 600; }
+  .mh .s { font-size: 12px; line-height: 18px; color: var(--g-500); margin-top: 2px; }
+  .mbi { margin: 0 16px; padding: 12px 0 16px; border-top: 1px solid var(--g-100); }
+  .chips { display: flex; gap: 8px; }
+  .chip { height: 32px; padding: 0 14px; display: inline-flex; align-items: center; border-radius: 9999px; border: 1px solid var(--g-200);
+    background: #fff; font-size: 14px; font-weight: 600; color: var(--g-700); }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Meal icons</h1>
+  <p class="lede">Six meal cards in a row all look the same today: a title and a time. An icon to the left of the title gives each meal a face you can find without reading. Every direction below draws the same six meals (morning tea, idli, a thali, makhana, a handi, warm milk) so the style is the only thing that changes. Each shows the set at the real 40px size, then three real card headers from the Eat screen.</p>
+  <div id="dirs"></div>
+</div>
+
+<script>
+const MEALS = [
+  { id: 'pre', name: 'Pre-breakfast', time: '6:00–7:00 AM', kcal: 10 },
+  { id: 'bf', name: 'Breakfast', time: '8:00–10:00 AM', kcal: 278 },
+  { id: 'lunch', name: 'Lunch', time: '1:00–3:00 PM', kcal: 464 },
+  { id: 'snack', name: 'Evening snack', time: '5:00–6:30 PM', kcal: 278 },
+  { id: 'dinner', name: 'Dinner', time: '8:00–9:30 PM', kcal: 444 },
+  { id: 'bed', name: 'Bedtime', time: '10:00–11:00 PM', kcal: 58 },
+];
+const IN_CONTEXT = ['pre', 'lunch', 'bed'];
+
+const DIRS = [
+  { dir: 'daylight', ext: 'svg', name: 'B. Daylight tiles', tag: 'Recommended', rec: true,
+    why: 'A small sky behind each meal that walks the sun across the day: dawn, morning, noon, golden hour, dusk, night. The food sits in front in white. The six cards read as one day from top to bottom.',
+    score: [['ok', 'Tells the time of day before you read the time line'], ['ok', 'Most delight per pixel, and still calm: no outlines on the sky, soft gradients only'],
+      ['ok', 'Each tile has its own colour, so meals are told apart by colour first and shape second'],
+      ['no', 'A new art style, outside the pictogram and line icon families'], ['mid', 'Night tiles are the darkest thing on the card; worth checking against the indigo wash on device']] },
+  { dir: 'sticker', ext: 'svg', name: 'A. Pictogram stickers', tag: 'Option',
+    why: 'GoodFlip\'s own pictogram language: navy outline, green gradient face, white surfaces, one halftone side. Six new members of the Nutrition and Sleep family.',
+    score: [['ok', 'Already on brand, matches the pictograms used across the app'], ['ok', 'Most recognisable shapes: the outline carries them at 40px'],
+      ['no', 'The design system keeps pictograms for one important, tappable card. Six in a column is heavy'],
+      ['no', 'All six are the same green, so only the shape tells them apart'], ['mid', 'Halftone sides turn to grey texture below 48px']] },
+  { dir: 'line', ext: 'svg', name: 'C. Line and badge', tag: 'Option',
+    why: 'The 2px rounded line icon style in brand green, on a pale green disc, with one small badge (sunrise, sun, noon, sunset, moon, night) as the only accent.',
+    score: [['ok', 'Quietest; closest to the line icons already on the card'], ['ok', 'The badge carries the time of day as a system, easy to extend'],
+      ['no', 'Least delight; risks looking like the generic cards we are trying to fix'], ['mid', 'Sunrise and sunset badges are close at 40px']] },
+  { dir: 'gemini', ext: 'png', name: 'D. GoodFlip pictograms, generated', tag: 'From the design system prompt', gemini: true,
+    why: 'Made in Gemini with the design system\'s own pictogram prompt, untouched, one subject per meal and no secondary elements: warm lemon water, a breakfast bowl with a sun, a steel tiffin, cutting chai, a thali, a mug of milk with a moon. The real house style, not a redraw.',
+    score: [['ok', 'Exactly the house pictogram language: extruded face, dotted side wall, navy cap and outline'], ['ok', 'Indian, specific objects; the tiffin and cutting chai read instantly'],
+      ['no', 'The design system keeps pictograms for one important, tappable card. Six in a column is heavy'],
+      ['mid', 'All one green, so shape alone tells them apart; the two glasses are the closest pair']] },
+];
+
+const src = (d, id) => `icons/meals/${d.dir}/${id}.${d.ext}`;
+const img = (d, id, cls) => d.gemini
+  ? `<img class="${cls}" src="${src(d, id)}" alt="" onerror="this.outerHTML='<div class=&quot;${cls} miss&quot;></div>'">`
+  : `<img class="${cls}" src="${src(d, id)}" alt="">`;
+
+document.getElementById('dirs').innerHTML = DIRS.map(d => `
+  <section class="dir">
+    <div class="dhead">
+      <span class="tagp${d.rec ? ' rec' : ''}">${d.tag}</span>
+      <h2>${d.name}</h2>
+      <p>${d.why}</p>
+    </div>
+    ${d.score.length ? `<div class="score">${d.score.map(([c, t]) => `<span class="${c}">${c === 'ok' ? '+' : c === 'no' ? '−' : '·'} ${t}</span>`).join('')}</div>` : '<div class="score"></div>'}
+    <div class="row">
+      <div>
+        <div class="strip">${MEALS.map(m => `<figure>${img(d, m.id, '')}<figcaption>${m.name}</figcaption></figure>`).join('')}</div>
+        ${d.gemini ? `<p class="note" id="gnote">Coming. The dashed slots fill in once the six files land in icons/meals/gemini/.</p>` : ''}
+      </div>
+      <div class="cards">${MEALS.filter(m => IN_CONTEXT.includes(m.id)).map(m => `
+        <section class="meal"><div class="mh">${img(d, m.id, 'ico')}
+          <div class="t"><div class="n">${m.name}</div><div class="s">Suggested ${m.time} · ${m.kcal} kcal planned</div></div></div>
+          <div class="mbi"><div class="chips"><span class="chip">Option 1</span><span class="chip">Option 2</span></div></div></section>`).join('')}
+      </div>
+    </div>
+  </section>`).join('');
+
+/* once every Gemini file has loaded, the "coming" note has nothing left to say */
+const gImgs = [...document.querySelectorAll('img[src*="/gemini/"]')];
+Promise.all(gImgs.map(i => i.decode().then(() => true, () => false))).then(r => {
+  if (r.every(Boolean)) { const n = document.getElementById('gnote'); if (n) n.remove(); }
+});
+</script>
+</body>
+</html>

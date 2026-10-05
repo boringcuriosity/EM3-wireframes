@@ -472,7 +472,7 @@ const VARIANTS = [
   { name: 'Orbs',     ...ORB, lift: .88, edgeAmt: .3, orbs: true, ...ORB_INK },
   { name: 'Pearl',    ...ORB, sky: ['pearl', 'pearlsoft'], lift: .55, edge: [.64, .7, .76], edgeAmt: .3, rim: .15, glow: [.94, .96, .96], glowS: .45, aura: .35, orbs: true,
     ink: '#1d2939', inkShadow: '0 1px 12px rgba(255, 255, 255, .6)' },
-  { name: 'Cloud Drop', ...ORB, speed: 2.3, sky: ['cloud', 'cloudsoft'], introSky: ['orb', 'orbsoft'], local: true, lift: .5, edge: [.7, .82, .76], edgeAmt: .3, rim: 1, glow: [.88, .96, .92], glowS: .55, aura: .6, orbs: true,
+  { name: 'Cloud Drop', ...ORB, speed: 3, sky: ['cloud', 'cloudsoft'], introSky: ['orb', 'orbsoft'], local: true, lift: .5, edge: [.7, .82, .76], edgeAmt: .3, rim: 1, glow: [.88, .96, .92], glowS: .55, aura: .6, orbs: true,
     ink: '#1d2939', inkShadow: '0 1px 12px rgba(255, 255, 255, .6)' },
   { name: 'Cloud',    ...ORB, sky: ['cloud', 'cloudsoft'], introSky: ['orb', 'orbsoft'], lift: .5, edge: [.7, .82, .76], edgeAmt: .3, rim: 1, glow: [.88, .96, .92], glowS: .55, aura: .6, orbs: true,
     ink: '#1d2939', inkShadow: '0 1px 12px rgba(255, 255, 255, .6)' },
@@ -510,7 +510,9 @@ VARIANTS.forEach((v, i) => {
 // (Lock.json) where the number would be. Lit keeps a mint halo, the day nothing has happened; quiet does not.
 const LOCK = EMBED ? QS.get('lock') : null;
 // ?from= (embedded, arriving from a log): no intro. The day is shown as it stood, and the score steps up to SCORE.
-const FROM = EMBED && QS.has('from') ? +QS.get('from') : null, LOADED = performance.now();
+// ?still=1 (embedded): no intro and no step-up — the score is already settled (sufficiency sheet).
+const STILL = EMBED && QS.has('still');
+const FROM = !STILL && EMBED && QS.has('from') ? +QS.get('from') : null, LOADED = performance.now();
 if (LOCK) {
   document.documentElement.classList.add('locked');
   Object.assign(VARIANTS.find(v => v.name === 'Cloud Drop'), { introSky: ['mist', 'mist'], sky: ['mist', 'cloud'], lift: .72,
@@ -528,7 +530,7 @@ if (LOCK) {
       rendererSettings: { preserveAspectRatio: 'xMidYMid meet' } });
     // it locks once and holds on its last frame; the bubble answers with a small pulse as it clicks shut
     lockAnim.addEventListener('complete', () => { pulseV += .9; });
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) lockAnim.addEventListener('DOMLoaded', () => lockAnim.goToAndStop(lockAnim.totalFrames - 1, true));
+    if (STILL || matchMedia('(prefers-reduced-motion: reduce)').matches) lockAnim.addEventListener('DOMLoaded', () => lockAnim.goToAndStop(lockAnim.totalFrames - 1, true));
   });
 }
 // macro card: one vessel per macro, filled to its level, grams counting up with it
@@ -610,7 +612,7 @@ const B = new Float32Array(N * 4);
 let t0, last, main, drops, pop, pulse, pulseV;
 
 function reset(skip = 0) {
-  SPEED = EMBED ? 2.3 : VARIANTS[vIdx].speed || 1.6;
+  SPEED = EMBED ? 3 : VARIANTS[vIdx].speed || 1.6;
   t0 = performance.now() - skip * 1000; last = null; pop = -10; pulse = 0; pulseV = 0;
   main = { x: 0, y: 0, r: 0 };
   drops = [{ r: 0 }, { r: 0 }];
@@ -729,7 +731,7 @@ function frame(now) {
   const [bx, by] = toPx(main.x, main.y);
   const op = eOut(seg(t, 6.0, 6.9));
   scoreEl.style.opacity = op;
-  if (lockAnim && !lockPlayed && t > 6.1) { lockPlayed = true; lockAnim.play(); }
+  if (lockAnim && !lockPlayed && t > 6.1) { lockPlayed = true; if (!STILL) lockAnim.play(); }
   scoreEl.style.filter = `blur(${(1 - op) * 8}px)`;
   // number and word sit centred, then glide up as the tag arrives beneath them
   const tagP = eIO(seg(t, 8.7, 9.5));
@@ -793,10 +795,10 @@ replay.addEventListener('click', () => reset());
 
 let stepped = false;
 const gainEl = document.createElement('div');
-gainEl.textContent = FROM != null ? '+' + (SCORE - FROM) : '';
+gainEl.textContent = FROM != null ? '+' + (SCORE - FROM) + '%' : '';   // the gain reads in %, like the score
 gainEl.style.cssText = 'position:absolute;left:0;top:0;opacity:0;padding:3px 9px;border-radius:999px;background:#ECFDF3;color:#039855;font:700 13px/16px Roboto,sans-serif;pointer-events:none';
 stage.append(gainEl);
-reset(FROM != null ? 30 : matchMedia('(prefers-reduced-motion: reduce)').matches ? 10 : 0);
+reset(FROM != null || STILL ? 30 : matchMedia('(prefers-reduced-motion: reduce)').matches ? 10 : 0);
 requestAnimationFrame(frame);
 </script>
 </body>

@@ -198,6 +198,8 @@ function url() {
     if (M.opt) q.push("opt=" + M.opt);
     if (M.food) q.push("food=" + M.food);
     if (M.qty) q.push("qty=" + M.qty);
+    if (M.had) q.push("had=" + M.had + "&hadopt=" + M.hadopt);
+    if (M.plog) q.push("plog=" + M.plog);
     if (!M.plan) q.push("plan=0");
     if (M.motion) q.push("motion=off");
     return "log.html?" + q.join("&");
@@ -665,10 +667,12 @@ window.addEventListener("message", function (e) {
   if (["log", "logged", "eat", "trend", "learn"].indexOf(d.nav) >= 0) M.screen = d.nav;
   var f = d.flags || {};
   ["day", "suff", "sheet", "log", "entry", "logged", "layout", "meal", "rail", "logall", "trend", "learn",
-   "opt", "food", "qty"].forEach(function (k) {
+   "opt", "food", "qty", "plog"].forEach(function (k) {
     if (f[k] !== undefined) M[k] = String(f[k]);
   });
   if (f.plan !== undefined) M.plan = !!f.plan;
+  /* what the meal has already logged, fresh on every trip to the logger so it never goes stale */
+  if (d.nav === "log") { M.had = f.had || ""; M.hadopt = f.hadopt || ""; }
   apply();
 });
 

@@ -325,6 +325,12 @@
      and the secondary green fill rather than the primary's solid one. Grey
      said nothing about what the control does, and grey is this system's
      disabled tone, so a row of them read as a list you could not act on. */
+  /* 2A: a logged plan food, drawn as the Eat screen draws it */
+  .row.lg .nm b { color: var(--g-700, #344054); }
+  .row.lg .nm em { font-style: normal; color: #039855; font-weight: 500; }
+  .lgd { width: 44px; height: 44px; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+  .lgd .tk { width: 24px; height: 24px; border-radius: 9999px; background: #039855; display: grid; place-items: center; color: #fff; }
+  .lgd .tk svg { width: 14px !important; height: 14px !important; stroke: #fff; }
   .add { width: 44px; height: 44px; border-radius: 12px; border: 0; background: #E6FAF1; color: #299D6B; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
   .add:hover { background: #CBF0E0; }
   .add:active { background: #A9E3C9; }
@@ -1227,6 +1233,16 @@ if (ENTRY === "logall") S.items = [{ id: "chilla", qty: 2 }, { id: "chutney", qt
    are a fixture. In the app the caller hands over what it wrote. */
 if (ENTRY === "edit") S.items = [{ id: "chilla", qty: 2 }, { id: "chutney", qty: 2 }, { id: "curd", qty: 1 }];
 var EDITING = ENTRY === "edit";
+/* 1A: every tray food remembers the option it was added from, so a food two
+   options share ticks only the option it was picked in, not every one holding it */
+S.items = S.items.map(function (x) { return { id: x.id, qty: x.qty, opt: x.opt != null ? x.opt : S.option }; });
+/* 2A: what this meal has already logged, handed over by the Eat screen (the
+   same foods it ticks), so the plan list agrees with it and nothing is logged
+   twice by accident. ?had= ids, ?hadopt= the option they were logged from. */
+var LOGGED = (Q.get("had") || (ENTRY === "logall" ? "eggs" : "")).split(",").filter(Boolean);
+var LOPT = Q.get("hadopt") != null ? +Q.get("hadopt") : (ENTRY === "logall" ? 0 : -1);
+/* a meal already under way opens on the option it was logged from, unless the caller named one */
+if (LOPT >= 0 && LOPT < PLAN.length && !(tOpt >= 0)) S.option = LOPT;
 if (ENTRY === "pastday") { S.past = true; S.dayOffset = -9; }
 
 /* a day that has not happened yet cannot be logged, so the screen says so and stops */
@@ -1270,7 +1286,17 @@ var PRESET = {
 };
 var p = PRESET[STATE] || {};
 for (var k in p) { if (k !== "saving") S[k] = p[k]; }
-if (!S.hasPlan && S.tab === "plan") S.tab = "recent";
+/* "On the card" (the default plan-logging variant) logs the coach's plan on the
+   Eat screen itself, so this screen drops Your plan and is for everything else:
+   Recent, Favourites and search. "In the logger" keeps the tab. ?plog= picks,
+   otherwise the choice the Eat screen remembered. */
+var PLOG = (function () {
+  var v = Q.get("plog");
+  try { if (!v) v = localStorage.getItem("gfPlog"); } catch (e) {}
+  return v === "logger" ? "logger" : "card";
+})();
+var PLANTAB = S.hasPlan && PLOG === "logger";
+if (!PLANTAB && S.tab === "plan") S.tab = "recent";
 
 /* ---------- helpers ---------- */
 var el = function (id) { return document.getElementById(id); };
@@ -1369,8 +1395,8 @@ function toss(a, name, sub, row) {
 function addAt(id, qty, fromEl) {
   var at = -1;
   for (var i = 0; i < S.items.length; i++) { if (S.items[i].id === id) at = i; }
-  if (at === -1) S.items = S.items.concat({ id: id, qty: qty });
-  else S.items = S.items.map(function (x, i) { return i === at ? { id: x.id, qty: x.qty + qty } : x; });
+  if (at === -1) S.items = S.items.concat({ id: id, qty: qty, opt: S.tab === "plan" ? S.option : null });
+  else S.items = S.items.map(function (x, i) { return i === at ? { id: x.id, qty: x.qty + qty, opt: x.opt } : x; });
   var fd = byId(id);
   LASTADD = id;
   var srcRow = fromEl ? fromEl.closest(".row") : null;
@@ -1385,11 +1411,11 @@ function bump(id, by, fromEl) {
   var at = -1;
   for (var i = 0; i < S.items.length; i++) { if (S.items[i].id === id) { at = i; } }
   if (at === -1) {
-    if (by > 0) S.items = S.items.concat({ id: id, qty: 1 });
+    if (by > 0) S.items = S.items.concat({ id: id, qty: 1, opt: S.tab === "plan" ? S.option : null });
   } else {
     var next = S.items[at].qty + by;
     if (next <= 0) S.items = S.items.filter(function (x) { return x.id !== id; });
-    else S.items = S.items.map(function (x, i) { return i === at ? { id: x.id, qty: next } : x; });
+    else S.items = S.items.map(function (x, i) { return i === at ? { id: x.id, qty: next, opt: x.opt } : x; });
   }
   /* measured before render(), which takes the row away and leaves every
      node from it detached with a zero rect */
@@ -1509,11 +1535,17 @@ function planRow(it) {
      This screen still carries no Skip. Saying "not today" to a coach's food
      is a decision about the plan, not about this tray, so it lives in the
      meal card's overflow menu on the Eat screen and nowhere else. */
-  return '<div class="row' + (qty ? " has" : "") + '" data-food="' + fd.id + '">' +
+  /* 2A: already logged and not in the tray again: the Eat screen's own solid
+     tick and "Logged", never a "+". Tapping the tick adds another serving. */
+  var had = LOGGED.indexOf(fd.id) > -1, done = had && !qty;   /* "Logged" stays on the line while another serving is in the tray */
+  return '<div class="row' + (qty ? " has" : "") + (done ? " lg" : "") + '" data-food="' + fd.id + '">' +
     '<button class="nm"><b>' + esc(fd.name) + I.chev + "</b><span>" +
       ((it.qty > 1 ? it.qty + " x " + esc(fd.unit) : esc(fd.unit)) + " \u00b7 " + Math.round(fd.kcal * it.qty) + " kcal") +
-      "</span></button>" +
-    (qty
+      (had ? ' \u00b7 <em>Logged</em>' : "") + "</span></button>" +
+    (done
+      ? '<button class="lgd" data-plan="' + fd.id + ":" + it.qty + '" aria-label="' + esc(fd.name) + ' is logged. Add another serving">' +
+        '<span class="tk">' + I.check + "</span></button>"
+      : qty
       ? '<span class="step"><button data-dec="' + fd.id + '" aria-label="One less ' + esc(fd.name) + '">' + I.minus + "</button><b>" + qty + "</b>" +
         '<button data-inc="' + fd.id + '" aria-label="One more ' + esc(fd.name) + '">' + I.plusSm + "</button></span>"
       : '<button class="add" data-plan="' + fd.id + ":" + it.qty + '" aria-label="Add ' + esc(fd.name) + '">' + I.plus + "</button>") +
@@ -1577,7 +1609,7 @@ function render() {
      reach for by habit, the other what you chose to keep. */
   var tabs = [{ id: "recent", label: "Recent", icon: I.clock },
               { id: "fav", label: "Favourites", icon: I.heartLine }];
-  if (S.hasPlan) tabs.push({ id: "plan", label: "Your plan", icon: I.clipboard });
+  if (PLANTAB) tabs.push({ id: "plan", label: "Your plan", icon: I.clipboard });
   el("tabBtns").innerHTML = q ? "" : tabs.map(function (t) {
     return '<button class="tab' + (S.tab === t.id ? " on" : "") + '" data-tab="' + t.id + '">' +
       t.icon + '<span>' + t.label + "</span></button>";
@@ -1607,8 +1639,9 @@ function render() {
     html += '<div class="opts">' + PLAN.map(function (o, i) {
       /* The same two axes the meal card uses: the fill is how much of this
          option is already in the tray, the ring is the one you are reading. */
-      /* no progress fill: options share foods, so a check once any one is added */
-      var any = o.some(function (x) { return qtyOf(x.id) > 0; });
+      /* no progress fill, a check once something is added: but only from THIS
+         option (1A), or the option this meal was already logged from */
+      var any = i === LOPT || S.items.some(function (x) { return x.opt === i && x.qty > 0; });
       return '<button class="opt' + (i === S.option ? " on" : "") + (any ? " done" : "") + '" data-opt="' + i + '"' +
           ' aria-label="Option ' + (i + 1) + (any ? ", added" : "") + '">' +
         '<span class="ot"><b>Option ' + (i + 1) + "</b></span>" +
@@ -2135,7 +2168,7 @@ function showWon(queued) {
       '<div class="col2"><span class="burstrow"><span class="burst">' +
         '<span class="tk"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>' + burst +
       '</span></span>' +
-      '<div class="d">+<b id="wonN">0</b><s> points</s></div>' +
+      '<div class="d">+<b id="wonN">0</b><s>%</s></div>' +
       '<p>' + (queued ? "Saved on your phone" : m.name + " moved most") + '</p>' +
       '<span class="m">' + count() + " into " + DIV_LABEL[divisionForTime(S.time)] +
         (queued ? ", it sends when you are back" : "") + '</span></div>' +
@@ -2435,7 +2468,7 @@ watchScroll();
 if (p.saving) showSaving();
 </script>
 <script src="chrome.js"></script>
-<script src="assets/win-moment.js?v=11"></script>
+<script src="assets/win-moment.js?v=12"></script>
 <script src="assets/search-push.js?v=4"></script>
 </body>
 </html>

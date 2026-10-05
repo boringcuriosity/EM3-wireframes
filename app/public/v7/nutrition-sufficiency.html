@@ -70,6 +70,10 @@
   /* ---------- contents rail ---------- */
   nav.rail { align-self: start; position: sticky; top: 24px; padding: 4px 0 24px; max-height: calc(100vh - 48px); overflow-y: auto; scrollbar-width: none; }
   nav.rail::-webkit-scrollbar { display: none; }
+  /* Home sits outside the story: off the page and the numbering until its rail link opens it */
+  section.aside:not(.shown) { display: none; }
+  /* lines that belong to one plan-logging variant only (the Plan logging switch) */
+  body.plog-card [data-only="logger"], body:not(.plog-card) [data-only="card"] { display: none !important; }
   .railhead { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); margin-bottom: 8px; }
   nav.rail ol { list-style: none; margin: 0; padding: 0; }
   nav.rail a { position: relative; display: flex; align-items: center; min-height: 44px; padding: 4px 12px; border-radius: 8px; font-size: 14px; line-height: 20px; color: var(--gray-600); text-decoration: none; white-space: nowrap; }
@@ -80,7 +84,7 @@
   /* the variant switch sits above the size control and wears the same clothes,
      because both do the same kind of job: they change how the page is read
      without changing what it says */
-  .vsw button, .hsw button { flex: 1; min-width: 0; padding: 0 10px; }
+  .vsw button, .hsw button, .psw button { flex: 1; min-width: 0; padding: 0 10px; }
   .zoom .zlab { width: 100%; font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); }
   .zoom button { min-width: 44px; min-height: 44px; padding: 0 12px; font: 600 14px/20px Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .25px; border: 1px solid var(--gray-200); background: #fff; color: var(--gray-600); border-radius: 9999px; cursor: pointer; }
   .zoom button:hover { border-color: var(--gray-300); color: var(--gray-900); }
@@ -260,6 +264,8 @@
   <nav class="rail" id="rail">
     <div class="railhead">Contents</div>
     <ol id="raillist"></ol>
+    <div class="railhead" style="margin-top:16px">Elsewhere</div>
+    <ol><li><a href="#home" data-to="home" id="homeLink">Home, the way in</a></li></ol>
     <!-- Two ways of answering "what shaped your score", switched across every
          phone at once so the whole story can be read either way. -->
     <div class="zoom vsw">
@@ -269,6 +275,14 @@
 
     <!-- Which score sits at the top of every day view: the liquid Cloud Drop, or
          the Plate it replaced, kept one tap away so the two can be compared. -->
+    <!-- How a coach's plan food gets logged. On the card (default): ticks drop
+         into a bar on the Eat screen and log there, one meal at a time. In the
+         logger: a tick opens the logging screen, as before. -->
+    <div class="zoom psw">
+      <span class="zlab">Plan logging</span>
+      <button data-plog="card" class="on">On the card</button><button data-plog="logger">In the logger</button>
+    </div>
+
     <div class="zoom hsw">
       <span class="zlab">Score</span>
       <button data-hero="cloud" class="on">Cloud Drop</button><button data-hero="plate">Plate</button>
@@ -311,6 +325,14 @@
       </div>
     </section>
 
+    <section id="home" class="aside">
+      <div class="snum">Elsewhere</div>
+      <h2>The way in: home</h2>
+      <p>GoodFlip's home screen, built from the design system's own Homepage recipe and its components (top nav, welcome strip, banner carousel, score card, services, trackers, bottom nav). Under the carousel sits <b>Your EM3</b>: one card per pillar, scrolled sideways, each carrying the pillar's pictogram, its score's name, and the score in the bowl of a rising arc of that pillar's orbs. Eat is green, Move indigo, Mind teal, Measure gold; later the four combine into the metabolic score.</p>
+      <p>Tapping Eat opens the day view this document describes.</p>
+      <div class="cases" data-cases="home"></div>
+    </section>
+
     <section id="screen">
       <div class="snum">Section 2</div>
       <h2>What the screen is</h2>
@@ -321,7 +343,7 @@
         <thead><tr><th>#</th><th>Block</th><th>What it holds</th></tr></thead>
         <tbody>
           <tr><td>1</td><td>Date chip</td><td>The day being viewed, with a step back arrow and a step forward arrow. Opens the date sheet.</td></tr>
-          <tr><td>2</td><td>Eat line</td><td>"Eat · Fuel your body right each day." with an info icon that opens the sufficiency sheet.</td></tr>
+          <tr><td>2</td><td>Eat line</td><td>"Eat · Fuel your body right", with an info icon that opens the sufficiency sheet and the Earn chip that opens the FlipCoins sheet.</td></tr>
           <tr><td>3</td><td>Score</td><td>Nutrition sufficiency as the Plate: a ring of dots with a fork and knife either side. The number and the word SUFFICIENT, nothing else.</td></tr>
           <tr><td>4</td><td>What you have eaten</td><td>Protein, carbs, fats and fibre, each as its icon filling to its level, with "43/95g" and the name.</td></tr>
           <tr><td>5</td><td>Calorie strip</td><td>Ember fuse: "942 of 1,900 kcal" and "958 left for today".</td></tr>
@@ -331,7 +353,6 @@
         </tbody>
       </table></div>
 
-      <div class="note teal"><span class="dot"></span><span><b>Not on this screen</b>Water logging, a "Now" or "Later" tag, any highlight on the current meal, expand and collapse on meals, and any way to reach a future day.</span></div>
 
       <div class="introrow">
         <div class="cases" data-cases="screen"></div>
@@ -418,23 +439,26 @@
     <section id="waysin">
       <div class="snum">Section 6</div>
       <h2>The ways in</h2>
-      <p>Six doors lead to the logging screen, each opening it already knowing something. Only the tray and the header change.</p>
+      <p data-only="logger">Six doors lead to the logging screen, each opening it already knowing something. Only the tray and the header change.</p>
+      <p data-only="card">Four doors lead to the logging screen, each opening it already knowing something. The coach's plan is not one of them: it is logged on its meal card, from the bar at the bottom.</p>
 
       <div class="tablewrap"><table>
         <thead><tr><th>Door</th><th>Where it sits</th><th>What the screen opens with</th></tr></thead>
         <tbody>
-          <tr><td>Meal <b>+</b></td><td>The + button on a meal card</td><td>That meal, an empty tray, and your plan showing first.</td></tr>
-          <tr><td>Tick a coach's food</td><td>The tick circle on a plan food</td><td>That food in the tray, waiting on its quantity and time.</td></tr>
-          <tr><td>Log all</td><td>"Log all 3" on a meal with items left</td><td>Every remaining food of that meal in the tray at its planned quantity.</td></tr>
+          <tr><td>Meal <b>+</b></td><td>The + button on a meal card</td><td><span data-only="logger">That meal, an empty tray, and your plan showing first.</span><span data-only="card">That meal, an empty tray, and Recent first.</span></td></tr>
+          <tr data-only="logger"><td>Tick a coach's food</td><td>The tick circle on a plan food</td><td>That food in the tray, waiting on its quantity and time.</td></tr>
+          <tr data-only="logger"><td>Log all</td><td>"Log all 3" on a meal with items left</td><td>Every remaining food of that meal in the tray at its planned quantity.</td></tr>
           <tr><td>Snap</td><td>Kaira's card, and the meal menu</td><td>The camera, straight into the frame step.</td></tr>
           <tr><td>Voice</td><td>Kaira's card, and the meal menu</td><td>The microphone, already listening.</td></tr>
           <tr><td>An earlier day</td><td>"Log for that day" on a past day</td><td>The same screen with the day named in the header, and the time set to that day.</td></tr>
         </tbody>
       </table></div>
 
-      <div class="note indigo"><span class="dot"></span><span><b>One rule for all six</b>A tick is never a silent log. Quantity and time are confirmed every time, and the time decides which meal the food lands in.</span></div>
+      <div class="note indigo" data-only="card"><span class="dot"></span><span><b>One rule for all four</b>Nothing is logged silently. The time is shown before every log and decides which meal the food lands in.</span></div>
+      <div class="note indigo" data-only="logger"><span class="dot"></span><span><b>One rule for all six</b>A tick is never a silent log. Quantity and time are confirmed every time, and the time decides which meal the food lands in.</span></div>
 
-      <p>The four food doors are below. Snap and Voice open the same screen on the camera or the microphone.</p>
+      <p data-only="logger">The four food doors are below. Snap and Voice open the same screen on the camera or the microphone.</p>
+      <p data-only="card">The two food doors are below. Snap and Voice open the same screen on the camera or the microphone.</p>
 
       <div class="cases" data-cases="waysin"></div>
     </section>
@@ -447,7 +471,7 @@
       <div class="tablewrap"><table>
         <thead><tr><th>Group</th><th>States</th><th>What holds them together</th></tr></thead>
         <tbody>
-          <tr><td>Finding food</td><td>search, typing, noresults, plan, noplan</td><td>Search sits on top, then three tabs: Recent, Favourites, Your plan. With no plan there is no plan tab, so Recent carries it.</td></tr>
+          <tr><td>Finding food</td><td>search, typing, noresults, plan, noplan</td><td><span data-only="logger">Search sits on top, then three tabs: Recent, Favourites, Your plan. With no plan there is no plan tab, so Recent carries it.</span><span data-only="card">Search sits on top, then two tabs: Recent and Favourites. The coach's plan is logged on its meal card, not here.</span></td></tr>
           <tr><td>Confirming</td><td>quantity, multi, time</td><td>Nothing is logged until quantity and time are set. Several foods can wait in the tray at once. Saving plays as an overlay, then the day view.</td></tr>
         </tbody>
       </table></div>
@@ -543,37 +567,34 @@
       <div class="cases" data-cases="date"></div>
     </section>
 
+    <section id="learn">
+      <div class="snum">Section 15</div>
+      <h2>The Learn tab</h2>
+      <p>The fourth tab of the Eat pillar. Articles about sufficiency and eating, laid out like the app's category screen: the category in a serif header, then one plain list of thumbnail, title and read time.</p>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Piece</th><th>What it is</th></tr></thead>
+          <tbody>
+            <tr><td>Header</td><td>The category name, "Nutrition &amp; Metabolic Health", in Playfair Display 26, on a pale blue wash that fades to white.</td></tr>
+            <tr><td>Row</td><td>An 88 x 88 photo at radius 10 with a hairline and a soft offset shadow, then the title (18, two lines, then an ellipsis) and the meta line "4 min read . 18 Sep 26" at the photo's bottom edge.</td></tr>
+            <tr><td>Divider</td><td>A 1px hairline between rows. No cards, no sections, no carousel: one list.</td></tr>
+            <tr><td>Tap</td><td>A row opens the article.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+
+      <div class="grouphead"><b>The tab</b></div>
+      <div class="cases" data-cases="learn"></div>
+    </section>
+
     <section id="trend">
       <div class="snum">Section</div>
       <h2>The Trend tab</h2>
 
       <div class="grouphead"><b>The week</b></div>
       <div class="cases" data-cases="trend"></div>
-    </section>
-
-    <section id="learn">
-      <div class="snum">Section 15</div>
-      <h2>The Learn tab</h2>
-      <p>The fourth tab of the Eat pillar. Articles about sufficiency and eating, in FlipFeed's card language: a 1px near black outline and a hard offset shadow. The frame, the gutter and the rhythm stay ours.</p>
-
-      <div class="tablewrap">
-        <table>
-          <thead><tr><th>Piece</th><th>What it is</th></tr></thead>
-          <tbody>
-            <tr><td>Band</td><td>A green wash with the arc vector, 200 tall. The hero carousel overlaps it by 82, which is what makes the composition work.</td></tr>
-            <tr><td>Hero carousel</td><td>320 x 152 cards, one per featured piece.</td></tr>
-            <tr><td>For you</td><td>280 x 160 cards on a radial field with an angular hairline.</td></tr>
-            <tr><td>Sections</td><td>A heading with a gold glyph, then listing rows. 40 between sections, which is the same rhythm the day view uses.</td></tr>
-            <tr><td>Listing row</td><td>A 100 x 100 photo thumbnail, the title, then the meta line. The one shell that repeats.</td></tr>
-            <tr><td>Category bar</td><td>An underline bar, not the day view's pill trough. Nutrition is already a first class FlipFeed category.</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="note gold"><span class="dot"></span><span><b>What the designs do not answer</b>There is no reading progress and nothing past the last paragraph, so the end of an article is invented here.</span></div>
-
-      <div class="grouphead"><b>The tab</b></div>
-      <div class="cases" data-cases="learn"></div>
     </section>
 
     <section id="decisions">
@@ -680,6 +701,10 @@
    The cases. Each one is a live phone running r3/eat.html.
    ============================================================ */
 const CASES = {
+  home: [
+    ["r3/home.html", "Home", "home",
+     "The design system's home screen, with Your EM3 under the carousel. Scroll the four cards sideways; Eat opens the day view."],
+  ],
   screen: [
     ["state=mid", "The screen", "state=mid",
      "Today, three meals in."],
@@ -773,7 +798,7 @@ const CASES = {
   ],
   learn: [
     ["r3/learn.html?view=list", "The Learn tab", "view=list",
-     "Articles about sufficiency and eating, in FlipFeed’s card language."],
+     "Articles about sufficiency and eating, as one list like the app’s category screen."],
     ["r3/learn.html?view=article", "An article", "view=article",
      "The reading page: title, byline, hero, then the body."],
   ],
@@ -786,6 +811,7 @@ const CASES = {
    read. The markup is in this order too, so the rail and the page agree. */
 const SECTIONS = [
   ["prototype", "Try the prototype"],
+  ["home", "The way in: home"],
   ["screen", "What the screen is"],
   ["score", "The score"],
   ["first", "The first screen"],
@@ -796,8 +822,8 @@ const SECTIONS = [
   ["success", "The success screen"],
   ["sheet", "The sufficiency sheet"],
   ["date", "The date sheet"],
-  ["trend", "The Trend tab"],
   ["learn", "The Learn tab"],
+  ["trend", "The Trend tab"],
   ["decisions", "Decisions settled"],
   ["backend", "What the backend needs"],
   ["rules", "Rules everywhere"],
@@ -825,13 +851,19 @@ document.getElementById("raillist").innerHTML = SHOWN
 let RAIL = new URLSearchParams(location.search).get("rail") === "cards" ? "cards" : "icons";
 /* Which score every day view carries. Cloud Drop is the default; the Plate stays one tap away. */
 let HERO = new URLSearchParams(location.search).get("hero") === "plate" ? "plate" : "cloud";
+/* How plan foods get logged on every day view: on the card (default), or in the logger. */
+let PLOG = new URLSearchParams(location.search).get("plog") === "logger" ? "logger" : "card";
 
 const fig = ([q, name, id, line]) => {
   /* a case is either a flag on the day view, or a whole path to another screen */
   let href = q.includes(".html") ? q : `r3/eat.html?${q}`;
   /* only the day view has the two variants; the log, trend and learn phones
      are the same screen either way and are left alone */
-  if (href.startsWith("r3/eat.html")) href += `&rail=${RAIL}` + (HERO === "plate" ? "&hero=plate" : "");
+  if (href.startsWith("r3/eat.html")) href += `&rail=${RAIL}&plog=${PLOG}` + (HERO === "plate" ? "&hero=plate" : "");
+  /* the logger follows the same switch: no Your plan tab when the plan is logged on the card */
+  else if (href.startsWith("r3/log.html"))
+    /* a tick or Log all only reaches the logger in the "In the logger" variant, so those two always show it */
+    href += `&plog=${/entry=(tick|logall)/.test(href) ? "logger" : PLOG}`;
   return `
   <figure>
     <figcaption><b>${name} <span class="id">${id}</span></b><p>${line}</p></figcaption>
@@ -839,9 +871,20 @@ const fig = ([q, name, id, line]) => {
     <a class="open" href="${href}" target="_blank">Open full size</a>
   </figure>`;
 };
+/* "On the card": the phones that only exist when the plan is logged in the logger
+   step out, and the captions that mention the plan tab say what this screen shows instead */
+const LOGGER_ONLY = ["entry=tick", "entry=logall", "state=plan"];
+const CARD_LINE = {
+  "entry=plus": "Opened from a meal’s + button. Empty tray, Recent first: the plan is logged on its card.",
+  "state=search": "The empty field, with Recent underneath.",
+  "state=noplan": "No plan yet, so Recent offers common meals to start with.",
+};
 function paintCases() {
   document.querySelectorAll("[data-cases]").forEach((host) => {
-    host.innerHTML = (CASES[host.dataset.cases] || []).map(fig).join("");
+    host.innerHTML = (CASES[host.dataset.cases] || [])
+      .filter((c) => PLOG !== "card" || !LOGGER_ONLY.includes(c[2]))
+      .map((c) => PLOG === "card" && CARD_LINE[c[2]] ? [c[0], c[1], c[2], CARD_LINE[c[2]]] : c)
+      .map(fig).join("");
   });
 }
 paintCases();
@@ -870,6 +913,22 @@ document.querySelectorAll(".hsw button").forEach((b) => {
     setTimeout(check, 60);
   });
 });
+document.querySelectorAll(".psw button").forEach((b) => {
+  b.addEventListener("click", () => {
+    PLOG = b.dataset.plog;
+    document.querySelectorAll(".psw button").forEach((x) => x.classList.toggle("on", x === b));
+    const q = new URLSearchParams(location.search);
+    PLOG === "logger" ? q.set("plog", "logger") : q.delete("plog");
+    document.body.classList.toggle("plog-card", PLOG === "card");
+    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
+    paintCases();
+    setTimeout(check, 60);
+  });
+});
+document.body.classList.toggle("plog-card", PLOG === "card");
+if (PLOG === "logger") {
+  document.querySelectorAll(".psw button").forEach((x) => x.classList.toggle("on", x.dataset.plog === "logger"));
+}
 if (HERO === "plate") {
   document.querySelectorAll(".hsw button").forEach((x) => x.classList.toggle("on", x.dataset.hero === "plate"));
 }
@@ -922,6 +981,15 @@ addEventListener("message", (e) => {
   if (fr) tell(fr);
 });
 
+/* Home opens on demand, from its rail link or a #home link, and joins the scroll spy once it is on the page */
+function openHome() {
+  const h = document.getElementById("home");
+  if (!h.classList.contains("shown")) { h.classList.add("shown"); SHOWN.splice(1, 0, ["home", "Home, the way in"]); }
+  h.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+document.getElementById("homeLink").addEventListener("click", (e) => { e.preventDefault(); openHome(); history.replaceState(null, "", "#home"); });
+if (location.hash === "#home") setTimeout(openHome, 0);
+
 /* which section the reader is in */
 const links = [...document.querySelectorAll("nav.rail a")];
 function spy() {
@@ -936,10 +1004,10 @@ function spy() {
 /* :not(.vsw) matters. The macro switch wears the same clothes as the size
    control, so without it a click on "A card each" also ran this handler, set
    --z to undefined and left every phone unsized. */
-document.querySelectorAll(".zoom:not(.vsw):not(.hsw) button").forEach((b) => {
+document.querySelectorAll(".zoom:not(.vsw):not(.hsw):not(.psw) button").forEach((b) => {
   b.onclick = () => {
     document.documentElement.style.setProperty("--z", b.dataset.z);
-    document.querySelectorAll(".zoom:not(.vsw):not(.hsw) button").forEach((x) => x.classList.toggle("on", x === b));
+    document.querySelectorAll(".zoom:not(.vsw):not(.hsw):not(.psw) button").forEach((x) => x.classList.toggle("on", x === b));
     setTimeout(check, 60);
   };
 });
