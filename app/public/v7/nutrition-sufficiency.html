@@ -284,10 +284,10 @@
     </div>
 
     <!-- What sits on each meal card in Your meals: the pictogram, the scene behind
-         the header, or both (default). -->
+         the header (default), or both. -->
     <div class="zoom asw">
       <span class="zlab">Meal cards</span>
-      <button data-art="both" class="on">Both</button><button data-art="pic">Pictogram</button><button data-art="scene">Scene</button>
+      <button data-art="both">Both</button><button data-art="pic">Pictogram</button><button data-art="scene" class="on">Scene</button>
     </div>
 
     <div class="zoom hsw">
@@ -863,8 +863,8 @@ let RAIL = new URLSearchParams(location.search).get("rail") === "cards" ? "cards
 let HERO = new URLSearchParams(location.search).get("hero") === "plate" ? "plate" : "cloud";
 /* How plan foods get logged on every day view: on the card (default), or in the logger. */
 let PLOG = new URLSearchParams(location.search).get("plog") === "logger" ? "logger" : "card";
-/* What each meal card carries: both (default), the pictogram only, or the scene only. */
-let ART = new URLSearchParams(location.search).get("art") || "both";
+/* What each meal card carries: the scene only (default), both, or the pictogram only. */
+let ART = new URLSearchParams(location.search).get("art") || "scene";
 
 const fig = ([q, name, id, line]) => {
   /* a case is either a flag on the day view, or a whole path to another screen */
@@ -943,7 +943,7 @@ document.querySelectorAll(".asw button").forEach((b) => {
     ART = b.dataset.art;
     document.querySelectorAll(".asw button").forEach((x) => x.classList.toggle("on", x === b));
     const q = new URLSearchParams(location.search);
-    ART === "both" ? q.delete("art") : q.set("art", ART);
+    ART === "scene" ? q.delete("art") : q.set("art", ART);
     history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
     paintCases();
     setTimeout(check, 60);

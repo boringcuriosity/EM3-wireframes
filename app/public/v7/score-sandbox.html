@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score Sandbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand: #299D6B; --brand-50: #EDF7F2; --brand-100: #D3EDE1;
+    --g-900: #101828; --g-700: #344054; --g-600: #475467; --g-500: #667085; --g-400: #98A2B3;
+    --g-300: #D0D5DD; --g-200: #EAECF0; --g-100: #F2F4F7; --g-50: #F9FAFB;
+    --in-600: #444CE7; --in-50: #EEF4FF; --in-25: #F5F8FF;
+    --amber: #DC6803; --amber-50: #FFFAEB; --red: #D92D20; --red-50: #FEF3F2;
+    --ex: #039855; --good: #299D6B; --att: #DC6803; --poor: #D92D20;
+    --ease: cubic-bezier(.2, .7, .2, 1);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font: 400 14px/20px Roboto, system-ui, sans-serif;
+    letter-spacing: .2px; -webkit-font-smoothing: antialiased; }
+  button { font: inherit; letter-spacing: inherit; color: inherit; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; display: grid;
+    grid-template-columns: minmax(0, 1fr) 420px; gap: 32px; align-items: start; }
+  header { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 4px; }
+  header .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--brand); }
+  header h1 { margin: 0; font-size: 28px; line-height: 36px; font-weight: 600; letter-spacing: -.3px; }
+  header p { margin: 0; color: var(--g-500); max-width: 640px; }
+
+  /* ---------- left: the food */
+  .left { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+  .presets { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--g-200); background: #fff;
+    font-weight: 500; color: var(--g-700); cursor: pointer; }
+  .chip.on { border-color: var(--brand); background: var(--brand-50); color: var(--brand); }
+  .lab { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--g-400); margin: 0 0 8px; }
+
+  .targets { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+  .tg { border: 1px solid var(--g-200); border-radius: 12px; padding: 8px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .tg span { font-size: 12px; color: var(--g-500); display: flex; align-items: center; gap: 6px; }
+  .tg input { width: 100%; border: 0; padding: 0; font: 600 18px/24px Roboto, sans-serif; color: var(--g-900);
+    background: none; outline: none; font-variant-numeric: tabular-nums; }
+  .tg:focus-within { border-color: var(--brand); }
+
+  .tabs { display: flex; gap: 4px; padding: 4px; background: var(--g-100); border-radius: 999px; width: fit-content; max-width: 100%; }
+  .tab { min-height: 36px; padding: 0 16px; border: 0; border-radius: 999px; background: none; font-weight: 500; color: var(--g-600); cursor: pointer; white-space: nowrap; }
+  .tab.on { background: #fff; color: var(--g-900); box-shadow: 0 1px 2px rgb(16 24 40 / .08); }
+  .tab b { font-weight: 600; color: var(--brand); margin-left: 4px; }
+
+  .group { border: 1px solid var(--g-200); border-radius: 20px; overflow: hidden; }
+  .group + .group { margin-top: 12px; }
+  .gh { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: var(--g-50); border-bottom: 1px solid var(--g-200); }
+  .gh img { width: 32px; height: 32px; object-fit: contain; }
+  .gh b { font-weight: 600; }
+  .gh small { color: var(--g-500); font-size: 12px; margin-left: auto; }
+  .gh .add { margin-left: 8px; min-height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--g-200); background: #fff; font-size: 12px; font-weight: 600; color: var(--brand); cursor: pointer; }
+  .food { display: flex; align-items: center; gap: 12px; padding: 12px 16px; }
+  .food + .food { border-top: 1px solid var(--g-100); }
+  .food .t { flex: 1; min-width: 0; }
+  .food .n { font-weight: 500; }
+  .food .m { font-size: 12px; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .food .k { font-size: 12px; color: var(--g-500); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .food.has { background: var(--brand-50); }
+  .junk .food.has { background: var(--red-50); }
+  .step { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+  .step button { width: 36px; height: 36px; border-radius: 999px; border: 1px solid var(--g-200); background: #fff; cursor: pointer;
+    font-size: 18px; line-height: 1; display: grid; place-items: center; color: var(--g-700); }
+  .step .plus { border-color: var(--brand); color: var(--brand); }
+  .junk .step .plus { border-color: var(--g-300); color: var(--g-700); }
+  .step output { min-width: 24px; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .step:not(.has) .minus, .step:not(.has) output { visibility: hidden; }
+
+  /* ---------- right: the score */
+  .panel { position: sticky; top: 24px; border: 1px solid var(--g-200); border-radius: 24px; padding: 24px;
+    display: flex; flex-direction: column; gap: 20px; background: #fff; box-shadow: 2px 2px 0 var(--g-200); }
+  .hero { display: flex; flex-direction: column; align-items: center; gap: 8px; position: relative; }
+  .gauge { width: 240px; height: 132px; display: block; }
+  .gauge .trk { stroke: var(--g-100); }
+  .gauge .val { transition: stroke-dashoffset .6s var(--ease), stroke .3s; }
+  .num { position: absolute; top: 56px; left: 0; right: 0; text-align: center; font: 600 48px/52px Roboto, sans-serif;
+    letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+  .num i { font-style: normal; font-size: 20px; font-weight: 500; vertical-align: 22px; margin-left: 2px; }
+  .band { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 999px; font-weight: 600; font-size: 14px; }
+  .band[data-b="ex"] { background: #ECFDF3; color: var(--ex); }
+  .band[data-b="good"] { background: var(--brand-50); color: var(--good); }
+  .band[data-b="att"] { background: var(--amber-50); color: var(--att); }
+  .band[data-b="poor"] { background: var(--red-50); color: var(--poor); }
+  .eq { font-size: 12px; color: var(--g-500); text-align: center; font-variant-numeric: tabular-nums; }
+  .eq b { color: var(--g-900); font-weight: 600; }
+  .delta { position: absolute; top: 12px; right: 8px; font-weight: 600; font-size: 14px; opacity: 0; transition: opacity .3s; }
+  .delta.show { opacity: 1; }
+  .delta.up { color: var(--ex); } .delta.down { color: var(--red); }
+
+  .macros { display: flex; flex-direction: column; gap: 14px; }
+  .mc { display: flex; flex-direction: column; gap: 6px; }
+  .mr { display: flex; align-items: center; gap: 8px; }
+  .mr .nm { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+  .ty { font-size: 12px; font-weight: 500; padding: 0 8px; height: 20px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--g-100); color: var(--g-600); }
+  .mr .v { margin-left: auto; font-size: 12px; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .mr .v b { color: var(--g-900); font-weight: 600; font-size: 14px; }
+  /* the bar reads 0 to 160% of target: the line at 100 is the target, the band
+     to 110 is the tolerance, and past it a range macro starts losing credit */
+  .bar { position: relative; height: 10px; border-radius: 999px; background: var(--g-100); overflow: hidden; }
+  .bar .tol { position: absolute; top: 0; bottom: 0; left: 62.5%; width: 6.25%; background: var(--brand-100); }
+  .bar .pen { position: absolute; top: 0; bottom: 0; left: 68.75%; right: 0; background: repeating-linear-gradient(135deg, var(--red-50) 0 4px, #fff 4px 8px); }
+  .reach .bar .tol, .reach .bar .pen { display: none; }
+  .bar .fl { position: absolute; inset: 0; transform-origin: left; transform: scaleX(0); background: var(--brand);
+    transition: transform .5s var(--ease), background .3s; border-radius: 999px; }
+  .bar .fl.over { background: var(--red); }
+  .bar .tick { position: absolute; top: -2px; bottom: -2px; left: 62.5%; width: 2px; background: var(--g-900); opacity: .5; }
+  .mx { display: flex; justify-content: space-between; font-size: 12px; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .mx .why { color: var(--g-500); }
+  .mx .why.bad { color: var(--red); }
+
+  .kc { border-top: 1px solid var(--g-100); padding-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .row { display: flex; align-items: center; gap: 8px; }
+  .row .sp { margin-left: auto; }
+  .sw { position: relative; width: 40px; height: 24px; border-radius: 999px; background: var(--g-200); border: 0; cursor: pointer; flex-shrink: 0; transition: background .2s; }
+  .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 999px; background: #fff;
+    box-shadow: 0 1px 2px rgb(16 24 40 / .2); transition: transform .2s var(--ease); }
+  .sw[aria-checked="true"] { background: var(--brand); }
+  .sw[aria-checked="true"]::after { transform: translateX(16px); }
+  .muted { font-size: 12px; color: var(--g-500); }
+  .pena { color: var(--red); font-weight: 600; }
+
+  details { border-top: 1px solid var(--g-100); padding-top: 16px; }
+  summary { cursor: pointer; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 8px; min-height: 24px; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: ""; margin-left: auto; width: 8px; height: 8px; border-right: 2px solid var(--g-400); border-bottom: 2px solid var(--g-400); transform: rotate(45deg); transition: transform .2s; }
+  details[open] summary::after { transform: rotate(-135deg); }
+  .weights { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+  .wt { display: grid; grid-template-columns: 72px 1fr 36px; align-items: center; gap: 10px; font-size: 12px; color: var(--g-600); }
+  .wt input { accent-color: var(--brand); width: 100%; }
+  .wt output { text-align: right; font-weight: 600; color: var(--g-900); font-variant-numeric: tabular-nums; }
+
+  .bands { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .bands div { font-size: 12px; text-align: center; padding: 6px 0; border-radius: 8px; color: var(--g-500); background: var(--g-50); }
+  .bands div.on { font-weight: 600; }
+  .bands div.on[data-b="ex"] { background: #ECFDF3; color: var(--ex); }
+  .bands div.on[data-b="good"] { background: var(--brand-50); color: var(--good); }
+  .bands div.on[data-b="att"] { background: var(--amber-50); color: var(--att); }
+  .bands div.on[data-b="poor"] { background: var(--red-50); color: var(--poor); }
+
+  .glyph { width: 18px; height: 18px; background: var(--g-700); -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat; flex-shrink: 0; }
+  .g-p { --m: url(icons/glyph-protein.png); } .g-c { --m: url(icons/glyph-carbs.png); }
+  .g-f { --m: url(icons/glyph-fats.png); } .g-fb { --m: url(icons/glyph-fibre.png); }
+
+  @media (max-width: 900px) {
+    .wrap { grid-template-columns: 1fr; padding: 20px 16px 48px; gap: 20px; }
+    .panel { position: static; order: -1; padding: 20px 16px; }
+    header { order: -2; }
+    .targets { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .tabs { overflow-x: auto; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Sandbox</span>
+    <h1>Nutrition sufficiency score</h1>
+    <p>Add food from the coach's plan, healthy options or junk, and watch the score respond. Protein and fibre reward reaching the target. Carbs and fats reward staying in range, and lose credit past 110%.</p>
+  </header>
+
+  <main class="left">
+    <section>
+      <p class="lab">Try a day</p>
+      <div class="presets" id="presets"></div>
+    </section>
+    <section>
+      <p class="lab">Daily targets, set by the coach</p>
+      <div class="targets" id="targets"></div>
+    </section>
+    <section>
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <div id="list" style="margin-top:16px"></div>
+    </section>
+  </main>
+
+  <aside class="panel" aria-live="polite">
+    <div class="hero">
+      <svg class="gauge" viewBox="0 0 240 132" aria-hidden="true">
+        <path class="trk" d="M20 120a100 100 0 0 1 200 0" fill="none" stroke-width="16" stroke-linecap="round"/>
+        <path class="val" id="arc" d="M20 120a100 100 0 0 1 200 0" fill="none" stroke-width="16" stroke-linecap="round"/>
+      </svg>
+      <div class="num" id="num">0<i>%</i></div>
+      <span class="delta" id="delta"></span>
+      <span class="band" id="band"></span>
+      <div class="eq" id="eq"></div>
+    </div>
+    <div class="bands" id="bands">
+      <div data-b="poor">Poor<br>below 50</div><div data-b="att">Needs attention<br>50 to 69</div><div data-b="good">Good<br>70 to 84</div><div data-b="ex">Excellent<br>85 to 100</div>
+    </div>
+    <div class="macros" id="macros"></div>
+    <div class="kc">
+      <div class="row"><b>Calorie overshoot penalty</b><button class="sw sp" id="kcalSw" role="switch" aria-checked="true" aria-label="Calorie overshoot penalty"></button></div>
+      <div class="row muted"><span id="kcalLine"></span><span class="sp" id="kcalPen"></span></div>
+    </div>
+    <details>
+      <summary>Weights <span class="muted" id="wsum"></span></summary>
+      <div class="weights" id="weights"></div>
+      <button class="chip" id="eqw" style="margin-top:12px">Equal weights</button>
+    </details>
+  </aside>
+</div>
+
+<script>
+/* ---------------------------------------------------------------- data */
+/* per portion: protein, carbs, fats, fibre in grams; kcal is derived (4/4/9) */
+function F(id, name, unit, p, c, f, fb) { return { id: id, name: name, unit: unit, p: p, c: c, f: f, fb: fb, kcal: Math.round(p * 4 + c * 4 + f * 9) }; }
+
+/* the coach's plan, the same foods and portions as the Eat day view (r3/eat.html) */
+var PLAN = [
+  { id: "pre", name: "Pre-breakfast", foods: [F("tea", "Black tea with cinnamon", "1 cup", 0, 2.5, 0, 0)] },
+  { id: "bf", name: "Breakfast", foods: [F("egg", "Boiled egg", "2 eggs", 12, 2, 10, 0), F("chilla", "Lauki oats besan chilla", "2 pieces", 7, 20, 5, 4),
+    F("chutney", "Green chutney", "2 spoons", 0, 2, 0, 1), F("curd1", "Curd", "1 katori", 5, 7, 3, 0)] },
+  { id: "lunch", name: "Lunch", foods: [F("roti", "Roti", "2 pieces", 6, 30, 4, 4), F("sabzi1", "Mixed veg sabzi", "1 katori", 3, 12, 6, 4),
+    F("dal1", "Dal", "1 katori", 9, 20, 4, 5), F("salad1", "Garden salad", "1 bowl", 1, 3.5, 0, 3)] },
+  { id: "snack", name: "Evening snack", foods: [F("makhana", "Roasted makhana", "1 bowl", 3, 18, 1.5, 2), F("chana", "Roasted chana", "1 handful", 9, 27, 4, 6)] },
+  { id: "dinner", name: "Dinner", foods: [F("mroti", "Multigrain roti", "2 pieces", 5, 26, 4, 6), F("sabzi2", "Mixed veg sabzi", "1 katori", 3, 12, 6, 4),
+    F("dal2", "Dal", "1 katori", 9, 20, 4, 5), F("salad2", "Garden salad", "1 bowl", 1, 3.5, 0, 3)] },
+  { id: "bed", name: "Bedtime", foods: [F("walnut", "Walnut", "2 pieces", 1.2, 1, 5.2, 0.6), F("chamomile", "Chamomile tea", "1 cup", 0, 0.5, 0, 0)] }
+];
+var HEALTHY = [
+  F("paneer", "Paneer bhurji", "1 katori", 14, 6, 15, 1), F("chicken", "Grilled chicken", "100 g", 31, 0, 4, 0),
+  F("sprouts", "Sprouts salad", "1 bowl", 7, 15, 1, 5), F("moong", "Moong dal chilla", "2 pieces", 12, 28, 5, 5),
+  F("tofu", "Tofu stir fry", "1 bowl", 15, 8, 9, 3), F("yogurt", "Greek yogurt", "1 cup", 10, 4, 0, 0),
+  F("oats", "Oats with milk", "1 bowl", 10, 40, 6, 5), F("eggw", "Egg white omelette", "3 whites", 11, 1, 0, 0),
+  F("whey", "Whey protein", "1 scoop", 24, 3, 1.5, 0), F("fruit", "Fruit bowl", "1 bowl", 1, 25, 0, 4),
+  F("almond", "Almonds", "10 pieces", 2.5, 2, 5, 1.2), F("rajma", "Rajma", "1 katori", 9, 25, 3, 7)
+];
+var JUNK = [
+  /* whole real-life portions, estimated */
+  F("paratha", "Aloo parathas with butter", "2 parathas", 10, 80, 40, 8),
+  F("pepsi", "Pepsi", "1 large", 0, 65, 0, 0),
+  F("maggi", "Maggi with a slice of bread", "2 packs + 1 slice", 19, 124, 31, 5),
+  F("icecream", "Belgian chocolate ice cream", "2 scoops", 5, 40, 22, 1),
+  F("margherita", "Margherita pizza", "1 full pizza", 44, 120, 40, 6),
+  F("pasta", "White sauce pasta", "1 plate", 18, 80, 30, 4),
+  F("samchai", "Samosas with chai", "2 samosas + 1 chai", 11, 63, 31, 4),
+  F("samosa", "Samosa", "1 piece", 4, 24, 14, 2), F("pizza", "Pizza", "1 slice", 12, 33, 10, 2),
+  F("fries", "French fries", "1 medium", 4, 44, 17, 4), F("burger", "Burger", "1 piece", 14, 40, 18, 2),
+  F("noodles", "Instant noodles", "1 pack", 6, 55, 16, 2), F("chips", "Potato chips", "1 pack", 3, 26, 17, 2),
+  F("pakora", "Pakora", "1 plate", 6, 30, 20, 3), F("cola", "Cola", "1 can", 0, 35, 0, 0),
+  F("gulab", "Gulab jamun", "2 pieces", 3, 50, 12, 0.5), F("jalebi", "Jalebi", "100 g", 2, 60, 15, 0),
+  F("choc", "Chocolate bar", "1 bar", 3, 28, 14, 1), F("biscuit", "Cream biscuits", "4 pieces", 2, 30, 10, 1)
+];
+var ALL = {};
+PLAN.forEach(function (m) { m.foods.forEach(function (x) { ALL[x.id] = x; }); });
+HEALTHY.concat(JUNK).forEach(function (x) { ALL[x.id] = x; });
+var PLAN_IDS = PLAN.reduce(function (a, m) { return a.concat(m.foods.map(function (x) { return x.id; })); }, []);
+
+function planTargets() {
+  var t = { kcal: 0, p: 0, c: 0, f: 0 };
+  PLAN.forEach(function (m) { m.foods.forEach(function (x) { for (var k in t) t[k] += x[k]; }); });
+  return { kcal: Math.round(t.kcal / 10) * 10, p: Math.round(t.p), c: Math.round(t.c), f: Math.round(t.f), fb: 30 };
+}
+
+var MAC = [
+  { k: "p", name: "Protein", type: "reach", g: "g-p" },
+  { k: "c", name: "Carbs", type: "range", g: "g-c" },
+  { k: "f", name: "Fats", type: "range", g: "g-f" },
+  { k: "fb", name: "Fibre", type: "reach", g: "g-fb" }
+];
+
+/* ---------------------------------------------------------------- the logic */
+function credit(type, pct) {
+  if (type === "reach") return Math.min(pct, 100);
+  if (pct <= 100) return pct;
+  if (pct <= 110) return 100;                       /* tolerance zone */
+  return Math.max(0, 100 - (pct - 110) * 2);
+}
+function calorieFine(kcalPct) { return kcalPct <= 110 ? 0 : Math.min(15, (kcalPct - 110) * 0.5); }
+function band(s) { return s >= 85 ? ["ex", "Excellent"] : s >= 70 ? ["good", "Good"] : s >= 50 ? ["att", "Needs attention"] : ["poor", "Poor"]; }
+
+/* weights are scaled to add up to 100, so dragging one slider never breaks the maths */
+function score(intake, targets, weights, usePenalty) {
+  var wsum = MAC.reduce(function (a, m) { return a + weights[m.k]; }, 0) || 1;
+  var rows = MAC.map(function (m) {
+    var pct = targets[m.k] ? intake[m.k] / targets[m.k] * 100 : 0;
+    var cr = credit(m.type, pct), w = weights[m.k] / wsum * 100;
+    return { m: m, pct: pct, credit: cr, w: w, pts: cr * w / 100 };
+  });
+  var base = rows.reduce(function (a, r) { return a + r.pts; }, 0);
+  var kcalPct = targets.kcal ? intake.kcal / targets.kcal * 100 : 0;
+  var pen = usePenalty ? calorieFine(kcalPct) : 0;
+  return { rows: rows, base: base, kcalPct: kcalPct, pen: pen, final: Math.round(Math.max(0, base - pen)) };
+}
+
+/* ponytail: one runnable check of the spec's rules, results in the console */
+(function selfCheck() {
+  var ok = credit("reach", 130) === 100 && credit("range", 90) === 90 && credit("range", 108) === 100 &&
+    credit("range", 120) === 80 && credit("range", 170) === 0 && calorieFine(110) === 0 &&
+    calorieFine(130) === 10 && calorieFine(200) === 15 && band(85)[1] === "Excellent" && band(49)[1] === "Poor";
+  var T = { kcal: 2000, p: 100, c: 200, f: 50, fb: 30 }, W = { p: 25, c: 25, f: 25, fb: 25 };
+  ok = ok && score({ kcal: 2000, p: 100, c: 200, f: 50, fb: 30 }, T, W, true).final === 100 &&
+    score({ kcal: 2600, p: 50, c: 240, f: 50, fb: 15 }, T, W, true).final === 60;   /* 12.5+20+25+12.5 = 70, minus 10 */
+  console[ok ? "log" : "error"]("score sandbox self-check " + (ok ? "passed" : "FAILED"));
+})();
+
+/* ---------------------------------------------------------------- state */
+var S = {
+  /* the coach builds the plan to the targets, so the targets are the plan's own
+     totals: following the plan in full scores 100. Fibre keeps the 30g guideline. */
+  targets: planTargets(),
+  weights: { p: 25, c: 25, f: 25, fb: 25 },
+  penalty: true, tab: "plan", qty: {}, last: null, preset: null
+};
+var PRESETS = [
+  { id: "empty", name: "Empty day", qty: {} },
+  { id: "plan", name: "Followed the plan", qty: PLAN_IDS.reduce(function (a, id) { a[id] = 1; return a; }, {}) },
+  { id: "planjunk", name: "Plan, then a junk evening", qty: PLAN.reduce(function (a, m) {
+    /* the evening snack and dinner are swapped for a whole pizza */
+    if (m.id !== "snack" && m.id !== "dinner") m.foods.forEach(function (x) { a[x.id] = 1; });
+    return a; }, { margherita: 1 }) },
+  { id: "lowp", name: "Carbs heavy, protein light", qty: { roti: 2, oats: 1, fruit: 2, makhana: 1, noodles: 1, rajma: 1 } },
+  { id: "highp", name: "Protein first", qty: { chicken: 2, whey: 1, egg: 1, paneer: 1, sprouts: 1, salad1: 2, dal1: 1, almond: 1, rajma: 1 } },
+  { id: "junk", name: "Junk all day", qty: { paratha: 1, maggi: 1, margherita: 1, pepsi: 1, icecream: 1 } }
+];
+
+/* ---------------------------------------------------------------- render */
+var $ = function (id) { return document.getElementById(id); };
+function fmt(n) { return Math.round(n * 10) / 10; }
+function macroLine(x) { return "P " + fmt(x.p) + " · C " + fmt(x.c) + " · F " + fmt(x.f) + " · Fibre " + fmt(x.fb); }
+
+function intake() {
+  var t = { kcal: 0, p: 0, c: 0, f: 0, fb: 0 };
+  Object.keys(S.qty).forEach(function (id) {
+    var n = S.qty[id], x = ALL[id];
+    ["kcal", "p", "c", "f", "fb"].forEach(function (k) { t[k] += x[k] * n; });
+  });
+  return t;
+}
+
+function presets() {
+  $("presets").innerHTML = PRESETS.map(function (p) {
+    return '<button class="chip' + (S.preset === p.id ? " on" : "") + '" data-preset="' + p.id + '">' + p.name + '</button>';
+  }).join("");
+}
+function targets() {
+  var T = [["kcal", "Calories", "kcal", ""], ["p", "Protein", "g", "g-p"], ["c", "Carbs", "g", "g-c"], ["f", "Fats", "g", "g-f"], ["fb", "Fibre", "g", "g-fb"]];
+  $("targets").innerHTML = T.map(function (t) {
+    return '<label class="tg"><span>' + (t[3] ? '<i class="glyph ' + t[3] + '"></i>' : "") + t[1] + ' (' + t[2] + ')</span>' +
+      '<input type="number" inputmode="numeric" min="1" data-target="' + t[0] + '" value="' + S.targets[t[0]] + '"></label>';
+  }).join("");
+}
+function count(ids) { return ids.reduce(function (a, id) { return a + (S.qty[id] || 0); }, 0); }
+function tabs() {
+  var T = [["plan", "Coach's plan", PLAN_IDS], ["healthy", "Healthy options", HEALTHY.map(function (x) { return x.id; })], ["junk", "Junk", JUNK.map(function (x) { return x.id; })]];
+  $("tabs").innerHTML = T.map(function (t) {
+    var n = count(t[2]);
+    return '<button class="tab' + (S.tab === t[0] ? " on" : "") + '" role="tab" aria-selected="' + (S.tab === t[0]) + '" data-tab="' + t[0] + '">' + t[1] + (n ? "<b>" + n + "</b>" : "") + '</button>';
+  }).join("");
+}
+function row(x) {
+  var n = S.qty[x.id] || 0;
+  return '<div class="food' + (n ? " has" : "") + '"><div class="t"><div class="n">' + x.name + '</div>' +
+    '<div class="m">' + x.unit + ' · ' + macroLine(x) + '</div></div><span class="k">' + x.kcal + ' kcal</span>' +
+    '<div class="step' + (n ? " has" : "") + '"><button class="minus" data-dec="' + x.id + '" aria-label="Remove one ' + x.name + '">&minus;</button>' +
+    '<output>' + n + '</output><button class="plus" data-inc="' + x.id + '" aria-label="Add one ' + x.name + '">+</button></div></div>';
+}
+function list() {
+  if (S.tab === "plan") {
+    $("list").innerHTML = PLAN.map(function (m) {
+      var kc = m.foods.reduce(function (a, x) { return a + x.kcal; }, 0);
+      return '<div class="group"><div class="gh"><img src="icons/meals/gemini/' + m.id + '.png?v=2" alt=""><b>' + m.name + '</b>' +
+        '<small>' + kc + ' kcal planned</small><button class="add" data-meal="' + m.id + '">Log meal</button></div>' + m.foods.map(row).join("") + '</div>';
+    }).join("");
+  } else {
+    var arr = S.tab === "healthy" ? HEALTHY : JUNK;
+    $("list").innerHTML = '<div class="group ' + S.tab + '">' + arr.map(row).join("") + '</div>';
+  }
+}
+
+var prev = null;
+function panel() {
+  var it = intake(), r = score(it, S.targets, S.weights, S.penalty), b = band(r.final);
+  var L = 314.16;   /* half circumference of r=100 */
+  var arc = $("arc");
+  arc.setAttribute("stroke-dasharray", L);
+  arc.setAttribute("stroke-dashoffset", L * (1 - r.final / 100));
+  arc.setAttribute("stroke", "#98A2B3"   /* the arc stays neutral grey at every score; the band label carries the verdict */);
+  $("num").innerHTML = r.final + "<i>%</i>";
+  $("band").textContent = b[1]; $("band").dataset.b = b[0];
+  $("eq").innerHTML = "Base <b>" + fmt(r.base) + "</b>" + (S.penalty ? " &minus; calorie penalty <b>" + fmt(r.pen) + "</b>" : "") + " = <b>" + r.final + "</b>";
+  document.querySelectorAll("#bands div").forEach(function (d) { d.classList.toggle("on", d.dataset.b === b[0]); });
+
+  if (prev !== null && prev !== r.final) {
+    var d = $("delta"), diff = r.final - prev;
+    d.textContent = (diff > 0 ? "+" : "") + diff; d.className = "delta show " + (diff > 0 ? "up" : "down");
+    clearTimeout(d._t); d._t = setTimeout(function () { d.classList.remove("show"); }, 1600);
+  }
+  prev = r.final;
+
+  $("macros").innerHTML = r.rows.map(function (x) {
+    var m = x.m, over = m.type === "range" && x.pct > 110;
+    var why = over ? "Over by " + fmt(x.pct - 110) + "% past tolerance, " + fmt(100 - x.credit) + " credit lost"
+      : m.type === "range" && x.pct > 100 ? "In the 10% tolerance, full credit"
+      : m.type === "reach" && x.pct > 100 ? "Extra is fine, credit stays at 100" : "";
+    return '<div class="mc ' + m.type + '"><div class="mr"><span class="nm"><i class="glyph ' + m.g + '"></i>' + m.name + '</span>' +
+      '<span class="ty">' + (m.type === "reach" ? "Reach" : "Range") + '</span>' +
+      '<span class="v"><b>' + fmt(it[m.k]) + '</b> of ' + S.targets[m.k] + 'g · ' + Math.round(x.pct) + '%</span></div>' +
+      '<div class="bar"><span class="tol"></span><span class="pen"></span><span class="fl' + (over ? " over" : "") + '" style="transform:scaleX(' + Math.min(x.pct, 160) / 160 + ')"></span><span class="tick"></span></div>' +
+      '<div class="mx"><span class="why' + (over ? " bad" : "") + '">' + why + '</span><span>credit ' + fmt(x.credit) + ' × ' + fmt(x.w) + '% = <b>' + fmt(x.pts) + '</b> pts</span></div></div>';
+  }).join("");
+
+  $("kcalLine").textContent = Math.round(it.kcal) + " of " + S.targets.kcal + " kcal · " + Math.round(r.kcalPct) + "%";
+  var fine = calorieFine(r.kcalPct);
+  $("kcalPen").innerHTML = !S.penalty ? "Off" : fine ? '<span class="pena">&minus;' + fmt(fine) + ' pts</span>' : "No penalty up to 110%";
+  $("kcalSw").setAttribute("aria-checked", S.penalty);
+
+  var wsum = MAC.reduce(function (a, m) { return a + S.weights[m.k]; }, 0);
+  $("wsum").textContent = wsum === 100 ? "" : "add to " + wsum + ", scaled to 100";
+}
+function weights() {
+  $("weights").innerHTML = MAC.map(function (m) {
+    return '<label class="wt"><span>' + m.name + '</span><input type="range" min="0" max="60" step="5" data-w="' + m.k + '" value="' + S.weights[m.k] + '"><output>' + S.weights[m.k] + '</output></label>';
+  }).join("");
+}
+function all() { presets(); tabs(); list(); panel(); }
+
+/* ---------------------------------------------------------------- events */
+document.addEventListener("click", function (e) {
+  var t = e.target.closest("button"); if (!t) return;
+  if (t.dataset.inc) { S.qty[t.dataset.inc] = (S.qty[t.dataset.inc] || 0) + 1; S.preset = null; }
+  else if (t.dataset.dec) { var id = t.dataset.dec; S.qty[id] = Math.max(0, (S.qty[id] || 0) - 1); if (!S.qty[id]) delete S.qty[id]; S.preset = null; }
+  else if (t.dataset.meal) { PLAN.filter(function (m) { return m.id === t.dataset.meal; })[0].foods.forEach(function (x) { S.qty[x.id] = (S.qty[x.id] || 0) + 1; }); S.preset = null; }
+  else if (t.dataset.tab) S.tab = t.dataset.tab;
+  else if (t.dataset.preset) { var p = PRESETS.filter(function (x) { return x.id === t.dataset.preset; })[0]; S.qty = Object.assign({}, p.qty); S.preset = p.id; }
+  else if (t.id === "kcalSw") S.penalty = !S.penalty;
+  else if (t.id === "eqw") { S.weights = { p: 25, c: 25, f: 25, fb: 25 }; weights(); }
+  else return;
+  all();
+});
+document.addEventListener("input", function (e) {
+  var t = e.target;
+  if (t.dataset.target) { var v = parseFloat(t.value); if (v > 0) { S.targets[t.dataset.target] = v; panel(); } }
+  if (t.dataset.w) { S.weights[t.dataset.w] = +t.value; t.nextElementSibling.textContent = t.value; panel(); }
+});
+
+targets(); weights(); all();
+</script>
+</body>
+</html>

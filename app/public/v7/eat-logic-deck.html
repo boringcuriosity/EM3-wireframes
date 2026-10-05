@@ -45,7 +45,7 @@
   .nav button:hover{border-color:var(--brand);color:var(--brand)}
   .nav button:disabled{opacity:.35;cursor:default;border-color:var(--line);color:var(--text)}
   .count{font-size:13px;font-weight:600;color:var(--muted);min-width:64px;text-align:center;font-variant-numeric:tabular-nums}
-  .progress{position:fixed;left:0;top:0;height:3px;background:var(--brand);z-index:11;transition:width .45s var(--ease)}
+  .progress{position:fixed;left:0;top:0;width:100%;height:3px;background:var(--brand);z-index:11;transform-origin:left;transform:scaleX(0);transition:transform .45s var(--ease)}
 
   /* ---------- type ---------- */
   .eyebrow{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--brand);margin-bottom:12px}
@@ -103,7 +103,7 @@
   .meter{display:grid;grid-template-columns:110px 1fr 150px;align-items:center;gap:14px;font-size:14px}
   .meter .nm{display:flex;align-items:center;gap:8px;color:var(--ink);font-weight:500}
   .meter .tr{height:12px;border-radius:999px;background:var(--g100);position:relative;overflow:hidden}
-  .meter .fl{position:absolute;inset:0 auto 0 0;border-radius:999px;background:var(--brand);width:0;transition:width 1.1s var(--ease) .2s}
+  .meter .fl{position:absolute;inset:0 auto 0 0;border-radius:999px;background:var(--brand);width:100%;transform-origin:left;transform:scaleX(0);transition:transform 1.1s var(--ease) .2s}
   .meter .fl.over{background:var(--brand)}
   .meter .ov{position:absolute;right:0;top:0;bottom:0;width:4px;background:var(--gold-700);border-radius:2px;opacity:0}
   .meter .v{text-align:right;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -717,7 +717,7 @@
   });
 
   function meters(sl, on) {
-    sl.querySelectorAll(".meter .fl").forEach(function (f) { f.style.width = on ? f.dataset.w + "%" : "0"; });
+    sl.querySelectorAll(".meter .fl").forEach(function (f) { f.style.transform = "scaleX(" + (on ? f.dataset.w / 100 : 0) + ")"; });
   }
 
   function go(i, push) {
@@ -727,7 +727,7 @@
     slides[cur].classList.add("on");
     requestAnimationFrame(function () { meters(slides[cur], true); });
     count.textContent = (cur + 1) + " / " + N;
-    bar.style.width = ((cur + 1) / N * 100) + "%";
+    bar.style.transform = "scaleX(" + ((cur + 1) / N) + ")";
     prev.disabled = cur === 0; next.disabled = cur === N - 1;
     document.title = slides[cur].dataset.title + " · Eat, Explained";
     if (push !== false) history.replaceState(null, "", "#" + (cur + 1));
