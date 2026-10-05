@@ -98,14 +98,17 @@
 
   /* ---------------------------------------- Your macros this week */
   function macros(m) {
-    var HALF = Math.PI * 88;
+    /* the card crops the bottom of the half circle, so only 34 to 146 degrees
+       of it ever shows. The arc is drawn over that visible span alone, or a
+       91 percent week would hide its unfilled tail below the card and read as full. */
+    var ARC = "M25.04 48.79A88 88 0 0 1 170.96 48.79", HALF = 172.0;
     return '<div><div class="mh2">Your macros this week</div><div class="trail">' + m.macros.map(function (x) {
       var none = x.had === null, p = none ? 0 : Math.min(1, x.had / x.goal);
       return '<div class="gt"><i class="mg glyph-' + x.k + '"></i><span class="gl">' + x.lab + '</span>' +
         '<span class="gv">' + (none ? "&ndash;" : x.had) + '<s>/' + x.goal + x.unit + '</s></span>' +
         '<svg width="196" height="102" viewBox="0 0 196 102" aria-hidden="true">' +
-          '<path d="M10 98a88 88 0 0 1 176 0" fill="none" stroke="#EAECF0" stroke-width="16"/>' +
-          '<path class="arc" d="M10 98a88 88 0 0 1 176 0" fill="none" stroke="#299D6B" stroke-width="16" stroke-dasharray="' +
+          '<path d="' + ARC + '" fill="none" stroke="#EAECF0" stroke-width="16"/>' +
+          '<path class="arc" d="' + ARC + '" fill="none" stroke="#299D6B" stroke-width="16" stroke-dasharray="' +
             (p * HALF).toFixed(1) + " " + HALF.toFixed(1) + '"/></svg></div>';
     }).join("") + '</div></div>';
   }

@@ -81,11 +81,23 @@
   .num { position: absolute; top: 56px; left: 0; right: 0; text-align: center; font: 600 48px/52px Roboto, sans-serif;
     letter-spacing: -1px; font-variant-numeric: tabular-nums; }
   .num i { font-style: normal; font-size: 20px; font-weight: 500; vertical-align: 22px; margin-left: 2px; }
-  .band { display: inline-flex; align-items: center; height: 28px; padding: 0 12px; border-radius: 999px; font-weight: 600; font-size: 14px; }
-  .band[data-b="ex"] { background: #ECFDF3; color: var(--ex); }
-  .band[data-b="good"] { background: var(--brand-50); color: var(--good); }
-  .band[data-b="att"] { background: var(--amber-50); color: var(--att); }
-  .band[data-b="poor"] { background: var(--red-50); color: var(--poor); }
+  /* the score chips, exact from the app's Cloud Drop score (r3/heroes/cloud): a soft
+     diagonal fill and an angular border with two darker sweeps */
+  .band { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 8px; border-radius: 8px;
+    white-space: nowrap; font: 400 12px/1 Roboto, sans-serif; border: 1px solid transparent; color: var(--t-ink);
+    background: var(--t-fill) padding-box, var(--t-line) border-box; }
+  [data-s="great"], [data-s="solid"] { --t-ink: #039855;
+    --t-fill: linear-gradient(112.36deg, #d1fadf 3%, #ecfdf3 20.1%, #ecfdf3 79.9%, #d1fadf 94.4%);
+    --t-line: conic-gradient(from 90deg, #32d583 0deg, #039855 11.51deg, #32d583 36.77deg, #32d583 175.4deg, #039855 193.58deg, #32d583 224.26deg, #32d583 360deg); }
+  [data-s="grow"] { --t-ink: #dc6803;
+    --t-fill: linear-gradient(120.65deg, #fef0c7 3%, #fffaeb 20.1%, #fffaeb 79.8%, #fef0c7 94.3%);
+    --t-line: conic-gradient(from 90deg, #fdb022 0deg, #dc6803 8.04deg, #fdb022 27.41deg, #fdb022 176.8deg, #dc6803 189.51deg, #fdb022 214.06deg, #fdb022 360deg); }
+  [data-s="attention"] { --t-ink: #d92d20;
+    --t-fill: linear-gradient(122.66deg, #fee4e2 3%, #fef3f2 20.1%, #fef3f2 79.8%, #fee4e2 94.3%);
+    --t-line: conic-gradient(from 90deg, #f97066 0deg, #d92d20 7.44deg, #f97066 25.61deg, #f97066 177.04deg, #d92d20 188.81deg, #f97066 212.01deg, #f97066 360deg); }
+  [data-s="log"] { --t-ink: #667085;
+    --t-fill: linear-gradient(124.82deg, #f2f4f7 3%, #f9fafb 20.1%, #f9fafb 79.8%, #f2f4f7 94.3%);
+    --t-line: conic-gradient(from 90deg, #f2f4f7 0deg, #e4e7ec 6.87deg, #f2f4f7 23.84deg, #f2f4f7 177.28deg, #e4e7ec 188.13deg, #f2f4f7 209.95deg, #f2f4f7 360deg); }
   .eq { font-size: 12px; color: var(--g-500); text-align: center; font-variant-numeric: tabular-nums; }
   .eq b { color: var(--g-900); font-weight: 600; }
   .delta { position: absolute; top: 12px; right: 8px; font-weight: 600; font-size: 14px; opacity: 0; transition: opacity .3s; }
@@ -136,11 +148,7 @@
 
   .bands { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
   .bands div { font-size: 12px; text-align: center; padding: 6px 0; border-radius: 8px; color: var(--g-500); background: var(--g-50); }
-  .bands div.on { font-weight: 600; }
-  .bands div.on[data-b="ex"] { background: #ECFDF3; color: var(--ex); }
-  .bands div.on[data-b="good"] { background: var(--brand-50); color: var(--good); }
-  .bands div.on[data-b="att"] { background: var(--amber-50); color: var(--att); }
-  .bands div.on[data-b="poor"] { background: var(--red-50); color: var(--poor); }
+  .bands div.on { font-weight: 600; color: var(--t-ink); background: var(--t-fill) padding-box, var(--t-line) border-box; border: 1px solid transparent; }
 
   .glyph { width: 18px; height: 18px; background: var(--g-700); -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat; flex-shrink: 0; }
   .g-p { --m: url(icons/glyph-protein.png); } .g-c { --m: url(icons/glyph-carbs.png); }
@@ -191,7 +199,7 @@
       <div class="eq" id="eq"></div>
     </div>
     <div class="bands" id="bands">
-      <div data-b="poor">Poor<br>below 50</div><div data-b="att">Needs attention<br>50 to 69</div><div data-b="good">Good<br>70 to 84</div><div data-b="ex">Excellent<br>85 to 100</div>
+      <div data-s="attention">Needs Attention<br>below 50</div><div data-s="grow">Room To Grow<br>50 to 69</div><div data-s="solid">Solid Day<br>70 to 84</div><div data-s="great">Great Day<br>85 to 100</div>
     </div>
     <div class="macros" id="macros"></div>
     <div class="kc">
@@ -273,7 +281,8 @@ function credit(type, pct) {
   return Math.max(0, 100 - (pct - 110) * 2);
 }
 function calorieFine(kcalPct) { return kcalPct <= 110 ? 0 : Math.min(15, (kcalPct - 110) * 0.5); }
-function band(s) { return s >= 85 ? ["ex", "Excellent"] : s >= 70 ? ["good", "Good"] : s >= 50 ? ["att", "Needs attention"] : ["poor", "Poor"]; }
+/* the app's own chip words: Solid Day, Room To Grow, Needs Attention, with Great Day for the top band */
+function band(s) { return s >= 85 ? ["great", "Great Day"] : s >= 70 ? ["solid", "Solid Day"] : s >= 50 ? ["grow", "Room To Grow"] : ["attention", "Needs Attention"]; }
 
 /* weights are scaled to add up to 100, so dragging one slider never breaks the maths */
 function score(intake, targets, weights, usePenalty) {
@@ -293,7 +302,7 @@ function score(intake, targets, weights, usePenalty) {
 (function selfCheck() {
   var ok = credit("reach", 130) === 100 && credit("range", 90) === 90 && credit("range", 108) === 100 &&
     credit("range", 120) === 80 && credit("range", 170) === 0 && calorieFine(110) === 0 &&
-    calorieFine(130) === 10 && calorieFine(200) === 15 && band(85)[1] === "Excellent" && band(49)[1] === "Poor";
+    calorieFine(130) === 10 && calorieFine(200) === 15 && band(85)[1] === "Great Day" && band(49)[1] === "Needs Attention";
   var T = { kcal: 2000, p: 100, c: 200, f: 50, fb: 30 }, W = { p: 25, c: 25, f: 25, fb: 25 };
   ok = ok && score({ kcal: 2000, p: 100, c: 200, f: 50, fb: 30 }, T, W, true).final === 100 &&
     score({ kcal: 2600, p: 50, c: 240, f: 50, fb: 15 }, T, W, true).final === 60;   /* 12.5+20+25+12.5 = 70, minus 10 */
@@ -312,9 +321,9 @@ var PRESETS = [
   { id: "empty", name: "Empty day", qty: {} },
   { id: "plan", name: "Followed the plan", qty: PLAN_IDS.reduce(function (a, id) { a[id] = 1; return a; }, {}) },
   { id: "planjunk", name: "Plan, then a junk evening", qty: PLAN.reduce(function (a, m) {
-    /* the evening snack and dinner are swapped for a whole pizza */
+    /* the evening snack and dinner are swapped for pizza, Pepsi, ice cream and samosas with chai */
     if (m.id !== "snack" && m.id !== "dinner") m.foods.forEach(function (x) { a[x.id] = 1; });
-    return a; }, { margherita: 1 }) },
+    return a; }, { margherita: 1, pepsi: 1, icecream: 1, samchai: 1 }) },
   { id: "lowp", name: "Carbs heavy, protein light", qty: { roti: 2, oats: 1, fruit: 2, makhana: 1, noodles: 1, rajma: 1 } },
   { id: "highp", name: "Protein first", qty: { chicken: 2, whey: 1, egg: 1, paneer: 1, sprouts: 1, salad1: 2, dal1: 1, almond: 1, rajma: 1 } },
   { id: "junk", name: "Junk all day", qty: { paratha: 1, maggi: 1, margherita: 1, pepsi: 1, icecream: 1 } }
@@ -383,9 +392,10 @@ function panel() {
   arc.setAttribute("stroke-dashoffset", L * (1 - r.final / 100));
   arc.setAttribute("stroke", "#98A2B3"   /* the arc stays neutral grey at every score; the band label carries the verdict */);
   $("num").innerHTML = r.final + "<i>%</i>";
-  $("band").textContent = b[1]; $("band").dataset.b = b[0];
+  if (!it.kcal) b = ["log", "Log your meals"];   /* nothing in yet, so no verdict */
+  $("band").textContent = b[1]; $("band").dataset.s = b[0];
   $("eq").innerHTML = "Base <b>" + fmt(r.base) + "</b>" + (S.penalty ? " &minus; calorie penalty <b>" + fmt(r.pen) + "</b>" : "") + " = <b>" + r.final + "</b>";
-  document.querySelectorAll("#bands div").forEach(function (d) { d.classList.toggle("on", d.dataset.b === b[0]); });
+  document.querySelectorAll("#bands div").forEach(function (d) { d.classList.toggle("on", d.dataset.s === b[0]); });
 
   if (prev !== null && prev !== r.final) {
     var d = $("delta"), diff = r.final - prev;

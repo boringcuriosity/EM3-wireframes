@@ -435,11 +435,11 @@
       <ul class="plain">
         <li>Always open, with no expand, no collapse and no chevron.</li>
         <li>Header: meal name, "Suggested 8:00 - 10:00 AM · 486 of 382 cal", and a + button.</li>
-        <li>Body: "YOUR COACH'S PLAN", option chips with a check on the chosen one, then food rows with a tick circle, name, quantity, calories and a ⋮ menu.</li>
+        <li>Body: "YOUR COACH'S PLAN", option chips with a check on the chosen one, then food rows with a tick circle, name, quantity and calories. No row menu: a logged food's tick opens its sheet (change the quantity, take it off your day).</li>
         <li>Food logged outside the plan sits above the plan with a "Manual" tag.</li>
         <li>"Log all 3" or "Log the other 2" appears when two or more items are left.</li>
         <li>"TIPS FROM YOUR COACH" holds the parts of a plan that are not food, each with a tick and a one line tip.</li>
-        <li>A coach's food has three states: logged, skipped, untouched. Skip sits in the meal card's ⋮ menu and nowhere else, and the food stays on the plan rather than being deleted. The logging screen has no Skip: it adds food, so a plan food there is untouched until it is ticked.</li>
+        <li>A coach's food has two states: logged or not yet. There is no Skip: a food not eaten simply stays unticked, and it is never deleted from the plan.</li>
       </ul>
     </section>
 
@@ -615,7 +615,7 @@
         <tbody>
           <tr><td>Fibre has no target and no column in the backend. Keep it in the score?</td><td><b>Keep it.</b> Fibre stays the fourth nutrient, on the screen and in the score.</td><td>The backend adds a fibre target to the plan and a fibre column to the food log.</td></tr>
           <tr><td>The API allows a future date. Allow it?</td><td><b>No.</b> Future days stay unreachable: the chip's forward arrow stops on today, and the date sheet greys the rest of the month.</td><td>A client side rule only. The API stays as it is.</td></tr>
-          <tr><td>A coach's food that was not eaten: delete it?</td><td><b>No. Abstain.</b> One word for it, Skip, in one place: the meal card's ⋮ menu. A third state beside logged and untouched, and a coach's food is never deleted.</td><td>The meal card carries three states per plan food, not two.</td></tr>
+          <tr><td>A coach's food that was not eaten: delete it?</td><td><b>No.</b> It stays on the plan, unticked. There is no Skip, and a coach's food is never deleted.</td><td>The meal card carries two states per plan food: logged or not yet.</td></tr>
           <tr><td>Should ticking a plan food log it straight away?</td><td><b>No.</b> Every tick opens a confirm step for quantity and time, and the time decides which meal the food lands in.</td><td>One extra step on the quickest path, in exchange for a day that is actually true.</td></tr>
         </tbody>
       </table></div>

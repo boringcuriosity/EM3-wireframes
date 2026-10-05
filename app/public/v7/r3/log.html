@@ -2466,6 +2466,15 @@ el("q").value = S.query;
 render();
 watchScroll();
 if (p.saving) showSaving();
+/* "Log with KAIRA" on a meal card lands straight in her chat, already up, and
+   closing it goes back to the day rather than leaving the logger behind */
+if (ENTRY === "kaira") window.addEventListener("load", function () {
+  var k = openKairaLog();
+  k.style.transition = "none";
+  k.classList.add("on");
+  /* back to the exact day it came from when there is one to go back to */
+  k.querySelector("#klogX").onclick = function () { window.parent === window && history.length > 1 ? history.back() : goEat(); };
+});
 </script>
 <script src="chrome.js"></script>
 <script src="assets/win-moment.js?v=12"></script>

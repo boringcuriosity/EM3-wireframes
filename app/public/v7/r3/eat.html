@@ -30,6 +30,7 @@
      It has to be positioned as well as pulled up: the stage above is
      position:relative, so without a layer of its own a plain block sliding
      under it is painted over and loses its top edge. */
+  .sect.ksect { margin-top: 24px; }   /* KAIRA reads as part of the score above her, not a new section */
   .sect.tight { position: relative; z-index: 1; margin-top: -10px; }
 
   /* ---------------------------------------------------------------- header */
@@ -388,9 +389,11 @@
   [data-art="pic"] .meal.scene::before { display: none; }
   [data-art="pic"] .meal.scene .mbi { border-top-color: var(--g-100); }
   [data-art="scene"] .mh .mpic { display: none; }
-  .meal.scene::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 132px; z-index: -1;
-    border-radius: var(--r-xl) var(--r-xl) 0 0; opacity: .55;
-    background: var(--scene) right top / auto 132px no-repeat;
+  /* never taller than the card: a slim card (no plan, header only) gets the
+     whole scene scaled down to its own height rather than one spilling out */
+  .meal.scene::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 100%; max-height: 132px; z-index: -1;
+    border-radius: inherit; opacity: .55;
+    background: var(--scene) right top / auto 100% no-repeat;
     -webkit-mask: linear-gradient(90deg, transparent 18%, #000 62%), linear-gradient(180deg, #000 45%, transparent);
     -webkit-mask-composite: source-in; mask-composite: intersect; }
   .mh .t { flex: 1; min-width: 0; }
@@ -481,15 +484,13 @@
   /* everything on the right settles onto the name's first line, so the row
      reads as one line with a helping under it rather than a drift */
   .item .kc { margin-top: 3px; }
-  .item .manual, .item .skiptag { margin-top: 0; }
+  .item .manual { margin-top: 0; }
   /* The mark is 24 and the target is 44, held by an overlay that costs no
      layout, which is what .chip and .askk already do. Five different negative
-     margins used to hold the same 44 open, and the calorie figure ended 8px
-     INSIDE the overflow button because .kc and .dots each closed the same gap,
-     so tapping "146 cal" opened the options sheet. */
-  .tickbtn, .dots { position: relative; width: 24px; height: 24px; border: 0; background: none;
+     margins used to hold the same 44 open. */
+  .tickbtn { position: relative; width: 24px; height: 24px; border: 0; background: none;
     padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
-  .tickbtn::after, .dots::after { content: ""; position: absolute; left: 50%; top: 50%;
+  .tickbtn::after { content: ""; position: absolute; left: 50%; top: 50%;
     width: 44px; height: 44px; transform: translate(-50%, -50%); }
   .tickbtn[disabled] { cursor: default; }
   .tick { width: 24px; height: 24px; border-radius: 9999px; border: 1.5px solid var(--g-300); background: #fff; display: grid; place-items: center; flex-shrink: 0; }
@@ -502,7 +503,6 @@
   .item.done .nm { color: var(--g-700); }
   .manual { font-size: 12px; font-weight: 600; color: var(--g-500); background: var(--g-50); border: 1px solid var(--g-200); border-radius: 9999px; padding: 2px 8px; flex-shrink: 0; }
   .kc { font-size: 12px; color: var(--g-500); white-space: nowrap; }
-  .dots { color: var(--g-400); }
   .note { font-size: 12px; color: var(--g-500); line-height: 18px; margin: 0 0 8px; }
   /* 12 above the rule; the label below it brings its own 12, so the dashed
      rule sits centred in 24 the same way every other divider here does */
@@ -944,11 +944,6 @@
   .why.quiet { background: var(--g-50); border-color: var(--g-100); }
   .why.quiet svg { color: var(--g-400); }
 
-  /* a food the day skipped: still on the plan, out of the count */
-  .item.skipped .nm { color: var(--g-400); text-decoration: line-through; text-decoration-color: var(--g-300); }
-  .item.skipped .tick { border-style: dashed; border-color: var(--g-300); color: var(--g-400); }
-  .skiptag { font-size: 12px; font-weight: 600; color: var(--g-400); background: var(--g-50); border: 1px solid var(--g-200);
-    border-radius: 9999px; padding: 2px 8px; flex-shrink: 0; }
 
   /* the confirm step: a quantity, a time, and where that time sends the food */
   .cfrow + .cfrow { border-top: 1px solid var(--g-100); }
@@ -1004,7 +999,7 @@
     <div id="calstrip"></div>
   </div>
 
-  <div class="gut sect">
+  <div class="gut sect ksect">
     <div class="kaira">
       <div class="say">
         <span class="kmark" id="kairaMark"></span>
@@ -1081,23 +1076,23 @@ var Q = new URLSearchParams(location.search);
 var KAIRA = {
   /* Before the plan the card above already explains the job, so Kaira does not
      repeat it. She gives the nudge that gets the first line in. */
-  noplanempty: "Start with whatever you ate last, even a cup of chai. <strong>The first line is the hardest</strong>, the rest of the day follows it.",
+  noplanempty: "Start with whatever you ate last, even a cup of chai. <strong>The first log is the hardest.</strong>",
   /* Before a plan there is nothing to measure, so Kaira does not analyse. She
      says the one thing that matters now and hands over the ways to log. This
      line used to sit as a heading on the macro card, which split her across
      two blocks on a screen that only needed her once. */
-  noplan: "<strong>Keep logging.</strong> The more honestly you log, the better your coach can read you. Nothing is judged.",
-  empty: "<strong>Your targets are set.</strong> The score starts moving with your first meal, however small it is.",
-  first: "One meal in. <strong>Protein is the one to keep an eye on</strong>, lunch is the easiest place to fix it.",
-  mid: "Carbs, fats and fibre are past halfway, so today is in good shape. <strong>Protein is the one lagging at 43g of 95g</strong>: pick the roasted chana at your evening snack and it climbs by 9g.",
-  full: "Your whole day is in. <strong>Protein landed at 78g of 95g</strong>, the closest it has been this week.",
-  perfect: "<strong>Every target met today.</strong> Worth remembering what you ate, this is the day to repeat.",
-  past: "<strong>Protein ran low that day, 48g of 95g.</strong> Lunch was the gap.",
-  missed: "Nothing logged that day. <strong>One line is better than none</strong>, even from memory.",
+  noplan: "<strong>Keep logging.</strong> The more you log, the better your coach can help. Nothing is judged.",
+  empty: "<strong>Your targets are set.</strong> Your score starts with your first meal.",
+  first: "<strong>Protein is low so far.</strong> Add some at lunch.",
+  mid: "<strong>Protein is behind at 43g of 95g.</strong> Roasted chana at your evening snack adds 9g.",
+  full: "<strong>Protein reached 78g of 95g today</strong>, just 17g short of your target.",
+  perfect: "<strong>Every target met today.</strong> This is a day worth repeating.",
+  past: "<strong>Protein was low that day, 48g of 95g.</strong> Lunch was the gap.",
+  missed: "Nothing logged that day. <strong>Even one meal from memory helps.</strong>",
   /* A day past its targets is still a day that got read, so this neither
      congratulates nor scolds. It names the one thing that is actually
      actionable tomorrow and leaves the rest alone. */
-  over: "<strong>Carbs ran to 310g against a target of 238g</strong>, most of it after eight. Fibre is the one still short, and it is the easiest to move."
+  over: "<strong>Carbs went to 310g of 238g</strong>, mostly after 8 pm. Fibre is still short."
 };
 
 /* eaten / target per macro, in the order protein, carbs, fats, fibre */
@@ -2107,7 +2102,6 @@ var I = {
   check: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M20 6L9 17l-5-5"/></svg>',
   checkG: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
   plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
-  dots: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>',
   /* a plus in a square, so it is visibly not the round tick a planned food
      carries: this adds something the plan never listed */
   plusSq: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>',
@@ -2245,7 +2239,6 @@ var LOGS = {
     m.opts.forEach(function (items, oi) {
       items.forEach(function (it, ii) {
         it.done = !!(l && oi === l.opt && (l.done === "all" || (l.done || []).indexOf(ii) > -1));
-        it.skip = false;
       });
     });
     /* anything logged outside the plan sits in one list above it, whether it
@@ -2295,7 +2288,7 @@ var PLOG = (function () {
   if (!m) return;
   raw.refs.forEach(function (ref) {
     var p = ref.split("|"), it = (m.opts[+p[1]] || [])[+p[2]];
-    if (it && !it.done) { it.done = true; it.skip = false; apply(it, 1); }
+    if (it && !it.done) { it.done = true; apply(it, 1); }
   });
   if (m.chosen < 0) m.chosen = raw.opt;
   m.show = raw.opt;
@@ -2345,16 +2338,23 @@ function bestLeft(k) {
   return best;
 }
 var kairaSay = document.getElementById("kairaSay");
+/* early in a scored day (1 to 3 meals in), every KAIRA line ends on the same
+   ask: the score only grows with logging */
+function nudge(html) {
+  var n = mealsIn();
+  return SCORED && S.day === "Today" && n >= 1 && n <= 3
+    ? html + " Keep logging all your meals to grow your sufficiency score." : html;
+}
 function speak() {
   if (!kairaSay || S.kaira.edu || S.kaira.mode === "loading") return;
   var g = gapIdx();
-  if (g < 0) { kairaSay.innerHTML = "<strong>Every target met today.</strong> Worth remembering what you ate, this is the day to repeat."; return; }
-  if (LIVE.cal <= 0) { kairaSay.innerHTML = S.kaira.say; return; }
-  var lag = "<strong>" + MNAME[g] + " is the one lagging at " + fmt(Math.round(LIVE[MK[g]] * 10) / 10) + "g of " + TGT[g] + "g</strong>";
+  if (g < 0) { kairaSay.innerHTML = KAIRA.perfect; return; }
+  if (LIVE.cal <= 0) { kairaSay.innerHTML = nudge(S.kaira.say); return; }
+  var lag = "<strong>" + MNAME[g] + " is behind at " + fmt(Math.round(LIVE[MK[g]] * 10) / 10) + "g of " + TGT[g] + "g.</strong>";
   var b = bestLeft(MK[g]);
-  kairaSay.innerHTML = b
-    ? lag + ": the " + b.it.name.toLowerCase() + " at your " + b.m.name.toLowerCase() + " adds " + Math.round(b.it[MK[g]] * b.it.n * 10) / 10 + "g."
-    : lag + ", and your plan is finished for today. Anything more has to be added by hand.";
+  kairaSay.innerHTML = nudge(b
+    ? lag + " " + b.it.name + " at your " + b.m.name.toLowerCase() + " adds " + Math.round(b.it[MK[g]] * b.it.n * 10) / 10 + "g."
+    : lag + " Your plan is done for today.");
 }
 
 var bloomed = S.hero.score === 100;
@@ -2390,14 +2390,14 @@ function refresh() {
 function itemRow(it, opts) {
   opts = opts || {};
   var dis = RO;
-  var lab = it.skip ? it.name + " was skipped, tap to log it" : it.done ? it.name + " is logged, tap to undo" : "Log " + it.name;
-  return '<div class="item' + (it.done ? " done" : "") + (it.skip ? " skipped" : "") + '" data-ref="' + opts.ref + '">' +
+  var lab = it.done ? it.name + " is logged, tap for options" : "Log " + it.name;
+  return '<div class="item' + (it.done ? " done" : "") + '" data-ref="' + opts.ref + '">' +
     '<button class="tickbtn"' + (dis ? " disabled" : "") + ' aria-label="' + lab + '" aria-pressed="' + (it.done ? "true" : "false") + '">' +
-      '<span class="tick' + (it.done ? " on" : "") + '">' + (it.done ? I.check : it.skip ? I.dash : "") + '</span></button>' +
+      '<span class="tick' + (it.done ? " on" : "") + '">' + (it.done ? I.check : "") + '</span></button>' +
     '<span class="nm">' + it.name + '<span>' + it.qty + '</span></span>' +
-    (it.skip ? '<span class="skiptag">Skipped</span>' : it.moved ? '<span class="manual">Moved here</span>' : opts.manual ? '<span class="manual">Manual</span>' : "") +
-    (it.skip ? "" : '<span class="kc">' + it.cal + ' cal</span>') +
-    (RO ? "" : '<button class="dots" aria-label="Options for ' + it.name + '">' + I.dots + '</button>') + '</div>';
+    (it.moved ? '<span class="manual">Moved here</span>' : opts.manual ? '<span class="manual">Manual</span>' : "") +
+    '<span class="kc">' + it.cal + ' cal</span>' +
+    '</div>';   /* no row menu: a logged food's tick opens its sheet, a waiting food's tick logs it */
 }
 
 function body(m) {
@@ -2710,7 +2710,7 @@ function mealsIn() {
     act.remove();
     return;
   }
-  say.innerHTML = S.kaira.say;
+  say.innerHTML = nudge(S.kaira.say);
   if (S.kaira.act === "log") {
     act.innerHTML = '<span class="klab">Log your meal</span>' + DOORS;
   } else if (S.kaira.act === "logday") {
@@ -2750,7 +2750,7 @@ function mealsIn() {
   };
   var KFALLBACK = [
     "Your coach put this one in your day because it is small enough to hold on the days you have no time, and those are the days it counts.",
-    "Ask me again once you have run it for a week and I can tell you what it moved."
+    "Try it today and notice how the rest of your day feels."
   ];
   /* The same ask, turned back into a question. Composed from the title rather
      than written per tip, so a tip only ever has to say what it is. */
@@ -2905,7 +2905,7 @@ function mealsIn() {
        card again for something you only looked at. */
     var items = m.opts[m.show];
     var full = m.chosen === m.show && items.length > 0 &&
-      items.every(function (x) { return x.done || x.skip; });
+      items.every(function (x) { return x.done; });
     var key = m.id + "|" + m.show;
     if (full && pop && !CELEBRATED[key]) {
       CELEBRATED[key] = 1;
@@ -2924,20 +2924,10 @@ function mealsIn() {
 
   function setDone(m, it, on) {
     if (it.done === on) return;
-    if (on) it.skip = false;
     it.done = on;
     apply(it, on ? 1 : -1);
     if (on && m.chosen < 0) m.chosen = m.show;
     if (!on && m.chosen >= 0 && !m.opts[m.chosen].some(function (x) { return x.done; }) && !m.manual.length) m.chosen = -1;
-  }
-
-  /* A plan food has three answers, not two: eaten, not answered yet, or skipped.
-     A skipped food stays on the plan so the day still reads as the coach wrote
-     it, but it counts for nothing and it cannot be logged by accident. */
-  function setSkip(m, it, on) {
-    if (!!it.skip === on) return;
-    if (on) setDone(m, it, false);
-    it.skip = on;
   }
 
   /* Logging happens on its own screen, so Snap, Voice and + leave this one */
@@ -2985,9 +2975,8 @@ function mealsIn() {
     "Banana": "banana"
   };
 
-  /* ---------- the ⋮ menu on a food row ---------- */
+  /* ---------- the sheet a logged food's tick opens ---------- */
   var MI = {
-    skip: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>',
     back: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4M3 3v5h5"/></svg>',
     bin: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'
   };
@@ -2995,27 +2984,15 @@ function mealsIn() {
     return '<button class="menurow' + (warn ? " warn" : "") + '" data-act="' + act + '"><span class="mi">' + ico + '</span>' + text + '</button>';
   };
 
-  /* A coach's food cannot be deleted, the way it cannot on the live app. What
-     the day can say is that it was not eaten, and that is the skip. */
+  /* Only a logged food has a sheet, opened from its tick: change the quantity,
+     or take it off the day (a hand-added food is removed instead). A food not
+     eaten has no menu and no Skip, it simply stays unticked; a coach's food is
+     never deleted, the way it cannot be on the live app. */
   function itemMenu(ref) {
     var t = find(ref), it = t.list[t.i], m = t.m;
-    /* The menu answers the state the row is actually in, so it never offers a
-       thing that makes no sense for it. A logged food is edited or taken back.
-       A food still waiting is edited or skipped. Skip never shows on something
-       already eaten, and the way back out of a log lives here rather than on
-       the tick, where one stray tap used to undo it with no warning. */
-    /* Change the quantity only once there is a logged quantity to change.
-       Before that the tick opens the logging screen, where the row carries a
-       plus and minus of its own, so offering it here was a second door onto a
-       thing the first door already does better. */
     var html = "";
-    if (it.done) {
-      html += mrow("qty", I.pen, "Change the quantity");
-      if (!t.manual) html += mrow("untick", MI.back, "Take it off your day");
-    } else if (!t.manual) {
-      html += it.skip ? mrow("unskip", MI.back, "Put it back on the list")
-                      : mrow("skip", MI.skip, "Skip this today");
-    }
+    html += mrow("qty", I.pen, "Change the quantity");
+    if (!t.manual) html += mrow("untick", MI.back, "Take it off your day");
     html += (t.manual ? mrow("del", MI.bin, "Remove this", true) : "");
     var el = openSheet("it-sheet", it.name, html);
     el.querySelector(".sbody").addEventListener("click", function (e) {
@@ -3032,20 +3009,6 @@ function mealsIn() {
         refresh();
         toast(it.name + " taken off your day", function () {
           setDone(m, it, true);
-          repaint(m, ref);
-          refresh();
-        });
-        return;
-      }
-      if (b.dataset.act === "skip" || b.dataset.act === "unskip") {
-        var on = b.dataset.act === "skip", was = it.done;
-        setSkip(m, it, on);
-        window.closeSheets();
-        repaint(m, ref);
-        refresh();
-        if (on) toast(it.name + " marked as skipped", function () {
-          setSkip(m, it, false);
-          if (was) setDone(m, it, true);
           repaint(m, ref);
           refresh();
         });
@@ -3177,9 +3140,6 @@ function mealsIn() {
       return;
     }
 
-    var dots = e.target.closest(".dots");
-    if (dots) return itemMenu(dots.closest(".item").dataset.ref);
-
     var plus = e.target.closest(".plus");
     if (plus) return goLog("plus", plus.dataset.meal);
 
@@ -3198,14 +3158,10 @@ function mealsIn() {
       return setTimeout(function () { goLog("plus", els.dataset.meal); }, 200);
     }
 
-    /* The two Kaira entries. The prototype has no conversation behind her yet,
-       so both open a sheet that says what she would do rather than pretending
-       to do it. ponytail: one sheet for both, split it when she is real. */
+    /* Log with KAIRA opens her chat (log.html?entry=kaira), the same screen
+       the logger's KAIRA strip opens */
     var kb = e.target.closest(".kairabtn");
-    if (kb) return openSheet("kairasheet", "Log with KAIRA",
-      '<div class="why quiet">' + GFKaira.mark(20, { halo: false }) +
-      '<p>Tell KAIRA what you ate in your own words, "two rotis and dal", and KAIRA works out the foods, ' +
-      'the quantities and the calories. Nothing is logged until you confirm it.</p></div>');
+    if (kb) return goLog("kaira", kb.dataset.meal);   /* her chat, in the logger */
     var ta = e.target.closest(".askk");
     if (ta) {
       var tq = ta.dataset.tipask.split("|"), qm = byId(tq[0]), qt = qm.tips[+tq[1]];
