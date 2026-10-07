@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Macro icons</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="icons/glyph-masks.css">
+<style>
+  :root{
+    --brand-50:#F3FCF8; --brand-600:#299D6B; --brand-700:#2A805A;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-50:#EEF4FF; --in-100:#E0EAFF; --in-200:#C7D7FE;
+    --gold-50:#FFFBEE; --gold-200:#FEF1C7; --gold-800:#A68A2D;
+    --err-50:#FEF3F2; --err-700:#B42318;
+    /* the accent the fills and rings take; switchable at the top */
+    --acc:#444CE7; --acc-d:#2D31A6; --acc-l:#6172F3; --trk:#E0EAFF; --trk2:#C7D7FE; --card:#EEF4FF;
+  }
+  [data-acc="green"]{ --acc:#299D6B; --acc-d:#246649; --acc-l:#59B38C; --trk:#E6FAF1; --trk2:#CBF0E0; --card:#F9FAFB; }
+  [data-acc="slate"]{ --acc:#344054; --acc-d:#101828; --acc-l:#475467; --trk:#E4E7EC; --trk2:#D0D5DD; --card:#F9FAFB; }
+  *{box-sizing:border-box}
+  ::selection{background:var(--in-100)}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1180px;margin:0 auto;padding:48px 24px 96px}
+  h1{font-size:32px;line-height:40px;font-weight:600;margin:0 0 10px}
+  h2{font-size:22px;line-height:30px;font-weight:600;margin:56px 0 12px}
+  h3{font-size:16px;line-height:23px;font-weight:600;margin:0 0 4px}
+  p{font-size:15px;line-height:24px;color:var(--g-700);margin:0 0 12px;max-width:72ch}
+  .lede{font-size:17px;line-height:27px;color:var(--g-600);max-width:68ch}
+  a{color:var(--brand-700);text-underline-offset:2px}
+  .src{font-size:12.5px;line-height:19px;color:var(--g-500)}
+  .src a{color:var(--g-600)}
+  ul.facts{margin:0 0 12px;padding-left:20px;max-width:76ch}
+  ul.facts li{font-size:15px;line-height:24px;color:var(--g-700);margin-bottom:6px}
+  .tw{overflow-x:auto;margin:8px 0 12px}
+  table{border-collapse:collapse;font-size:13.5px;line-height:20px;min-width:720px;width:100%}
+  th{text-align:left;font-weight:600;color:var(--g-600);border-bottom:1px solid var(--g-200);padding:8px 10px}
+  td{border-bottom:1px solid var(--g-100);padding:8px 10px;color:var(--g-700);vertical-align:top}
+  .pills{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 0}
+  .pills button{height:36px;padding:0 14px;border-radius:9999px;border:1px solid var(--g-200);background:#fff;font:500 13px/1 Roboto;color:var(--g-700);cursor:pointer}
+  .pills button.on{border-color:var(--brand-600);background:var(--brand-50);color:var(--brand-700)}
+  .bar{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.94);backdrop-filter:blur(6px);padding:10px 0 12px;margin:0 -4px;border-bottom:1px solid var(--g-100)}
+  .bar span{font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--g-500);margin-right:4px}
+  .princ{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:8px}
+  .princ div{border:1px solid var(--g-200);border-radius:12px;padding:14px 16px}
+  .princ b{display:block;font-size:14px;margin-bottom:4px}
+  .princ span{font-size:13.5px;line-height:20px;color:var(--g-600)}
+
+  /* a family: caption, then its two presentations side by side */
+  .fam{display:grid;grid-template-columns:minmax(0,1fr) 358px 358px;gap:24px;align-items:start;padding:24px 0;border-top:1px solid var(--g-100)}
+  .fam .cap p{font-size:14px;line-height:21px;margin-bottom:8px}
+  .tag{display:inline-block;font-size:12px;font-weight:600;padding:2px 8px;border-radius:9999px;margin-left:6px;vertical-align:2px}
+  .tag.rec{color:var(--brand-700);background:var(--brand-50)}
+  .tag.no{color:var(--err-700);background:var(--err-50)}
+  .tag.ref{color:var(--g-600);background:var(--g-100)}
+  .kind{font-size:11.5px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--g-400);margin-bottom:6px}
+  @media (max-width:980px){ .fam{grid-template-columns:1fr} }
+
+  /* the card */
+  .card{border-radius:16px;background:var(--card);padding:16px}
+  .mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .m{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .mv{font-size:14px;line-height:20px;color:var(--g-500);font-variant-numeric:tabular-nums}.mv b{color:var(--g-900);font-weight:700}
+  .mn{font-size:12px;line-height:16px;color:var(--g-600);margin-top:-4px}
+  /* (a) a line icon inside a progress ring */
+  .ring{position:relative;width:52px;height:52px}
+  .ring svg.r{position:absolute;inset:0;transform:rotate(-90deg)}
+  .ring .ic{position:absolute;inset:13px;color:var(--g-700)}
+  .ring .ic svg{width:26px;height:26px;display:block}
+  .done .ring .ic{color:var(--acc)}
+  /* (b) a solid silhouette filling like liquid */
+  .sil{width:48px;height:48px;display:block}
+  /* (c) letter chips over a bar */
+  .chip{width:40px;height:40px;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--trk2);display:grid;place-items:center;font:700 16px/1 Roboto;color:var(--acc)}
+  .lbar{width:56px;height:6px;border-radius:3px;background:var(--trk);overflow:hidden}.lbar i{display:block;height:100%;background:var(--acc);border-radius:3px}
+  /* today's glyph, for reference */
+  .gwrap{position:relative;width:40px;height:40px;filter:drop-shadow(.5px 0 0 #B4BCC9) drop-shadow(-.5px 0 0 #B4BCC9) drop-shadow(0 .5px 0 #B4BCC9) drop-shadow(0 -.5px 0 #B4BCC9)}
+  .gfill{position:absolute;inset:0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center bottom;mask-position:center bottom;-webkit-mask-size:auto 100%;mask-size:auto 100%;
+    background:linear-gradient(to top,#101828 0%,#344054 calc(var(--f)*.34),#667085 calc(var(--f)*.72),#98A2B3 calc(var(--f) - 2%),#C4CBD6 var(--f),#D3D9E2 100%)}
+  .gfill.glyph-fats{-webkit-mask-size:auto 80%;mask-size:auto 80%}
+
+  .end{margin-top:56px;padding:20px 24px;border-radius:16px;background:var(--gold-50);border:1px solid var(--gold-200)}
+  .end h2{margin-top:0}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Macro icons: what Indians read, what apps do, and what we could draw</h1>
+  <p class="lede">The Eat screen shows three macros under the score: Protein, Carbs and Fats. Today each is a 3D glyph that fills with grey liquid. This document gathers what Indian users associate with each macro, how nutrition apps on Mobbin draw them, the principles that follow, and eight icon families drawn into the real card, each at 45%, 80% and 100%.</p>
+
+  <h2>1. What Indian users picture</h2>
+  <ul class="facts">
+    <li><b>Protein means dal, then paneer.</b> About 73% of urban Indians are protein deficient and 93% do not know their daily need; most believe dal, roti and chawal cover it. Dietitian content and the ICMR-NIN plate both lead with dal, paneer, chana, sprouts, curd and peanuts.</li>
+    <li><b>Carbs mean roti and chawal.</b> The NIN "My Plate for the Day" (2024) groups them as cereals and millets, drawn as grains. For a diabetes-led audience, roti and rice are also the foods they are told to watch.</li>
+    <li><b>Fat is spoken of as ghee-tel.</b> Hindi health media talk about ghee and oil, not an abstract nutrient; nuts are the positive fat cue. A plain drop reads as water.</li>
+    <li><b>Many users are vegetarian.</b> NFHS-5: 23% of women and about 16% of men never eat meat or fish, rising to about half of women in north and central India. FSSAI classes egg as non-veg, and about 28% of women do not eat eggs.</li>
+    <li><b>The English words are the everyday words.</b> Protein, carbohydrate and fat are used as loanwords in Hindi; "vasa" is textbook. Keep the English labels; let the icon say what food it is.</li>
+    <li><b>Never icon only.</b> In a Dehradun study of 200 patients, 1% read all ten pharmacy pictograms unaided; locally designed pictograms far outperform imported ones, and for older users symbol plus text beats symbol alone.</li>
+  </ul>
+  <p class="src">Sources: <a href="https://www.orfonline.org/expert-speak/indias-protein-deficiency-and-the-need-to-address-the-problem">ORF on IMRB and Right To Protein</a> · <a href="https://www.businesstoday.in/india/story/8-bowls-of-dal-why-traditional-indian-plates-fail-to-meet-daily-60-gm-protein-targets-539259-2026-06-25">Business Today</a> · <a href="https://theprint.in/india/vegetarianism-rules-in-north-india-but-dal-and-paneer-as-proteins-punch-below-their-weight/916827/">ThePrint</a> · <a href="https://www.nin.res.in/downloads/My_Plate_for_the_day_J24.pdf">ICMR-NIN My Plate</a> · <a href="https://www.indiatv.in/health/no-oil-diet-side-effects-check-how-much-oil-and-ghee-should-be-consumed-in-a-day-2024-03-16-1031463">India TV on ghee and oil</a> · <a href="https://theprint.in/india/more-jain-men-fewer-jain-women-eating-non-vegetarian-food-reveals-nfhs-5-data/966364/">NFHS-5 via ThePrint</a> · <a href="https://thefairlabs.com/veg-non-veg-symbol-guidelines/">FSSAI veg and non-veg marks</a> · <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3122047/">Pictogram study, Dehradun</a> · <a href="https://www.sciencedirect.com/science/article/abs/pii/S0003687016301168">Symbols and text for older users</a>. Indian apps (Swiggy Health Hub, Amul protein packs, Ultrahuman) show macros as numbers, bars and text badges; no Indian app with published macro icons was found.</p>
+
+  <h2>2. What other products do</h2>
+  <p>Seventeen products on Mobbin show macros. Most use no icon at all; the few that do agree on wheat for carbs and a drop for fat, and reach for meat for protein.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Pattern</th><th>Products</th><th>Share</th><th>What works, what does not</th></tr></thead>
+    <tbody>
+      <tr><td>Label and a bar, no icon</td><td>MyFitnessPal, MacroFactor, Yazio, Lifesum, Noom, BitePal, Fitbit, Garmin</td><td>About 10 of 17</td><td>The safe default; the word does the work. Plain, but never misread.</td></tr>
+      <tr><td>Rings or arcs, no icon</td><td>Bevel, MyFitnessPal widgets, Ultrahuman, Yazio widget</td><td>4</td><td>Good for progress at a glance; needs a label or colour key.</td></tr>
+      <tr><td>A food icon per macro</td><td><a href="https://mobbin.com/screens/6c754a7d-4245-470d-99ac-fdee78e3178b">Cal AI</a>, <a href="https://mobbin.com/screens/4ec121e3-6681-4954-bae5-6313bebff8d7">Life Reset</a>, <a href="https://mobbin.com/screens/92694e39-3780-45bd-8208-fc3376f709fa">Yuka</a></td><td>3</td><td>Rare, so distinctive. Cal AI's glyph inside a progress ring is the closest to our card.</td></tr>
+      <tr><td>Letters P, C, F</td><td><a href="https://mobbin.com/screens/decbd1d7-a973-4d84-821d-a7dc1e83d85f">Alma</a>, <a href="https://mobbin.com/screens/a66beda3-ed55-4281-af6f-a49523ec228c">MacroFactor</a>, Garmin</td><td>3</td><td>Dense and unambiguous; best inline in meal rows.</td></tr>
+      <tr><td>Colour only</td><td>Alma orbs, Lifesum and MyFitnessPal donuts</td><td>Several</td><td>Fails in greyscale and for colour-blind users; no two apps share a palette.</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Depictions, where icons exist:</b> carbs are a wheat ear in all three; fat is a droplet in two of three; protein is a drumstick or steak, with a lightning bolt in Cal AI's widget. The meat icons are the pattern to avoid here.</p>
+
+  <h2>3. Principles for GoodFlip</h2>
+  <div class="princ">
+    <div><b>Vegetarian first</b><span>No meat, fish or egg as the default protein icon. Dal, paneer or chana carry protein for everyone.</span></div>
+    <div><b>Indian kitchen, not a western one</b><span>Roti, chawal and ghee over bread, pasta, avocado or butter.</span></div>
+    <div><b>Always with the word</b><span>Icon plus "Protein", "Carbs", "Fats". The icon identifies; the word confirms.</span></div>
+    <div><b>One colour</b><span>The macros share one family; the icon, not a hue, tells them apart. Works in greyscale.</span></div>
+    <div><b>Fits the system</b><span>GoodFlip icons are rounded 2px line icons at 24px, with filled active states.</span></div>
+    <div><b>Shows progress</b><span>A line icon cannot fill, so it rides in a ring; a solid silhouette can fill like liquid.</span></div>
+    <div><b>Fat is gold, not water</b><span>If fat is a drop, it reads as ghee only with a warm or spoon cue, never a plain blue drop.</span></div>
+    <div><b>Positive, not policing</b><span>No flame for fat (reads as calories) and no dumbbell for protein (feeds the "protein is for gym" myth).</span></div>
+  </div>
+
+  <h2>4. Explorations</h2>
+  <p>Every family is drawn twice where it can be: as a line icon inside a progress ring (the GoodFlip line style, and Cal AI's pattern), and, for the shapes that hold liquid, as a solid silhouette that fills the way today's glyphs do. Protein is at 43 of 95g, Carbs at 190 of 238g, Fats at target.</p>
+  <div class="bar"><span>Accent</span><span class="pills" style="display:inline-flex;margin:0">
+    <button data-acc="indigo" class="on">Indigo normal</button><button data-acc="green">Green normal</button><button data-acc="slate">Slate</button></span></div>
+  <div id="fams"></div>
+
+  <div class="end">
+    <h2>5. Recommendation</h2>
+    <p><b>Lead with B, Indian kitchen: dal katori, roti and a ghee jar, as line icons in a progress ring.</b> It is the only family that names each macro with the food Indian users already picture, it is vegetarian by default, it sits inside GoodFlip's line icon rules, and the ring shows progress without needing a silhouette to fill.</p>
+    <p><b>Keep D, the global set (bean, wheat, drop), as the fallback.</b> It matches what every other app does for carbs and fats and is closest to today's glyphs; tint the drop gold if it ships, so it does not read as water.</p>
+    <p><b>Test before choosing.</b> Five people in a tier 2 or 3 city, aged 40 and over, half vegetarian: show B and D without labels, ask which nutrient each icon is, then with labels. Pick the set read right most often unlabelled.</p>
+  </div>
+</div>
+<script>
+/* icons: 24px line, 2px stroke, round caps, the GoodFlip and Lucide grammar. Lucide paths are from the
+   lucide-react package already installed in app/; the Indian kitchen set is drawn for this document. */
+var L = {
+  bean: '<path d="M10.165 6.598C9.954 7.478 9.64 8.36 9 9c-.64.64-1.521.954-2.402 1.165A6 6 0 0 0 8 22c7.732 0 14-6.268 14-14a6 6 0 0 0-11.835-1.402Z"/><path d="M5.341 10.62a4 4 0 1 0 5.279-5.28"/>',
+  wheat: '<path d="M2 22 16 8"/><path d="M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/><path d="M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z"/><path d="M11.47 17.47 13 19l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L5 19l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M15.47 13.47 17 15l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L9 15l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/><path d="M19.47 9.47 21 11l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L13 11l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/>',
+  drop: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
+  drumstick: '<path d="M15.4 15.63a7.875 6 135 1 1 6.23-6.23 4.5 3.43 135 0 0-6.23 6.23"/><path d="m8.29 12.71-2.6 2.6a2.5 2.5 0 1 0-1.65 4.65A2.5 2.5 0 1 0 8.7 18.3l2.59-2.59"/>',
+  egg: '<path d="M12 2C8 2 4 8 4 14a8 8 0 0 0 16 0c0-6-4-12-8-12"/>',
+  biceps: '<path d="M12.409 13.017A5 5 0 0 1 22 15c0 3.866-4 7-9 7-4.077 0-8.153-.82-10.371-2.462-.426-.316-.631-.832-.62-1.362C2.118 12.723 2.627 2 10 2a3 3 0 0 1 3 3 2 2 0 0 1-2 2c-1.105 0-1.64-.444-2-1"/><path d="M15 14a5 5 0 0 0-7.584 2"/><path d="M9.964 6.825C8.019 7.977 9.5 13 8 15"/>',
+  zap: '<path d="M15.914 4a1.5 1.5 0 00-2.474-1.561l-9 9A1.5 1.5 0 005.5 14h4.002a.5.5 0 01.471.666L8.086 20a1.5 1.5 0 002.475 1.56l9-9A1.5 1.5 0 0018.5 10h-3.997a.5.5 0 01-.472-.667z"/>',
+  flame: '<path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"/>',
+  /* the Indian kitchen, drawn to the same grid */
+  katori: '<path d="M3.5 11.5h17"/><path d="M5 11.5a7 7 0 0 0 14 0"/><path d="M10 20h4"/><path d="M7.5 14c1.4.8 2.9.8 4.5 0s3.1-.8 4.5 0"/><path d="M9.5 8.5c0-1.2 1.2-1.6 1.2-2.8"/><path d="M13.5 8.5c0-1.2 1.2-1.6 1.2-2.8"/>',
+  roti: '<circle cx="12" cy="12" r="8.5"/><path d="M8.6 10h.01"/><path d="M14.6 8.4h.01"/><path d="M15.6 14h.01"/><path d="M10.4 15.4h.01"/><path d="M12.4 11.6h.01"/><path d="M7 13.6a5.6 5.6 0 0 0 3.4 3.2"/>',
+  ghee: '<path d="M8.5 3.5h7"/><path d="M9.5 3.5v2.3M14.5 3.5v2.3"/><path d="M9.5 5.8C6.9 7 5 9.3 5 12.8 5 17 8 20.5 12 20.5s7-3.5 7-7.7c0-3.5-1.9-5.8-4.5-7"/><path d="M5.6 13c2.1 1 4.3 1 6.4 0s4.3-1 6.4 0"/>',
+  paneer: '<path d="M12 3.5 19.5 7.5v9L12 20.5 4.5 16.5v-9z"/><path d="M4.5 7.5 12 11.5l7.5-4"/><path d="M12 11.5v9"/><path d="M8 13.4h.01"/><path d="M15.8 14.6h.01"/><path d="M12.2 7.4h.01"/>',
+  rice: '<path d="M3.5 12.5h17"/><path d="M5 12.5a7 7 0 0 0 14 0"/><path d="M10 21h4"/><path d="M6.8 12.5c0-3.2 2.3-5.5 5.2-5.5s5.2 2.3 5.2 5.5"/><path d="M10 9.8h.01"/><path d="M13.6 9.2h.01"/><path d="M12 11.2h.01"/><path d="M15 11.4h.01"/><path d="M8.9 11.6h.01"/>',
+  peanut: '<path d="M12 3c2.5 0 4 1.8 4 4 0 1.6-.9 2.6-1.4 3.4-.4.7-.4 1.5 0 2.2.5.8 1.4 1.8 1.4 3.4 0 2.2-1.5 4-4 4s-4-1.8-4-4c0-1.6.9-2.6 1.4-3.4.4-.7.4-1.5 0-2.2C8.9 9.6 8 8.6 8 7c0-2.2 1.5-4 4-4z"/><path d="M11 6.5h.01M13 8h.01M11 15h.01M13 16.6h.01"/>',
+  spoon: '<path d="M12 3.2c1.7 2.1 2.6 3.5 2.6 4.8a2.6 2.6 0 0 1-5.2 0c0-1.3.9-2.7 2.6-4.8z"/><path d="M4 16.5c0 1.7 2.2 3 5 3s5-1.3 5-3-2.2-3-5-3-5 1.3-5 3z"/><path d="M14 16.5h6.5"/>'
+};
+/* solid silhouettes for the liquid fill: each is a closed shape that can be clipped */
+var S = {
+  katori: "M1.5 8h21a10.5 10.5 0 0 1-21 0z",
+  roti: "M12 1.5a10.5 10.5 0 1 0 .01 0z",
+  ghee: "M12 1.5c2.8 3.3 7.5 8.2 7.5 12.8a7.5 7.5 0 0 1-15 0C4.5 9.7 9.2 4.8 12 1.5z",
+  paneer: "M12 1.8 21 6.8v10.4l-9 5-9-5V6.8z",
+  bean: "M10.2 3.6A6.5 6.5 0 0 1 21 8.4c0 7.6-6 13.6-13.2 13.6a6.4 6.4 0 0 1-1.5-12.7c.9-.2 1.8-.5 2.4-1.1.7-.7 1-1.6 1.2-2.5z",
+  grain: "M12 1.5c4.4 2.8 6.8 6.5 6.8 10.5s-2.4 7.7-6.8 10.5C7.6 19.7 5.2 16 5.2 12s2.4-7.7 6.8-10.5z"
+};
+var MAC = [["Protein", 43, 95], ["Carbs", 190, 238], ["Fats", 63, 63]];
+var uid = 0;
+function line(path) { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + path + "</svg>"; }
+function ring(icon, pct) {
+  var r = 23, c = 2 * Math.PI * r;
+  return '<span class="ring"><svg class="r" viewBox="0 0 52 52"><circle cx="26" cy="26" r="' + r + '" fill="#fff" stroke="var(--trk2)" stroke-width="3"/>' +
+    '<circle cx="26" cy="26" r="' + r + '" fill="none" stroke="var(--acc)" stroke-width="3" stroke-linecap="round" stroke-dasharray="' + (c * pct / 100).toFixed(1) + " " + c.toFixed(1) + '"/></svg>' +
+    '<span class="ic">' + line(L[icon]) + "</span></span>";
+}
+function sil(shape, pct, deco) {
+  var id = "c" + (uid++), y = 24 - 24 * pct / 100;
+  return '<svg class="sil" viewBox="0 0 24 24"><defs><clipPath id="' + id + '"><path d="' + S[shape] + '"/></clipPath>' +
+    '<linearGradient id="g' + id + '" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="var(--acc-d)"/><stop offset="1" stop-color="var(--acc-l)"/></linearGradient></defs>' +
+    '<g clip-path="url(#' + id + ')"><rect width="24" height="24" fill="#fff"/><rect y="' + y.toFixed(2) + '" width="24" height="24" fill="url(#g' + id + ')"/>' +
+    '<rect y="' + y.toFixed(2) + '" width="24" height=".8" fill="#fff" opacity=".45"/></g>' +
+    '<path d="' + S[shape] + '" fill="none" stroke="var(--acc-l)" stroke-opacity=".45" stroke-width=".8" stroke-linejoin="round"/>' + (deco || "") + "</svg>";
+}
+function cell(inner, i) {
+  var m = MAC[i], done = m[1] >= m[2];
+  return '<div class="m' + (done ? " done" : "") + '">' + inner + '<span class="mv"><b>' + m[1] + "</b>/" + m[2] + 'g</span><span class="mn">' + m[0] + "</span></div>";
+}
+function pct(i) { return Math.min(100, Math.round(MAC[i][1] / MAC[i][2] * 100)); }
+function cardRing(icons) { return '<div class="card"><div class="mgrid">' + icons.map(function (ic, i) { return cell(ring(ic, pct(i)), i); }).join("") + "</div></div>"; }
+function cardSil(shapes, deco) { return '<div class="card"><div class="mgrid">' + shapes.map(function (sh, i) { return cell(sil(sh, pct(i), deco && deco[i]), i); }).join("") + "</div></div>"; }
+function cardToday() {
+  var g = ["protein", "carbs", "fats"];
+  return '<div class="card" style="background:#EEF4FF"><div class="mgrid">' + g.map(function (k, i) {
+    return cell('<span class="gwrap"><span class="gfill glyph-' + k + '" style="--f:' + pct(i) + '%"></span></span>', i);
+  }).join("") + "</div></div>";
+}
+function cardChips() {
+  return '<div class="card"><div class="mgrid">' + ["P", "C", "F"].map(function (l, i) {
+    return cell('<span class="chip">' + l + '</span><span class="lbar"><i style="width:' + pct(i) + '%"></i></span>', i);
+  }).join("") + "</div></div>";
+}
+/* roti char marks over its fill, so the disc reads as a roti, not a coin */
+var FOOT = '<path d="M9.5 21.6h5" stroke="var(--acc-l)" stroke-opacity=".6" stroke-width="1.4" stroke-linecap="round"/>';
+var ROTI_DECO = '<g fill="#fff" opacity=".7"><circle cx="9" cy="10" r=".9"/><circle cx="14.6" cy="8.6" r=".8"/><circle cx="15.4" cy="14.2" r=".9"/><circle cx="10.4" cy="15.4" r=".8"/></g>';
+
+var FAMS = [
+  { t: "A. Today", tag: ["ref", "Reference"], p: "GoodFlip's own 3D glyphs (bean, bread, drop) filling with grey liquid. Rich, but the grey reads disabled, the bread is a western loaf, and the 3D style is unlike the rest of GoodFlip's line icons.",
+    a: ["Liquid fill, as shipped", cardToday()] },
+  { t: "B. Indian kitchen", tag: ["rec", "Recommended"], p: "Dal katori with a little steam for protein, a roti with its char spots for carbs, a ghee jar with its golden level for fats. The foods Indian users already name, vegetarian by default, in GoodFlip's 2px line grammar.",
+    a: ["Line icon in a progress ring", cardRing(["katori", "roti", "ghee"])],
+    b: ["Solid silhouette, liquid fill", cardSil(["katori", "roti", "ghee"], [FOOT, ROTI_DECO, null])] },
+  { t: "C. Indian staples, take two", p: "Paneer cube, chawal heaped in a bowl, a peanut. Paneer is the north's protein of the moment; chawal covers the rice belt; the peanut is a positive, unmistakable fat. The bowl repeats B's katori, so a set would take one or the other.",
+    a: ["Line icon in a progress ring", cardRing(["paneer", "rice", "peanut"])],
+    b: ["Solid silhouette, liquid fill", cardSil(["paneer", "katori", "bean"], [null, FOOT, null])] },
+  { t: "D. Global consensus, vegetarian", tag: ["rec", "Fallback"], p: "Bean, wheat ear, drop: what Cal AI and Yuka converge on, minus the meat. Closest to today's glyphs and the most recognisable to anyone who has used another tracker. The drop needs the warm tint to read as fat.",
+    a: ["Line icon in a progress ring", cardRing(["bean", "wheat", "drop"])],
+    b: ["Solid silhouette, liquid fill", cardSil(["bean", "grain", "ghee"])] },
+  { t: "E. Ghee in a spoon", p: "B with the fat icon swapped for a drop over a spoon, the way ghee is actually measured at the stove. Reads as cooking fat, never as water, at the cost of a slightly busier glyph.",
+    a: ["Line icon in a progress ring", cardRing(["katori", "roti", "spoon"])] },
+  { t: "F. Letters", p: "P, C, F in a soft tile with a bar under each, as Alma and MacroFactor do. Zero ambiguity and the most compact; no warmth and no food, so it teaches nothing about what to eat.",
+    a: ["Letter tile and bar", cardChips()] },
+  { t: "G. What it does for you", tag: ["no", "Set aside"], p: "Muscle, energy, flame. Language free, but the dumbbell-adjacent biceps feeds the protein-is-for-gym myth, the bolt says energy drink, and the flame reads as calories burnt, not fat eaten.",
+    a: ["Line icon in a progress ring", cardRing(["biceps", "zap", "flame"])] },
+  { t: "H. Meat and egg for protein", tag: ["no", "Set aside"], p: "What Cal AI and Life Reset use. Alienates the half of north and central Indian women who never eat meat; egg is legally non-veg in India. Shown so it can be ruled out.",
+    a: ["Line icon in a progress ring", cardRing(["drumstick", "wheat", "drop"])],
+    b: ["Egg as protein", cardRing(["egg", "wheat", "drop"])] }
+];
+
+document.getElementById("fams").innerHTML = FAMS.map(function (f) {
+  return '<section class="fam"><div class="cap"><h3>' + f.t + (f.tag ? '<span class="tag ' + f.tag[0] + '">' + f.tag[1] + "</span>" : "") + "</h3><p>" + f.p + "</p></div>" +
+    '<div><div class="kind">' + f.a[0] + "</div>" + f.a[1] + "</div>" +
+    (f.b ? '<div><div class="kind">' + f.b[0] + "</div>" + f.b[1] + "</div>" : "<div></div>") + "</section>";
+}).join("");
+
+document.querySelectorAll("[data-acc]").forEach(function (b) {
+  b.addEventListener("click", function () {
+    document.documentElement.setAttribute("data-acc", b.dataset.acc);
+    document.querySelectorAll("[data-acc]").forEach(function (x) { if (x.tagName === "BUTTON") x.classList.toggle("on", x === b); });
+  });
+});
+</script>
+</body>
+</html>

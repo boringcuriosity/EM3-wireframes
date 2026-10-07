@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Macro tiles on the Eat screen</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{ --brand-50:#F3FCF8; --brand-700:#2A805A; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-500:#667085; --g-600:#475467; --g-900:#101828; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#F9FAFB;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1760px;margin:0 auto;padding:44px 24px 80px}
+  h1{font-size:30px;line-height:38px;font-weight:600;margin:0 0 8px}
+  .lede{font-size:15px;line-height:24px;color:var(--g-600);max-width:76ch;margin:0}
+  .row{display:flex;flex-wrap:wrap;gap:36px;margin-top:32px}
+  .col{width:390px}
+  .cap h2{font-size:17px;line-height:24px;font-weight:600;margin:0 0 4px}
+  .cap h2 em{font-style:normal;font-size:12px;font-weight:600;color:var(--brand-700);background:var(--brand-50);padding:2px 8px;border-radius:9999px;margin-left:6px;vertical-align:2px}
+  .cap p{font-size:13.5px;line-height:21px;color:var(--g-600);margin:0 0 12px;min-height:84px}
+  .sw{display:flex;gap:4px;margin:-4px 0 12px}
+  .sw i{width:20px;height:20px;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(16,24,40,.08)}
+  .phone{width:390px;height:780px;border-radius:44px;overflow:hidden;background:#fff;border:1px solid var(--g-200);box-shadow:0 24px 48px -18px rgba(16,24,40,.22)}
+  .phone iframe{width:390px;height:780px;border:0;display:block}
+  .open{display:inline-block;margin-top:10px;font-size:12.5px;color:var(--g-500)}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Liquid tiles on the Eat screen, in quieter colours</h1>
+  <p class="lede">The Eat screen as it is, beside two tile treatments placed on the real screen: C, stone tiles with ink glyphs, and glass tiles. Nothing in the main screens has changed; each phone swaps the macro card in place, here only.</p>
+  <div class="row" id="row"></div>
+</div>
+<script>
+/* tile, liquid (bottom, top), wave layers (back, front), surface line, card, numbers, "of", glyph, tile edge */
+var P = [
+  { t: "Existing", existing: true, p: "The Eat screen as it is today: the three glyphs filling with indigo liquid on the pale indigo card, for comparison." },
+  { t: "C. Stone and ink", p: "Stone tiles on a white card, filled with the faintest indigo tint, the glyphs in ink: near black, deepening from gray 700 at the top to gray 900 at the base. The indigo drops two steps, so it reads as a wash rather than a colour.",
+    glyphBg: "linear-gradient(to bottom, #475467, #101828)", tile: "#F9FAFB", l0: "#E0EAFF", l1: "#EEF4FF", w0: "#EEF4FF", w1: "#E0EAFF", surf: "#C7D7FE", card: "#FFFFFF", num: "#2D3282", of: "#475467", glyph: "#101828", edge: "#E4E7EC", lab: "#475467" },
+  { t: "Glass tiles", glass: true, glyphBg: "linear-gradient(to bottom, #475467, #101828)", p: "Each tile is a glass on a faint indigo ground: a slim highlight down its left wall, a hairline edge and no shadow, so it reads as information rather than a button, and a light indigo fill that deepens towards its surface, and ink glyphs. No waves; the glass carries the life.",
+    tile: "rgba(255,255,255,.75)", l0: "#EEF4FF", l1: "#C7D7FE", w0: "#E0EAFF", w1: "#C7D7FE", surf: "#A4BCFD", card: "#EEF4FF", num: "#2D3282", of: "#475467", glyph: "#101828", edge: "rgba(164,188,253,.55)", lab: "#475467" }
+];
+var MAC = [["protein", "Protein", 43, 95], ["carbs", "Carbs", 121, 238], ["fats", "Fats", 32, 63]];
+
+function css(v) {
+  return "@property --lv{syntax:'<number>';inherits:true;initial-value:0}" +
+    /* on a white card the card itself is invisible, so its padding only reads as a gap under the heading:
+       there the tiles are the containers and the card gives up its padding. A tinted card keeps a little. */
+    "#macros{background:" + v.card + " !important;padding:" + (v.card === "#FFFFFF" ? "0 0 12px" : "10px 10px 12px") + " !important}" +
+    "#railTitle,#nutTitle{margin-bottom:12px !important}" +
+    (v.card === "#FFFFFF" ? ".calc{padding-left:2px !important;padding-right:2px !important}" : "") +
+    ".calc{background:" + v.card + " !important;border-top-color:" + v.edge + " !important}" +
+    ".x-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}" +
+    ".x-t{position:relative;height:92px;border-radius:18px;background:" + v.tile + ";box-shadow:inset 0 0 0 1px " + v.edge + ";overflow:hidden;padding:10px 12px;display:flex;flex-direction:column;font-family:Roboto,sans-serif}" +
+    ".x-liq{position:absolute;left:0;right:0;bottom:0;height:calc(var(--lv) * 1%);transition:--lv 1.4s cubic-bezier(.16,1,.3,1);background:linear-gradient(to top," + v.l0 + "," + v.l1 + ");box-shadow:inset 0 1.5px 0 " + v.surf + "}" +
+    ".x-row.x-go .x-liq{--lv:var(--t)}" +
+    ".x-w{position:absolute;left:0;width:200%;height:10px}" +
+    ".x-w1{top:-9px;animation:xdr 9s linear infinite}.x-w2{top:-6px;opacity:.8;animation:xdr 6s linear infinite reverse}" +
+    "@keyframes xdr{to{transform:translateX(-50%)}}" +
+    ".x-t > *:not(.x-liq){position:relative}" +
+    ".x-top{display:flex;align-items:center;gap:6px;font-size:12px;color:" + v.lab + "}" +
+    ".x-gl{width:18px;height:18px;background:" + (v.glyphBg || v.glyph) + ";-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain}" +
+    ".x-big{margin-top:auto;font:700 20px/1 Roboto,sans-serif;color:" + v.num + ";font-variant-numeric:tabular-nums}" +
+    ".x-big small{font:500 12px/1 Roboto,sans-serif;margin-left:1px}" +
+    ".x-of{font-size:12px;color:" + v.of + ";margin-top:3px;font-variant-numeric:tabular-nums}" +
+    "@media (prefers-reduced-motion:reduce){.x-w{animation:none}.x-liq{transition:none}}" +
+    (v.glass ? /* the indigo ground sits on the macros + calories wrapper and fades to white by the calories line */
+      "#macros{background:transparent !important}" +
+      "#railMacros{position:relative;isolation:isolate}#railMacros::before{content:'';position:absolute;inset:0 16px;z-index:-1;border-radius:20px 20px 0 0;background:linear-gradient(to bottom,#EEF4FF,rgba(238,244,255,0))}" +
+      ".x-t{box-shadow:inset 0 0 0 1px rgba(164,188,253,.55) !important}" +
+      ".x-liq{left:4px;right:4px;bottom:4px;border-radius:14px;height:calc((100% - 8px) * var(--lv) / 100);background:linear-gradient(to top,#EEF4FF,#C7D7FE) !important;box-shadow:none !important}" +
+      ".calc{background:transparent !important;border-top:1px solid #E4E7EC !important;padding-left:10px !important;padding-right:10px !important}" +
+      ".x-w{display:none}" +
+      ".x-t::after{content:'';position:absolute;left:7px;top:10px;width:3px;height:50%;border-radius:2px;background:linear-gradient(to bottom,rgba(255,255,255,.5),rgba(255,255,255,0));pointer-events:none}" : "");
+}
+function wave(cls, fill) { return '<svg class="x-w ' + cls + '" viewBox="0 0 120 10" preserveAspectRatio="none"><path d="M0 5 Q7.5 0 15 5 T30 5 T45 5 T60 5 T75 5 T90 5 T105 5 T120 5 V10 H0z" fill="' + fill + '"/></svg>'; }
+function tiles(v) {
+  return '<div class="x-row">' + MAC.map(function (m) {
+    var p = Math.min(100, Math.round(m[2] / m[3] * 100));
+    return '<div class="x-t" style="--t:' + p + '"><span class="x-liq">' + wave("x-w1", v.w0) + wave("x-w2", v.w1) + "</span>" +
+      '<span class="x-top"><span class="x-gl glyph-' + m[0] + '"></span>' + m[1] + "</span>" +
+      '<span class="x-big">' + m[2] + "<small>g</small></span><span class=\"x-of\">of " + m[3] + "g</span></div>";
+  }).join("") + "</div>";
+}
+function dress(fr, v) {
+  var d = fr.contentDocument;
+  var box = d && d.getElementById("macros");
+  if (!box) return setTimeout(function () { dress(fr, v); }, 200);
+  var st = d.createElement("style"); st.textContent = css(v); d.head.appendChild(st);
+  box.innerHTML = tiles(v);
+  /* show the score and the card together, as a person would see them on opening */
+  var sect = d.getElementById("nutSect") || box;
+  if (ONLY === null) fr.contentWindow.scrollTo(0, Math.max(0, sect.getBoundingClientRect().top + fr.contentWindow.scrollY - 330));
+  /* the trigger lives on our own row: the Eat screen rewrites the card's own class as it paints */
+  setTimeout(function () { var r = box.querySelector(".x-row"); if (r) r.classList.add("x-go"); }, 350);
+}
+/* the existing screen is only scrolled to the same place, never changed */
+function show(fr) {
+  var d = fr.contentDocument, box = d && d.getElementById("macros");
+  if (!box) return setTimeout(function () { show(fr); }, 200);
+  var sect = d.getElementById("nutSect") || box;
+  fr.contentWindow.scrollTo(0, Math.max(0, sect.getBoundingClientRect().top + fr.contentWindow.scrollY - 330));
+}
+var URL0 = "r3/eat.html?state=mid&plog=card&chrome=0&macro=glyph";
+/* ?only=0|1|2 shows one variant full screen, for checking on a real phone */
+var ONLY = new URLSearchParams(location.search).get("only");
+if (ONLY !== null) {
+  P = [P[+ONLY]];
+  document.head.insertAdjacentHTML("beforeend", "<style>.page{padding:0}h1,.lede,.cap,.sw,.open{display:none}.row{margin:0;gap:0}.col,.phone,.phone iframe{width:100vw;height:100dvh;border:0;border-radius:0;box-shadow:none}</style>");
+}
+document.getElementById("row").innerHTML = P.map(function (v, i) {
+  return '<div class="col"><div class="cap"><h2>' + v.t + (v.tag ? "<em>" + v.tag + "</em>" : "") + "</h2><p>" + v.p + "</p></div>" +
+    (v.existing ? '<div class="sw" style="height:20px"></div>' : '<div class="sw">' + [v.card, v.tile, v.l1, v.l0, v.surf, v.glyph, v.num].map(function (c) { return '<i style="background:' + c + '"></i>'; }).join("") + "</div>") +
+    '<div class="phone"><iframe id="f' + i + '" src="' + URL0 + '" title="' + v.t + '"></iframe></div><a class="open" href="' + URL0 + '" target="_blank">The Eat screen as it is</a></div>';
+}).join("");
+/* the score waits for its host to say go (as app.html does), so this page answers each phone */
+addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+P.forEach(function (v, i) {
+  var fr = document.getElementById("f" + i);
+  fr.addEventListener("load", function () { setTimeout(function () { v.existing ? (ONLY === null && show(fr)) : dress(fr, v); }, 900); });
+});
+</script>
+</body>
+</html>

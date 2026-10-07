@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Macro card concepts</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="icons/glyph-masks.css">
+<style>
+  :root{
+    --brand-50:#F3FCF8; --brand-700:#2A805A;
+    --g-25:#FCFCFD; --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-200:#C7D7FE; --in-300:#A4BCFD; --in-400:#8098F0; --in-500:#6172F3; --in-600:#444CE7; --in-700:#3538CD; --in-800:#2D31A6; --in-900:#2D3282;
+    --gold-50:#FFFBEE; --gold-200:#FEF1C7; --gold-800:#A68A2D;
+    --ease:cubic-bezier(.2,0,0,1); --slow:cubic-bezier(.16,1,.3,1);
+  }
+  @property --f { syntax:"<percentage>"; inherits:false; initial-value:0%; }
+  @property --p { syntax:"<number>"; inherits:true; initial-value:0; }
+  *{box-sizing:border-box}
+  ::selection{background:var(--in-100)}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1240px;margin:0 auto;padding:48px 24px 96px}
+  h1{font-size:32px;line-height:40px;font-weight:600;margin:0 0 10px}
+  .lede{font-size:16px;line-height:26px;color:var(--g-600);max-width:70ch;margin:0 0 8px}
+  .replay{height:36px;padding:0 14px;border-radius:9999px;border:1px solid var(--g-200);background:#fff;font:500 13px/1 Roboto;color:var(--g-700);cursor:pointer;margin-top:8px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(358px,1fr));gap:40px 32px;margin-top:36px}
+  .col{max-width:390px}
+  .cap h2{font-size:17px;line-height:24px;font-weight:600;margin:0 0 4px}
+  .cap h2 em{font-style:normal;font-size:12px;font-weight:600;color:var(--brand-700);background:var(--brand-50);padding:2px 8px;border-radius:9999px;margin-left:6px;vertical-align:2px}
+  .cap p{font-size:13.5px;line-height:21px;color:var(--g-600);margin:0 0 14px;min-height:84px}
+  .stage{padding:20px 16px;border-radius:24px;background:#fff;border:1px solid var(--g-100)}
+  .hd{font-size:16px;line-height:22px;color:var(--g-900);margin:0 0 12px}
+
+  /* the glyph, as the Eat screen draws it: a mask filled with indigo liquid */
+  .gw{position:relative;width:var(--s,40px);height:var(--s,40px);flex-shrink:0;
+    filter:drop-shadow(.5px 0 0 var(--in-300)) drop-shadow(-.5px 0 0 var(--in-300)) drop-shadow(0 .5px 0 var(--in-300)) drop-shadow(0 -.5px 0 var(--in-300))}
+  .gf{position:absolute;inset:0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center bottom;mask-position:center bottom;-webkit-mask-size:auto 100%;mask-size:auto 100%;--f:0%;
+    background:radial-gradient(118% 76% at 27% 16%,rgba(255,255,255,.34),rgba(255,255,255,0) 58%),
+      linear-gradient(to top,var(--in-800) 0%,var(--in-700) calc(var(--f)*.34),var(--in-600) calc(var(--f)*.72),var(--in-500) calc(var(--f) - 6%),var(--in-500) calc(var(--f) - 1.5%),var(--in-200) var(--f),var(--in-100) 100%);
+    transition:--f 1.4s var(--slow)}
+  .gf.glyph-fats{-webkit-mask-size:auto 80%;mask-size:auto 80%}
+  .go .gf{--f:var(--t)}
+  /* a flat glyph: one colour, no fill level */
+  .gl{width:var(--s,20px);height:var(--s,20px);flex-shrink:0;background:var(--c,var(--in-700));-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain}
+  .num{font-variant-numeric:tabular-nums}
+  @media (prefers-reduced-motion:reduce){ *{transition:none !important;animation:none !important} }
+
+  /* 1. reference */
+  .c1{border-radius:16px;background:var(--in-50);padding:16px}
+  .c1 .row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .c1 .m{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .c1 .v{font-size:14px;color:var(--g-500)}.c1 .v b{color:var(--g-900)}
+  .c1 .n{font-size:12px;color:var(--g-600);margin-top:-4px}
+
+  /* 2. liquid tiles */
+  .c2{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .c2 .t{position:relative;height:150px;border-radius:16px;background:var(--in-25);overflow:hidden;box-shadow:inset 0 0 0 1px var(--in-100);padding:12px 10px;display:flex;flex-direction:column}
+  .c2 .liq{position:absolute;left:0;right:0;bottom:0;height:calc(var(--p) * 1%);transition:--p 1.4s var(--slow);background:linear-gradient(to top,var(--in-200),var(--in-100))}
+  .go .c2 .liq{--p:var(--t)}
+  .c2 .wave{position:absolute;left:0;top:-7px;width:200%;height:8px;animation:wv 6s linear infinite}
+  @keyframes wv{to{transform:translateX(-50%)}}
+  .c2 .top{position:relative;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--g-600)}
+  .c2 .big{position:relative;margin-top:auto;font:700 24px/1 Roboto;color:var(--in-900)}
+  .c2 .big small{font:500 12px/1 Roboto;color:var(--in-800)}
+  .c2 .of{position:relative;font-size:12px;color:var(--in-800);margin-top:4px}
+
+  /* 3. measuring cylinders */
+  .c3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:4px 0 0}
+  .c3 .m{display:flex;flex-direction:column;align-items:center;gap:8px}
+  .c3 .cyl{position:relative;width:46px;height:132px;border-radius:6px 6px 16px 16px;background:#fff;box-shadow:inset 0 0 0 1.5px var(--in-200);overflow:hidden}
+  .c3 .cyl::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(to top,transparent 0 12.2px,var(--in-100) 12.2px 13.2px);opacity:.9}
+  .c3 .fill{position:absolute;left:3px;right:3px;bottom:3px;border-radius:3px 3px 13px 13px;height:calc(var(--p) * .94%);transition:--p 1.4s var(--slow);background:linear-gradient(to top,var(--in-800),var(--in-500))}
+  .go .c3 .fill{--p:var(--t)}
+  .c3 .tgt{position:absolute;left:-4px;right:-4px;top:3px;border-top:1.5px dashed var(--in-400)}
+  .c3 .lvl{position:absolute;left:50%;transform:translate(-50%,50%);bottom:calc(var(--p) * .94%);transition:--p 1.4s var(--slow);background:#fff;border-radius:9999px;padding:2px 6px;font:700 11px/14px Roboto;color:var(--in-900);box-shadow:0 1px 3px rgba(16,24,40,.18)}
+  .go .c3 .lvl{--p:var(--t)}
+  .c3 .n{font-size:12px;color:var(--g-600)}.c3 .tg{font-size:11px;color:var(--g-500);margin-top:-6px}
+
+  /* 4. thali */
+  .c4{position:relative;width:300px;height:300px;margin:0 auto;border-radius:50%;
+    background:radial-gradient(circle at 50% 50%,#fff 0 58%,var(--g-50) 58% 62%,#fff 62% 66%,var(--g-100) 66% 100%);box-shadow:inset 0 0 0 1px var(--g-200),0 10px 24px -12px rgba(16,24,40,.25)}
+  .c4 .k{position:absolute;width:98px;height:98px;border-radius:50%;background:#fff;box-shadow:inset 0 0 0 1px var(--g-200),0 4px 10px -4px rgba(16,24,40,.22);overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .c4 .k .liq{position:absolute;left:0;right:0;bottom:0;height:calc(var(--p) * 1%);transition:--p 1.4s var(--slow);background:linear-gradient(to top,var(--in-200),var(--in-100))}
+  .go .c4 .k .liq{--p:var(--t)}
+  .c4 .k > *:not(.liq){position:relative}
+  .c4 .k b{font:700 15px/1 Roboto;color:var(--in-900)}.c4 .k span{font-size:11px;color:var(--in-800)}
+  .c4 .k1{left:40px;top:44px}.c4 .k2{right:40px;top:44px}.c4 .k3{left:101px;bottom:30px}
+  .c4 .mid{position:absolute;left:0;right:0;top:146px;text-align:center;font-size:11px;color:var(--g-500)}
+  .c4 .mid b{display:block;font:700 14px/18px Roboto;color:var(--g-900)}
+
+  /* 5. one ring, three arcs */
+  .c5{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .c5 svg{width:220px;height:220px;overflow:visible}
+  .c5 .arc{transition:stroke-dasharray 1.4s var(--slow)}
+  .c5 .leg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%}
+  .c5 .leg div{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--g-600)}
+  .c5 .leg b{font:700 14px/20px Roboto;color:var(--g-900)}
+
+  /* 6. bean counter: the glyph as its own unit */
+  .c6 .r{display:grid;grid-template-columns:1fr auto;align-items:baseline;row-gap:8px;padding:12px 0}
+  .c6 .r + .r{border-top:1px solid var(--g-100)}
+  .c6 .nm{font-size:14px;font-weight:600}.c6 .vv{font-size:13px;color:var(--g-500)}.c6 .vv b{color:var(--g-900)}
+  .c6 .icons{grid-column:1/-1;display:flex;gap:6px}
+  .c6 .u{position:relative;width:24px;height:24px}
+  .c6 .u .gl{position:absolute;inset:0;--s:24px;--c:var(--in-100)}
+  .c6 .u .on{--c:var(--in-600);clip-path:inset(0 calc(100% - var(--w)) 0 0);transition:clip-path .5s var(--ease);transition-delay:var(--d)}
+  .c6:not(.go) .u .on{clip-path:inset(0 100% 0 0)}
+  .c6 .note{font-size:11.5px;color:var(--g-500);margin-top:4px}
+
+  /* 7. kirana receipt */
+  .c7{position:relative;background:#fff;padding:18px 18px 26px;border-radius:12px 12px 0 0;box-shadow:0 1px 3px rgba(16,24,40,.10),0 10px 22px -12px rgba(16,24,40,.25);font-family:Roboto}
+  .c7::after{content:"";position:absolute;left:0;right:0;bottom:-9px;height:10px;background:radial-gradient(circle at 6px -2px,transparent 7px,#fff 7.5px) 0 0/12px 10px repeat-x;filter:drop-shadow(0 2px 1px rgba(16,24,40,.08))}
+  .c7 .t{display:flex;justify-content:space-between;font:700 13px/18px Roboto;letter-spacing:1.2px;text-transform:uppercase;color:var(--g-700);padding-bottom:10px;border-bottom:1px dashed var(--g-300)}
+  .c7 .t span{font-weight:500;letter-spacing:.25px;text-transform:none;color:var(--g-500)}
+  .c7 .li{padding:10px 0 0}
+  .c7 .ln{display:flex;align-items:center;gap:8px;font-size:14px}
+  .c7 .ln .dots{flex:1;border-bottom:1.5px dotted var(--g-300);transform:translateY(-4px)}
+  .c7 .ln b{font-variant-numeric:tabular-nums}
+  .c7 .bar{height:4px;border-radius:2px;background:var(--in-100);margin:8px 0 0 28px;overflow:hidden}
+  .c7 .bar i{display:block;height:100%;width:calc(var(--p) * 1%);background:var(--in-600);border-radius:2px;transition:--p 1.4s var(--slow)}
+  .go .c7 .bar i{--p:var(--t)}
+  .c7 .tot{display:flex;justify-content:space-between;margin-top:14px;padding-top:10px;border-top:1px dashed var(--g-300);font-size:14px;font-weight:700}
+  .c7 .stamp{display:table;margin:14px 0 0 auto;transform:rotate(-6deg);border:1.5px solid var(--gold-800);color:var(--gold-800);border-radius:8px;padding:4px 8px;font:700 11px/14px Roboto;letter-spacing:.6px;text-transform:uppercase;opacity:.85;background:var(--gold-50)}
+
+  /* 8. the gap leads */
+  .c8{border-radius:20px;background:linear-gradient(180deg,var(--in-50),#fff 70%);box-shadow:inset 0 0 0 1px var(--in-100);padding:18px}
+  .c8 .hero{display:flex;align-items:center;gap:16px}
+  .c8 .hero .tx b{display:block;font:800 30px/34px Roboto;color:var(--in-900)}
+  .c8 .hero .tx span{font-size:13px;color:var(--g-600)}
+  .c8 .tip{display:flex;align-items:center;gap:8px;margin:14px 0 4px;padding:10px 12px;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--in-100);font-size:13px;color:var(--g-700)}
+  .c8 .tip b{color:var(--in-700)}
+  .c8 .rest{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .c8 .pill{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:#fff;box-shadow:inset 0 0 0 1px var(--g-100)}
+  .c8 .pill b{display:block;font-size:14px}.c8 .pill span{font-size:12px;color:var(--g-500)}
+
+  /* 9. pearl gauges: the score's own language, three times smaller */
+  .c9{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+  .c9 .m{display:flex;flex-direction:column;align-items:center}
+  .c9 svg{width:104px;height:78px}
+  .c9 .pd{transition:fill .35s var(--ease),r .35s var(--ease)}
+  .c9 .gw{margin-top:-52px}
+  .c9 .v{margin-top:10px;font-size:14px;color:var(--g-500)}.c9 .v b{color:var(--g-900)}
+  .c9 .n{font-size:12px;color:var(--g-600)}
+
+  /* 10. horizon rows */
+  .c10 .r{display:grid;grid-template-columns:44px 1fr;column-gap:12px;align-items:center;padding:10px 0}
+  .c10 .tr{position:relative;height:14px;border-radius:9999px;background:var(--in-50);box-shadow:inset 0 0 0 1px var(--in-100)}
+  .c10 .fl{position:absolute;left:0;top:0;bottom:0;width:calc(var(--p) * 1%);border-radius:9999px;background:linear-gradient(90deg,var(--in-700),var(--in-500));transition:--p 1.4s var(--slow)}
+  .go .c10 .fl{--p:var(--t)}
+  .c10 .bub{position:absolute;top:-30px;left:calc(var(--p) * 1%);transform:translateX(-50%);background:var(--in-900);color:#fff;font:700 11px/14px Roboto;padding:3px 7px;border-radius:8px;transition:--p 1.4s var(--slow);white-space:nowrap}
+  .c10 .bub::after{content:"";position:absolute;left:50%;bottom:-4px;width:8px;height:8px;background:var(--in-900);transform:translateX(-50%) rotate(45deg);border-radius:1px}
+  .go .c10 .bub{--p:var(--t)}
+  .c10 .meta{display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:var(--g-500)}
+  .c10 .meta b{color:var(--g-900);font-weight:600}
+  .c10 .r .body{padding-top:22px}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>The macro card, ten ways</h1>
+  <p class="lede">The same day, the same three glyphs, the same indigo: Protein 43 of 95g, Carbs 121 of 238g, Fats 32 of 63g, 942 of 1,900 kcal. Each card asks a different question of the same numbers: how full, how far to go, what to eat next, or how the plate looks. Fills arrive slowly on load and nothing bounces.</p>
+  <button class="replay" id="replay">Play the fills again</button>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+var M = [
+  { k: "protein", n: "Protein", e: 43, t: 95 },
+  { k: "carbs", n: "Carbs", e: 121, t: 238 },
+  { k: "fats", n: "Fats", e: 32, t: 63 }
+];
+M.forEach(function (m) { m.p = Math.round(m.e / m.t * 100); m.left = m.t - m.e; });
+var gw = function (k, p, s) { return '<span class="gw" style="--s:' + (s || 40) + 'px"><span class="gf glyph-' + k + '" style="--t:' + p + '%"></span></span>'; };
+var gl = function (k, s, c) { return '<span class="gl glyph-' + k + '" style="--s:' + (s || 20) + "px" + (c ? ";--c:" + c : "") + '"></span>'; };
+var WAVE = '<svg class="wave" viewBox="0 0 120 8" preserveAspectRatio="none"><path d="M0 4 Q7.5 0 15 4 T30 4 T45 4 T60 4 T75 4 T90 4 T105 4 T120 4 V8 H0z" fill="#E0EAFF"/></svg>';
+
+var C = [];
+
+C.push({ t: "1. Liquid glyphs, as shipped", tag: "Reference", p: "Each glyph is its own vessel and fills to its level. The baseline every other card here is measured against.",
+  h: '<div class="c1"><div class="row">' + M.map(function (m) {
+    return '<div class="m">' + gw(m.k, m.p) + '<span class="v num"><b>' + m.e + "</b>/" + m.t + 'g</span><span class="n">' + m.n + "</span></div>";
+  }).join("") + "</div></div>" });
+
+C.push({ t: "2. Liquid tiles", p: "The whole tile is the vessel: pale indigo rises behind the number to the day's level, its surface drifting slowly. The number is the hero; the glyph names it in a corner. Reads in a glance from arm's length.",
+  h: '<div class="c2">' + M.map(function (m) {
+    return '<div class="t" style="--t:' + m.p + '"><span class="liq">' + WAVE + "</span>" +
+      '<span class="top">' + gl(m.k, 18, "var(--in-700)") + m.n + "</span>" +
+      '<span class="big num">' + m.e + "<small>g</small></span>" +
+      '<span class="of num">of ' + m.t + "g</span></div>";
+  }).join("") + "</div>" });
+
+C.push({ t: "3. Measuring cylinders", p: "Lab glass, graduated: the dashed line at the top is the target, and the gram count rides the liquid's surface as it climbs. The distance between the two is how far to go, read without arithmetic.",
+  h: '<div class="c3">' + M.map(function (m) {
+    return '<div class="m">' + gl(m.k, 26, "var(--in-700)") +
+      '<div class="cyl" style="--t:' + m.p + '"><span class="tgt"></span><span class="fill"></span><span class="lvl num">' + m.e + "g</span></div>" +
+      '<span class="n">' + m.n + '</span><span class="tg num">of ' + m.t + "g</span></div>";
+  }).join("") + "</div>" });
+
+C.push({ t: "4. The thali", tag: "Indian", p: "A steel plate with three katoris, each one filling with its macro, and the day's calories in the middle of the plate where the roti would sit. The most Indian of the set; the plate says a meal before any number does.",
+  h: (function () {
+    var ks = ["k1", "k2", "k3"];
+    return '<div class="c4">' + M.map(function (m, i) {
+      return '<div class="k ' + ks[i] + '" style="--t:' + m.p + '"><span class="liq"></span>' + gl(m.k, 26, "var(--in-700)") +
+        '<b class="num">' + m.e + "g</b><span>" + m.n + " · " + m.t + "g</span></div>";
+    }).join("") + '<div class="mid"><b class="num">942 kcal</b>of 1,900</div></div>';
+  })() });
+
+C.push({ t: "5. One ring, three arcs", p: "The three targets share one circle, a third each, and each arc fills its own third. Calories sit in the centre. Says that the score is all three together, and still shows which third is short.",
+  h: (function () {
+    var R = 82, CX = 110, CY = 110, seg = 120, gap = 8, s = "", marks = "";
+    M.forEach(function (m, i) {
+      var a0 = -90 + i * seg + gap / 2, sweep = seg - gap, len = 2 * Math.PI * R * sweep / 360, on = len * m.p / 100;
+      var rot = "rotate(" + a0 + " " + CX + " " + CY + ")";
+      s += '<circle cx="' + CX + '" cy="' + CY + '" r="' + R + '" fill="none" stroke="var(--in-100)" stroke-width="16" stroke-linecap="round" stroke-dasharray="' + len.toFixed(1) + ' 999" transform="' + rot + '"/>';
+      s += '<circle class="arc" data-on="' + on.toFixed(1) + '" cx="' + CX + '" cy="' + CY + '" r="' + R + '" fill="none" stroke="var(--in-600)" stroke-width="16" stroke-linecap="round" stroke-dasharray="0 999" transform="' + rot + '"/>';
+      var mid = (a0 + sweep / 2) * Math.PI / 180, gx = CX + Math.cos(mid) * (R + 30), gy = CY + Math.sin(mid) * (R + 30);
+      marks += '<span style="position:absolute;left:' + (gx - 11).toFixed(1) + "px;top:" + (gy - 11).toFixed(1) + 'px">' + gl(m.k, 22, "var(--in-700)") + "</span>";
+    });
+    s += '<text x="110" y="106" text-anchor="middle" font-family="Roboto" font-weight="700" font-size="24" fill="#101828">942</text><text x="110" y="126" text-anchor="middle" font-family="Roboto" font-size="12" fill="#667085">of 1,900 kcal</text>';
+    return '<div class="c5"><div style="position:relative;width:220px;height:220px"><svg viewBox="0 0 220 220">' + s + "</svg>" + marks + '</div><div class="leg">' + M.map(function (m) {
+      return "<div><b class=\"num\">" + m.e + "/" + m.t + "g</b>" + m.n + "</div>";
+    }).join("") + "</div></div>";
+  })() });
+
+C.push({ t: "6. Count in glyphs", p: "Ten glyphs per macro, each a tenth of the target, lit left to right; a half-lit glyph is a half step. Like rating stars, it needs no axis and no maths: protein is four and a half beans of ten.",
+  h: '<div class="c6">' + M.map(function (m) {
+    var tens = m.e / m.t * 10, s = "";
+    for (var i = 0; i < 10; i++) {
+      var w = Math.max(0, Math.min(1, tens - i)) * 100;
+      s += '<span class="u">' + gl(m.k, 24) + '<span class="gl glyph-' + m.k + ' on" style="--s:24px;--w:' + w.toFixed(0) + "%;--d:" + (i * 60) + 'ms"></span></span>';
+    }
+    return '<div class="r"><span class="nm">' + m.n + '</span><span class="vv num"><b>' + m.e + "</b> of " + m.t + "g</span>" +
+      '<span class="icons">' + s + "</span></div>";
+  }).join("") + '<div class="note">Each glyph is a tenth of your target.</div></div>' });
+
+C.push({ t: "7. The day's bill", tag: "Indian", p: "Today's plate as a kirana receipt: each macro a line with dotted leaders to its grams, a hairline bar under it, calories as the total, and a stamp naming what is still due. Familiar, a little playful, and very scannable.",
+  h: '<div class="c7"><div class="t">Today\'s plate<span>Tue, 15 Sep</span></div>' + M.map(function (m) {
+    return '<div class="li" style="--t:' + m.p + '"><div class="ln">' + gl(m.k, 20, "var(--in-700)") + "<span>" + m.n + '</span><span class="dots"></span><b>' + m.e + " / " + m.t + 'g</b></div><div class="bar"><i></i></div></div>';
+  }).join("") + '<div class="tot"><span>Calories</span><span class="num">942 / 1,900</span></div><span class="stamp">52g protein due</span></div>' });
+
+C.push({ t: "8. The gap leads", p: "The macro furthest from its target takes the card: big glyph, the grams still to go, and the one food in today's plan that closes most of it. The other two fold into quiet pills. Answers what to do next, not only where things stand.",
+  h: '<div class="c8"><div class="hero">' + gw("protein", M[0].p, 72) + '<div class="tx"><b class="num">52g to go</b><span>Protein, 43 of 95g so far</span></div></div>' +
+    '<div class="tip">' + gl("protein", 16, "var(--in-600)") + '<span>Roasted chana at your evening snack adds <b>9g</b></span></div>' +
+    '<div class="rest">' + M.slice(1).map(function (m) {
+      return '<div class="pill">' + gw(m.k, m.p, 28) + '<div><b class="num">' + m.left + "g to go</b><span>" + m.n + " · " + m.e + "/" + m.t + "g</span></div></div>";
+    }).join("") + "</div></div>" });
+
+C.push({ t: "9. Pearl gauges", tag: "Echoes the score", p: "Each macro gets a small arc of pearls, the score's own language at a third of the size, lit in indigo up to its level, with its glyph sitting in the open arc. The card and the score above it read as one family.",
+  h: '<div class="c9">' + M.map(function (m) {
+    var n = 11, s = "", CX = 52, CY = 54, R = 42;
+    for (var i = 0; i < n; i++) {
+      var a = Math.PI + Math.PI * i / (n - 1), x = CX + Math.cos(a) * R, y = CY + Math.sin(a) * R, on = i / (n - 1) <= m.p / 100 + 1e-6;
+      s += '<circle class="pd" data-on="' + (on ? 1 : 0) + '" data-i="' + i + '" cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (3.2 + (i % 3) * .6).toFixed(1) + '" fill="var(--in-100)"/>';
+    }
+    return '<div class="m"><svg viewBox="0 0 104 78">' + s + "</svg>" + gw(m.k, m.p, 36) + '<span class="v num"><b>' + m.e + "</b>/" + m.t + 'g</span><span class="n">' + m.n + "</span></div>";
+  }).join("") + "</div>" });
+
+C.push({ t: "10. Horizon rows", p: "Wide rows: the glyph fills on the left, and a thick bar runs to the target with today's grams riding the end of the fill in a small flag. Best for precision, and the easiest to extend to fibre or water if they ever return.",
+  h: '<div class="c10">' + M.map(function (m) {
+    return '<div class="r" style="--t:' + m.p + '">' + gw(m.k, m.p, 40) + '<div class="body"><div class="tr"><span class="fl"></span><span class="bub num">' + m.e + "g</span></div>" +
+      '<div class="meta"><b>' + m.n + '</b><span class="num">' + m.left + "g to go · " + m.t + "g</span></div></div></div>";
+  }).join("") + "</div>" });
+
+document.getElementById("grid").innerHTML = C.map(function (c) {
+  return '<div class="col"><div class="cap"><h2>' + c.t + (c.tag ? "<em>" + c.tag + "</em>" : "") + "</h2><p>" + c.p + '</p></div><div class="stage"><div class="hd">What shaped your score?</div><div class="tgt-wrap">' + c.h + "</div></div></div>";
+}).join("");
+
+/* the arrival: every fill starts empty and settles to its level */
+function play() {
+  var root = document.getElementById("grid");
+  root.classList.remove("go");
+  root.querySelectorAll(".c6").forEach(function (x) { x.classList.remove("go"); });
+  root.querySelectorAll(".c5 .arc").forEach(function (a) { a.style.strokeDasharray = "0 999"; });
+  root.querySelectorAll(".c9 .pd").forEach(function (d) { d.style.fill = ""; });
+  void root.offsetWidth;
+  requestAnimationFrame(function () {
+    root.classList.add("go");
+    root.querySelectorAll(".c6").forEach(function (x) { x.classList.add("go"); });
+    root.querySelectorAll(".c5 .arc").forEach(function (a) { a.style.strokeDasharray = a.dataset.on + " 999"; });
+    root.querySelectorAll(".c9 .pd").forEach(function (d) {
+      if (d.dataset.on === "1") setTimeout(function () { d.style.fill = "var(--in-600)"; }, 120 + d.dataset.i * 70);
+    });
+  });
+}
+setTimeout(play, 250);
+document.getElementById("replay").onclick = play;
+</script>
+</body>
+</html>

@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log moments</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* The win screen after logging. Tapping Log meal (bottom right of the tray) fills the
+     screen with primary green, sweeping from the button to the top left corner. On the
+     green: a small circle with the gain, the meal, and the foods ticking in, each with a
+     light haptic. Then the green sweeps on the same way and the day is underneath.
+     No score bubble here: the day view shows it a moment later.
+     Six ways for the green to fill; the win screen is the same in all of them.
+     Standalone: nothing here is shared with r3/. ?p=snack|meal|full picks the log, ?hold=1 stays on the win. */
+  :root {
+    --gray-100: #F2F4F7; --gray-200: #E4E7EC; --gray-300: #D0D5DD; --gray-400: #98A2B3; --gray-500: #667085; --gray-600: #475467;
+    --gray-900: #101828; --green-600: #039855; --green-50: #ECFDF3; --primary: #299D6B; --primary-edge: #2A805A;
+    --indigo-25: #F5F8FF; --indigo-600: #444CE7; --indigo-900: #2D3282;
+    --shadow: 2px 3px 0 0 rgba(152,162,179,.35);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--gray-900); font-family: Roboto, Arial, sans-serif; letter-spacing: .25px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 56px 24px 80px; }
+  h1 { font-weight: 600; font-size: 40px; line-height: 48px; margin: 0 0 12px; }
+  .lede { max-width: 760px; margin: 0 0 24px; font-size: 16px; line-height: 26px; color: var(--gray-600); }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 32px; }
+  .bar .lab { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); margin: 0 4px 0 12px; }
+  .pill { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; font: 600 14px/20px Roboto, sans-serif; border: 1px solid var(--gray-200);
+    background: #fff; color: var(--gray-600); border-radius: 9999px; cursor: pointer; text-decoration: none; }
+  .pill:hover { border-color: var(--gray-300); color: var(--gray-900); }
+  .pill.on { border-color: var(--indigo-600); background: var(--indigo-25); color: var(--indigo-900); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 28px; }
+  .card { display: flex; flex-direction: column; border: 1px solid var(--gray-200); border-radius: 16px; box-shadow: var(--shadow); background: #fff; overflow: hidden; }
+  .phone { position: relative; width: 234px; height: 506px; margin: 16px auto 0; border-radius: 26px; overflow: hidden; cursor: pointer;
+    box-shadow: 0 0 0 1px var(--gray-200), 0 12px 32px -16px rgba(16,24,40,.25); }
+  .screen { position: absolute; left: 0; top: 0; width: 390px; height: 844px; transform: scale(.6); transform-origin: 0 0; background: #fff; overflow: hidden; }
+  .screen > canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .screen > iframe { position: absolute; inset: 0; width: 390px; height: 844px; border: 0; pointer-events: none; }
+  /* what the phone would feel, shown for a desktop that cannot vibrate */
+  .hap { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; font: 500 12px/16px Roboto, sans-serif; color: var(--gray-400); }
+  .hap i { width: 8px; height: 8px; border-radius: 50%; background: var(--gray-200); transition: background .25s, box-shadow .25s; }
+  .hap i.big { width: 12px; height: 12px; }
+  .hap i.on { background: var(--primary); }
+  .meta { display: flex; flex-direction: column; gap: 4px; padding: 16px 20px 20px; border-top: 1px solid var(--gray-200); margin-top: 12px; flex: 1; }
+  .meta h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
+  .meta h2 .len { margin-left: auto; font-size: 12px; font-weight: 500; color: var(--gray-400); }
+  .meta h2 .rec { font-size: 12px; font-weight: 500; color: var(--green-600); background: var(--green-50); border-radius: 8px; padding: 2px 8px; }
+  .meta h2 .new { font-size: 12px; font-weight: 500; color: var(--indigo-900); background: var(--indigo-25); border-radius: 8px; padding: 2px 8px; }
+  .pill .sw { width: 14px; height: 14px; border-radius: 50%; margin-right: 8px; box-shadow: inset 0 0 0 1px rgba(16,24,40,.14); }
+  .meta p { margin: 0; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+  .meta .fit { font-size: 13px; color: var(--gray-500); }
+  .meta .fit b { font-weight: 500; color: var(--gray-600); }
+  .meta .pill { align-self: flex-start; margin-top: 8px; }
+  .more { margin-top: 32px; border-top: 1px solid var(--gray-200); }
+  .more summary { display: flex; align-items: center; gap: 8px; min-height: 56px; cursor: pointer; list-style: none; font: 600 16px/24px Roboto, sans-serif; color: var(--gray-900); }
+  .more summary::-webkit-details-marker { display: none; }
+  .more summary::before { content: ''; width: 8px; height: 8px; border-right: 2px solid var(--gray-500); border-bottom: 2px solid var(--gray-500); transform: rotate(-45deg); transition: transform .2s; margin: 0 6px 0 2px; }
+  .more[open] summary::before { transform: rotate(45deg); }
+  .more summary span { font-weight: 400; color: var(--gray-500); }
+  .more .grid { padding: 8px 0 8px; }
+  .haps { max-width: 760px; margin: 48px 0 0; font-size: 14px; line-height: 22px; color: var(--gray-600); }
+  .haps h2 { font-size: 18px; line-height: 26px; color: var(--gray-900); margin: 0 0 8px; font-weight: 600; }
+  .haps td { padding: 6px 16px 6px 0; vertical-align: top; }
+  .haps td:first-child { color: var(--gray-900); font-weight: 500; white-space: nowrap; }
+
+  /* ---- the logger you tap from ---- */
+  .lg { position: absolute; inset: 0; background: #fff; }
+  .lg .sb { height: 44px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; font: 600 15px Roboto, sans-serif; }
+  .lg .hd { display: flex; align-items: center; gap: 14px; height: 56px; padding: 0 20px; }
+  .lg .hd svg { width: 24px; height: 24px; }
+  .lg .hd b { display: block; font: 600 18px/24px Roboto, sans-serif; }
+  .lg .hd span { display: block; font: 400 13px/18px Roboto, sans-serif; color: var(--gray-500); }
+  .lg .sec { margin: 22px 24px 6px; font: 600 12px/16px Roboto, sans-serif; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); }
+  .lg .row { height: 72px; margin: 0 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--gray-100); }
+  .lg .row b { display: block; font: 500 16px/22px Roboto, sans-serif; }
+  .lg .row span { display: block; font: 400 13px/18px Roboto, sans-serif; color: var(--gray-500); }
+  .lg .row i { width: 24px; height: 24px; border-radius: 6px; background: #12B76A; display: grid; place-items: center; }
+  .lg .tray { position: absolute; left: 0; right: 0; bottom: 0; padding: 14px 16px 24px; border-top: 1px solid var(--gray-200); background: #fff; }
+  .lg .tally { margin-bottom: 12px; font: 500 14px/20px Roboto, sans-serif; color: var(--gray-600); }
+  .lg .trow { display: flex; gap: 12px; }
+  .lg .tb { width: 120px; height: 52px; border-radius: 12px; border: 1px solid var(--gray-300); background: #fff; display: flex; align-items: center; justify-content: center; gap: 6px;
+    font: 600 15px Roboto, sans-serif; color: var(--gray-900); }
+  .lg .cta { flex: 1; height: 52px; border-radius: 12px; background: var(--primary); color: #fff; display: grid; place-items: center; font: 700 15px Roboto, sans-serif;
+    box-shadow: 0 4px 0 var(--primary-edge); }
+  .lg .cta.down { transform: translateY(4px); box-shadow: none; }
+  /* ---- the day underneath ---- */
+  .day { position: absolute; inset: 0; padding: 0 24px; background: #fff; }
+  .day .ttl { margin-top: 56px; font: 600 22px/28px Roboto, sans-serif; }
+  .day .sc { width: 180px; height: 180px; margin: 28px auto 0; border-radius: 50%; background: var(--gray-100); }
+  .day .cards { display: grid; gap: 12px; margin-top: 36px; }
+  .day .cards div { height: 104px; border-radius: 16px; background: var(--gray-100); }
+  /* ---- the win screen: Rise's three tiers, nothing more ---- */
+  .win { position: absolute; inset: 0; color: var(--w-ink); pointer-events: none; }
+  .win > * { position: absolute; opacity: 0; }
+  /* the Log meal button, lifting out of the tray to become the pill */
+  .ghost { left: 0; top: 0; display: grid; place-items: center; overflow: hidden; white-space: nowrap; border: 1px solid transparent; }
+  .ghost span { font: 700 15px Roboto, sans-serif; }
+  .logged { left: 50%; top: 330px; transform: translate(-50%,-50%); display: inline-flex; align-items: center; gap: 10px; padding: 6px 16px 6px 6px; border-radius: 999px;
+    white-space: nowrap; color: var(--w-pill-ink); background: var(--w-pill); border: 1px solid var(--w-pill-line); font: 600 16px/20px Roboto, sans-serif; }
+  .logged .tk { width: 30px; height: 30px; border-radius: 50%; background: var(--w-tick-bg); display: grid; place-items: center; }
+  .logged .tk path { fill: none; stroke: var(--w-tick); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 24; stroke-dashoffset: 24; }
+  /* the gain: each digit rolls on its own wheel and settles, left first */
+  .n { left: 0; top: 0; color: var(--w-gain); display: flex; align-items: flex-start; font: 700 96px/1 Roboto, sans-serif; letter-spacing: -3px; font-variant-numeric: tabular-nums; }
+  .n .col { display: block; height: 1em; overflow: hidden;
+    -webkit-mask-image: linear-gradient(transparent, #000 7%, #000 93%, transparent); mask-image: linear-gradient(transparent, #000 7%, #000 93%, transparent); }
+  .n .col span { display: block; }
+  .n .col i { display: block; height: 1em; font-style: normal; }
+  .n .pc { margin: .1em 0 0 .06em; font-size: .4em; line-height: 1; font-weight: 600; letter-spacing: 0; opacity: .85; }
+  .say { left: 0; right: 0; top: 498px; text-align: center; font: 400 17px/25px Roboto, sans-serif; color: var(--w-say); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Log moments</h1>
+  <p class="lede">The win screen after logging, with Rise's content and nothing more: the pill, the gain, one line. Tapping Log meal sweeps colour from the button to the top left, and the button itself lifts out of the tray and becomes the pill. The gain rolls in digit by digit, a sheen passes over, and soft bubbles drift up. On the way out the gain shrinks into the score on the day while the colour sweeps on. Only the fill changes between options, and the Ground row sets what the win sits on: GoodFlip's green, deep green, white, or one of its tints. Tap a phone to play it, and on a phone you will feel the haptics.</p>
+  <div class="bar">
+    <button class="pill" id="all">Play all again</button>
+    <span class="lab">Log</span>
+    <a class="pill" data-p="snack">A snack, +13%</a><a class="pill" data-p="meal">A full meal, +24%</a><a class="pill" data-p="full">The last meal, +18%</a>
+    <span class="lab">Win screen</span>
+    <a class="pill" id="hold">Stay on it</a>
+  </div>
+  <div class="bar" id="grounds"><span class="lab" style="margin-left:0">Ground</span></div>
+  <div class="grid" id="grid"></div>
+  <details class="more" id="moreBox"><summary>More variants <span id="moreN"></span></summary><div class="grid" id="more"></div></details>
+  <div class="haps">
+    <h2>The haptics</h2>
+    <table>
+      <tr><td>Tap</td><td>8 ms, a light tick as the button goes down.</td></tr>
+      <tr><td>Filled</td><td>14 ms, a soft thud as the green reaches the top left.</td></tr>
+      <tr><td>Pill</td><td>6 ms, the faintest tick as the button settles into the pill.</td></tr>
+      <tr><td>Success</td><td>12, 60, 20 ms, a double beat as the last digit of the gain settles.</td></tr>
+    </table>
+    <p>Android Chrome plays these through the Vibration API. iOS Safari has no web vibration, so the native app would map them to UIImpactFeedbackGenerator light, soft, rigid and the success notification.</p>
+  </div>
+</div>
+
+<script>
+const Q = new URLSearchParams(location.search);
+const PW = 390, PH = 844, TAU = Math.PI * 2;
+const O = { x: 261, y: 794 }, BTN = { l: 148, t: 768, r: 374, b: 820 };   // the Log meal button
+const ANG = -.75 * Math.PI, FAR = (O.x + O.y) * Math.SQRT1_2 + 110;          // a true diagonal, up and to the left
+const BRAND = '#299D6B';   // --brand-600, GoodFlip green
+/* The ground the win sits on. Every value is a GoodFlip token (goodflip-design, color group). ?bg= picks it.
+   fill: the screen. tones: [palest, middle] for layered fills. gain: the big number. say: the line under it.
+   pill: [fill, outline, words]. tick: [disc, mark]. line: the rgb for crests, bubbles, sheen and contour lines. */
+const THEMES = {
+  green:  { name: 'Flip green', dark: true,  fill: '#299d6b', tones: ['#abe6cc', '#59b38c'], ink: '#ffffff', gain: '#ffffff', say: 'rgba(255,255,255,.9)',
+            pill: ['rgba(255,255,255,.14)', 'rgba(255,255,255,.26)', '#ffffff'], tick: ['#ffffff', '#2a805a'], line: '255,255,255' },
+  deep:   { name: 'Deep green', dark: true,  fill: '#1d4d38', tones: ['#79cca8', '#2a805a'], ink: '#ffffff', gain: '#ffffff', say: 'rgba(255,255,255,.85)',
+            pill: ['rgba(255,255,255,.12)', 'rgba(255,255,255,.22)', '#ffffff'], tick: ['#79cca8', '#1d4d38'], line: '171,230,204' },
+  white:  { name: 'White', dark: false, fill: '#ffffff', tones: ['#e6faf1', '#f3fcf8'], ink: '#101828', gain: '#299d6b', say: '#667085',
+            pill: ['#f3fcf8', '#cbf0e0', '#2a805a'], tick: ['#299d6b', '#ffffff'], line: '41,157,107' },
+  mint:   { name: 'Mint', dark: false, fill: '#e6faf1', tones: ['#abe6cc', '#cbf0e0'], ink: '#101828', gain: '#299d6b', say: '#475467',
+            pill: ['#ffffff', '#abe6cc', '#2a805a'], tick: ['#299d6b', '#ffffff'], line: '41,157,107' },
+  gold:   { name: 'Gold', dark: false, fill: '#fff8e0', tones: ['#fde8a4', '#fef1c7'], ink: '#101828', gain: '#a68a2d', say: '#475467',
+            pill: ['#ffffff', '#fde8a4', '#826e2d'], tick: ['#e7c144', '#ffffff'], line: '205,169,53' },
+  indigo: { name: 'Indigo', dark: false, fill: '#eef4ff', tones: ['#c7d7fe', '#e0eaff'], ink: '#101828', gain: '#444ce7', say: '#475467',
+            pill: ['#ffffff', '#c7d7fe', '#2d31a6'], tick: ['#444ce7', '#ffffff'], line: '97,114,243' },
+};
+const TK = THEMES[new URLSearchParams(location.search).get('bg')] ? new URLSearchParams(location.search).get('bg') : 'green', TH = THEMES[TK], PRIMARY = TH.fill;
+const rgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)).join(',');
+const mixHex = (a, b, k) => { const A = rgb(a).split(',').map(Number), B = rgb(b).split(',').map(Number);
+  return '#' + A.map((v, i) => Math.round(v + (B[i] - v) * k).toString(16).padStart(2, '0')).join(''); };
+{ const r = document.documentElement.style;   // the win screen's words take the ground's colours
+  [['--w-ink', TH.ink], ['--w-gain', TH.gain], ['--w-say', TH.say], ['--w-pill', TH.pill[0]], ['--w-pill-line', TH.pill[1]], ['--w-pill-ink', TH.pill[2]],
+   ['--w-tick-bg', TH.tick[0]], ['--w-tick', TH.tick[1]]].forEach(([k, v]) => r.setProperty(k, v)); }
+const proj = (x, y) => ((O.x - x) + (O.y - y)) * Math.SQRT1_2;   // how far up the diagonal a point is, from the button
+{ const g = document.getElementById('grounds');
+  for (const [k, v] of Object.entries(THEMES)) { const q = new URLSearchParams(location.search); q.set('bg', k);
+    const a = document.createElement('a'); a.className = 'pill' + (k === TK ? ' on' : ''); a.href = '?' + q;
+    a.innerHTML = `<i class="sw" style="background:${v.fill}"></i>${v.name}`; g.append(a); } }
+const PRESETS = {
+  snack: { from: 45, to: 58, meal: 'Evening snack', foods: [['Roasted chana', '120 kcal'], ['Buttermilk', '40 kcal']] },
+  meal: { from: 38, to: 62, meal: 'Breakfast', foods: [['Vegetable poha', '250 kcal'], ['Curd', '98 kcal'], ['Papaya', '62 kcal']] },
+  full: { from: 82, to: 100, meal: 'Dinner', foods: [['Dal tadka', '180 kcal'], ['Brown rice', '216 kcal'], ['Salad', '45 kcal']] },
+};
+const PK = PRESETS[Q.get('p')] ? Q.get('p') : 'meal', PR = PRESETS[PK], GAIN = PR.to - PR.from, F = PR.foods.length;
+const HOLD = Q.get('hold') === '1', RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+document.querySelectorAll('.bar [data-p]').forEach(a => { a.classList.toggle('on', a.dataset.p === PK);
+  const q = new URLSearchParams(location.search); q.set('p', a.dataset.p); a.href = '?' + q; });
+{ const h = document.getElementById('hold'), q = new URLSearchParams(location.search); h.classList.toggle('on', HOLD);
+  HOLD ? q.delete('hold') : q.set('hold', '1'); h.href = '?' + q; }
+
+const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => cl((t - a) / (b - a));
+const eOut = x => 1 - (1 - x) ** 3;
+const eIO = x => x < .5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2;
+const mix = (a, b, k) => a + (b - a) * k;
+const bez = (p0, p1, p2, e) => [0, 1].map(i => (1 - e) ** 2 * p0[i] + 2 * (1 - e) * e * p1[i] + e * e * p2[i]);
+function rng(s) { return () => { s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+
+/* ---- the timeline, shared by every fill ----
+   0     the button goes down                                          (tap)
+   .1    the green sweeps up; the button lifts out and becomes the pill (the wait for the save hides in here)
+   1.0   filled, a sheen crosses the green                              (filled)
+   1.05  the pill lands, its tick draws                                 (pill)
+   1.0   the gain rolls in, tens first, ones .1s behind; the line follows
+   2.15  the last digit settles                                         (success)
+   4.2   the words lift away, the gain shrinks into the score on the day, the green sweeps on */
+const FILL = [.1, 1.0], OUT = 4.2, LY = 330, NY = 418, SY = 202;
+const HAPTICS = [{ at: 0, v: 8, big: false }, { at: FILL[1], v: 14, big: true }, { at: 1.05, v: 6, big: false }, { at: 2.15, v: [12, 60, 20], big: true }];
+const rB = rng(41), BUBBLES = Array.from({ length: 18 }, () => ({ x: 20 + rB() * (PW - 40), y: rB() * PH, sp: 18 + rB() * 34, r: 2.5 + rB() * 5, ph: rB() * 6.3 }));
+
+/* ---- fills ----
+   paint(c, k, t) paints the green at fill progress k (0 to 1). */
+// everything behind a soft wavy line that sweeps from the button toward the top left
+function front(c, S, amp, t, ph = 0) {
+  c.translate(O.x, O.y); c.rotate(ANG);
+  c.moveTo(-260, -1300);
+  for (let y = -1300; y <= 1300; y += 12) c.lineTo(S + amp * (.7 * Math.sin(y * .011 + t * 2.2 + ph) + .3 * Math.sin(y * .029 - t * 1.6 + ph)), y);
+  c.lineTo(-260, 1300); c.closePath();
+  c.setTransform(c.__k, 0, 0, c.__k, 0, 0);
+}
+function crest(c, S, amp, t, a, ph = 0) {   // a lighter band riding just behind the front
+  if (a <= 0) return;
+  c.save(); c.translate(O.x, O.y); c.rotate(ANG); c.beginPath();
+  for (let y = -1300; y <= 1300; y += 12) { const x = S + amp * (.7 * Math.sin(y * .011 + t * 2.2 + ph) + .3 * Math.sin(y * .029 - t * 1.6 + ph)); y > -1300 ? c.lineTo(x, y) : c.moveTo(x, y); }
+  c.lineCap = 'round';
+  c.strokeStyle = `rgba(${rgb(TH.tones[0])},${(TH.dark ? .22 : .6) * a})`; c.lineWidth = 34; c.stroke();
+  c.strokeStyle = `rgba(${TH.line},${(TH.dark ? .45 : .3) * a})`; c.lineWidth = 1.5; c.stroke();
+  c.restore();
+}
+// flat, the token itself
+function green(c, col = PRIMARY) { return col; }
+// a bead of green from the button, then the wave takes over from it
+function wave(c, k, t, col, ph, amp = 14) {
+  const rC = 170 * eOut(seg(k, 0, .4)), S = mix(-100, FAR, eIO(seg(k, .08, 1)));
+  c.beginPath(); c.arc(O.x, O.y, rC, 0, TAU); front(c, S, amp * (1 - k * .6), t, ph);
+  c.fillStyle = green(c, col); c.fill('nonzero');
+  return S;
+}
+
+// metaballs, for Orb fill: summed at low resolution and cut at a threshold
+const GS = .5;
+let gooC = null, gooX = null;
+function goo(c, blobs) {
+  if (!gooC) { gooC = document.createElement('canvas'); gooC.width = PW * GS; gooC.height = PH * GS; gooX = gooC.getContext('2d', { willReadFrequently: true }); }
+  const x = gooX; x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, gooC.width, gooC.height); x.globalCompositeOperation = 'lighter';
+  for (const b of blobs) { if (b.r < 1) continue;
+    const bx = b.x * GS, by = b.y * GS, br = b.r * GS * 2, g = x.createRadialGradient(bx, by, 0, bx, by, br);
+    g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)'); x.fillStyle = g; x.fillRect(bx - br, by - br, br * 2, br * 2); }
+  const im = x.getImageData(0, 0, gooC.width, gooC.height), d = im.data;
+  for (let i = 3; i < d.length; i += 4) { const v = (d[i] - 122) * 10; d[i] = v < 0 ? 0 : v > 255 ? 255 : v; }
+  x.putImageData(im, 0, 0);
+  x.globalCompositeOperation = 'source-in'; x.fillStyle = PRIMARY; x.fillRect(0, 0, gooC.width, gooC.height);
+  c.imageSmoothingQuality = 'high'; c.drawImage(gooC, 0, 0, PW, PH);
+}
+
+
+/* ---- the score's own orbs, for the rising variants ----
+   ORB_G is the orb as the score draws it; ORB_W is the same glass greyed and lifted to frost, for the green */
+let ORB_G = null, ORB_W = null;
+{ const im = new Image(); im.onload = () => {
+    const s = 96, mk = () => { const c = document.createElement('canvas'); c.width = c.height = s; return c; };
+    ORB_G = mk(); ORB_G.getContext('2d').drawImage(im, 0, 0, s, s);
+    ORB_W = mk(); const x = ORB_W.getContext('2d'); x.drawImage(im, 0, 0, s, s);
+    const d = x.getImageData(0, 0, s, s), p = d.data;
+    for (let i = 0; i < p.length; i += 4) { const l = Math.min(255, (.299 * p[i] + .587 * p[i + 1] + .114 * p[i + 2]) * 1.35); p[i] = p[i + 1] = p[i + 2] = mix(l, 255, .45); }
+    x.putImageData(d, 0, 0);
+  }; im.src = 'r3/heroes/cloud/orb.svg'; }
+// one orb on the green: a soft white halo under it, brighter while it glows
+function orbAt(c, x, y, r, white, a = 1, glow = 0) {
+  if (!ORB_G || a <= .01 || r < .3) return;
+  if (r > 2.5) { const h = r * (2.2 + 1.6 * glow), g = c.createRadialGradient(x, y, 0, x, y, h);
+    const hc = TH.dark ? '255,255,255' : TH.line; g.addColorStop(0, `rgba(${hc},${(TH.dark ? .2 + .35 * glow : .1 + .2 * glow) * a})`); g.addColorStop(1, `rgba(${hc},0)`); c.fillStyle = g; c.fillRect(x - h, y - h, h * 2, h * 2); }
+  c.globalAlpha = a; c.drawImage(white && TH.dark ? ORB_W : ORB_G, x - r, y - r, r * 2, r * 2); c.globalAlpha = 1;   // frosted orbs vanish on a light ground, so they stay green there
+}
+const wavePaint = (c, k, t) => { const S = wave(c, k, t); crest(c, S, 14 * (1 - k * .6), t, 1 - seg(k, .75, 1)); };
+
+// Lift: released like balloons, they slow as they reach the middle and settle, clear of the words
+const rL = rng(51), LIFT = Array.from({ length: 30 }, (_, i) => {
+  let x = 22 + rL() * (PW - 44), ty = 120 + rL() * 600;
+  if (x > 70 && x < 320 && ty > 285 && ty < 545) ty = rL() < .5 ? 130 + rL() * 140 : 560 + rL() * 150;
+  return { x, ty, d: .45 + i * .05 + rL() * .1, r: 5 + rL() * 10, w: rL() < .4, ph: rL() * 6.3 }; });
+// Lanterns: big frosted orbs at three depths; the near ones larger, brighter and quicker
+const rN = rng(71), LANT = Array.from({ length: 16 }, (_, i) => { const z = rN(); return { x: 24 + ((i * .618 + rN() * .1) % 1) * (PW - 48), d: .6 + i * .17 + rN() * .2, z, sp: 80 + z * 120, r: 8 + z * 22, ph: rN() * 6.3 }; }).sort((a, b) => a.z - b.z);
+// Orb fill: blobs rising from below the screen, swelling and merging into the green, nearest the button first
+const rF2 = rng(81), RISE = Array.from({ length: 38 }, () => { const x = rF2() * PW, ty = rF2() * PH; return { x, ty, d: .02 + proj(x, ty) / FAR * .42 + rF2() * .06, r: 70 + rF2() * 70 }; });
+const rA = rng(91), AFTER = Array.from({ length: 10 }, (_, i) => ({ x: 30 + rA() * (PW - 60), d: 1.0 + i * .28, sp: 60 + rA() * 60, r: 5 + rA() * 9, ph: rA() * 6.3 }));
+const rW = rng(101), WREATH = Array.from({ length: GAIN }, () => ({ x0: PW / 2 + (rW() - .5) * 300, bend: (rW() - .5) * 80, r: 7.5 + rW() * 3 }));
+// small orbs rising from the bottom on their own, for the quieter variants
+function drift(c, t, ex, list, white) {
+  list.forEach(q => { const age = t - q.d; if (age <= 0) return; const y = PH + 30 - age * q.sp; if (y < -30) return;
+    orbAt(c, q.x + 8 * Math.sin(age * 1.1 + q.ph), y, q.r, white, .7 * seg(age, 0, .5) * (1 - seg(ex, 0, .5))); });
+}
+
+/* ---- orbs that say "up" ----
+   Drawn with the orb artwork as it is: no halo, no glow, nothing joining them. */
+function orbP(c, x, y, r, white, a = 1) {
+  if (!ORB_G || a <= .01 || r < .3) return;
+  c.globalAlpha = a; c.drawImage(white && TH.dark ? ORB_W : ORB_G, x - r, y - r, r * 2, r * 2); c.globalAlpha = 1;
+}
+const GX = PW / 2, GY = 414;   // the middle of the words: pill, gain, line
+// Swirl: in from the left, a quick turn and a half round the gain alone, out to the right and up
+const rS = rng(121), SWIRL = Array.from({ length: 30 }, (_, i) => ({ d: .7 + i * .022, y0: 330 + rS() * 110, band: .9 + rS() * .2, r: 3.5 + rS() * 3, w: rS() < .4, lift: 190 + rS() * 130 }));
+
+const UPS = [
+  { name: 'Swirl', len: '4.4s', fresh: true, rec: true, noBubbles: true,
+    line: 'A quick stream of orbs darts in from the left and whips round the gain in a tight ring, just the number, a turn and a half while its digits roll. As the number settles they peel off on the right and fly up and away. Fast, light, over in a breath.',
+    fit: 'Every log. Full of energy, and the orbs visibly turn into the number.',
+    paint: wavePaint,
+    over(c, t, k, st, ex) {
+      // a tight ring round the number alone, clear of the pill above and the line below
+      const RX = 126, RY = 62, W = 8, TURN = 3 * Math.PI / W;   // a turn and a half, counter clockwise: left, bottom, right, top, left, bottom, right
+      SWIRL.forEach(q => {
+        const tj = q.d + .4, te = tj + TURN; if (t <= q.d) return;
+        const b = 1 - .1 * Math.sin(Math.PI * seg(t, tj, te)), rx = RX * q.band * b, ry = RY * q.band * b;
+        let x, y, s = 1;
+        if (t < tj) {   // darting in from the left, arriving at the left of the ring already heading down
+          const p = seg(t, q.d, tj);[x, y] = bez([-30, q.y0], [GX - rx, NY - 90], [GX - rx, NY], p ** 1.15);
+        } else if (t < te) {
+          const th = Math.PI - W * (t - tj); x = GX + Math.cos(th) * rx; y = NY + Math.sin(th) * ry; s = 1 + .2 * Math.sin(th);
+        } else {        // off the right of the ring, which it leaves heading up, and away to the upper right
+          const p = seg(t, te, te + .55); if (p >= 1) return;
+          [x, y] = bez([GX + rx, NY], [GX + rx, NY - 110], [PW + 40, NY - q.lift], p ** 1.2);
+        }
+        orbP(c, x, y, q.r * s, q.w, seg(t, q.d, q.d + .1) * (1 - seg(ex, 0, .5)));
+      });
+    } },
+
+  { name: 'Helix', len: '4.4s', fresh: true, noBubbles: true,
+    line: 'Two strands of orbs spiral up the screen round the words, like the strands of a helix, the near side larger and brighter, the far side small and soft. Quick and bright: the whole twist shoots up past the words in under two seconds, as if the day just climbed.',
+    fit: 'Any log. Fast and lively, pure upward energy.',
+    paint: wavePaint,
+    over(c, t, k, st, ex) {
+      const list = [];
+      for (let i = 0; i < 48; i++) {   // fast: each orb crosses the screen in about 1.6s, the last leaves just after the gain settles
+        const strand = i % 2, b = .45 + (i >> 1) * .055, age = t - b; if (age <= 0) continue;
+        const y = PH + 30 - age * 560; if (y < -30) continue;
+        const ph = age * 6.4 + strand * Math.PI, depth = Math.cos(ph);
+        list.push([depth, GX + 158 * Math.sin(ph), y, (5.5 + 2 * (i % 3)) * (1 + .28 * depth), (i >> 1) % 3 === 0, (.55 + .45 * (depth + 1) / 2) * seg(age, 0, .12) * (1 - seg(ex, 0, .6))]);
+      }
+      list.sort((a, b) => a[0] - b[0]).forEach(([, x, y, r, w, a]) => orbP(c, x, y, r, w, a));   // far side first
+    } },
+
+  { name: 'Helix across', len: '4.4s', fresh: true, noBubbles: true,
+    line: 'Two strands of orbs twist past from left to right through the gain, like a helix lying on its side, the near side larger, the far side small and soft. As they pass the number they open wide and wrap it while its digits roll, then close and fly off to the right, rising a little. Quick and bright.',
+    fit: 'Every log. Fast and lively, and it wraps the score as it forms.',
+    paint: wavePaint,
+    over(c, t, k, st, ex) {
+      const list = [];
+      for (let i = 0; i < 48; i++) {   // fast: each orb crosses in about 1.1s, the last leaves just after the gain settles
+        const strand = i % 2, b = .55 + (i >> 1) * .05, age = t - b; if (age <= 0) continue;
+        const x = -30 + age * 420; if (x > PW + 30) continue;
+        const ph = age * 8 + strand * Math.PI, depth = Math.cos(ph);
+        // the strands open round the number and close away from it; the axis climbs gently to the right
+        const amp = 38 + 28 * Math.exp(-(((x - GX) / 110) ** 2)), y = NY - (x - GX) * .16 + amp * Math.sin(ph);
+        list.push([depth, x, y, (4.5 + 1.6 * (i % 3)) * (1 + .3 * depth), (i >> 1) % 3 === 0, (.55 + .45 * (depth + 1) / 2) * seg(age, 0, .1) * (1 - seg(ex, 0, .6))]);
+      }
+      list.sort((a, b) => a[0] - b[0]).forEach(([, x, y, r, w, a]) => orbP(c, x, y, r, w, a));   // far side first
+    } },
+
+];
+
+const ORBS = [
+  { name: 'Lift', len: '5.1s', noBubbles: true,
+    line: 'As the green arrives, thirty of the score\'s orbs are let go from below like balloons. They rise, slow as they reach the middle, and settle around the words, bobbing gently. When the gain lands they all lift a touch together. On the way out they float up and away.',
+    fit: 'Every log. The clearest "it went up" of the set, calm and uplifting.',
+    paint: wavePaint,
+    over(c, t, k, st, ex) {
+      const up = 8 * Math.sin(Math.PI * seg(t, 2.1, 2.9));
+      LIFT.forEach(q => { const u = seg(t, q.d, q.d + 2.2); if (u <= 0) return;
+        const y = mix(PH + 40, q.ty, eOut(u)) - Math.max(0, t - q.d - 2.2) * 5 + 4 * Math.sin(t * 1.3 + q.ph) * u - up - ex * ex * 800;
+        orbP(c, q.x + 9 * Math.sin(t * .9 + q.ph) * u, y, q.r, q.w, seg(u, 0, .08) * (1 - seg(ex, .2, .7))); });
+    } },
+
+  { name: 'Lanterns', len: '5.1s', noBubbles: true,
+    line: 'Big frosted orbs with a soft glow float up from below at three depths, the near ones larger and quicker, swaying a little as they pass behind the words and out of the top. Like lanterns let go on a still night.',
+    fit: 'The last meal of a full day. The slowest and most serene.',
+    paint: wavePaint,
+    over(c, t, k, st, ex) {
+      LANT.forEach(q => { const age = t - q.d; if (age <= 0) return; const y = PH + 60 - age * q.sp - ex * ex * 500; if (y < -60) return;
+        orbAt(c, q.x + 14 * Math.sin(age * .8 + q.ph), y, q.r, true, (.35 + .6 * q.z) * seg(age, 0, .7) * (1 - seg(ex, 0, .6)), .5); });
+    } },
+
+  { name: 'Orb fill', len: '5.1s', noBubbles: true,
+    line: 'The green itself is made of orbs. They rise from below the screen, nearest the button first, swelling as they climb and merging like drops of liquid until the screen is one green. A few stragglers keep rising softly behind the words.',
+    fit: 'Any log. Ties the fill to the score\'s orbs most directly.',
+    paint(c, k) {
+      const blobs = [{ x: O.x, y: O.y, r: 26 + 90 * eOut(seg(k, 0, .4)) }];
+      RISE.forEach(q => { const u = eOut(seg(k, q.d, q.d + .62)); if (u <= 0) return; blobs.push({ x: q.x, y: mix(PH + 90, q.ty, u), r: mix(16, q.r, u * u) }); });
+      goo(c, blobs);
+      const z = eIO(seg(k, .85, 1)); if (z > 0) { c.globalAlpha = z; c.fillStyle = PRIMARY; c.fillRect(0, 0, PW, PH); c.globalAlpha = 1; }
+      // a frosted orb rides at the heart of each one, so you see orbs rising, not just liquid
+      RISE.forEach(q => { const u = eOut(seg(k, q.d, q.d + .62)); if (u <= 0 || u >= 1) return; orbAt(c, q.x, mix(PH + 90, q.ty, u), 4 + 7 * u, true, .85 * (1 - seg(u, .55, 1))); });
+    },
+    over(c, t, k, st, ex) { drift(c, t, ex, AFTER, true); } },
+
+  { name: 'Wreath', len: '5.3s', noBubbles: true,
+    line: 'One orb for every percent you earned. They rise from the bottom one after another as the gain rolls, and settle in a wreath around the words, each lighting as it lands. On the way out the wreath gathers with the gain into the score on the day.',
+    fit: 'Every log. The most meaningful: you can count what the meal added.',
+    paint: wavePaint,
+    over(c, t, k, st, ex) {
+      const n = WREATH.length, fly = HOLD ? 0 : eIO(seg(t, OUT, OUT + .8)), gone = HOLD ? 0 : seg(t, OUT + .5, OUT + .85);
+      WREATH.forEach((q, i) => {
+        const a = Math.PI / 2 + (i + .5) / n * TAU, tx = PW / 2 + Math.cos(a) * 168, ty = 414 + Math.sin(a) * 196;
+        const d = .55 + i * (1.5 / n), u = seg(t, d, d + 1.0); if (u <= 0) return;
+        const e = eOut(u), x0 = q.x0, y0 = PH + 30;
+        let [x, y] = bez([x0, y0], [mix(x0, tx, .5) + q.bend, mix(y0, ty, .55)], [tx, ty], e);
+        x = mix(x, PW / 2, fly); y = mix(y, SY, fly);
+        orbAt(c, x, y, q.r * mix(1, .35, fly), true, seg(u, 0, .1) * (1 - gone), Math.exp(-(((t - d - .95) / .18) ** 2)));
+      });
+    } },
+
+];
+
+const FILLS = [
+  { name: 'Bloom', len: '5s',
+    line: 'A circle opens from the point you tapped and grows until it reaches the top left corner, a faint mint glow on its rim. The simplest sweep, perfectly round.',
+    fit: 'Every log. The plainest and the quickest to build.',
+    paint(c, k, t) {
+      const r = (Math.hypot(O.x, O.y) + 30) * eIO(k);
+      c.beginPath(); c.arc(O.x, O.y, r, 0, TAU); c.fillStyle = green(c); c.fill();
+      const a = 1 - seg(k, .7, 1); if (a <= 0 || r < 8) return;
+      const g = c.createRadialGradient(O.x, O.y, Math.max(0, r - 40), O.x, O.y, r);
+      g.addColorStop(0, `rgba(${rgb(TH.tones[0])},0)`); g.addColorStop(1, `rgba(${rgb(TH.tones[0])},${(TH.dark ? .5 : .9) * a})`);
+      c.fillStyle = g; c.beginPath(); c.arc(O.x, O.y, r, 0, TAU); c.fill();
+    } },
+
+  { name: 'Contour', len: '5.1s',
+    line: 'The wave fills the screen and carries GoodFlip contour lines with it, centred on the button. They glow where the wave is passing and stay behind as a faint texture on the green.',
+    fit: 'Any log. The most GoodFlip; the green has a quiet pattern instead of being flat.',
+    paint(c, k, t) {
+      const S = wave(c, k, t);
+      c.save(); c.beginPath(); c.arc(O.x, O.y, 170 * eOut(seg(k, 0, .4)), 0, TAU); front(c, S, 14 * (1 - k * .6), t); c.clip();
+      for (let r = 50, j = 0; r < 1000; r += 44, j++) {
+        const d = Math.abs(r - Math.max(0, S)), a = .07 + .22 * Math.exp(-((d / 60) ** 2)) * (1 - seg(k, .85, 1));
+        c.beginPath();
+        for (let s = 0; s <= 120; s++) { const th = s / 120 * TAU, rr = r * (1 + .025 * Math.sin(3 * th + j * 1.7 + t * .5) + .015 * Math.sin(5 * th - j));
+          s ? c.lineTo(O.x + Math.cos(th) * rr, O.y + Math.sin(th) * rr) : c.moveTo(O.x + Math.cos(th) * rr, O.y + Math.sin(th) * rr); }
+        c.strokeStyle = `rgba(${TH.line},${(TH.dark ? 1 : .8) * a})`; c.lineWidth = 1.2; c.stroke();
+      }
+      c.restore();
+      crest(c, S, 14 * (1 - k * .6), t, 1 - seg(k, .75, 1));
+    } },
+
+  /* ---- more ways in ---- */
+  { name: 'Blinds', len: '5.1s', many: true,
+    line: 'Bands of green close one after another, like blinds drawn from the button up to the top left. Each band grows from a hairline to full, so the screen fills in quiet, even steps.',
+    fit: 'Every log. Calm and orderly, with a clear rhythm.',
+    paint(c, k) {
+      const BW = 40, n = Math.ceil((FAR + 160) / BW), step = .62 / n;
+      c.save(); c.translate(O.x, O.y); c.rotate(ANG); c.fillStyle = PRIMARY;
+      for (let i = 0; i < n; i++) { const th = (BW + 1) * eIO(seg(k, i * step, i * step + .38)); if (th <= 0) continue;
+        c.fillRect(-160 + i * BW + BW / 2 - th / 2, -1300, th, 2600); }
+      c.restore();
+    } },
+
+  { name: 'Brush', len: '5.1s', many: true,
+    line: 'Five broad strokes of green, painted back and forth up the screen. The first leaves the button going left, each one higher, the last ending at the top left. Faint bristle lines show in the paint, then smooth out.',
+    fit: 'Any log. Hand made and warm, the most human of the set.',
+    paint(c, k) {
+      const N = 5, band = PH / N + 60, fade = 1 - seg(k, .85, 1);
+      for (let j = 0; j < N; j++) {
+        const u = eIO(seg(k, j * .16, j * .16 + .36)); if (u <= 0) continue;
+        const yc = PH - (j + .5) * (PH / N), rtl = j % 2 === 0, len = (PW + 160) * u;
+        c.save(); c.translate(rtl ? PW + 60 : -60, yc); c.rotate(rtl ? .14 : -.14); if (rtl) c.scale(-1, 1);
+        c.beginPath(); c.moveTo(0, -band / 2); c.lineTo(len - band * .3, -band / 2); c.quadraticCurveTo(len + band * .15, 0, len - band * .3, band / 2); c.lineTo(0, band / 2); c.closePath();
+        c.fillStyle = PRIMARY; c.fill();
+        if (fade > 0) { c.clip(); for (let b = 0; b < 16; b++) { const y = -band / 2 + (b + .5) * band / 16, l = len * (.55 + .45 * Math.abs(Math.sin(b * 7.3 + j)));
+          c.strokeStyle = `rgba(${b % 3 ? TH.line : '0,60,30'},${.07 * fade})`; c.lineWidth = 1 + (b % 4); c.beginPath(); c.moveTo(0, y); c.lineTo(l, y); c.stroke(); } }
+        c.restore();
+      }
+      const z = eIO(seg(k, .9, 1)); if (z > 0) { c.globalAlpha = z; c.fillStyle = PRIMARY; c.fillRect(0, 0, PW, PH); c.globalAlpha = 1; }   // the last seams close
+    } },
+
+  { name: 'Aurora', len: '5.1s',
+    line: 'Soft clouds of mint, teal and green drift up from the button like northern lights, blooming wider as they rise, and settle into one even green.',
+    fit: 'The last meal of a full day. The dreamiest, still very quiet.',
+    paint(c, k, t) {
+      const base = eIO(seg(k, .35, 1)), a = 1 - seg(k, .7, 1);
+      c.globalAlpha = base; c.fillStyle = PRIMARY; c.fillRect(0, 0, PW, PH); c.globalAlpha = 1;
+      [[rgb(TH.tones[0]), 0, -40], [TH.dark ? '45,166,166' : TH.line, .08, 70], [rgb(TH.tones[1]), .14, -110], [rgb(PRIMARY), .2, 20], [rgb(TH.tones[0]), .26, 140], [rgb(PRIMARY), .32, -60]].forEach(([rgb, d, off]) => {
+        const u = eIO(seg(k, d, d + .6)); if (u <= 0) return;
+        const S = mix(0, FAR * .9, u), x = O.x - S * Math.SQRT1_2 + off * Math.SQRT1_2 + 20 * Math.sin(t * .8 + d * 9), y = O.y - S * Math.SQRT1_2 - off * Math.SQRT1_2;
+        const r = mix(60, 520, u), g = c.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, `rgba(${rgb},${.85 * a})`); g.addColorStop(1, `rgba(${rgb},0)`); c.fillStyle = g; c.fillRect(x - r, y - r, r * 2, r * 2);
+      });
+    } },
+
+  { name: 'Rings', len: '5.1s',
+    line: 'Ripples of colour spread from the tap, pale mint first, then brighter greens, each one inside the last, until the primary green arrives and fills the screen.',
+    fit: 'Every log. A gentle echo of the tap, like a drop in still water.',
+    paint(c, k, t) {
+      const RM2 = Math.hypot(O.x, O.y) + 40;
+      [mixHex(TH.tones[0], '#ffffff', .5), TH.tones[0], mixHex(TH.tones[0], TH.tones[1], .5), TH.tones[1], PRIMARY].forEach((col, i) => {
+        const r = RM2 * eIO(seg(k, i * .1, i * .1 + .6)); if (r <= 0) return;
+        c.beginPath();
+        for (let s2 = 0; s2 <= 90; s2++) { const th = s2 / 90 * TAU, rr = r * (1 + .012 * Math.sin(4 * th + t * 2 + i)); s2 ? c.lineTo(O.x + Math.cos(th) * rr, O.y + Math.sin(th) * rr) : c.moveTo(O.x + Math.cos(th) * rr, O.y + Math.sin(th) * rr); }
+        c.fillStyle = col; c.fill();
+      });
+    } },
+
+];
+
+/* ---------------- the phones ---------------- */
+const BOX = '<svg width="14" height="14" viewBox="0 0 14 14"><path d="M3 7.2l2.6 2.6L11 4.4" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const kcal = PR.foods.reduce((a, f) => a + parseInt(f[1]), 0);
+const LOGGER = `<div class="lg"><div class="sb"><span>9:41</span><span>●●●</span></div>
+  <div class="hd"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="#101828" stroke-width="2" stroke-linecap="round"/></svg><div><b>Log your meal</b><span>${PR.meal}, today</span></div></div>
+  <div class="sec">From your plan</div>
+  ${PR.foods.map(([n, s]) => `<div class="row"><div><b>${n}</b><span>${s}</span></div><i>${BOX}</i></div>`).join('')}
+  <div class="tray"><div class="tally">${F} items · ${kcal} kcal</div><div class="trow">
+    <div class="tb"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#475467" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>8:30 AM</div>
+    <div class="cta">Log meal</div></div></div></div>`;
+const DAY = '<div class="day"><div class="ttl">Today</div><div class="sc"></div><div class="cards"><div></div><div></div></div></div>';
+const DIGITS = String(GAIN).split('').map(Number);
+const WIN = `<div class="win">
+  <div class="ghost"><span>Log meal</span></div>
+  <div class="logged"><span class="tk"><svg width="16" height="16" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></span>${PR.meal} logged</div>
+  <div class="n">+${DIGITS.map(() => `<span class="col"><span>${Array.from({ length: 20 }, (_, i) => `<i>${i % 10}</i>`).join('')}</span></span>`).join('')}<span class="pc">%</span></div>
+  <div class="say">added to your sufficiency score</div>
+</div>`;
+const grid = document.getElementById('grid'), KS = Math.min(2, devicePixelRatio || 1) * .6 + .2, stages = [];
+
+function card(name, len, line, fit, rec, inner, hap, fresh, into = grid) {
+  const el = document.createElement('article'); el.className = 'card';
+  el.innerHTML = `<div class="phone"><div class="screen">${inner}</div></div>${hap ? `<div class="hap">Haptics ${HAPTICS.map(h => `<i class="${h.big ? 'big' : ''}"></i>`).join('')}</div>` : ''}` +
+    `<div class="meta"><h2>${name}${rec ? '<span class="rec">Recommended</span>' : ''}${fresh ? '<span class="new">New</span>' : ''}<span class="len">${len}</span></h2>` +
+    `<p>${line}</p>${fit ? `<p class="fit"><b>Best for:</b> ${fit}</p>` : ''}<button class="pill">Play again</button></div>`;
+  into.append(el); return el;
+}
+
+const NOW = 'r3/log.html?state=plan&entry=plus&meal=snack&picker=0&win=rise&layout=B&auto=1&stay=1';
+const nowCard = card('Today: Rise', '3.5s', 'For comparison. Liquid wells out of the button and floods the screen from the bottom up, and the gain shows as a big number on it. It follows the Ground too.', '', false,
+  `<iframe src="${NOW}&t=${Date.now()}" title="" tabindex="-1" aria-hidden="true"></iframe>`);
+const replayNow = () => { nowCard.querySelector('iframe').src = NOW + '&t=' + Date.now(); };
+nowCard.querySelector('.pill').onclick = nowCard.querySelector('.phone').onclick = replayNow;
+/* Rise paints its water #6CE9A6 → #2FB47B → #1E7A52, its tick #1E8A5C, and its words, pill, chips, bubbles and
+   sparkles in white. Inside this frame only, all of it takes the chosen Ground, so Rise is compared on the same
+   colours as everything else.
+   ponytail: patched per load from outside, so r3/assets/win-moment.js stays untouched; move the colours into it when Rise is changed for real */
+nowCard.querySelector('iframe').addEventListener('load', e => { try {
+  const w = e.target.contentWindow, G = w.CanvasGradient.prototype, add = G.addColorStop;
+  G.addColorStop = function (o, col) { return add.call(this, o, /^#(6CE9A6|2FB47B|1E7A52)$/i.test(col) ? PRIMARY : col); };
+  // its bubbles, surface line and sparkles are white; on a light ground they take the ground's accent so they still show
+  if (!TH.dark) { const C = w.CanvasRenderingContext2D.prototype;
+    for (const prop of ['strokeStyle', 'fillStyle']) { const d = Object.getOwnPropertyDescriptor(C, prop);
+      Object.defineProperty(C, prop, { configurable: true, get: d.get,
+        set(v) { d.set.call(this, typeof v === 'string' ? v.replace(/rgba\(255,255,255,/g, `rgba(${TH.line},`) : v); } }); } }
+  const s = w.document.createElement('style');
+  s.textContent = `.wm .c{color:${TH.ink}!important}
+    .wm .logged,.wm .chip{color:${TH.pill[2]}!important;background:${TH.pill[0]}!important;border-color:${TH.pill[1]}!important}
+    .wm .solid{background:${TH.tick[0]}!important}.wm .solid path{stroke:${TH.tick[1]}!important}
+    .wm .c.b .n{color:${TH.gain}!important}.wm .say{color:${TH.say}!important}`;
+  w.document.head.appendChild(s);
+} catch (err) {} });
+
+// everything after Lift waits in the accordion; it plays when opened, since a closed card is never in view
+const ALL = [...UPS, ...ORBS, ...FILLS], CUT = ALL.findIndex(m => m.name === 'Lift') + 1, more = document.getElementById('more');
+document.getElementById('moreN').textContent = `(${ALL.length - CUT})`;
+ALL.forEach((m, n) => {
+  const el = card(m.name, m.len, m.line, m.fit, m.rec, DAY + LOGGER + `<canvas width="${PW * KS | 0}" height="${PH * KS | 0}"></canvas>` + WIN, true, m.fresh, n < CUT ? grid : more);
+  const q = s => el.querySelector(s), c = q('canvas').getContext('2d'); c.__k = KS;
+  const st = { m, c, lg: q('.lg'), cta: q('.cta'), ghost: q('.ghost'), glbl: q('.ghost span'), logged: q('.logged'), tick: q('.tk path'), n: q('.n'),
+    wheels: [...el.querySelectorAll('.col > span')], say: q('.say'), sc: q('.day .sc'), dots: [...el.querySelectorAll('.hap i')], t0: 0, vis: false, live: false, fired: 0, user: false };
+  // a tap is a real gesture, so only a tapped phone may vibrate the device
+  st.replay = user => { st.t0 = performance.now(); st.live = true; st.fired = 0; st.user = !!user; };
+  q('.pill').onclick = q('.phone').onclick = () => st.replay(true);
+  stages.push(st);
+  new IntersectionObserver(([en]) => { if (en.isIntersecting && !st.vis) st.replay(false); st.vis = en.isIntersecting; }).observe(el);
+});
+document.getElementById('all').onclick = () => { replayNow(); stages.forEach(s => s.replay(false)); };
+
+const set = (el, a, dy = 0, sc = 1) => { el.style.opacity = a; el.style.transform = `translateY(${dy}px)` + (sc !== 1 ? ` scale(${sc})` : ''); };
+function paint(st, t) {
+  const c = st.c, k = seg(t, FILL[0], FILL[1]), ex = HOLD ? 0 : seg(t, OUT + .15, OUT + 1.0);
+  c.setTransform(KS, 0, 0, KS, 0, 0); c.clearRect(0, 0, PW, PH);
+  st.cta.classList.toggle('down', t > 0 && t < .16);
+  st.lg.style.visibility = k >= 1 ? 'hidden' : '';
+  if (k > 0) {
+    if (!TH.dark && !st.m.many) { c.shadowColor = 'rgba(16,24,40,.12)'; c.shadowBlur = 28 * KS; }
+    st.m.paint(c, k, t); c.shadowColor = 'transparent'; c.shadowBlur = 0;
+  }
+  // a sheen of light crosses the green once it is full, and Rise's soft bubbles drift up
+  if (k >= 1 && ex < 1) {
+    const sh = seg(t, 1.0, 1.9);
+    if (sh > 0 && sh < 1) { const S = mix(-260, FAR + 260, eIO(sh)); c.save(); c.translate(O.x, O.y); c.rotate(ANG);
+      const g = c.createLinearGradient(S - 110, 0, S + 110, 0); g.addColorStop(0, `rgba(${TH.line},0)`); g.addColorStop(.5, `rgba(${TH.line},${TH.dark ? .13 : .07})`); g.addColorStop(1, `rgba(${TH.line},0)`);
+      c.fillStyle = g; c.fillRect(S - 110, -1300, 220, 2600); c.restore(); }
+    const ba = st.m.noBubbles ? 0 : .38 * eIO(seg(t, 1.0, 1.8));
+    BUBBLES.forEach(b => { const y = ((b.y - (t - 1) * b.sp) % (PH + 20) + PH + 20) % (PH + 20) - 10;
+      c.beginPath(); c.arc(b.x + 5 * Math.sin(t * .9 + b.ph), y, b.r, 0, TAU); c.strokeStyle = `rgba(${TH.line},${TH.dark ? ba : ba * .8})`; c.lineWidth = 1.3; c.stroke(); });
+  }
+  // leaving: the same sweep again, clearing the green, so the motion carries on the way it came
+  if (ex > 0) { c.globalCompositeOperation = 'destination-out'; c.beginPath();
+    front(c, mix(-150, FAR + 20, eIO(ex)), 10, t); c.fill(); c.globalCompositeOperation = 'source-over'; }
+  if (st.m.over) st.m.over(c, t, k, st, ex);
+
+  // the button lifts out of the tray and becomes the pill, its green turning to frosted white
+  const L = st.lr || (st.lr = { w: st.logged.offsetWidth, h: st.logged.offsetHeight });
+  const mv = eIO(seg(t, .12, 1.05)), fr = eIO(seg(t, .35, .95)), land = eOut(seg(t, .95, 1.2));
+  const out = HOLD ? 1 : 1 - eIO(seg(t, OUT, OUT + .35)), lift = HOLD ? 0 : -12 * eIO(seg(t, OUT, OUT + .35));
+  st.cta.style.visibility = t >= .1 ? 'hidden' : '';
+  const gh = st.ghost.style, gw = mix(BTN.r - BTN.l, L.w, mv), gH = mix(BTN.b - BTN.t, L.h, mv);
+  gh.opacity = t >= .1 && !st.m.noGhost ? 1 - land : 0;
+  gh.width = gw + 'px'; gh.height = gH + 'px'; gh.borderRadius = mix(12, L.h / 2, eIO(seg(t, .12, .7))) + 'px';
+  gh.transform = `translate(${mix(BTN.l, (PW - L.w) / 2, mv)}px,${mix(BTN.t + 4, LY - L.h / 2, mv)}px)`;
+  gh.background = `color-mix(in srgb, ${TH.pill[0]} ${fr * 100}%, ${BRAND})`;
+  gh.borderColor = `color-mix(in srgb, ${TH.pill[1]} ${fr * 100}%, transparent)`;
+  gh.color = `color-mix(in srgb, ${TH.pill[2]} ${fr * 100}%, #ffffff)`;
+  st.glbl.style.opacity = 1 - seg(t, .12, .38);
+  st.logged.style.opacity = land * out; st.logged.style.transform = `translate(-50%,-50%) translateY(${lift}px)`;
+  st.tick.style.strokeDashoffset = 24 * (1 - eOut(seg(t, 1.05, 1.4)));
+  // the gain: tens first, ones a beat behind; each wheel turns once round and settles on its digit
+  st.wheels.forEach((w, i) => { const s0 = 1.0 + i * .1, p = (10 + DIGITS[i]) * eIO(seg(t, s0, s0 + 1.05));
+    w.style.transform = `translateY(${-p}em)`; });
+  // leaving, it shrinks up into the score on the day
+  const nIn = eOut(seg(t, 1.0, 1.45)), fly = HOLD ? 0 : eIO(seg(t, OUT, OUT + .8));
+  st.n.style.opacity = nIn * (1 - seg(t, OUT + .5, OUT + .85));
+  st.n.style.transform = `translate(${PW / 2}px,${mix(NY, SY, fly) + 14 * (1 - nIn)}px) translate(-50%,-50%) scale(${mix(1, .3, fly)})`;
+  const ln = eOut(seg(t, 1.4, 1.9));
+  st.say.style.opacity = ln * out; st.say.style.transform = `translateY(${8 * (1 - ln) + lift}px)`;
+  // and the score it lands in warms for a moment
+  const hit = HOLD ? 0 : Math.sin(Math.PI * seg(t, OUT + .6, OUT + 1.5));
+  st.sc.style.boxShadow = hit > 0 ? `inset 0 0 0 999px rgba(41,157,107,${.18 * hit})` : '';
+  // haptics: buzz the phone if it was tapped, and light the dots either way
+  while (st.fired < HAPTICS.length && t >= HAPTICS[st.fired].at) {
+    const h = HAPTICS[st.fired], dot = st.dots[st.fired];
+    if (st.user && !RM) try { navigator.vibrate && navigator.vibrate(h.v); } catch (e) {}
+    dot.classList.add('on'); setTimeout(() => dot.classList.remove('on'), 380);
+    st.fired++;
+  }
+}
+function frame(now) {
+  for (const st of stages) {
+    if (!st.vis || !st.live) continue;
+    const t = RM ? (HOLD ? 3 : 9) : (now - st.t0) / 1000;
+    paint(st, t);
+    if (t > (HOLD ? 3.5 : OUT + 1.8) || RM) st.live = false;
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

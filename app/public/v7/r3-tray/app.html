@@ -1,0 +1,727 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eat prototype</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 24px;
+    padding: 24px;
+    background: #F2F4F7;
+    font-family: Roboto, system-ui, sans-serif;
+    color: #101828;
+    -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; color: inherit; }
+
+  /* ---------- the phone, presented the way the EM3 wireframes do ---------- */
+  .stage { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .phone {
+    width: 390px;
+    height: 844px;
+    background: #FFFFFF;
+    border: 1px solid #E4E7EC;
+    border-radius: 44px;
+    box-shadow: 0 24px 60px rgba(16,24,40,0.18);
+    overflow: hidden;
+    position: relative;
+  }
+  .phone iframe { width: 390px; height: 844px; border: 0; display: block; background: #FFFFFF; }
+  .stage .under { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #667085; }
+  .stage .under b { font-weight: 600; color: #344054; }
+
+  /* ---------- the control panel ---------- */
+  .panel {
+    width: 268px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 24px;
+    background: #F9FAFB;
+    border: 1px solid #E4E7EC;
+    border-radius: 16px;
+    padding: 16px 16px 14px;
+    box-shadow: 0 4px 6px -1px rgba(16,24,40,.10), 0 2px 4px -2px rgba(16,24,40,.10);
+  }
+  .phead { display: flex; align-items: center; gap: 8px; }
+  .phead h1 { flex: 1; margin: 0; font-size: 13px; font-weight: 700; color: #1D2939; letter-spacing: .3px; }
+  .plain { background: none; border: 0; padding: 2px 0; font-size: 12px; font-weight: 600; color: #667085; cursor: pointer; }
+  .plain:hover { color: #344054; }
+
+  /* the one switch that changes the most, kept out of the accordion */
+  .switchrow {
+    display: flex; align-items: center; gap: 8px; margin-top: 10px;
+    padding: 9px 10px; background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 10px;
+  }
+  .switchrow .k { flex: 1; font-size: 12px; font-weight: 700; color: #1D2939; }
+  .switchrow .v { font-size: 12px; font-weight: 600; color: #667085; }
+  .sw { width: 36px; height: 22px; flex-shrink: 0; border-radius: 999px; border: 0; padding: 0; background: #D0D5DD; cursor: pointer; position: relative; transition: background .2s ease; }
+  .sw.on { background: #299D6B; }
+  .sw i { position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.2); transition: transform .2s cubic-bezier(.32,.72,0,1); }
+  .sw.on i { transform: translateX(14px); }
+
+  .grp { border-top: 1px solid #E4E7EC; padding: 10px 0; }
+  .grp.open { padding: 14px 0 6px; }
+  .grp.off { opacity: .55; }
+  .ghead { display: flex; align-items: center; gap: 7px; width: 100%; border: 0; background: transparent; padding: 0; cursor: pointer; text-align: left; }
+  .ghead .dot { width: 6px; height: 6px; border-radius: 50%; background: #D0D5DD; flex-shrink: 0; }
+  .grp.live .ghead .dot { background: #299D6B; }
+  .ghead .t { font-size: 12px; font-weight: 700; color: #1D2939; letter-spacing: .3px; }
+  .ghead .r { margin-left: auto; display: flex; align-items: center; gap: 7px; }
+  .ghead .val { font-size: 12px; color: #98A2B3; max-width: 104px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ghead .car { font-size: 12px; color: #98A2B3; transition: transform .15s; }
+  .grp.open .ghead .car { transform: rotate(90deg); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  .chip {
+    font-size: 12px; font-weight: 600; padding: 6px 11px; border-radius: 999px;
+    border: 1px solid #D0D5DD; background: #FFFFFF; color: #475467;
+    cursor: pointer; white-space: nowrap; text-align: left;
+  }
+  .chip.on { border-color: #299D6B; background: #299D6B; color: #fff; }
+  /* an act heading sits on its own row, so the chips under it read as one act */
+  .actline { flex: 0 0 100%; margin: 4px 0 -1px; font-size: 11px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; color: #98A2B3; }
+  .actline:first-child { margin-top: 0; }
+  .chip[disabled] { opacity: .45; cursor: default; }
+  .note { margin: 9px 0 0; font-size: 12px; line-height: 17px; color: #667085; }
+
+  .foot { border-top: 1px solid #E4E7EC; margin-top: 12px; padding-top: 12px; }
+  .flags {
+    font-family: Roboto, sans-serif;
+    font-size: 12px; line-height: 18px; color: #344054;
+    background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 10px;
+    padding: 8px 10px; word-break: break-all; user-select: all;
+  }
+  .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+  .act { font-size: 12px; font-weight: 600; padding: 7px 12px; border-radius: 999px; border: 1px solid #D0D5DD; background: #FFFFFF; color: #344054; cursor: pointer; }
+  .act:hover { border-color: #98A2B3; }
+  .act.on { border-color: #299D6B; background: #E6FAF1; color: #2A805A; }
+
+  @media (max-width: 720px) {
+    .panel { position: static; width: 100%; max-width: 390px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="phone"><iframe id="screen" title="Eat prototype"></iframe></div>
+  <p class="under" id="under"></p>
+</div>
+
+<aside class="panel">
+  <div class="phead">
+    <h1>Wireframe controls</h1>
+    <button class="plain" id="foldAll">Collapse all</button>
+  </div>
+
+  <div class="switchrow">
+    <span class="k">Care plan</span>
+    <span class="v" id="planVal">Assigned</span>
+    <button class="sw on" id="planSw" role="switch" aria-checked="true" aria-label="Care plan assigned"><i></i></button>
+  </div>
+
+  <div id="groups"></div>
+
+  <div class="foot">
+    <div class="flags" id="flags"></div>
+    <div class="acts">
+      <button class="act" id="copy">Copy link</button>
+      <button class="act" id="motion">Reduced motion</button>
+      <button class="act" id="reset">Reset</button>
+    </div>
+  </div>
+</aside>
+
+<script>
+/* The EM3 wireframes put a phone beside a rail of controls. This does the same
+   for the Eat prototype, except the screen is an iframe rather than a React
+   tree, so every control writes a URL rather than app state. */
+
+var frame = document.getElementById("screen");
+
+var DEFAULTS = {
+  screen: "eat",     // eat | log | logged | trend | learn
+  trend: "wc",       // the Trend tab's six states
+  learn: "list",     // the Learn tab's two routes
+  plan: true,        // has the coach assigned a plan
+  day: "today",      // today | past | missed
+  suff: "mid",       // empty | first | mid | full | perfect | loading
+  sheet: "none",     // none | suff | date
+  log: "search",     // a state in log.html
+  entry: "plus",     // where the logging screen was opened from
+  logged: "default", // a state in logged.html
+  layout: "1",       // the first screen's three layouts
+  rail: "icons",     // how "What shaped your score?" reads: icons or cards
+  logall: "cta",     // how a meal offers to log the rest of its plan
+  meal: "",          // which meal a door was opened from, carried to the logger
+  motion: false      // reduced motion
+};
+var M = Object.assign({}, DEFAULTS);
+
+/* This page takes the same keys on its own address, so a particular setup can
+   be linked to, not just described. app.html?screen=logged&logged=perfect */
+(function () {
+  var q = new URLSearchParams(location.search);
+  q.forEach(function (v, k) {
+    if (!(k in DEFAULTS)) return;
+    M[k] = typeof DEFAULTS[k] === "boolean" ? (v !== "0" && v !== "false") : v;
+  });
+})();
+
+/* Which eat.html state the three world switches add up to. Pre plan has two
+   states of its own, so the plan switch decides which list is even on offer. */
+function eatState() {
+  if (!M.plan) return M.suff === "empty" ? "noplanempty" : "noplan";
+  if (M.day === "past") return "past";
+  if (M.day === "missed") return "missed";
+  return M.suff;
+}
+
+function url() {
+  var q = [];
+  if (M.screen === "log") {
+    /* The logger carries its own state picker along the bottom. This rail is
+       that picker, so tell it to stay out of the way. */
+    q.push("state=" + M.log, "entry=" + M.entry, "picker=0");
+    if (M.meal) q.push("meal=" + M.meal);
+    /* what a tick on the day view was pressing: which option was open, which
+       food, and how much of it. Without these the logger opens on option 1
+       with its own fixture and the tick appears to have been ignored. */
+    if (M.opt) q.push("opt=" + M.opt);
+    if (M.food) q.push("food=" + M.food);
+    if (M.qty) q.push("qty=" + M.qty);
+    if (M.had) q.push("had=" + M.had + "&hadopt=" + M.hadopt);
+    if (M.plog) q.push("plog=" + M.plog);
+    if (!M.plan) q.push("plan=0");
+    if (M.motion) q.push("motion=off");
+    return "log.html?" + q.join("&");
+  }
+  /* The two sibling tabs carry their own state, not the day view's. */
+  if (M.screen === "trend") {
+    q.push("state=" + M.trend);
+    if (M.motion) q.push("motion=off");
+    return "trend.html?" + q.join("&");
+  }
+  if (M.screen === "learn") {
+    q.push("view=" + M.learn);
+    if (M.motion) q.push("motion=off");
+    return "learn.html?" + q.join("&");
+  }
+  if (M.screen === "logged") {
+    q.push("state=" + M.logged);
+    if (M.motion) q.push("motion=off");
+    return "logged.html?" + q.join("&");
+  }
+  var s = eatState();
+  q.push("state=" + s, "dev=1");
+  if (M.sheet === "suff") q.push("sheet=suff");
+  if (M.sheet === "date") q.push("sheet=1");
+  if (s === "noplanempty") q.push("v=" + M.layout);
+  q.push("rail=" + M.rail);
+  if (M.logall !== "cta") q.push("logall=" + M.logall);
+  if (M.motion) q.push("motion=off");
+  return "eat.html?" + q.join("&");
+}
+
+/* ---------- the groups ---------- */
+var SCREENS = [
+  { id: "eat", label: "Eat detail" },
+  { id: "log", label: "Log food" },
+  { id: "logged", label: "Logged" },
+  { id: "trend", label: "Trend" },
+  { id: "learn", label: "Learn" }
+];
+var TRENDS = [
+  { id: "ft", label: "Not started" },
+  { id: "fad", label: "One day in" },
+  { id: "kg", label: "Three days in" },
+  { id: "wc", label: "First full week" },
+  { id: "w2", label: "A second week" },
+  { id: "cg", label: "Two weeks flat" }
+];
+var DAYS = [
+  { id: "today", label: "Today" },
+  { id: "past", label: "Earlier day" },
+  { id: "missed", label: "A day with nothing" }
+];
+/* The day view's states as one person meets them, in the same four acts the
+   document reads them in, so a chip here and a phone there are the same moment.
+   A head entry is a label across the row, not a button. An act can move the day
+   as well as the score, so each entry writes whichever of the two it owns. */
+var STORY_NOPLAN = [
+  { head: "Act 1 · Before a plan" },
+  { id: "noplanempty", label: "Nothing logged", day: "today", suff: "empty" },
+  { id: "noplan", label: "Food logged", day: "today", suff: "mid" }
+];
+var STORY_PLAN = [
+  { head: "Act 2 · The plan arrives" },
+  { id: "empty", label: "Nothing logged", day: "today", suff: "empty" },
+  { id: "first", label: "First meal", day: "today", suff: "first" },
+  { head: "Act 3 · A day fills up" },
+  { id: "mid", label: "Mid day", day: "today", suff: "mid" },
+  { id: "full", label: "Whole day", day: "today", suff: "full" },
+  { id: "perfect", label: "Every target met", day: "today", suff: "perfect" },
+  { id: "over", label: "More than the plan", day: "today", suff: "over" },
+  { head: "Act 4 · Days behind them" },
+  { id: "past", label: "An earlier day", day: "past" },
+  { id: "missed", label: "A day with nothing", day: "missed" },
+  /* the document dropped this one, the panel keeps it reachable */
+  { head: "Off the story" },
+  { id: "loading", label: "Loading", day: "today", suff: "loading" }
+];
+var SHEETS = [
+  { id: "none", label: "None" },
+  { id: "suff", label: "Nutrition sufficiency" },
+  { id: "date", label: "Select date" }
+];
+var LOGGING = [
+  /* the first time anyone opens this screen: no plan, no recents, nothing
+     hearted, so every list on it is empty at once */
+  { id: "ftux", label: "First open" },
+  { id: "ftuxfav", label: "First open, favourites" },
+  { id: "search", label: "Search" },
+  { id: "typing", label: "Typing" },
+  { id: "noresults", label: "No results" },
+  { id: "quantity", label: "Quantity" },
+  { id: "custom", label: "Custom food" },
+  { id: "multi", label: "Several items" },
+  { id: "plan", label: "On the plan" },
+  { id: "noplan", label: "No plan" },
+  { id: "time", label: "Change time" },
+  { id: "snap", label: "Camera" },
+  { id: "snapreading", label: "Reading photo" },
+  { id: "snapresult", label: "Photo result" },
+  { id: "snapnone", label: "Nothing found" },
+  { id: "snapdenied", label: "Camera denied" },
+  { id: "voice", label: "Listening" },
+  { id: "voiceheard", label: "Transcript" },
+  { id: "voiceresult", label: "Voice result" },
+  { id: "voicenone", label: "Nothing heard" },
+  { id: "voicedenied", label: "Mic denied" },
+  { id: "saving", label: "Saving" },
+  { id: "offline", label: "Offline" },
+  { id: "failed", label: "Failed" },
+  { id: "duplicate", label: "Duplicate" }
+];
+var ENTRIES = [
+  { id: "plus", label: "Meal plus" },
+  { id: "tick", label: "Plan tick" },
+  { id: "logall", label: "Log all" },
+  { id: "snap", label: "Snap" },
+  { id: "voice", label: "Voice" },
+  { id: "pastday", label: "Past day" }
+];
+var SUCCESS = [
+  { id: "default", label: "Logged" },
+  { id: "first", label: "First ever log" },
+  { id: "mealdone", label: "Meal complete" },
+  { id: "daydone", label: "Day complete" },
+  { id: "perfect", label: "Every target met" },
+  { id: "small", label: "Small log" },
+  { id: "pastday", label: "Past day" },
+  { id: "noplan", label: "Before a plan" },
+  { id: "undo", label: "Undo showing" }
+];
+var LOGALLS = [
+  { id: "cta", label: "Button" },
+  { id: "tick", label: "Parent tick" },
+  { id: "text", label: "Text action" }
+];
+var RAILS = [
+  { id: "icons", label: "Macro icons" },
+  { id: "cards", label: "Insight cards" }
+];
+var LAYOUTS = [
+  { id: "1", label: "Two tight rows" },
+  { id: "2", label: "One line stepper" },
+  { id: "3", label: "Progressive" }
+];
+
+function label(list, id) {
+  for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i].label;
+  return id;
+}
+
+/* The story is read by the state the three switches add up to, not by one key,
+   so its label is looked up on that. */
+function storyLabel(state) {
+  return label(STORY_NOPLAN.concat(STORY_PLAN), state);
+}
+
+var WINS = [{ id: "rise", label: "Rise" }, { id: "nova", label: "Supernova" }, { id: "classic", label: "Classic" }];
+function winPick() { try { return localStorage.getItem("gfWin2") || "rise"; } catch (e) { return "rise"; } }
+var GROUPS = [
+  {
+    id: "screen", title: "Screen",
+    value: function () { return label(SCREENS, M.screen); },
+    chips: function () {
+      return SCREENS.map(function (v) {
+        return { label: v.label, on: M.screen === v.id, go: function () { M.screen = v.id; } };
+      });
+    },
+    note: function () {
+      return M.screen === "eat"
+        ? "The day itself. Tapping a food, Log all, the plus and the capture buttons all work inside the phone."
+        : M.screen === "log"
+        ? "The full screen logger. Use the flow buttons below to arrive here the way a person would."
+        : M.screen === "trend"
+        ? "The weekly read. The selector moves between weeks; the first three states are the week still filling in."
+        : M.screen === "learn"
+        ? "The reading tab. FlipFeed's cards in GoodFlip's frame."
+        : "What you see after a meal goes in. Its own button walks back to the day.";
+    }
+  },
+  {
+    id: "suff", title: "One user, in order",
+    value: function () { return storyLabel(eatState()); },
+    chips: function () {
+      return (M.plan ? STORY_PLAN : STORY_NOPLAN).map(function (e) {
+        if (e.head) return { head: e.head };
+        return {
+          label: e.label,
+          on: eatState() === e.id,
+          go: function () {
+            if (e.day) M.day = e.day;
+            if (e.suff) M.suff = e.suff;
+            M.screen = "eat";
+          }
+        };
+      });
+    },
+    note: function () {
+      return M.plan
+        ? "The story of one person, act by act. The plate, the macros, the fuse and Kaira all follow this one choice, and the last two acts move the day as well."
+        : "Before a plan there is no score, so the story has only its first act: an untouched day, and a day with food in it.";
+    }
+  },
+  {
+    id: "trend", title: "Trend week",
+    value: function () { return label(TRENDS, M.trend); },
+    chips: function () {
+      return TRENDS.map(function (v) {
+        return { label: v.label, on: M.trend === v.id,
+          go: function () { M.trend = v.id; M.screen = "trend"; } };
+      });
+    },
+    note: function () {
+      return ["ft", "fad", "kg"].indexOf(M.trend) >= 0
+        ? "The week is still filling in, so there is nothing to read back yet. Kaira says why, and the days already in are drawn solid."
+        : "A finished week. Kaira reads it, then the number, the chart, what held, the one gap and next week.";
+    }
+  },
+  {
+    id: "day", title: "Day",
+    value: function () { return M.plan ? label(DAYS, M.day) : "Needs a plan"; },
+    chips: function () {
+      return DAYS.map(function (v) {
+        return {
+          label: v.label,
+          on: M.plan && M.day === v.id,
+          disabled: !M.plan,
+          title: M.plan ? "" : "A past day needs targets to read against",
+          go: function () { M.day = v.id; M.screen = "eat"; }
+        };
+      });
+    },
+    note: function () {
+      return M.plan
+        ? "An earlier day is read only: no ticks, no plus, and logging becomes Log for that day."
+        : "Days other than today need a plan, so they are off until the care plan is assigned.";
+    }
+  },
+  {
+    id: "sheets", title: "Sheets",
+    value: function () { return label(SHEETS, M.sheet); },
+    chips: function () {
+      return SHEETS.map(function (v) {
+        return { label: v.label, on: M.sheet === v.id, go: function () { M.sheet = v.id; M.screen = "eat"; } };
+      });
+    },
+    note: function () {
+      return "Sufficiency opens from the info icon or the plate. Select date opens from the date chip.";
+    }
+  },
+  {
+    id: "logging", title: "Food logging",
+    value: function () { return label(LOGGING, M.log); },
+    chips: function () {
+      return LOGGING.map(function (v) {
+        return { label: v.label, on: M.screen === "log" && M.log === v.id, go: function () { M.log = v.id; M.screen = "log"; } };
+      });
+    },
+    note: function () { return logNote; }
+  },
+  {
+    /* what happens between "Log n items" and the day: assets/win-moment.js.
+       Picked here and remembered, so it holds for every log from then on. */
+    id: "win", title: "Win moment",
+    value: function () { return label(WINS, winPick()); },
+    chips: function () {
+      return WINS.map(function (v) {
+        return { label: v.label, on: winPick() === v.id, go: function () {
+          try { localStorage.setItem("gfWin2", v.id); } catch (e) {}
+          M.screen = "log"; M.log = "plan"; } };
+      });
+    },
+    note: function () { return "Pick one, then tap Log in the phone. The day view catches it: the score steps up from where it was."; }
+  },
+  {
+    id: "entry", title: "Opened from",
+    value: function () { return label(ENTRIES, M.entry); },
+    chips: function () {
+      return ENTRIES.map(function (v) {
+        return {
+          label: v.label,
+          on: M.screen === "log" && M.entry === v.id,
+          /* Picking a way in starts the flow at the step that way in opens on,
+             which is as close as this gets to tapping Snap in the phone. */
+          go: function () { M.entry = v.id; M.log = v.id === "snap" ? "snap" : v.id === "voice" ? "voice" : "search"; M.screen = "log"; }
+        };
+      });
+    },
+    note: function () { return entryNote; }
+  },
+  {
+    id: "success", title: "Success",
+    value: function () { return label(SUCCESS, M.logged); },
+    chips: function () {
+      return SUCCESS.map(function (v) {
+        return { label: v.label, on: M.screen === "logged" && M.logged === v.id, go: function () { M.logged = v.id; M.screen = "logged"; } };
+      });
+    },
+    note: function () { return "The score moves from its old number to its new one. Gold appears on the perfect day and nowhere else."; }
+  },
+  {
+    id: "rail", title: "What shaped your score",
+    value: function () { return M.rail === "icons" ? "Macro icons" : "Insight cards"; },
+    chips: function () {
+      return RAILS.map(function (v) {
+        return {
+          label: v.label,
+          on: M.rail === v.id,
+          go: function () { M.rail = v.id; M.screen = "eat"; }
+        };
+      });
+    },
+    note: function () {
+      return "Two ways to answer the question under the score. Macro icons show protein, carbs, fats and fibre against their targets. Insight cards name the biggest gap, what is closest and what is left.";
+    }
+  },
+  {
+    id: "logall", title: "Log the rest of a plan",
+    value: function () { return { cta: "Button", tick: "Parent tick", text: "Text action" }[M.logall]; },
+    chips: function () {
+      return LOGALLS.map(function (v) {
+        return { label: v.label, on: M.logall === v.id,
+          go: function () { M.logall = v.id; M.screen = "eat"; } };
+      });
+    },
+    note: function () {
+      return "Three ways a meal card offers to log everything still on its plan. The button is what ships. The parent tick is the same control the food rows carry, one level up. The text action is the system's own quiet form. Whichever is showing, once a whole option is in, a quieter Undo all appears in its place.";
+    }
+  },
+  {
+    id: "layout", title: "First screen layout",
+    value: function () { return "v" + M.layout; },
+    chips: function () {
+      return LAYOUTS.map(function (v) {
+        return {
+          label: v.label,
+          on: M.layout === v.id,
+          go: function () { M.layout = v.id; M.plan = false; M.suff = "empty"; M.day = "today"; M.screen = "eat"; }
+        };
+      });
+    },
+    note: function () { return "Three ways to fit the teaching card a new user lands on. Picking one lands you there."; }
+  }
+];
+
+/* Which group belongs to the screen in front of you, so it opens itself. */
+function liveGroup() {
+  return M.screen === "log" ? "logging" : M.screen === "logged" ? "success" : "suff";
+}
+
+var open = {};   // group id -> user has flipped it away from its default
+var logNote = "The logger is its own screen. Saving carries on to the success screen, whose button walks back to the day.";
+var entryNote = "Snap, Voice and the meal plus still open their own sheets inside the day, so start the flow from here instead.";
+
+function isOpen(id) { return (liveGroup() === id) !== !!open[id]; }
+
+function render() {
+  var host = document.getElementById("groups");
+  host.innerHTML = "";
+  GROUPS.forEach(function (g) {
+    var o = isOpen(g.id);
+    var live = liveGroup() === g.id;
+    var el = document.createElement("div");
+    el.className = "grp" + (o ? " open" : "") + (live ? " live" : "") + (live ? "" : " off");
+
+    var head = document.createElement("button");
+    head.className = "ghead";
+    head.innerHTML = '<span class="dot"></span><span class="t">' + g.title + "</span>" +
+      '<span class="r">' + (o ? "" : '<span class="val">' + g.value() + "</span>") + '<span class="car">&#9654;</span></span>';
+    head.onclick = function () { open[g.id] = !open[g.id]; render(); };
+    el.appendChild(head);
+
+    if (o) {
+      var wrap = document.createElement("div");
+      wrap.className = "chips";
+      g.chips().forEach(function (c) {
+        /* an act label, which takes the whole row and nothing else */
+        if (c.head) {
+          var h = document.createElement("span");
+          h.className = "actline";
+          h.textContent = c.head;
+          wrap.appendChild(h);
+          return;
+        }
+        var b = document.createElement("button");
+        b.className = "chip" + (c.on ? " on" : "");
+        b.textContent = c.label;
+        if (c.title) b.title = c.title;
+        if (c.disabled) b.disabled = true;
+        else b.onclick = function () { c.go(); apply(); };
+        wrap.appendChild(b);
+      });
+      el.appendChild(wrap);
+      var n = document.createElement("p");
+      n.className = "note";
+      n.textContent = g.note();
+      el.appendChild(n);
+    }
+    host.appendChild(el);
+  });
+
+  document.getElementById("planVal").textContent = M.plan ? "Assigned" : "Not yet";
+  var sw = document.getElementById("planSw");
+  sw.classList.toggle("on", M.plan);
+  sw.setAttribute("aria-checked", String(M.plan));
+  document.getElementById("motion").classList.toggle("on", M.motion);
+
+  var u = url();
+  document.getElementById("flags").textContent = u;
+  document.getElementById("under").innerHTML = M.screen === "eat"
+    ? "<b>" + eatState() + "</b> · the phone is live, tap inside it"
+    : "<b>" + (M.screen === "log" ? M.log : M.logged) + "</b> · full screen step";
+
+  var anyOpen = GROUPS.some(function (g) { return isOpen(g.id); });
+  document.getElementById("foldAll").textContent = anyOpen ? "Collapse all" : "Expand all";
+}
+
+function apply() {
+  var u = url();
+  if (frame.getAttribute("src") !== u) frame.setAttribute("src", u);
+  render();
+}
+
+/* Reduced motion. Injecting into the frame works when this page is served over
+   http; from a file path the browser refuses, so the flag on the URL is the
+   fallback for screens that read it. */
+function applyMotion() {
+  try {
+    var d = frame.contentDocument;
+    if (!d || !d.head) return;
+    var old = d.getElementById("rm-style");
+    if (old) old.parentNode.removeChild(old);
+    if (!M.motion) return;
+    var st = d.createElement("style");
+    st.id = "rm-style";
+    st.textContent = "*,*::before,*::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:1ms!important}";
+    d.head.appendChild(st);
+  } catch (e) {}
+}
+
+/* If a screen navigates itself, for example the success screen walking back to
+   the day, keep the rail honest about where the phone actually is. */
+frame.addEventListener("load", function () {
+  applyMotion();
+  try {
+    var href = frame.contentWindow.location.href;
+    var file = href.split("/").pop().split("?")[0];
+    var q = new URLSearchParams(href.split("?")[1] || "");
+    var moved = false;
+    if (file === "eat.html" && M.screen !== "eat") { M.screen = "eat"; moved = true; }
+    if (file === "log.html" && M.screen !== "log") { M.screen = "log"; moved = true; }
+    if (file === "logged.html" && M.screen !== "logged") { M.screen = "logged"; moved = true; }
+    if (q.get("entry")) M.entry = q.get("entry");
+    if (moved) render();
+  } catch (e) {}
+});
+
+/* The flow, once the screens post it: {nav: "log" | "logged" | "eat", flags: {}} */
+window.addEventListener("message", function (e) {
+  var d = e.data;
+  /* Inside a frame the score animation waits to be told it is on screen, so
+     that the gallery can run many phones without burning canvases. One phone
+     here, so it is always on screen. */
+  if (d === "hero:ready") { frame.contentWindow.postMessage("hero:mount", "*"); return; }
+  if (!d || typeof d !== "object" || !d.nav) return;
+  if (["log", "logged", "eat", "trend", "learn"].indexOf(d.nav) >= 0) M.screen = d.nav;
+  var f = d.flags || {};
+  ["day", "suff", "sheet", "log", "entry", "logged", "layout", "meal", "rail", "logall", "trend", "learn",
+   "opt", "food", "qty", "plog"].forEach(function (k) {
+    if (f[k] !== undefined) M[k] = String(f[k]);
+  });
+  if (f.plan !== undefined) M.plan = !!f.plan;
+  /* what the meal has already logged, fresh on every trip to the logger so it never goes stale */
+  if (d.nav === "log") { M.had = f.had || ""; M.hadopt = f.hadopt || ""; }
+  apply();
+});
+
+/* ---------- panel wiring ---------- */
+document.getElementById("planSw").onclick = function () {
+  M.plan = !M.plan;
+  if (!M.plan) { M.day = "today"; if (M.suff === "loading") M.suff = "empty"; }
+  M.screen = "eat";
+  apply();
+};
+document.getElementById("foldAll").onclick = function () {
+  var anyOpen = GROUPS.some(function (g) { return isOpen(g.id); });
+  GROUPS.forEach(function (g) { open[g.id] = anyOpen ? (liveGroup() === g.id) : (liveGroup() !== g.id); });
+  render();
+};
+document.getElementById("motion").onclick = function () { M.motion = !M.motion; apply(); applyMotion(); };
+document.getElementById("reset").onclick = function () { M = Object.assign({}, DEFAULTS); open = {}; apply(); };
+document.getElementById("copy").onclick = function () {
+  var abs = new URL(url(), location.href).href;
+  var btn = this;
+  var said = function () { btn.textContent = "Copied"; setTimeout(function () { btn.textContent = "Copy link"; }, 1400); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(abs).then(said, function () { fallback(abs, said); });
+  } else fallback(abs, said);
+};
+function fallback(text, done) {
+  var ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.cssText = "position:fixed;opacity:0";
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand("copy"); done(); } catch (e) {}
+  document.body.removeChild(ta);
+}
+
+/* Say plainly whether the logger is in place yet. The probe only answers when
+   this page is served over http, so the wording never claims more than it knows. */
+(function () {
+  try {
+    fetch("log.html", { method: "HEAD" }).then(function (r) {
+      if (!r.ok) {
+        logNote = "log.html is not in the folder yet, so these states show a browser error. Everything else works.";
+        render();
+      }
+    }).catch(function () {});
+  } catch (e) {}
+})();
+
+apply();
+</script>
+</body>
+</html>

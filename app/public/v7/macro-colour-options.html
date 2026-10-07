@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Macro fill colour</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="icons/glyph-masks.css">
+<style>
+  :root{
+    --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-700:#2A805A;
+    --g-200:#E4E7EC; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-50:#EEF4FF;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1700px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:860px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 12px}
+  .fam{font-size:13px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--g-500);margin:32px 0 14px}
+  .grid{display:flex;flex-wrap:wrap;gap:28px;align-items:flex-start}
+  .col{width:358px;flex:0 0 358px}
+  .cap{margin-bottom:12px;min-height:84px}
+  .cap h2{font-size:16px;line-height:23px;font-weight:600;margin:0 0 4px}
+  .cap h2 em{font-style:normal;font-size:12px;font-weight:600;color:var(--brand-700);background:var(--brand-50);padding:2px 8px;border-radius:9999px;margin-left:6px;vertical-align:2px}
+  .cap p{font-size:13px;line-height:20px;color:var(--g-600);margin:0}
+  .sw{display:flex;gap:4px;margin-top:8px}
+  .sw i{width:22px;height:22px;border-radius:6px;box-shadow:inset 0 0 0 1px rgba(16,24,40,.08)}
+
+  /* the macro card, as eat.html draws it */
+  .card{border-radius:16px;background:var(--bg,var(--in-50));padding:16px}
+  .mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .m{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px}
+  .m::before{content:"";position:absolute;top:37px;left:50%;width:26px;height:7px;transform:translateX(-50%);border-radius:9999px;
+    background:radial-gradient(closest-side,rgba(16,24,40,.16),rgba(16,24,40,.05) 62%,rgba(16,24,40,0))}
+  .gwrap{position:relative;width:40px;height:40px;
+    filter:drop-shadow(.5px 0 0 var(--out)) drop-shadow(-.5px 0 0 var(--out)) drop-shadow(0 .5px 0 var(--out)) drop-shadow(0 -.5px 0 var(--out))}
+  .gfill{position:absolute;inset:0;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center bottom;mask-position:center bottom;
+    -webkit-mask-size:auto 100%;mask-size:auto 100%;
+    background:
+      radial-gradient(118% 76% at 27% 16%,rgba(255,255,255,.34),rgba(255,255,255,0) 58%),
+      linear-gradient(to top,var(--d) 0%,var(--m) calc(var(--f)*.34),var(--l) calc(var(--f)*.72),var(--s) calc(var(--f) - 6%),var(--s) calc(var(--f) - 1.5%),var(--e1) var(--f),var(--e2) 100%)}
+  .gfill.glyph-fats{-webkit-mask-size:auto 80%;mask-size:auto 80%}
+  .mtext{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .mv{font-size:14px;line-height:20px;color:var(--g-500);font-variant-numeric:tabular-nums}.mv b{color:var(--g-900);font-weight:700}
+  .mn{font-size:12px;line-height:16px;color:var(--g-600)}
+  .cal{display:flex;justify-content:space-between;margin:14px -16px -16px;padding:14px 16px;border-top:1px solid rgba(16,24,40,.06);font-size:13px;color:var(--g-600)}
+  .cal b{color:var(--g-900)}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Macro fill colour</h1>
+  <p class="lede">The same card, glyphs and liquid fill as the Eat screen, at three levels: Protein part full, Carbs most of the way, Fats at target. One colour for all three, from the GoodFlip tokens only: every family on goodflip-design.vercel.app/foundations/colors is here (brand, indigo, success, teal, gold, warning, and gray for reference). Error red is left out, since a red fill can only read as wrong. Each family runs dark, normal and light: the fill moves from its deepest step at the base to a lighter step at the surface, and the empty part is that family's pale tints, so the vessel reads as one object filling up rather than a grey sticker.</p>
+  <p class="lede"><b>Where the colour law points:</b> the macro card reports logged food, which the brand deck files under indigo (action and tracking). Green belongs to the score above it and to primary actions, so a green fill repeats the score's colour. Both families are here so you can see the trade.</p>
+  <div id="out"></div>
+</div>
+<script>
+var MAC = [["protein", "Protein", 43, 95], ["carbs", "Carbs", 190, 238], ["fats", "Fats", 63, 63]];
+/* d deep, m mid, l light, s surface, e1/e2 empty (bottom/top), out hairline, bg card */
+var FAM = [
+  { fam: "Today, for reference", items: [
+    { t: "Grey, as shipped", p: "Gray 900 to 400, empty in grey. Reads as disabled on the indigo card.",
+      d: "#101828", m: "#344054", l: "#667085", s: "#98A2B3", e1: "#C4CBD6", e2: "#D3D9E2", out: "#B4BCC9" } ] },
+  { fam: "Indigo, the action family", items: [
+    { t: "Indigo dark", p: "Indigo 900 to 600, empty in indigo 200 to 100. Deep and confident; the fill reads like ink in a glass.",
+      d: "#2D3282", m: "#2D31A6", l: "#3538CD", s: "#444CE7", e1: "#C7D7FE", e2: "#E0EAFF", out: "#A4BCFD" },
+    { t: "Indigo normal", tag: "Recommended", p: "Indigo 800 to 500, empty in indigo 200 to 100. The workhorse step at the surface, so the level reads clearly without going heavy.",
+      d: "#2D31A6", m: "#3538CD", l: "#444CE7", s: "#6172F3", e1: "#C7D7FE", e2: "#E0EAFF", out: "#A4BCFD" },
+    { t: "Indigo light", p: "Indigo 600 to 300, empty in indigo 100 to white. Soft and airy; the empty part almost disappears into the card.",
+      d: "#444CE7", m: "#6172F3", l: "#8098F0", s: "#A4BCFD", e1: "#E0EAFF", e2: "#F5F8FF", out: "#C7D7FE" } ] },
+  { fam: "Flip Green, the brand family", items: [
+    { t: "Green dark", p: "Brand 900 to 600, empty in brand 200 to 100. Rich, but competes with the score's green directly above.",
+      d: "#1D4D38", m: "#246649", l: "#2A805A", s: "#299D6B", e1: "#CBF0E0", e2: "#E6FAF1", out: "#ABE6CC" },
+    { t: "Green normal", p: "Brand 700 to 400, empty in brand 200 to 100. Fresh and positive; reads as progress straight away.",
+      d: "#2A805A", m: "#299D6B", l: "#59B38C", s: "#79CCA8", e1: "#CBF0E0", e2: "#E6FAF1", out: "#ABE6CC" },
+    { t: "Green light", p: "Brand 600 to 300, empty in brand 100 to 25. Gentle; the lowest levels are hard to read.",
+      d: "#299D6B", m: "#59B38C", l: "#79CCA8", s: "#ABE6CC", e1: "#E6FAF1", e2: "#FAFFFD", out: "#CBF0E0" } ] },
+  { fam: "Success green, the status family", items: [
+    { t: "Success dark", p: "Success 900 to 600, empty in success 200 to 100. A cooler, bluer green than the brand; reads as healthy. In the colour law it means a good status, so a full vessel would read as a verdict.",
+      d: "#054F31", m: "#05603A", l: "#027A48", s: "#039855", e1: "#A6F4C5", e2: "#D1FADF", out: "#6CE9A6" },
+    { t: "Success normal", p: "Success 700 to 400, empty in success 200 to 100. Bright and lively, closest to a progress bar filling.",
+      d: "#027A48", m: "#039855", l: "#12B76A", s: "#32D583", e1: "#A6F4C5", e2: "#D1FADF", out: "#6CE9A6" },
+    { t: "Success light", p: "Success 500 to 300, empty in success 100 to 25. Minty and very light; low levels get lost.",
+      d: "#12B76A", m: "#32D583", l: "#6CE9A6", s: "#A6F4C5", e1: "#D1FADF", e2: "#F6FEF9", out: "#A6F4C5" } ] },
+  { fam: "Teal, the Kaira family", items: [
+    { t: "Teal dark", p: "Teal 900 to 700, empty in teal 200 to 100. Calm and distinctive. The colour law keeps teal for Kaira's edges and never as a fill, so this breaks that rule.",
+      d: "#2D8282", m: "#2DA6A6", l: "#35CDCD", s: "#44E7E7", e1: "#C7FEFE", e2: "#E0FFFF", out: "#A4FDFD" },
+    { t: "Teal normal", p: "Teal 800 to 500, empty in teal 200 to 100. Fresh and watery; the lighter steps are close to cyan and lose contrast on white.",
+      d: "#2DA6A6", m: "#35CDCD", l: "#44E7E7", s: "#61F3F3", e1: "#C7FEFE", e2: "#E0FFFF", out: "#A4FDFD" } ] },
+  { fam: "Gold, the knowledge family", items: [
+    { t: "Gold dark", p: "Gold 900 to 600, empty in gold 200 to 100. Warm, like ghee or honey filling the glyph. Gold means insight and FlipCoins in the law.",
+      d: "#826E2D", m: "#A68A2D", l: "#CDA935", s: "#E7C144", e1: "#FEF1C7", e2: "#FFF8E0", out: "#FDE8A4" },
+    { t: "Gold normal", p: "Gold 800 to 500, empty in gold 200 to 100. Sunny; the fill reads as reward. On the indigo card the two families sit side by side.",
+      d: "#A68A2D", m: "#CDA935", l: "#E7C144", s: "#F3D161", e1: "#FEF1C7", e2: "#FFF8E0", out: "#FDE8A4" },
+    { t: "Gold on a gold card", p: "Gold normal with the card on gold 50, the knowledge card recipe, so the whole block reads as one warm surface.",
+      d: "#A68A2D", m: "#CDA935", l: "#E7C144", s: "#F3D161", e1: "#FEF1C7", e2: "#FFF8E0", out: "#FDE8A4", bg: "#FFFBEE" } ] },
+  { fam: "Mixed within the system", items: [
+    { t: "Slate to indigo", p: "Gray 900 and 800 at the base rising into indigo 700 and 500 at the surface, empty in indigo tints. Keeps today's weight, but the top of the liquid carries colour so it no longer looks disabled.",
+      d: "#101828", m: "#1D2939", l: "#3538CD", s: "#6172F3", e1: "#C7D7FE", e2: "#E0EAFF", out: "#A4BCFD" },
+    { t: "Brand into success", p: "Brand 800 and 700 at the base, success 500 and 400 at the surface. A deeper base with a brighter, livelier surface than either green alone.",
+      d: "#246649", m: "#2A805A", l: "#12B76A", s: "#32D583", e1: "#CBF0E0", e2: "#E6FAF1", out: "#ABE6CC" },
+    { t: "Warning, for completeness", p: "Warning 800 to 500, empty in warning 200 to 100. Shown so it can be ruled out: orange means needs attention in the law, so a filling vessel would look like an alert.",
+      d: "#93370D", m: "#B54708", l: "#DC6803", s: "#F79009", e1: "#FEDF89", e2: "#FEF0C7", out: "#FEC84B" } ] },
+  { fam: "Green fill on a neutral card", items: [
+    { t: "Green normal, white card", p: "The same green normal, with the card on gray 50 rather than indigo 50, so green and indigo never sit on top of each other.",
+      d: "#2A805A", m: "#299D6B", l: "#59B38C", s: "#79CCA8", e1: "#CBF0E0", e2: "#E6FAF1", out: "#ABE6CC", bg: "#F9FAFB" },
+    { t: "Indigo normal, white card", p: "Indigo normal on gray 50, for a like-for-like comparison with the one beside it.",
+      d: "#2D31A6", m: "#3538CD", l: "#444CE7", s: "#6172F3", e1: "#C7D7FE", e2: "#E0EAFF", out: "#A4BCFD", bg: "#F9FAFB" } ] }
+];
+function card(v) {
+  var st = "--d:" + v.d + ";--m:" + v.m + ";--l:" + v.l + ";--s:" + v.s + ";--e1:" + v.e1 + ";--e2:" + v.e2 + ";--out:" + v.out + (v.bg ? ";--bg:" + v.bg : "");
+  return '<div class="card" style="' + st + '"><div class="mgrid">' + MAC.map(function (m) {
+    var f = Math.min(100, Math.round(m[2] / m[3] * 100));
+    return '<div class="m"><span class="gwrap"><span class="gfill glyph-' + m[0] + '" style="--f:' + f + '%"></span></span>' +
+      '<span class="mtext"><span class="mv"><b>' + m[2] + "</b>/" + m[3] + 'g</span><span class="mn">' + m[1] + "</span></span></div>";
+  }).join("") + '</div><div class="cal"><span>Calories</span><span><b>942</b> of 1,900 kcal</span></div></div>';
+}
+document.getElementById("out").innerHTML = FAM.map(function (g) {
+  return '<div class="fam">' + g.fam + '</div><div class="grid">' + g.items.map(function (v) {
+    return '<div class="col"><div class="cap"><h2>' + v.t + (v.tag ? "<em>" + v.tag + "</em>" : "") + "</h2><p>" + v.p + "</p>" +
+      '<div class="sw">' + [v.d, v.m, v.l, v.s, v.e1, v.e2].map(function (c) { return '<i style="background:' + c + '"></i>'; }).join("") + "</div></div>" + card(v) + "</div>";
+  }).join("") + "</div>";
+}).join("");
+</script>
+</body>
+</html>

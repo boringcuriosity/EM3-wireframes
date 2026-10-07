@@ -1,0 +1,1046 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Liquid Score, intros</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="glyph-masks.css">
+<style>
+  :root { --paper: #fcfcfb; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { height: 100%; }
+  body { background: #ebe9e6; display: grid; place-items: center; overflow: hidden;
+    font-family: Roboto, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .stage { position: relative; width: 100vw; height: 100dvh; overflow: hidden; background: var(--paper);
+    touch-action: none; user-select: none; -webkit-user-select: none; cursor: pointer; }
+  @media (min-width: 520px) {
+    .stage { width: auto; height: min(874px, calc(100dvh - 64px)); aspect-ratio: 402 / 874; border-radius: 54px;
+      box-shadow: 0 0 0 11px #121216, 0 0 0 12px #3b3b42, 0 50px 90px -30px rgba(30, 40, 50, .45); }
+  }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .score { position: absolute; left: 0; top: 0; color: var(--ink, #fff); text-align: center; pointer-events: none; transition: color .6s;
+    opacity: 0; will-change: transform, opacity, filter; }
+  .score .num { font: 500 36px/1 Roboto, sans-serif; letter-spacing: -.03em;
+    margin: 0; text-shadow: var(--ink-shadow, none); transition: text-shadow .6s; font-variant-numeric: tabular-nums; }
+  .score .num i { font-style: normal; font-weight: 400; font-size: .4em; vertical-align: .95em; margin-left: 2px; }
+  .score .word { font: 400 14px/1 Roboto, sans-serif; letter-spacing: .01em; opacity: .92; margin-top: 2px; }
+  /* status tags, from the GoodFlip Figma chips (node 6875:9957): 22px tall, 8px radius, 8px side padding, 12px text,
+     1px inside border drawn as a gradient layer behind the fill */
+  .tag { position: absolute; left: 0; top: 0; height: 22px; padding: 0 8px; border-radius: 8px; opacity: 0; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 6px; font: 400 12px/1 Roboto, sans-serif; cursor: pointer;
+    border: 1px solid transparent; color: var(--t-ink); background: var(--t-fill) padding-box, var(--t-line) border-box; }
+  /* Solid Day, exact from Solid-day.svg: diagonal fill tinted at two corners; angular border with two dark sweeps.
+     Figma stretches the angular gradient to the 68×22 box, so its stops are re-projected into CSS conic angles */
+  .tag[data-s="solid"]     { --t-ink: #039855;
+    --t-fill: linear-gradient(112.36deg, #d1fadf 3%, #ecfdf3 20.1%, #ecfdf3 79.9%, #d1fadf 94.4%);
+    --t-line: conic-gradient(from 90deg, #32d583 0deg, #039855 11.51deg, #32d583 36.77deg, #32d583 175.4deg, #039855 193.58deg, #32d583 224.26deg, #32d583 360deg); }
+  /* the rest share Solid Day's structure, each re-projected for its own width (98, 106 and 115 × 22) */
+  .tag[data-s="grow"]      { --t-ink: #dc6803;
+    --t-fill: linear-gradient(120.65deg, #fef0c7 3%, #fffaeb 20.1%, #fffaeb 79.8%, #fef0c7 94.3%);
+    --t-line: conic-gradient(from 90deg, #fdb022 0deg, #dc6803 8.04deg, #fdb022 27.41deg, #fdb022 176.8deg, #dc6803 189.51deg, #fdb022 214.06deg, #fdb022 360deg); }
+  .tag[data-s="attention"] { --t-ink: #d92d20;
+    --t-fill: linear-gradient(122.66deg, #fee4e2 3%, #fef3f2 20.1%, #fef3f2 79.8%, #fee4e2 94.3%);
+    --t-line: conic-gradient(from 90deg, #f97066 0deg, #d92d20 7.44deg, #f97066 25.61deg, #f97066 177.04deg, #d92d20 188.81deg, #f97066 212.01deg, #f97066 360deg); }
+  .tag[data-s="none"], .tag[data-s="gathering"], .tag[data-s="log"] { --t-ink: #667085;
+    --t-fill: linear-gradient(124.82deg, #f2f4f7 3%, #f9fafb 20.1%, #f9fafb 79.8%, #f2f4f7 94.3%);
+    --t-line: conic-gradient(from 90deg, #f2f4f7 0deg, #e4e7ec 6.87deg, #f2f4f7 23.84deg, #f2f4f7 177.28deg, #e4e7ec 188.13deg, #f2f4f7 209.95deg, #f2f4f7 360deg); }
+  /* Figma sets Roboto a touch wider than browsers, so pin each chip to its Figma width */
+  .tag { justify-content: center; }
+  .tag[data-s="solid"] { width: 68px; }
+  .tag[data-s="grow"] { width: 98px; }
+  .tag[data-s="attention"] { width: 106px; }
+  .tag[data-s="none"] { width: 115px; }
+  .tag .spin { display: none; width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid #e4e7ec; border-top-color: #475467;
+    animation: spin 1s linear infinite; }
+  .tag[data-s="gathering"] .spin { display: block; }
+  @keyframes spin { to { rotate: 360deg; } }
+  .end { position: absolute; left: 0; top: 0; color: #7a7f8c; font: 400 14px/1 Roboto, sans-serif;
+    pointer-events: none; opacity: 0; font-variant-numeric: tabular-nums; }
+  /* bottom bar: replay and the variant sheet */
+  .bar { position: absolute; left: 0; right: 0; bottom: calc(20px + env(safe-area-inset-bottom)); display: flex;
+    justify-content: center; gap: 8px; opacity: 0; }
+  .bar button { font: 500 14px/1 Roboto, sans-serif; color: #475467; padding: 10px 16px; border-radius: 999px; cursor: pointer;
+    background: rgba(255, 255, 255, .75); border: 1px solid #e4e7ec; }
+  .bar button:focus-visible, .sheet button:focus-visible { outline: 2px solid #12b76a; outline-offset: 2px; }
+
+  /* ---- what shaped the score: the macro card from the Eat prototype (v7/r3/eat.html) ----
+     each glyph is a vessel that fills to its own level; the fill is a gradient stop driven by --f */
+  @property --bob { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+  .shaped { position: absolute; left: 16px; right: 16px; top: 0; opacity: 0; }
+  .shaped h2 { margin: 0 0 12px; font: 500 16px/24px Roboto, sans-serif; color: #101828; }
+  /* light indigo ground (in-50), as on the Eat card; the outline is lightened toward it so it stays an even hairline */
+  .mcard { border-radius: 16px; background: #eef4ff; --out: #b4bcc9; }
+  .mgrid { display: flex; justify-content: space-between; gap: 8px; padding: 16px 16px 14px; }
+  .m { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  /* a soft neutral ellipse under each vessel, so it stands on the card */
+  .m::before { content: ""; position: absolute; top: 37px; left: 50%; width: 26px; height: 7px; transform: translateX(-50%);
+    border-radius: 999px; background: radial-gradient(closest-side, rgba(16, 24, 40, .16), rgba(16, 24, 40, .05) 62%, transparent); }
+  /* a hairline round each vessel: eight zero-blur drop shadows, on the wrapper because filter runs before mask */
+  .gwrap { position: relative; width: 40px; height: 40px;
+    filter: drop-shadow(.5px 0 0 var(--out)) drop-shadow(-.5px 0 0 var(--out)) drop-shadow(0 .5px 0 var(--out)) drop-shadow(0 -.5px 0 var(--out))
+      drop-shadow(.5px .5px 0 var(--out)) drop-shadow(-.5px .5px 0 var(--out)) drop-shadow(.5px -.5px 0 var(--out)) drop-shadow(-.5px -.5px 0 var(--out)); }
+  /* liquid, not a block: deep at the base, lighter as it rises, brightest at the surface */
+  .gfill { position: absolute; inset: 0; --f: 0%;
+    background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255, 255, 255, .34), transparent 58%),
+      linear-gradient(to top, var(--l0) 0%, var(--l1) calc((var(--f) + var(--bob)) * .34), var(--l2) calc((var(--f) + var(--bob)) * .72),
+        var(--l3) calc(var(--f) + var(--bob) - 6%), var(--l4) calc(var(--f) + var(--bob) - 1.5%), var(--e0) calc(var(--f) + var(--bob)), var(--e1) 100%); }
+  .gfill.glyph-fats { -webkit-mask-size: auto 80%; mask-size: auto 80%; }
+  .gfill.glyph-fibre { -webkit-mask-size: auto 84%; mask-size: auto 84%; }
+  .mtext { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .mval { font: 400 14px/18px Roboto, sans-serif; white-space: nowrap; color: #667085; font-variant-numeric: tabular-nums; }
+  .mval strong { font-weight: 700; color: #101828; }
+  .mname { font: 400 12px/16px Roboto, sans-serif; color: #667085; }
+  .cal { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 16px; border-top: 1px solid rgba(16, 24, 40, .06);
+    font: 400 14px/20px Roboto, sans-serif; color: #667085; font-variant-numeric: tabular-nums; }
+  .cal b { color: #101828; font-weight: 700; }
+  /* fill variants: none are indigo */
+  .mcard[data-v="graphite"] { --l0: #344054; --l1: #475467; --l2: #5d6b80; --l3: #7e8a9c; --l4: #c3cad5; --e0: #c4cbd6; --e1: #d3d9e2; }
+  .mcard[data-v="orb"]      { --l0: #05603a; --l1: #039855; --l2: #12b76a; --l3: #32d583; --l4: #6ce9a6; --e0: #c4cbd6; --e1: #d3d9e2; }
+  .mcard[data-v="glass"]    { --l0: #12b76a; --l1: #32d583; --l2: #6ce9a6; --l3: #a6f4c5; --l4: #ecfdf3; --e0: #c4cbd6; --e1: #d3d9e2; }
+  .mcard[data-v="sage"]     { --l0: #2f3b34; --l1: #43564b; --l2: #5e7568; --l3: #8fa398; --l4: #c5d3ca; --e0: #c4cbd6; --e1: #d3d9e2; }
+  /* Glass keeps its waterline moving, a slow swell each vessel takes in turn */
+  .mcard[data-v="glass"] .gfill { animation: bob 3.4s ease-in-out infinite; }
+  .mcard[data-v="glass"] .m:nth-child(2) .gfill { animation-delay: -.85s; }
+  .mcard[data-v="glass"] .m:nth-child(3) .gfill { animation-delay: -1.7s; }
+  .mcard[data-v="glass"] .m:nth-child(4) .gfill { animation-delay: -2.55s; }
+  @keyframes bob { 0%, 100% { --bob: -1.6%; } 50% { --bob: 1.6%; } }
+
+  /* variant sheet: title top left, circle X top right, no drag handle, at most 90% tall */
+  .scrim { position: absolute; inset: 0; background: rgba(16, 24, 40, .28); opacity: 0; pointer-events: none; transition: opacity .3s; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; overflow-y: auto; background: #fff;
+    border-radius: 24px 24px 0 0; padding: 20px 16px calc(24px + env(safe-area-inset-bottom));
+    transform: translateY(100%); transition: transform .35s cubic-bezier(.2, .8, .2, 1); }
+  .stage.sheet-open .scrim { opacity: 1; pointer-events: auto; }
+  .stage.sheet-open .sheet { transform: none; }
+  .sheet header { display: flex; justify-content: space-between; align-items: center; }
+  .sheet h2 { margin: 0; font: 500 18px/24px Roboto, sans-serif; color: #101828; }
+  .sheet .x { width: 32px; height: 32px; border-radius: 50%; border: 0; background: #f2f4f7; color: #475467; display: grid; place-items: center; cursor: pointer; }
+  .sheet h3 { margin: 20px 0 8px; font: 500 12px/16px Roboto, sans-serif; letter-spacing: .04em; text-transform: uppercase; color: #667085; }
+  .macro { position: absolute; left: 0; top: 0; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    pointer-events: none; opacity: 0; color: #1d4d38; transition: color .5s; font-variant-numeric: tabular-nums; }
+  .macro i { width: 14px; height: 14px; background: #039855; transition: background .5s; }
+  .macro b { font: 500 14px/1 Roboto, sans-serif; }
+  .macro span { font: 400 12px/1 Roboto, sans-serif; color: #6b7a72; transition: transform .5s; }
+  .in-drop .macro { color: #fff; }
+  .in-drop .macro i { background: #fff; }
+  .in-drop .macro b { text-shadow: 0 1px 3px rgba(0, 0, 0, .25); }
+  .in-drop .macro span { transform: translateY(24px); }
+  .slot { display: inline-flex; }
+  .slot .col { height: 1em; overflow: hidden;
+    -webkit-mask-image: linear-gradient(transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(transparent, #000 12%, #000 88%, transparent); }
+  .slot .strip { display: flex; flex-direction: column; will-change: transform; }
+  .slot .strip span { height: 1em; }
+  .variants { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .variants button { padding: 11px 8px; border-radius: 12px; border: 1px solid #e4e7ec; background: #fff; cursor: pointer;
+    color: #475467; font: 500 14px/1 Roboto, sans-serif; white-space: nowrap; transition: background .2s, color .2s, border-color .2s; }
+  .variants button[aria-pressed="true"] { border-color: #32d583; background: #ecfdf3; color: #05603a; }
+  /* embedded as a hero (?embed=1): no phone, no card, no controls, just the score on white */
+  .embed, .embed body { background: transparent; display: block; }
+  .embed .stage { width: 100vw; height: 100vh; border-radius: 0; box-shadow: none; aspect-ratio: auto; background: transparent; cursor: default; }
+  .embed .shaped, .embed .bar, .embed .sheet, .embed .scrim { display: none; }
+  .embed .tag { pointer-events: none; }
+  /* locked (no plan yet): the padlock takes the number's place, and there is no number, word or tag */
+  .lock { display: none; width: 76px; height: 76px; margin: 0 auto; }
+  .locked .score .num, .locked .score .word, .locked .tag { display: none; }
+  .locked .lock { display: block; }
+</style>
+</head>
+<body>
+<main class="stage" id="stage" aria-label="85 percent Sufficient, Solid Day">
+  <canvas id="ln"></canvas>
+  <canvas id="c"></canvas>
+  <div class="score" id="score" aria-hidden="true">
+    <div class="num"><span class="slot" id="n"></span><i>%</i></div>
+    <div class="word">Sufficient</div>
+    <div class="lock" id="lock"></div>
+  </div>
+  <div class="tag" id="tag" data-s="solid"><span id="tagText">Solid Day</span><i class="spin"></i></div>
+  <div id="macros" aria-hidden="true"></div>
+  <div class="end" id="lo">0</div>
+  <div class="end" id="hi">100</div>
+  <section class="shaped" id="shaped" aria-label="What shaped your score">
+    <h2>What shaped your score?</h2>
+    <div class="mcard" id="mcard" data-v="graphite">
+      <div class="mgrid" id="mgrid"></div>
+      <div class="cal"><span>Calories</span><span><b id="calNow">0</b> of 1,900 kcal</span></div>
+    </div>
+  </section>
+  <div class="bar" id="bar">
+    <button id="replay">Play again</button>
+    <button id="openSheet" aria-haspopup="dialog">Variants</button>
+  </div>
+  <div class="scrim" id="scrim"></div>
+  <section class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <header><h2 id="sheetTitle">Variants</h2>
+      <button class="x" id="closeSheet" aria-label="Close"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l10 10M12 2 2 12"/></svg></button>
+    </header>
+    <h3>Score</h3>
+    <div class="variants" id="variants" role="group" aria-label="Score variant"></div>
+    <h3>Macro card</h3>
+    <div class="variants" id="cardVariants" role="group" aria-label="Macro card variant"></div>
+  </section>
+</main>
+
+<script>
+// INTROS: Cloud Drop with a different way in, picked by ?intro=. Every one is built from the shader's own
+// liquid (its smooth union merges droplets the way water does) and the real orb artwork, and every one lands
+// on Cloud Drop's rest unchanged: the fill, the number, the tag, the idle.
+//   murmuration  droplets and orbs spiral in from every side and pool into the bubble (the default)
+//   feed         the orbs come first, round the arc, and each sends a droplet in to make the bubble
+// and five that add drawn lines, on a 2D layer under the glass so the bubble covers what it takes in:
+//   ribbons      three silk ribbons, twisting, spiral in and wrap the bubble; an orb rides each tip
+//   topo         contour lines draw themselves out like a map, orbs riding them, then close onto the gauge
+//   stream       streamlines bend round the growing bubble like water round a stone; orbs ride the current
+//   aurora       soft curtains of light sway across the top, then pour down into the glass, dripping
+//   enso         one brush stroke paints a zen circle, flicks droplets off its tail, and the circle fills
+// score gauge: a 270° arc from bottom-left, clockwise over the top, to bottom-right
+// ?embed=1 runs as a hero inside another screen: ?score= sets the number, ?v= the variant
+const QS = new URLSearchParams(location.search), EMBED = QS.has('embed');
+const WAY = QS.get('intro') || 'murmuration';
+if (EMBED) document.documentElement.classList.add('embed');
+// SIZE scales the whole gauge: bubble, ring, pearls, drops, labels and the text inside. Embedded, it is set so the
+// gauge comes out at the same pixel size as the designed 874px-tall screen; S is the scale against that design
+const SIZE = EMBED ? .75 * 874 / (innerHeight || 300) : .75, R0 = .112 * SIZE, S = SIZE / .75;
+// numbers written into the shader always as decimals: GLSL rejects 3.6/1 and has no Infinity
+const F = x => (isFinite(x) ? +x : 1).toFixed(6);
+const ARC0 = 1.25 * Math.PI, SWEEP = 1.5 * Math.PI, RING = .132 * SIZE;
+const P = 30, NF = 30, NS = 12, N = 1 + P + 2 + 4 + NF; // 1 big bubble, 30 score pearls, 2 tap drops, 4 macro drops, 30 flock (12 of them orbs)
+// nutrition sufficiency is built from four macros; their average is the score
+// v is % of target met; g is the day's target in grams
+const MACROS = [{ key: 'protein', name: 'Protein', v: 92, g: 95 }, { key: 'carbs', name: 'Carbs', v: 78, g: 238 }, { key: 'fats', name: 'Fats', v: 88, g: 63 }, { key: 'fibre', name: 'Fibre', v: 82, g: 30 }];
+const CAL = { goal: 1900, eaten: 1620 };
+const FS = `
+precision highp float;
+uniform vec2 uRes, uEye, uLight;
+uniform float uTime, uRc, uArm, uVivid, uSwirl, uK, uPop, uGlow, uScale, uFill, uArcIn;
+uniform vec4 uB[${N}];
+uniform vec3 uSA[6], uSB[6], uSG[6], uGlowC;   // skies the liquid drifts between, a green sky for streaks, glow colour
+uniform float uGreenIn, uGauge, uRim, uGlowS, uEdgeAmt, uLift;
+uniform vec3 uGA, uGB, uEdge;
+uniform float uTide, uSeg, uRingOn, uAura, uLocal;   // uLocal: the intro stays inside the gauge's own space   // liquid level in the bubbles, gauge split into four macros, gauge visibility
+uniform vec4 uMac;                    // each macro's fill so far, 0..1
+const vec3 PAPER = ${EMBED ? 'vec3(1.)' : 'vec3(.988, .99, .985)'};
+
+float hash(vec2 p){ p = fract(p*vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x*p.y); }
+float noise(vec2 p){
+  vec2 i = floor(p), f = fract(p), u = f*f*(3. - 2.*f);
+  return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
+}
+float fbm(vec2 p){
+  float v = 0., a = .5; mat2 m = mat2(1.6, 1.2, -1.2, 1.6);
+  for (int i = 0; i < 4; i++) { v += a*noise(p); p = m*p + vec2(3.1, 1.7); a *= .5; }
+  return v;
+}
+mat2 rot(float a){ float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
+vec3 ramp(float h, vec3 a, vec3 b, vec3 c, vec3 d, vec3 e, vec3 f){
+  h = clamp(h, 0., 1.)*5.;
+  vec3 k = mix(a, b, smoothstep(0., 1., h));
+  k = mix(k, c, smoothstep(1., 2., h));
+  k = mix(k, d, smoothstep(2., 3., h));
+  k = mix(k, e, smoothstep(3., 4., h));
+  return mix(k, f, smoothstep(4., 5., h));
+}
+vec3 skyA(float h){ return ramp(h, uSA[0], uSA[1], uSA[2], uSA[3], uSA[4], uSA[5]); }
+vec3 skyB(float h){ return ramp(h, uSB[0], uSB[1], uSB[2], uSB[3], uSB[4], uSB[5]); }
+vec3 skyG(float h){ return ramp(h, uSG[0], uSG[1], uSG[2], uSG[3], uSG[4], uSG[5]); }
+// GoodFlip green along the gauge: brand 400 at the start to brand 600 at the end
+vec3 gauge(float u){ return mix(uGA, uGB, clamp(u, 0., 1.)); }
+
+vec3 fluid(vec2 p){
+  vec2 q = p - uEye;
+  float r = length(q);
+  float rt = uTime - uPop;
+  if (rt > 0.) q += q/max(r, 1e-3)*.02*exp(-rt*1.6)*exp(-pow((r - rt*.35)*16., 2.));
+  // local: the twist and the texture are scaled to the drop, so it spirals rather than turning as a rigid disc
+  float rl = r*mix(1., 3.6/${F(S)}, uLocal);
+  q = rot(uSwirl*(6.5*exp(-rl*3.2) + 1.1*exp(-rl*.9)))*q;
+  q *= (1. + uSwirl*.55*exp(-rl*3.5))*mix(1., 2.6/${F(S)}, uLocal);
+  q += uEye;
+  float t = uTime*.05;
+  vec2 w1 = vec2(fbm(q*1.3 + vec2(0., t)), fbm(q*1.3 + vec2(5.2, 1.3) - t));
+  vec2 w2 = vec2(fbm(q*1.5 + 2.2*w1 + vec2(1.7, 9.2) + t*1.4), fbm(q*1.5 + 2.2*w1 + vec2(8.3, 2.8) - t*.9));
+  float f = fbm(q*1.2 + 2.*w2);
+  float h = .5 - (q.y - uEye.y)*.95*mix(1., 2.2/${F(S)}, uLocal) + (f - .47)*1.2 + (w2.y - .47)*.4;
+  h = mix(.52 + (h - .5)*.5, h, uVivid);   // soft middle of the sky while it opens
+  float mv = clamp(.5 + .42*sin(uTime*.09) + (w2.x - .47)*1.8, 0., 1.);
+  vec3 col = mix(skyA(h), skyB(h), mv);
+  if (uGreenIn > 0.) col = mix(col, skyG(h), smoothstep(.34, .56, w1.x)*uGreenIn);   // emerald streaks
+  col = mix(col, vec3(.55, .90, .80), smoothstep(.58, .74, w1.y)*.3*(1. - abs(h - .5)));
+  col += .06*smoothstep(.5, .85, f);
+  return mix(mix(PAPER, col, .55), col, uVivid);
+}
+
+float scene(vec2 p, out float R, out float F, out vec2 C){
+  float d = 1e3; R = .1; F = 1.; C = uEye;
+  for (int i = 0; i < ${N}; i++) {
+    vec4 b = uB[i];
+    if (b.z < 1e-4) continue;
+    float di = length(p - b.xy) - b.z*(i == 0 ? uScale : 1.);
+    float k = uK*clamp(b.z*12., .25, 1.);
+    float h = clamp(.5 + .5*(di - d)/k, 0., 1.);   // smooth union: bubbles bud and merge like liquid
+    d = mix(di, d, h) - k*h*(1. - h);
+    R = mix(b.z, R, h);
+    F = mix(b.w, F, h);
+    C = mix(b.xy, C, h);
+  }
+  return d;
+}
+
+void main(){
+  vec2 p = (gl_FragCoord.xy - .5*uRes)/uRes.y;
+  float px = 1./uRes.y;
+  vec2 q = p - uEye;
+  float r = length(q), a = atan(q.y, q.x);
+  float R0 = max(uB[0].z, .05);
+
+  // white page with a faint, slowly breathing mint glow around the bubble
+  vec3 base = PAPER;
+  vec2 gw = vec2(fbm(p*2.2 + uTime*.07), fbm(p*2.2 + 5. - uTime*.06)) - .47;
+  float gr = length(q + gw*.14)/(R0*(1. + .04*sin(uTime*.8)));
+  base = mix(base, uGlowC, exp(-pow(max(gr - 1., 0.)*.6, 1.5))*uGlowS*uGlow);
+
+  // the coloured fluid, bounded by a radius that blooms out then spirals back into the bubble
+  // local: a drop of ink spreading on paper, so the uneven edge, the spiral arms and the feather all scale down to it
+  float ek = mix(1., .3*${F(S)}, uLocal);
+  float edge = uRc - r + uArm*.1*ek*sin(a*2. - r*mix(10., 26./${F(S)}, uLocal) + uTime*2.2) + (fbm(p*mix(3., 7./${F(S)}, uLocal) + uTime*.25) - .47)*.25*ek*(1. - uGlow*.9);
+  float cm = smoothstep(0., .12*ek, edge);
+  vec3 col = base;
+  if (cm > 0.) col = mix(base, fluid(p), cm) + vec3(1., .9, .96)*.3*cm*(1. - cm);
+
+  // gauge: coloured aura behind the filled pearls, then a thin ring (colour up to the score, grey after)
+  float u = mod(${F(ARC0)} - a, 6.28318)/${F(SWEEP)};
+  float onArc = step(u, 1.)*smoothstep(uArcIn + .01, uArcIn - .01, u);
+  float done = smoothstep(uFill + .006, uFill - .006, u);
+  float soft = smoothstep(uFill + .06, uFill - .06, u);
+  // Macros: four segments with small gaps, each filling to its own macro
+  float s4 = min(floor(u*4.), 3.), l4 = u*4. - s4;
+  float mf = s4 < .5 ? uMac.x : s4 < 1.5 ? uMac.y : s4 < 2.5 ? uMac.z : uMac.w;
+  mf = .06 + .88*mf;
+  onArc *= uRingOn;
+  float gap = mix(1., smoothstep(.02, .05, l4)*smoothstep(.98, .95, l4), uSeg);   // gaps cut the ring line only, the glow stays whole
+  done = mix(done, smoothstep(mf + .02, mf - .02, l4), uSeg);
+  soft = mix(soft, 1., uSeg);
+  float band = exp(-pow((r - ${F(.172 * SIZE)})/${F(.04 * SIZE)}, 2.))*onArc;
+  if (band > .002) {
+    vec3 tint = mix(fluid(uEye + q*.8), gauge(u), uGauge);
+    col = mix(col, mix(col, tint, .22), band*soft*uAura);   // uAura: how strongly the glow sits behind the filled pearls
+    col = mix(col, vec3(.86, .87, .9), band*(1. - soft)*.35*(1. - uSeg));
+    float line = smoothstep(.0024 + px, .0024 - px, abs(r - ${F(RING)}))*onArc*gap;
+    col = mix(col, mix(vec3(.74, .75, .79), tint*.95, done), line);
+  }
+
+  float R, Rt, F, Ft; vec2 C, Ct; float d = scene(p, R, F, C);
+  float isT = step(1.5, F), lvl = F - 2.;   // w >= 2 marks a bubble that holds a liquid level
+  F = mix(F, 1., isT);
+  float bw = mix(.006, px, F);   // empty pearls go soft and out of focus
+  if (d < .08) {  // soft contact shadow so glass reads on white
+    float ds = scene(p + vec2(-.004, .016)*${F(S)}, Rt, Ft, Ct);
+    col *= 1. - .06*uGlow*(1. - smoothstep(-.02, .035, ds))*smoothstep(-px, px, d);
+  }
+  if (d < max(2.*px, bw)) {
+    vec2 e = vec2(px, 0.);
+    vec2 g = vec2(scene(p + e.xy, Rt, Ft, Ct) - scene(p - e.xy, Rt, Ft, Ct), scene(p + e.yx, Rt, Ft, Ct) - scene(p - e.yx, Rt, Ft, Ct));
+    g /= max(length(g), 1e-6);
+    float rr = clamp(1. + d/R, 0., 1.);
+    vec3 n = vec3(g*rr, sqrt(max(0., 1. - rr*rr)));
+    vec2 off = -n.xy*R*1.3;
+    // inside: the absorbed fluid, compressed and slowly churning
+    mat2 ch = rot(uTime*.1);
+    vec2 s = mix((p - uEye)*3./${F(S)}, (p - C)*3.*${F(R0)}/R, isT);
+    vec3 inner = vec3(fluid(uEye + ch*(s + off*2.)).r, fluid(uEye + ch*(s + off*2.2)).g, fluid(uEye + ch*(s + off*2.4)).b);
+    vec3 pale = mix(inner, vec3(.975, .99, .98), uLift*uGlow);   // light variants: the settled liquid pales to a whisper of colour
+    // tide: rich liquid up to the level with a slow wave on top, pale glass above
+    float surf = C.y - R + 2.*R*lvl + (.006*sin(p.x*38. + uTime*1.8) + .004*sin(p.x*21. - uTime*1.1))*R/${F(R0)};
+    float below = smoothstep(1.5*px, -1.5*px, p.y - surf), tk = uTide*isT;
+    inner = mix(pale, mix(pale, inner*.94, below), tk);
+    inner += tk*(exp(-pow((p.y - surf)/(1.6*px), 2.))*.45 - below*smoothstep(-.03*R/${F(R0)}, 0., p.y - surf)*.05);
+    float rich = max(smoothstep(.03, .09, R), isT);
+    vec3 dropC = mix(fluid(uEye + (p - uEye)*.8 + off*2.), (gauge(u)*(.95 + .16*n.y) + .03), uGauge);
+    vec3 pearl = mix(vec3(.91, .915, .925), dropC, F);   // filled pearls carry the bubble's colour, empty ones stay grey glass
+    vec3 gc = mix(pearl, inner, rich)*vec3(1.02, 1.01, 1.05) + .02;
+    float fres = pow(rr, 4.);
+    vec3 ir = .5 + .5*cos(6.2831*(vec3(0., .33, .67) + rr*1.3 + p.y*1.2 + uTime*.06));
+    ir = mix(ir, mix(vec3(.67, .9, .8), vec3(.35, .75, .56), .5 + .5*sin(rr*6. + uTime*.4)), uRim*.8);   // green-leaning sheen
+    gc = mix(gc, ir*.85 + .15, fres*.28) + fres*.22*rich;
+    vec3 L = normalize(vec3(uLight, .12));
+    float nh = max(dot(n, normalize(L + vec3(0, 0, 1))), 0.);
+    gc += pow(nh, 160.)*1.3 + pow(nh, 9.)*.07;
+    gc += pow(max(dot(n, normalize(vec3(-uLight*.9, .5) + vec3(0, 0, 1))), 0.), 40.)*.18;
+    gc = mix(gc, uEdge, fres*uEdgeAmt*rich*1.4);
+    gc = mix(gc, mix(vec3(.64, .70, .82), mix(vec3(1.), uEdge*.9, uEdgeAmt*1.6), rich), smoothstep(-2.5*px, 0., d)*.5*F);
+    gc = mix(vec3(.74, .75, .79), gc, F);
+    col = mix(col, gc, smoothstep(bw, -bw, d));
+  }
+  ${EMBED ? '' : 'col += (hash(gl_FragCoord.xy + fract(uTime*7.)*91.) - .5)*.02;'}
+  // embedded: everything fades to white before the frame edge, so the hero never shows a box
+  ${EMBED ? 'col = mix(PAPER, col, 1. - smoothstep(.34, .49, r));' : ''}   // a round fade around the bubble; the glow is round, so a box fade would show
+  // embedded, the frame is transparent: the colour is split into ink and coverage over white, which is exact on a
+  // white page and lets the frame overlap its neighbours without covering them
+  ${EMBED ? 'float m = min(min(col.r, col.g), col.b); gl_FragColor = vec4(col - m, 1. - m);' : 'gl_FragColor = vec4(col, 1.);'}
+}`;
+
+const $ = id => document.getElementById(id);
+const stage = $('stage'), cv = $('c'), scoreEl = $('score'), numEl = $('n'), replay = $('replay'), bar = $('bar'), shaped = $('shaped'), mcard = $('mcard'), calNow = $('calNow'), lo = $('lo'), hi = $('hi'), variantsEl = $('variants'), macrosEl = $('macros'), tagEl = $('tag'), tagText = $('tagText');
+const gl = cv.getContext('webgl', { antialias: false, alpha: EMBED, premultipliedAlpha: true });
+
+function shader(type, src) {
+  const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw gl.getShaderInfoLog(s);
+  return s;
+}
+const pr = gl.createProgram();
+gl.attachShader(pr, shader(gl.VERTEX_SHADER, 'attribute vec2 a;void main(){gl_Position=vec4(a,0,1);}'));
+gl.attachShader(pr, shader(gl.FRAGMENT_SHADER, FS));
+gl.bindAttribLocation(pr, 0, 'a'); gl.linkProgram(pr); gl.useProgram(pr);
+gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+// orbs: the SVG is drawn once into a 128px texture with mip levels, then all 30 are drawn in one pass.
+// empty orbs read a smaller mip level for their blur, and go grey in the shader; no per-frame SVG filters
+// The orb fills half its tile, so its soft shadow fades out well inside the tile's edge. At 75% the shadow
+// reached the edge and was cut off square, which showed as boxes on a transparent page.
+const ORB_PAD = .5;
+const pr2 = gl.createProgram();
+gl.attachShader(pr2, shader(gl.VERTEX_SHADER, `attribute vec2 aP, aUV; attribute float aF; varying vec2 vUV; varying float vF;
+void main(){ vUV = aUV; vF = aF; gl_Position = vec4(aP, 0, 1); }`));
+gl.attachShader(pr2, shader(gl.FRAGMENT_SHADER, `precision mediump float;
+uniform sampler2D uT; uniform float uMix; varying vec2 vUV; varying float vF;
+void main(){
+  float e = 1. - vF;
+  vec4 c = texture2D(uT, vUV);                                          // premultiplied; empty orbs stay crisp, only greyed
+  vec3 rgb = min(mix(c.rgb, vec3(dot(c.rgb, vec3(.299, .587, .114))*1.35), e), vec3(c.a));
+  vec4 orb = vec4(rgb, c.a)*(.5 + .5*vF);
+  float sh = texture2D(uT, vUV + vec2(0., -.03), 1.8).a*.22*vF;         // soft green drop shadow under filled orbs, well inside the tile
+  gl_FragColor = (orb + vec4(vec3(.02, .376, .227)*sh, sh)*(1. - orb.a))*uMix;
+}`));
+['aP', 'aUV', 'aF'].forEach((n, i) => gl.bindAttribLocation(pr2, i, n));
+gl.linkProgram(pr2);
+const uOrbMix = gl.getUniformLocation(pr2, 'uMix');
+const triBuf = gl.getParameter(gl.ARRAY_BUFFER_BINDING), orbBuf = gl.createBuffer(), orbV = new Float32Array((30 + NS) * 6 * 5);
+let orbTex = null;
+{
+  const im = new Image();
+  im.onload = () => {
+    const c = document.createElement('canvas'); c.width = c.height = 256;   // orb drawn at 128, sharp on 3x screens
+    c.getContext('2d').drawImage(im, 64, 64, 128, 128);
+    orbTex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, orbTex);
+    gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c);
+    gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  };
+  im.src = 'orb.svg';
+}
+function drawOrbs(n, mixv) {
+  gl.useProgram(pr2); gl.uniform1f(uOrbMix, mixv);
+  gl.bindBuffer(gl.ARRAY_BUFFER, orbBuf); gl.bufferData(gl.ARRAY_BUFFER, orbV.subarray(0, n * 30), gl.DYNAMIC_DRAW);
+  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 20, 0);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 20, 8);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 20, 16);
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+  gl.drawArrays(gl.TRIANGLES, 0, n * 6);
+  gl.disable(gl.BLEND); gl.disableVertexAttribArray(1); gl.disableVertexAttribArray(2);
+  gl.useProgram(pr); gl.bindBuffer(gl.ARRAY_BUFFER, triBuf); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+}
+
+const U = {};
+['uLocal','uAura','uTide','uSeg','uRingOn','uMac','uGA','uGB','uEdge','uEdgeAmt','uLift','uSA','uSB','uSG','uGlowC','uGreenIn','uGauge','uRim','uGlowS','uFill','uArcIn','uRes','uTime','uRc','uArm','uVivid','uSwirl','uK','uPop','uGlow','uScale','uEye','uLight','uB']
+  .forEach(n => U[n] = gl.getUniformLocation(pr, n));
+
+// variants: every value lerps, so switching blends instead of cutting
+const SKY = {
+  dusk:     [.16,.11,.42, .42,.33,.86, .86,.50,.86, .98,.62,.66, 1,.80,.62, 1,.95,.90],
+  dawn:     [.08,.16,.48, .33,.50,.97, .70,.62,1, 1,.72,.82, 1,.84,.72, .97,.97,1],
+  green:    [.11,.30,.22, .16,.62,.42, .35,.70,.55, .55,.85,.72, .80,.94,.88, .97,.99,.98],
+  sage:     [.12,.28,.20, .25,.52,.35, .48,.70,.42, .80,.84,.50, .96,.90,.66, .99,.98,.93],
+  lagoon:   [.05,.20,.35, .10,.50,.55, .30,.75,.72, .60,.90,.78, .90,.97,.80, .98,1,.97],
+  aqualime: [.06,.28,.30, .12,.52,.50, .35,.75,.65, .62,.88,.70, .88,.95,.72, .99,.99,.95],
+  // the orb's own greens: #05603A, #039855, #12B76A, #32D583, #6CE9A6, #D1FADF
+  orb:      [.02,.376,.227, .012,.596,.333, .07,.718,.416, .196,.835,.514, .424,.914,.651, .82,.98,.875],
+  orbsoft:  [.03,.30,.20, .05,.50,.30, .20,.72,.48, .42,.88,.62, .70,.95,.80, .96,.99,.97],
+  // pearl: cool, near-neutral liquid, so green is left to the orbs and the gauge
+  pearl:    [.46,.53,.62, .62,.69,.77, .76,.83,.87, .86,.91,.92, .93,.96,.96, .99,1,1],
+  // cloud: milky white with a breath of mint, soft on the eye
+  cloud:    [.70,.80,.76, .80,.88,.84, .88,.93,.90, .93,.96,.94, .97,.985,.975, 1,1,1],
+  // mist: sage-grey, for a score held back until there is a plan
+  mist:     [.55,.64,.60, .66,.74,.71, .77,.83,.81, .86,.90,.89, .93,.96,.95, 1,1,1],
+  cloudsoft:[.74,.83,.79, .84,.90,.87, .90,.95,.92, .95,.97,.96, .98,.99,.98, 1,1,1],
+  pearlsoft:[.52,.58,.66, .68,.74,.80, .80,.86,.88, .89,.93,.93, .95,.97,.97, 1,1,1],
+};
+// GoodFlip brand greens
+const B200 = [.80, .94, .88], B400 = [.475, .8, .659], B600 = [.161, .616, .42];
+const WHITE_TEXT = { ink: '#fff', inkShadow: '0 2px 22px rgba(30, 10, 80, .35)' };
+const DARK_TEXT = { ink: '#1d4d38', inkShadow: '0 1px 12px rgba(255, 255, 255, .6)' };
+const ORB_INK = { ink: '#054f31', inkShadow: '0 1px 12px rgba(255, 255, 255, .6)' };
+const ORB_WHITE = { ink: '#fff', inkShadow: '0 1px 14px rgba(5, 60, 35, .45)' };
+// the bubble dressed as a giant orb: its greens, and its dark inner shadow (#039855) as the rim
+const ORB = { sky: ['orb', 'orbsoft'], gauge: [[.196, .835, .514], [.012, .596, .333]], edge: [.012, .596, .333], rim: .8, glow: [.82, .98, .875], glowS: .7 };
+// lift: how far the settled bubble pales toward white; edge: rim tint that keeps a pale bubble's shape on white
+const VARIANTS = [
+  { name: 'Orbs',     ...ORB, lift: .88, edgeAmt: .3, orbs: true, ...ORB_INK },
+  { name: 'Pearl',    ...ORB, sky: ['pearl', 'pearlsoft'], lift: .55, edge: [.64, .7, .76], edgeAmt: .3, rim: .15, glow: [.94, .96, .96], glowS: .45, aura: .35, orbs: true,
+    ink: '#1d2939', inkShadow: '0 1px 12px rgba(255, 255, 255, .6)' },
+  { name: 'Cloud Drop', ...ORB, speed: 3, sky: ['cloud', 'cloudsoft'], introSky: ['orb', 'orbsoft'], local: true, lift: .5, edge: [.7, .82, .76], edgeAmt: .3, rim: 1, glow: [.88, .96, .92], glowS: .55, aura: .6, orbs: true,
+    ink: '#1d2939', inkShadow: '0 1px 12px rgba(255, 255, 255, .6)' },
+  { name: 'Cloud',    ...ORB, sky: ['cloud', 'cloudsoft'], introSky: ['orb', 'orbsoft'], lift: .5, edge: [.7, .82, .76], edgeAmt: .3, rim: 1, glow: [.88, .96, .92], glowS: .55, aura: .6, orbs: true,
+    ink: '#1d2939', inkShadow: '0 1px 12px rgba(255, 255, 255, .6)' },
+  { name: 'Deep orb', ...ORB, edgeAmt: .55, orbs: true, ...ORB_WHITE },
+  { name: 'Tide',     ...ORB, lift: .82, edgeAmt: .45, tide: 1, orbs: true, ...ORB_WHITE },
+  { name: 'Macros',   ...ORB, lift: .62, edgeAmt: .45, seg: 1, orbs: true, ...ORB_INK },
+  { name: 'Drops',    ...ORB, lift: .66, edgeAmt: .45, tide: 1, ring: 0, quad: 1, ...ORB_WHITE },
+  { name: 'Meadow',   sky: ['green', 'aqualime'], lift: .74, gauge: [B400, B600], edge: B400, edgeAmt: .4, rim: .8, glow: B200, glowS: .7, ...DARK_TEXT },
+  { name: 'Dew',      sky: ['lagoon', 'green'],   lift: .72, gauge: [[.55, .85, .80], [.10, .50, .55]], edge: [.45, .78, .76], edgeAmt: .4, rim: .7, glow: [.80, .94, .92], glowS: .7,
+    ...DARK_TEXT, ink: '#0f3d3e' },
+  { name: 'Sunlit',   sky: ['green', 'sage'],     lift: .7,  gauge: [[.88, .78, .40], B600], edge: [.62, .80, .55], edgeAmt: .35, rim: .7, glow: [.90, .94, .82], glowS: .7, ...DARK_TEXT },
+  { name: 'Forest',   sky: ['green', 'sage'],     rim: .6, glow: B200, glowS: .7, ...WHITE_TEXT },
+  { name: 'Emerald',  sky: ['dusk', 'dawn'], greenIn: .85, rim: .5, glow: B200, glowS: .65, ...WHITE_TEXT },
+  { name: 'Original', sky: ['dusk', 'dawn'],      glow: [.80, .93, .86], glowS: .5, ...WHITE_TEXT },
+];
+const pack = v => [...SKY[v.sky[0]], ...SKY[v.sky[1]], ...SKY.green, ...v.glow, v.greenIn || 0, v.gauge ? 1 : 0, v.rim || 0, v.glowS,
+  ...(v.gauge || [B400, B600]).flat(), ...(v.edge || [1, 1, 1]), v.edgeAmt || 0, v.lift || 0,
+  v.tide || 0, v.seg || 0, v.ring ?? 1, v.quad || 0, v.aura ?? 1];
+let vIdx = 0, vTarget = pack(VARIANTS[0]), vCur = vTarget.slice();
+function setVariant(i) {
+  const v = VARIANTS[i];
+  vIdx = i; vTarget = pack(v);
+  [['--ink', v.ink], ['--ink-shadow', v.inkShadow]]
+    .forEach(([k, val]) => stage.style.setProperty(k, val));
+  [...variantsEl.children].forEach((b, j) => b.setAttribute('aria-pressed', j === i));
+  macrosEl.classList.toggle('in-drop', !!v.quad);
+}
+VARIANTS.forEach((v, i) => {
+  const b = document.createElement('button');
+  b.textContent = v.name;
+  b.addEventListener('click', () => setVariant(i));
+  variantsEl.append(b);
+});
+// ?lock=lit|quiet (embedded): no plan yet, so no score. The same pour in mist, empty orbs, and the padlock
+// (Lock.json) where the number would be. Lit keeps a mint halo, the day nothing has happened; quiet does not.
+const LOCK = EMBED ? QS.get('lock') : null;
+// ?from= (embedded, arriving from a log): no intro. The day is shown as it stood, and the score steps up to SCORE.
+// ?still=1 (embedded): no intro and no step-up — the score is already settled (sufficiency sheet).
+const STILL = EMBED && QS.has('still');
+const FROM = !STILL && EMBED && QS.has('from') ? +QS.get('from') : null, LOADED = performance.now();
+if (LOCK) {
+  document.documentElement.classList.add('locked');
+  Object.assign(VARIANTS.find(v => v.name === 'Cloud Drop'), { introSky: ['mist', 'mist'], sky: ['mist', 'cloud'], lift: .72,
+    glow: LOCK === 'lit' ? [.84, .95, .9] : [.93, .95, .94], glowS: LOCK === 'lit' ? .6 : .3, aura: 0 });
+}
+// Cloud is the default; embedded, the host names one (Cloud Drop unless told otherwise)
+setVariant(Math.max(0, VARIANTS.findIndex(v => v.name === (EMBED ? QS.get('v') || 'Cloud Drop' : 'Cloud'))));
+// start on the variant's own colours, rather than blending in from the first variant's greens over the first second
+vCur = vTarget.slice();
+// the padlock: the same player and animation the Plate uses, from the prototype's assets
+let lockAnim = null, lockPlayed = false;
+if (LOCK) {
+  const load = src => new Promise(r => { const sc = document.createElement('script'); sc.src = src; sc.onload = sc.onerror = r; document.head.append(sc); });
+  Promise.all([load('../../assets/lottie_light.min.js'), load('../../assets/lock-anim.js')]).then(() => {
+    if (!window.lottie || !window.GF_LOCK) return;
+    lockAnim = lottie.loadAnimation({ container: $('lock'), renderer: 'svg', loop: false, autoplay: false, animationData: window.GF_LOCK,
+      rendererSettings: { preserveAspectRatio: 'xMidYMid meet' } });
+    // it locks once and holds on its last frame; the bubble answers with a small pulse as it clicks shut
+    lockAnim.addEventListener('complete', () => { pulseV += .9; });
+    if (STILL || matchMedia('(prefers-reduced-motion: reduce)').matches) lockAnim.addEventListener('DOMLoaded', () => lockAnim.goToAndStop(lockAnim.totalFrames - 1, true));
+  });
+}
+// macro card: one vessel per macro, filled to its level, grams counting up with it
+const CARD_V = [['graphite', 'Graphite'], ['orb', 'Orb'], ['glass', 'Glass'], ['sage', 'Sage']];
+CARD_V.forEach(([k, label]) => {
+  const b = document.createElement('button');
+  b.textContent = label; b.setAttribute('aria-pressed', k === mcard.dataset.v);
+  b.addEventListener('click', () => { mcard.dataset.v = k; [...$('cardVariants').children].forEach(x => x.setAttribute('aria-pressed', x === b)); });
+  $('cardVariants').append(b);
+});
+const CELLS = MACROS.map(m => {
+  const el = document.createElement('div'); el.className = 'm';
+  el.innerHTML = `<span class="gwrap"><span class="gfill glyph-${m.key}"></span></span>` +
+    `<span class="mtext"><span class="mval"><strong>0</strong>/${m.g}g</span><span class="mname">${m.name}</span></span>`;
+  $('mgrid').append(el);
+  return { fill: el.querySelector('.gfill'), num: el.querySelector('strong'), eaten: Math.round(m.g * m.v / 100), lvl: m.v };
+});
+const fmt = n => n.toLocaleString('en-US');
+// variant sheet
+const openSheet = on => stage.classList.toggle('sheet-open', on);
+$('openSheet').addEventListener('click', () => openSheet(true));
+$('closeSheet').addEventListener('click', () => openSheet(false));
+$('scrim').addEventListener('click', () => openSheet(false));
+addEventListener('keydown', e => { if (e.key === 'Escape') openSheet(false); });
+// Orbs variant: the real orb artwork, one per pearl, laid over the canvas
+let orbMix = 1;
+
+// macro labels: a legend under the segmented gauge, or sitting inside each macro drop
+const MAC_EL = MACROS.map(m => {
+  const el = document.createElement('div'); el.className = 'macro';
+  el.innerHTML = `<i class="glyph-${m.key}"></i><b>0%</b><span>${m.name}</span>`;
+  macrosEl.append(el); return el;
+});
+const QUAD = [.75, .25, -.25, -.75].map(f => f * Math.PI);   // drop angles: top-left, top-right, bottom-right, bottom-left
+
+let W, H, A;
+const ln = document.getElementById('ln'), lctx = ln.getContext('2d');
+let LD = 1, lnDone = false;
+function resize() {
+  const d = Math.min(devicePixelRatio || 1, 2);
+  W = stage.clientWidth; H = stage.clientHeight; A = W / H;
+  cv.width = W * d | 0; cv.height = H * d | 0; gl.viewport(0, 0, cv.width, cv.height);
+  LD = d; ln.width = cv.width; ln.height = cv.height;
+}
+new ResizeObserver(resize).observe(stage); resize();
+// shader space: origin at centre, y up, 1 unit = screen height
+const toPx = (x, y) => [x * H + W / 2, H / 2 - y * H];
+const fromPx = (x, y) => [(x - W / 2) / H, (H / 2 - y) / H];
+
+const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => cl((t - a) / (b - a));
+const eOut = x => 1 - Math.pow(1 - x, 3);
+const eIO = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const eExpo = x => x >= 1 ? 1 : 1 - Math.pow(2, -10 * x);
+const mix = (a, b, k) => a + (b - a) * k;
+
+const Y1 = EMBED ? (+QS.get('y') || .01) : .2, SCORE = LOCK ? 0 : EMBED ? Math.max(0, Math.min(100, Math.round(+QS.get('score') || 0))) : 85;
+// status tags; the score picks one, and tapping the chip previews the rest
+const TAGS = [['solid', 'Solid Day'], ['grow', 'Room To Grow'], ['attention', 'Needs Attention'], ['none', 'No Data Available'], ['gathering', 'Gathering data'], ['log', 'Log your meals']];
+let tagIdx = SCORE >= 70 ? 0 : SCORE >= 50 ? 1 : 2;
+// embedded, the host may name the tag (an unfinished day gets no verdict)
+if (EMBED && QS.get('tag')) tagIdx = Math.max(0, TAGS.findIndex(x => x[0] === QS.get('tag')));
+function showTag(i) { tagIdx = i; tagEl.dataset.s = TAGS[i][0]; tagText.textContent = TAGS[i][1]; }
+tagEl.addEventListener('click', () => showTag((tagIdx + 1) % TAGS.length));
+showTag(tagIdx);
+// slot-machine digits: each column spins down a strip and lands, left to right
+const SLOT = String(SCORE).split('').map((d, j) => {
+  const col = document.createElement('span'), strip = document.createElement('span');
+  col.className = 'col'; strip.className = 'strip';
+  const seq = [...Array((2 + j) * 10).keys()].map(k => k % 10).concat([...Array(+d + 1).keys()]);
+  strip.innerHTML = seq.map(k => `<span>${k}</span>`).join('');
+  col.append(strip); numEl.append(col);
+  return { strip, n: seq.length - 1, j };
+});
+// pearls sit evenly round the ring; the score fills them left to right (top before bottom on a tie)
+// zigzag like beads: big ones on the inner line, small ones just outside; they fill in arc order
+const PEARLS = Array.from({ length: P }, (_, i) => ({
+  i, rank: i, a: ARC0 - i / (P - 1) * SWEEP,
+  ro: (i % 2 ? .19 : .165) * SIZE, r: (i % 2 ? .0075 : .0115) * SIZE * (1 + .1 * Math.sin(i * 2.3)),
+}));
+const rF = (s => () => (s = s * 16807 % 2147483647) / 2147483647)(7);
+const FLOCK = Array.from({ length: NF }, (_, j) => ({ slot: j, orb: j < NS, a: rF() * 6.2832, r0: .38 + rF() * .32,
+  d: rF() * 1.3, s: j < NS ? .0105 : .005 + rF() * .008, turns: .35 + rF() * .35 }));
+const FEED = WAY === 'feed';
+// when each intro grows the bubble (choreography seconds)
+const GROW = { murmuration: [1.0, 4.4], feed: [2.0, 5.4], ribbons: [1.6, 4.8], topo: [.4, 3.6], stream: [.8, 4.2], aurora: [2.4, 5.0], enso: [2.0, 4.4] };
+const growOf = t => eIO(seg(t, ...GROW[WAY]));
+
+
+// ---- the line intros: shared geometry, so the orbs (in the shader) and the lines (on the 2D layer) agree ----
+const GREEN = '18,183,106', TEAL = '45,166,166', MINT = '50,213,131';
+// Ribbons: a spiral from far outside down to the bubble's edge; s runs 0 (outside) to 1 (the glass)
+const RIB = [0, 1, 2].map(j => ({ a0: j * 2.094 + .4, d: j * .35, col: [[18, 183, 106], [45, 166, 166], [50, 213, 131]][j] }));
+const ribXY = (q, s) => { const rr = Math.max(main.r, .02) * 1.02 + .55 * (1 - s) ** 1.4, an = q.a0 + 1.25 * 6.2832 * s;
+  return [main.x + Math.cos(an) * rr, main.y + Math.sin(an) * rr]; };
+const ribHead = (q, t) => 1.45 * eIO(seg(t, q.d, q.d + 3.6));
+// Topography: nine wobbling contours round the bubble that close onto the gauge's ring as the bubble settles
+const topoClose = t => eIO(seg(t, 3.4, 5.0));
+const topoXY = (k, a, t) => { const c2 = topoClose(t), rk = mix(Math.max(main.r, .03) + k * .03, RING, c2);
+  const w = 1 + (1 - c2) * (.06 * Math.sin(3 * a + k * .9 + t * .5) + .04 * Math.sin(5 * a - k * 1.3 - t * .4) + .03 * Math.sin(2 * a + k));
+  return [main.x + Math.cos(a) * rk * w, main.y + Math.sin(a) * rk * w]; };
+// Streamlines: potential flow round a cylinder the size of the bubble, traced from the left edge
+function streamLine(y0, a) {
+  let x = -.75, y = y0; const pts = [[x, y]];
+  for (let n = 0; n < 70; n++) {
+    const r2 = x * x + y * y, r4 = r2 * r2, u = 1 - a * a * (x * x - y * y) / r4, v = -2 * a * a * x * y / r4, m = Math.hypot(u, v) || 1;
+    x += u / m * .022; y += v / m * .022; pts.push([x, y]);
+  }
+  return pts;
+}
+const STREAMS = Array.from({ length: 12 }, (_, k) => (k - 5.5) * .048);
+// Aurora: three curtains; pour runs them down and in, from the sky to the glass
+const AUR = [[50, 213, 131], [45, 166, 166], [140, 170, 255]];
+const aurPour = t => eIO(seg(t, 1.8, 4.0));
+const DRIPS = Array.from({ length: 16 }, (_, j) => ({ x: (rF() - .5) * .8, d: 1.2 + rF() * 2.2 }));
+// Ensō: a brush circle, drawn clockwise from the upper left, drying as it goes
+const ENSO_R = () => .112 * SIZE * 1.22, ensoA0 = 1.9;
+const ensoXY = (u, rad) => { const a = ensoA0 - u * 5.9; return [main.x + Math.cos(a) * rad, main.y + Math.sin(a) * rad]; };
+const FLICK = Array.from({ length: 8 }, () => ({ a: rF() * 1.8 - .9, v: .07 + rF() * .1, s: .005 + rF() * .006 }));
+const LINES = {
+  aurora(c, t) {
+    const p = aurPour(t), fade = eOut(seg(t, 0, 1.2)) * (1 - seg(t, 2.9, 3.8));
+    if (fade <= 0) return;
+    c.filter = 'blur(5px)';
+    AUR.forEach(([r, g, b], j) => {
+      // as they pour, the curtains narrow into a funnel that comes down onto the top of the glass
+      const span = mix(.62, Math.max(main.r, .05) * .55, p), base = mix(.34 - j * .03, main.y + main.r * .7, p), hgt = mix(.14, .2, p);
+      const top = [], bot = [];
+      for (let n = 0; n <= 40; n++) {
+        const u = n / 20 - 1, x = main.x + u * span * mix(1, .35 + .65 * Math.abs(u), p), yb = base + .035 * Math.sin(x * 6 + t * .9 + j * 2) * (1 - p) + p * .12 * u * u;
+        bot.push(toPx(x, yb)); top.push(toPx(x, yb + hgt * (.55 + .45 * Math.sin(x * 11 - t * 1.4 + j))));
+      }
+      const [, y0] = toPx(0, base + hgt), [, y1] = toPx(0, base), g2 = c.createLinearGradient(0, y0, 0, y1);
+      g2.addColorStop(0, `rgba(${r},${g},${b},0)`); g2.addColorStop(1, `rgba(${r},${g},${b},${.5 * fade})`);
+      c.fillStyle = g2; c.beginPath();
+      top.forEach(([x, y], n) => n ? c.lineTo(x, y) : c.moveTo(x, y));
+      bot.reverse().forEach(([x, y]) => c.lineTo(x, y));
+      c.closePath(); c.fill();
+    });
+    c.filter = 'none';
+  },
+  enso(c, t) {
+    const u1 = eIO(seg(t, .2, 1.9)), shrink = eIO(seg(t, 2.4, 4.0)), fade = 1 - seg(t, 3.2, 4.2);
+    if (u1 <= 0 || fade <= 0) return;
+    const rad = mix(ENSO_R(), Math.max(main.r, .02), shrink);
+    // eleven fine bristles across the stroke, each with its own wobble and ink; the brush presses in,
+    // then lifts and dries toward the end, so gaps open bristle by bristle. Each bristle is stroked as
+    // continuous runs (a new run every few steps, so its width can follow the pressure), never as dots
+    c.lineCap = 'butt'; c.lineJoin = 'round';   // flat run ends, so joins between runs leave no dots
+    for (let b = 0; b < 11; b++) {
+      const off = (b - 5) / 5, ink = .55 + .45 * Math.abs(Math.sin(b * 2.3));
+      c.strokeStyle = `rgba(${b % 4 === 1 ? '10,130,80' : GREEN},${ink * (.9 - Math.abs(off) * .35) * fade})`;
+      let run = 0, last = null;
+      const end = Math.floor(160 * u1);
+      for (let n = 0; n <= end; n++) {
+        const u = n / 160, press = Math.pow(Math.sin(Math.PI * Math.min(1, u * 1.15 + .05)), .45) * (1 - .45 * u);
+        const dry = Math.sin(u * 61 + b * 13.7) * .55 + Math.sin(u * 137 - b * 5.1) * .45;
+        const gap = dry > 1.3 - u * 1.25 * (.6 + .4 * Math.abs(off));   // the outer bristles run dry first
+        const w = 16 * press, [x, y] = toPx(...ensoXY(u, rad + (off * w / 2 + .6 * Math.sin(u * 9 + b)) / 300));
+        if (gap) { if (run) c.stroke(); run = 0; last = null; continue; }
+        if (!run) { c.beginPath(); c.moveTo(...(last || [x, y])); c.lineWidth = Math.max(.5, w / 9); }
+        c.lineTo(x, y); run++; last = [x, y];
+        if (run >= 6 || n === end) { c.stroke(); run = 0; }
+      }
+    }
+  },
+  ribbons(c, t) {
+    const fade = 1 - seg(t, 4.4, 5.2);
+    c.lineCap = 'butt';
+    RIB.forEach(q => {
+      const h = ribHead(q, t), hd = Math.min(1, h), tl = cl(h - .45);
+      if (h <= 0 || tl >= 1) return;
+      let prev = toPx(...ribXY(q, tl));
+      for (let n = 1; n <= 70; n++) {
+        const f = n / 70, s = mix(tl, hd, f), cur = toPx(...ribXY(q, s));
+        // the ribbon turns as it travels: its width follows the twist, and its back face shows paler
+        const tw = Math.cos(s * 16 - t * 1.5), lit = tw > 0 ? 1 : .5, [r, g, b] = q.col;
+        c.strokeStyle = `rgba(${mix(255, r, lit) | 0},${mix(255, g, lit) | 0},${mix(255, b, lit) | 0},${.85 * f * fade})`;
+        c.lineWidth = 10 * (.12 + .88 * Math.abs(tw)) * (.4 + .6 * f) * (1 - s * .45);
+        c.beginPath(); c.moveTo(prev[0], prev[1]); c.lineTo(cur[0], cur[1]); c.stroke();
+        prev = cur;
+      }
+    });
+  },
+  topo(c, t) {
+    const fade = 1 - seg(t, 4.8, 5.6);
+    c.lineWidth = 1.1;
+    for (let k = 1; k <= 9; k++) {
+      const p = eIO(seg(t, .2 + k * .12, 1.6 + k * .14));
+      if (p <= 0) continue;
+      c.beginPath();   // each contour draws itself round from the top
+      for (let n = 0; n <= 120 * p; n++) { const [x, y] = toPx(...topoXY(k, Math.PI / 2 - n / 120 * 6.2832, t)); n ? c.lineTo(x, y) : c.moveTo(x, y); }
+      c.strokeStyle = `rgba(${k % 3 === 2 ? TEAL : GREEN},${(.55 - k * .03) * fade})`; c.stroke();
+    }
+  },
+  stream(c, t) {
+    const fade = (1 - seg(t, 3.8, 4.8)) * eOut(seg(t, 0, .8)), a = Math.max(main.r, .015) * 1.12;
+    c.setLineDash([7, 9]); c.lineDashOffset = -t * 40; c.lineWidth = 1.3;   // the dashes run with the flow
+    STREAMS.forEach((y0, k) => {
+      c.beginPath();
+      streamLine(y0, a).forEach(([x, y], n) => { const [px, py] = toPx(main.x + x, main.y + y); n ? c.lineTo(px, py) : c.moveTo(px, py); });
+      c.strokeStyle = `rgba(${k % 3 === 1 ? TEAL : GREEN},${.62 * fade})`; c.stroke();
+    });
+    c.setLineDash([]);
+  },
+};
+const INTROS = {
+  murmuration(t, put, sprite) {
+    FLOCK.forEach(q => {
+      const k = seg(t, q.d, q.d + 3.8);
+      if (k >= 1) return;
+      // half linear, half eased, so the arrival is spread out; each heads for the bubble's growing edge, not its centre
+      const e = mix(k, eIO(k), .5), rr = mix(q.r0, main.r * .6, e), an = q.a + q.turns * 6.2832 * e;
+      const x = main.x + Math.cos(an) * rr, y = main.y + Math.sin(an) * rr * .92;
+      const r = q.s * SIZE * eOut(seg(t, q.d * .4, q.d * .4 + 1.5));
+      put(q.slot, x, y, q.orb ? r * .8 : r);
+      // an orb grows in from the frame's edge, and sinks into the glass as it reaches it
+      if (q.orb) sprite(x, y, r * (1 - cl((rr - .4) / .16)) * cl((rr - main.r * .75) / .05));
+    });
+  },
+  feed(t, put) {
+    // each orb, left to right, sends a droplet down to the centre, and the bubble is made of them
+    PEARLS.forEach((q, i) => {
+      const k = seg(t, 1.4 + i * .06, 2.9 + i * .06);
+      if (k <= 0 || k >= 1) return;
+      const th = ARC0 - i / (P - 1) * SWEEP, e = eIO(k), rr = mix(q.ro, main.r * .5, e);
+      put(i, main.x + Math.cos(th) * rr, main.y + Math.sin(th) * rr, .009 * SIZE * (1 - .4 * e));
+    });
+  },
+  ribbons(t, put, sprite) {
+    RIB.forEach((q, j) => {   // an orb rides each ribbon's tip, and sinks into the glass after it
+      const h = ribHead(q, t);
+      if (h <= 0 || h >= 1.12) return;
+      const [x, y] = ribXY(q, Math.min(1, h)), r = .0115 * SIZE * eOut(seg(h, 0, .15)) * (1 - seg(h, 1, 1.12));
+      put(j, x, y, r * .8); sprite(x, y, r);
+    });
+  },
+  topo(t, put, sprite) {
+    // six orbs ride the contours, alternate rings turning opposite ways, then drift into the glass
+    for (let o = 0; o < 6; o++) {
+      const k = 2 + (o % 4) * 2, a = o * 1.05 + t * (.25 + .04 * k) * (o % 2 ? 1 : -1);
+      const [ox, oy] = topoXY(k, a, t), in_ = eIO(seg(t, 3.6 + o * .08, 4.8 + o * .08));
+      const x = mix(ox, main.x, in_ * .8), y = mix(oy, main.y, in_ * .8);
+      const r = .0105 * SIZE * eOut(seg(t, .4 + k * .12, 1.2 + k * .12)) * (1 - seg(in_, .7, 1));
+      put(o, x, y, r * .8); sprite(x, y, r);
+    }
+  },
+  stream(t, put, sprite) {
+    // ten orbs carried on the current; as the flow stills, the bubble draws each one in
+    const a = Math.max(main.r, .015) * 1.12;
+    for (let o = 0; o < 10; o++) {
+      const line = streamLine(STREAMS[(o * 5) % 12], a), n = Math.floor(((t * .16 + o * .37) % 1) * 70);
+      const [sx, sy] = line[n], cap = eIO(seg(t, 3.2 + o * .06, 4.4 + o * .06));
+      const x = mix(main.x + sx, main.x, cap * .85), y = mix(main.y + sy, main.y, cap * .85);
+      const r = .0105 * SIZE * eOut(seg(t, o * .1, .8 + o * .1)) * (1 - seg(cap, .75, 1));
+      put(o, x, y, r * .8); sprite(x, y, r);
+    }
+  },
+  aurora(t, put, sprite) {
+    // droplets drip from the curtains' lower edge and fall into the glass; a few are orbs
+    DRIPS.forEach((q, j) => {
+      const k = seg(t, q.d, q.d + 1.3);
+      if (k <= 0 || k >= 1) return;
+      const p = aurPour(q.d), x0 = main.x + q.x * mix(.62, .1, p), y0 = mix(.34, main.y + .1, p);
+      const x = mix(x0, main.x, eIO(k) * .8), y = mix(y0, main.y, eIO(k)), orb = j % 4 === 0, r = (orb ? .0105 : .008) * SIZE * eOut(seg(k, 0, .2));
+      put(j, x, y, orb ? r * .8 : r);
+      if (orb) sprite(x, y, r * cl((Math.hypot(x - main.x, y - main.y) - main.r * .8) / .04));
+    });
+  },
+  enso(t, put) {
+    // as the brush lifts off, droplets flick from its tail; later the bubble draws them in
+    const [ex, ey] = ensoXY(1, ENSO_R());
+    FLICK.forEach((q, j) => {
+      const k = seg(t, 1.75 + j * .02, 2.4 + j * .02), back = eIO(seg(t, 2.8 + j * .08, 4.0 + j * .08));
+      if (k <= 0 || back >= 1) return;
+      const a = ensoA0 - 5.9 - 1.5708 + q.a, fx = ex + Math.cos(a) * q.v * eOut(k), fy = ey + Math.sin(a) * q.v * eOut(k);
+      put(j, mix(fx, main.x, back), mix(fy, main.y, back), q.s * SIZE * eOut(seg(k, 0, .3)));
+    });
+  },
+};
+if (!INTROS[WAY]) throw new Error('unknown ?intro=' + WAY);
+const B = new Float32Array(N * 4);
+let t0, last, main, drops, pop, pulse, pulseV;
+
+function reset(skip = 0) {
+  lnDone = false;
+  SPEED = EMBED ? 3 : VARIANTS[vIdx].speed || 1.6;   // Cloud Drop's own 3x, so every intro lands within 3.8s
+  t0 = performance.now() - skip * 1000; last = null; pop = -10; pulse = 0; pulseV = 0;
+  main = { x: 0, y: 0, r: 0 };
+  drops = [{ r: 0 }, { r: 0 }];
+}
+
+// The intro is choreographed on an 11.5s score and played SPEED times faster; once it has finished, the clock
+// runs at normal speed again so the idle motion (churn, drift, breathing) stays calm
+const INTRO = 11.5;
+let SPEED = 1.6;   // a variant may play faster (speed); latched when the intro starts so a switch mid-idle never jumps
+function clock(now) {
+  const r = (now - t0) / 1000, e = INTRO / SPEED;
+  return r < e ? r * SPEED : INTRO + (r - e);
+}
+
+function frame(now) {
+  const t = clock(now), dt = Math.min(.05, last == null ? 0 : (now - last) / 1000); last = now;
+
+  // big bubble: grows as the colour pours in, then glides up to its seat
+  pulseV += (-120 * pulse - 20 * pulseV) * dt; pulse += pulseV * dt;
+  const local = EMBED || !!VARIANTS[vIdx].local;   // embedded, every variant keeps its intro inside its own space   // Cloud Drop: born in place, no rise
+  main.y = (local ? Y1 : Y1 * eIO(seg(t, 4.9, 6.8))) + .005 * Math.sin(t * .7) * seg(t, 6.3, 7.5);
+  main.r = R0 * growOf(t) * (1 + .008 * Math.sin(t * 1.3) * seg(t, 6, 7));
+
+
+  B.fill(0);
+  const since = (now - LOADED) / 1000;
+  const prog = FROM != null ? 1 : eExpo(seg(t, 6.8, 8.8));
+  const filled = FROM != null ? mix(FROM, SCORE, eIO(seg(since, .5, 1.9))) : SCORE * prog;
+  if (FROM != null && !stepped && since > .5) { stepped = true; pulseV += .8; }
+  B.set([main.x, main.y, main.r, 2 + filled / 100], 0);
+  for (let j = 0; j < vCur.length; j++) vCur[j] += (vTarget[j] - vCur[j]) * Math.min(1, dt * 3);
+  const [tideM, segM, ringM, quadM] = vCur.slice(72, 76);
+
+  // pearls: bud out of the bubble, then orbit it, each tracing its own small circle
+  orbMix += ((VARIANTS[vIdx].orbs ? 1 : 0) - orbMix) * Math.min(1, dt * 4);
+  let orbN = 0;
+  PEARLS.forEach((q, i) => {
+    const tb = FEED ? .2 + q.i * .04 : 6.0 + q.i * .035, k = FEED ? 1 : eOut(seg(t, tb, tb + 1.2));
+    if (!k) return;
+    // Macros: pearls regroup into four clusters of 8, 7, 8, 7 with gaps between
+    const g = i < 8 ? 0 : i < 15 ? 1 : i < 23 ? 2 : 3, gs = [0, 8, 15, 23][g], gn = g % 2 ? 7 : 8, l = (i - gs) / (gn - 1);
+    const th = ARC0 - mix(i / (P - 1), (g + .08 + .84 * l) / 4, segM) * SWEEP + .012 * Math.sin(t * .4 + i);
+    const w = .7 + .2 * (i % 3), ph = i * 2.4;
+    const hx = main.x + Math.cos(th) * q.ro + .003 * Math.cos(t * w + ph);
+    const hy = main.y + Math.sin(th) * q.ro + .003 * Math.sin(t * w + ph);
+    let fill = mix(cl((filled / 100 * P - q.rank) * 2), cl((MACROS[g].v / 100 * prog * gn - (i - gs)) * 2), segM);
+    // the glint: one pass along the empty orbs, 0 toward 100, just after the padlock clicks shut, then still
+    if (LOCK) { const gp = seg(t, 7.6, 10.2) * (P + 8) - i; fill = gp > 0 && gp < 8 ? Math.sin(gp / 8 * Math.PI) * .28 : 0; }
+    const pr = q.r * (1.3 - .3 * fill) * eOut(seg(t, tb, tb + .6)) * ringM;
+    // a bead of liquid travels out with each orb from the bubble's edge, necks, and pinches off
+    const eb = mix(main.r / q.ro, 1, k), neck = 1.3 * (1 - seg(k, .3, .7));
+    // feed: as each orb lets its droplet go, a bead swells on it and pinches away
+    if (FEED) B.set([hx, hy, pr * 1.15 * Math.sin(Math.PI * seg(t, 1.4 + i * .06, 1.95 + i * .06)), fill], (1 + i) * 4);
+    else B.set(neck > 1 - orbMix ? [mix(main.x, hx, eb), mix(main.y, hy, eb), pr * neck, fill] : [mix(main.x, hx, k), mix(main.y, hy, k), pr * (1 - orbMix), fill], (1 + i) * 4);
+    if (orbMix > .01 && pr > 0) {  // orbs rise from the bubble's edge rather than its centre, since they sit above it
+      const e = mix(main.r / q.ro, 1, k), X = mix(main.x, hx, e) * 2 / A, Y = mix(main.y, hy, e) * 2;
+      const sx = pr / ORB_PAD * 2 / A, sy = pr / ORB_PAD * 2;
+      orbV.set([X - sx, Y + sy, 0, 0, fill,  X + sx, Y + sy, 1, 0, fill,  X - sx, Y - sy, 0, 1, fill,
+                X + sx, Y + sy, 1, 0, fill,  X + sx, Y - sy, 1, 1, fill,  X - sx, Y - sy, 0, 1, fill], orbN++ * 30);
+    }
+  });
+
+  // Drops: four macro bubbles bud off the main one, each holding its own liquid level
+  MACROS.forEach((m, j) => {
+    const tb = 6.0 + j * .15, k = eOut(seg(t, tb, tb + 1.4)), lv = m.v / 100 * prog;
+    const an = QUAD[j] + .03 * Math.sin(t * .5 + j * 1.7), dr = (.2 + .004 * Math.sin(t * .8 + j)) * SIZE;
+    const x = mix(main.x, main.x + Math.cos(an) * dr, k), y = mix(main.y, main.y + Math.sin(an) * dr, k);
+    const rr = .038 * SIZE * eOut(seg(t, tb, tb + .7)) * quadM;
+    B.set([x, y, rr, 2 + lv], (1 + P + 2 + j) * 4);
+    // label: inside its drop, or in a legend row under the gauge
+    const lx = mix(main.x + (j - 1.5) * .105, x, quadM), ly = mix(main.y - .3 * SIZE, y, quadM);
+    const [px, py] = toPx(lx, ly), el = MAC_EL[j];
+    el.style.opacity = eOut(seg(t, 7.2, 8)) * Math.max(segM, quadM);
+    el.style.transform = `translate(${px}px,${py}px) translate(-50%,${quadM > .5 ? -15 : -50}px)`;
+    el.children[1].textContent = Math.round(m.v * prog) + '%';
+  });
+
+  // the intro's own liquid: put() places a droplet in the shader (where it merges), sprite() draws a real orb
+  const put = (j, x, y, r) => B.set([x, y, r, 1], (1 + P + 2 + 4 + j) * 4);
+  const sprite = (x, y, r) => {
+    if (r <= 0 || orbMix < .01 || orbN >= P + NS) return;
+    const X = x * 2 / A, Y = y * 2, sx = r / ORB_PAD * 2 / A, sy = r / ORB_PAD * 2;
+    orbV.set([X - sx, Y + sy, 0, 0, 1,  X + sx, Y + sy, 1, 0, 1,  X - sx, Y - sy, 0, 1, 1,
+              X + sx, Y + sy, 1, 0, 1,  X + sx, Y - sy, 1, 1, 1,  X - sx, Y - sy, 0, 1, 1], orbN++ * 30);
+  };
+  INTROS[WAY](t, put, sprite);
+  if (LINES[WAY] && !lnDone) {
+    lctx.setTransform(LD, 0, 0, LD, 0, 0); lctx.clearRect(0, 0, W, H);
+    if (t < 6) LINES[WAY](lctx, t); else lnDone = true;   // every line has faded by then
+  }
+
+  // tap drops glide into the bubble and merge
+  drops.forEach((m, i) => {
+    if (!m.r) return;
+    const dx = main.x - m.x, dy = main.y - m.y, d = Math.hypot(dx, dy);
+    m.v = Math.min(.35, m.v + dt * .25);
+    m.x += dx / d * m.v * dt; m.y += dy / d * m.v * dt;
+    if (d < main.r * .7) { m.r = 0; pulseV += .6; return; }
+    B.set([m.x, m.y, m.r * eOut(seg(t, m.born, m.born + .5)), 1], (1 + P + i) * 4);
+  });
+
+  const grow = (local ? Math.min(.28 * SIZE, .44) : 1.4) * eOut(seg(t, .2, 2)), pk = seg(t, 2.4, 5.2), back = .5 * (pk + pk * pk * (3 - 2 * pk));
+  gl.useProgram(pr);
+  gl.uniform2f(U.uRes, cv.width, cv.height);
+  gl.uniform1f(U.uTime, t);
+  gl.uniform1f(U.uRc, -1);   // no ink pour: every intro brings its colour in with its own liquid
+  gl.uniform1f(U.uArm, 0);
+  gl.uniform1f(U.uVivid, eIO(seg(t, 1.4, 3.6)));
+  gl.uniform1f(U.uSwirl, eIO(seg(t, 1.2, 3.2)) * (1 - .7 * eIO(seg(t, 4, 7.5))));
+  gl.uniform1f(U.uK, .045 * S);
+  gl.uniform1f(U.uPop, pop);
+  gl.uniform1f(U.uGlow, eIO(seg(t, 4.4, 6.8)));
+  gl.uniform1f(U.uScale, 1 + pulse);
+  // introSky: the bloom and pour play in these colours, then the settled bubble fades to the variant's own
+  // Murmuration: the glass starts white while the flock gathers, turns green as the orbs pool into it,
+  // then settles back to Cloud Drop's white; every other intro keeps Cloud Drop's green-to-white
+  const iv = VARIANTS[vIdx].introSky,
+    ik = !iv ? 0 : WAY === 'murmuration' ? eIO(seg(t, 1.8, 3.8)) * (1 - eIO(seg(t, 4.8, 6.8))) : 1 - eIO(seg(t, 4.6, 6.8));
+  const sky = (j, off) => ik ? vCur.slice(off, off + 18).map((c, n) => mix(c, SKY[iv[j]][n], ik)) : vCur.slice(off, off + 18);
+  gl.uniform3fv(U.uSA, sky(0, 0)); gl.uniform3fv(U.uSB, sky(1, 18)); gl.uniform3fv(U.uSG, vCur.slice(36, 54));
+  gl.uniform3fv(U.uGlowC, vCur.slice(54, 57));
+  gl.uniform1f(U.uGreenIn, vCur[57]); gl.uniform1f(U.uGauge, vCur[58]); gl.uniform1f(U.uRim, vCur[59]); gl.uniform1f(U.uGlowS, vCur[60]);
+  gl.uniform3fv(U.uGA, vCur.slice(61, 64)); gl.uniform3fv(U.uGB, vCur.slice(64, 67)); gl.uniform3fv(U.uEdge, vCur.slice(67, 70));
+  gl.uniform1f(U.uEdgeAmt, vCur[70]); gl.uniform1f(U.uLift, vCur[71]);
+  gl.uniform1f(U.uFill, filled / 100);
+  gl.uniform1f(U.uAura, vCur[76]);
+  gl.uniform1f(U.uLocal, local ? 1 : 0);
+  gl.uniform1f(U.uTide, tideM); gl.uniform1f(U.uSeg, segM); gl.uniform1f(U.uRingOn, ringM);
+  gl.uniform4f(U.uMac, ...MACROS.map(m => m.v / 100 * prog));
+  gl.uniform1f(U.uArcIn, FEED ? eIO(seg(t, .2, 1.6)) : WAY === 'topo' ? eIO(seg(t, 4.6, 5.9)) : eIO(seg(t, 5.9, 7.2)));   // Topo: the gauge takes over from the closing contours
+  gl.uniform2f(U.uEye, main.x, main.y);
+  gl.uniform2f(U.uLight, -.55, .835);   // fixed key light, upper left
+  gl.uniform4fv(U.uB, B);
+  gl.drawArrays(gl.TRIANGLES, 0, 3);
+  if (orbTex && orbN) drawOrbs(orbN, orbMix);
+
+  const [bx, by] = toPx(main.x, main.y);
+  const op = eOut(seg(t, 6.0, 6.9));
+  scoreEl.style.opacity = op;
+  if (lockAnim && !lockPlayed && t > 6.1) { lockPlayed = true; if (!STILL) lockAnim.play(); }
+  scoreEl.style.filter = `blur(${(1 - op) * 8}px)`;
+  // number and word sit centred, then glide up as the tag arrives beneath them
+  const tagP = eIO(seg(t, 8.7, 9.5));
+  scoreEl.style.transform = `translate(${bx}px,${by}px) translate(-50%,-50%) scale(${(.92 + .08 * op) * (1 + pulse)})`;   // text keeps real pixel sizes, never scaled below 12px
+  tagEl.style.opacity = tagP;
+  // chip sits in the gauge's open gap, centred between 0 and 100
+  // Text sits still: anchored to the bubble's resting seat, not its breathing, and snapped to whole pixels once it
+  // has arrived. A 12px label nudged by fractions of a pixel every frame is redrawn at a new offset each time and
+  // shimmers. (The seat is where main.y settles; before that the tag is not shown.)
+  const seatY = Y1 * (local ? 1 : eIO(seg(t, 4.9, 6.8)));
+  const [tx, ty] = toPx(main.x, seatY + Math.sin(ARC0) * .2 * SIZE - .019);
+  const tx0 = Math.round(tx - tagEl.offsetWidth / 2), ty0 = Math.round(ty - tagEl.offsetHeight / 2);
+  tagEl.style.transform = tagP < 1
+    ? `translate(${tx0}px,${ty0 + (1 - tagP) * 6}px) scale(${.96 + .04 * tagP})`
+    : `translate(${tx0}px,${ty0}px)`;
+  tagEl.style.filter = tagP < 1 ? `blur(${(1 - tagP) * 3}px)` : '';
+  if (FROM != null) {
+    // the number counts rather than spins, and a small +n rises off it and fades
+    numEl.textContent = Math.round(filled);
+    const gk = seg(since, .6, 2.4);
+    gainEl.style.opacity = Math.sin(Math.PI * gk);
+    gainEl.style.transform = `translate(${bx}px,${by - 58 - 22 * eOut(gk)}px) translate(-50%,-50%)`;
+  } else SLOT.forEach(c => {
+    const x = seg(t, 6.8 + c.j * .2, 8.1 + c.j * .45), sp = Math.pow(1 - x, 3);
+    c.strip.style.transform = `translateY(${-(1 - sp * (1 - x)) * c.n}em)`;
+    c.strip.style.filter = sp > .02 ? `blur(${Math.min(1.2, sp * 2)}px)` : '';   // a touch of motion blur while it spins
+  });
+  const eo = eOut(seg(t, 7.0, 7.8));
+  [[lo, ARC0], [hi, ARC0 - SWEEP]].forEach(([el, an]) => {
+    const [x, y] = toPx(main.x + Math.cos(an) * .2 * SIZE, seatY + Math.sin(an) * .2 * SIZE - .02).map(Math.round);   // still, like the tag
+    el.style.opacity = eo * ringM * (LOCK ? .55 : 1); el.style.transform = `translate(${Math.round(x - el.offsetWidth / 2)}px,${y}px)`;
+  });
+  // the card rises in under the gauge once the chip has landed, then its vessels fill in turn
+  const cardP = eOut(seg(t, 9.3, 10.1));
+  shaped.style.opacity = cardP;
+  shaped.style.transform = `translateY(${toPx(0, Y1 + Math.sin(ARC0) * .2 * SIZE - .02)[1] + 40 + (1 - cardP) * 16}px)`;   // anchored to the gauge's resting seat, so it doesn't bob with the bubble
+  CELLS.forEach((c, i) => {
+    const k = eOut(seg(t, 9.9 + i * .1, 10.9 + i * .1));
+    c.fill.style.setProperty('--f', (c.lvl * k).toFixed(2) + '%');
+    c.num.textContent = fmt(Math.round(c.eaten * k));
+  });
+  calNow.textContent = fmt(Math.round(CAL.eaten * eOut(seg(t, 9.9, 11))));
+  bar.style.opacity = eOut(seg(t, 10.6, 11.3));
+  requestAnimationFrame(frame);
+}
+
+// taps only: no hover or pointer-follow effects, since phones have no hover
+stage.addEventListener('pointerdown', e => {
+  if (e.target.closest('button, .tag, .shaped, .sheet, .scrim')) return;
+  const b = stage.getBoundingClientRect(), ptr = fromPx(e.clientX - b.left, e.clientY - b.top);
+  const t = clock(performance.now());
+  if (t < 6.8) return;
+  if (Math.hypot(ptr[0] - main.x, ptr[1] - main.y) < main.r) {
+    pulseV += 1.1; pop = t; navigator.vibrate?.(6);
+  } else {
+    const m = drops.find(d => !d.r) || drops[0];
+    Object.assign(m, { x: ptr[0], y: ptr[1], r: .014 + Math.random() * .01, born: t, v: 0 });
+  }
+});
+replay.addEventListener('click', () => reset());
+
+let stepped = false;
+const gainEl = document.createElement('div');
+gainEl.textContent = FROM != null ? '+' + (SCORE - FROM) + '%' : '';   // the gain reads in %, like the score
+gainEl.style.cssText = 'position:absolute;left:0;top:0;opacity:0;padding:3px 9px;border-radius:999px;background:#ECFDF3;color:#039855;font:700 13px/16px Roboto,sans-serif;pointer-events:none';
+stage.append(gainEl);
+reset(FROM != null || STILL ? 30 : matchMedia('(prefers-reduced-motion: reduce)').matches ? 10 : 0);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -58,7 +58,7 @@
     /* (older B pieces, still used by D) */
     ".wm .solid{width:64px;height:64px;margin:0 auto 20px;border-radius:50%;background:#fff;display:grid;place-items:center;transform:scale(0);",
     "box-shadow:0 0 0 10px rgba(255,255,255,.14),0 0 0 22px rgba(255,255,255,.07),0 12px 30px -8px rgba(0,40,20,.35)}",
-    ".wm .solid path{fill:none;stroke:#1E8A5C;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:76;stroke-dashoffset:76}",
+    ".wm .solid path{fill:none;stroke:#299D6B;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:76;stroke-dashoffset:76}",
     ".wm .big{font:700 72px/1 Roboto,sans-serif;letter-spacing:-2px;font-variant-numeric:tabular-nums}",
     ".wm .big small{display:block;margin-top:6px;font:500 16px/20px Roboto,sans-serif;letter-spacing:.2px;opacity:.8}",
     ".wm .pillchip{display:inline-flex;align-items:center;gap:8px;margin-top:22px;padding:8px 14px 8px 10px;border-radius:999px;background:rgba(255,255,255,.16);",
@@ -71,7 +71,7 @@
     ".wm .gauge .in{position:absolute;inset:0;display:grid;place-items:center;align-content:center;gap:2px}",
     ".wm .gauge .pct{font:700 48px/1 Roboto,sans-serif;letter-spacing:-1.5px;font-variant-numeric:tabular-nums}",
     ".wm .gauge .pct s{text-decoration:none;font-size:20px;opacity:.8}",
-    ".wm .gain{display:inline-block;padding:3px 10px;border-radius:999px;background:#fff;color:#1E8A5C;font:700 13px/16px Roboto,sans-serif}",
+    ".wm .gain{display:inline-block;padding:3px 10px;border-radius:999px;background:#fff;color:#299D6B;font:700 13px/16px Roboto,sans-serif}",
     ".wm .ttl{font:600 20px/26px Roboto,sans-serif}",
     ".wm .sub2{margin-top:6px;font:400 14px/20px Roboto,sans-serif;opacity:.78}",
     /* D: the four macros, the one that moved most lit */
@@ -80,8 +80,8 @@
     ".wm .mc i{width:24px;height:24px;background:#fff;opacity:.9;display:block}",
     ".wm .mc b{font:700 16px/18px Roboto,sans-serif;font-variant-numeric:tabular-nums}",
     ".wm .mc span{font:400 12px/14px Roboto,sans-serif;opacity:.75}",
-    ".wm .mc.top{background:#fff;color:#1E8A5C;border-color:#fff;box-shadow:0 10px 24px -10px rgba(0,40,20,.45)}",
-    ".wm .mc.top i{background:#1E8A5C;opacity:1}",
+    ".wm .mc.top{background:#fff;color:#299D6B;border-color:#fff;box-shadow:0 10px 24px -10px rgba(0,40,20,.45)}",
+    ".wm .mc.top i{background:#299D6B;opacity:1}",
     ".wm .mc.top span{opacity:1;font-weight:500}",
     /* E: a receipt, left aligned in the lower half */
     ".wm .c.left{top:auto;bottom:120px;transform:none;text-align:left;padding:0 24px}",
@@ -214,8 +214,7 @@
       // the blob leaving the button, before the pool covers it
       var bl = seg(t, 0, .5);
       if (bl < 1) { x.fillStyle = "rgba(41,157,107," + (1 - bl) + ")"; x.beginPath(); x.ellipse(B.x, B.y, B.w / 2 * (1 + bl * .4), B.h / 2 * (1 + bl * 2), 0, 0, 7); x.fill(); }
-      var g = x.createLinearGradient(0, top, 0, H);
-      g.addColorStop(0, "#6CE9A6"); g.addColorStop(.18, "#2FB47B"); g.addColorStop(1, "#1E7A52");
+      var g = "#299D6B";   // Flip green (--brand-600), flat, as on log-moment-options ?bg=green
       x.beginPath(); x.moveTo(0, H + 40);
       for (var px = 0; px <= W; px += 6) x.lineTo(px, top + Math.sin(px * .024 + t * 3.6) * amp + Math.sin(px * .057 - t * 2.4) * amp * .4 + (Math.abs(px - B.x) < 70 ? -Math.cos((px - B.x) / 70 * Math.PI / 2) * 18 * (1 - surge) : 0));
       x.lineTo(W, H + 40); x.closePath(); x.fillStyle = g; x.fill();
@@ -261,7 +260,7 @@
         '<div class="d" data-in=".1">+<b data-from="0" data-to="' + d.d + '">0</b><span class="pc">%</span></div><p data-in=".25">' + d.moved + '</p><span class="m" data-in=".35">' + d.sub + "</span>";
       /* B: as little as possible. The tick, the gain, and one plain line saying what earned it. */
       /* B: the tick names what was logged, the gain stands alone, one line says what it is */
-      if (LAYOUT === "B") return '<span class="logged"><span class="disc solid">' + TICK.replace(/34/g, "16") + '</span>' + d.meal + ' logged</span>' +
+      if (LAYOUT === "B") return '<span class="logged"><span class="disc solid">' + TICK.replace(/34/g, "16") + '</span>Meal logged</span>' +
         '<span class="n" data-in=".12">+<span data-from="0" data-to="' + d.d + '">0</span><span class="pc">%</span></span>' +
         '<p class="say" data-in=".3">' + (d.queued ? "Saved on your phone. Your score updates when you're back online."
           : "added to your sufficiency score") + "</p>";
@@ -271,15 +270,15 @@
           '<circle class="arc" data-len="' + len + '" data-a="' + from / 100 + '" data-b="' + to / 100 + '" cx="94" cy="94" r="' + r + '" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" stroke-dasharray="' + len + '" stroke-dashoffset="' + len + '" transform="rotate(135 94 94)"/></svg>' +
           '<div class="in"><div class="disc solid" style="width:30px;height:30px;margin:0 0 6px;box-shadow:none">' + TICK.replace(/34/g, "18") + '</div><div class="pct"><span data-from="' + from + '" data-to="' + to + '" data-at=".2">' + from + '</span><s>%</s></div>' +
           '<span class="gain" data-in=".6">+' + d.d + '%</span></div></div>' +
-          '<div class="ttl" data-in=".3">' + d.meal + ' is logged</div><div class="sub2" data-in=".42">' + (d.queued ? d.moved : NAME[d.key] + " moved most") + " · " + d.n + (d.n === 1 ? " item" : " items") + "</div>";
+          '<div class="ttl" data-in=".3">' + d.meal + (d.many ? ' are' : ' is') + ' logged</div><div class="sub2" data-in=".42">' + (d.queued ? d.moved : NAME[d.key] + " moved most") + " · " + d.n + (d.n === 1 ? " item" : " items") + "</div>";
       }
       if (LAYOUT === "D") return '<div class="disc solid">' + TICK + '</div>' +
         '<div class="big" data-in=".1">+<span data-from="0" data-to="' + d.d + '">0</span><span class="pc">%</span><small>added to today\'s score</small></div>' +
-        '<div class="macs">' + ["p", "c", "f", "fibre"].map(function (k, i) {
+        '<div class="macs">' + ["p", "c", "f"].map(function (k, i) {
           return '<div class="mc' + (k === d.key ? " top" : "") + '" data-in="' + (.3 + i * .08) + '"><i class="glyph-' + GLY[k] + '"></i><b>+<span data-from="0" data-to="' + Math.round(d.g[k]) + '" data-at="' + (.35 + i * .08) + '">0</span>g</b><span>' + (k === d.key ? "Moved most" : NAME[k]) + "</span></div>";
         }).join("") + '</div><span class="meta" data-in=".7">' + meta + "</span>";
       /* E */
-      return '<div class="row1" data-in="0"><div class="disc solid">' + TICK.replace(/34/g, "18") + '</div>' + d.meal + ' is logged</div>' +
+      return '<div class="row1" data-in="0"><div class="disc solid">' + TICK.replace(/34/g, "18") + '</div>' + d.meal + (d.many ? ' are' : ' is') + ' logged</div>' +
         '<div class="huge" data-in=".1">+<span data-from="0" data-to="' + d.d + '">0</span><span class="pc">%</span></div><p data-in=".2">added to today\'s score, ' + (d.queued ? "saved on your phone" : NAME[d.key].toLowerCase() + " moved most") + '</p>' +
         '<div class="rcpt" data-in=".35">' + (d.lines || []).map(function (l) { return "<div><span>" + l.name + "</span><span>" + l.kcal + " kcal</span></div>"; }).join("") +
         '<div class="tot"><span>' + d.n + (d.n === 1 ? " item" : " items") + '</span><span>' + d.kcal + ' kcal</span></div></div>';

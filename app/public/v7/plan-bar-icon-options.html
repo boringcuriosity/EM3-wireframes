@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan bar, the left slot</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --brand-50:#F3FCF8; --brand-600:#299D6B; --brand-700:#2A805A;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-50:#EEF4FF; --in-100:#E0EAFF; --in-200:#C7D7FE; --in-600:#444CE7; --in-900:#2D3282;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1900px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:820px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 32px}
+  .grid{display:flex;flex-wrap:wrap;gap:30px;align-items:flex-start}
+  .col{width:360px;flex:0 0 360px}
+  .cap{margin-bottom:14px;min-height:190px}
+  .cap h2{font-size:16px;line-height:23px;font-weight:600;margin:0 0 6px}
+  .cap h2 em{font-style:normal;font-size:12px;font-weight:600;color:var(--brand-700);background:var(--brand-50);padding:2px 8px;border-radius:9999px;margin-left:6px;vertical-align:2px}
+  .cap p{font-size:13px;line-height:20px;color:var(--g-600);margin:0 0 6px}
+  .cap .risk{font-size:12px;line-height:18px;color:var(--g-500)}
+  .cap .risk b{color:var(--g-700);font-weight:600}
+  .lab{font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--g-400);margin:14px 0 8px}
+
+  .stage{position:relative;height:118px;border-radius:16px;background:var(--g-50);overflow:hidden;padding:20px 12px 0}
+  .stage::before{content:"";position:absolute;left:12px;right:12px;top:-30px;height:70px;border-radius:20px;background:#fff;border:1px solid var(--g-200)}
+
+  .fl{position:relative;display:flex;align-items:center;gap:10px;padding:10px;background:#fff;border-radius:20px;
+    box-shadow:0 1px 3px rgba(16,24,40,.10),0 12px 28px -8px rgba(16,24,40,.28)}
+  .fl.bare{padding-left:16px}
+  .ic{width:52px;height:52px;flex-shrink:0;border-radius:14px;background:var(--in-100);display:grid;place-items:center}
+  .ic.num{font:700 22px/1 Roboto;color:var(--in-900);font-variant-numeric:tabular-nums}
+  .toks{display:flex;flex-shrink:0;align-items:center}
+  .tok{width:32px;height:32px;border-radius:9999px;background:var(--in-200);border:2px solid #fff;display:grid;place-items:center;font:700 12px/1 Roboto;color:var(--in-900)}
+  .tok+.tok{margin-left:-12px}.tok.more{background:var(--in-50);color:var(--in-600)}
+  .tx{flex:1;min-width:0}
+  .tx b{display:block;font:600 16px/22px Roboto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tx span{display:inline-flex;align-items:center;gap:2px;font:500 13px/18px Roboto;color:var(--brand-600);white-space:nowrap}
+  .go{flex:0 0 auto;height:52px;padding:0 18px;margin-bottom:4px;border-radius:12px;background:var(--brand-600);color:#fff;box-shadow:0 4px 0 var(--brand-700);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:700 15px/1 Roboto}
+  .go small{font:500 12px/14px Roboto;color:rgba(255,255,255,.85)}
+  .x{width:20px;flex-shrink:0;margin:0 2px 0 -2px;color:var(--g-400);display:grid;place-items:center}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Plan bar: what sits on the left</h1>
+  <p class="lede">The headline is now the foods themselves, so every pixel the left slot takes is a food name cut short. The slot also has one job nobody sees in a still: it is where a ticked food lands when it drops into the bar. Four ways to fill it, each with three foods in and with one.</p>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+var X = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+var BOWL = function (n, c) { return '<svg width="' + n + '" height="' + n + '" viewBox="0 0 24 24" fill="none" stroke="' + (c || "#2D3282") + '" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11h17"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 7.5c0-1.2 1.1-1.5 1.1-2.7"/><path d="M8.6 7.5c0-1.2 1.1-1.5 1.1-2.7"/></svg>'; };
+var CHEV = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
+var DAYS = [
+  { lab: "Three foods in", names: ["Mixed veg sabzi", "Multigrain roti", "Roasted makhana"] },
+  { lab: "One food in", names: ["Roasted makhana"] }
+];
+
+function bar(o, names) {
+  var n = names.length;
+  return '<div class="stage"><div class="fl' + (o.bare ? " bare" : "") + '">' + o.left(n) +
+    '<div class="tx"><b>' + names.join(", ") + '</b><span>Edit quantity &amp; time' + CHEV + "</span></div>" +
+    '<div class="go">Log' + (o.count ? "<small>" + n + (n === 1 ? " item" : " items") + "</small>" : "") + "</div>" +
+    '<div class="x">' + X + "</div></div></div>";
+}
+
+var OPTS = [
+  { title: "0. Today, the bowl", count: true, left: function () { return '<div class="ic">' + BOWL(26) + "</div>"; },
+    body: "One bowl icon, the same whatever went in.",
+    risk: "<b>Why question it:</b> it says nothing that changes, and its 62px is roughly one food name. Its only job is being the landing spot for the drop." },
+  { title: "1. Count tile", tag: "Recommended", count: false, left: function (n) { return '<div class="ic num">' + n + "</div>"; },
+    body: "The same tile carries the number of foods. A ticked food drops onto it and the number steps up, so the landing shows something happening. Log loses its second line, because the count now lives on the left.",
+    risk: "<b>Watch:</b> a bare number can read as a badge or a score at first glance. It settles once the drop has landed on it a time or two." },
+  { title: "2. No icon", count: true, bare: true, left: function () { return ""; },
+    body: "The bar is words, Log and the X. The most room for food names, about two and a half of them.",
+    risk: "<b>Watch:</b> the drop has no clear place to land, so it would fly to the names line. It also loses the shape that made it read as Zomato's cart." },
+  { title: "3. Food circles", count: true, left: function (n) {
+      var t = "";
+      for (var i = 0; i < Math.min(n, 2); i++) t += '<span class="tok">' + BOWL(15) + "</span>";
+      if (n > 2) t += '<span class="tok more">+' + (n - 2) + "</span>";
+      return '<div class="toks">' + t + "</div>";
+    },
+    body: "Small overlapping circles, one per food, as the tray has. A food lands as a new circle.",
+    risk: "<b>Watch:</b> takes about the same width as the bowl, so names stay as short as today. Says the count twice, here and on Log." }
+];
+
+document.getElementById("grid").innerHTML = OPTS.map(function (o) {
+  return '<div class="col"><div class="cap"><h2>' + o.title + (o.tag ? "<em>" + o.tag + "</em>" : "") + "</h2><p>" + o.body + '</p><div class="risk">' + o.risk + "</div></div>" +
+    DAYS.map(function (d) { return '<div class="lab">' + d.lab + "</div>" + bar(o, d.names); }).join("") + "</div>";
+}).join("");
+</script>
+</body>
+</html>

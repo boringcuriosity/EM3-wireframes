@@ -84,7 +84,7 @@
   /* the variant switch sits above the size control and wears the same clothes,
      because both do the same kind of job: they change how the page is read
      without changing what it says */
-  .vsw button, .hsw button, .psw button, .asw button { flex: 1; min-width: 0; padding: 0 10px; }
+  .vsw button, .hsw button, .psw button, .asw button, .bsw button { flex: 1; min-width: 0; padding: 0 10px; }
   .zoom .zlab { width: 100%; font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); }
   .zoom button { min-width: 44px; min-height: 44px; padding: 0 12px; font: 600 14px/20px Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .25px; border: 1px solid var(--gray-200); background: #fff; color: var(--gray-600); border-radius: 9999px; cursor: pointer; }
   .zoom button:hover { border-color: var(--gray-300); color: var(--gray-900); }
@@ -276,11 +276,19 @@
     <!-- Which score sits at the top of every day view: the liquid Cloud Drop, or
          the Plate it replaced, kept one tap away so the two can be compared. -->
     <!-- How a coach's plan food gets logged. On the card (default): ticks drop
-         into a bar on the Eat screen and log there, one meal at a time. In the
+         into a bar on the Eat screen from any meal, each food with its own time. In the
          logger: a tick opens the logging screen, as before. -->
     <div class="zoom psw">
       <span class="zlab">Plan logging</span>
       <button data-plog="card" class="on">On the card</button><button data-plog="logger">In the logger</button>
+    </div>
+
+    <!-- The logger's bottom bar: the tray as it shipped (default), or the floating
+         bar. The Eat screen always uses the floating bar, where each food takes
+         its own time. -->
+    <div class="zoom bsw">
+      <span class="zlab">Logger bar</span>
+      <button data-bar="tray" class="on">Tray</button><button data-bar="float">Floating</button>
     </div>
 
     <!-- What sits on each meal card in Your meals: the pictogram, the scene behind
@@ -303,35 +311,6 @@
 
   <main>
 
-    <section id="prototype">
-      <div class="snum">Section 1</div>
-      <h2>Try the prototype</h2>
-      <p>The whole flow runs in one place: <a href="r3/app.html" target="_blank">r3/app.html</a>. A phone in the middle, a panel beside it that switches every case.</p>
-      <p>The flow is real. Tap a food and the score, the macros and the fuse all move.</p>
-
-      <div class="protorow">
-        <a class="protocard" href="r3/app.html" target="_blank">
-          <span class="pc-eyebrow">The prototype</span>
-          <span class="pc-title">r3/app.html</span>
-          <span class="pc-line">Phone plus control panel. Copy a link to any case from the panel.</span>
-          <span class="pc-go">Open the prototype</span>
-        </a>
-        <div class="legend">
-          <h3 style="margin-top:0">What the panel switches</h3>
-          <ul class="plain">
-            <li><b>Screen</b> Eat detail, Log food, Logged.</li>
-            <li><b>Care plan</b> assigned or not yet, which swaps the states below it.</li>
-            <li><b>Day</b> today, an earlier day, a day with nothing.</li>
-            <li><b>One user, in order</b> the ten states of the day view in the four acts this document reads them in, from before a plan to the days behind them.</li>
-            <li><b>Sheets</b> the sufficiency sheet and the date sheet.</li>
-            <li><b>Food logging</b> all 23 states the prototype carries for the logging screen, and where it was opened from.</li>
-            <li><b>Success</b> all 9 states of the screen after a log.</li>
-          </ul>
-          <p style="margin-bottom:0">The live address sits under the panel, so any case can be copied and shared as a link. Reduced motion and Reset are there too.</p>
-        </div>
-      </div>
-    </section>
-
     <section id="home" class="aside">
       <div class="snum">Elsewhere</div>
       <h2>The way in: home</h2>
@@ -352,7 +331,7 @@
           <tr><td>1</td><td>Date chip</td><td>The day being viewed, with a step back arrow and a step forward arrow. Opens the date sheet.</td></tr>
           <tr><td>2</td><td>Eat line</td><td>"Eat · Fuel your body right", with an info icon that opens the sufficiency sheet and the Earn chip that opens the FlipCoins sheet.</td></tr>
           <tr><td>3</td><td>Score</td><td>Nutrition sufficiency as the Plate: a ring of dots with a fork and knife either side. The number and the word SUFFICIENT, nothing else.</td></tr>
-          <tr><td>4</td><td>What you have eaten</td><td>Protein, carbs, fats and fibre, each as its icon filling to its level, with "43/95g" and the name.</td></tr>
+          <tr><td>4</td><td>What you have eaten</td><td>Protein, carbs and fats, each as its icon filling to its level, with "43/95g" and the name.</td></tr>
           <tr><td>5</td><td>Calorie strip</td><td>Ember fuse: "942 of 1,900 kcal" and "958 left for today".</td></tr>
           <tr><td>6</td><td>Kaira card</td><td>One or two sentences of insight, then "Log your meal" with Snap and Voice.</td></tr>
           <tr><td>7</td><td>Your meals</td><td>Every meal of the day, always open, in coach plan order.</td></tr>
@@ -380,12 +359,36 @@
       <div class="snum">Section 3</div>
       <h2>The score <span class="verdict">Sufficient</span></h2>
       <ul class="plain">
-        <li>One number, nutrition sufficiency out of 100, the mean of four capped ratios: protein, carbs, fats and fibre against the coach's targets.</li>
+        <li>One number, nutrition sufficiency out of 100, the mean of three capped ratios: protein, carbs and fats against the coach's targets.</li>
         <li>It counts up from zero when the screen opens, over about 1.2 seconds.</li>
         <li>The plate carries the number and the word SUFFICIENT only. No meal counts, no dates, no verdicts.</li>
         <li>Green, because the score is the one thing that carries the pillar's colour. Everything else may use the wider palette.</li>
       </ul>
-      <p><b>How it is worked out:</b> sufficiency = protein, carbs, fats and fibre, each capped at its target, then averaged. The cap is why extra rice cannot fill in for missing protein.</p>
+      <p><b>How it is worked out:</b> sufficiency = protein, carbs and fats, each capped at its target, then averaged. The cap is why extra rice cannot fill in for missing protein.</p>
+    </section>
+
+    <section id="sandbox">
+      <div class="snum">Section</div>
+      <h2>Score sandbox</h2>
+      <p>The score's logic, live: <a href="sufficiency-sandbox.html" target="_blank">sufficiency-sandbox.html</a>. Log food meal by meal, see every step of the calculation, and watch the nutrition sufficiency score move.</p>
+      <div class="protorow">
+        <a class="protocard" href="sufficiency-sandbox.html" target="_blank">
+          <span class="pc-eyebrow">The sandbox</span>
+          <span class="pc-title">sufficiency-sandbox.html</span>
+          <span class="pc-line">Three columns: log the food, how it is calculated, the score.</span>
+          <span class="pc-go">Open the sandbox</span>
+        </a>
+        <div class="legend">
+          <h3 style="margin-top:0">What it shows</h3>
+          <ul class="plain">
+            <li><b>Each meal has its own targets</b>, the items the coach planned for it, added up. Its share of the day is its share of the planned calories: breakfast 23%, lunch 28%, dinner 27%.</li>
+            <li><b>Under a target</b> a macro earns the share reached. <b>A little over</b> (20%, at least 5g) still earns full points. <b>Past that</b> it loses a point for every 1% over, down to −50.</li>
+            <li><b>Meal points</b> = its share × the average of its three macros. The day adds them up, and never shows below 0.</li>
+            <li><b>Try a day</b> loads eleven days in one tap: the plan, junk all day, the whole day at breakfast, a banana extra, and more.</li>
+            <li><b>Settings</b> change the buffer, the penalty and the floor, so a different rule can be tried before it is agreed.</li>
+          </ul>
+        </div>
+      </div>
     </section>
 
     <section id="first">
@@ -429,17 +432,47 @@
       <div class="cases" id="act4" data-cases="act4"></div>
     </section>
 
+    <section id="say">
+      <div class="snum">Section</div>
+      <h2>The line under the score</h2>
+      <p>After every log, one short line in a quote card under the score says what that log did, with a way to ask KAIRA why. It waits as a soft shimmer while the score lands, then the words sweep in from the left. The phones in every case on this page carry it too.</p>
+      <ul class="plain">
+        <li><b>Went up.</b> "Your score went up by +N%, keep logging your meals. Learn more by asking KAIRA", the number in a green tag.</li>
+        <li><b>Went up by less than it could.</b> "Your score went up by only +N%, you could have gained N% more. Find out why from KAIRA", the number in an amber tag.</li>
+        <li><b>Did not move, or dropped.</b> The same line with 0 or −N, and Find out why from KAIRA.</li>
+        <li><b>Not started.</b> "Log your first meal to see your nutrition sufficiency score grow." No link.</li>
+        <li><b>KAIRA</b> opens her chat with the question already asked: what was eaten, by name, against the Eat plan suggested by your coach, and the macros that resulted.</li>
+        <li><b>Not shown</b> where there is no score: no plan yet, a free user, a day with nothing logged.</li>
+      </ul>
+      <div class="cases" data-cases="say"></div>
+    </section>
+
+    <section id="free">
+      <div class="snum">Section 17</div>
+      <h2>A free user</h2>
+      <p>Someone who uses the app without a care program. There is no coach and no Eat plan, so there is no sufficiency score at all, not even a locked one. The screen is a food diary: log meals, and see protein, carbs, fats and calories add up through the day.</p>
+      <ul class="plain">
+        <li><b>No score.</b> The score and everything about it stands down. The day starts at the date, then the macros.</li>
+        <li><b>Macros in grams.</b> The same three tiles, with what was eaten and no target, so there is nothing to fill towards.</li>
+        <li><b>Calories as a total.</b> The day's sum, with no goal beside it.</li>
+        <li><b>Meal cards with no plan.</b> Each meal is a slot to log into, with + on the card. Foods appear as they are logged, without the Manual tag, because everything here is logged by hand.</li>
+        <li><b>KAIRA</b> offers the two ways to log, and never mentions a coach.</li>
+      </ul>
+      <div class="cases" data-cases="free"></div>
+    </section>
+
     <section id="meals">
       <div class="snum">Section 5</div>
       <h2>Meal cards</h2>
       <ul class="plain">
         <li>Always open, with no expand, no collapse and no chevron.</li>
         <li>Header: meal name, "Suggested 8:00 - 10:00 AM · 486 of 382 cal", and a + button.</li>
-        <li>Body: "YOUR COACH'S PLAN", option chips with a check on the chosen one, then food rows with a tick circle, name, quantity and calories. No row menu: a logged food's tick opens its sheet (change the quantity, take it off your day).</li>
+        <li>Body: "YOUR COACH'S PLAN", option chips with a check on the chosen one, then food rows with a tick circle, name, quantity, calories and a ⋮ menu. A logged food's tick opens the same menu (change the quantity, take it off your day).</li>
         <li>Food logged outside the plan sits above the plan with a "Manual" tag.</li>
-        <li>"Log all 3" or "Log the other 2" appears when two or more items are left.</li>
+        <li>Ticking a coach's food drops it into a floating bar at the bottom: the foods, "Edit quantity &amp; time", Log, and an X. Foods from several meals can go in together, each with its own time. While a meal's foods are in the bar, its other options are locked: one option per meal.</li>
+        <li>A time still to come cannot be logged. If any food in the bar is set later than now (dinner ticked at 1 PM), Log opens the review sheet instead: the late times turn amber, a note asks when they were eaten with a one-tap "Set them to now", and Log waits until every time has passed. On the time wheel, times still to come are greyed and Done waits.</li>
         <li>"TIPS FROM YOUR COACH" holds the parts of a plan that are not food, each with a tick and a one line tip.</li>
-        <li>A coach's food has two states: logged or not yet. There is no Skip: a food not eaten simply stays unticked, and it is never deleted from the plan.</li>
+        <li>A coach's food has three states: logged, not yet, or skipped. Skip lives in the ⋮ menu on each food: the name is struck through, the food stays on the plan and counts for nothing, and a tick or "Put it back on the list" brings it back. A coach's food is never deleted.</li>
       </ul>
     </section>
 
@@ -526,7 +559,7 @@
       <p>One sheet, opened from the info icon beside the Eat line and from tapping the plate. It reads the same in every state.</p>
       <ul class="plain">
         <li>Hero: the number on a tinted band, or a lock when there is nothing to measure against.</li>
-        <li>Card: "Your intake", the four nutrients and calories, values only.</li>
+        <li>Card: "Your intake", the three nutrients and calories, values only.</li>
         <li>Sections: bold question headings, dashed rules between them, the formula given as the answer.</li>
         <li>The coach who set the targets appears as a small card with a Message button, not as a sentence.</li>
       </ul>
@@ -613,9 +646,9 @@
       <div class="tablewrap"><table>
         <thead><tr><th>Question</th><th>Decision</th><th>What it costs</th></tr></thead>
         <tbody>
-          <tr><td>Fibre has no target and no column in the backend. Keep it in the score?</td><td><b>Keep it.</b> Fibre stays the fourth nutrient, on the screen and in the score.</td><td>The backend adds a fibre target to the plan and a fibre column to the food log.</td></tr>
+          <tr><td>Fibre has no target and no column in the backend. Keep it in the score?</td><td><b>No.</b> The score is protein, carbs and fats, the three the plan already sets. Fibre is off the screen and out of the score.</td><td>None. The score can be computed from today's plan and logs.</td></tr>
           <tr><td>The API allows a future date. Allow it?</td><td><b>No.</b> Future days stay unreachable: the chip's forward arrow stops on today, and the date sheet greys the rest of the month.</td><td>A client side rule only. The API stays as it is.</td></tr>
-          <tr><td>A coach's food that was not eaten: delete it?</td><td><b>No.</b> It stays on the plan, unticked. There is no Skip, and a coach's food is never deleted.</td><td>The meal card carries two states per plan food: logged or not yet.</td></tr>
+          <tr><td>A coach's food that was not eaten: delete it?</td><td><b>No. Skip it.</b> It stays on the plan, struck through, from the ⋮ menu on the food. A coach's food is never deleted.</td><td>The meal card carries three states per plan food: logged, not yet, or skipped.</td></tr>
           <tr><td>Should ticking a plan food log it straight away?</td><td><b>No.</b> Every tick opens a confirm step for quantity and time, and the time decides which meal the food lands in.</td><td>One extra step on the quickest path, in exchange for a day that is actually true.</td></tr>
         </tbody>
       </table></div>
@@ -626,15 +659,14 @@
     <section id="backend">
       <div class="snum">Section 13</div>
       <h2>What the backend needs</h2>
-      <p>The backend has no score. <span class="mono">calories_adherence_patient</span> returns raw grams and calories. Sufficiency is ours to define, and four things have to be built first.</p>
+      <p>The backend has no score. <span class="mono">calories_adherence_patient</span> returns raw grams and calories. Sufficiency is ours to define, and three things have to be built first.</p>
 
       <div class="tablewrap"><table>
         <thead><tr><th>#</th><th>What is needed</th><th>Why</th></tr></thead>
         <tbody>
-          <tr><td>1</td><td>A fibre target on the diet plan, and a fibre column on the food log.</td><td>Plans carry protein, carbs and fat only, and <span class="mono">patient_food_item_logs</span> has no fibre column. Without both, a quarter of the score cannot be computed.</td></tr>
-          <tr><td>2</td><td>A sufficiency value per day, stored or computed cheaply for a month at a time.</td><td>The date sheet draws a ring per day. Reading every log row for thirty days to draw a calendar is not a read the app can make.</td></tr>
-          <tr><td>3</td><td>A history row when a plan approval overwrites the calorie goal.</td><td>Approval writes <span class="mono">patient_goal_rel.goal_value</span> in place with no history, so a past day cannot be read against the goal that applied then.</td></tr>
-          <tr><td>4</td><td>A decided day boundary.</td><td><span class="mono">todays_date()</span> returns the server's local date and its IST shift is commented out, so "today" is not the user's day and not explicitly IST.</td></tr>
+          <tr><td>1</td><td>A sufficiency value per day, stored or computed cheaply for a month at a time.</td><td>The date sheet draws a ring per day. Reading every log row for thirty days to draw a calendar is not a read the app can make.</td></tr>
+          <tr><td>2</td><td>A history row when a plan approval overwrites the calorie goal.</td><td>Approval writes <span class="mono">patient_goal_rel.goal_value</span> in place with no history, so a past day cannot be read against the goal that applied then.</td></tr>
+          <tr><td>3</td><td>A decided day boundary.</td><td><span class="mono">todays_date()</span> returns the server's local date and its IST shift is commented out, so "today" is not the user's day and not explicitly IST.</td></tr>
         </tbody>
       </table></div>
 
@@ -719,6 +751,18 @@ const CASES = {
   ],
   /* one person, in order. The four acts below are the same four the prototype
      panel groups its states into, so a link from either side lands in context. */
+  say: [
+    ["state=empty&say=pre", "Pre-breakfast", "say=pre", "A light start adds its small share."],
+    ["state=first&say=plan", "Breakfast as planned", "say=plan", "Breakfast on plan adds its full share."],
+    ["state=first&say=some", "Only some breakfast", "say=some", "Less than planned, so it adds part of its share."],
+    ["state=first&say=double", "Double breakfast", "say=double", "Twice the plan: a little over still counts, past that the extra takes points back."],
+    ["state=empty&say=triple", "Triple breakfast", "say=triple", "Three times the plan uses up all of breakfast's points."],
+    ["state=empty&say=whole", "Whole day at breakfast", "say=whole", "A day's food at breakfast counts only towards breakfast."],
+    ["state=first&say=pizza", "Big pizza at lunch", "say=pizza", "Far over the plan takes points back, up to half of lunch's share."],
+  ],
+  free: [
+    ["state=free", "A free user", "state=free", "No program, so no coach, no plan and no score. Log meals, see the grams and calories add up."],
+  ],
   act1: [
     ["state=noplanempty", "The first landing", "noplanempty", "Where a Care user starts. No plan, nothing logged, so the score sits locked and Kaira teaches."],
     ["state=noplan", "Food in, still no plan", "noplan", "They log anyway. The grams are real, with no targets to measure them against."],
@@ -756,6 +800,7 @@ const CASES = {
   /* the doors that open onto food and the tray. Snap and Voice open the same
      screen on the camera or the microphone, and are not documented here. */
   waysin: [
+    ["state=mid&now=13:00&pt=future", "Logging a time still to come", "now=13:00", "At 1 PM, dinner and bedtime foods are ticked and Log is tapped. The sheet asks when they were eaten, offers Set them to now, and Log waits."],
     ["r3/log.html?entry=plus", "Meal +", "entry=plus", "Opened from a meal’s + button. Empty tray, the plan first."],
     ["r3/log.html?entry=tick", "Ticking a coach's food", "entry=tick", "In the tray, not yet logged."],
     ["r3/log.html?entry=logall", "Log all", "entry=logall", "Every remaining food at its planned quantity."],
@@ -820,12 +865,14 @@ const CASES = {
    reference sections stay at the back, where they are looked up rather than
    read. The markup is in this order too, so the rail and the page agree. */
 const SECTIONS = [
-  ["prototype", "Try the prototype"],
   ["home", "The way in: home"],
   ["screen", "What the screen is"],
   ["score", "The score"],
+  ["sandbox", "Score sandbox"],
   ["first", "The first screen"],
   ["states", "One user, in order"],
+  ["say", "The line under the score"],
+  ["free", "A free user"],
   ["meals", "Meal cards"],
   ["waysin", "The ways in"],
   ["logging", "The logging screen"],
@@ -865,17 +912,20 @@ let HERO = new URLSearchParams(location.search).get("hero") === "plate" ? "plate
 let PLOG = new URLSearchParams(location.search).get("plog") === "logger" ? "logger" : "card";
 /* What each meal card carries: the scene only (default), both, or the pictogram only. */
 let ART = new URLSearchParams(location.search).get("art") || "scene";
+/* Which bottom bar the logger phones show: the tray (default) or the floating bar.
+   The Eat phones always show the floating bar. */
+let BAR = new URLSearchParams(location.search).get("bar") === "float" ? "float" : "tray";
 
 const fig = ([q, name, id, line]) => {
   /* a case is either a flag on the day view, or a whole path to another screen */
   let href = q.includes(".html") ? q : `r3/eat.html?${q}`;
   /* only the day view has the two variants; the log, trend and learn phones
      are the same screen either way and are left alone */
-  if (href.startsWith("r3/eat.html")) href += `&rail=${RAIL}&plog=${PLOG}` + (HERO === "plate" ? "&hero=plate" : "") + (ART !== "both" ? "&art=" + ART : "");
+  if (href.startsWith("r3/eat.html")) href += `&rail=${RAIL}&plog=${PLOG}&bar=float` + (HERO === "plate" ? "&hero=plate" : "") + "&art=" + ART;
   /* the logger follows the same switch: no Your plan tab when the plan is logged on the card */
   else if (href.startsWith("r3/log.html"))
     /* a tick or Log all only reaches the logger in the "In the logger" variant, so those two always show it */
-    href += `&plog=${/entry=(tick|logall)/.test(href) ? "logger" : PLOG}`;
+    href += `&plog=${/entry=(tick|logall)/.test(href) ? "logger" : PLOG}&logbar=${BAR}`;
   return `
   <figure>
     <figcaption><b>${name} <span class="id">${id}</span></b><p>${line}</p></figcaption>
@@ -932,6 +982,18 @@ document.querySelectorAll(".psw button").forEach((b) => {
     const q = new URLSearchParams(location.search);
     PLOG === "logger" ? q.set("plog", "logger") : q.delete("plog");
     document.body.classList.toggle("plog-card", PLOG === "card");
+    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
+    paintCases();
+    setTimeout(check, 60);
+  });
+});
+document.querySelectorAll(".bsw button").forEach((b) => {
+  b.classList.toggle("on", b.dataset.bar === BAR);
+  b.addEventListener("click", () => {
+    BAR = b.dataset.bar;
+    document.querySelectorAll(".bsw button").forEach((x) => x.classList.toggle("on", x === b));
+    const q = new URLSearchParams(location.search);
+    BAR === "float" ? q.set("bar", "float") : q.delete("bar");
     history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
     paintCases();
     setTimeout(check, 60);
@@ -1028,10 +1090,10 @@ function spy() {
 /* :not(.vsw) matters. The macro switch wears the same clothes as the size
    control, so without it a click on "A card each" also ran this handler, set
    --z to undefined and left every phone unsized. */
-document.querySelectorAll(".zoom:not(.vsw):not(.hsw):not(.psw):not(.asw) button").forEach((b) => {
+document.querySelectorAll(".zoom:not(.vsw):not(.hsw):not(.psw):not(.asw):not(.bsw) button").forEach((b) => {
   b.onclick = () => {
     document.documentElement.style.setProperty("--z", b.dataset.z);
-    document.querySelectorAll(".zoom:not(.vsw):not(.hsw):not(.psw):not(.asw) button").forEach((x) => x.classList.toggle("on", x === b));
+    document.querySelectorAll(".zoom:not(.vsw):not(.hsw):not(.psw):not(.asw):not(.bsw) button").forEach((x) => x.classList.toggle("on", x === b));
     setTimeout(check, 60);
   };
 });

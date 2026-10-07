@@ -27,12 +27,14 @@
        page's verdict wash stands down because the score brings its own glow */
     var wrap = el.parentElement, stage = document.getElementById("stage"), tint = document.querySelector(".stage .tint"), pill = document.querySelector(".stage .vwrap");
     var was = [wrap.style.cssText, el.style.cssText, tint && tint.style.display, pill && pill.style.display, stage && stage.style.paddingTop, stage && stage.style.overflow];
-    wrap.style.width = "100%"; wrap.style.height = "300px";
+    /* the gauge draws at 88% (k=.88), so the frame is that much shorter too */
+    wrap.style.width = "100%"; wrap.style.height = "264px";
     /* tight to the date row above and to the next section below: the gauge sits
        a little high in its frame (y), the stage drops its top padding, and the
        section under it comes up to about 24px from the tag */
     /* locked, the page already pulls the next section up (no verdict pill) and there is no tag, so it needs far less */
-    wrap.style.marginBottom = lock === "lit" ? "-2px" : lock ? "-26px" : "-52px";   /* the first landing is followed by the Kaira card, which the page pulls up further */
+    /* no status tag under the gauge any more, so a scored day pulls the next section up into its space */
+    wrap.style.marginBottom = lock === "lit" ? "-2px" : lock ? "-26px" : "-72px";   /* 0 and 100 now sit inside the arc (er=.115), so nothing hangs below the pearls */   /* the first landing is followed by the Kaira card, which the page pulls up further */
     /* the score frame is transparent, so it may overhang the stage into the next section without covering it */
     if (stage) { stage.style.paddingTop = "0"; stage.style.overflow = "visible"; }
     /* the score carries its own status tag (Solid Day, Room To Grow, Needs
@@ -47,7 +49,7 @@
        data is not a general-purpose tag, so it is not used here. */
     /* nothing logged on a planned day is an invitation, not missing data */
     var tag = lock ? "" : opts.mealsIn === 0 ? "log" : "";
-    fr.src = BASE + "cloud/index.html?build=17&embed=1&y=.03&v=Cloud%20Drop" + (lock ? "&lock=" + lock : "&score=" + Math.round(opts.score)) + (tag ? "&tag=" + tag : "") +
+    fr.src = BASE + "cloud/index.html?build=25&embed=1&k=.88&er=.102&ey=-.095&y=.03&v=Cloud%20Drop&intro=murmuration" + (lock ? "&lock=" + lock : "&score=" + Math.round(opts.score)) + (tag ? "&tag=" + tag : "") +
       (opts.from != null && !lock ? "&from=" + Math.round(opts.from) : "");
     fr.title = ""; fr.tabIndex = -1; fr.setAttribute("aria-hidden", "true");
     /* taps go to the hero wrap underneath, which opens the sufficiency sheet */

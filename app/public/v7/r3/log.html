@@ -476,6 +476,54 @@
      the tray as it scrolls behind it */
   .tray { position: relative; z-index: 2; flex-shrink: 0; background: #fff;
     padding: 8px 16px calc(12px + var(--gf-home-h, 0px) + env(safe-area-inset-bottom, 0px)); }
+  /* ------------------------------------------- the floating bar (Eat's, here) */
+  body:not(.lb-float) .fbar { display: none; }
+  body.lb-float #tally, body.lb-float .trow { display: none; }
+  .tray.fmode { position: absolute; left: 0; right: 0; bottom: 0; background: none; padding: 0 12px calc(12px + var(--gf-home-h, 0px) + env(safe-area-inset-bottom, 0px));
+    transition: transform .34s cubic-bezier(.2,0,0,1), opacity .2s ease-out; }
+  .tray.fmode::before { display: none; }
+  .tray.fmode.empty { transform: translateY(120%); opacity: 0; pointer-events: none; }
+  .fbar { position: relative; display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; background: #fff; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(16,24,40,.10), 0 12px 28px -8px rgba(16,24,40,.28); }
+  .fbar::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transform: translateX(-110%);
+    background: linear-gradient(105deg, rgba(41,157,107,0) 36%, rgba(41,157,107,.12) 50%, rgba(41,157,107,0) 64%); }
+  .fbar.lit::after { animation: fbShine .85s cubic-bezier(.4,0,.2,1) both; }
+  @keyframes fbShine { 0% { opacity: 0; transform: translateX(-110%); } 16% { opacity: 1; } 74% { opacity: 1; } 100% { opacity: 0; transform: translateX(110%); } }
+  .fx { flex: 1; min-width: 0; border: 0; background: none; padding: 0; text-align: left; cursor: pointer; }
+  .fx .names { display: block; font: 600 14px/20px Roboto, sans-serif; color: #101828; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .fx .names.fresh { animation: nameIn .6s cubic-bezier(.4,0,.2,1); }
+  .fx .fsub { display: inline-flex; align-items: center; gap: 2px; margin-top: 2px; font: 500 12.5px/18px Roboto, sans-serif; color: #299D6B; white-space: nowrap; }
+  .fx .fsub svg { width: 14px; height: 14px; }
+  .primary.fgo { flex: 0 0 auto; width: auto; min-width: 88px; height: 44px; min-height: 44px; padding: 0 16px; margin-bottom: 4px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 14px; }
+  .primary.fgo small { font: 500 11.5px/14px Roboto, sans-serif; color: rgba(255,255,255,.85); }
+  /* the list scrolls clear of the floating bar */
+  body.lb-float .list { padding-bottom: 96px; }
+  @media (prefers-reduced-motion: reduce) { .tray.fmode { transition: none; } .fbar.lit::after, .fx .names.fresh { animation: none; } }
+
+  /* --------------------------------- the review sheet (Eat's "Food items to log") */
+  .pi { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+  .pi + .pi { border-top: 1px solid #F2F4F7; }
+  .pi .t { flex: 1; min-width: 0; }
+  .pi .nm2 { font: 600 15px/22px Roboto, sans-serif; color: #101828; }
+  .pi .mt { font: 400 13px/18px Roboto, sans-serif; color: #667085; font-variant-numeric: tabular-nums; }
+  .pi .ctl { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .tc2 { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 106px; height: 36px; padding: 0 8px; border-radius: 10px;
+    border: 1px solid #E4E7EC; background: #fff; color: #101828; font: 600 13px/1 Roboto, sans-serif; font-variant-numeric: tabular-nums; cursor: pointer; transition: background .15s ease-out; }
+  .tc2:active { background: #F2F4F7; }
+  .tc2::before { content: ""; position: absolute; inset: -4px -2px; }
+  .tc2 svg { width: 16px; height: 16px; color: #299D6B; }
+  .tc2.flash { animation: tcFlash .9s cubic-bezier(.2,0,0,1); }
+  @keyframes tcFlash { 0% { background: #E6FAF1; border-color: #299D6B; } 100% { background: #fff; border-color: #E4E7EC; } }
+  .st2 { display: flex; align-items: center; height: 36px; border: 1px solid #E4E7EC; border-radius: 10px; flex-shrink: 0; }
+  .st2 button { width: 34px; height: 36px; border: 0; background: none; color: #299D6B; display: grid; place-items: center; cursor: pointer; }
+  .st2 button svg { width: 18px; height: 18px; }
+  .st2 b { min-width: 18px; text-align: center; font: 600 15px/1 Roboto, sans-serif; font-variant-numeric: tabular-nums; }
+  .rft { position: sticky; bottom: 0; display: flex; align-items: center; gap: 16px; margin: 4px -16px 0; padding: 14px 16px 8px; background: #fff; border-top: 1px solid #F2F4F7; }
+  .rft .tot span { display: block; font: 400 12px/16px Roboto, sans-serif; color: #667085; }
+  .rft .tot b { display: block; font: 700 18px/24px Roboto, sans-serif; color: #101828; font-variant-numeric: tabular-nums; }
+  .rft .primary { flex: 1; width: auto; margin-bottom: 4px; }
+  .tsame { font: 400 12.5px/18px Roboto, sans-serif; color: #667085; margin: 0 0 4px; }
   /* The strip stands proud of the tray, so without this the list shows in the
      gap either side of its rounded ends. The fade takes the list out before
      the strip reaches it, and separates the two better than a rule did. */
@@ -575,7 +623,7 @@
      the row still sits on one baseline, and the clock rides in a white disc
      inset in the tint, which is what gives it its own shape at that height. */
   .timebtn { display: flex; align-items: center; gap: 8px; height: 52px; flex-shrink: 0;
-    padding: 0 16px; border-radius: 9999px;
+    padding: 0 16px; border-radius: 12px;   /* squared like the Log button beside it */
     /* the system's secondary colours: white on a brand border, brand label */
     background: #fff; border: 1px solid #299D6B; color: #299D6B; cursor: pointer;
     transition: transform .2s ease-out, background .2s ease-out; }
@@ -969,6 +1017,12 @@
   <div class="tabs" id="tabs"><div class="tabbtns" id="tabBtns"></div><span class="tabind" id="tabInd"></span></div>
   <div class="list" id="list"></div>
 
+  <!-- The floating bar, as on the Eat screen (assets/plan-tray.js, bar=float):
+       the foods, a line into the review sheet, and Log. No X here: this whole
+       screen is the meal being built, and the back arrow already leaves it. -->
+  <!-- Two bottoms. The tray (default) is the shipped one: tally strip, time,
+       Log meal. ?logbar=float swaps in the Eat screen's floating bar, where each
+       food can carry its own time; it is still being worked on. -->
   <div class="tray" data-kb-lift>
     <div id="tally"></div>
     <div id="trayTop"></div>
@@ -980,6 +1034,13 @@
       <button class="primary" id="saveBtn" disabled>Log meal</button>
       <span class="cnt" id="count" hidden></span>
       <span id="lands" hidden></span>
+    </div>
+    <div class="fbar" id="fbar">
+      <button class="fx" id="fxBtn" aria-label="Edit the quantity and time of each food">
+        <b class="names" id="fnames"></b>
+        <span class="fsub">Edit quantity &amp; time<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg></span>
+      </button>
+      <button class="primary fgo" id="saveBtnF" disabled>Log</button>
     </div>
   </div>
 </div>
@@ -1235,7 +1296,7 @@ if (ENTRY === "edit") S.items = [{ id: "chilla", qty: 2 }, { id: "chutney", qty:
 var EDITING = ENTRY === "edit";
 /* 1A: every tray food remembers the option it was added from, so a food two
    options share ticks only the option it was picked in, not every one holding it */
-S.items = S.items.map(function (x) { return { id: x.id, qty: x.qty, opt: x.opt != null ? x.opt : S.option }; });
+S.items = S.items.map(function (x) { return { id: x.id, qty: x.qty, opt: x.opt != null ? x.opt : S.option, t: x.t }; });
 /* 2A: what this meal has already logged, handed over by the Eat screen (the
    same foods it ticks), so the plan list agrees with it and nothing is logged
    twice by accident. ?had= ids, ?hadopt= the option they were logged from. */
@@ -1299,6 +1360,17 @@ var PLANTAB = S.hasPlan && PLOG === "logger";
 if (!PLANTAB && S.tab === "plan") S.tab = "recent";
 
 /* ---------- helpers ---------- */
+/* Every food starts at the screen's one time (S.time) and follows it until the
+   person gives that food a time of its own in the review sheet. */
+function itemTime(it) { return it.t != null ? it.t : S.time; }
+/* which bottom: the tray (default) or the floating bar (?logbar=float), remembered */
+var LOGBAR = (function () {
+  var v = new URLSearchParams(location.search).get("logbar");
+  try { if (v) localStorage.setItem("gfLogBar", v); else v = localStorage.getItem("gfLogBar"); } catch (e) {}
+  return v === "float";
+})();
+if (LOGBAR) { document.body.classList.add("lb-float"); document.querySelector(".tray").classList.add("fmode"); }
+function saveEl() { return el(LOGBAR ? "saveBtnF" : "saveBtn"); }
 var el = function (id) { return document.getElementById(id); };
 var qtyOf = function (id) { var x = S.items.filter(function (i) { return i.id === id; })[0]; return x ? x.qty : 0; };
 /* an item is a food, not a helping: 2 eggs is one item at quantity 2 */
@@ -1313,8 +1385,9 @@ var INFLIGHT = 0;
 function toss(a, name, sub, row) {
   if (!a || INFLIGHT >= 3) return;
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  var strip = document.getElementById("tallyBtn");
-  var dest = (strip && strip.querySelector(".stack")) || el("saveBtn");
+  var strip = document.getElementById(LOGBAR ? "fxBtn" : "tallyBtn");
+  /* the bar has no token stack now, so the card lands on the names line */
+  var dest = (strip && (strip.querySelector(".stack") || strip.querySelector(".names"))) || el("saveBtn");
   if (!dest) return;
   var b = dest.getBoundingClientRect();
   if (!a.width || !b.width) return;
@@ -1383,9 +1456,10 @@ function toss(a, name, sub, row) {
          part: the whole strip moved for one small thing joining it. A light
          crosses it once instead, which says the same thing without displacing
          anything the eye was already reading. */
-      strip.classList.remove("lit");
-      void strip.offsetWidth;
-      strip.classList.add("lit");
+      var lb = LOGBAR ? el("fbar") : strip;
+      lb.classList.remove("lit");
+      void lb.offsetWidth;
+      lb.classList.add("lit");
     }
   }, DUR * 0.8);
 
@@ -1396,7 +1470,7 @@ function addAt(id, qty, fromEl) {
   var at = -1;
   for (var i = 0; i < S.items.length; i++) { if (S.items[i].id === id) at = i; }
   if (at === -1) S.items = S.items.concat({ id: id, qty: qty, opt: S.tab === "plan" ? S.option : null });
-  else S.items = S.items.map(function (x, i) { return i === at ? { id: x.id, qty: x.qty + qty, opt: x.opt } : x; });
+  else S.items = S.items.map(function (x, i) { return i === at ? { id: x.id, qty: x.qty + qty, opt: x.opt, t: x.t } : x; });
   var fd = byId(id);
   LASTADD = id;
   var srcRow = fromEl ? fromEl.closest(".row") : null;
@@ -1415,7 +1489,7 @@ function bump(id, by, fromEl) {
   } else {
     var next = S.items[at].qty + by;
     if (next <= 0) S.items = S.items.filter(function (x) { return x.id !== id; });
-    else S.items = S.items.map(function (x, i) { return i === at ? { id: x.id, qty: next, opt: x.opt } : x; });
+    else S.items = S.items.map(function (x, i) { return i === at ? { id: x.id, qty: next, opt: x.opt, t: x.t } : x; });
   }
   /* measured before render(), which takes the row away and leaves every
      node from it detached with a zero rect */
@@ -1438,6 +1512,13 @@ var JUST = null;
    whether the tray holds four items or forty. */
 
 function renderTally() {
+  /* the floating bar has replaced the strip: all that is left of it is lighting
+     the newest name once, the way the strip's name used to arrive */
+  if (LOGBAR) {
+    var nm = el("fnames"); if (nm) nm.classList.toggle("fresh", !!(JUST || LASTADD));
+    LASTADD = null;
+    return;
+  }
   var host = el("tally");
   if (!S.items.length) { host.innerHTML = ""; return; }
   var newest = S.items.slice().reverse();
@@ -1701,6 +1782,7 @@ function render() {
   el("timeLbl").textContent = fmtTime(S.time);
   el("timeBtn").setAttribute("aria-label", "Change the time, now " + fmtTime(S.time));
   el("lands").innerHTML = n > 0 ? '<div class="lands">This lands under <b>' + DIV_LABEL[div] + "</b></div>" : "";
+  /* the floating bar: the foods, newest first, truncated; out of the way when empty */
   var btn = el("saveBtn");
   btn.disabled = n === 0;
   /* an edit is a correction, so the button says so rather than counting items
@@ -1710,6 +1792,18 @@ function render() {
     : n === 0 ? "Log meal"
     : S.banner === "offline" ? "Log " + n + (n === 1 ? " item" : " items") + " when back online"
     : "Log " + n + (n === 1 ? " item" : " items");
+  if (LOGBAR) {
+    /* the floating bar: the foods, newest first, truncated; out of the way when empty */
+    el("fnames").textContent = S.items.slice().reverse().map(function (it) { return byId(it.id).name; }).join(", ");
+    document.querySelector(".tray.fmode").classList.toggle("empty", n === 0);
+    var bf = el("saveBtnF"), sub = n + (n === 1 ? " item" : " items");
+    bf.disabled = n === 0;
+    /* compact, as on the Eat screen: the verb, the count under it */
+    bf.innerHTML = S.banner === "failed" ? "Try again"
+      : EDITING ? "Save" + (S.banner === "offline" ? "<small>when online</small>" : "<small>" + sub + "</small>")
+      : S.banner === "offline" ? "Log<small>when online</small>"
+      : "Log<small>" + sub + "</small>";
+  }
 
   renderSheet();
 }
@@ -1730,7 +1824,32 @@ function renderFuture() {
 
 /* ---------- sheets ---------- */
 function openSheet(s) { S.sheet = s; render(); }
-function closeSheet() { S.sheet = null; render(); }
+function closeSheet() {
+  /* a food's own time sheet steps back to the list it came from; the X keeps the old time */
+  if (S.sheet && S.sheet.item) { S.time = S.sheet.base; S.sheet = { kind: "tray" }; return render(); }
+  S.sheet = null; render();
+}
+/* The wheel edits S.time, so for one food it borrows it: the screen's time is
+   parked, the food's time goes on the wheel, and Done writes it back to the
+   food alone. The list then flashes the time that changed, once. */
+function openItemTime(id) {
+  var it = S.items.filter(function (x) { return x.id === id; })[0];
+  if (!it) return;
+  S.sheet = { kind: "time", item: id, base: S.time };
+  S.time = itemTime(it);
+  render();
+}
+function doneItemTime() {
+  var sh = S.sheet, it = S.items.filter(function (x) { return x.id === sh.item; })[0];
+  if (it) it.t = S.time;
+  S.time = sh.base;
+  S.sheet = { kind: "tray" };
+  render();
+  setTimeout(function () {
+    var c = document.querySelector('.tc2[data-itime="' + sh.item + '"]');
+    if (c) { c.classList.remove("flash"); void c.offsetWidth; c.classList.add("flash"); }
+  }, 60);
+}
 
 function renderSheet() {
   var s = S.sheet, sheet = el("sheet"), scrim = el("scrim");
@@ -1738,15 +1857,38 @@ function renderSheet() {
   sheet.classList.add("on"); scrim.classList.add("on");
   var title = "", body = "";
 
-  if (s.kind === "tray") {
+  if (s.kind === "tray" && !LOGBAR) {
     title = "In this meal";
+    /* a stepper at the right end rather than a cross: changing how much and
+       taking a food out are one control, and minus at one removes it */
+    var MN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>';
+    var PL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
     body = '<div class="trayrows">' + S.items.map(function (it) {
       var fd = byId(it.id);
       return '<div class="trayrow">' +
         '<button class="nm" data-qty="' + it.id + '"><b>' + esc(fd.name) + "</b>" +
-        "<span>" + it.qty + " \u00d7 " + esc(fd.unit) + " \u00b7 " + Math.round(fd.kcal * it.qty) + " kcal</span></button>" +
-        '<button class="rm" data-rm="' + it.id + '" aria-label="Remove ' + esc(fd.name) + '">' + I.x + "</button></div>";
+        "<span>" + (it.qty > 1 ? it.qty + " x " : "") + esc(fd.unit) + " \u00b7 " + Math.round(fd.kcal * it.qty) + " kcal</span></button>" +
+        '<div class="st2"><button data-dec="' + it.id + '" aria-label="' + (it.qty === 1 ? "Remove " : "One less ") + esc(fd.name) + '">' + MN + "</button><b>" + it.qty + "</b>" +
+        '<button data-inc="' + it.id + '" aria-label="One more ' + esc(fd.name) + '">' + PL + "</button></div></div>";
     }).join("") + "</div>";
+  } else if (s.kind === "tray") {
+    /* Eat's review sheet: one flat list, each food with its helping, its time
+       and a stepper; Log pinned at the foot. Every time starts as the one the
+       screen is set to; change a food's and only that food moves. */
+    title = "Food items to log";
+    var n2 = count(), CLK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+    var MIN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>';
+    var PLS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+    body = S.items.map(function (it) {
+      var fd = byId(it.id);
+      return '<div class="pi"><div class="t"><div class="nm2">' + esc(fd.name) + '</div><div class="mt">' +
+        (it.qty > 1 ? it.qty + " x " : "") + esc(fd.unit) + " \u00b7 " + Math.round(fd.kcal * it.qty) + " kcal</div></div>" +
+        '<div class="ctl"><button class="tc2" data-itime="' + it.id + '" aria-label="Change the time for ' + esc(fd.name) + ", now " + fmtTime(itemTime(it)) + '">' + CLK + fmtTime(itemTime(it)) + "</button>" +
+        '<div class="st2"><button data-dec="' + it.id + '" aria-label="' + (it.qty === 1 ? "Remove " : "One less ") + esc(fd.name) + '">' + MIN + "</button><b>" + it.qty + "</b>" +
+        '<button data-inc="' + it.id + '" aria-label="One more ' + esc(fd.name) + '">' + PLS + "</button></div></div></div>";
+    }).join("") +
+      '<div class="rft"><div class="tot"><span>Total</span><b>' + kcalTotal() + ' kcal</b></div>' +
+      '<button class="primary" id="saveBtn2">Log ' + n2 + (n2 === 1 ? " item" : " items") + "</button></div>";
   } else if (s.kind === "qty") {
     var fd = byId(s.id), inTray = qtyOf(s.id);
     /* The title never changes. It named the sheet "Add item" before the tap
@@ -1770,7 +1912,7 @@ function renderSheet() {
       '<div class="qfacts">' +
         '<div class="qmac">' +
           [["protein", "Protein", fd.p], ["carbs", "Carbs", fd.c],
-           ["fats", "Fats", fd.f], ["fibre", "Fibre", fd.fibre]].map(function (m) {
+           ["fats", "Fats", fd.f]].map(function (m) {
             return '<div><span class="g glyph-' + m[0] + '"></span><b>' +
               m[2] + "g</b><span>" + m[1] + "</span></div>";
           }).join("") + "</div>" +
@@ -1790,7 +1932,7 @@ function renderSheet() {
 
 
   if (s.kind === "time") {
-    title = "When did you eat?";
+    title = s.item ? "When did you eat " + byId(s.item).name.toLowerCase() + "?" : "When did you eat?";
     /* One control, not two. Chips beside a wheel meant the same value could be
        set two ways, and the chips could only ever reach seven of the 1,440
        minutes in a day. The wheel reaches all of them. */
@@ -2119,18 +2261,25 @@ function showSaving() {
 /* Which target this meal pushed hardest, so the overlay can name it rather
    than congratulating the user for nothing in particular. */
 function movedMost() {
-  var t = { p: 0, c: 0, f: 0, fibre: 0 };
+  /* the three the score is made of: protein, carbs and fats */
+  var t = { p: 0, c: 0, f: 0 };
   S.items.forEach(function (it) {
     var fd = byId(it.id); if (!fd) return;
-    t.p += fd.p * it.qty; t.c += fd.c * it.qty; t.f += fd.f * it.qty; t.fibre += fd.fibre * it.qty;
+    t.p += fd.p * it.qty; t.c += fd.c * it.qty; t.f += fd.f * it.qty;
   });
   /* against a rough daily target each, so grams of carbs do not always win */
-  var per = { p: t.p / 94, c: t.c / 236, f: t.f / 62, fibre: t.fibre / 30 };
-  var NAME = { p: "Protein", c: "Carbs", f: "Fats", fibre: "Fibre" };
+  var per = { p: t.p / 94, c: t.c / 236, f: t.f / 62 };
+  var NAME = { p: "Protein", c: "Carbs", f: "Fats" };
   var top = Object.keys(per).sort(function (a, b) { return per[b] - per[a]; })[0];
   return { name: NAME[top], share: per[top] };
 }
 
+/* the meals the foods land in, by each food's own time: "Lunch", or "Lunch and Dinner" */
+function landsIn() {
+  var seen = [];
+  S.items.forEach(function (it) { var d = DIV_LABEL[divisionForTime(itemTime(it))]; if (seen.indexOf(d) < 0) seen.push(d); });
+  return seen.length ? seen.join(" and ") : DIV_LABEL[divisionForTime(S.time)];
+}
 /* what the win says: the gain, the macro that moved most, and where it went */
 function winFacts(queued) {
   var m = movedMost();
@@ -2138,14 +2287,14 @@ function winFacts(queued) {
     /* a plausible move on a 0 to 100 score, from what actually went in */
     d: Math.max(1, Math.min(12, Math.round(m.share * 34))),
     moved: queued ? "Saved on your phone" : m.name + " moved most",
-    sub: count() + " into " + DIV_LABEL[divisionForTime(S.time)] + (queued ? ", it sends when you are back" : ""),
+    sub: count() + " into " + landsIn() + (queued ? ", it sends when you are back" : ""),
     /* the detail the win screen layouts can use: grams per macro, the meal, and what went in */
-    meal: DIV_LABEL[divisionForTime(S.time)], n: count(), key: { Protein: "p", Carbs: "c", Fats: "f", Fibre: "fibre" }[m.name],
+    meal: landsIn(), many: landsIn().indexOf(" and ") > -1, n: count(), key: { Protein: "p", Carbs: "c", Fats: "f" }[m.name],
     names: S.items.map(function (it) { return byId(it.id).name; }),
     lines: S.items.map(function (it) { var fd = byId(it.id); return { name: fd.name, kcal: Math.round(fd.kcal * it.qty) }; }),
     kcal: kcalTotal(),
-    g: S.items.reduce(function (t, it) { var fd = byId(it.id); if (fd) ["p", "c", "f", "fibre"].forEach(function (k) { t[k] += fd[k] * it.qty; }); return t; },
-      { p: 0, c: 0, f: 0, fibre: 0 }) };
+    g: S.items.reduce(function (t, it) { var fd = byId(it.id); if (fd) ["p", "c", "f"].forEach(function (k) { t[k] += fd[k] * it.qty; }); return t; },
+      { p: 0, c: 0, f: 0 }) };
 }
 function showWon(queued) {
   var f = winFacts(queued), m = f.m, d = f.d;
@@ -2201,7 +2350,7 @@ function save() {
   if (!count()) return;
   /* the win moment (assets/win-moment.js) starts on the tap and covers the
      save; without it, or for the classic overlay, the spinner does */
-  var ctl = window.WinMoment && WinMoment.begin(el("saveBtn").getBoundingClientRect(),
+  var ctl = window.WinMoment && WinMoment.begin(saveEl().getBoundingClientRect(),
     S.items.map(function (it) { return byId(it.id).name; }));
   var finish = function (queued) {
     if (!ctl) return showWon(queued);
@@ -2240,7 +2389,8 @@ document.addEventListener("click", function (e) {
     var parts = pl.getAttribute("data-plan").split(":"), pid = parts[0], want = +parts[1];
     return addAt(pid, want, pl);
   }
-  if (hit("#tallyBtn")) return openSheet({ kind: "tray" });
+  if (hit("#tallyBtn") || hit("#fxBtn")) return openSheet({ kind: "tray" });
+  var itm = hit("[data-itime]"); if (itm) return openItemTime(itm.getAttribute("data-itime"));
   var qty = hit("[data-qty]"); if (qty) { var qid = qty.getAttribute("data-qty"); return openSheet({ kind: "qty", id: qid, qty: qtyOf(qid) || 1 }); }
   var nameHit = hit(".row .nm"); if (nameHit) {
     var row = nameHit.closest("[data-food]");
@@ -2258,7 +2408,9 @@ document.addEventListener("click", function (e) {
   }
 
   switch (t.closest("button") && t.closest("button").id) {
-    case "sX": case "tDone": return closeSheet();
+    case "tDone": return S.sheet && S.sheet.item ? doneItemTime() : closeSheet();
+    case "sX": return closeSheet();
+    case "saveBtn2": S.sheet = null; render(); return save();
     case "clearQ": S.query = ""; el("q").value = ""; return render();
     case "snapBtn": return openSheet({ kind: "snap", step: "frame" });
     case "voiceBtn": return runVoice();
@@ -2288,7 +2440,7 @@ document.addEventListener("click", function (e) {
        were in. Add and remove are now the same gesture in both directions. */
     case "qMinus": return bump(S.sheet.id, -1);
     case "retry": S.banner = null; return save();
-    case "saveBtn": return save();
+    case "saveBtn": case "saveBtnF": return save();
     case "back": return history.length > 1 ? history.back() : null;
   }
 
@@ -2477,7 +2629,7 @@ if (ENTRY === "kaira") window.addEventListener("load", function () {
 });
 </script>
 <script src="chrome.js"></script>
-<script src="assets/win-moment.js?v=12"></script>
+<script src="assets/win-moment.js?v=14"></script>
 <script src="assets/search-push.js?v=4"></script>
 </body>
 </html>

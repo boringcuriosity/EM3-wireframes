@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EAT/Sufficiency Score Sandbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand:#299D6B; --brand-700:#2A805A; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0;
+    --ink:#101828; --text:#344054; --muted:#667085; --faint:#98A2B3; --line:#E4E7EC; --line2:#F2F4F7; --bg:#F9FAFB;
+    --red:#D92D20; --red-50:#FEF3F2; --amber:#DC6803; --amber-50:#FFFAEB; --green:#039855; --ease:cubic-bezier(.2,.7,.2,1);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:400 14px/20px Roboto,system-ui,sans-serif;letter-spacing:.2px;-webkit-font-smoothing:antialiased}
+  button,select,input{font:inherit;letter-spacing:inherit;color:inherit}
+  .wrap{max-width:1500px;margin:0 auto;padding:28px 20px 56px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(320px,.8fr);gap:20px;align-items:start}
+  header{grid-column:1/-1;display:flex;flex-direction:column;gap:6px}
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--brand)}
+  h1{margin:0;font:600 30px/38px 'Playfair Display',Georgia,serif;color:var(--ink)}
+  header p{margin:0;color:var(--muted);max-width:900px}
+
+  .controls{grid-column:1/-1;display:grid;gap:14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .lab{font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--faint);margin:0 0 8px}
+  .lab span{text-transform:none;letter-spacing:.2px;font-weight:400}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{min-height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:500;color:var(--text);cursor:pointer}
+  .chip.on{border-color:var(--brand);background:var(--brand-50);color:var(--brand-700)}
+  .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .tile{border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--bg)}
+  .tile span{display:block;font-size:12px;color:var(--muted)}
+  .tile b{font-size:17px;color:var(--ink)}
+
+  .colhead{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+  .colhead .n{width:26px;height:26px;border-radius:999px;background:var(--brand);color:#fff;font-weight:700;font-size:13px;display:grid;place-items:center;flex:0 0 auto}
+  .colhead b{font:600 19px/24px 'Playfair Display',Georgia,serif;color:var(--ink)}
+  .col{min-width:0}
+  .col-score{position:sticky;top:16px;align-self:start;max-height:calc(100vh - 32px);overflow:auto;padding-bottom:4px;scrollbar-width:thin}
+  .setrow{border-top:1px solid var(--line2);padding-top:12px}
+  .setrow .knobs{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+  /* food */
+  .meals{display:flex;flex-direction:column;gap:14px}
+  .meal{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+  .meal.hot{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-100)}
+  .mh{display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--brand-50);border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .mh .t{flex:1;min-width:160px}
+  .mh b{display:block;font-size:16px;color:var(--ink)}
+  .mh small{display:block;color:var(--muted);font-size:12px}
+  .mh .tgt{color:var(--text);font-weight:500}
+  .share{font-weight:700;font-size:12px;color:#fff;background:var(--brand);border-radius:999px;padding:3px 10px;white-space:nowrap}
+  .st{font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;white-space:nowrap;border:1px solid var(--line);background:#fff;color:var(--muted)}
+  .st.logged{color:var(--brand-700);border-color:var(--brand-200)}
+  .st.skipped{color:var(--amber);border-color:#FEDF89;background:var(--amber-50)}
+  .mb{padding:2px 16px 14px}
+  .sub{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--faint);margin:12px 0 2px}
+  .food{display:flex;align-items:center;gap:10px;padding:8px 0}
+  .food+.food{border-top:1px solid var(--line2)}
+  .food .nm{flex:1;min-width:0}
+  .food .nm div:first-child{font-weight:500;color:var(--ink)}
+  .food .nm div:last-child{font-size:12px;color:var(--muted)}
+  .food.has .nm div:first-child{color:var(--brand-700)}
+  .food.missed .nm div:first-child{color:var(--faint);text-decoration:line-through}
+  .food .k{font-size:12px;color:var(--muted);white-space:nowrap}
+  .step{display:flex;align-items:center;gap:4px;flex-shrink:0}
+  .step button{width:30px;height:30px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:16px;line-height:1;display:grid;place-items:center}
+  .step .plus{border-color:var(--brand);color:var(--brand)}
+  .step output{min-width:18px;text-align:center;font-weight:600}
+  .step:not(.has) .minus,.step:not(.has) output{visibility:hidden}
+  .lnk{border:0;background:none;color:var(--amber);font-size:12px;font-weight:600;cursor:pointer;padding:6px 4px;white-space:nowrap}
+  .lnk.undo{color:var(--brand)}
+  .addrow{display:flex;gap:8px;margin-top:6px}
+  .addrow select{flex:1;min-width:0;height:36px;border:1px solid var(--line);border-radius:10px;padding:0 10px;background:#fff}
+  .btn{height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:600;cursor:pointer;color:var(--text)}
+  .btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+  .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+  .note{color:var(--muted);margin:12px 0 0}
+
+  /* score */
+  .card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px}
+  .scorecard{display:flex;flex-direction:column;gap:16px}
+  .hero{display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
+  .gauge{width:240px;height:132px;display:block}
+  .gauge path{transition:stroke-dashoffset .6s var(--ease),stroke-opacity .2s}
+  .num{position:absolute;top:54px;left:0;right:0;text-align:center;font:600 48px/52px Roboto,sans-serif;color:var(--ink);letter-spacing:-1px}
+  .num i{font-style:normal;font-size:20px;font-weight:500;vertical-align:22px;margin-left:2px}
+  .cap{font-size:12px;color:var(--muted);text-align:center}
+  .band{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 10px;border-radius:8px;white-space:nowrap;font:500 12px/1 Roboto,sans-serif;border:1px solid transparent;color:var(--t-ink);background:var(--t-fill) padding-box,var(--t-line) border-box}
+  [data-s="good"]{--t-ink:#039855;--t-fill:linear-gradient(112deg,#d1fadf 3%,#ecfdf3 20%,#ecfdf3 80%,#d1fadf 94%);--t-line:conic-gradient(from 90deg,#32d583 0deg,#039855 12deg,#32d583 37deg,#32d583 175deg,#039855 194deg,#32d583 224deg,#32d583 360deg)}
+  [data-s="grow"]{--t-ink:#dc6803;--t-fill:linear-gradient(120deg,#fef0c7 3%,#fffaeb 20%,#fffaeb 80%,#fef0c7 94%);--t-line:conic-gradient(from 90deg,#fdb022 0deg,#dc6803 8deg,#fdb022 27deg,#fdb022 177deg,#dc6803 190deg,#fdb022 214deg,#fdb022 360deg)}
+  [data-s="attention"]{--t-ink:#d92d20;--t-fill:linear-gradient(122deg,#fee4e2 3%,#fef3f2 20%,#fef3f2 80%,#fee4e2 94%);--t-line:conic-gradient(from 90deg,#f97066 0deg,#d92d20 7deg,#f97066 26deg,#f97066 177deg,#d92d20 189deg,#f97066 212deg,#f97066 360deg)}
+  [data-s="log"]{--t-ink:#667085;--t-fill:linear-gradient(124deg,#f2f4f7 3%,#f9fafb 20%,#f9fafb 80%,#f2f4f7 94%);--t-line:conic-gradient(from 90deg,#f2f4f7 0deg,#e4e7ec 7deg,#f2f4f7 24deg,#f2f4f7 177deg,#e4e7ec 188deg,#f2f4f7 210deg,#f2f4f7 360deg)}
+  .bands{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .bands div{font-size:11px;text-align:center;padding:6px 2px;border-radius:8px;color:var(--muted);background:var(--bg);line-height:15px}
+  .bands div.on{font-weight:600;color:var(--t-ink);background:var(--t-fill) padding-box,var(--t-line) border-box;border:1px solid transparent}
+  .delta{position:absolute;top:8px;right:4px;font-weight:700;font-size:15px;opacity:0;transition:opacity .3s}
+  .delta.show{opacity:1}.delta.up{color:var(--green)}.delta.down{color:var(--red)}
+  .gap{background:var(--brand-50);border:1px solid var(--brand-100);border-radius:14px;padding:12px 14px;font-size:13px;line-height:19px}
+  .gap .gt{font-weight:600;color:var(--ink);margin-bottom:6px}
+  .gap ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+  .gap li{display:flex;gap:8px;align-items:flex-start}
+  .gap li b{color:var(--ink)}
+  .dot{width:8px;height:8px;border-radius:999px;flex:0 0 auto;margin-top:6px;background:var(--brand)}
+  .dot.r{background:var(--red)}.dot.a{background:var(--amber)}
+  .macros{display:flex;flex-direction:column;gap:10px}
+  .mr{display:flex;justify-content:space-between;font-size:13px}
+  .mr b{color:var(--ink)}
+  .bar{height:8px;border-radius:999px;background:var(--line2);overflow:hidden;margin-top:5px}
+  .bar span{display:block;height:100%;background:var(--brand);border-radius:999px;transition:width .5s var(--ease)}
+  .bar span.over{background:var(--red)}
+  .kcal{display:flex;justify-content:space-between;border-top:1px solid var(--line2);padding-top:10px;margin-top:10px;font-size:13px}
+  .kcal b{color:var(--ink)}
+  details.set{border-top:1px solid var(--line2);padding-top:12px}
+  summary{cursor:pointer;font-weight:600;color:var(--ink);list-style:none;display:flex;align-items:center;gap:8px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid var(--faint);border-bottom:2px solid var(--faint);transform:rotate(45deg);transition:transform .2s}
+  details[open] summary::after{transform:rotate(-135deg)}
+  .knobs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+  .tg{border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;background:#fff}
+  .tg span{font-size:11px;color:var(--muted);line-height:14px}
+  .tg input{width:100%;border:0;padding:0;font:600 16px/22px Roboto,sans-serif;color:var(--ink);background:none;outline:none}
+  .tg:focus-within{border-color:var(--brand)}
+
+  /* calculation */
+  .calcwrap{display:flex;flex-direction:column;gap:14px}
+  .feed{display:flex;flex-direction:column;gap:8px}
+  .ev{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}
+  .ev.newest{border-color:var(--brand);background:var(--brand-50)}
+  .evh{display:flex;align-items:flex-start;gap:8px}
+  .evh .l{flex:1;font-weight:600;color:var(--ink);font-size:13px}
+  .pill{font-weight:700;font-size:12px;border-radius:999px;padding:2px 8px;white-space:nowrap}
+  .pill.up{color:var(--green);background:#ECFDF3}.pill.down{color:var(--red);background:var(--red-50)}.pill.zero{color:var(--muted);background:var(--line2)}
+  .evs{font-size:12px;color:var(--muted);margin-top:2px}
+  .ev ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:12px}
+  .ev li .m{font-weight:600;color:var(--ink)}
+  .ev li .why{display:block;color:var(--muted);padding-left:10px}
+  .u{color:var(--green);font-weight:600}.d{color:var(--red);font-weight:600}
+  .empty{color:var(--muted);font-size:13px}
+  .mm{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}
+  .mm.hot{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-100)}
+  .mm.off{background:var(--bg)}
+  .mmh{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line2)}
+  .mm.off .mmh{border-bottom:0}
+  .mmh b{color:var(--ink)}
+  .mmh span{font-size:12px;color:var(--muted)}
+  .mmh .p{margin-left:auto;font-weight:700;color:var(--ink);font-size:13px}
+  .mmb{padding:8px 12px 12px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{text-align:left;padding:5px 3px;border-bottom:1px solid var(--line2);vertical-align:top}
+  th{color:var(--faint);font-weight:600;text-transform:uppercase;letter-spacing:.4px;font-size:10px}
+  td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+  td small{display:block;color:var(--muted);font-size:11px;line-height:14px}
+  .c100{color:var(--green);font-weight:700}.cmid{color:var(--amber);font-weight:700}.c0{color:var(--red);font-weight:700}
+  .steps{margin-top:8px;display:flex;flex-direction:column;gap:3px;font-size:12px;font-variant-numeric:tabular-nums}
+  .steps div{display:flex;justify-content:space-between;gap:10px}
+  .steps div span:first-child{color:var(--muted)}
+  .steps .tot{border-top:1px dashed var(--line);padding-top:5px;margin-top:2px;font-weight:700;color:var(--ink)}
+  .steps .tot span:first-child{color:var(--ink)}
+  .sum{background:var(--ink);color:#fff;border-radius:14px;padding:12px 14px;font-size:13px;line-height:20px}
+  .sum b{font-size:16px}
+  .rules{font-size:12px;line-height:18px}
+  .rules ul{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:5px}
+  .rules b{color:var(--ink)}
+  .sum .eq{font-size:14px;line-height:22px}
+  .sum .rest{display:block;color:#98A2B3;font-size:12px;margin-top:4px}
+  .mc{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}
+  .mc.hot{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-100)}
+  .mch{display:flex;align-items:baseline;gap:8px;padding:10px 14px;background:var(--brand-50);border-bottom:1px solid var(--line2)}
+  .mch b{font-size:15px;color:var(--ink)}
+  .mch span{font-size:12px;color:var(--muted)}
+  .mch .p{margin-left:auto;font-weight:700;color:var(--ink);font-size:14px;white-space:nowrap}
+  .stp{padding:10px 14px;border-bottom:1px solid var(--line2);font-size:13px;line-height:19px}
+  .stp:last-child{border-bottom:0}
+  .stp .h{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+  .stp .v{color:var(--ink)}
+  .stp .v2{color:var(--muted);font-size:12px;margin-top:3px}
+  .mline{display:flex;gap:8px;align-items:flex-start;margin-top:7px}
+  .tag{font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;white-space:nowrap;flex:0 0 auto;margin-top:1px;min-width:56px;text-align:center}
+  .tag.ok{color:var(--green);background:#ECFDF3}.tag.short{color:var(--amber);background:var(--amber-50)}.tag.over{color:var(--red);background:var(--red-50)}.tag.na{color:var(--muted);background:var(--line2)}
+  .mline .t{flex:1}
+  .mline .t b{color:var(--ink)}
+  .res{font-weight:700;color:var(--ink)}
+  .trk{position:relative;margin-top:16px}
+  .trk .bar{margin-top:0}
+  .tk{position:absolute;top:-3px;height:14px;width:2px;margin-left:-1px;background:var(--ink);opacity:.35;border-radius:2px}
+  .tk b{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);font-size:10px;line-height:10px;color:var(--muted)}
+  .tk.next{opacity:1;background:var(--brand-700)}
+  .tk.next b{color:var(--brand-700);font-weight:700}
+  .ticknote{font-size:11px;color:var(--faint);margin:2px 0 0;line-height:15px}
+
+  @media (max-width:1180px){
+    .wrap{grid-template-columns:minmax(0,1fr) minmax(320px,.8fr)}
+    .col-food,.col-calc{grid-column:1}
+    .col-score{grid-column:2;grid-row:3 / span 2}
+    .setrow .knobs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media (max-width:760px){
+    .wrap{grid-template-columns:1fr;padding:18px 14px 44px}
+    .col-food,.col-calc,.col-score{grid-column:auto}
+    .col-score{position:static;max-height:none;grid-row:auto}
+    .tiles,.setrow .knobs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Sandbox</span>
+    <h1>EAT/Sufficiency score</h1>
+    <p>Each meal is scored against its own targets, which come from the items the coach planned for it. Log food on the left, see exactly how it's calculated in the middle, and watch the EAT/Sufficiency score on the right.</p>
+  </header>
+
+  <section class="controls">
+    <div><p class="lab">Try a day</p><div class="chips" id="presets"></div></div>
+    <div><p class="lab">Day targets <span>(the six meals added up, from the coach's plan)</span></p><div class="tiles" id="daytiles"></div></div>
+    <details class="setrow">
+      <summary>Settings</summary>
+        <div class="knobs">
+          <label class="tg"><span>Free buffer above target (%)</span><input type="number" min="0" data-knob="buffer" id="k-buffer"></label>
+          <label class="tg"><span>Credit lost per 1% past the buffer</span><input type="number" min="0" step="0.5" data-knob="slope" id="k-slope"></label>
+          <label class="tg"><span>Smallest buffer (g)</span><input type="number" min="0" data-knob="minBuf" id="k-minBuf"></label>
+          <label class="tg"><span>Lowest a macro can score (0 = no negative marking)</span><input type="number" min="-100" max="0" step="10" data-knob="floor" id="k-floor"></label>
+        </div>
+      <button class="btn" id="resetK" style="margin-top:12px">Reset to the agreed rules</button>
+    </details>
+  </section>
+
+  <div class="col col-food">
+    <div class="colhead"><span class="n">1</span><b>Log the food</b></div>
+    <div class="meals" id="meals"></div>
+  </div>
+
+  <div class="col col-calc">
+    <div class="colhead"><span class="n">2</span><b>How it's calculated</b></div>
+    <div class="calcwrap">
+      <div class="sum" id="sum"></div>
+      <div class="calcwrap" id="mealcalc"></div>
+      <details class="card rules">
+        <summary>The rules in one place</summary>
+        <div id="rules"></div>
+      </details>
+    </div>
+  </div>
+
+  <div class="col col-score">
+    <div class="colhead"><span class="n">3</span><b>The score</b></div>
+    <div class="card scorecard" aria-live="polite">
+      <div class="hero">
+        <svg class="gauge" viewBox="0 0 240 132" aria-hidden="true">
+          <path d="M20 120a100 100 0 0 1 200 0" fill="none" stroke="#F2F4F7" stroke-width="16" stroke-linecap="round"/>
+          <path id="arc" d="M20 120a100 100 0 0 1 200 0" fill="none" stroke="#299D6B" stroke-width="16" stroke-linecap="round"/>
+        </svg>
+        <div class="num" id="num">0<i>%</i></div>
+        <span class="delta" id="delta"></span>
+        <span class="band" id="band"></span>
+        <div class="cap" id="cap"></div>
+      </div>
+      <div class="gap" id="gap"></div>
+      <div>
+        <p class="lab">What shaped your score, for the day</p>
+        <div class="macros" id="macros"></div>
+        <div class="kcal" id="kcal"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================ data */
+/* per portion: protein, carbs, fats in grams; kcal derived (4/4/9) */
+function F(id, name, unit, p, c, f) { return { id: id, name: name, unit: unit, p: p, c: c, f: f, kcal: Math.round(p * 4 + c * 4 + f * 9) }; }
+
+/* the coach's plan: the items per meal. Each meal's targets are these items added up */
+var SLOTS = [
+  { id: "pre", name: "Pre-breakfast", win: "Suggested 6:00 to 7:00 AM",
+    foods: [F("tea", "Black tea with cinnamon", "1 cup", 0, 2.5, 0)] },
+  { id: "bf", name: "Breakfast", win: "Suggested 8:00 to 10:00 AM",
+    foods: [F("egg", "Boiled egg", "2 eggs", 12, 2, 10), F("chilla", "Lauki oats besan chilla", "2 pieces", 7, 20, 5),
+            F("chutney", "Green chutney", "2 spoons", 0, 2, 0), F("curd1", "Curd", "1 katori", 5, 7, 3)] },
+  { id: "lunch", name: "Lunch", win: "Suggested 1:00 to 3:00 PM",
+    foods: [F("roti", "Roti", "2 pieces", 6, 30, 4), F("sabzi1", "Mixed veg sabzi", "1 katori", 3, 12, 6),
+            F("dal1", "Dal", "1 katori", 9, 20, 4), F("salad1", "Garden salad", "1 bowl", 1, 3.5, 0)] },
+  { id: "snack", name: "Evening snack", win: "Suggested 5:00 to 6:30 PM",
+    foods: [F("makhana", "Roasted makhana", "1 bowl", 3, 18, 1.5), F("chana", "Roasted chana", "1 handful", 9, 27, 4)] },
+  { id: "dinner", name: "Dinner", win: "Suggested 8:00 to 9:30 PM",
+    foods: [F("mroti", "Multigrain roti", "2 pieces", 5, 26, 4), F("sabzi2", "Mixed veg sabzi", "1 katori", 3, 12, 6),
+            F("dal2", "Dal", "1 katori", 9, 20, 4), F("salad2", "Garden salad", "1 bowl", 1, 3.5, 0)] },
+  { id: "bed", name: "Bedtime", win: "Suggested 10:00 to 11:00 PM",
+    foods: [F("walnut", "Walnut", "2 pieces", 1.2, 1, 5.2), F("chamomile", "Chamomile tea", "1 cup", 0, 0.5, 0)] }
+];
+var JUNK = [
+  F("paratha", "Aloo parathas with butter", "2 parathas", 10, 80, 40), F("pepsi", "Pepsi", "1 large", 0, 65, 0),
+  F("maggi", "Maggi with a slice of bread", "2 packs + 1 slice", 19, 124, 31),
+  F("icecream", "Belgian chocolate ice cream", "2 scoops", 5, 40, 22), F("margherita", "Margherita pizza", "1 full pizza", 44, 120, 40),
+  F("pasta", "White sauce pasta", "1 plate", 18, 80, 30), F("samchai", "Samosas with chai", "2 samosas + 1 chai", 11, 63, 31),
+  F("samosa", "Samosa", "1 piece", 4, 24, 14), F("pizza", "Pizza", "1 slice", 12, 33, 10),
+  F("fries", "French fries", "1 medium", 4, 44, 17), F("burger", "Burger", "1 piece", 14, 40, 18),
+  F("noodles", "Instant noodles", "1 pack", 6, 55, 16), F("chips", "Potato chips", "1 pack", 3, 26, 17),
+  F("pakora", "Pakora", "1 plate", 6, 30, 20), F("cola", "Cola", "1 can", 0, 35, 0),
+  F("gulab", "Gulab jamun", "2 pieces", 3, 50, 12), F("jalebi", "Jalebi", "100 g", 2, 60, 15),
+  F("choc", "Chocolate bar", "1 bar", 3, 28, 14), F("biscuit", "Cream biscuits", "4 pieces", 2, 30, 10)
+];
+var HEALTHY = [
+  F("paneer", "Paneer bhurji", "1 katori", 14, 6, 15), F("chicken", "Grilled chicken", "100 g", 31, 0, 4),
+  F("sprouts", "Sprouts salad", "1 bowl", 7, 15, 1), F("moong", "Moong dal chilla", "2 pieces", 12, 28, 5),
+  F("tofu", "Tofu stir fry", "1 bowl", 15, 8, 9), F("yogurt", "Greek yogurt", "1 cup", 10, 4, 0),
+  F("oats", "Oats with milk", "1 bowl", 10, 40, 6), F("eggw", "Egg white omelette", "3 whites", 11, 1, 0),
+  F("whey", "Whey protein", "1 scoop", 24, 3, 1.5), F("fruit", "Fruit bowl", "1 bowl", 1, 25, 0),
+  F("banana", "Banana", "1 piece", 1.3, 27, 0.4), F("almond", "Almonds", "10 pieces", 2.5, 2, 5),
+  F("rajma", "Rajma", "1 katori", 9, 25, 3)
+];
+var ALL = {};
+SLOTS.forEach(function (s) { s.foods.forEach(function (x) { ALL[x.id] = x; }); });
+JUNK.concat(HEALTHY).forEach(function (x) { ALL[x.id] = x; });
+function slotById(id) { return SLOTS.filter(function (s) { return s.id === id; })[0]; }
+
+var K = ["kcal", "p", "c", "f"];
+var MAC = [{ k: "p", name: "Protein" }, { k: "c", name: "Carbs" }, { k: "f", name: "Fats" }];
+function zero() { return { kcal: 0, p: 0, c: 0, f: 0 }; }
+function copy(o) { return Object.assign({}, o); }
+
+/* meal targets = the coach's planned items added up; day targets = the meals added up */
+var MT = SLOTS.map(function (s) { var t = zero(); s.foods.forEach(function (x) { K.forEach(function (k) { t[k] += x[k]; }); }); return t; });
+var DAY = MT.reduce(function (a, t) { K.forEach(function (k) { a[k] += t[k]; }); return a; }, zero());
+/* the plan added up meal by meal: where the B and L ticks sit on the day bars */
+var UPTO = (function () { var run = zero(), out = []; MT.forEach(function (t) { K.forEach(function (k) { run[k] += t[k]; }); out.push(copy(run)); }); return out; })();
+
+/* ============================================================ the logic */
+var RULES = { buffer: 20, slope: 1, minBuf: 5, floor: -50 };
+
+/* each meal counts for its share of the day's planned calories */
+function weight(i) { return MT[i].kcal / DAY.kcal * 100; }
+function bufferG(e, st) { return Math.max(e * st.buffer / 100, st.minBuf); }
+/* under the target: credit is the share reached. Within the buffer: full credit.
+   Past the buffer: lose `slope` credit for every 1% of the target over. Credit can go
+   below zero (negative marking), down to `floor`, so a meal can take back up to its own share */
+function credit(x, e, st) {
+  if (x <= e) return x / e * 100;
+  var free = e + bufferG(e, st);
+  if (x <= free) return 100;
+  return Math.max(st.floor, 100 - (x - free) / e * 100 * st.slope);
+}
+
+function hasFood(st, id) { var q = st.log[id] || {}; for (var f in q) if (q[f] > 0) return true; return false; }
+function anyMiss(st, id) { var m = st.miss[id] || {}; for (var f in m) if (m[f]) return true; return false; }
+function accounted(st, i) { var id = SLOTS[i].id; return !!(st.skip[id] || hasFood(st, id) || anyMiss(st, id)); }
+
+function compute(st) {
+  var day = zero(), rows = [], total = 0, last = -1, inCount = 0;
+  SLOTS.forEach(function (s, i) {
+    var q = st.log[s.id] || {}, eat = zero();
+    Object.keys(q).forEach(function (f) { K.forEach(function (k) { eat[k] += ALL[f][k] * q[f]; }); });
+    K.forEach(function (k) { day[k] += eat[k]; });
+    var acc = accounted(st, i), checks = [], unchecked = [];
+    MAC.forEach(function (m) {
+      var e = MT[i][m.k];
+      if (e <= 0) { unchecked.push(m.name); return; }
+      checks.push({ m: m, k: m.k, x: eat[m.k], e: e, free: e + bufferG(e, st), cr: credit(eat[m.k], e, st) });
+    });
+    var mealScore = checks.length ? checks.reduce(function (a, c) { return a + c.cr; }, 0) / checks.length : 100;
+    var w = weight(i), pts = acc ? w * mealScore / 100 : 0;
+    if (acc) { total += pts; last = i; inCount++; }
+    rows.push({ s: s, i: i, acc: acc, skip: !!st.skip[s.id], food: hasFood(st, s.id), miss: anyMiss(st, s.id),
+      w: w, checks: checks, unchecked: unchecked, score: mealScore, pts: pts, eat: eat, tgt: MT[i] });
+  });
+  return { rows: rows, raw: total, total: Math.max(0, Math.round(total)), last: last, inCount: inCount, day: day, complete: inCount === SLOTS.length };
+}
+
+/* what changed between two results, in words */
+function g(n) { return Math.round(n); }
+function f1(n) { return (Math.round(n * 10) / 10).toFixed(1); }
+function reason(c) {
+  if (c.x > c.free) return " (" + g(c.x) + " g eaten, " + g(c.free) + " g allowed)";
+  if (c.x < c.e) return " (" + g(c.x) + " of " + g(c.e) + " g)";
+  return "";
+}
+function diff(b, a) {
+  var lines = [];
+  a.rows.forEach(function (ra, i) {
+    var rb = b.rows[i], dp = ra.pts - rb.pts, subs = [];
+    if (Math.abs(dp) < 0.05 && rb.acc === ra.acc) return;
+    if (!rb.acc && ra.acc) subs.push("now counts toward the score, meal score " + g(ra.score) + "%");
+    if (rb.acc && !ra.acc) subs.push("no longer counts, nothing logged");
+    if (rb.acc && ra.acc) {
+      MAC.forEach(function (m) {
+        var cb = rb.checks.filter(function (c) { return c.k === m.k; })[0], ca = ra.checks.filter(function (c) { return c.k === m.k; })[0];
+        if (!cb || !ca || Math.abs(ca.cr - cb.cr) < 0.5) return;
+        subs.push(m.name + " credit " + g(cb.cr) + " to " + g(ca.cr) + reason(ca));
+      });
+    }
+    lines.push({ meal: ra.s.name, id: ra.s.id, from: rb.pts, to: ra.pts, subs: subs });
+  });
+  return lines;
+}
+
+/* ============================================================ presets */
+function planOf(id) { return slotById(id).foods.reduce(function (a, x) { a[x.id] = 1; return a; }, {}); }
+function allPlan() { var a = {}; SLOTS.forEach(function (s) { s.foods.forEach(function (x) { a[x.id] = 1; }); }); return a; }
+function missOf(id) { return slotById(id).foods.reduce(function (a, x) { a[x.id] = true; return a; }, {}); }
+function day(o) { var l = {}; SLOTS.forEach(function (s) { l[s.id] = o && o[s.id] ? copy(o[s.id]) : {}; }); return l; }
+var BIG_BF = { moong: 2, oats: 1, whey: 1, fruit: 1, paneer: 1, rajma: 1 };
+var PRESETS = [
+  { id: "empty", name: "Empty day", log: {}, skip: {} },
+  { id: "plan", name: "Followed the plan", log: { pre: planOf("pre"), bf: planOf("bf"), lunch: planOf("lunch"), snack: planOf("snack"), dinner: planOf("dinner"), bed: planOf("bed") }, skip: {} },
+  { id: "lunch", name: "Plan till lunch", log: { pre: planOf("pre"), bf: planOf("bf"), lunch: planOf("lunch") }, skip: {} },
+  { id: "bfonly", name: "Breakfast only", log: { pre: planOf("pre"), bf: planOf("bf") }, skip: {} },
+  { id: "front", name: "Whole day at breakfast", log: { pre: planOf("pre"), bf: BIG_BF }, skip: {} },
+  { id: "frontplan", name: "Whole day at breakfast, then the plan", log: { pre: planOf("pre"), bf: BIG_BF, lunch: planOf("lunch"), snack: planOf("snack"), dinner: planOf("dinner"), bed: planOf("bed") }, skip: {} },
+  { id: "dinner", name: "Skipped all day, ate it all at dinner", log: { dinner: allPlan() }, skip: {}, miss: { pre: missOf("pre"), bf: missOf("bf"), lunch: missOf("lunch"), snack: missOf("snack"), bed: missOf("bed") } },
+  { id: "junkeve", name: "Plan, then a junk evening", log: { pre: planOf("pre"), bf: planOf("bf"), lunch: planOf("lunch"), snack: { samchai: 1 }, dinner: { margherita: 1, pepsi: 1, icecream: 1 }, bed: planOf("bed") }, skip: {} },
+  { id: "junk", name: "Junk all day", log: { bf: { paratha: 1 }, lunch: { maggi: 1 }, snack: { samchai: 1 }, dinner: { margherita: 1, pepsi: 1 }, bed: { icecream: 1 } }, skip: {}, miss: { pre: missOf("pre") } },
+  { id: "extrap", name: "Plan, plus extra protein", log: { pre: planOf("pre"), bf: Object.assign(planOf("bf"), { whey: 1 }), lunch: Object.assign(planOf("lunch"), { chicken: 1 }), snack: planOf("snack"), dinner: planOf("dinner"), bed: planOf("bed") }, skip: {} },
+  { id: "banana", name: "Plan, plus a banana at breakfast", log: { pre: planOf("pre"), bf: Object.assign(planOf("bf"), { banana: 1 }), lunch: planOf("lunch"), snack: planOf("snack"), dinner: planOf("dinner"), bed: planOf("bed") }, skip: {} }
+];
+function applyPreset(st, p) { st.log = day(p.log); st.skip = {}; st.miss = day(p.miss); st.preset = p.id; }
+
+/* ============================================================ state */
+var S = { buffer: RULES.buffer, slope: RULES.slope, minBuf: RULES.minBuf, floor: RULES.floor, log: day({}), skip: {}, miss: day({}), preset: "empty", hot: {} };
+
+/* every action goes through here, so column 3 can show the before and after */
+function act(label, mutate) {
+  var b = compute(S); mutate(); var a = compute(S);
+  S.hot = {}; diff(b, a).forEach(function (l) { S.hot[l.id] = true; });
+}
+
+/* ============================================================ render */
+function $(id) { return document.getElementById(id); }
+function tgtLine(t) { return g(t.kcal) + " kcal · Protein " + g(t.p) + " g · Carbs " + g(t.c) + " g · Fats " + g(t.f) + " g"; }
+
+function renderPresets() {
+  $("presets").innerHTML = PRESETS.map(function (p) { return '<button class="chip' + (S.preset === p.id ? " on" : "") + '" data-preset="' + p.id + '">' + p.name + '</button>'; }).join("");
+}
+function renderDay() {
+  $("daytiles").innerHTML = [["Calories", g(DAY.kcal) + " kcal"], ["Protein", g(DAY.p) + " g"], ["Carbs", g(DAY.c) + " g"], ["Fats", g(DAY.f) + " g"]]
+    .map(function (t) { return '<div class="tile"><span>' + t[0] + '</span><b>' + t[1] + '</b></div>'; }).join("");
+}
+function renderKnobs() { ["buffer", "slope", "minBuf", "floor"].forEach(function (k) { $("k-" + k).value = S[k]; }); }
+
+/* ---- column 1 */
+function stepper(slot, x) {
+  var n = (S.log[slot] || {})[x.id] || 0;
+  return '<div class="step' + (n ? " has" : "") + '"><button class="minus" data-dec="' + slot + '|' + x.id + '" aria-label="Remove one ' + x.name + '">&minus;</button><output>' + n + '</output>' +
+    '<button class="plus" data-inc="' + slot + '|' + x.id + '" aria-label="Add one ' + x.name + '">+</button></div>';
+}
+function macroText(x) { return "P " + x.p + " · C " + x.c + " · F " + x.f; }
+function planRow(slot, x) {
+  if ((S.miss[slot] || {})[x.id]) {
+    return '<div class="food missed"><div class="nm"><div>' + x.name + '</div><div>' + x.unit + ' · not eaten</div></div><button class="lnk undo" data-unmiss="' + slot + '|' + x.id + '">Undo</button></div>';
+  }
+  var n = (S.log[slot] || {})[x.id] || 0;
+  return '<div class="food' + (n ? " has" : "") + '"><div class="nm"><div>' + x.name + '</div><div>' + x.unit + ' · ' + macroText(x) + '</div></div><span class="k">' + x.kcal + ' kcal</span>' +
+    stepper(slot, x) + '<button class="lnk" data-miss="' + slot + '|' + x.id + '">Didn\'t eat</button></div>';
+}
+function extraRow(slot, x) {
+  return '<div class="food has"><div class="nm"><div>' + x.name + '</div><div>' + x.unit + ' · ' + macroText(x) + '</div></div><span class="k">' + x.kcal + ' kcal</span>' + stepper(slot, x) + '</div>';
+}
+function options() {
+  return '<option value="">Choose a food</option><optgroup label="Junk">' + JUNK.map(function (x) { return '<option value="' + x.id + '">' + x.name + ' (' + x.unit + ')</option>'; }).join("") +
+    '</optgroup><optgroup label="Healthy options">' + HEALTHY.map(function (x) { return '<option value="' + x.id + '">' + x.name + ' (' + x.unit + ')</option>'; }).join("") + '</optgroup>';
+}
+function pct(w) { return w < 1 ? "under 1%" : g(w) + "%"; }
+function renderMeals(r) {
+  $("meals").innerHTML = r.rows.map(function (row) {
+    var s = row.s, st, body;
+    if (row.skip) st = '<span class="st skipped">Not eaten</span>';
+    else if (row.acc) st = '<span class="st logged">Logged</span>';
+    else st = '<span class="st">Not logged</span>';
+    if (row.skip) {
+      body = '<p class="note">Marked as not eaten. It still counts for its share, with nothing eaten.</p><div class="acts"><button class="btn" data-unskip="' + s.id + '">Undo</button></div>';
+    } else {
+      var planIds = s.foods.map(function (x) { return x.id; });
+      var extras = Object.keys(S.log[s.id] || {}).filter(function (id) { return planIds.indexOf(id) < 0 && S.log[s.id][id] > 0; });
+      body = '<p class="sub">Your coach\'s plan</p>' + s.foods.map(function (x) { return planRow(s.id, x); }).join("") +
+        '<p class="sub">Had something else?</p>' + extras.map(function (id) { return extraRow(s.id, ALL[id]); }).join("") +
+        '<div class="addrow"><select data-sel="' + s.id + '" aria-label="Add a food to ' + s.name + '">' + options() + '</select><button class="btn" data-add="' + s.id + '">Add</button></div>' +
+        '<div class="acts"><button class="btn pri" data-logmeal="' + s.id + '">Log meal as planned</button></div>';
+    }
+    return '<section class="meal' + (S.hot[s.id] ? " hot" : "") + '"><div class="mh"><div class="t"><b>' + s.name + '</b><small>' + s.win + '</small>' +
+      '<small class="tgt">Target: ' + tgtLine(row.tgt) + '</small></div>' +
+      '<span class="share">Counts for ' + pct(row.w) + '</span>' + st + '</div><div class="mb">' + body + '</div></section>';
+  }).join("");
+}
+
+/* ---- column 2 */
+function gapBox(r) {
+  if (r.last < 0) return '<div class="gt">Nothing logged yet</div>Log a meal to see how it compares with the coach\'s targets.';
+  var items = [];
+  r.rows.forEach(function (row) {
+    if (!row.acc) return;
+    var meal = row.s.name;
+    if (row.skip) { items.push('<li><span class="dot a"></span><span><b>' + meal + ':</b> skipped, nothing eaten.</span></li>'); return; }
+    if (row.pts < -0.05) items.push('<li><span class="dot r"></span><span><b>' + meal + ' is costing the day ' + f1(-row.pts) + ' points,</b> worse than eating nothing.</span></li>');
+    row.checks.forEach(function (c) {
+      if (c.x > c.free) items.push('<li><span class="dot r"></span><span><b>' + meal + ' · ' + c.m.name + ' over:</b> ' + g(c.x) + ' g eaten. Target ' + g(c.e) + ' g, up to ' + g(c.free) + ' g allowed.</span></li>');
+    });
+    row.checks.forEach(function (c) {
+      if (c.cr < 90 && c.x < c.e) items.push('<li><span class="dot a"></span><span><b>' + meal + ' · ' + c.m.name + ' short:</b> ' + g(c.x) + ' g eaten of ' + g(c.e) + ' g.</span></li>');
+    });
+  });
+  if (!items.length) items.push('<li><span class="dot"></span><span><b>On plan</b> for every meal logged so far.</span></li>');
+  return '<div class="gt">How your meals compare with the plan</div><ul>' + items.join("") + '</ul>';
+}
+var prev = null;
+function renderScore(r) {
+  var L = 314.16;
+  $("arc").setAttribute("stroke-dasharray", L); $("arc").setAttribute("stroke-dashoffset", L * (1 - r.total / 100)); $("arc").setAttribute("stroke-opacity", r.total ? 1 : 0);
+  $("num").innerHTML = r.total + "<i>%</i>";
+  var b = !r.inCount ? ["log", "Log your meals"] : !r.complete ? ["log", r.inCount + " of 6 meals in"] : ["log", "All 6 meals in"];
+  $("band").textContent = b[1]; $("band").dataset.s = b[0];
+  $("cap").textContent = r.complete ? "All six meals are in. This is the day's score." : r.inCount ? "Score so far, from the meals logged." : "";
+  if (prev !== null && prev !== r.total) {
+    var d = $("delta"), dd = r.total - prev; d.textContent = (dd > 0 ? "+" : "") + dd; d.className = "delta show " + (dd > 0 ? "up" : "down");
+    clearTimeout(d._t); d._t = setTimeout(function () { d.classList.remove("show"); }, 1600);
+  }
+  prev = r.total;
+  $("gap").innerHTML = gapBox(r);
+  var next = !r.rows[1].acc ? "B" : !r.rows[2].acc ? "L" : "";
+  function tick(label, pos) { return '<i class="tk' + (next === label ? " next" : "") + '" style="left:' + pos + '%"><b>' + label + '</b></i>'; }
+  $("macros").innerHTML = MAC.map(function (m) {
+    var x = r.day[m.k], T = DAY[m.k], p = x / T * 100, over = p > 100 + S.buffer;
+    return '<div><div class="mr"><span><b>' + m.name + '</b></span><span><b>' + g(x) + '</b> of ' + g(T) + ' g</span></div>' +
+      '<div class="trk"><div class="bar"><span class="' + (over ? "over" : "") + '" style="width:' + Math.min(100, p) + '%"></span></div>' +
+      tick("B", UPTO[1][m.k] / T * 100) + tick("L", UPTO[2][m.k] / T * 100) + '</div></div>';
+  }).join("") + '<p class="ticknote">B and L mark how much the plan has by the end of breakfast and lunch. The bar ends at the day\'s target.</p>';
+  $("kcal").innerHTML = '<span>Calories <span style="color:var(--faint)">(shown, not scored)</span></span><span><b>' + g(r.day.kcal) + '</b> of ' + g(DAY.kcal) + ' kcal</span>';
+}
+
+/* ---- column 3 */
+function listJoin(a) { return a.length < 2 ? a.join("") : a.slice(0, -1).join(", ") + " and " + a[a.length - 1]; }
+function gm(n) { var r = Math.round(n * 10) / 10; return r % 1 === 0 ? String(r) : r.toFixed(1); }
+function bufText(c) {
+  var pc20 = c.e * S.buffer / 100, buf = c.free - c.e;
+  if (pc20 >= S.minBuf) return '<i>(target ' + gm(c.e) + ' g + ' + gm(buf) + ' g buffer, which is ' + S.buffer + '% of ' + gm(c.e) + ' g)</i>';
+  return '<i>(target ' + gm(c.e) + ' g + ' + gm(buf) + ' g buffer; ' + S.buffer + '% of ' + gm(c.e) + ' g is only ' + gm(pc20) + ' g, so the ' + gm(S.minBuf) + ' g minimum applies)</i>';
+}
+function macroLine(c) {
+  var tg, txt, nm = '<b>' + c.m.name + ':</b> ';
+  if (c.x < c.e) {
+    tg = '<span class="tag short">Short</span>';
+    txt = nm + gm(c.x) + ' g eaten, short of the ' + gm(c.e) + ' g target. ' + gm(c.x) + ' ÷ ' + gm(c.e) + ' = ' + g(c.cr) + '%, so Credit <span class="res">' + g(c.cr) + '</span>';
+  } else if (c.x <= c.free) {
+    tg = '<span class="tag ok">Within</span>';
+    txt = nm + gm(c.x) + ' g eaten. Allowed ' + gm(c.free) + ' g ' + bufText(c) + '. Within the allowed amount, so Credit <span class="res">100</span>';
+  } else {
+    var past = c.x - c.free, pc = past / c.e * 100, lost = pc * S.slope, capped = c.cr <= S.floor + 1e-9;
+    tg = '<span class="tag over">Over</span>';
+    txt = nm + gm(c.x) + ' g eaten. Allowed ' + gm(c.free) + ' g ' + bufText(c) + '. That\'s ' + gm(past) + ' g over the allowed amount, which is ' + g(pc) + '% of the ' + gm(c.e) + ' g target, so ' +
+      (S.slope === 1 ? '' : g(pc) + '% × ' + S.slope + ' = ') + g(lost) + ' credit lost. Credit <span class="res"' + (c.cr < 0 ? ' style="color:var(--red)"' : '') + '>' + g(c.cr) + '</span>' + (capped ? ' (capped)' : '');
+  }
+  return '<div class="mline">' + tg + '<span class="t">' + txt + '</span></div>';
+}
+function mealCard(row) {
+  var s = row.s, e = row.eat, t = row.tgt, hot = S.hot[s.id] ? " hot" : "";
+  var head = '<div class="mch"><b>' + s.name + '</b><span>counts for ' + pct(row.w) + ' of the day</span><span class="p">' + f1(row.pts) + ' pts</span></div>';
+  if (row.skip) return '<div class="mc' + hot + '">' + head + '<div class="stp">Skipped, nothing eaten. Every credit is 0, so this meal adds <span class="res">0 points</span>.</div></div>';
+  var allowed = row.checks.map(function (c) { return c.m.name + ' ' + gm(c.e) + ' + ' + gm(c.free - c.e) + ' = <b>' + gm(c.free) + ' g</b>'; }).join(" · ");
+  var un = row.unchecked.length ? '<div class="mline"><span class="tag na">Not scored</span><span class="t">' + listJoin(row.unchecked) + ': the coach planned none in this meal.</span></div>' : "";
+  var credits = row.checks.map(function (c) { return g(c.cr); });
+  return '<div class="mc' + hot + '">' + head +
+    '<div class="stp"><div class="h">1 · Eaten in this meal</div><div class="v">' + g(e.kcal) + ' kcal · Protein ' + gm(e.p) + ' g · Carbs ' + gm(e.c) + ' g · Fats ' + gm(e.f) + ' g</div></div>' +
+    '<div class="stp"><div class="h">2 · Should be eaten, the coach\'s target</div><div class="v">' + g(t.kcal) + ' kcal · Protein ' + gm(t.p) + ' g · Carbs ' + gm(t.c) + ' g · Fats ' + gm(t.f) + ' g</div>' +
+      '<div class="v2">Allowed (target + buffer): ' + allowed + '.<br>Buffer = ' + S.buffer + '% of the target, or ' + gm(S.minBuf) + ' g if ' + S.buffer + '% is smaller. Calories are for reference, not scored.</div></div>' +
+    '<div class="stp"><div class="h">3 · Credit per macro</div>' + row.checks.map(macroLine).join("") + un + '</div>' +
+    '<div class="stp"><div class="h">4 · To points</div><div class="v">Meal score = (' + credits.join(" + ") + ') ÷ ' + credits.length + ' = ' + g(row.score) + '%</div>' +
+      '<div class="v">' + s.name + ' points = ' + f1(row.w) + ' × ' + g(row.score) + '% = <span class="res"' + (row.pts < 0 ? ' style="color:var(--red)"' : '') + '>' + f1(row.pts) + '</span></div>' +
+      (row.pts < 0 ? '<div class="v2">Below zero: this meal takes ' + f1(-row.pts) + ' points away from the rest of the day. The most it can take is ' + f1(row.w * -S.floor / 100) + ', which is ' + (-S.floor) + '% of its ' + f1(row.w) + '.</div>' : '') + '</div></div>';
+}
+function renderCalc(r) {
+  var logged = r.rows.filter(function (row) { return row.acc; });
+  var rest = r.rows.filter(function (row) { return !row.acc; }).map(function (row) { return row.s.name; });
+  if (!logged.length) {
+    $("sum").innerHTML = '<div class="eq">Score <b>0</b>. Nothing logged yet.</div><span class="rest">Log food in any meal and its calculation appears here.</span>';
+  } else {
+    $("sum").innerHTML = '<div class="eq">Score <b>' + r.total + '</b> = ' + logged.map(function (row) { return row.s.name + ' ' + f1(row.pts); }).join(" + ") +
+      (Math.abs(r.raw - r.total) >= 0.05 ? ' = ' + f1(r.raw) + (r.raw < 0 ? ', shown as 0 because the day never goes below 0' : ', rounded to ' + r.total) : '') + '</div>' +
+      (rest.length ? '<span class="rest">' + listJoin(rest) + ': not logged yet, 0 points.</span>' : '');
+  }
+  $("mealcalc").innerHTML = logged.map(mealCard).join("");
+}
+function renderRules() {
+  $("rules").innerHTML = '<ul>' +
+    '<li><b>Each meal has its own targets</b> for protein, carbs and fats: the items the coach planned for it, added up.</li>' +
+    '<li><b>Under a target:</b> credit is how much of it was reached. Half the protein means 50.</li>' +
+    '<li><b>Over a target:</b> free up to ' + S.buffer + '% above it (at least ' + S.minBuf + ' g). Past that, ' + S.slope + ' credit is lost for every 1% of the target over. This applies to protein too.</li>' +
+    '<li><b>Negative marking:</b> a macro far over its target can score below zero, but no lower than ' + S.floor + '. So a very bad meal doesn\'t just earn nothing, it takes back up to ' + (-S.floor) + '% of its own share from the day.</li>' +
+    '<li><b>Meal score</b> = the average of its credits. Calories are shown but not scored, since they come from these three.</li>' +
+    '<li><b>Points</b> = the meal\'s share of the day\'s planned calories × its meal score. The day\'s score adds them up, and never shows below 0.</li>' +
+    '<li><b>A meal counts</b> once something is logged in it or an item is marked "Didn\'t eat". Until then it adds 0.</li>' +
+    '</ul>';
+}
+function all() { var r = compute(S); renderPresets(); renderMeals(r); renderScore(r); renderCalc(r); renderRules(); }
+
+/* ============================================================ events */
+function init() {
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest("button"); if (!t) return;
+    var d = t.dataset, slot, id, p;
+    if (d.inc || d.dec) {
+      p = (d.inc || d.dec).split("|"); slot = p[0]; id = p[1];
+      act((d.inc ? "+ 1 " : "- 1 ") + ALL[id].name + " · " + slotById(slot).name, function () {
+        var q = S.log[slot]; q[id] = Math.max(0, (q[id] || 0) + (d.inc ? 1 : -1)); if (!q[id]) delete q[id];
+        if (d.inc) delete S.miss[slot][id]; S.skip[slot] = false; S.preset = null;
+      });
+    } else if (d.miss) {
+      p = d.miss.split("|"); slot = p[0]; id = p[1];
+      act(ALL[id].name + " marked not eaten · " + slotById(slot).name, function () { delete S.log[slot][id]; S.miss[slot][id] = true; S.skip[slot] = false; S.preset = null; });
+    } else if (d.unmiss) {
+      p = d.unmiss.split("|"); slot = p[0]; id = p[1];
+      act(ALL[id].name + " back to not logged · " + slotById(slot).name, function () { delete S.miss[slot][id]; S.preset = null; });
+    } else if (d.add) {
+      var sel = document.querySelector('select[data-sel="' + d.add + '"]'); if (!sel.value) return;
+      id = sel.value; slot = d.add;
+      act("+ 1 " + ALL[id].name + " · " + slotById(slot).name, function () { S.log[slot][id] = (S.log[slot][id] || 0) + 1; S.skip[slot] = false; S.preset = null; });
+    } else if (d.logmeal) {
+      slot = d.logmeal;
+      act(slotById(slot).name + " logged as planned", function () { slotById(slot).foods.forEach(function (x) { if (!S.log[slot][x.id]) S.log[slot][x.id] = 1; }); S.miss[slot] = {}; S.skip[slot] = false; S.preset = null; });
+    } else if (d.skip) {
+      slot = d.skip; act(slotById(slot).name + " skipped, not eaten", function () { S.skip[slot] = true; S.log[slot] = {}; S.miss[slot] = {}; S.preset = null; });
+    } else if (d.unskip) {
+      slot = d.unskip; act(slotById(slot).name + " skip undone", function () { S.skip[slot] = false; S.preset = null; });
+    } else if (d.preset) {
+      var pr = PRESETS.filter(function (x) { return x.id === d.preset; })[0];
+      act("Loaded: " + pr.name, function () { applyPreset(S, pr); });
+    } else if (t.id === "resetK") {
+      act("Rules reset to 1 mark per 1%, lowest -50", function () { S.buffer = RULES.buffer; S.slope = RULES.slope; S.minBuf = RULES.minBuf; S.floor = RULES.floor; }); renderKnobs();
+    } else return;
+    all();
+  });
+  document.addEventListener("change", function (e) {
+    var t = e.target, k = t.dataset.knob; if (!k) return;
+    var v = parseFloat(t.value), old = S[k];
+    v = k === "floor" ? Math.min(0, Math.max(-100, v)) : Math.max(0, v);
+    if (isNaN(v) || v === old) { t.value = old; return; }
+    var names = { buffer: "Free buffer", slope: "Credit lost per 1%", minBuf: "Smallest buffer", floor: "Lowest credit" };
+    act(names[k] + " changed: " + old + " to " + v, function () { S[k] = v; });
+    all();
+  });
+  renderDay(); renderKnobs(); all();
+}
+if (typeof document !== "undefined") init();
+else if (typeof module !== "undefined") module.exports = { S: S, PRESETS: PRESETS, applyPreset: applyPreset, compute: compute, act: act, day: day, MT: MT, DAY: DAY };
+</script>
+</body>
+</html>

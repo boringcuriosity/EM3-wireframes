@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sufficiency sheet variants</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="icons/glyph-masks.css">
+<!-- the app's own lock Lottie, the same file the Plate score plays -->
+<script src="r3/assets/lottie_light.min.js"></script>
+<script src="r3/assets/lock-anim.js"></script>
+<style>
+  :root{
+    --brand-25:#FAFFFD; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0; --brand-300:#ABE6CC; --brand-400:#79CCA8; --brand-600:#299D6B; --brand-700:#2A805A;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-50:#EEF4FF; --in-100:#E0EAFF; --in-600:#444CE7; --in-700:#3538CD;
+    --gold-50:#FFFBEE; --gold-800:#A68A2D;
+  }
+  *{box-sizing:border-box}
+  ::selection{background:var(--brand-100)}
+  body{margin:0;background:var(--g-50);font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1760px;margin:0 auto;padding:44px 24px 80px}
+  h1{font-size:30px;line-height:38px;font-weight:600;margin:0 0 8px}
+  h2.sec{font-size:20px;line-height:28px;font-weight:600;margin:48px 0 4px}
+  .lede{font-size:15px;line-height:24px;color:var(--g-600);max-width:78ch;margin:0}
+  .row{display:flex;flex-wrap:wrap;gap:36px;margin-top:24px}
+  .col{width:390px}
+  .cap h3{font-size:17px;line-height:24px;font-weight:600;margin:0 0 4px}
+  .cap h3 em{font-style:normal;font-size:12px;font-weight:600;color:var(--brand-700);background:var(--brand-50);padding:2px 8px;border-radius:9999px;margin-left:6px;vertical-align:2px}
+  .cap p{font-size:13.5px;line-height:21px;color:var(--g-600);margin:0 0 14px;min-height:63px}
+
+  /* the phone: the Eat screen dimmed behind, the sheet risen over it */
+  .phone{position:relative;width:390px;height:780px;border-radius:44px;overflow:hidden;background:#fff;border:1px solid var(--g-200);box-shadow:0 24px 48px -18px rgba(16,24,40,.22)}
+  .status{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font:600 15px/1 Roboto;background:#fff}
+  .behind{position:absolute;inset:48px 0 0;background:linear-gradient(#fff,#F2F4F7)}
+  .scrim{position:absolute;inset:48px 0 0;background:rgba(16,24,40,.45)}
+  .sheet{position:absolute;left:0;right:0;bottom:0;top:88px;background:#fff;border-radius:24px 24px 0 0;display:flex;flex-direction:column;overflow:hidden}
+  .shead{display:flex;align-items:center;justify-content:space-between;padding:18px 16px 8px}
+  .shead h4{margin:0;font:800 20px/28px Roboto;color:var(--g-900)}
+  .x{width:32px;height:32px;border-radius:50%;background:var(--g-100);display:grid;place-items:center;color:var(--g-700)}
+  .sbody{flex:1;overflow:auto;padding:4px 16px 28px;scrollbar-width:none}
+  .sbody::-webkit-scrollbar{display:none}
+  /* the sheet's one action, pinned: GoodFlip's primary button, green with its depth bar */
+  .sfoot{flex-shrink:0;padding:12px 16px 30px;background:#fff;border-top:1px solid var(--g-100)}
+  .cta{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:52px;margin-bottom:4px;border-radius:12px;background:var(--brand-600);color:#fff;font:700 15px/1 Roboto;box-shadow:0 4px 0 var(--brand-700)}
+  /* the logging screen's own back arrow (log.html, .backico), mirrored to point forward, straight after the label */
+  .cta .arr{width:18px;height:18px;flex-shrink:0;transform:scaleX(-1)}
+  .home{position:absolute;left:50%;bottom:8px;width:134px;height:5px;border-radius:3px;background:var(--g-900);transform:translateX(-50%);opacity:.85}
+
+  /* the bubble, on its own: the score's glass sphere without its pearls or its arc */
+  .bub{position:relative;width:var(--b,112px);height:var(--b,112px);border-radius:50%;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:
+      radial-gradient(circle at 34% 26%,rgba(255,255,255,.95) 0 10%,rgba(255,255,255,0) 32%),
+      radial-gradient(circle at 62% 74%,rgba(255,255,255,.55) 0 8%,rgba(255,255,255,0) 26%),
+      radial-gradient(circle at 50% 50%,#F3FCF8 0 46%,#E6FAF1 66%,#CBF0E0 86%,#ABE6CC 100%);
+    box-shadow:inset 0 -6px 14px rgba(41,157,107,.16),inset 0 4px 10px rgba(255,255,255,.9),0 10px 24px -10px rgba(41,157,107,.35),0 0 0 1px rgba(171,230,204,.55)}
+  .bub b{font:600 calc(var(--b,112px) * .27)/1 Roboto;color:var(--g-900);letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+  .bub b sup{font:400 calc(var(--b,112px) * .1)/1 Roboto;vertical-align:.95em;margin-left:1px}
+  .bub span{font:400 13px/16px Roboto;color:var(--g-700);margin-top:2px}
+  .bub.lock{background:radial-gradient(circle at 34% 26%,rgba(255,255,255,.95) 0 10%,rgba(255,255,255,0) 32%),radial-gradient(circle at 50% 50%,#F9FAFB 0 50%,#F2F4F7 75%,#E4E7EC 100%);box-shadow:inset 0 -6px 14px rgba(16,24,40,.08),0 10px 24px -12px rgba(16,24,40,.25),0 0 0 1px var(--g-200)}
+  .bub.lock .lk{width:62%;height:62%}
+  /* a glow behind the bubble that fades to white well inside its box, so it never shows an edge */
+  .wash{border-radius:20px;background:radial-gradient(closest-side,var(--brand-100),rgba(255,255,255,0)) center 46%/78% 100% no-repeat}
+
+  /* intake, compact */
+  /* the macro glyphs are neutral here: the sheet explains, it does not report, so no colour */
+  .gl{width:16px;height:16px;flex-shrink:0;background:var(--g-600);-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-position:center;mask-position:center;-webkit-mask-size:contain;mask-size:contain}
+  .fl{width:16px;height:16px;flex-shrink:0;color:var(--in-600)}
+  .num{font-variant-numeric:tabular-nums}
+  .lab{font:500 12px/16px Roboto;color:var(--g-500)}
+  /* 2 x 2 */
+  .quad{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--g-200);border-radius:16px;overflow:hidden}
+  .quad > div{display:flex;align-items:center;gap:8px;padding:10px 12px}
+  .quad > div:nth-child(odd){border-right:1px solid var(--g-100)}
+  .quad > div:nth-child(-n+2){border-bottom:1px solid var(--g-100)}
+  .quad .t{display:flex;flex-direction:column}
+  .quad .t b{font:600 14px/20px Roboto}.quad .t b small{font:400 12px/1 Roboto;color:var(--g-500)}
+  /* rows, tight */
+  .rows{display:flex;flex-direction:column;gap:2px}
+  .rows .r{display:flex;align-items:center;gap:8px;min-height:30px;font-size:13.5px}
+  .rows .r .n{flex:1;color:var(--g-700)}
+  .rows .r b{font-weight:600}.rows .r b small{font-weight:400;color:var(--g-500)}
+  /* chips */
+  .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  /* light indigo: the intake is logged food, the action family, at its palest step */
+  .chips > div{border-radius:14px;background:var(--in-50);border:1px solid var(--in-100);padding:10px;display:flex;flex-direction:column;gap:6px}
+  .chips .top{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--g-600)}
+  .chips b{font:700 15px/18px Roboto}.chips b small{font:400 12px/1 Roboto;color:var(--g-500)}
+  /* calories is the sum of the three above it, so it sits as a plain line under a hairline rather than a fourth tile */
+  .calline{display:flex;align-items:center;gap:8px;margin-top:12px;padding:12px 2px 0;border-top:1px solid var(--g-200);font-size:13.5px;color:var(--g-700)}
+  .calline b{margin-left:auto;font-weight:600}.calline b small{font-weight:400;color:var(--g-500)}
+  /* one line */
+  .inline{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;font-size:13px;color:var(--g-600)}
+  .inline span{display:inline-flex;align-items:center;gap:5px}
+  .inline b{color:var(--g-900);font-weight:600}
+
+  .date{font:500 12.5px/16px Roboto;color:var(--g-500);text-align:center}
+  .note{font:400 13px/18px Roboto;color:var(--g-600);text-align:center}
+
+  /* the explainer, as the live sheet sets it, minus What is Eat? */
+  .esec h5{margin:0 0 6px;font:700 15px/22px Roboto;color:var(--g-900)}
+  .esec p{margin:0 0 8px;font:400 14px/21px Roboto;color:var(--g-600)}
+  .esec p b{color:var(--g-900);font-weight:600}
+  /* the list marker is KAIRA's gold turn-arrow from the Trend insight (r3/assets/trend-bullet.svg), so the
+     sheet's reasons read in the same voice as her analysis */
+  .esec ul{margin:0 0 4px;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+  .esec li{position:relative;padding-left:24px;font:400 14px/21px Roboto;color:var(--g-600)}
+  .esec li::before{content:"";position:absolute;left:0;top:2.5px;width:16px;height:16px;background:url(r3/assets/trend-bullet.svg) no-repeat center/16px}.esec li b{color:var(--g-900);font-weight:600}
+  .edash{border:0;border-top:1px dashed var(--g-200);margin:16px 0}
+  /* the fine print at the foot of the sheet: present, never loud */
+  .fine{margin:20px 0 0;padding-top:12px;border-top:1px dashed var(--g-200);font:400 12px/18px Roboto;color:var(--g-500);font-style:italic}
+  .fine b{font-style:normal;font-weight:600;color:var(--g-600)}
+  .ecoach{display:flex;align-items:center;gap:10px;margin-top:8px;padding:10px 12px;border-radius:14px;border:1px solid var(--g-200)}
+  .ecoach .av{width:36px;height:36px;border-radius:10px;background:var(--brand-100);color:var(--brand-700);display:grid;place-items:center;font:700 13px/1 Roboto}
+  .ecoach .t{flex:1;display:flex;flex-direction:column}.ecoach .t span{font-size:12px;line-height:16px;color:var(--g-500)}.ecoach .t b{font-size:14px;line-height:20px}
+  /* GoodFlip's secondary button: white, a green edge and label, the light depth bar under it */
+  .ecoach .msg{height:36px;padding:0 14px;margin-bottom:4px;border-radius:12px;border:1px solid var(--brand-600);color:var(--brand-600);font:600 13px/34px Roboto;background:#fff;box-shadow:0 4px 0 var(--brand-100)}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>The sufficiency sheet, quieter</h1>
+  <p class="lede">The sheet keeps only the bubble with the day's percentage: no pearls, no arc, no 0 and 100, and smaller than on the day view. "What is Eat?" is gone, since the screen behind already answers it, and the intake is a fraction of its old height. Four ways to lay out the top of the sheet, then C, the chosen one, with and without a plan. Each sheet scrolls in place.</p>
+
+  <h2 class="sec">Four layouts, a day with a score</h2>
+  <div class="row" id="lay"></div>
+
+  <h2 class="sec">C, the chosen layout, with and without a plan</h2>
+  <div class="row" id="states"></div>
+</div>
+<script>
+var X = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+var gl = function (k) { return '<span class="gl glyph-' + k + '"></span>'; };
+
+/* the three days the sheet is opened on */
+var DAYS = {
+  score: { s: 49, sub: "", m: [["protein", "Protein", 43, 95], ["carbs", "Carbs", 121, 238], ["fats", "Fats", 32, 63]], cal: [942, 1900] },
+  noplan: { s: null, sub: "Your score unlocks once your Eat plan is ready", m: [["protein", "Protein", 54], ["carbs", "Carbs", 157], ["fats", "Fats", 41]], cal: [1213] },
+  past: { s: 66, sub: "Mon, 14 Sep", m: [["protein", "Protein", 48, 95], ["carbs", "Carbs", 198, 238], ["fats", "Fats", 41, 63]], cal: [1604, 1900] }
+};
+var g = function (x) { return x[3] ? "<b class=\"num\">" + x[2] + "<small> of " + x[3] + "g</small></b>" : "<b class=\"num\">" + x[2] + "<small>g</small></b>"; };
+var kc = function (c) { return c[1] ? "<b class=\"num\">" + c[0].toLocaleString("en-IN") + "<small> of " + c[1].toLocaleString("en-IN") + " kcal</small></b>" : "<b class=\"num\">" + c[0].toLocaleString("en-IN") + "<small> kcal</small></b>"; };
+var bub = function (d, size) {
+  return d.s == null ? '<div class="bub lock" style="--b:' + size + 'px"><div class="lk" data-lock></div></div>'
+    : '<div class="bub" style="--b:' + size + 'px"><b>' + d.s + "<sup>%</sup></b><span>Sufficient</span></div>";
+};
+
+var SECS = '<div class="esec"><h5>What is nutrition sufficiency?</h5><p>Your sufficiency score shows how well you have eaten your macronutrients, protein, carbs and fats, against your Eat plan. It rewards eating the right foods in the right amounts.</p></div>' +
+  '<hr class="edash"><div class="esec"><h5>How your score works</h5><p>Your score is out of 100. Protein, carbs and fats each make up a third of it, so reaching all three targets gives you 100. It starts at zero each morning and grows as you log.</p><p>If any of them goes more than 20% over its target, your score starts to come down.</p></div>' +
+  '<hr class="edash"><div class="esec"><h5>How does staying nutritionally sufficient help?</h5><p>When your day meets its targets, your body gets what it needs, in the right amounts.</p><ul><li>Your blood sugar stays steadier through the day.</li><li>You feel full for longer, with fewer cravings between meals.</li><li>Your energy holds from morning to night.</li><li>Your body keeps its strength and recovers well.</li></ul></div>' +
+  '<hr class="edash"><div class="esec"><h5>Where do your targets come from?</h5><p>Your coach sets them for you after your consultation, from your goal, your body and your health.</p>' +
+  '<div class="ecoach"><span class="av">SC</span><span class="t"><span>Your Eat coach</span><b>Sahana Chandra</b></span><span class="msg">Message</span></div></div>' +
+  '<p class="fine"><b>Disclaimer:</b> Nutrition sufficiency is based on protein, carbs and fats only. It does not account for vitamins, minerals or other measures of your health.</p>';
+
+/* A. centred bubble on a soft wash, intake as a 2 x 2 */
+function A(d) {
+  var cells = d.m.map(function (x) { return "<div>" + gl(x[0]) + '<span class="t"><span class="lab">' + x[1] + "</span>" + g(x) + "</span></div>"; }).join("") +
+    "<div>" + '<span class="t"><span class="lab">Calories</span>' + kc(d.cal) + "</span></div>";
+  return '<div class="wash" style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 0 16px">' + bub(d, 104) +
+    (d.sub ? '<div class="' + (d.s == null ? "note" : "date") + '">' + d.sub + "</div>" : "") + "</div>" +
+    '<div class="quad" style="margin:12px 0 20px">' + cells + "</div>" + SECS;
+}
+/* B. bubble beside the intake, one block */
+function B(d) {
+  var rows = d.m.map(function (x) { return '<div class="r">' + gl(x[0]) + '<span class="n">' + x[1] + "</span>" + g(x) + "</div>"; }).join("") +
+    '<div class="r"><span class="n">Calories</span>' + kc(d.cal) + "</div>";
+  return '<div style="display:flex;align-items:center;gap:16px;padding:14px;border-radius:20px;border:1px solid var(--g-200);margin:4px 0 20px">' + bub(d, 92) +
+    '<div class="rows" style="flex:1;min-width:0">' + rows + "</div></div>" +
+    (d.sub ? '<div class="' + (d.s == null ? "note" : "date") + '" style="margin:-10px 0 18px">' + d.sub + "</div>" : "") + SECS;
+}
+/* C. centred bubble, three chips, calories as one line */
+function C(d) {
+  var chips = d.m.map(function (x) { return '<div><span class="top">' + gl(x[0]) + x[1] + "</span>" + g(x) + "</div>"; }).join("");
+  return '<div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 0 16px">' + bub(d, 100) +
+    (d.sub ? '<div class="' + (d.s == null ? "note" : "date") + '">' + d.sub + "</div>" : "") + "</div>" +
+    '<div class="chips">' + chips + '</div><div class="calline">Calories' + kc(d.cal) + "</div>" +
+    '<div style="height:20px"></div>' + SECS;
+}
+/* D. a hero band: small bubble left, the day in words right, intake as one line */
+function D(d) {
+  var line = d.m.map(function (x) { return "<span>" + gl(x[0]) + x[1] + " <b>" + x[2] + (x[3] ? "/" + x[3] : "") + "g</b></span>"; }).join("") +
+    "<span>Calories <b>" + d.cal[0].toLocaleString("en-IN") + (d.cal[1] ? " of " + d.cal[1].toLocaleString("en-IN") : "") + " kcal</b></span>";
+  var words = d.s == null ? "<b style=\"font:700 18px/24px Roboto\">No score yet</b><span class=\"lab\" style=\"font-size:13px\">" + d.sub + "</span>"
+    : "<b style=\"font:700 18px/24px Roboto\">" + d.s + "% sufficient</b><span class=\"lab\" style=\"font-size:13px\">" + (d.sub || "Today, so far") + "</span>";
+  return '<div class="wash" style="display:flex;align-items:center;gap:16px;padding:16px;margin:4px 0 12px;background:linear-gradient(120deg,var(--brand-50),#fff)">' + bub(d, 84) +
+    '<div style="display:flex;flex-direction:column;gap:2px">' + words + "</div></div>" +
+    '<div class="inline" style="justify-content:flex-start;padding:0 4px 20px">' + line + "</div>" + SECS;
+}
+
+function phone(inner) {
+  return '<div class="phone"><div class="status"><span>9:41</span><svg width="64" height="12" viewBox="0 0 64 12" fill="#101828"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/><path d="M27 4.2a8 8 0 0 1 11 0l-1.4 1.4a6 6 0 0 0-8.2 0zM29.8 7a4 4 0 0 1 5.4 0L32.5 9.7z"/><rect x="42" y="1" width="20" height="10" rx="3" fill="none" stroke="#101828" stroke-opacity=".4"/><rect x="44" y="3" width="15" height="6" rx="1.5"/></svg></div><div class="behind"></div><div class="scrim"></div>' +
+    '<div class="sheet"><div class="shead"><h4>Nutrition sufficiency</h4><span class="x">' + X + '</span></div><div class="sbody">' + inner + '</div><div class="sfoot"><span class="cta" role="button">Ask KAIRA more about this<svg class="arr" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path fill="currentColor" d="M9.409 3.444c-.015-.015-.473-.13-1.018-.255s-.997-.208-1.004-.185-.064.401-.125.84c-.124.882-.424 1.911-.744 2.555-1 2.006-2.791 3.334-4.964 3.68L1 10.165v1.773l.502.084c3.286.551 5.429 3.008 5.83 6.686.026.24.057.436.069.436.11 0 1.947-.443 1.982-.478.025-.025.006-.25-.042-.5-.531-2.765-2.053-5.015-4.027-5.955l-.474-.226 9.74-.018 6.16-.01v-1.794l-6.176-.011-9.717-.018.598-.303c1.552-.786 2.78-2.328 3.503-4.397.206-.59.517-1.934.46-1.99"/></svg></span></div></div><span class="home"></span></div>';
+}
+var LAY = [
+  { t: "A. Bubble on a wash, 2 by 2", p: "A 104px bubble centred on a faint mint wash, then the four numbers in a 2 by 2 grid. About half the height of today's intake card, and still reads in one glance.", f: A },
+  { t: "B. Bubble beside the intake", p: "One bordered block: a 92px bubble on the left, four tight rows on the right. The shortest top of the four; the sheet gets to the explanation fastest.", f: B },
+  { t: "C. Bubble and three chips", tag: "Chosen", p: "A 100px bubble, the three macros as small tiles echoing the day view's cards, and calories as one quiet line under them. Ties the sheet to the screen it opened from.", f: C },
+  { t: "D. A band with words", p: "An 84px bubble in a green band, the score said in words beside it, and the intake as one wrapping line. The most compact; the numbers are the least prominent.", f: D }
+];
+document.getElementById("lay").innerHTML = LAY.map(function (l) {
+  return '<div class="col"><div class="cap"><h3>' + l.t + (l.tag ? "<em>" + l.tag + "</em>" : "") + "</h3><p>" + l.p + "</p></div>" + phone(l.f(DAYS.score)) + "</div>";
+}).join("");
+var ST = [
+  { t: "A day with a score", p: "Today, mid-day. The bubble carries 49%, the chips what is behind it.", d: DAYS.score },
+  { t: "Before the plan exists", p: "No targets yet: the bubble plays the app's lock animation once and holds on it, one line says why, and the chips show grams only.", d: DAYS.noplan }
+];
+document.getElementById("states").innerHTML = ST.map(function (s) {
+  return '<div class="col"><div class="cap"><h3>' + s.t + "</h3><p>" + s.p + "</p></div>" + phone(C(s.d)) + "</div>";
+}).join("");
+
+/* the lock: plays once, holds its last frame; reduced motion shows the held frame straight away */
+(function () {
+  if (!window.lottie || !window.GF_LOCK) return;
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.querySelectorAll("[data-lock]").forEach(function (el, i) {
+    var a = lottie.loadAnimation({ container: el, renderer: "svg", loop: false, autoplay: false, animationData: window.GF_LOCK,
+      rendererSettings: { preserveAspectRatio: "xMidYMid meet" } });
+    a.addEventListener("DOMLoaded", function () {
+      if (reduce) return a.goToAndStop(a.totalFrames - 1, true);
+      setTimeout(function () { a.play(); }, 500 + i * 150);
+    });
+  });
+})();
+</script>
+</body>
+</html>

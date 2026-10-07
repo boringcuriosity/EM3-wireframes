@@ -89,7 +89,7 @@
   .said p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-700); text-wrap: pretty; }
   .said p b { color: var(--g-900); font-weight: 700; }
 
-  /* ------------------------------------------------------ the four macros */
+  /* ----------------------------------------------------- the three macros */
   /* Lifted wholesale from the Eat screen so the two read as one system: one
      grey glyph each, the name, eaten over target, and a bar. Macros are never
      colour coded here or there, only shaped, and the one colour they do carry
@@ -105,7 +105,7 @@
      The icon is the gauge: it fills to its own level, there is no bar beside it.
      See eat.html for the same block and the reasoning behind the waterline. */
   @property --f { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
-  .mgrid { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .mgrid { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .m { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
   .gwrap { position: relative; width: 46px; height: 46px; }
   .gwrap::before { content: ""; position: absolute; inset: -8px; border-radius: 9999px;
@@ -258,9 +258,11 @@ var F = {
   makhana:["Roasted makhana", "1 bowl", 98]
 };
 
-/* The day's four targets, in the Eat screen's order: protein, carbs, fats,
-   fibre. Same numbers, same order, so the two screens cannot drift apart. */
-var TGT = [95, 238, 63, 30];
+/* The day's three targets, in the Eat screen's order: protein, carbs, fats.
+   Same numbers, same order, so the two screens cannot drift apart. (A state's
+   mac row may still carry a fourth number from when fibre counted; only the
+   first three are drawn.) */
+var TGT = [95, 238, 63];
 
 /* Every state is the same screen with different truth in it.
    `cheer` is the line on the green moment. It is the only per state copy the
@@ -293,9 +295,9 @@ var S = {
   },
   mealdone: {
     title: "Lunch complete", when: "at 1:30 PM", cheer: "Lunch is complete", meal: "lunch",
-    from: 34, to: 54,
+    from: 32, to: 49,
     slotline: "Lunch is closed. Log the rest of your plan to fill out the day.",
-    say: "Everything your coach planned for lunch is in. <b>Fibre</b> came out best, at 16 of 30g.",
+    say: "Everything your coach planned for lunch is in. <b>Carbs</b> came out best, at 128 of 238g.",
     mac: [52, 128, 34, 16],
     items: ["roti", "sabzi", "dal", "salad"],
     next: ["Evening snack", "5:00 to 6:30 PM, roasted makhana and chana"],
@@ -313,15 +315,15 @@ var S = {
   perfect: {
     title: "Every target met", when: "Dinner at 8:30 PM", cheer: "Every target met", meal: "dinner",
     from: 92, to: 100, state: "perfect",
-    slotline: "Your whole plan is logged, and all four nutrients landed on target.",
-    say: "Protein, carbs, fats and fibre all landed. Worth remembering what you ate today.",
+    slotline: "Your whole plan is logged, and all three nutrients landed on target.",
+    say: "Protein, carbs and fats all landed. Worth remembering what you ate today.",
     mac: [95, 238, 63, 30],
     items: ["mroti", "sabzi", "dal", "salad"],
     primary: "See your day"
   },
   small: {
     title: "Masala chai logged", when: "at 4:10 PM", cheer: "Logged", meal: "eveningsnack",
-    from: 54, to: 56,
+    from: 49, to: 51,
     slotline: "Keep logging your plan and this number keeps climbing.",
     say: "A small one, and it still counts: <b>2g protein and 11g carbs</b> towards today.",
     mac: [54, 136, 35, 16],
@@ -380,13 +382,12 @@ var ICON = {
 /* the concentric arc watermark the system puts behind its nutrition numbers,
    bled off the card's right edge. Decoration only, and it carries no colour. */
 
-/* Same four, same order, same flat grey silhouettes as the Eat screen. The
+/* Same three, same order, same flat grey silhouettes as the Eat screen. The
    glyph is a mask, so the fill is just the element's own background. */
 var MACROS = [
   { cls: "glyph-protein", name: "Protein" },
   { cls: "glyph-carbs", name: "Carbs" },
-  { cls: "glyph-fats", name: "Fats" },
-  { cls: "glyph-fibre", name: "Fibre" }
+  { cls: "glyph-fats", name: "Fats" }
 ];
 
 /* ----------------------------------------------------------- the moment */
@@ -442,7 +443,7 @@ if (M.noscore) {
 var body = document.getElementById("body");
 var html = '<div class="said rise" style="animation-delay:.24s"><span class="ic">' + ICON.kaira + '</span><p>' + M.say + '</p></div>';
 
-/* the four macro cells, built exactly as the Eat screen builds them */
+/* the three macro cells, built exactly as the Eat screen builds them */
 function cells(vals, grams) {
   return MACROS.map(function (g, i) {
     var eaten = vals[i], target = TGT[i];

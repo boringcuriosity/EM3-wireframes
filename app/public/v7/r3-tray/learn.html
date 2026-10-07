@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Learn</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&family=Playfair+Display:wght@700&display=swap">
+<link rel="stylesheet" href="goodflip-ui.css">
+<style>
+  /* ============================================================
+     Learn, the Eat pillar's reading tab.
+
+     Two routes, ?view=list and ?view=article, four states through
+     ?state=. The page frame, the gutter, the 40px section rhythm
+     and the header are ours (goodflip-ui.css). The content cards
+     are FlipFeed's: a 1px #101828 sticker outline with a hard
+     black offset at blur 0, a 100x100 thumbnail at radius 8 and a
+     24x24 type badge seated into its top-right corner.
+
+     Measured off Flip Feed 1301:12026 and detail page 1943:7416.
+     ============================================================ */
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  [hidden] { display: none !important; }
+  body { background: #FFFFFF; font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: .25px; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; letter-spacing: inherit; color: inherit; }
+  img { display: block; }
+
+  /* Five tokens FlipFeed needs and goodflip-ui.css does not carry yet.
+     Local until the lead promotes them. --teal-900 is the Podcast colour
+     (5706:2312); --teal-800 #2DA6A6 is too light to hold white at 14px. */
+  :root {
+    --teal-900: #2D8282;
+    --shadow-press-ink: 2px 3px 0 0 var(--g-900);   /* every 100x100 thumbnail */
+    /* The ink sticker edge belongs to the 100x100 thumbnail only. The hero card
+       carries the same offset in #E4E7EC, so the photo stays the loud thing on it. */
+    --shadow-card-lift: 2px 2px 0 0 var(--g-200);
+    --shadow-bar: 0 2px 4px -2px rgba(16,24,40,.06), 0 4px 8px -2px rgba(16,24,40,.10);
+  }
+
+  .col { position: relative; max-width: var(--col); margin: 0 auto; min-height: 100vh;
+    padding-bottom: 88px; overflow-x: hidden; background: #FFFFFF; }
+  /* nothing to clear once the nav stands down */
+  .col:has(#nav[hidden]) { padding-bottom: 24px; }
+  .ico { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  /* The back arrow is its own shape, not a chevron: a stroked line with a
+     flared tail. It is fill based, so it cannot wear .ico, which sets
+     fill:none and stroke:currentColor and would render it invisible. */
+  .backico { width: 22px; height: 22px; fill: currentColor; stroke: none; flex-shrink: 0; }
+
+  /* ---------------------------------------------------------- hero band */
+  /* 390 x 200, full bleed, #2A805A at the top to #299D6B at the bottom, which
+     is the reverse of the usual GoodFlip wash. The arc fan is the exported
+     vector clipped to the band's top-right corner, never a CSS reconstruction.
+     No FLIP FEED wordmark: this tab lives inside Eat, so it carries our
+     voice rather than the content brand's. */
+  .gf-feed-band { position: relative; height: 200px; overflow: hidden;
+    background: linear-gradient(180deg, var(--brand-700) 0%, var(--brand-600) 100%); }
+  /* The leaf's own transform, measured off the band's SVG: it hangs 154px above
+     the band and 73px past its right edge, so only the tip shows in the corner.
+     Solid, not dimmed. The subtlety is the green it sits on, not opacity. */
+  .gf-feed-band .arcs { position: absolute; top: -154px; right: -73px;
+    width: 163px; height: 221px; pointer-events: none; }
+  .gf-feed-band .cap { position: relative; padding: 20px var(--gut) 0; }
+  .gf-feed-band h1 { margin: 0; width: 232px;
+    font: 600 24px/32px Roboto, Arial, sans-serif; letter-spacing: .25px; color: #FFFFFF; }
+  .gf-feed-band .trust { margin: 8px 0 0; display: flex; align-items: center; gap: 6px;
+    font: 400 12px/14.4px Roboto, sans-serif; letter-spacing: .25px; color: rgba(255,255,255,.82); }
+
+  /* The whole composition trick on this page: the stack starts 118px into the
+     200px band, so the first card straddles the green edge. */
+  .stack { position: relative; z-index: 1; margin-top: -82px; }
+
+  /* --------------------------------------------- the FlipFeed section head */
+  /* Not .gf-h. That one is Roboto 400/14 with 16px to its content and no icon.
+     This is 600/20 with a 24px gold-gradient glyph and 12px to its content
+     (1301:12153). The two never meet on one screen. */
+  .gf-feed-h { display: flex; align-items: center; gap: 4px; height: 26px;
+    padding: 0 var(--gut); margin: 0 0 12px; }
+  .gf-feed-h.wide { gap: 8px; }
+  .gf-feed-h img.sec { width: 24px; height: 24px; flex: 0 0 auto; }
+  .gf-feed-h h2 { flex: 1; min-width: 0; margin: 0;
+    font: 600 20px/26px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-900);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .seeall { flex: 0 0 auto; width: 44px; height: 44px; margin: 0 -10px 0 0; border: 0;
+    background: none; padding: 0; display: grid; place-items: center; cursor: pointer;
+    border-radius: var(--r-pill); }
+  .seeall:hover { background: var(--brand-50); }
+
+  /* ------------------------------------------------------------- the rail */
+  /* .gf-rail already gives gap 16, a left gutter and a hidden scrollbar.
+     A feed rail adds the right gutter and snapping. */
+  .gf-feed-rail { padding-right: var(--gut); scroll-snap-type: x mandatory;
+    scroll-padding-left: var(--gut); padding-bottom: 2px; }
+  .gf-feed-rail > * { scroll-snap-align: start; }
+  .gf-feed-rail.hero { gap: 24px; }
+
+  /* -------------------------------------------------------- the thumbnail */
+  /* One object under every card in the set except the hero: a 1:1 100px frame
+     at radius 8, a 1px #101828 hairline and a hard #101828 offset at (2,3).
+     Nothing sits on top of it. The photo is the whole tile. */
+  .gf-feed-thumb { position: relative; flex: 0 0 auto; width: 100px; height: 100px;
+    border-radius: var(--r-sm); overflow: hidden; border: 1px solid var(--g-900);
+    box-shadow: var(--shadow-press-ink); background: var(--g-50); }
+
+  /* The artwork inside it is a photograph, one per article, never repeated.
+     The tint underneath is what shows while the file is still arriving. */
+  .art { position: absolute; inset: 0; background: var(--g-100); }
+  .art img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+  /* ------------------------------------------------ bookmark and go discs */
+  /* Both are 24px in the drawing. The hit area around them is 44. */
+  .gf-feed-mark { width: 44px; height: 44px; border: 0; background: none; padding: 0;
+    display: grid; place-items: center; cursor: pointer; border-radius: var(--r-pill); }
+  .gf-feed-mark img { width: 24px; height: 24px; }
+  .gf-feed-go { width: 44px; height: 44px; border: 0; background: none; padding: 0;
+    display: grid; place-items: center; cursor: pointer; border-radius: var(--r-pill); }
+  .gf-feed-go img { width: 24px; height: 24px; }
+
+  .meta { font: 400 12px/14.4px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-500);
+    white-space: nowrap; }
+
+  /* ----------------------------------------------------------- hero card */
+  /* 320 x 152, radius 12, children absolutely placed. No type tag: everything
+     here reads, so a row of identical Article chips only costs height. The
+     title takes the 16px the tag used to hold and stops at two lines, which is
+     what pulls the card in from 188. The foot cannot rise above 100, because
+     that is where the photo's bottom edge is. */
+  .gf-feed-hero { position: relative; flex: 0 0 320px; width: 320px; height: 152px;
+    border-radius: var(--r-md); overflow: hidden; background: #FFFFFF;
+    border: 1px solid var(--g-200); box-shadow: var(--shadow-card-lift);
+    text-align: left; padding: 0; cursor: pointer; }
+  .gf-feed-hero .t { position: absolute; left: 16px; top: 16px; width: 190px; height: 48px;
+    margin: 0; font: 600 18px/24px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-900);
+    overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  /* the photo's only rounded corner is the inner one, so it reads as a tab cut
+     into the card rather than a floating thumbnail */
+  .gf-feed-hero .pic { position: absolute; right: 0; top: 0; width: 100px; height: 100px;
+    border-radius: 0 0 0 var(--r-lg); overflow: hidden; }
+  .gf-feed-hero .mark { position: absolute; left: 6px; top: 102px; }
+  .gf-feed-hero .meta { position: absolute; left: 48px; top: 117px; }
+  .gf-feed-hero .go { position: absolute; left: 270px; top: 102px; }
+
+  /* ---------------------------------------------------------- For You card */
+  /* 280 x 160, radius 8/12/8/12, a white-to-indigo radial field and an angular
+     hairline whose strongest stop lands at top centre. */
+  .gf-feed-card { position: relative; flex: 0 0 280px; width: 280px; height: 160px;
+    border-radius: 8px 12px 8px 12px; border: 1px solid transparent; cursor: pointer;
+    padding: 0; text-align: left;
+    background:
+      radial-gradient(ellipse 120% 120% at 50% 50%, #FFFFFF 63%, var(--in-50) 100%) padding-box,
+      conic-gradient(from 180deg, var(--in-200), var(--in-100) 25%, var(--in-300) 50%, var(--in-200) 75%, var(--in-100)) border-box; }
+  .gf-feed-card .t { position: absolute; left: 12px; top: 12px; width: 132px; height: 48px;
+    margin: 0; font: 400 16px/24px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-900);
+    overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .gf-feed-card .gf-feed-thumb { position: absolute; left: 168px; top: 8px; }
+  .gf-feed-card .mark { position: absolute; left: 2px; top: 114px; }
+  .gf-feed-card .meta { position: absolute; left: 44px; top: 129px; }
+
+  /* -------------------------------------------------------- the listing row */
+  /* 390 x 116, no card edge. The separation is a rule, not a border. Content is
+     100 tall and the 16px bottom padding is what the divider sits under. */
+  .gf-feed-row { position: relative; display: flex; gap: 16px; width: 100%;
+    padding: 0 var(--gut) 16px; background: #FFFFFF; border: 0; text-align: left;
+    cursor: pointer; }
+  .gf-feed-row .main { flex: 1; min-width: 0; position: relative; height: 100px; }
+  .gf-feed-row .foot .gf-feed-mark { display: grid; }
+  .gf-feed-row .t { margin: 0; font: 400 16px/24px Roboto, sans-serif; letter-spacing: .25px;
+    color: var(--g-900); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; }
+  .gf-feed-row .foot { position: absolute; left: 0; bottom: 2px; display: flex; align-items: center; }
+  .gf-feed-row .mark { margin-left: -10px; }
+  .gf-feed-row .meta { margin-left: -2px; }
+  .gf-feed-row + .gf-feed-row { margin-top: 16px; }
+  /* The divider is drawn under every row but the last one in its block. The
+     shipped listing rules the last row too and ends a section on a hairline. */
+  .gf-feed-row::after { content: ""; position: absolute; left: var(--gut); right: var(--gut);
+    bottom: 0; height: 1px; background: var(--g-200); }
+  .gf-feed-row:last-child::after { display: none; }
+
+  /* ------------------------------------------------------ the category bar */
+  /* Not .gf-tabs. That one is a pressed pill trough. This is a scrolling
+     underline bar, white, 46 tall, with the only soft elevation on the page. */
+  .gf-feed-tabs { display: flex; gap: 24px; height: 46px; padding: 8px 0 0;
+    background: #FFFFFF; box-shadow: var(--shadow-bar); overflow-x: auto; touch-action:pan-x; overscroll-behavior-x:contain;
+    scrollbar-width: none; }
+  .gf-feed-tabs::-webkit-scrollbar { display: none; }
+  .gf-feed-tabs button { position: relative; flex: 0 0 auto; border: 0; background: none;
+    padding: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-start; height: 38px; }
+  /* the drawing gives the label 25px. The tap target has to be 44, so the hit
+     area is grown with a transparent overlay and the geometry is left alone. */
+  .gf-feed-tabs button::after { content: ""; position: absolute; left: -8px; right: -8px;
+    top: -3px; bottom: -3px; }
+  .gf-feed-tabs button:first-child { margin-left: var(--gut); }
+  .gf-feed-tabs button:last-child { margin-right: var(--gut); }
+  .gf-feed-tabs .lbl { display: flex; align-items: center; height: 25px; padding: 0 12px;
+    border-radius: var(--r-xl); font: 400 14px/16.8px Roboto, sans-serif; letter-spacing: .25px;
+    color: var(--g-900); white-space: nowrap; }
+  .gf-feed-tabs button[aria-selected="true"] .lbl { background: var(--brand-100); color: var(--brand-900); }
+  /* The drawing's 55px was cut for one-word labels. These names are long, so the
+     bar tracks the label instead, inset by the pill's own 12px padding. */
+  .gf-feed-tabs .ind { position: absolute; left: 12px; right: 12px; bottom: 0;
+    height: 5px; background: var(--brand-600); }
+
+  /* -------------------------------------------------------- the append loader */
+  .loader { display: flex; align-items: center; gap: 8px; padding: 24px var(--gut) 0; }
+  .loader img { width: 32px; height: 32px; }
+  .loader span { font: 400 12px/14.4px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-500); }
+
+  /* --------------------------------------------------------- empty and error */
+  /* One centred block, 300 wide, roughly 39% down the screen. The page chrome
+     stays: only the list is replaced. */
+  .centred { width: 300px; margin: 120px auto 0; padding: 8px var(--gut); text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .centred img.ill { width: 67px; height: 60px; }
+  .centred h3 { margin: 0; font: 600 20px/26px Roboto, sans-serif; letter-spacing: .25px;
+    color: var(--g-900); }
+  .centred p { margin: 4px 0 0; font: 400 16px/24px Roboto, sans-serif; letter-spacing: .25px;
+    color: var(--g-500); }
+  .centred .acts { width: 268px; }
+
+  /* ---------------------------------------------------------- the skeleton */
+  /* The card shells stay fully dressed and #F2F4F7 rectangles at radius 8 cover
+     each run at 1 to 2px under its real size, so the card's own border still
+     shows through. Not a shimmer, not a dimmed card. */
+  .sk { background: var(--g-100); border-radius: var(--r-sm); }
+  .sk.img { position: absolute; left: 1px; top: 1px; width: 98px; height: 98px; border-radius: 7px; }
+  .gf-feed-hero .sk.img { left: auto; right: 0; top: 0; width: 99px; height: 99px;
+    border-radius: 0 0 0 15px; }
+
+  /* ------------------------------------------------------- the article page */
+  .gf-header.ruled { position: sticky; top: 0; z-index: 10; height: 40px;
+    border-bottom: 1px solid var(--g-200); }
+  .gf-header.ruled.lift { box-shadow: var(--shadow-bar); }
+  .gf-header .back img { width: 20px; height: 17px; }
+  .gf-header .disc { width: 44px; height: 44px; margin: 0 -10px 0 0; border: 0; background: none;
+    padding: 0; display: grid; place-items: center; cursor: pointer; border-radius: var(--r-pill); }
+  .gf-header .disc img { width: 24px; height: 24px; }
+
+  .artic { padding: 12px var(--gut) 0; }
+  .artic h1 { margin: 0; font: 600 24px/32px Roboto, Arial, sans-serif;
+    letter-spacing: .25px; color: var(--g-900); }
+  .byline { display: inline-flex; align-items: center; gap: 4px; height: 25px; margin: 12px 0 0;
+    padding: 4px 8px; border-radius: var(--r-lg); background: var(--g-100);
+    font: 400 14px/16.8px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-500); }
+  .byline img { width: 17px; height: 17px; }
+  .byline b { font-weight: 700; color: var(--g-500); }
+  .artmeta { display: flex; align-items: center; gap: 12px; height: 22px; margin-top: 12px;
+    font: 400 12px/14.4px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-400); }
+  .artmeta span { display: inline-flex; align-items: center; gap: 4px; }
+  .artmeta img { width: 14px; height: 14px; }
+  .artmeta .bar { font-size: 14px; color: var(--g-400); }
+
+  /* 358 x 358, a perfect square at radius 12 inside the gutter, 30 above it and
+     16 below. That asymmetry is the only place the article breaks its rhythm. */
+  .arthero { position: relative; width: 100%; aspect-ratio: 1 / 1; margin: 30px 0 0;
+    border-radius: var(--r-md); overflow: hidden; background: var(--g-100); }
+  .arthero .pic { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+  /* The rhythm is three numbers. Heading to its first paragraph 4, paragraph to
+     paragraph 24, paragraph to the next heading 40. Nothing else varies. */
+  .body { margin-top: 16px; }
+  .body p, .body ul { margin: 0; font: 400 14px/21px Roboto, sans-serif; letter-spacing: .25px;
+    color: var(--g-900); }
+  .body h2 { margin: 40px 0 4px; font: 600 20px/26px Roboto, sans-serif; letter-spacing: .25px;
+    color: var(--g-900); }
+  .body h3 { margin: 40px 0 4px; font: 600 16px/22px Roboto, sans-serif; letter-spacing: .25px;
+    color: var(--g-900); }
+  .body * + p { margin-top: 24px; }
+  .body h2 + p, .body h3 + p, .body h2 + ul, .body h3 + ul { margin-top: 4px; }
+  .body ul { padding-left: 21px; list-style: disc; }
+  .body li + li { margin-top: 21px; }
+
+  /* The end of the article is invented: nothing exists past the last paragraph
+     in the file. A hairline, one quiet line, one saved action, then the
+     related rail on the listing row shell. Kept small on purpose. */
+  .artend { margin-top: 40px; padding-top: 24px; text-align: center;
+    border-top: 1px solid var(--g-200); }
+  .artend .said { font: 400 12px/14.4px Roboto, sans-serif; letter-spacing: .25px;
+    color: var(--g-400); }
+  .artend .gf-link { margin-top: 4px; }
+
+
+  /* ------------------------------------------------- the category list (app) */
+  /* Matches the app's category screen: a pale header with the category in
+     Playfair, then one plain list. Measured off the app at 390 wide. */
+  .nl-h { padding: 20px 18px 27px; background: linear-gradient(180deg, #EEF2FB 0%, #FFFFFF 100%); }
+  .nl-h h1 { margin: 0; font: 700 26px/34px "Playfair Display", Georgia, serif; letter-spacing: 0; color: #101010; }
+  .nl { padding: 0 18px 24px; }
+  .nl-row { display: flex; gap: 16px; padding: 18px 0 16px; border-bottom: 1px solid var(--g-200); cursor: pointer; }
+  .nl-row:last-child { border-bottom: 0; }
+  .nl-row .th { flex: 0 0 88px; height: 88px; border-radius: 10px; overflow: hidden; border: 1px solid var(--g-200);
+    box-shadow: 2px 3px 0 0 var(--g-200); background: var(--g-50); }
+  .nl-row .th img { width: 100%; height: 100%; object-fit: cover; }
+  .nl-row .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; min-height: 88px; }
+  .nl-row h3 { margin: 4px 0 0; font: 600 18px/25px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-900);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .nl-row .mt { margin-top: 10px; font: 400 14px/20px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-500); }
+  .nl-row .sk { border-radius: 6px; }
+
+  /* ------------------------------------------------------------- bottom nav */
+  .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%;
+    max-width: var(--col); background: #fff; border-top: 1px solid var(--g-200); display: flex;
+    padding: 8px 6px calc(8px + var(--gf-home-h, 20px) + env(safe-area-inset-bottom, 0px)); z-index: 20; }
+  .nav a, .nav button { flex: 1; border: 0; background: none; display: flex; flex-direction: column;
+    align-items: center; gap: 4px; font-size: 12px; color: var(--g-500); cursor: pointer;
+    min-height: 48px; justify-content: center; text-decoration: none; }
+  .nav .on { color: var(--brand-600); font-weight: 700; }
+  /* mobile has no hover, so without this a nav tap answers with nothing until
+     the next screen paints */
+  .nav a, .nav button { transition: transform .2s ease-out, color .15s ease-out; }
+  .nav a:active, .nav button:active { transform: scale(.92); }
+</style>
+</head>
+<body>
+
+<div class="col">
+
+  <!-- ============================ the listing ============================ -->
+  <div id="listView">
+    <div class="nl-h"><h1>Nutrition &amp; Metabolic Health</h1></div>
+    <div class="nl" id="stack"></div>
+  </div>
+
+  <!-- ============================ the article ============================ -->
+  <div id="artView" hidden>
+    <div class="gf-header ruled" id="artHead">
+      <button class="back" id="artBack">
+        <img src="../icons/feed-back-arrow.svg" alt="" aria-hidden="true">Back
+      </button>
+      <div class="acts">
+        <button class="disc" aria-label="Share this article">
+          <img src="../icons/feed-share-off.svg" alt="" aria-hidden="true"></button>
+      </div>
+    </div>
+
+    <div class="artic">
+      <h1>What sufficiency actually means</h1>
+
+      <p class="byline"><img src="../icons/feed-meta-person.svg" alt="" aria-hidden="true">Written by <b>the GoodFlip nutrition team</b></p>
+
+      <div class="artmeta">
+        <span><img src="../icons/feed-meta-calendar.svg" alt="" aria-hidden="true">18 Sep 2026</span>
+        <span class="bar" aria-hidden="true">|</span>
+        <span><img src="../icons/feed-meta-clock.svg" alt="" aria-hidden="true">4 min read</span>
+      </div>
+
+      <figure class="arthero">
+        <img class="pic" src="../img/art-plate.jpg" alt="A thali laid out with several components">
+      </figure>
+
+      <div class="body">
+        <p>Your plan sets four targets for the day: protein, carbs, fats and fibre. Sufficiency is
+          how much of each one you actually met. It is not a grade for eating clean and it is not a
+          penalty for eating more. It is one question asked four times: did your body get what it
+          was asked to take in?</p>
+
+        <h2>It is not the same as counting calories</h2>
+        <p>Calories measure the fuel. Sufficiency measures what the fuel was made of. Two days can
+          land on the same calorie number and look nothing alike once you split them into the four
+          targets. One day might be mostly rice and oil. The other might carry the same energy with
+          dal, curd and a bowl of vegetables behind it. Your body notices that difference even when
+          the calorie count does not.</p>
+        <p>This is also why the score often stays flat when you simply eat less. Skipping a snack
+          brings the calories down, but it usually brings protein and fibre down with them, so the
+          gaps you were trying to close get a little wider instead.</p>
+
+        <h2>The four targets, and what each one is doing</h2>
+        <p>Each target is asking for something specific, and your plan sets them together so they
+          hold each other up.</p>
+        <ul>
+          <li>Protein keeps muscle on you while the rest of the plan does its work. It is also the
+            target that keeps you full the longest.</li>
+          <li>Carbs are the energy your day runs on. The plan is not trying to remove them, it is
+            trying to put them where you need them.</li>
+          <li>Fats carry flavour, and they carry the vitamins that only dissolve in fat. Too little
+            makes a plan hard to stay on for more than a week.</li>
+          <li>Fibre feeds your gut and slows the rise after a meal. It is the target most people
+            meet last.</li>
+        </ul>
+
+        <h2>Why protein is usually the one that lags</h2>
+        <p>In most kitchens protein is a side character. It arrives as a small bowl of dal beside a
+          lot of rice, or as curd at the very end of the meal. The carbs are already generous, so
+          the calories add up long before the protein does, and the day finishes with the fuel met
+          and the material short.</p>
+        <h3>Where the easy grams are</h3>
+        <p>The fix is rarely a new food. It is usually a bigger share of one you already cook: a
+          second ladle of dal, curd at lunch and not only at dinner, paneer or egg in the evening
+          snack, roasted chana with your tea instead of biscuits.</p>
+        <p>Move one meal at a time. A single change you keep beats four you drop by Thursday, and
+          the meal you fix first should be the one you eat the same way every day.</p>
+
+        <h2>How to read your score</h2>
+        <p>The number is how close you came across all four targets together. A day at 54 is not
+          half a bad day. It is a day where two targets landed and two did not, and the two that
+          did not are named right under the score.</p>
+        <h3>Look at the gap, not the grade</h3>
+        <p>Open the macro row and find the target sitting furthest from its line. That is the only
+          one worth acting on today. The others tend to follow it, because the meal that fixes
+          protein usually brings fibre along with it.</p>
+        <p>Your coach is reading the same four numbers you are. When one of them runs short for
+          several days together, that is what the next change to your plan is built on. So the most
+          useful thing you can do is keep logging, even on the days it is not going well.</p>
+      </div>
+
+    </div>
+
+    <div class="gf-section" style="margin-top:40px" id="related"></div>
+  </div>
+
+  <!-- ================= empty, error: the chrome stays ==================== -->
+  <div id="stateView" hidden>
+    <div class="gf-feed-band">
+      <img class="arcs" src="../icons/feed-hero-arcs.svg" alt="" aria-hidden="true">
+      <div class="cap">
+        <h1>Learn how eating well works</h1>
+        <p class="trust">Clinically reviewed . Science backed guidance</p>
+      </div>
+    </div>
+    <div style="margin-top:24px" id="stateTabs"></div>
+    <div id="stateBody"></div>
+  </div>
+
+  <nav class="nav" id="nav">
+    <a href="app.html"><svg class="backico" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path fill="currentColor" d="M9.409 3.444c-.015-.015-.473-.13-1.018-.255s-.997-.208-1.004-.185-.064.401-.125.84c-.124.882-.424 1.911-.744 2.555-1 2.006-2.791 3.334-4.964 3.68L1 10.165v1.773l.502.084c3.286.551 5.429 3.008 5.83 6.686.026.24.057.436.069.436.11 0 1.947-.443 1.982-.478.025-.025.006-.25-.042-.5-.531-2.765-2.053-5.015-4.027-5.955l-.474-.226 9.74-.018 6.16-.01v-1.794l-6.176-.011-9.717-.018.598-.303c1.552-.786 2.78-2.328 3.503-4.397.206-.59.517-1.934.46-1.99"/></svg>Back</a>
+    <a href="eat.html" data-nav="eat"><svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:2.2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>Eat</a>
+    <a href="trend.html" data-nav="trend"><svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:1.8"><path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg>Trend</a>
+    <a href="#" class="on"><svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Learn</a>
+  </nav>
+
+</div>
+
+<script>
+/* ============================================================
+   One table of content, four surfaces. Everything below reads
+   from it: the hero carousel, the For You rail, the two section
+   blocks, the tabbed listing and the article's related rail.
+   ============================================================ */
+
+var Q = new URLSearchParams(location.search);
+var ICON = "../icons/";
+
+/* No type marks anywhere on this tab. Everything Learn carries reads, so a
+   badge on each thumbnail and a chip on each hero card only repeated the one
+   thing every card had in common. `type` survives on each item because the
+   meta line still says "min read" or "min". The six glyphs stay in icons/
+   as feed-type-*.svg for whenever a second format arrives. */
+
+/* The meta line is one string: duration, then a full stop with a space each
+   side, then the date. Article reads "N min read", everything else "N min". */
+var ITEMS = {
+  1:  { t: "What sufficiency actually means",        type: "article",     mins: 4,  date: "18 Sep 26", art: "plate",   open: 1 },
+  2:  { t: "Why protein is the one that lags",       type: "article",     mins: 5,  date: "15 Sep 26", art: "protein" },
+  3:  { t: "Fibre is doing more than you think",     type: "article",     mins: 6,  date: "11 Sep 26", art: "fibre" },
+  4:  { t: "How your coach builds the plan",         type: "podcast",     mins: 12, date: "9 Sep 26",  art: "plan" },
+  5:  { t: "Reading your Eat score in a minute",     type: "infographic", mins: 2,  date: "5 Sep 26",  art: "score" },
+  6:  { t: "Protein at every meal, without cooking twice", type: "article", mins: 5, date: "2 Sep 26", art: "prep" },
+  7:  { t: "The plate, built four ways",             type: "infographic", mins: 3,  date: "28 Aug 26", art: "bowls" },
+  8:  { t: "Eating out without losing the day",      type: "article",     mins: 4,  date: "25 Aug 26", art: "eatout" },
+  9:  { t: "When you miss a target, what next",      type: "podcast",     mins: 9,  date: "21 Aug 26", art: "reset" },
+  10: { t: "A week of easy fibre swaps",             type: "pdf",         mins: 5,  date: "18 Aug 26", art: "swaps" }
+};
+
+/* The two real categories this tab reads from. No "All Categories": with two
+   entries an all-of-them tab is the whole list, so it only adds a tap. */
+var TABS = ["Nutrition & Metabolic Health", "Nutritional & Deficiency Marker"];
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function metaOf(it) {
+  var unit = it.type === "article" || it.type === "pdf" ? " min read" : " min";
+  return it.mins + unit + " . " + it.date + "’";
+}
+function artOf(it) {
+  return '<span class="art"><img src="../img/art-' + it.art + '.jpg" alt="" loading="lazy"></span>';
+}
+
+function thumb(it, sk) {
+  return '<span class="gf-feed-thumb">' + (sk ? '<span class="sk img"></span>' : artOf(it)) + '</span>';
+}
+function markBtn(cls) {
+  return '<span class="gf-feed-mark ' + (cls || "") + '" role="button" tabindex="0" aria-label="Save">' +
+    '<img src="' + ICON + 'feed-bookmark-off.svg" alt=""></span>';
+}
+
+/* ---------------------------------------------------------------- cards */
+
+function heroCard(id) {
+  var it = ITEMS[id];
+  return '<div class="gf-feed-hero" role="link" tabindex="0" data-go="' + id + '">' +
+    '<h3 class="t">' + esc(it.t) + '</h3>' +
+    '<span class="pic">' + artOf(it) + '</span>' +
+    markBtn("mark") +
+    '<span class="meta">' + esc(metaOf(it)) + '</span>' +
+    '<span class="gf-feed-go go" role="button" tabindex="0" aria-label="Read this">' +
+      '<img src="' + ICON + 'feed-chevron-disc.svg" alt=""></span>' +
+    '</div>';
+}
+
+function youCard(id) {
+  var it = ITEMS[id];
+  return '<div class="gf-feed-card" role="link" tabindex="0" data-go="' + id + '">' +
+    '<h3 class="t">' + esc(it.t) + '</h3>' + thumb(it) + markBtn("mark") +
+    '<span class="meta">' + esc(metaOf(it)) + '</span></div>';
+}
+
+function row(id) {
+  var it = ITEMS[id];
+  return '<div class="gf-feed-row" role="link" tabindex="0" data-go="' + id + '">' +
+    thumb(it) +
+    '<div class="main"><h3 class="t">' + esc(it.t) + '</h3>' +
+    '<div class="foot">' + markBtn("mark") + '<span class="meta">' + esc(metaOf(it)) + '</span></div>' +
+    '</div></div>';
+}
+
+function head(icon, title, seeAll) {
+  return '<div class="gf-feed-h' + (seeAll ? '' : ' wide') + '">' +
+    '<img class="sec" src="' + ICON + icon + '" alt="">' +
+    '<h2>' + esc(title) + '</h2>' +
+    (seeAll ? '<button class="seeall" aria-label="See all in ' + esc(title) + '">' +
+      '<img src="' + ICON + 'feed-chevron-disc.svg" alt=""></button>' : '') + '</div>';
+}
+
+function tabs(active) {
+  return '<div class="gf-feed-tabs" role="tablist" aria-label="Categories">' + TABS.map(function (t, i) {
+    var on = i === active;
+    return '<button role="tab" aria-selected="' + on + '"><span class="lbl">' + esc(t) + '</span>' +
+      (on ? '<span class="ind"></span>' : '') + '</button>';
+  }).join("") + '</div>';
+}
+
+function dots(active, of) {
+  var out = '<div style="display:flex;gap:4px;justify-content:center;margin-top:16px" aria-hidden="true">';
+  for (var i = 0; i < of; i++) {
+    out += i === active
+      /* the house ink, not pure black. GoodFlip's darkest tone is #101828,
+         and the inactive dots take the grey the rest of the page uses for a
+         thing that is present but not current. */
+      ? '<span style="display:inline-block;width:40px;height:4px;border-radius:9999px;background:var(--g-200,#E4E7EC)">' +
+        '<span style="display:block;width:24px;height:4px;border-radius:9999px;background:var(--g-900,#101828)"></span></span>'
+      : '<span style="display:inline-block;width:4px;height:4px;border-radius:9999px;background:var(--g-300,#D0D5DD)"></span>';
+  }
+  return out + '</div>';
+}
+
+/* ------------------------------------------------------------- skeletons */
+/* The shells stay dressed. Each rectangle is 1 to 2px under the run it covers,
+   so the card's own hairline still reads. */
+
+function sk(w, h, style) {
+  return '<span class="sk" style="display:block;width:' + w + 'px;height:' + h + 'px;' + (style || "") + '"></span>';
+}
+
+function heroSk() {
+  return '<div class="gf-feed-hero" aria-hidden="true">' +
+    '<span class="t" style="display:block">' + sk(150, 22) + sk(122, 22, "margin-top:2px") + '</span>' +
+    '<span class="sk img"></span>' +
+    '<span class="mark gf-feed-mark"><span class="sk" style="width:24px;height:24px;border-radius:12px"></span></span>' +
+    '<span class="meta" style="top:115px">' + sk(127, 14) + '</span>' +
+    '<span class="go gf-feed-go"><span class="sk" style="width:24px;height:24px;border-radius:12px"></span></span>' +
+    '</div>';
+}
+
+function youSk() {
+  return '<div class="gf-feed-card" aria-hidden="true">' +
+    '<span class="t" style="display:block">' + sk(142, 22) + sk(120, 22, "margin-top:2px") + sk(134, 22, "margin-top:2px") + '</span>' +
+    '<span class="gf-feed-thumb"><span class="sk img"></span></span>' +
+    '<span class="mark gf-feed-mark"><span class="sk" style="width:24px;height:24px;border-radius:12px"></span></span>' +
+    '<span class="meta" style="top:127px">' + sk(127, 14) + '</span></div>';
+}
+
+function rowSk() {
+  return '<div class="gf-feed-row" aria-hidden="true">' +
+    '<span class="gf-feed-thumb"><span class="sk img"></span></span>' +
+    '<div class="main">' + sk(240, 22) + sk(176, 22, "margin-top:2px") +
+    '<div class="foot"><span class="gf-feed-mark" style="margin-left:-10px">' +
+      '<span class="sk" style="width:24px;height:24px;border-radius:12px"></span></span>' +
+      '<span style="margin-left:-2px">' + sk(127, 14) + '</span></div>' +
+    '</div></div>';
+}
+
+function headSk(seeAll) {
+  return '<div class="gf-feed-h" aria-hidden="true">' +
+    '<span class="sk" style="width:23px;height:23px;border-radius:7px"></span>' +
+    '<span style="flex:1">' + sk(196, 24, "margin-left:4px") + '</span>' +
+    (seeAll ? '<span class="sk" style="width:23px;height:23px;border-radius:7px"></span>' : '') + '</div>';
+}
+
+/* ---------------------------------------------------------------- render */
+
+function section(cls, inner) { return '<div class="gf-section ' + (cls || "") + '">' + inner + '</div>'; }
+
+function nlRow(id) {
+  var it = ITEMS[id];
+  return '<div class="nl-row" role="link" tabindex="0" data-go="' + id + '">' +
+    '<span class="th"><img src="../img/art-' + it.art + '.jpg" alt="" loading="lazy"></span>' +
+    '<div class="tx"><h3>' + esc(it.t) + '</h3><span class="mt">' + esc(metaOf(it).replace(/’$/, "")) + '</span></div></div>';
+}
+
+function renderList() {
+  document.getElementById("stack").innerHTML = [1, 2, 3, 6, 8, 10, 5, 7, 4, 9].map(nlRow).join("");
+}
+
+function renderLoading() {
+  var r = '<div class="nl-row" aria-hidden="true"><span class="th"><span class="sk" style="display:block;width:100%;height:100%;border-radius:0"></span></span>' +
+    '<div class="tx"><span style="display:block;margin-top:4px">' + sk(220, 20) + sk(160, 20, "margin-top:5px") + '</span>' + sk(130, 14) + '</div></div>';
+  document.getElementById("stack").innerHTML = r + r + r + r + r;
+  document.getElementById("stack").setAttribute("aria-busy", "true");
+}
+
+function renderState(kind) {
+  document.getElementById("stateTabs").innerHTML = tabs(0);
+  var b = document.getElementById("stateBody");
+  if (kind === "empty") {
+    b.innerHTML = '<div class="centred">' +
+      '<img class="ill" src="' + ICON + 'feed-empty-books.png" alt="">' +
+      '<div><h3>Nothing saved here yet</h3>' +
+      '<p>Anything you save while reading shows up on this tab.</p></div>' +
+      '<div class="acts"><button class="gf-btn">Browse all topics' +
+      '<img src="' + ICON + 'feed-arrow-right.svg" alt="" aria-hidden="true" style="width:16px;height:16px">' +
+      '</button></div></div>';
+  } else {
+    /* Invented. There is no error frame anywhere in the Figma file, so this is
+       the empty block's geometry with our own copy, no illustration, and the
+       lipped button carrying the retry. */
+    b.innerHTML = '<div class="centred">' +
+      '<div><h3>That did not load</h3>' +
+      '<p>Check your connection and try once more. Nothing you saved has been lost.</p></div>' +
+      '<div class="acts"><button class="gf-btn" onclick="location.reload()">Try again</button>' +
+      '<button class="gf-link quiet" onclick="history.back()">Go back</button></div></div>';
+  }
+}
+
+function renderArticle() {
+  document.getElementById("related").innerHTML =
+    head("feed-sec-book.svg", "More on eating well", true) +
+    '<div class="nl" style="padding-bottom:0">' + nlRow(2) + nlRow(3) + nlRow(7) + '</div>';
+}
+
+/* --------------------------------------------------------------- routing */
+
+var view = Q.get("view") || "list";
+var state = Q.get("state") || (view === "article" ? "article" : "list");
+if (state === "article") view = "article";
+
+/* Reading a piece is a route, not a tab. The back arrow in the article's own
+   header is the way out, so the bottom nav stands down while it is open. */
+function show(id) {
+  ["listView", "artView", "stateView"].forEach(function (k) {
+    document.getElementById(k).hidden = k !== id;
+  });
+  document.getElementById("nav").hidden = id === "artView";
+}
+
+if (state === "empty" || state === "error") { show("stateView"); renderState(state); }
+else if (view === "article") { show("artView"); renderArticle(); }
+else if (state === "loading") { show("listView"); renderLoading(); }
+else { show("listView"); renderList(); }
+
+/* ---------------------------------------------------------- interactions */
+
+function go(id) {
+  var q = new URLSearchParams(location.search);
+  q.set("view", "article"); q.delete("state"); q.set("id", id);
+  location.search = q.toString();
+}
+
+document.addEventListener("click", function (e) {
+  var mark = e.target.closest(".gf-feed-mark, .disc[aria-pressed]");
+  if (mark) {
+    e.stopPropagation();
+    var img = mark.querySelector("img");
+    if (!img) return;
+    var on = img.getAttribute("src").indexOf("-on.svg") > -1;
+    img.setAttribute("src", ICON + (on ? "feed-bookmark-off.svg" : "feed-bookmark-on.svg"));
+    mark.setAttribute("aria-pressed", String(!on));
+    return;
+  }
+  var card = e.target.closest("[data-go]");
+  if (card) go(card.getAttribute("data-go"));
+});
+
+document.addEventListener("keydown", function (e) {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  var t = e.target.closest("[data-go], .gf-feed-mark");
+  if (!t) return;
+  e.preventDefault(); t.click();
+});
+
+var back = document.getElementById("artBack");
+if (back) back.addEventListener("click", function () { location.search = "?view=list"; });
+
+
+/* The back nav is not sticky in the drawing, but a 1983px article with no way
+   back to the list is the one real usability hole in it. It sticks, and the
+   shadow only appears once the hero image has gone by. */
+var artHead = document.getElementById("artHead");
+if (artHead && view === "article") {
+  addEventListener("scroll", function () {
+    artHead.classList.toggle("lift", scrollY > 8);
+  }, { passive: true });
+}
+
+/* The sibling tabs are their own screens. Inside the prototype shell they
+   are a message so the panel stays in step; standalone they are a link. */
+document.addEventListener("click", function (e) {
+  var nv = e.target.closest && e.target.closest("[data-nav]");
+  if (!nv) return;
+  var to = nv.getAttribute("data-nav");
+  if (window.parent === window) return;
+  e.preventDefault();
+  parent.postMessage({ nav: to }, "*");
+});
+</script>
+<script src="chrome.js"></script>
+</body>
+</html>

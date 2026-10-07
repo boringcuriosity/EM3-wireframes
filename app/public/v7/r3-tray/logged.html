@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meal logged</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../icons/glyph-masks.css">
+<link rel="stylesheet" href="goodflip-ui.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: #FFFFFF; font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .25px; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; letter-spacing: inherit; color: inherit; }
+  .col { position: relative; max-width: 390px; margin: 0 auto; min-height: 100vh; padding-bottom: 152px; background: #fff; overflow-x: hidden; }
+  .gut { padding-left: 16px; padding-right: 16px; }
+  .ico { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+  /* ---------------------------------------------------------------------
+     THE MOMENT. One treatment, every state. Full screen, green, and it goes.
+     No conditional colour: a log is a log, whatever the score did.
+     --------------------------------------------------------------------- */
+  .moment { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center;
+    background: radial-gradient(120% 85% at 50% 42%, #36B87E 0%, var(--brand-600) 45%, var(--brand-700) 100%);
+    overflow: hidden; }
+  .moment .glow { position: absolute; left: 50%; top: 42%; width: 520px; height: 520px; transform: translate(-50%,-50%);
+    border-radius: 9999px; background: radial-gradient(closest-side, rgba(255,255,255,.34), rgba(255,255,255,0)); }
+  .moment .stack { position: relative; text-align: center; padding: 0 32px; }
+
+  /* the tick: a white ring that opens, then the stroke draws through it */
+  .tick { position: relative; width: 112px; height: 112px; margin: 0 auto; }
+  .tick .halo { position: absolute; inset: 0; border-radius: 9999px; border: 2px solid rgba(255,255,255,.55);
+    transform: scale(.2); opacity: 0; animation: haloOut .62s cubic-bezier(.22,1,.36,1) .06s both; }
+  .tick .halo.two { animation-delay: .2s; animation-duration: .8s; border-color: rgba(255,255,255,.22); }
+  .tick svg { position: relative; width: 112px; height: 112px; }
+  /* the path M32 58 L49 75 L81 40 is 71.5 units long, so the dash has to be
+     longer than that or the stroke never closes up at the end */
+  .tick .mark { stroke: #fff; stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; fill: none;
+    stroke-dasharray: 76; stroke-dashoffset: 76; animation: draw .46s cubic-bezier(.65,0,.35,1) .26s both; }
+  @keyframes haloOut { 0% { transform: scale(.25); opacity: 0; } 30% { opacity: 1; } 100% { transform: scale(1.7); opacity: 0; } }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  .moment h1 { margin: 22px 0 0; font-family: Roboto, Arial, sans-serif; font-weight: 600;
+    font-size: 32px; line-height: 40px; color: #fff; animation: momentIn .5s cubic-bezier(.25,.1,.25,1) .34s both; }
+  .moment .sub { margin-top: 6px; font-size: 14px; line-height: 21px; color: rgba(255,255,255,.78);
+    animation: momentIn .5s cubic-bezier(.25,.1,.25,1) .42s both; }
+  @keyframes momentIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  /* Confetti, the one place GoodFlip lets a non-brand palette in.
+     Nine pieces, thrown once, gone. Never a loop. */
+  .moment .bit { position: absolute; left: 50%; top: 40%; width: 9px; height: 9px; border-radius: 2px;
+    opacity: 0; animation: throw 1.1s cubic-bezier(.16,.72,.34,1) both; }
+  .moment .bit.dot { border-radius: 9999px; width: 7px; height: 7px; }
+  @keyframes throw {
+    0%   { opacity: 0; transform: translate(-50%,-50%) rotate(0deg) scale(.4); }
+    16%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot)) scale(1); }
+  }
+
+  .moment.out { animation: momentOut .52s cubic-bezier(.4,0,.2,1) both; pointer-events: none; }
+  @keyframes momentOut { to { opacity: 0; transform: scale(1.06); } }
+
+  /* ------------------------------------------------------------ the page */
+  .hit { padding: 28px 16px 4px; text-align: center; }
+  .hit h1 { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; }
+  .hit .when { margin-top: 4px; font-size: 14px; line-height: 21px; color: var(--g-500); }
+
+  /* the score, moving */
+  .scorewrap { position: relative; width: 212px; height: 198px; margin: 8px auto 0; }
+  .scorewrap .plate { position: absolute; left: 0; top: 0; width: 342px; height: 320px; transform: scale(.62); transform-origin: 0 0; }
+  .delta { position: absolute; left: 50%; top: 34px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 4px;
+    height: 26px; padding: 0 12px; border-radius: 9999px; background: var(--ok-100); color: var(--g-900);
+    font-size: 14px; font-weight: 700; opacity: 0; }
+  .delta.go { animation: lift 1.6s cubic-bezier(.25,.1,.25,1) both; }
+  @keyframes lift { 0% { opacity: 0; transform: translate(-50%, 10px); } 22% { opacity: 1; transform: translate(-50%, 0); }
+    72% { opacity: 1; transform: translate(-50%, -6px); } 100% { opacity: 0; transform: translate(-50%, -14px); } }
+
+  /* No meal counter and no slot pips. A plan can hold three meals or nine, and
+     a fixed track would either lie or cap the day. What the line has to do is
+     point at the next log, not score the day out of six. */
+  .slotline { margin: 12px 0 0; font-size: 14px; line-height: 21px; color: var(--g-500); text-align: center; }
+  .slotline b { color: var(--g-900); font-weight: 700; }
+
+  /* what it did. One treatment, always. The insight carries the weight, not the tint. */
+  .said { display: flex; gap: 12px; align-items: flex-start; margin-top: 24px; padding: 16px; border-radius: 16px;
+    background: #fff; border: 1px solid var(--g-100); box-shadow: var(--shadow-card); }
+  .said .ic { flex-shrink: 0; width: 32px; height: 32px; border-radius: 9999px; background: var(--in-25);
+    display: grid; place-items: center; }
+  .said p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-700); text-wrap: pretty; }
+  .said p b { color: var(--g-900); font-weight: 700; }
+
+  /* ------------------------------------------------------ the four macros */
+  /* Lifted wholesale from the Eat screen so the two read as one system: one
+     grey glyph each, the name, eaten over target, and a bar. Macros are never
+     colour coded here or there, only shaped, and the one colour they do carry
+     is indigo, not green: green belongs to the verdict. See eat.html.
+     The card carries the same single hairline, because this is the chart the
+     score is made of.
+     With no targets the value is bare grams and the bar stands down to a rule,
+     which is the same `grams` mode the Eat screen runs before a plan exists. */
+  .nut { position: relative; margin-top: 16px; padding: 16px; border-radius: 16px; background: #fff;
+    border: 1px solid var(--g-100); box-shadow: var(--shadow-card); overflow: hidden; }
+  .nut h2 { position: relative; margin: 0 0 14px; font-size: 14px; line-height: 21px; font-weight: 600; color: var(--g-900); }
+  /* The four glyphs, lifted from the Eat screen so the two read as one system.
+     The icon is the gauge: it fills to its own level, there is no bar beside it.
+     See eat.html for the same block and the reasoning behind the waterline. */
+  @property --f { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+  .mgrid { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .m { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+  .gwrap { position: relative; width: 46px; height: 46px; }
+  .gwrap::before { content: ""; position: absolute; inset: -8px; border-radius: 9999px;
+    background: radial-gradient(closest-side, var(--in-100), rgba(255,255,255,0));
+    opacity: 0; transition: opacity .5s var(--ease); }
+  .m.done .gwrap::before { opacity: 1; }
+  /* a soft cast shadow under each glyph, neutral so it reads as a shadow and
+     not as a glow. Same block as eat.html, see there for the reasoning. */
+  .gwrap::after { content: ""; position: absolute; left: 7px; right: 7px; bottom: -5px; height: 7px;
+    border-radius: 9999px; pointer-events: none;
+    background: radial-gradient(closest-side, rgba(16,24,40,.16), rgba(16,24,40,.05) 62%, rgba(16,24,40,0)); }
+  .gfill { position: absolute; inset: 0; --f: 0%;
+    background: linear-gradient(to top,
+      var(--in-900) 0%,
+      var(--in-700) calc(var(--f) * .35),
+      var(--in-600) calc(var(--f) * .78),
+      var(--in-500) calc(var(--f) - 5%),
+      var(--in-300) calc(var(--f) - .5%),
+      var(--g-200) var(--f),
+      var(--g-100) 100%);
+    transition: --f .9s var(--ease); }
+  .m.done .gfill { background: linear-gradient(to top, var(--in-900), var(--in-600) 55%, var(--in-400)); }
+  /* Sized by HEIGHT, not width: `contain` lets a tall glyph reach the full box
+     while a wide one stops short, which is why the droplet and the sprout read
+     heavier than the bean and the loaf. Capping their height evens the row. */
+  .gfill.glyph-fats { -webkit-mask-size: auto 80%; mask-size: auto 80%; }
+  .gfill.glyph-fibre { -webkit-mask-size: auto 84%; mask-size: auto 84%; }
+  .gfill.flat { background: var(--g-400); }
+  .mval { font-size: 14px; line-height: 20px; white-space: nowrap; letter-spacing: 0; }
+  .mval strong { font-weight: 700; color: var(--g-900); }
+  .mval span { color: var(--g-400); font-weight: 400; }
+  .mname { font-size: 12px; line-height: 16px; color: var(--g-500); }
+  /* -------------------------------------------------------- what went in */
+  /* The receipt. It sits below the score and below the nutrition, in a card
+     with no shadow, because it is the one block here you already knew. */
+  .went { margin-top: 16px; padding: 0 16px 6px; border-radius: 16px; background: #fff; border: 1px solid var(--g-200); }
+  .went h2 { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0;
+    padding: 14px 0 8px; font-size: 12px; line-height: 18px; font-weight: 600; letter-spacing: .4px;
+    text-transform: uppercase; color: var(--g-500); }
+  .went h2 em { flex-shrink: 0; font-style: normal; font-size: 14px; line-height: 21px; font-weight: 700;
+    letter-spacing: .25px; text-transform: none; color: var(--g-900); }
+  .went ul { margin: 0; padding: 0; list-style: none; }
+  .went li { display: flex; align-items: baseline; gap: 12px; padding: 8px 0; border-top: 1px solid var(--g-100); }
+  .went .n { flex: 1; min-width: 0; font-size: 14px; line-height: 21px; color: var(--g-900); }
+  .went .n span { display: block; font-size: 12px; line-height: 18px; color: var(--g-500); }
+  .went .c { flex-shrink: 0; font-size: 14px; line-height: 21px; color: var(--g-500); white-space: nowrap; }
+  /* after an undo the same list is what came out, so it stands down a shade */
+  .went.out { background: var(--g-50); }
+  .went.out .n { color: var(--g-600); }
+
+  /* what is next, the one actionable note. Indigo, because it is an action. */
+  .next { display: flex; gap: 12px; align-items: center; margin-top: 16px; padding: 16px; border-radius: 16px;
+    background: var(--in-50); border: 1px solid var(--in-200); }
+  .next .ic { flex-shrink: 0; width: 36px; height: 36px; border-radius: 9999px; background: #fff;
+    border: 1px solid var(--in-200); display: grid; place-items: center; color: var(--in-600); }
+  .next .t { flex: 1; min-width: 0; }
+  .next .t b { display: block; font-size: 14px; line-height: 21px; }
+  .next .t span { display: block; font-size: 12px; line-height: 19px; color: var(--g-600); }
+
+  /* the way forward */
+  .foot { position: fixed; left: 50%; bottom: 0; transform: translateX(-50%); width: 100%; max-width: 390px; background: #fff;
+    border-top: 1px solid var(--g-100); padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 10; }
+  .foot .gf-btn { font-size: 16px; }
+
+  /* A correction, not a demolition, and deliberately quiet. It is grey rather
+     than green because nobody arrives here wanting to edit: it is for the one
+     person in ten who mistyped a quantity, and the pencil carries the meaning.
+     Bottom left of the bar, clear of the primary key's 7px lip. */
+  /* the tertiary action: centred under the primary, bold and underlined */
+  .edit { display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; min-height: 44px; margin-top: 10px; border: 0; background: none; padding: 0; cursor: pointer;
+    font: 700 14px/16.8px Roboto, sans-serif; letter-spacing: .25px; color: var(--brand-600);
+    text-decoration: underline; text-underline-offset: 3px; }
+  .edit u { text-decoration: underline; text-decoration-color: var(--g-300); text-underline-offset: 3px; }
+  .edit:hover { color: var(--g-900); }
+  .edit:hover u { text-decoration-color: currentColor; }
+
+  /* Arrival, in order, and only once the moment starts clearing. If it ran on
+     load it would play out behind the curtain and the reveal would land flat.
+     Default is plain visible, so the screen is still correct with no JS. */
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .col.go .rise { animation: rise .42s cubic-bezier(.25,.1,.25,1) both; }
+  /* the same full stop the Eat screen ends on, and the same real asset */
+  .tail { position: relative; height: 150px; overflow: hidden; pointer-events: none; }
+  .tail::before { content: ""; position: absolute; left: 50%; top: 0; width: 390px; height: 362px;
+    transform: translateX(-50%);
+    background: url("../icons/footer-lotus.png") center top / 390px 362px no-repeat; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .col.go .rise, .rise, .delta.go, .moment h1, .moment .sub, .tick .halo, .tick .mark, .moment .bit {
+      animation: none !important; opacity: 1 !important; transform: none !important; }
+    .tick .mark { stroke-dashoffset: 0 !important; }
+    .gfill { transition: none !important; }
+    .moment .bit { display: none; }
+    .delta.go { opacity: 1 !important; }
+  }
+</style>
+</head>
+<body>
+<div class="col">
+  <div class="hit">
+    <h1 class="rise" id="title"></h1>
+    <div class="when rise" id="when" style="animation-delay:.06s"></div>
+  </div>
+
+  <div id="scoreBlock"></div>
+
+  <div class="gut">
+    <div id="body"></div>
+  </div>
+
+  <div class="tail" aria-hidden="true"></div>
+</div>
+
+<div class="foot">
+  <button class="gf-btn" id="primary"></button>
+  <button class="edit" id="edit"></button>
+</div>
+
+<script src="heroes/plate.js"></script>
+<script>
+/* The screen after a meal goes in. It answers three things in order: it landed,
+   what it did to the day, and what happens next. The landing is a full screen
+   moment that clears itself; the page underneath is calm.
+
+   One celebration, every state. The tick does not change colour with the score,
+   because whether you logged is not the same question as how the day is going,
+   and the score below already answers the second one. */
+var Q = new URLSearchParams(location.search);
+var STATE = Q.get("state") || "default";
+var REDUCE = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* ?moment=0 skips the green landing and opens on the settled screen. The
+   companion document embeds this page sixty times over, and sixty green
+   curtains firing as you scroll is noise, not delight. One case shows it. */
+var SHOW_MOMENT = Q.get("moment") !== "0";
+
+var F = {
+  eggs:   ["Boiled egg", "2 x 1 egg", 146],
+  chilla: ["Lauki oats besan chilla", "2 x 1 piece", 153],
+  chutney:["Green chutney", "2 x 1 spoon", 8],
+  curd:   ["Curd", "1 katori", 75],
+  poha:   ["Vegetable poha", "1 bowl", 242],
+  chai:   ["Masala chai", "1 cup", 79],
+  roti:   ["Roti", "2 x 1 piece", 180],
+  sabzi:  ["Mixed veg sabzi", "1 katori", 114],
+  dal:    ["Dal", "1 katori", 152],
+  salad:  ["Garden salad", "1 bowl", 18],
+  mroti:  ["Multigrain roti", "2 x 1 piece", 160],
+  chana:  ["Roasted chana", "1 handful", 180],
+  makhana:["Roasted makhana", "1 bowl", 98]
+};
+
+/* The day's four targets, in the Eat screen's order: protein, carbs, fats,
+   fibre. Same numbers, same order, so the two screens cannot drift apart. */
+var TGT = [95, 238, 63, 30];
+
+/* Every state is the same screen with different truth in it.
+   `cheer` is the line on the green moment. It is the only per state copy the
+   moment carries: the treatment itself never changes.
+   `mac` is where the DAY now stands on each nutrient, not what this one log
+   contributed. Two reasons: the plate above it is a day number and the Kaira
+   line already speaks in day totals ("protein moved to 24 of 95g"), so a
+   contribution row would be the only thing on the screen counting differently;
+   and eaten-over-target is exactly the grammar the Eat screen uses, which is
+   what makes the two read as one system. What this log put in is answered
+   directly underneath, by name and by calorie, in the list. */
+var S = {
+  default: {
+    title: "Breakfast logged", when: "at 8:30 AM", cheer: "Breakfast is in", meal: "breakfast",
+    from: 12, to: 34,
+    slotline: "Keep logging the meals in your plan and this number keeps climbing.",
+    say: "Protein moved to <b>24 of 95g</b>, the biggest jump of the day so far.",
+    mac: [24, 85, 24, 11],
+    items: ["eggs", "chilla", "chutney", "curd"],
+    primary: "Back to your day"
+  },
+  first: {
+    title: "Your first meal is in", when: "Breakfast at 8:30 AM", cheer: "The day has started", meal: "breakfast",
+    from: 0, to: 22, state: "first",
+    slotline: "Log the rest of your plan through the day and this number climbs with it.",
+    say: "Your score has started. It reads what is in so far, so it is meant to be small this early.",
+    mac: [12, 62, 16, 7],
+    items: ["poha", "chai"],
+    primary: "See your day"
+  },
+  mealdone: {
+    title: "Lunch complete", when: "at 1:30 PM", cheer: "Lunch is complete", meal: "lunch",
+    from: 34, to: 54,
+    slotline: "Lunch is closed. Log the rest of your plan to fill out the day.",
+    say: "Everything your coach planned for lunch is in. <b>Fibre</b> came out best, at 16 of 30g.",
+    mac: [52, 128, 34, 16],
+    items: ["roti", "sabzi", "dal", "salad"],
+    next: ["Evening snack", "5:00 to 6:30 PM, roasted makhana and chana"],
+    primary: "Log Evening Snack", primaryGo: "log"
+  },
+  daydone: {
+    title: "That is your whole day in", when: "Dinner at 8:30 PM", cheer: "Your whole day is in", meal: "dinner",
+    from: 76, to: 88, state: "full",
+    slotline: "Every meal in your plan is logged. This is where the day lands.",
+    say: "Protein finished at <b>78 of 95g</b> today, just 17g short of your target.",
+    mac: [78, 218, 57, 26],
+    items: ["mroti", "sabzi", "dal", "salad"],
+    primary: "See your day"
+  },
+  perfect: {
+    title: "Every target met", when: "Dinner at 8:30 PM", cheer: "Every target met", meal: "dinner",
+    from: 92, to: 100, state: "perfect",
+    slotline: "Your whole plan is logged, and all four nutrients landed on target.",
+    say: "Protein, carbs, fats and fibre all landed. Worth remembering what you ate today.",
+    mac: [95, 238, 63, 30],
+    items: ["mroti", "sabzi", "dal", "salad"],
+    primary: "See your day"
+  },
+  small: {
+    title: "Masala chai logged", when: "at 4:10 PM", cheer: "Logged", meal: "eveningsnack",
+    from: 54, to: 56,
+    slotline: "Keep logging your plan and this number keeps climbing.",
+    say: "A small one, and it still counts: <b>2g protein and 11g carbs</b> towards today.",
+    mac: [54, 136, 35, 16],
+    items: ["chai"],
+    primary: "Back to your day"
+  },
+  pastday: {
+    title: "Added to Monday", when: "Dinner on Mon, 14 Sep", cheer: "Added to Monday", meal: "dinner",
+    from: 55, to: 61,
+    slotline: "Monday now has its whole plan logged.",
+    say: "Monday finishes at 61%. Protein ran low that day, at 48 of 95g.",
+    mac: [48, 160, 42, 18], macTitle: "Where Monday ended up",
+    items: ["roti", "dal", "salad"],
+    primary: "Back to Monday"
+  },
+  noplan: {
+    title: "Breakfast logged", when: "at 8:30 AM", cheer: "Breakfast is in", meal: "breakfast",
+    noscore: true,
+    /* No plan means no targets, so the same four cells carry bare grams and the
+       bar stands down to a rule. This is the old grams block, now wearing the
+       Eat screen's clothes rather than a second, unrelated treatment. */
+    macMode: "grams", mac: [24, 31, 18, 5], macTitle: "What today has in it so far",
+    say: "No score yet. Your coach reads days like this one before building your plan, so the more honest it is, the better the plan.",
+    items: ["eggs", "chilla", "chutney", "curd"],
+    primary: "Back to your day"
+  },
+  undo: {
+    title: "Breakfast logged", when: "at 8:30 AM", cheer: "Breakfast is in", meal: "breakfast",
+    from: 12, to: 34, undone: true,
+    slotline: "Keep logging the meals in your plan and this number keeps climbing.",
+    say: "Protein moved to <b>24 of 95g</b>, the biggest jump of the day so far.",
+    mac: [24, 85, 24, 11],
+    items: ["eggs", "chilla", "chutney", "curd"],
+    primary: "Back to your day"
+  }
+};
+var M = S[STATE] || S.default;
+
+document.getElementById("title").textContent = M.title;
+document.getElementById("when").textContent = M.when;
+document.getElementById("primary").textContent = M.primary;
+
+var ICON = {
+  /* Kaira's hexagon, the same mark she wears on the Eat screen. The line is
+     hers, so a generic trend arrow was the wrong signature. */
+  kaira: '<svg width="19" height="21" viewBox="0 0 22 24" fill="none" aria-hidden="true">' +
+    '<defs><linearGradient id="kgl" x1="0" y1="0" x2="1" y2="1">' +
+    '<stop offset="0" style="stop-color:var(--in-600)"/><stop offset="1" style="stop-color:var(--teal-600)"/>' +
+    '</linearGradient></defs>' +
+    '<path d="M11 1.2 20.1 6.6v10.8L11 22.8 1.9 17.4V6.6z" stroke="url(#kgl)" stroke-width="2.8" stroke-linejoin="round"/></svg>',
+  clock: '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  pencil: '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
+  plus: '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M12 5v14M5 12h14"/></svg>'
+};
+
+/* the concentric arc watermark the system puts behind its nutrition numbers,
+   bled off the card's right edge. Decoration only, and it carries no colour. */
+
+/* Same four, same order, same flat grey silhouettes as the Eat screen. The
+   glyph is a mask, so the fill is just the element's own background. */
+var MACROS = [
+  { cls: "glyph-protein", name: "Protein" },
+  { cls: "glyph-carbs", name: "Carbs" },
+  { cls: "glyph-fats", name: "Fats" },
+  { cls: "glyph-fibre", name: "Fibre" }
+];
+
+/* ----------------------------------------------------------- the moment */
+/* Nine pieces, thrown once. The palette is deliberately off brand, the way
+   GoodFlip's own success screen does it, so the burst reads as celebration
+   rather than as more product colour. */
+var BITS = ["#FFB127", "#FF5994", "#66BEFF", "#C495FF", "#FFB2F0", "#FF7A59", "#FFD84D", "#8BE8CB", "#9BA6FF"];
+
+function moment(reveal) {
+  if (REDUCE || !SHOW_MOMENT || M.undone) { reveal(); return; }
+  var m = document.createElement("div");
+  m.className = "moment";
+  var bits = "";
+  for (var i = 0; i < BITS.length; i++) {
+    var a = (i / BITS.length) * Math.PI * 2 - Math.PI / 2 + 0.35;
+    var r = 130 + (i % 3) * 46;
+    bits += '<span class="bit' + (i % 2 ? " dot" : "") + '" style="background:' + BITS[i] +
+      ';--dx:' + Math.round(Math.cos(a) * r) + 'px;--dy:' + Math.round(Math.sin(a) * r) + 'px' +
+      ';--rot:' + (i * 70) + 'deg;animation-delay:' + (0.24 + (i % 4) * 0.035) + 's"></span>';
+  }
+  m.innerHTML =
+    '<span class="glow"></span>' + bits +
+    '<div class="stack">' +
+      '<div class="tick"><span class="halo"></span><span class="halo two"></span>' +
+        '<svg viewBox="0 0 112 112" aria-hidden="true"><path class="mark" d="M32 58 L49 75 L81 40"/></svg>' +
+      '</div>' +
+      '<h1>' + M.cheer + '</h1>' +
+      '<p class="sub">' + M.when + '</p>' +
+    '</div>';
+  document.body.appendChild(m);
+  setTimeout(function () {
+    m.classList.add("out");
+    reveal();                                  /* the page rises into the wipe */
+    setTimeout(function () { m.remove(); }, 480);
+  }, 1500);
+}
+
+/* the score block: the plate, the jump, and how much day is still to come */
+var block = document.getElementById("scoreBlock");
+if (M.noscore) {
+  block.innerHTML = '<div class="scorewrap rise" style="animation-delay:.12s"><div class="plate" id="plate"></div></div>';
+} else {
+  block.innerHTML = '<div class="scorewrap rise" style="animation-delay:.12s"><div class="plate" id="plate"></div>' +
+    '<span class="delta" id="delta">+' + (M.to - M.from) + '</span></div>' +
+    '<div class="gut rise" style="animation-delay:.18s">' +
+    '<p class="slotline">' + M.slotline + '</p></div>';
+}
+
+/* What it did to the day, where the day now stands, what went in, what is next.
+   The item list is back at the designer's call. It sits below the score and
+   below the nutrition, in the quietest card on the screen, because it is the
+   one block here the person already knows. */
+var body = document.getElementById("body");
+var html = '<div class="said rise" style="animation-delay:.24s"><span class="ic">' + ICON.kaira + '</span><p>' + M.say + '</p></div>';
+
+/* the four macro cells, built exactly as the Eat screen builds them */
+function cells(vals, grams) {
+  return MACROS.map(function (g, i) {
+    var eaten = vals[i], target = TGT[i];
+    var pct = target ? Math.max(0, Math.min(1, eaten / target)) : 0;
+    var val = grams ? "<strong>" + eaten + "g</strong>"
+      : "<strong>" + eaten + "</strong><span>/" + target + "g</span>";
+    /* no target to measure against, so the glyph is a flat silhouette */
+    return '<div class="m' + (!grams && pct >= 1 ? " done" : "") + '">' +
+      '<span class="gwrap"><span class="gfill ' + g.cls + (grams ? " flat" : "") + '"' +
+      (grams ? "" : ' data-f="' + (pct * 100).toFixed(1) + '"') + '></span></span>' +
+      '<span class="mval">' + val + '</span>' +
+      '<span class="mname">' + g.name + '</span></div>';
+  }).join("");
+}
+if (M.mac) {
+  html += '<div class="nut rise" style="animation-delay:.3s">' +
+    '<h2>' + (M.macTitle || "Where your day stands now") + '</h2>' +
+    '<div class="mgrid">' + cells(M.mac, M.macMode === "grams") + '</div></div>';
+}
+
+var total = 0;
+M.items.forEach(function (k) { total += F[k][2]; });
+html += '<div class="went rise" style="animation-delay:.36s"><h2><span id="wentLabel">What went in</span>' +
+  '<em>' + total.toLocaleString() + ' cal</em></h2><ul>' +
+  M.items.map(function (k) {
+    return '<li><span class="n">' + F[k][0] + '<span>' + F[k][1] + '</span></span>' +
+      '<span class="c">' + F[k][2] + ' cal</span></li>';
+  }).join("") + '</ul></div>';
+
+if (M.next) {
+  html += '<div class="next rise" style="animation-delay:.42s"><span class="ic">' + ICON.clock + '</span>' +
+    '<span class="t"><b>Up next: ' + M.next[0] + '</b><span>' + M.next[1] + '</span></span></div>';
+}
+body.innerHTML = html;
+
+/* ------------------------------------------------------------------- undo */
+/* Undo is gone as a button. It was the loudest thing in the footer and the
+   only thing it could do was destroy, so the footer now carries Edit instead
+   and a correction goes through the logging screen, which can remove an item
+   as easily as fix its quantity.
+   `undo` survives as a STATE, which is what it always described: the screen
+   AFTER a log was taken out, arrived at from the logging screen's own remove.
+   So this is no longer a handler, it is how that one state renders. */
+var UNDONE = false;
+function renderUndone() {
+  UNDONE = true;
+  document.getElementById("title").textContent = "Removed from today";
+  document.getElementById("when").textContent = M.when;
+
+  var d = document.getElementById("delta");
+  if (d) { d.classList.remove("go"); d.hidden = true; }
+  if (plate && !M.noscore) plate.set(M.from, { state: "mid" });
+
+  var line = document.querySelector(".slotline");
+  if (line) line.textContent = "Your score is back where it was.";
+  var say = document.querySelector(".said p");
+  if (say) say.textContent = "Nothing is lost. Log it again whenever you are ready.";
+
+  /* The day no longer stands there, and there is no next meal to point at.
+     The list stays, because it is the one thing still worth having: it names
+     what to put back. It just stops reading as a receipt. */
+  var next = document.querySelector(".next"); if (next) next.remove();
+  var nut = document.querySelector(".nut"); if (nut) nut.remove();
+  var went = document.querySelector(".went");
+  if (went) { went.classList.add("out"); document.getElementById("wentLabel").textContent = "What came out"; }
+}
+
+/* The plate starts where the day was and moves to where it is now, so the
+   jump is something you watch rather than something you are told. It waits
+   for the moment to clear, otherwise it happens behind the curtain. */
+var plateEl = document.getElementById("plate");
+var plate = window.HEROES && window.HEROES.plate
+  ? window.HEROES.plate(plateEl, M.noscore ? { state: "noplan" } : { score: M.from, state: "mid" })
+  : null;
+
+/* The glyphs fill on arrival for the same reason the plate moves: a nutrient
+   getting closer to its target is a thing to watch, not a thing to be handed.
+   cells() parks the level in data-f rather than writing it inline, so the
+   custom property starts at its initial 0% and the transition has somewhere
+   to travel from. They stagger, left to right. */
+function fillBars() {
+  var fills = document.querySelectorAll(".gfill[data-f]");
+  for (var i = 0; i < fills.length; i++) {
+    fills[i].style.transitionDelay = (REDUCE ? 0 : i * 90) + "ms";
+    fills[i].style.setProperty("--f", fills[i].getAttribute("data-f") + "%");
+  }
+}
+function settle() {
+  fillBars();
+  if (!plate || M.noscore || UNDONE) return;
+  plate.set(M.to, M.state ? { state: M.state } : {});
+  var d = document.getElementById("delta");
+  if (d) { d.classList.add("go"); if (REDUCE) d.style.opacity = 1; }
+}
+moment(function () {
+  document.querySelector(".col").classList.add("go");
+  setTimeout(settle, REDUCE ? 0 : 420);
+});
+/* The undo preset is the screen AFTER the undo, so there is nothing to
+   celebrate and the green landing is skipped for it. */
+if (M.undone) renderUndone();
+
+/* A shell page drives navigation between the screens, so the buttons say where
+   they want to go rather than going there themselves. Opened on its own, the
+   screen still walks back to the day. */
+function leave(where, flags) {
+  try {
+    if (window.parent && window.parent !== window) { parent.postMessage({ nav: where, flags: flags || {} }, "*"); return; }
+  } catch (e) {}
+  var q = [];
+  for (var k in flags) if (flags.hasOwnProperty(k)) q.push(k + "=" + encodeURIComponent(flags[k]));
+  location.href = (where === "log" ? "log.html" : "eat.html") + (q.length ? "?" + q.join("&") : "");
+}
+document.getElementById("primary").onclick = function () { leave(M.primaryGo || "eat"); };
+
+/* Edit opens the logging screen back on the meal this log belongs to, so the
+   tray is the thing you just saved and every item in it can be changed or
+   taken out. On the state that IS a removal there is nothing left to correct,
+   so the same quiet slot offers to put it back instead. */
+var editBtn = document.getElementById("edit");
+editBtn.innerHTML = M.undone
+  ? ICON.plus + "<u>Log it again</u>"
+  : ICON.pencil + "<u>Edit this log</u>";
+editBtn.onclick = function () { leave("log", { entry: M.undone ? "plus" : "edit", meal: M.meal }); };
+</script>
+<script src="chrome.js"></script>
+</body>
+</html>

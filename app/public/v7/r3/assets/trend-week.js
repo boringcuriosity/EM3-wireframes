@@ -96,6 +96,122 @@
     return '<div class="cc"><div class="ch"><div class="l">Your week so far</div>' + head + '</div><div class="az">' + cols + '</div></div>';
   }
 
+  /* ------------------------- Your week so far, as an orb and bars (default) */
+  /* ?week=gauges brings back the seven dial gauges and the arc tiles */
+  var OLD = /[?&]week=gauges/.test(location.search);
+  function avgOf(m) {
+    var got = m.days.slice(0, m.mode === "filling" ? m.filled : 7).filter(function (s) { return s !== null; });
+    return got.length ? Math.round(got.reduce(function (a, b) { return a + b; }, 0) / got.length) : null;
+  }
+  /* the week's average as a glass orb: green liquid filled to the score, the
+     number floating in it, a slow swell on the surface */
+  function orb(score) {
+    return '<div class="orb' + (score === null ? " empty" : "") + '" style="--lv:' + (score || 0) + '%">' +
+      '<i class="liq"></i><i class="gloss"></i>' +
+      '<span class="on">' + (score === null ? "&ndash;" : score + "<small>%</small>") + "</span></div>";
+  }
+  function weekCard2(m) {
+    var score = m.mode === "filling" ? avgOf(m) : m.score;
+    var tag = score === null ? null : m.mode === "filling" ? (score >= 70 ? "solid" : score >= 50 ? "grow" : "attention") : m.tag;
+    var n = m.days.slice(0, m.mode === "filling" ? m.filled : 7).filter(function (s) { return s !== null; }).length;
+    /* the week's average drawn by the score itself, Cloud Drop, exactly as the
+       Eat screen shows a day: the same pearls, 0 and 100, Sufficient with its info */
+    var hero = BASE + "../heroes/cloud/index.html?build=25&embed=1&bare=1&still=1&k=.42&er=.102&ey=-.095&y=.03&v=Cloud%20Drop" +
+      (score === null ? "&lock=quiet" : "&score=" + score);
+    /* After the ring's weekly vitals page: the title and the verdict, the
+       number (here Cloud Drop, small) with one line saying what it means,
+       then two facts side by side */
+    var best = null, bi = -1;
+    m.days.slice(0, m.mode === "filling" ? m.filled : 7).forEach(function (s, i) { if (s !== null && (best === null || s > best)) { best = s; bi = i; } });
+    var LONGD = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    var head = '<div class="wh2"><div class="t2">Your week so far</div>' +
+      (score === null ? '<span class="stag" data-s="none">Log to see your week</span>'
+                      : '<span class="stag" data-s="' + tag + '">' + TAG[tag] + "</span>") + "</div>" +
+      '<div class="wsum"><div class="whero"><iframe src="' + hero + '" title="" tabindex="-1" aria-hidden="true"></iframe></div>' +
+      '<p class="wexp">Your average nutrition sufficiency score this week.</p></div>' +
+      '<div class="wstats"><div><span>Days logged</span><b>' + n + " of 7</b></div>" +
+      "<div><span>Best day</span><b>" + (bi < 0 ? "&ndash;" : LONGD[bi]) + "</b></div></div>";
+    /* seven bars, one a day, on the same 0 to 100 as the score; the dashed
+       line is the week's average, so a bar above it is a better than usual day */
+    var cols = m.days.map(function (s, i) {
+      var fut = m.mode === "filling" && i >= m.filled, v = fut ? null : s;
+      var sel = m.mode === "filling" && i === m.filled - 1;
+      return '<div class="bc' + (fut ? " fut" : v === null ? " none" : "") + (sel ? " sel" : "") + '">' +
+        '<span class="bv">' + (v === null ? (fut ? "" : "&ndash;") : v) + "</span>" +
+        '<i class="bb" style="--v:' + (v === null ? 0 : v / 100) + '"></i></div>';
+    }).join("");
+    var days = DK.map(function (d, i) {
+      var sel = m.mode === "filling" && i === m.filled - 1, fut = m.mode === "filling" && i >= m.filled;
+      return '<span class="dk' + (sel ? " on" : "") + (fut ? " fut" : "") + '">' + d + "</span>";
+    }).join("");
+    var avg = score === null ? "" : '<div class="avgl" style="--a:' + score / 100 + '"><span>Avg ' + score + "</span></div>";
+    var key = '<div class="lgd"><span><i class="k-bar"></i>Logged</span><span><i class="k-none"></i>No log</span><span><i class="k-avg"></i>Week average</span></div>';
+    return '<div class="cc wk2">' + head + '<div class="bars"><div class="plot">' + avg + cols + '</div><div class="bdays">' + days + "</div></div>" + key + "</div>";
+  }
+
+  /* ------------------------------- Your macros this week, as a trend chart */
+  /* The data carries each macro's week total, not its days, so the prototype
+     spreads it across the logged days: each day moves with that day's score,
+     with a small steady wobble so the three lines read as three. */
+  var WOB = [[1, .94, 1.06, .98, 1.03, .97, 1.02], [.97, 1.04, .95, 1.03, .99, 1.05, .98], [1.05, .96, 1.02, .94, 1.06, 1, .97]];
+  /* three macros compared, so three of GoodFlip's own families: indigo 600,
+     gold 700 and teal 800 (goodflip-ui.css) */
+  var LINE = ["#444CE7", "#CDA935", "#2DA6A6"];
+  function dailyOf(m) {
+    var avg = avgOf(m) || 1, upto = m.mode === "filling" ? m.filled : 7;
+    return m.macros.map(function (x, j) {
+      var base = x.had === null ? null : x.had / x.goal;
+      return m.days.map(function (s, i) {
+        if (base === null || s === null || i >= upto) return null;
+        return Math.max(.2, Math.min(1.5, base * Math.pow(s / avg, .8) * WOB[j % 3][i]));
+      });
+    });
+  }
+  function smooth(pts) {
+    /* a soft curve through the points; a missing day breaks the line */
+    var d = "", run = [];
+    function flush() {
+      if (!run.length) return;
+      d += "M" + run[0][0] + " " + run[0][1];
+      for (var i = 1; i < run.length; i++) {
+        var p0 = run[i - 2] || run[i - 1], p1 = run[i - 1], p2 = run[i], p3 = run[i + 1] || p2, t = .18;
+        d += "C" + (p1[0] + (p2[0] - p0[0]) * t).toFixed(1) + " " + (p1[1] + (p2[1] - p0[1]) * t).toFixed(1) + " " +
+          (p2[0] - (p3[0] - p1[0]) * t).toFixed(1) + " " + (p2[1] - (p3[1] - p1[1]) * t).toFixed(1) + " " + p2[0] + " " + p2[1];
+      }
+      run = [];
+    }
+    pts.forEach(function (p) { if (p) run.push(p); else flush(); });
+    flush();
+    return d;
+  }
+  function macros2(m) {
+    var W = 320, H = 120, PX = 16, TOP = 10, BOT = 110, MIN = .45, MAX = 1.25;
+    var X = function (i) { return +(PX + i * (W - PX * 2) / 6).toFixed(1); };
+    var Y = function (r) { return +(BOT - (Math.max(MIN, Math.min(MAX, r)) - MIN) / (MAX - MIN) * (BOT - TOP)).toFixed(1); };
+    var data = dailyOf(m), any = data.some(function (l) { return l.some(function (v) { return v !== null; }); });
+    var chips = m.macros.map(function (x, j) {
+      var p = x.had === null ? null : Math.round(x.had / x.goal * 100);
+      return '<button class="mchip" type="button" data-j="' + j + '" aria-pressed="false" style="--c:' + LINE[j] + '">' +
+        '<i class="mg glyph-' + x.k + '"></i><span>' + x.lab + "</span><b>" + (p === null ? "&ndash;" : p + "%") + "</b></button>";
+    }).join("");
+    var lines = data.map(function (l, j) {
+      var pts = l.map(function (v, i) { return v === null ? null : [X(i), Y(v)]; });
+      return '<g class="ml" data-j="' + j + '" style="--c:' + LINE[j] + '"><path class="mp" d="' + smooth(pts) + '" pathLength="1"/>' +
+        pts.map(function (p) { return p ? '<circle cx="' + p[0] + '" cy="' + p[1] + '" r="3.2"/>' : ""; }).join("") + "</g>";
+    }).join("");
+    var days = DK.map(function (d, i) { return '<span style="left:' + (X(i) / W * 100) + '%">' + d + "</span>"; }).join("");
+    var svg = '<svg class="mchart" viewBox="0 0 ' + W + " " + H + '" preserveAspectRatio="none" aria-hidden="true">' +
+      '<rect x="0" y="' + Y(1.1) + '" width="' + W + '" height="' + (Y(.9) - Y(1.1)) + '" class="band"/>' +
+      '<line x1="0" x2="' + W + '" y1="' + Y(1) + '" y2="' + Y(1) + '" class="tgt"/>' + lines + "</svg>";
+    return '<div class="cc mk2"><div class="mh2">Your macros this week</div>' +
+      '<div class="msub">Each day, as a share of its daily target</div>' +
+      '<div class="mchips">' + chips + "</div>" +
+      (any ? '<div class="mplot">' + svg + '<span class="tlab" style="top:' + (Y(1) / H * 100) + '%">Target</span><div class="mdays">' + days + "</div></div>"
+           : '<div class="mempty">Your macros appear here as you log.</div>') +
+      '<div class="lgd">' + m.macros.map(function (x, j) { return '<span><i class="k-line" style="--c:' + LINE[j] + '"></i>' + x.lab + "</span>"; }).join("") +
+      '<span><i class="k-tgt"></i>Target</span></div>' + "</div>";
+  }
+
   /* ---------------------------------------- Your macros this week */
   function macros(m) {
     /* the card crops the bottom of the half circle, so only 34 to 146 degrees
@@ -116,14 +232,41 @@
   /* ---------------------------------------------------- render */
   function render(host, m) {
     var k = m.kaira === "locked" ? kLocked(m) : m.kaira === "ready" ? kReady(m) : kRevealed(m);
-    host.innerHTML = '<div class="tw">' + k + weekCard(m) + macros(m) + '<div class="fx"></div></div>';
+    host.innerHTML = '<div class="tw">' + k + (OLD ? weekCard(m) + macros(m) : weekCard2(m) + macros2(m)) + '<div class="fx"></div></div>';
     var tw = host.firstElementChild;
     tw._m = m;
     if (m.kaira === "ready") initGift(tw);
     var u = tw.querySelector(".unlock");
     if (u) u.addEventListener("click", function () { if (!tw._busy) unlock(tw); });
+    /* the orb fills, the bars rise one after another, the lines draw in */
+    if (!REDUCED && !OLD) {
+      [].slice.call(tw.querySelectorAll(".wk2 .bb")).forEach(function (b, i) {
+        A(b, [{ transform: "scaleY(0)" }, { transform: "scaleY(1)" }], 700, 250 + i * 70, OUT);
+      });
+      [].slice.call(tw.querySelectorAll(".wk2 .bv")).forEach(function (b, i) {
+        A(b, [{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "none" }], 300, 650 + i * 70, OUT);
+      });
+      [].slice.call(tw.querySelectorAll(".mk2 .mp")).forEach(function (p, i) {
+        A(p, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], 1100, 300 + i * 160, INOUT);
+      });
+      [].slice.call(tw.querySelectorAll(".mk2 circle")).forEach(function (c, i) {
+        A(c, [{ opacity: 0 }, { opacity: 1 }], 250, 900 + i * 25, OUT);
+      });
+    }
+    /* a chip brings its macro forward and quiets the other two; again lets them all back */
+    [].slice.call(tw.querySelectorAll(".mchip")).forEach(function (b) {
+      b.addEventListener("click", function () {
+        var on = b.getAttribute("aria-pressed") !== "true", j = b.dataset.j;
+        [].slice.call(tw.querySelectorAll(".mchip")).forEach(function (x) { x.setAttribute("aria-pressed", String(on && x === b)); });
+        var chart = tw.querySelector(".mchart");
+        if (chart) {
+          chart.classList.toggle("foc", on);
+          [].slice.call(chart.querySelectorAll(".ml")).forEach(function (g) { g.classList.toggle("on", on && g.dataset.j === j); });
+        }
+      });
+    });
     /* the arcs and gauges arrive rather than print */
-    if (!REDUCED) {
+    if (!REDUCED && OLD) {
       [].slice.call(tw.querySelectorAll(".gt .arc")).forEach(function (a, i) {
         var d = a.getAttribute("stroke-dasharray"), tot = d.split(" ")[1];
         a.animate([{ strokeDasharray: "0 " + tot }, { strokeDasharray: d }], { duration: 900, delay: 120 + i * 60, easing: EASE, fill: "backwards" });

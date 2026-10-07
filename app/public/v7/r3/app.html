@@ -161,6 +161,7 @@ var DEFAULTS = {
   layout: "1",       // the first screen's three layouts
   rail: "icons",     // how "What shaped your score?" reads: icons or cards
   logall: "cta",     // how a meal offers to log the rest of its plan
+  bar: "float",      // the bar plan foods drop into on Eat: Zomato's floating pill, or the tray
   meal: "",          // which meal a door was opened from, carried to the logger
   motion: false      // reduced motion
 };
@@ -200,6 +201,7 @@ function url() {
     if (M.qty) q.push("qty=" + M.qty);
     if (M.had) q.push("had=" + M.had + "&hadopt=" + M.hadopt);
     if (M.plog) q.push("plog=" + M.plog);
+    q.push("logbar=tray");   /* the logger keeps its tray; the floating bar is the Eat screen's */
     if (!M.plan) q.push("plan=0");
     if (M.motion) q.push("motion=off");
     return "log.html?" + q.join("&");
@@ -227,6 +229,7 @@ function url() {
   if (s === "noplanempty") q.push("v=" + M.layout);
   q.push("rail=" + M.rail);
   if (M.logall !== "cta") q.push("logall=" + M.logall);
+  q.push("bar=" + M.bar);
   if (M.motion) q.push("motion=off");
   return "eat.html?" + q.join("&");
 }
@@ -512,7 +515,21 @@ var GROUPS = [
       });
     },
     note: function () {
-      return "Two ways to answer the question under the score. Macro icons show protein, carbs, fats and fibre against their targets. Insight cards name the biggest gap, what is closest and what is left.";
+      return "Two ways to answer the question under the score. Macro icons show protein, carbs and fats against their targets. Insight cards name the biggest gap, what is closest and what is left.";
+    }
+  },
+  {
+    id: "bar", title: "Plan bar",
+    value: function () { return M.bar === "float" ? "Floating pill" : "Tray"; },
+    chips: function () {
+      return [{ id: "tray", label: "Tray" }, { id: "float", label: "Floating pill" }].map(function (v) {
+        return { label: v.label, on: M.bar === v.id, go: function () { M.bar = v.id; M.screen = "eat"; } };
+      });
+    },
+    note: function () {
+      return M.bar === "float"
+        ? "After Zomato's cart bar. One floating pill: the meal's picture, its name, a line to review items and times, Log, and an X that slides the pill aside to reveal Remove. Tick foods on two meal cards to see it."
+        : "The logging screen's own tray: the foods ticked, Times, and Log. Tick foods on two meal cards to see it.";
     }
   },
   {

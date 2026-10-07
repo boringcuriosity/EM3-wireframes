@@ -26,7 +26,17 @@
   .score .num { font: 500 36px/1 Roboto, sans-serif; letter-spacing: -.03em;
     margin: 0; text-shadow: var(--ink-shadow, none); transition: text-shadow .6s; font-variant-numeric: tabular-nums; }
   .score .num i { font-style: normal; font-weight: 400; font-size: .4em; vertical-align: .95em; margin-left: 2px; }
-  .score .word { font: 400 14px/1 Roboto, sans-serif; letter-spacing: .01em; opacity: .92; margin-top: 2px; }
+  .compact .score .num { font-size: 32px; }
+  /* ?bare=1 (Trend's week): the number alone, smaller, no word and no info mark */
+  .bare .score .word { display: none; }
+  .bare .score .num { font-size: 24px; }
+  .bare .end { display: none; }   /* and no 0 or 100 */
+  .score .word { font: 400 14px/1 Roboto, sans-serif; letter-spacing: .01em; opacity: .92; margin-top: 2px; display: inline-flex; align-items: center; gap: 4px; }
+  /* the way into what the number means: an info mark sized to the word's x-height, so it reads as part of the label.
+     It shows only where the score is tappable (embedded in the Eat screen); the standalone gallery has no sheet behind it. */
+  .score .word .wi { display: none; width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; opacity: .8; }
+  .embed .score .word .wi { display: block; }
+  .still .score .word .wi { display: none; }
   /* status tags, from the GoodFlip Figma chips (node 6875:9957): 22px tall, 8px radius, 8px side padding, 12px text,
      1px inside border drawn as a gradient layer behind the fill */
   .tag { position: absolute; left: 0; top: 0; height: 22px; padding: 0 8px; border-radius: 8px; opacity: 0; white-space: nowrap;
@@ -142,7 +152,9 @@
   .embed, .embed body { background: transparent; display: block; }
   .embed .stage { width: 100vw; height: 100vh; border-radius: 0; box-shadow: none; aspect-ratio: auto; background: transparent; cursor: default; }
   .embed .shaped, .embed .bar, .embed .sheet, .embed .scrim { display: none; }
-  .embed .tag { pointer-events: none; }
+  /* embedded in the Eat screen the score carries no status tag (Solid Day, Room To Grow, Needs Attention):
+     the number and the word say it, and the section below comes up into the room it left */
+  .embed .tag { display: none; }
   /* locked (no plan yet): the padlock takes the number's place, and there is no number, word or tag */
   .lock { display: none; width: 76px; height: 76px; margin: 0 auto; }
   .locked .score .num, .locked .score .word, .locked .tag { display: none; }
@@ -154,7 +166,7 @@
   <canvas id="c"></canvas>
   <div class="score" id="score" aria-hidden="true">
     <div class="num"><span class="slot" id="n"></span><i>%</i></div>
-    <div class="word">Sufficient</div>
+    <div class="word">Sufficient<svg class="wi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 16v-4.5M12 8h.01"/></svg></div>
     <div class="lock" id="lock"></div>
   </div>
   <div class="tag" id="tag" data-s="solid"><span id="tagText">Solid Day</span><i class="spin"></i></div>
@@ -189,13 +201,28 @@
 // ?embed=1 runs as a hero inside another screen: ?score= sets the number, ?v= the variant
 const QS = new URLSearchParams(location.search), EMBED = QS.has('embed');
 if (EMBED) document.documentElement.classList.add('embed');
+// ?still=1 is the copy inside the sufficiency sheet: already the explanation, so no info mark.
+// ?info=1 keeps the mark on a settled score that is not inside the sheet (the docs, Trend).
+if (QS.has('still') && !QS.has('info')) document.documentElement.classList.add('still');
+// a smaller gauge takes a smaller number, so the bubble keeps its air; the word stays at 14px
+if (EMBED && +QS.get('k') < 1) document.documentElement.classList.add('compact');
+if (QS.has('bare')) document.documentElement.classList.add('bare');
 // SIZE scales the whole gauge: bubble, ring, pearls, drops, labels and the text inside. Embedded, it is set so the
 // gauge comes out at the same pixel size as the designed 874px-tall screen; S is the scale against that design
-const SIZE = EMBED ? .75 * 874 / (innerHeight || 300) : .75, R0 = .112 * SIZE, S = SIZE / .75;
+// ?k= (embedded) shrinks or grows the drawn gauge; the text inside keeps its own pixel sizes
+const K = EMBED ? (+QS.get('k') || 1) : 1;
+const SIZE = (EMBED ? .75 * 874 / (innerHeight || 300) : .75) * K, R0 = .112 * SIZE, S = SIZE / .75;
 // numbers written into the shader always as decimals: GLSL rejects 3.6/1 and has no Infinity
 const F = x => (isFinite(x) ? +x : 1).toFixed(6);
 const ARC0 = 1.25 * Math.PI, SWEEP = 1.5 * Math.PI, RING = .132 * SIZE;
-const P = 30, N = 1 + P + 2 + 4; // 1 big bubble, 30 score pearls in a zigzag row, 2 tap drops, 4 macro drops
+// ?er= (embedded): how far from the centre the 0 and 100 sit, in gauge units. .2 is outside the pearls
+const ER = EMBED && QS.get('er') ? +QS.get('er') : .2;
+// ?ey= (embedded): a vertical nudge for the 0 and 100, in gauge units (-.02 is the original seat)
+const EY = EMBED && QS.get('ey') ? +QS.get('ey') : -.02;
+// ?intro=murmuration (the Eat screen): no ink pour. Droplets and orbs drift in from every side on a slow spiral
+// and pool into the bubble, then the orbs bud back out, each carrying a bead of liquid that pinches off.
+const MUR = QS.get('intro') === 'murmuration';
+const P = 30, NF = MUR ? 30 : 0, NS = 12, N = 1 + P + 2 + 4 + NF; // 1 big bubble, 30 score pearls in a zigzag row, 2 tap drops, 4 macro drops, and the flock (12 of them orbs)
 // nutrition sufficiency is built from four macros; their average is the score
 // v is % of target met; g is the day's target in grams
 const MACROS = [{ key: 'protein', name: 'Protein', v: 92, g: 95 }, { key: 'carbs', name: 'Carbs', v: 78, g: 238 }, { key: 'fats', name: 'Fats', v: 88, g: 63 }, { key: 'fibre', name: 'Fibre', v: 82, g: 30 }];
@@ -407,7 +434,7 @@ void main(){
 ['aP', 'aUV', 'aF'].forEach((n, i) => gl.bindAttribLocation(pr2, i, n));
 gl.linkProgram(pr2);
 const uOrbMix = gl.getUniformLocation(pr2, 'uMix');
-const triBuf = gl.getParameter(gl.ARRAY_BUFFER_BINDING), orbBuf = gl.createBuffer(), orbV = new Float32Array(30 * 6 * 5);
+const triBuf = gl.getParameter(gl.ARRAY_BUFFER_BINDING), orbBuf = gl.createBuffer(), orbV = new Float32Array((30 + NS) * 6 * 5);
 let orbTex = null;
 {
   const im = new Image();
@@ -609,10 +636,13 @@ const PEARLS = Array.from({ length: P }, (_, i) => ({
   ro: (i % 2 ? .19 : .165) * SIZE, r: (i % 2 ? .0075 : .0115) * SIZE * (1 + .1 * Math.sin(i * 2.3)),
 }));
 const B = new Float32Array(N * 4);
+const rF = (s => () => (s = s * 16807 % 2147483647) / 2147483647)(7);
+const FLOCK = Array.from({ length: NF }, (_, j) => ({ slot: j, orb: j < NS, a: rF() * 6.2832, r0: .38 + rF() * .32,
+  d: rF() * 1.3, s: j < NS ? .0105 : .005 + rF() * .008, turns: .35 + rF() * .35 }));
 let t0, last, main, drops, pop, pulse, pulseV;
 
 function reset(skip = 0) {
-  SPEED = EMBED ? 3 : VARIANTS[vIdx].speed || 1.6;
+  SPEED = EMBED ? (MUR ? 2.4 : 3) : VARIANTS[vIdx].speed || 1.6;
   t0 = performance.now() - skip * 1000; last = null; pop = -10; pulse = 0; pulseV = 0;
   main = { x: 0, y: 0, r: 0 };
   drops = [{ r: 0 }, { r: 0 }];
@@ -634,7 +664,7 @@ function frame(now) {
   pulseV += (-120 * pulse - 20 * pulseV) * dt; pulse += pulseV * dt;
   const local = EMBED || !!VARIANTS[vIdx].local;   // embedded, every variant keeps its intro inside its own space   // Cloud Drop: born in place, no rise
   main.y = (local ? Y1 : Y1 * eIO(seg(t, 4.9, 6.8))) + .005 * Math.sin(t * .7) * seg(t, 6.3, 7.5);
-  main.r = R0 * eIO(seg(t, 2.5, 5.0)) * (1 + .008 * Math.sin(t * 1.3) * seg(t, 6, 7));
+  main.r = R0 * eIO(MUR ? seg(t, 1.0, 4.4) : seg(t, 2.5, 5.0)) * (1 + .008 * Math.sin(t * 1.3) * seg(t, 6, 7));
 
 
   B.fill(0);
@@ -662,7 +692,9 @@ function frame(now) {
     // the glint: one pass along the empty orbs, 0 toward 100, just after the padlock clicks shut, then still
     if (LOCK) { const gp = seg(t, 7.6, 10.2) * (P + 8) - i; fill = gp > 0 && gp < 8 ? Math.sin(gp / 8 * Math.PI) * .28 : 0; }
     const pr = q.r * (1.3 - .3 * fill) * eOut(seg(t, tb, tb + .6)) * ringM;
-    B.set([mix(main.x, hx, k), mix(main.y, hy, k), pr * (1 - orbMix), fill], (1 + i) * 4);
+    // murmuration: a bead of liquid travels out with each orb from the bubble's edge, necks, and pinches off
+    const eb = mix(main.r / q.ro, 1, k), neck = MUR ? 1.3 * (1 - seg(k, .3, .7)) : 0;
+    B.set(neck > 1 - orbMix ? [mix(main.x, hx, eb), mix(main.y, hy, eb), pr * neck, fill] : [mix(main.x, hx, k), mix(main.y, hy, k), pr * (1 - orbMix), fill], (1 + i) * 4);
     if (orbMix > .01 && pr > 0) {  // orbs rise from the bubble's edge rather than its centre, since they sit above it
       const e = mix(main.r / q.ro, 1, k), X = mix(main.x, hx, e) * 2 / A, Y = mix(main.y, hy, e) * 2;
       const sx = pr / ORB_PAD * 2 / A, sy = pr / ORB_PAD * 2;
@@ -686,6 +718,24 @@ function frame(now) {
     el.children[1].textContent = Math.round(m.v * prog) + '%';
   });
 
+  // the flock: droplets (in the shader, so they merge as liquid) and orbs, each with a droplet under it, spiral in and pool
+  FLOCK.forEach(q => {
+    const k = seg(t, q.d, q.d + 3.8), slot = (1 + P + 2 + 4 + q.slot) * 4;
+    if (k >= 1) return;
+    const e = mix(k, eIO(k), .5), rr = mix(q.r0, main.r * .6, e), an = q.a + q.turns * 6.2832 * e;
+    const x = main.x + Math.cos(an) * rr, y = main.y + Math.sin(an) * rr * .92;
+    const r = q.s * SIZE * eOut(seg(t, q.d * .4, q.d * .4 + 1.5));
+    B.set([x, y, q.orb ? r * .8 : r, 1], slot);
+    if (q.orb && orbMix > .01) {
+      const rs = r * (1 - cl((rr - .4) / .16)) * cl((rr - main.r * .75) / .05);
+      if (rs > 0) {
+        const X = x * 2 / A, Y = y * 2, sx = rs / ORB_PAD * 2 / A, sy = rs / ORB_PAD * 2;
+        orbV.set([X - sx, Y + sy, 0, 0, 1,  X + sx, Y + sy, 1, 0, 1,  X - sx, Y - sy, 0, 1, 1,
+                  X + sx, Y + sy, 1, 0, 1,  X + sx, Y - sy, 1, 1, 1,  X - sx, Y - sy, 0, 1, 1], orbN++ * 30);
+      }
+    }
+  });
+
   // tap drops glide into the bubble and merge
   drops.forEach((m, i) => {
     if (!m.r) return;
@@ -700,8 +750,8 @@ function frame(now) {
   gl.useProgram(pr);
   gl.uniform2f(U.uRes, cv.width, cv.height);
   gl.uniform1f(U.uTime, t);
-  gl.uniform1f(U.uRc, back ? grow * Math.pow(Math.max(main.r * .85, .02) / grow, back) : grow);  // geometric shrink reads as a steady pour
-  gl.uniform1f(U.uArm, Math.sin(Math.PI * seg(t, 1.6, 5.2)));
+  gl.uniform1f(U.uRc, MUR ? -1 : back ? grow * Math.pow(Math.max(main.r * .85, .02) / grow, back) : grow);  // geometric shrink reads as a steady pour
+  gl.uniform1f(U.uArm, MUR ? 0 : Math.sin(Math.PI * seg(t, 1.6, 5.2)));
   gl.uniform1f(U.uVivid, eIO(seg(t, 1.4, 3.6)));
   gl.uniform1f(U.uSwirl, eIO(seg(t, 1.2, 3.2)) * (1 - .7 * eIO(seg(t, 4, 7.5))));
   gl.uniform1f(U.uK, .045 * S);
@@ -759,9 +809,15 @@ function frame(now) {
     c.strip.style.transform = `translateY(${-(1 - sp * (1 - x)) * c.n}em)`;
     c.strip.style.filter = sp > .02 ? `blur(${Math.min(1.2, sp * 2)}px)` : '';   // a touch of motion blur while it spins
   });
+  // ?gain= (a settled screen showing what the last log did): the same chip rises off the number once and fades
+  if (GAIN) {
+    const gk = seg(since, .4, 2.6);
+    gainEl.style.opacity = Math.sin(Math.PI * gk);
+    gainEl.style.transform = `translate(${bx}px,${by - 58 - 22 * eOut(gk)}px) translate(-50%,-50%)`;
+  }
   const eo = eOut(seg(t, 7.0, 7.8));
   [[lo, ARC0], [hi, ARC0 - SWEEP]].forEach(([el, an]) => {
-    const [x, y] = toPx(main.x + Math.cos(an) * .2 * SIZE, seatY + Math.sin(an) * .2 * SIZE - .02).map(Math.round);   // still, like the tag
+    const [x, y] = toPx(main.x + Math.cos(an) * ER * SIZE, seatY + Math.sin(an) * ER * SIZE + EY).map(Math.round);   // still, like the tag
     el.style.opacity = eo * ringM * (LOCK ? .55 : 1); el.style.transform = `translate(${Math.round(x - el.offsetWidth / 2)}px,${y}px)`;
   });
   // the card rises in under the gauge once the chip has landed, then its vessels fill in turn
@@ -797,6 +853,12 @@ let stepped = false;
 const gainEl = document.createElement('div');
 gainEl.textContent = FROM != null ? '+' + (SCORE - FROM) + '%' : '';   // the gain reads in %, like the score
 gainEl.style.cssText = 'position:absolute;left:0;top:0;opacity:0;padding:3px 9px;border-radius:999px;background:#ECFDF3;color:#039855;font:700 13px/16px Roboto,sans-serif;pointer-events:none';
+// ?gain=+23 or ?gain=-14: the change from the last log, shown once over a settled score. Amber when it came down.
+const GAIN = QS.has('gain') ? +QS.get('gain') : 0;
+if (GAIN) {
+  gainEl.textContent = (GAIN > 0 ? '+' : '\u2212') + Math.abs(GAIN) + '%';
+  if (GAIN < 0) { gainEl.style.background = '#FFFAEB'; gainEl.style.color = '#B54708'; }
+}
 stage.append(gainEl);
 reset(FROM != null || STILL ? 30 : matchMedia('(prefers-reduced-motion: reduce)').matches ? 10 : 0);
 requestAnimationFrame(frame);

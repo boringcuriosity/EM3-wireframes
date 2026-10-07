@@ -1,0 +1,1043 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nutrition sufficiency, every case (tray backup)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* GoodFlip tokens, only the ones this document uses.
+     The rule this file follows: green marks the score, the verdict and the one
+     primary action. Indigo carries anything actionable, gold carries insight,
+     teal is a calm edge, and the neutrals are the real ground of the page. */
+  :root {
+    /* the interactive green, and the different green that scores and verdicts use */
+    --brand-200: #CBF0E0; --brand-600: #299D6B; --brand-700: #2A805A;
+    --ok-50: #ECFDF3; --ok-100: #D1FADF; --ok-300: #32D583; --ok-600: #039855;
+
+    --indigo-25: #F5F8FF; --indigo-100: #E0EAFF; --indigo-200: #C7D7FE; --indigo-600: #444CE7; --indigo-900: #2D3282;
+    --gold-50: #FFFBEE; --gold-200: #FEF1C7; --gold-800: #A68A2D;
+    --teal-200: #C7FEFE; --teal-800: #2DA6A6;
+
+    --gray-50: #F9FAFB; --gray-100: #F2F4F7; --gray-200: #E4E7EC; --gray-300: #D0D5DD;
+    --gray-400: #98A2B3; --gray-500: #667085; --gray-600: #475467; --gray-700: #344054; --gray-900: #101828;
+
+    /* the house shadow is a hard letterpress offset, no blur */
+    --shadow-card: 2px 3px 0 0 rgba(152,162,179,.35);
+    --shadow-card-lift: 3px 4px 0 0 rgba(152,162,179,.45);
+    --shadow-phone: 3px 4px 0 0 rgba(152,162,179,.30);
+    --ease: cubic-bezier(.4, 0, .2, 1);
+    --z: .78;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #FFFFFF; color: var(--gray-900);
+    font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .25px;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--brand-600); text-decoration: underline; text-underline-offset: 2px;
+      text-decoration-thickness: 1px; text-decoration-color: var(--brand-200); }
+  a:hover { text-decoration-color: var(--brand-600); }
+
+  /* ---------- shell ---------- */
+  .shell { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 48px; max-width: 1560px; margin: 0 auto; padding: 0 40px 24px; }
+  @media (max-width: 1080px) { .shell { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 20px 24px; } }
+
+  /* ---------- masthead ---------- */
+  .top { position: relative; grid-column: 1 / -1; padding: 64px 0 32px; border-bottom: 1px solid var(--gray-200); margin-bottom: 40px; }
+  /* the quiet radial bloom GoodFlip puts behind a hero, at a document's volume */
+  .top::before {
+    content: ""; position: absolute; z-index: -1; pointer-events: none;
+    left: -140px; top: -200px; width: 620px; height: 460px;
+    background: radial-gradient(closest-side, rgba(79,200,146,.16), rgba(255,255,255,0));
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 14px;
+    font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-700);
+    border-radius: 9999px; border: 1px solid transparent;
+    background: linear-gradient(#fff, #fff) padding-box,
+                conic-gradient(from 210deg, var(--gray-300), var(--teal-800) 50%, var(--gray-300)) border-box;
+  }
+  /* the single green mark the header is allowed */
+  .eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 9999px; background: var(--brand-600); }
+  h1 { font-family: Roboto, Arial, sans-serif; font-weight: 600; font-size: 48px; line-height: 56px; letter-spacing: -.2px; margin: 20px 0 12px; }
+  .lede { max-width: 720px; margin: 0; font-size: 18px; line-height: 28px; color: var(--gray-600); }
+  .meta { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 10px 24px; font-size: 14px; line-height: 20px; color: var(--gray-500); }
+  .meta b { color: var(--gray-700); font-weight: 600; }
+  @media (max-width: 1080px) { .top::before { left: -60px; top: -140px; width: 320px; height: 300px; } }
+  @media (max-width: 640px) { h1 { font-size: 32px; line-height: 40px; } .lede { font-size: 16px; line-height: 26px; } }
+
+  /* ---------- contents rail ---------- */
+  nav.rail { align-self: start; position: sticky; top: 24px; padding: 4px 0 24px; max-height: calc(100vh - 48px); overflow-y: auto; scrollbar-width: none; }
+  nav.rail::-webkit-scrollbar { display: none; }
+  /* Home sits outside the story: off the page and the numbering until its rail link opens it */
+  section.aside:not(.shown) { display: none; }
+  /* lines that belong to one plan-logging variant only (the Plan logging switch) */
+  body.plog-card [data-only="logger"], body:not(.plog-card) [data-only="card"] { display: none !important; }
+  .railhead { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); margin-bottom: 8px; }
+  nav.rail ol { list-style: none; margin: 0; padding: 0; }
+  nav.rail a { position: relative; display: flex; align-items: center; min-height: 44px; padding: 4px 12px; border-radius: 8px; font-size: 14px; line-height: 20px; color: var(--gray-600); text-decoration: none; white-space: nowrap; }
+  nav.rail a:hover { background: var(--gray-50); color: var(--gray-900); }
+  nav.rail a.on { background: var(--indigo-25); color: var(--indigo-900); font-weight: 600; }
+  nav.rail a.on::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 2px; border-radius: 2px; background: var(--indigo-600); }
+  .zoom { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+  /* the variant switch sits above the size control and wears the same clothes,
+     because both do the same kind of job: they change how the page is read
+     without changing what it says */
+  .vsw button, .hsw button, .psw button, .asw button { flex: 1; min-width: 0; padding: 0 10px; }
+  .zoom .zlab { width: 100%; font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); }
+  .zoom button { min-width: 44px; min-height: 44px; padding: 0 12px; font: 600 14px/20px Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .25px; border: 1px solid var(--gray-200); background: #fff; color: var(--gray-600); border-radius: 9999px; cursor: pointer; }
+  .zoom button:hover { border-color: var(--gray-300); color: var(--gray-900); }
+  .zoom button.on { border-color: var(--indigo-600); background: var(--indigo-25); color: var(--indigo-900); }
+  @media (max-width: 1080px) {
+    nav.rail { position: sticky; top: 0; z-index: 20; max-height: none; overflow: visible; background: rgba(255,255,255,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--gray-200); margin: 0 -20px 24px; padding: 4px 20px; }
+    nav.rail ol { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+    nav.rail ol::-webkit-scrollbar { display: none; }
+    nav.rail li { flex-shrink: 0; }
+    nav.rail .railhead { display: none; }
+    nav.rail a.on::before { left: 10px; right: 10px; top: auto; bottom: 4px; width: auto; height: 2px; }
+    .zoom { display: none; }
+  }
+
+  /* ---------- sections ---------- */
+  section { scroll-margin-top: 80px; padding-bottom: 64px; }
+  section + section { border-top: 1px solid var(--gray-200); padding-top: 48px; }
+  .snum { display: inline-flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); }
+  .snum::after { content: ""; width: 28px; height: 1px; background: var(--gray-200); }
+  h2 { font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: 0; margin: 12px 0 12px; }
+  h3 { font-size: 16px; line-height: 24px; font-weight: 600; margin: 32px 0 12px; }
+  section > p, .prose p { max-width: 720px; font-size: 16px; line-height: 26px; color: var(--gray-600); margin: 0 0 16px; }
+  ul.plain { max-width: 760px; margin: 0 0 16px; padding-left: 20px; }
+  ul.plain li { font-size: 16px; line-height: 26px; color: var(--gray-600); margin-bottom: 8px; }
+  ul.plain li b, .prose b { color: var(--gray-900); font-weight: 600; }
+
+  /* ---------- the document is the screens ----------
+     Everything that explained them is still in the markup and switched off
+     here in one place: tables, notes, lists, sub-headings, the legend panels
+     and the paragraph under each section headline. Delete this block to read
+     the long version. What survives is the section headline, the phones, and
+     each shot's own headline, state chip and one line.
+     Six sections were nothing but explanation, so they go with it. The rail
+     reads the page, so their entries disappear on their own. */
+  section > p, section > h3, .tablewrap, .note, ul.plain, .legend { display: none; }
+  #score, #meals, #decisions, #backend, #rules, #open { display: none; }
+  /* The success screen became an overlay on the logger, which then returns to
+     the day view. logged.html and its nine cases are still in the repo, just
+     no longer part of the flow this document describes. */
+  #success { display: none; }
+  /* Act 4 is the days behind the user, which is the one act that is not about
+     the day in front of them. Switched off with the rest of the explanation
+     rather than deleted: the states still run, and the control panel still
+     reaches them. */
+  #act4head, #act4 { display: none; }
+  /* "The first screen" had three layouts to choose between. One was chosen, so
+     the section became a single phone showing noplanempty, which is the same
+     phone Act 1 opens with a few inches further down. The rail reads the page,
+     so its entry and the section numbering go with it. */
+  #first { display: none; }
+
+  /* the verdict pill, the one device that earns the pillar colour */
+  .verdict {
+    display: inline-flex; align-items: center; height: 22px; padding: 0 8px; margin-left: 12px;
+    vertical-align: 4px; border-radius: 8px; border: 1px solid transparent;
+    font-size: 12px; line-height: 14px; font-weight: 600; letter-spacing: .25px; color: var(--ok-600);
+    background: linear-gradient(90deg, var(--ok-100), var(--ok-50) 30%, var(--ok-50) 70%, var(--ok-100)) padding-box,
+                conic-gradient(from 180deg, var(--ok-600), var(--ok-300) 25%, var(--ok-300) 50%, var(--ok-600) 75%, var(--ok-300)) border-box;
+  }
+
+  /* ---------- tables ---------- */
+  .tablewrap { overflow-x: auto; margin: 0 0 8px; }
+  table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 14px; }
+  th, td { text-align: left; padding: 12px 16px; vertical-align: top; line-height: 20px; }
+  th { font-size: 12px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--gray-500); background: var(--gray-50); border-bottom: 1px solid var(--gray-200); }
+  td { color: var(--gray-600); border-bottom: 1px dashed var(--gray-200); }
+  td:first-child { font-weight: 600; color: var(--gray-900); }
+  tbody tr:last-child td { border-bottom: 1px solid var(--gray-200); }
+  tbody tr:hover td { background: var(--gray-50); }
+
+  /* ---------- callouts ---------- */
+  .note { display: flex; gap: 12px; max-width: 760px; margin: 20px 0; padding: 16px; border-radius: 16px; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+  .note b { display: block; margin-bottom: 4px; font-weight: 600; color: var(--gray-900); }
+  .note .dot { flex-shrink: 0; width: 8px; height: 8px; border-radius: 9999px; margin-top: 7px; }
+  .note.teal { background: var(--gray-50); border: 1px solid var(--teal-200); }
+  .note.teal .dot { background: var(--teal-800); }
+  .note.indigo { background: var(--indigo-25); border: 1px solid var(--indigo-100); }
+  .note.indigo .dot { background: var(--indigo-600); }
+  .note.gold { background: var(--gold-50); border: 1px solid var(--gold-200); }
+  .note.gold .dot { background: var(--gold-800); }
+
+  /* ---------- phones, the subject of the page ---------- */
+  .cases { display: flex; flex-wrap: wrap; gap: 36px 28px; margin-top: 24px; }
+  figure { margin: 0; width: calc(390px * var(--z)); display: flex; flex-direction: column; }
+  /* captions sit at the bottom of their slot, so the phones in a row line up */
+  figcaption { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: flex-end; margin-bottom: 12px; min-height: 76px; }
+  figcaption b { display: block; font-size: 16px; line-height: 24px; font-weight: 600; }
+  figcaption .id { font-family: Roboto, sans-serif; font-size: 12px; font-weight: 400; color: var(--gray-400); }
+  figcaption p { margin: 4px 0 0; font-size: 14px; line-height: 20px; color: var(--gray-600); }
+  .phone {
+    width: calc(390px * var(--z)); height: calc(780px * var(--z)); overflow: hidden;
+    border-radius: calc(16px * var(--z)); background: #fff; border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-phone);
+  }
+  .phone iframe { width: 390px; height: 780px; border: 0; display: block; transform: scale(var(--z)); transform-origin: 0 0; }
+  .open { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 14px; font-weight: 600; color: var(--gray-500); text-decoration: none; }
+  .open::after { content: "\2192"; }
+  .open:hover { color: var(--gray-900); }
+
+  /* the prototype card, the one place the reader is sent to play,
+     so it carries the page's one primary action */
+  .protorow { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; margin-top: 24px; }
+  .protocard {
+    flex: 0 0 340px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+    padding: 24px; border-radius: 16px; border: 1px solid transparent; text-decoration: none; color: inherit;
+    background: linear-gradient(#fff, #fff) padding-box,
+                conic-gradient(from 210deg, var(--gray-300), var(--brand-600) 50%, var(--gray-300)) border-box;
+    box-shadow: var(--shadow-card);
+    transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  .protocard:hover { transform: translate(-1px, -1px); box-shadow: var(--shadow-card-lift); }
+  .pc-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); }
+  .pc-title { font-family: Roboto, sans-serif; font-size: 20px; line-height: 28px; color: var(--gray-900); }
+  .pc-line { font-size: 14px; line-height: 21px; color: var(--gray-500); }
+  .pc-go {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px;
+    min-height: 44px; padding: 0 20px; border-radius: 8px;
+    background: var(--brand-600); color: #fff; font-size: 14px; font-weight: 600;
+    box-shadow: 0 3px 0 0 var(--brand-700);
+    transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  .protocard:hover .pc-go { transform: translateY(1px); box-shadow: 0 2px 0 0 var(--brand-700); }
+  @media (max-width: 1080px) { .protocard { flex: 1 1 100%; } }
+
+  /* section groups inside a long section */
+  .grouphead { display: flex; align-items: baseline; gap: 12px; margin: 40px 0 4px; }
+  .grouphead h3 { margin: 0; }
+  .grouphead span { font-size: 14px; color: var(--gray-500); }
+  .grouphead::after { content: ""; flex: 1; height: 1px; background: var(--gray-200); }
+
+  /* section 2 pairs the screen with a short guide to the document */
+  .introrow { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+  .introrow .cases { margin-top: 24px; }
+  .legend {
+    position: relative; overflow: hidden; flex: 1 1 320px; min-width: 300px; max-width: 560px; margin-top: 24px;
+    padding: 24px; border-radius: 16px; border: 1px solid transparent;
+    background: linear-gradient(#fff, #fff) padding-box,
+                conic-gradient(from 210deg, var(--gray-300), var(--indigo-600) 50%, var(--gray-300)) border-box;
+    box-shadow: var(--shadow-card);
+  }
+  /* the blurred indigo glow GoodFlip puts behind its glass cards */
+  .legend::before { content: ""; position: absolute; left: -48px; top: -64px; width: 240px; height: 110px; background: var(--indigo-100); filter: blur(52px); opacity: .55; pointer-events: none; }
+  .legend > * { position: relative; }
+  .legend ul.plain { margin-bottom: 16px; }
+  .legend li { font-size: 14px; line-height: 22px; }
+  .legend p { font-size: 14px; line-height: 22px; color: var(--gray-500); }
+  .mono { font-family: Roboto, sans-serif; font-size: 12px; background: var(--gray-100); border-radius: 4px; padding: 1px 6px; color: var(--gray-700); }
+
+  footer { grid-column: 1 / -1; border-top: 1px solid var(--gray-200); padding-top: 24px; font-size: 14px; line-height: 20px; color: var(--gray-500); display: flex; flex-wrap: wrap; gap: 10px 24px; }
+
+  /* the page's full stop: a bloom and a period, nothing clickable */
+  .fullstop { grid-column: 1 / -1; position: relative; height: 200px; overflow: hidden; pointer-events: none; }
+  .fullstop::before { content: ""; position: absolute; left: 50%; top: -40px; width: 460px; height: 280px; transform: translateX(-50%); background: radial-gradient(closest-side, rgba(79,200,146,.15), rgba(255,255,255,0)); }
+  .fullstop::after { content: ""; position: absolute; left: 50%; top: 95px; width: 10px; height: 10px; margin-left: -5px; border-radius: 9999px; background: var(--gray-900); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: .001ms !important; animation-duration: .001ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="top">
+    <span class="eyebrow">Eat pillar · GoodFlip</span>
+    <h1>Nutrition sufficiency, every case</h1>
+    <p class="lede">The whole Eat loop, written down and running: the day view, the score, logging food, and the moment after you log. Every case below is a live phone: scroll it, tap the meals, open the sheets, run a log all the way through.</p>
+    <div class="meta">
+      <span><b>For</b> design, dev and product</span>
+      <span><b>Prototype</b> <a href="r3-tray/app.html" target="_blank">r3-tray/app.html</a></span>
+      <span><b>Written spec</b> <a href="PRD.md">PRD.md</a></span>
+      <span><b id="caseCount">56</b> live cases</span>
+    </div>
+  </div>
+
+  <nav class="rail" id="rail">
+    <div class="railhead">Contents</div>
+    <ol id="raillist"></ol>
+    <div class="railhead" style="margin-top:16px">Elsewhere</div>
+    <ol><li><a href="#home" data-to="home" id="homeLink">Home, the way in</a></li></ol>
+    <!-- Two ways of answering "what shaped your score", switched across every
+         phone at once so the whole story can be read either way. -->
+    <div class="zoom vsw">
+      <span class="zlab">Macros</span>
+      <button data-rail="icons" class="on">One card</button><button data-rail="cards">A card each</button>
+    </div>
+
+    <!-- Which score sits at the top of every day view: the liquid Cloud Drop, or
+         the Plate it replaced, kept one tap away so the two can be compared. -->
+    <!-- How a coach's plan food gets logged. On the card (default): ticks drop
+         into a bar on the Eat screen and log there, one meal at a time. In the
+         logger: a tick opens the logging screen, as before. -->
+    <div class="zoom psw">
+      <span class="zlab">Plan logging</span>
+      <button data-plog="card" class="on">On the card</button><button data-plog="logger">In the logger</button>
+    </div>
+
+    <!-- What sits on each meal card in Your meals: the pictogram, the scene behind
+         the header (default), or both. -->
+    <div class="zoom asw">
+      <span class="zlab">Meal cards</span>
+      <button data-art="both">Both</button><button data-art="pic">Pictogram</button><button data-art="scene" class="on">Scene</button>
+    </div>
+
+    <div class="zoom hsw">
+      <span class="zlab">Score</span>
+      <button data-hero="cloud" class="on">Cloud Drop</button><button data-hero="plate">Plate</button>
+    </div>
+
+    <div class="zoom">
+      <span class="zlab">Phone size</span>
+      <button data-z=".6">S</button><button data-z=".78" class="on">M</button><button data-z="1">L</button>
+    </div>
+  </nav>
+
+  <main>
+
+    <section id="prototype">
+      <div class="snum">Section 1</div>
+      <h2>Try the prototype</h2>
+      <p>The whole flow runs in one place: <a href="r3-tray/app.html" target="_blank">r3-tray/app.html</a>. A phone in the middle, a panel beside it that switches every case.</p>
+      <p>The flow is real. Tap a food and the score, the macros and the fuse all move.</p>
+
+      <div class="protorow">
+        <a class="protocard" href="r3-tray/app.html" target="_blank">
+          <span class="pc-eyebrow">The prototype</span>
+          <span class="pc-title">r3-tray/app.html</span>
+          <span class="pc-line">Phone plus control panel. Copy a link to any case from the panel.</span>
+          <span class="pc-go">Open the prototype</span>
+        </a>
+        <div class="legend">
+          <h3 style="margin-top:0">What the panel switches</h3>
+          <ul class="plain">
+            <li><b>Screen</b> Eat detail, Log food, Logged.</li>
+            <li><b>Care plan</b> assigned or not yet, which swaps the states below it.</li>
+            <li><b>Day</b> today, an earlier day, a day with nothing.</li>
+            <li><b>One user, in order</b> the ten states of the day view in the four acts this document reads them in, from before a plan to the days behind them.</li>
+            <li><b>Sheets</b> the sufficiency sheet and the date sheet.</li>
+            <li><b>Food logging</b> all 23 states the prototype carries for the logging screen, and where it was opened from.</li>
+            <li><b>Success</b> all 9 states of the screen after a log.</li>
+          </ul>
+          <p style="margin-bottom:0">The live address sits under the panel, so any case can be copied and shared as a link. Reduced motion and Reset are there too.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="home" class="aside">
+      <div class="snum">Elsewhere</div>
+      <h2>The way in: home</h2>
+      <p>GoodFlip's home screen, built from the design system's own Homepage recipe and its components (top nav, welcome strip, banner carousel, score card, services, trackers, bottom nav). Under the carousel sits <b>Your EM3</b>: one card per pillar, scrolled sideways, each carrying the pillar's pictogram, its score's name, and the score in the bowl of a rising arc of that pillar's orbs. Eat is green, Move indigo, Mind teal, Measure gold; later the four combine into the metabolic score.</p>
+      <p>Tapping Eat opens the day view this document describes.</p>
+      <div class="cases" data-cases="home"></div>
+    </section>
+
+    <section id="screen">
+      <div class="snum">Section 2</div>
+      <h2>What the screen is</h2>
+      <p>The Eat pillar's day view. It answers three things in order: how the day is going, what has been eaten, and what the coach's plan says.</p>
+
+      <h3>Structure, top to bottom</h3>
+      <div class="tablewrap"><table>
+        <thead><tr><th>#</th><th>Block</th><th>What it holds</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Date chip</td><td>The day being viewed, with a step back arrow and a step forward arrow. Opens the date sheet.</td></tr>
+          <tr><td>2</td><td>Eat line</td><td>"Eat · Fuel your body right", with an info icon that opens the sufficiency sheet and the Earn chip that opens the FlipCoins sheet.</td></tr>
+          <tr><td>3</td><td>Score</td><td>Nutrition sufficiency as the Plate: a ring of dots with a fork and knife either side. The number and the word SUFFICIENT, nothing else.</td></tr>
+          <tr><td>4</td><td>What you have eaten</td><td>Protein, carbs, fats and fibre, each as its icon filling to its level, with "43/95g" and the name.</td></tr>
+          <tr><td>5</td><td>Calorie strip</td><td>Ember fuse: "942 of 1,900 kcal" and "958 left for today".</td></tr>
+          <tr><td>6</td><td>Kaira card</td><td>One or two sentences of insight, then "Log your meal" with Snap and Voice.</td></tr>
+          <tr><td>7</td><td>Your meals</td><td>Every meal of the day, always open, in coach plan order.</td></tr>
+          <tr><td>8</td><td>Bottom nav</td><td>Back, Eat, Trend, Learn. Kaira's button floats above it.</td></tr>
+        </tbody>
+      </table></div>
+
+
+      <div class="introrow">
+        <div class="cases" data-cases="screen"></div>
+        <div class="legend">
+          <h3 style="margin-top:0">How to read this document</h3>
+          <ul class="plain">
+            <li><b>Every phone is live.</b> It runs the same prototype the team will build against, so you can scroll it, switch a meal's option, open the date sheet and read the sufficiency sheet.</li>
+            <li><b>The grey code</b> beside each name is the flag that produces it, for example <span class="mono">state=past</span>. Add it to <span class="mono">r3-tray/eat.html</span> to reach that case directly.</li>
+            <li><b>Open full size</b> under each phone opens it in its own tab, at real width.</li>
+            <li><b>Only the phones near your screen run</b>, so the page stays light as you scroll.</li>
+          </ul>
+          <p style="margin-bottom:0">The day used throughout is Tuesday 15 September 2026. The person joined on 1 September and their coach set the plan on 5 September, which is what makes every kind of day reachable in one month.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="score">
+      <div class="snum">Section 3</div>
+      <h2>The score <span class="verdict">Sufficient</span></h2>
+      <ul class="plain">
+        <li>One number, nutrition sufficiency out of 100, the mean of four capped ratios: protein, carbs, fats and fibre against the coach's targets.</li>
+        <li>It counts up from zero when the screen opens, over about 1.2 seconds.</li>
+        <li>The plate carries the number and the word SUFFICIENT only. No meal counts, no dates, no verdicts.</li>
+        <li>Green, because the score is the one thing that carries the pillar's colour. Everything else may use the wider palette.</li>
+      </ul>
+      <p><b>How it is worked out:</b> sufficiency = protein, carbs, fats and fibre, each capped at its target, then averaged. The cap is why extra rice cannot fill in for missing protein.</p>
+    </section>
+
+    <section id="first">
+      <div class="snum">Section 11</div>
+      <h2>The first screen, three layouts</h2>
+      <p>Before a plan exists there is nothing to report, so Kaira's card teaches and ends with the two ways to log. Three ways to fit that in the least height.</p>
+      <div class="cases" data-cases="first"></div>
+    </section>
+
+    <section id="states">
+      <div class="snum">Section 4</div>
+      <h2>One user, in order</h2>
+      <p>Ten screens, read as one person's first fortnight: before a plan, the plan arriving, a day filling up, then days behind them. The rule underneath all of them: where there is no data, say what to do or show the target. Never print zeros.</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th>Act</th><th>State</th><th>When</th><th>Score</th><th>Macros</th><th>Calories</th><th>Kaira</th><th>Meals</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>No plan, nothing logged</td><td>Care user before the diet consultation</td><td>Locked, a padlock on the plate</td><td>Replaced by the three point card</td><td>None</td><td>"Show us what you eat" and the two ways to log</td><td>Four core meals, name and suggested time</td></tr>
+          <tr><td>1</td><td>No plan, food logged</td><td>Same user, food in</td><td>Locked</td><td>Plain grams, no targets</td><td>"1,213 kcal so far today"</td><td>Nudges the next log</td><td>Four core meals with what was logged</td></tr>
+          <tr><td>2</td><td>Plan set, nothing logged</td><td>Targets exist, day not started</td><td>Empty ring, "Log your first meal"</td><td>"Today's targets": 95g, 238g, 63g, 30g</td><td>"1,900 kcal goal for today"</td><td>"The score starts moving with your first meal."</td><td>Six meals, "382 cal planned"</td></tr>
+          <tr><td>2</td><td>First meal in</td><td>One meal logged</td><td>12%</td><td>Real grams</td><td>Real numbers</td><td>Names the nutrient to watch</td><td>Six meals</td></tr>
+          <tr><td>3</td><td>Mid day</td><td>Some meals in</td><td>54%</td><td>Real grams</td><td>Real numbers</td><td>The gap and the fix</td><td>Six meals</td></tr>
+          <tr><td>3</td><td>Whole day read</td><td>Every meal in</td><td>88%</td><td>Real grams</td><td>Real numbers</td><td>What landed well</td><td>Six meals</td></tr>
+          <tr><td>3</td><td>Every target met</td><td>All four at target</td><td>100%, one bloom of light</td><td>All at target</td><td>1,900 of 1,900</td><td>"This is the day to repeat."</td><td>Six meals</td></tr>
+          <tr><td>3</td><td>More than the plan</td><td>Logged past the targets</td><td>Capped at 100%, no reward for the extra</td><td>Past target, drawn as past target</td><td>Over the goal, and it says so</td><td>Names what went over, without scolding</td><td>Six meals</td></tr>
+          <tr><td>4</td><td>An earlier day</td><td>A finished past day</td><td>That day's score, still, no motion</td><td>That day's grams</td><td>That day's numbers</td><td>That day's read, then "Log for that day"</td><td>Read only</td></tr>
+          <tr><td>4</td><td>A day with nothing</td><td>A past day never logged</td><td>Empty ring</td><td>"Nothing was logged that day"</td><td>"No calories logged"</td><td>"One line is better than none, even from memory."</td><td>Read only</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="grouphead"><h3>Act 1 · Before a plan</h3><span></span></div>
+      <div class="cases" data-cases="act1"></div>
+
+      <div class="grouphead"><h3>Act 2 · The plan arrives</h3><span></span></div>
+      <div class="cases" data-cases="act2"></div>
+
+      <div class="grouphead"><h3>Act 3 · A day fills up</h3><span></span></div>
+      <div class="cases" data-cases="act3"></div>
+
+      <div class="grouphead" id="act4head"><h3>Act 4 · Days behind them</h3><span></span></div>
+      <div class="cases" id="act4" data-cases="act4"></div>
+    </section>
+
+    <section id="meals">
+      <div class="snum">Section 5</div>
+      <h2>Meal cards</h2>
+      <ul class="plain">
+        <li>Always open, with no expand, no collapse and no chevron.</li>
+        <li>Header: meal name, "Suggested 8:00 - 10:00 AM · 486 of 382 cal", and a + button.</li>
+        <li>Body: "YOUR COACH'S PLAN", option chips with a check on the chosen one, then food rows with a tick circle, name, quantity and calories. No row menu: a logged food's tick opens its sheet (change the quantity, take it off your day).</li>
+        <li>Food logged outside the plan sits above the plan with a "Manual" tag.</li>
+        <li>"Log all 3" or "Log the other 2" appears when two or more items are left.</li>
+        <li>"TIPS FROM YOUR COACH" holds the parts of a plan that are not food, each with a tick and a one line tip.</li>
+        <li>A coach's food has two states: logged or not yet. There is no Skip: a food not eaten simply stays unticked, and it is never deleted from the plan.</li>
+      </ul>
+    </section>
+
+    <section id="waysin">
+      <div class="snum">Section 6</div>
+      <h2>The ways in</h2>
+      <p data-only="logger">Six doors lead to the logging screen, each opening it already knowing something. Only the tray and the header change.</p>
+      <p data-only="card">Four doors lead to the logging screen, each opening it already knowing something. The coach's plan is not one of them: it is logged on its meal card, from the bar at the bottom.</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th>Door</th><th>Where it sits</th><th>What the screen opens with</th></tr></thead>
+        <tbody>
+          <tr><td>Meal <b>+</b></td><td>The + button on a meal card</td><td><span data-only="logger">That meal, an empty tray, and your plan showing first.</span><span data-only="card">That meal, an empty tray, and Recent first.</span></td></tr>
+          <tr data-only="logger"><td>Tick a coach's food</td><td>The tick circle on a plan food</td><td>That food in the tray, waiting on its quantity and time.</td></tr>
+          <tr data-only="logger"><td>Log all</td><td>"Log all 3" on a meal with items left</td><td>Every remaining food of that meal in the tray at its planned quantity.</td></tr>
+          <tr><td>Snap</td><td>Kaira's card, and the meal menu</td><td>The camera, straight into the frame step.</td></tr>
+          <tr><td>Voice</td><td>Kaira's card, and the meal menu</td><td>The microphone, already listening.</td></tr>
+          <tr><td>An earlier day</td><td>"Log for that day" on a past day</td><td>The same screen with the day named in the header, and the time set to that day.</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="note indigo" data-only="card"><span class="dot"></span><span><b>One rule for all four</b>Nothing is logged silently. The time is shown before every log and decides which meal the food lands in.</span></div>
+      <div class="note indigo" data-only="logger"><span class="dot"></span><span><b>One rule for all six</b>A tick is never a silent log. Quantity and time are confirmed every time, and the time decides which meal the food lands in.</span></div>
+
+      <p data-only="logger">The four food doors are below. Snap and Voice open the same screen on the camera or the microphone.</p>
+      <p data-only="card">The two food doors are below. Snap and Voice open the same screen on the camera or the microphone.</p>
+
+      <div class="cases" data-cases="waysin"></div>
+    </section>
+
+    <section id="logging">
+      <div class="snum">Section 7</div>
+      <h2>The logging screen</h2>
+      <p>One screen, twenty three states. Thirteen are here, in three groups: finding the food, confirming it, and what goes wrong on the way to saved.</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th>Group</th><th>States</th><th>What holds them together</th></tr></thead>
+        <tbody>
+          <tr><td>Finding food</td><td>search, typing, noresults, plan, noplan</td><td><span data-only="logger">Search sits on top, then three tabs: Recent, Favourites, Your plan. With no plan there is no plan tab, so Recent carries it.</span><span data-only="card">Search sits on top, then two tabs: Recent and Favourites. The coach's plan is logged on its meal card, not here.</span></td></tr>
+          <tr><td>Confirming</td><td>quantity, multi, time</td><td>Nothing is logged until quantity and time are set. Several foods can wait in the tray at once. Saving plays as an overlay, then the day view.</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="grouphead"><h3>Finding food</h3><span></span></div>
+      <div class="cases" data-cases="log_find"></div>
+
+      <div class="grouphead"><h3>Confirming</h3><span></span></div>
+      <div class="cases" data-cases="log_confirm"></div>
+
+    </section>
+
+    <section id="success">
+      <div class="snum">Section 8</div>
+      <h2>The success screen</h2>
+      <p>The moment after a save. One job: show what the log did to the day.</p>
+      <ul class="plain">
+        <li>The score animates from the old number to the new one. A day with no score shows the count of what went in instead.</li>
+        <li>One line from Kaira, never a recap of the items.</li>
+        <li>The primary button changes with the state: back to the day, on to the next meal, or log another.</li>
+        <li>Undo stays reachable for as long as the screen is up.</li>
+      </ul>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th>State</th><th>When</th><th>What it says</th></tr></thead>
+        <tbody>
+          <tr><td>default</td><td>A normal log in the middle of a day</td><td>The score's jump, and the nutrient that moved most.</td></tr>
+          <tr><td>first</td><td>The day's first log</td><td>The score starts moving. The rest of the day is still open.</td></tr>
+          <tr><td>mealdone</td><td>A meal is now complete</td><td>That meal is closed, and the next one is named.</td></tr>
+          <tr><td>daydone</td><td>Every meal of the day is in</td><td>The day is read in full.</td></tr>
+          <tr><td>perfect</td><td>All four targets met</td><td>One bloom of light. "This is the day to repeat."</td></tr>
+          <tr><td>small</td><td>A log that barely moved the score</td><td>Honest about the size of the move, still worth logging.</td></tr>
+          <tr><td>pastday</td><td>Logged onto an earlier day</td><td>Names the day it went to, so it cannot be mistaken for today.</td></tr>
+          <tr><td>noplan</td><td>No plan yet</td><td>No score to move, so it counts what went in and says what the coach does with it.</td></tr>
+          <tr><td>undo</td><td>The log was undone from here</td><td>The score returns to where it was, plainly, with no scolding.</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="cases" data-cases="success"></div>
+    </section>
+
+    <section id="sheet">
+      <div class="snum">Section 9</div>
+      <h2>The sufficiency sheet</h2>
+      <p>One sheet, opened from the info icon beside the Eat line and from tapping the plate. It reads the same in every state.</p>
+      <ul class="plain">
+        <li>Hero: the number on a tinted band, or a lock when there is nothing to measure against.</li>
+        <li>Card: "Your intake", the four nutrients and calories, values only.</li>
+        <li>Sections: bold question headings, dashed rules between them, the formula given as the answer.</li>
+        <li>The coach who set the targets appears as a small card with a Message button, not as a sentence.</li>
+      </ul>
+      <div class="cases" data-cases="sheet"></div>
+    </section>
+
+    <section id="date">
+      <div class="snum">Section 10</div>
+      <h2>The date sheet</h2>
+      <p>Opens from the date chip. A month at a time, a ring per day carrying that day's sufficiency.</p>
+
+      <h3>The sheet</h3>
+      <ul class="plain">
+        <li>One month at a time, a ring per day showing that day's sufficiency out of 100.</li>
+        <li>Legend at the bottom: "The ring is your nutrition sufficiency out of 100".</li>
+        <li>Tapping a day loads that day and closes the sheet.</li>
+        <li>Closes on the X, on a tap outside, and on Escape.</li>
+      </ul>
+
+      <h3>Per day</h3>
+      <ul class="plain">
+        <li>Scored day: ring filled to the score.</li>
+        <li>Today: marked as today, ring shows the live partial score.</li>
+        <li>Selected day: marked, and different from today.</li>
+        <li>Nothing logged that day: dashed empty ring, still tappable.</li>
+        <li>Logged before the plan existed: a dot instead of a ring, tappable.</li>
+        <li>Before joining: greyed, not tappable.</li>
+        <li>Future days, including later this month: greyed, not tappable.</li>
+        <li>Perfect day: full ring with a centre dot.</li>
+      </ul>
+
+      <h3>Month navigation</h3>
+      <ul class="plain">
+        <li>Back stops at the joining month, then the arrow is disabled.</li>
+        <li>Forward stops at the current month, so tomorrow cannot be reached.</li>
+        <li>Opens on the month of the day being viewed.</li>
+      </ul>
+
+      <h3>The chip</h3>
+      <ul class="plain">
+        <li>Left arrow steps back a day. Right arrow is disabled on today.</li>
+        <li>Reads "Today" on today, the date otherwise.</li>
+      </ul>
+
+      <div class="cases" data-cases="date"></div>
+    </section>
+
+    <section id="learn">
+      <div class="snum">Section 15</div>
+      <h2>The Learn tab</h2>
+      <p>The fourth tab of the Eat pillar. Articles about sufficiency and eating, laid out like the app's category screen: the category in a serif header, then one plain list of thumbnail, title and read time.</p>
+
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Piece</th><th>What it is</th></tr></thead>
+          <tbody>
+            <tr><td>Header</td><td>The category name, "Nutrition &amp; Metabolic Health", in Playfair Display 26, on a pale blue wash that fades to white.</td></tr>
+            <tr><td>Row</td><td>An 88 x 88 photo at radius 10 with a hairline and a soft offset shadow, then the title (18, two lines, then an ellipsis) and the meta line "4 min read . 18 Sep 26" at the photo's bottom edge.</td></tr>
+            <tr><td>Divider</td><td>A 1px hairline between rows. No cards, no sections, no carousel: one list.</td></tr>
+            <tr><td>Tap</td><td>A row opens the article.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+
+      <div class="grouphead"><b>The tab</b></div>
+      <div class="cases" data-cases="learn"></div>
+    </section>
+
+    <section id="trend">
+      <div class="snum">Section</div>
+      <h2>The Trend tab</h2>
+      <p>The week, in three cards. KAIRA's card leads: while the week fills it counts the days to her insight; when the week is done a gift box peeks from its corner and Unlock my insight opens it in a burst of gold into her analysis (what went well, the one gap and how to close it), which folds away with Show less. Under it, Your week so far: the week's score and tag, then each day as a small version of the day view's gauge. Then Your macros this week, four quiet tiles with an arc each.</p>
+
+      <div class="grouphead"><b>The week</b></div>
+      <div class="cases" data-cases="trend"></div>
+    </section>
+
+    <section id="decisions">
+      <div class="snum">Section 12</div>
+      <h2>Decisions settled</h2>
+      <p>Four questions came out of reading the live app and the backend. They are answered, and not open for the build.</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th>Question</th><th>Decision</th><th>What it costs</th></tr></thead>
+        <tbody>
+          <tr><td>Fibre has no target and no column in the backend. Keep it in the score?</td><td><b>Keep it.</b> Fibre stays the fourth nutrient, on the screen and in the score.</td><td>The backend adds a fibre target to the plan and a fibre column to the food log.</td></tr>
+          <tr><td>The API allows a future date. Allow it?</td><td><b>No.</b> Future days stay unreachable: the chip's forward arrow stops on today, and the date sheet greys the rest of the month.</td><td>A client side rule only. The API stays as it is.</td></tr>
+          <tr><td>A coach's food that was not eaten: delete it?</td><td><b>No.</b> It stays on the plan, unticked. There is no Skip, and a coach's food is never deleted.</td><td>The meal card carries two states per plan food: logged or not yet.</td></tr>
+          <tr><td>Should ticking a plan food log it straight away?</td><td><b>No.</b> Every tick opens a confirm step for quantity and time, and the time decides which meal the food lands in.</td><td>One extra step on the quickest path, in exchange for a day that is actually true.</td></tr>
+        </tbody>
+      </table></div>
+
+      <div class="note indigo"><span class="dot"></span><span><b>Where these came from</b>The live webview (<a href="research/web-flows.md">research/web-flows.md</a>) and the production backend (<a href="research/backend-rules.md">research/backend-rules.md</a>), read in September 2026.</span></div>
+    </section>
+
+    <section id="backend">
+      <div class="snum">Section 13</div>
+      <h2>What the backend needs</h2>
+      <p>The backend has no score. <span class="mono">calories_adherence_patient</span> returns raw grams and calories. Sufficiency is ours to define, and four things have to be built first.</p>
+
+      <div class="tablewrap"><table>
+        <thead><tr><th>#</th><th>What is needed</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>A fibre target on the diet plan, and a fibre column on the food log.</td><td>Plans carry protein, carbs and fat only, and <span class="mono">patient_food_item_logs</span> has no fibre column. Without both, a quarter of the score cannot be computed.</td></tr>
+          <tr><td>2</td><td>A sufficiency value per day, stored or computed cheaply for a month at a time.</td><td>The date sheet draws a ring per day. Reading every log row for thirty days to draw a calendar is not a read the app can make.</td></tr>
+          <tr><td>3</td><td>A history row when a plan approval overwrites the calorie goal.</td><td>Approval writes <span class="mono">patient_goal_rel.goal_value</span> in place with no history, so a past day cannot be read against the goal that applied then.</td></tr>
+          <tr><td>4</td><td>A decided day boundary.</td><td><span class="mono">todays_date()</span> returns the server's local date and its IST shift is commented out, so "today" is not the user's day and not explicitly IST.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Already there, and used as is</h3>
+      <ul class="plain">
+        <li>Photo and voice are first class log sources, with the attachment kept on the row. Snap and Voice map straight onto them.</li>
+        <li>Kaira's logging endpoints exist, including the one that asks an LLM for a food's nutrition when the food is unknown and saves it back.</li>
+        <li>Meal times are real plan data, per meal division, so "Suggested 8:00 - 10:00 AM" changes when the plan changes.</li>
+        <li>Logging onto an earlier day already passes validation, so the past day flow needs no new endpoint.</li>
+        <li>The adherence endpoint already supports 7D, 30D, 90D and longer, which is what the Trend tab will read.</li>
+      </ul>
+
+      <div class="note gold"><span class="dot"></span><span><b>One thing to watch</b>A manually logged food that matches the meal's plan is silently relinked by the backend, so the "Manual" tag is not the person's choice alone.</span></div>
+    </section>
+
+    <section id="rules">
+      <div class="snum">Section 14</div>
+      <h2>Rules that hold everywhere</h2>
+
+      <h3>Bottom sheets</h3>
+      <ul class="plain">
+        <li>Title at the top left, filled circle X at the top right in a 44px target.</li>
+        <li>No drag handle drawn.</li>
+        <li>At most 90% of the screen: the header stays put, the body scrolls.</li>
+        <li>Backdrop 50% black, slide up 300ms.</li>
+      </ul>
+
+      <h3>Visual</h3>
+      <ul class="plain">
+        <li>Page background is pure white. Cards separate themselves with a subtle border and a soft shadow, not a darker page.</li>
+        <li>Most cards use that quiet treatment. A few earn creative depth: Kaira's card carries her indigo to teal gradient stroke with a squared top left corner, primary buttons sit on a solid depth bar, and the date sheet's calendar sits on a bound paper pad.</li>
+        <li>The score carries the pillar colour. Other elements may use the wider GoodFlip palette.</li>
+        <li>Macros are one green, identified by their own icons, never by a colour each.</li>
+      </ul>
+
+      <h3>Copy</h3>
+      <ul class="plain">
+        <li>Plain, friendly, second person. No em dashes. One "!" at most, and only for a real win.</li>
+        <li>Kaira gives insight, never a recap of what was logged. Two short sentences at most.</li>
+        <li>Nothing under 12px, every tap target at least 44px.</li>
+      </ul>
+
+      <div class="note indigo"><span class="dot"></span><span><b>Where the other colours go</b>Indigo belongs to Kaira and to anything she does. Gold marks insight and reward. Teal is a calm accent. Green stays the score and the primary action.</span></div>
+    </section>
+
+    <section id="open">
+      <div class="snum">Section 16</div>
+      <h2>Open questions</h2>
+      <div class="note gold"><span class="dot"></span><span><b>Still to settle</b>
+        A past day shows today's plan food, so its per meal calories do not add up to that day's header. It needs real day data.<br>
+        Swipe down to dismiss a sheet is not built.<br>
+        The calorie strip and the Kaira treatment are not locked in yet. The options live in <a href="r3-tray/parts/index.html">r3-tray/parts/index.html</a>.
+      </span></div>
+    </section>
+
+  </main>
+
+  <footer>
+    <span>Every screen above runs the same prototype: <a href="r3-tray/eat.html" target="_blank">r3-tray/eat.html</a></span>
+    <span><a href="r3-tray/states.html">States gallery</a></span>
+    <span><a href="r3-tray/sheets.html">Sheet gallery</a></span>
+    <span><a href="r3-tray/datesheet.html">Date sheet gallery</a></span>
+    <span><a href="r3-tray/index.html">Score gallery</a></span>
+  </footer>
+
+  <div class="fullstop" aria-hidden="true"></div>
+
+</div>
+
+<script>
+/* ============================================================
+   The cases. Each one is a live phone running r3-tray/eat.html.
+   ============================================================ */
+const CASES = {
+  home: [
+    ["r3-tray/home.html", "Home", "home",
+     "The design system's home screen, with Your EM3 under the carousel. Scroll the four cards sideways; Eat opens the day view."],
+  ],
+  screen: [
+    ["state=mid", "The screen", "state=mid",
+     "Today, three meals in."],
+  ],
+  /* one person, in order. The four acts below are the same four the prototype
+     panel groups its states into, so a link from either side lands in context. */
+  act1: [
+    ["state=noplanempty", "The first landing", "noplanempty", "Where a Care user starts. No plan, nothing logged, so the score sits locked and Kaira teaches."],
+    ["state=noplan", "Food in, still no plan", "noplan", "They log anyway. The grams are real, with no targets to measure them against."],
+  ],
+  act2: [
+    ["state=empty", "The plan is assigned", "empty", "The consultation lands and the targets arrive. The day has not started."],
+    ["state=first", "The first meal on it", "first", "One meal in, and the score moves for the first time."],
+  ],
+  act3: [
+    ["state=mid", "By the afternoon", "mid", "Three meals in, the day still has room."],
+    ["state=full", "The whole day in", "full", "The last meal lands. The number is now the day’s verdict."],
+    ["state=perfect", "Every target met", "perfect", "All four land together. The rare day, marked with one bloom of light."],
+    ["state=over", "More than the plan", "over", "More went in than the plan asked for. The score caps, the calories keep counting."],
+  ],
+  act4: [
+    ["state=past", "An earlier day", "past", "Tomorrow comes and that day is finished: read only, no motion."],
+    ["state=missed", "A day with nothing", "missed", "Further back, a day nobody logged. No score, and the rows say so once."],
+  ],
+  sheet: [
+    ["state=mid&sheet=suff", "A day with a score", "sheet=suff", "Today. The hero carries 54%, the card the intake behind it."],
+    ["state=noplan&sheet=suff", "Before the plan exists", "state=noplan", "A lock replaces the number. Grams with nothing to measure them against."],
+    ["state=past&sheet=suff", "An earlier day", "state=past", "Monday, read back."],
+    ["state=missed&sheet=suff", "A day with nothing", "state=missed", "No score, and the rows say so once."],
+  ],
+  date: [
+    ["sheet=1", "Open on today", "sheet=1", "September. Dots before the plan existed, dashes where nothing was logged."],
+    ["state=past&date=2026-9-8&sheet=1", "Opened from an earlier day", "date=2026-9-8", "Opened on 8 September, with today still marked."],
+  ],
+  /* Three layouts were tried here and the first was chosen, so the other two
+     are no longer part of the spec. */
+  first: [
+    ["state=noplanempty&v=1", "The first screen", "v=1", "No score yet and nothing to measure, so the plate holds a padlock and Kaira carries the screen on her own."],
+  ],
+
+  /* the doors that open onto food and the tray. Snap and Voice open the same
+     screen on the camera or the microphone, and are not documented here. */
+  waysin: [
+    ["r3-tray/log.html?entry=plus", "Meal +", "entry=plus", "Opened from a meal’s + button. Empty tray, the plan first."],
+    ["r3-tray/log.html?entry=tick", "Ticking a coach's food", "entry=tick", "In the tray, not yet logged."],
+    ["r3-tray/log.html?entry=logall", "Log all", "entry=logall", "Every remaining food at its planned quantity."],
+    ["r3-tray/log.html?entry=pastday", "An earlier day", "entry=pastday", "Opened from a past day, which the header names."],
+  ],
+
+  /* the logging screen, the three groups this page documents */
+  log_find: [
+    ["r3-tray/log.html?state=ftux", "The first open", "state=ftux", "No plan, nothing logged, nothing hearted. Every list is empty at once."],
+    ["r3-tray/log.html?state=ftuxfav", "Favourites, before any", "state=ftuxfav", "The empty state shows the very heart it is asking you to press."],
+    ["r3-tray/log.html?state=plan", "Your plan", "state=plan", "What the coach planned, one list in their order, with the same plus every other row has."],
+    ["r3-tray/log.html?state=noplan", "No plan yet", "state=noplan", "No plan tab. Recent takes its place."],
+    ["r3-tray/log.html?state=search", "Search, resting", "state=search", "The empty field, with the plan underneath."],
+    ["r3-tray/log.html?state=typing&kb=1", "Typing", "state=typing", "Two letters in, keyboard up. The tray rides above it."],
+    ["r3-tray/log.html?state=noresults", "Nothing found", "state=noresults", "Food the database does not know. Kaira takes it from here."],
+  ],
+  log_confirm: [
+    ["r3-tray/log.html?state=quantity", "Quantity", "state=quantity", "How much, in the food’s own unit."],
+    ["r3-tray/log.html?state=multi", "Several foods waiting", "state=multi", "Four in the tray. One save writes all of them."],
+    ["r3-tray/log.html?state=time", "Time", "state=time", "The time decides which meal this lands in."],
+  ],
+
+  /* the screen after a save */
+  success: [
+    ["r3-tray/logged.html?state=default", "A normal log", "state=default", "The green landing plays here, then clears. Every other case below opens settled."],
+    ["r3-tray/logged.html?moment=0&state=first", "The day's first log", "state=first", "The score starts moving. The day is still open."],
+    ["r3-tray/logged.html?moment=0&state=mealdone", "A meal is complete", "state=mealdone", "That meal is closed, and the next one is named."],
+    ["r3-tray/logged.html?moment=0&state=daydone", "The day is complete", "state=daydone", "Every meal in. The number is the day’s verdict."],
+    ["r3-tray/logged.html?moment=0&state=perfect", "Every target met", "state=perfect", "One bloom of light, which is all this day gets."],
+    ["r3-tray/logged.html?moment=0&state=small", "A small move", "state=small", "A log that barely moved the score."],
+    ["r3-tray/logged.html?moment=0&state=pastday", "Logged onto an earlier day", "state=pastday", "The day it went to is named."],
+    ["r3-tray/logged.html?moment=0&state=noplan", "No plan yet", "state=noplan", "No score to move, so it counts what went in."],
+    ["r3-tray/logged.html?moment=0&state=undo", "Undone", "state=undo", "The score goes back where it was."],
+  ],
+  trend: [
+    ["r3-tray/trend.html?state=ft", "Not started", "state=ft",
+     "Nothing logged yet. KAIRA says her insight unlocks in 7 days."],
+    ["r3-tray/trend.html?state=fad", "One day in", "state=fad",
+     "One day in, so the week's score is that day's, with its verdict."],
+    ["r3-tray/trend.html?state=kg", "Three days in", "state=kg",
+     "Three days in. The week's score is the average so far, with its verdict. Only the insight waits."],
+    ["r3-tray/trend.html?state=wc&insight=ready", "The week is done", "insight=ready",
+     "The gift peeks from KAIRA's card. Unlock my insight opens it in a burst of gold."],
+    ["r3-tray/trend.html?state=w2&insight=open", "The insight, open", "insight=open",
+     "What went well, the one gap and how to close it. Show less folds it."],
+    ["r3-tray/trend.html?state=w2&week=0", "An earlier week", "week=0",
+     "Opened before, so it comes back folded."],
+    ["r3-tray/trend.html?state=cg&insight=open", "Three weeks flat", "state=cg",
+     "Protein has not moved, so KAIRA suggests talking it through with the coach."]
+  ],
+  learn: [
+    ["r3-tray/learn.html?view=list", "The Learn tab", "view=list",
+     "Articles about sufficiency and eating, as one list like the app’s category screen."],
+    ["r3-tray/learn.html?view=article", "An article", "view=article",
+     "The reading page: title, byline, hero, then the body."],
+  ],
+};
+
+/* The order a person meets these things, not the order they were written in:
+   the screen, the number on it, the screen they land on first, the story of one
+   user through it, then the parts they touch and the tabs next door. The four
+   reference sections stay at the back, where they are looked up rather than
+   read. The markup is in this order too, so the rail and the page agree. */
+const SECTIONS = [
+  ["prototype", "Try the prototype"],
+  ["home", "The way in: home"],
+  ["screen", "What the screen is"],
+  ["score", "The score"],
+  ["first", "The first screen"],
+  ["states", "One user, in order"],
+  ["meals", "Meal cards"],
+  ["waysin", "The ways in"],
+  ["logging", "The logging screen"],
+  ["success", "The success screen"],
+  ["sheet", "The sufficiency sheet"],
+  ["date", "The date sheet"],
+  ["learn", "The Learn tab"],
+  ["trend", "The Trend tab"],
+  ["decisions", "Decisions settled"],
+  ["backend", "What the backend needs"],
+  ["rules", "Rules everywhere"],
+  ["open", "Open questions"],
+];
+
+/* contents rail. It lists what is actually on the page, so turning a section
+   off in CSS takes its entry with it and never leaves a link to nothing. */
+const SHOWN = SECTIONS.filter(([id]) => {
+  const el = document.getElementById(id);
+  return el && getComputedStyle(el).display !== "none";
+});
+SHOWN.forEach(([id], i) => {
+  const n = document.querySelector(`#${id} .snum`);
+  if (n) n.textContent = `Section ${i + 1}`;
+});
+document.getElementById("raillist").innerHTML = SHOWN
+  .map(([id, name]) => `<li><a href="#${id}" data-to="${id}">${name}</a></li>`).join("");
+
+/* the phones. loading="lazy" keeps the browser from opening fifty pages at
+   once: it only fetches the ones near the viewport. */
+/* Which of the two macro treatments every eat.html phone is showing. It rides
+   in the document's own query string, so a link to this page carries the
+   variant with it and two people reading it see the same thing. */
+let RAIL = new URLSearchParams(location.search).get("rail") === "cards" ? "cards" : "icons";
+/* Which score every day view carries. Cloud Drop is the default; the Plate stays one tap away. */
+let HERO = new URLSearchParams(location.search).get("hero") === "plate" ? "plate" : "cloud";
+/* How plan foods get logged on every day view: on the card (default), or in the logger. */
+let PLOG = new URLSearchParams(location.search).get("plog") === "logger" ? "logger" : "card";
+/* What each meal card carries: the scene only (default), both, or the pictogram only. */
+let ART = new URLSearchParams(location.search).get("art") || "scene";
+
+const fig = ([q, name, id, line]) => {
+  /* a case is either a flag on the day view, or a whole path to another screen */
+  let href = q.includes(".html") ? q : `r3-tray/eat.html?${q}`;
+  /* only the day view has the two variants; the log, trend and learn phones
+     are the same screen either way and are left alone */
+  if (href.startsWith("r3-tray/eat.html")) href += `&rail=${RAIL}&plog=${PLOG}` + (HERO === "plate" ? "&hero=plate" : "") + (ART !== "both" ? "&art=" + ART : "");
+  /* the logger follows the same switch: no Your plan tab when the plan is logged on the card */
+  else if (href.startsWith("r3-tray/log.html"))
+    /* a tick or Log all only reaches the logger in the "In the logger" variant, so those two always show it */
+    href += `&plog=${/entry=(tick|logall)/.test(href) ? "logger" : PLOG}`;
+  return `
+  <figure>
+    <figcaption><b>${name} <span class="id">${id}</span></b><p>${line}</p></figcaption>
+    <div class="phone"><iframe src="${href}" title="${name}" loading="lazy"></iframe></div>
+    <a class="open" href="${href}" target="_blank">Open full size</a>
+  </figure>`;
+};
+/* "On the card": the phones that only exist when the plan is logged in the logger
+   step out, and the captions that mention the plan tab say what this screen shows instead */
+const LOGGER_ONLY = ["entry=tick", "entry=logall", "state=plan"];
+const CARD_LINE = {
+  "entry=plus": "Opened from a meal’s + button. Empty tray, Recent first: the plan is logged on its card.",
+  "state=search": "The empty field, with Recent underneath.",
+  "state=noplan": "No plan yet, so Recent offers common meals to start with.",
+};
+function paintCases() {
+  document.querySelectorAll("[data-cases]").forEach((host) => {
+    host.innerHTML = (CASES[host.dataset.cases] || [])
+      .filter((c) => PLOG !== "card" || !LOGGER_ONLY.includes(c[2]))
+      .map((c) => PLOG === "card" && CARD_LINE[c[2]] ? [c[0], c[1], c[2], CARD_LINE[c[2]]] : c)
+      .map(fig).join("");
+  });
+}
+paintCases();
+
+/* Switching redraws the phones in place rather than reloading the page: this
+   document is forty phones long and losing your scroll position to change a
+   view would make the switch not worth using. */
+document.querySelectorAll(".vsw button").forEach((b) => {
+  b.addEventListener("click", () => {
+    RAIL = b.dataset.rail;
+    document.querySelectorAll(".vsw button").forEach((x) => x.classList.toggle("on", x === b));
+    const q = new URLSearchParams(location.search);
+    RAIL === "cards" ? q.set("rail", "cards") : q.delete("rail");
+    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
+    paintCases();
+  });
+});
+document.querySelectorAll(".hsw button").forEach((b) => {
+  b.addEventListener("click", () => {
+    HERO = b.dataset.hero;
+    document.querySelectorAll(".hsw button").forEach((x) => x.classList.toggle("on", x === b));
+    const q = new URLSearchParams(location.search);
+    HERO === "plate" ? q.set("hero", "plate") : q.delete("hero");
+    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
+    paintCases();
+    setTimeout(check, 60);
+  });
+});
+document.querySelectorAll(".psw button").forEach((b) => {
+  b.addEventListener("click", () => {
+    PLOG = b.dataset.plog;
+    document.querySelectorAll(".psw button").forEach((x) => x.classList.toggle("on", x === b));
+    const q = new URLSearchParams(location.search);
+    PLOG === "logger" ? q.set("plog", "logger") : q.delete("plog");
+    document.body.classList.toggle("plog-card", PLOG === "card");
+    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
+    paintCases();
+    setTimeout(check, 60);
+  });
+});
+document.querySelectorAll(".asw button").forEach((b) => {
+  b.classList.toggle("on", b.dataset.art === ART);
+  b.addEventListener("click", () => {
+    ART = b.dataset.art;
+    document.querySelectorAll(".asw button").forEach((x) => x.classList.toggle("on", x === b));
+    const q = new URLSearchParams(location.search);
+    ART === "scene" ? q.delete("art") : q.set("art", ART);
+    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
+    paintCases();
+    setTimeout(check, 60);
+  });
+});
+document.body.classList.toggle("plog-card", PLOG === "card");
+if (PLOG === "logger") {
+  document.querySelectorAll(".psw button").forEach((x) => x.classList.toggle("on", x.dataset.plog === "logger"));
+}
+if (HERO === "plate") {
+  document.querySelectorAll(".hsw button").forEach((x) => x.classList.toggle("on", x.dataset.hero === "plate"));
+}
+if (RAIL === "cards") {
+  document.querySelectorAll(".vsw button").forEach((x) =>
+    x.classList.toggle("on", x.dataset.rail === "cards"));
+}
+
+/* every group head counts its own cases, so removing one never leaves a
+   stale "4 states" behind */
+document.querySelectorAll(".grouphead").forEach((h) => {
+  const span = h.querySelector("span");
+  const host = h.nextElementSibling;
+  if (!span || span.textContent || !host || !host.classList.contains("cases")) return;
+  const n = host.querySelectorAll("figure").length;
+  span.textContent = n + (n === 1 ? " state" : " states");
+});
+
+/* the masthead counts the phones that are actually on the page, so hiding a
+   section takes its cases out of the total without anyone editing a number */
+document.getElementById("caseCount").textContent =
+  [...document.querySelectorAll(".cases")]
+    .filter((c) => c.offsetParent !== null)
+    .reduce((n, c) => n + c.querySelectorAll("figure").length, 0);
+
+/* ponytail: only the phones on screen load and run. Chrome drops the oldest
+   WebGL contexts past about sixteen, and these pages each hold one. */
+const onScreen = new Map();
+const tell = (fr) => {
+  if (!fr.contentWindow) return;
+  fr.contentWindow.postMessage(onScreen.get(fr) ? "hero:mount" : "hero:unmount", "*");
+};
+const check = () => {
+  document.querySelectorAll(".phone iframe").forEach((fr) => {
+    const r = fr.getBoundingClientRect();
+    const near = r.bottom > -600 && r.top < innerHeight + 600;
+    if (near && !fr.src && fr.dataset.src) fr.src = fr.dataset.src;
+    const vis = r.bottom > -100 && r.top < innerHeight + 100;
+    if (onScreen.get(fr) !== vis) { onScreen.set(fr, vis); tell(fr); }
+  });
+  spy();
+};
+let raf = 0;
+const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(check); };
+addEventListener("scroll", schedule, { passive: true });
+addEventListener("resize", schedule);
+addEventListener("message", (e) => {
+  if (e.data !== "hero:ready") return;
+  const fr = [...document.querySelectorAll(".phone iframe")].find((x) => x.contentWindow === e.source);
+  if (fr) tell(fr);
+});
+
+/* Home opens on demand, from its rail link or a #home link, and joins the scroll spy once it is on the page */
+function openHome() {
+  const h = document.getElementById("home");
+  if (!h.classList.contains("shown")) { h.classList.add("shown"); SHOWN.splice(1, 0, ["home", "Home, the way in"]); }
+  h.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+document.getElementById("homeLink").addEventListener("click", (e) => { e.preventDefault(); openHome(); history.replaceState(null, "", "#home"); });
+if (location.hash === "#home") setTimeout(openHome, 0);
+
+/* which section the reader is in */
+const links = [...document.querySelectorAll("nav.rail a")];
+function spy() {
+  let cur = SHOWN[0][0];
+  for (const [id] of SHOWN) {
+    const el = document.getElementById(id);
+    if (el && el.getBoundingClientRect().top <= 120) cur = id;
+  }
+  links.forEach((a) => a.classList.toggle("on", a.dataset.to === cur));
+}
+
+/* :not(.vsw) matters. The macro switch wears the same clothes as the size
+   control, so without it a click on "A card each" also ran this handler, set
+   --z to undefined and left every phone unsized. */
+document.querySelectorAll(".zoom:not(.vsw):not(.hsw):not(.psw):not(.asw) button").forEach((b) => {
+  b.onclick = () => {
+    document.documentElement.style.setProperty("--z", b.dataset.z);
+    document.querySelectorAll(".zoom:not(.vsw):not(.hsw):not(.psw):not(.asw) button").forEach((x) => x.classList.toggle("on", x === b));
+    setTimeout(check, 60);
+  };
+});
+
+check();
+</script>
+<script src="frame.js" defer></script>
+</body>
+</html>

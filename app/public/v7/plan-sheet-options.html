@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan sheet, four directions</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<style>
+  :root{
+    --brand-25:#FAFFFD; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0; --brand-600:#299D6B; --brand-700:#2A805A;
+    --g-25:#FCFCFD; --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-200:#C7D7FE; --in-600:#444CE7; --in-700:#3538CD; --in-900:#2D3282;
+    --gold-50:#FFFBEE; --gold-200:#FEF1C7; --gold-800:#A68A2D;
+    --ease:cubic-bezier(.2,0,0,1);
+  }
+  *{box-sizing:border-box}
+  ::selection{background:var(--brand-100);color:var(--g-900)}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1700px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:860px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 32px}
+  .grid{display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start}
+  .col{width:360px;flex:0 0 360px}
+  .cap{margin-bottom:16px;min-height:208px}
+  .cap h2{font-size:16px;line-height:23px;font-weight:600;margin:0 0 6px}
+  .cap h2 em{font-style:normal;font-size:12px;font-weight:600;color:var(--brand-700);background:var(--brand-50);padding:2px 8px;border-radius:9999px;margin-left:6px;vertical-align:2px}
+  .cap p{font-size:13px;line-height:20px;color:var(--g-600);margin:0 0 6px}
+  .cap .risk{font-size:12px;line-height:18px;color:var(--g-500)}
+  .cap .risk b{color:var(--g-700);font-weight:600}
+
+  /* the phone: the Eat screen dimmed behind, the sheet over it */
+  .ph{position:relative;width:360px;height:700px;border-radius:32px;overflow:hidden;background:#fff;border:1px solid var(--g-200);
+    box-shadow:0 24px 48px -16px rgba(16,24,40,.18)}
+  .behind{position:absolute;inset:0;padding:24px 16px;background:#fff}
+  .behind i{display:block;height:120px;border-radius:20px;border:1px solid var(--g-200);margin-bottom:12px}
+  .scrim{position:absolute;inset:0;background:rgba(16,24,40,.4)}
+  .sh{position:absolute;left:0;right:0;bottom:0;max-height:90%;display:flex;flex-direction:column;background:#fff;border-radius:24px 24px 0 0;overflow:hidden}
+  .hd{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:20px 16px 4px}
+  .hd h4{margin:0;font:800 20px/28px Roboto;color:var(--g-900);letter-spacing:0}
+  .hd .sub{margin-top:2px;font:400 13px/18px Roboto;color:var(--g-500)}
+  .x{width:32px;height:32px;border-radius:50%;background:var(--g-100);color:var(--g-700);display:grid;place-items:center;flex-shrink:0}
+  .body{padding:8px 16px 0;overflow:hidden}
+  .ft{margin-top:auto;display:flex;align-items:center;gap:16px;padding:14px 16px 30px;border-top:1px solid var(--g-100);background:#fff}
+  .ft .tot{flex-shrink:0}
+  .ft .tot b{display:block;font:700 18px/24px Roboto;font-variant-numeric:tabular-nums}
+  .ft .tot span{font:400 12px/16px Roboto;color:var(--g-500)}
+  .go{flex:1;height:52px;border-radius:12px;background:var(--brand-600);color:#fff;font:700 15px/52px Roboto;text-align:center;box-shadow:0 4px 0 var(--brand-700);margin-bottom:4px}
+
+  /* shared row parts */
+  .nm{font:600 15px/22px Roboto;color:var(--g-900)}
+  .meta{font:400 13px/18px Roboto;color:var(--g-500);font-variant-numeric:tabular-nums}
+  .st{display:flex;align-items:center;height:36px;border:1px solid var(--g-200);border-radius:10px;flex-shrink:0}
+  .st s{width:36px;height:36px;display:grid;place-items:center;color:var(--brand-600);text-decoration:none}
+  .st b{min-width:18px;text-align:center;font:600 15px/1 Roboto;font-variant-numeric:tabular-nums}
+  .tchip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 10px 0 8px;border-radius:9999px;background:var(--in-50);color:var(--in-900);font:600 13px/1 Roboto;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .tchip svg{color:var(--in-600)}
+
+  /* A: ledger */
+  .grp + .grp{margin-top:8px;padding-top:16px;border-top:1px solid var(--g-100)}
+  .gh{display:flex;align-items:center;justify-content:space-between;min-height:36px;margin-bottom:4px}
+  .gh b{font:700 16px/22px Roboto}
+  .row{display:flex;align-items:center;gap:12px;min-height:60px}
+  .row .t{flex:1;min-width:0}
+  .own{display:inline-flex;align-items:center;gap:4px;color:var(--in-700);font-weight:500}
+
+  /* B: day rail */
+  .rail{position:relative;padding-left:28px}
+  .rail::before{content:"";position:absolute;left:7px;top:14px;bottom:24px;width:2px;border-radius:1px;background:linear-gradient(var(--in-200),var(--in-100))}
+  .stop{position:relative;padding-bottom:12px}
+  .stop::before{content:"";position:absolute;left:-26px;top:9px;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--in-600);box-sizing:border-box}
+  .stop .when{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+  .stop .when b{font:700 18px/26px Roboto;font-variant-numeric:tabular-nums;color:var(--in-900)}
+  .stop .when span{font:500 13px/18px Roboto;color:var(--g-500)}
+  .stop .when u{margin-left:auto;font:500 13px/18px Roboto;color:var(--brand-600);text-decoration:none}
+  .food{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;background:var(--g-50)}
+  .food + .food{margin-top:6px}
+  .food .t{flex:1;min-width:0}
+  .food .st{background:#fff}
+
+  /* C: quiet rows, open one */
+  .qrow{display:flex;align-items:center;gap:12px;min-height:64px;border-bottom:1px solid var(--g-100)}
+  .qrow .t{flex:1;min-width:0}
+  .qrow .q{font:600 14px/1 Roboto;color:var(--g-700);font-variant-numeric:tabular-nums}
+  .qrow .chev{color:var(--g-400)}
+  .open{margin:8px 0;padding:14px;border-radius:16px;background:var(--in-25);border:1px solid var(--in-100)}
+  .open .top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .lbl{font:500 12px/16px Roboto;color:var(--g-500);margin:14px 0 8px}
+  .seg{display:flex;gap:8px}
+  .seg span{height:36px;padding:0 12px;display:inline-flex;align-items:center;border-radius:10px;border:1px solid var(--g-200);background:#fff;font:500 13px/1 Roboto;color:var(--g-700);font-variant-numeric:tabular-nums}
+  .seg span.on{border-color:var(--brand-600);background:var(--brand-100);color:var(--brand-700);font-weight:600}
+
+  /* D: what it does to the day */
+  .gain{margin:4px 0 12px;padding:16px;border-radius:20px;background:var(--brand-50);border:1px solid var(--brand-100)}
+  .gain .lead{display:flex;align-items:baseline;gap:8px}
+  .gain .lead b{font:800 32px/36px Roboto;color:var(--brand-700);font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+  .gain .lead span{font:500 14px/20px Roboto;color:var(--g-700)}
+  .mac{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+  .mac div{display:flex;flex-direction:column;gap:6px}
+  .mac em{font-style:normal;font:500 11px/14px Roboto;color:var(--g-600);display:flex;align-items:center;gap:4px}
+  .mac em img{width:14px;height:14px}
+  .mac .bar{position:relative;height:6px;border-radius:3px;background:var(--brand-200);overflow:hidden}
+  .mac .bar i{position:absolute;inset:0 auto 0 0;border-radius:3px;background:var(--brand-600)}
+  .mac .bar i + i{background:var(--brand-400,#79CCA8)}
+  .mac small{font:600 12px/16px Roboto;color:var(--g-900);font-variant-numeric:tabular-nums}
+  .crow{display:flex;align-items:center;gap:12px;min-height:56px}
+  .crow + .crow{border-top:1px solid var(--g-100)}
+  .crow .t{flex:1;min-width:0}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>The review sheet, four directions</h1>
+  <p class="lede">Same three foods, same two meals, same jobs: check each food, change a quantity or a time, then log. Each direction answers the critique differently. All keep the sheet rules: title top left, filled X top right, no handle, at most 90% of the screen. Each one also folds Done into the log itself, so the sheet ends the job instead of handing it back to the bar.</p>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+var I = {
+  x: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  minus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>',
+  plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  clock: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  chev: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>'
+};
+var st = function (n) { return '<span class="st"><s>' + I.minus + "</s><b>" + n + "</b><s>" + I.plus + "</s></span>"; };
+var shell = function (head, body, foot) {
+  return '<div class="ph"><div class="behind"><i></i><i></i><i></i></div><div class="scrim"></div><div class="sh">' + head + '<div class="body">' + body + "</div>" + foot + "</div></div>";
+};
+var head = function (t, sub) { return '<div class="hd"><div><h4>' + t + "</h4>" + (sub ? '<div class="sub">' + sub + "</div>" : "") + '</div><span class="x">' + I.x + "</span></div>"; };
+var foot = '<div class="ft"><div class="tot"><b>296 kcal</b><span>3 foods</span></div><div class="go">Log 3 foods</div></div>';
+
+var A = shell(head("Check your foods"),
+  '<div class="grp"><div class="gh"><b>Evening snack</b><span class="tchip">' + I.clock + "5:45 PM</span></div>" +
+    '<div class="row"><div class="t"><div class="nm">Roasted makhana</div><div class="meta">1 bowl · 98 kcal</div></div>' + st(1) + "</div>" +
+    '<div class="row"><div class="t"><div class="nm">Roasted chana</div><div class="meta">1 handful · 180 kcal · <span class="own">' + I.clock + "6:10 PM</span></div></div>" + st(1) + "</div></div>" +
+  '<div class="grp"><div class="gh"><b>Lunch</b><span class="tchip">' + I.clock + "2:25 PM</span></div>" +
+    '<div class="row"><div class="t"><div class="nm">Garden salad</div><div class="meta">1 bowl · 18 kcal</div></div>' + st(1) + "</div></div>", foot);
+
+var B = shell(head("When did you have them?"),
+  '<div class="rail">' +
+    '<div class="stop"><div class="when"><b>2:25 PM</b><span>Lunch</span><u>Change</u></div>' +
+      '<div class="food"><div class="t"><div class="nm">Garden salad</div><div class="meta">1 bowl · 18 kcal</div></div>' + st(1) + "</div></div>" +
+    '<div class="stop"><div class="when"><b>5:45 PM</b><span>Evening snack</span><u>Change</u></div>' +
+      '<div class="food"><div class="t"><div class="nm">Roasted makhana</div><div class="meta">1 bowl · 98 kcal</div></div>' + st(1) + "</div>" +
+      '<div class="food"><div class="t"><div class="nm">Roasted chana</div><div class="meta">1 handful · 180 kcal</div></div>' + st(1) + "</div></div>" +
+  "</div>", foot);
+
+var C = shell(head("Check your foods", "Tap a food to change it"),
+  '<div class="open"><div class="top"><div><div class="nm">Roasted makhana</div><div class="meta">Evening snack · 98 kcal</div></div>' + st(1) + "</div>" +
+    '<div class="lbl">When, suggested 5:45 PM</div><div class="seg"><span>Now</span><span class="on">5:45 PM</span><span>Other time</span></div></div>' +
+  '<div class="qrow"><div class="t"><div class="nm">Roasted chana</div><div class="meta">Evening snack · 5:45 PM · 180 kcal</div></div><span class="q">1 handful</span><span class="chev">' + I.chev + "</span></div>" +
+  '<div class="qrow"><div class="t"><div class="nm">Garden salad</div><div class="meta">Lunch · 2:25 PM · 18 kcal</div></div><span class="q">1 bowl</span><span class="chev">' + I.chev + "</span></div>", foot);
+
+var mac = function (n, ic, a, b, v) { return '<div><em><img src="icons/icon-' + ic + '.svg" alt="">' + n + '</em><span class="bar"><i style="width:' + a + '%"></i><i style="left:' + a + "%;width:" + b + '%"></i></span><small>' + v + "</small></div>"; };
+var D = shell(head("Check your foods"),
+  '<div class="gain"><div class="lead"><b>+8</b><span>to today\'s score, 54 to 62</span></div>' +
+    '<div class="mac">' + mac("Protein", "protein", 45, 14, "+13g") + mac("Carbs", "carbs", 51, 9, "+22g") + mac("Fats", "fats", 51, 13, "+8g") + mac("Fibre", "fibre", 70, 23, "+7g") + "</div></div>" +
+  '<div class="crow"><div class="t"><div class="nm">Roasted chana</div><div class="meta">Evening snack · <span class="own">' + I.clock + "5:45 PM</span></div></div>" + st(1) + "</div>" +
+  '<div class="crow"><div class="t"><div class="nm">Roasted makhana</div><div class="meta">Evening snack · <span class="own">' + I.clock + "5:45 PM</span></div></div>" + st(1) + "</div>" +
+  '<div class="crow"><div class="t"><div class="nm">Garden salad</div><div class="meta">Lunch · <span class="own">' + I.clock + "2:25 PM</span></div></div>" + st(1) + "</div>", foot);
+
+var OPTS = [
+  { t: "A. Ledger, time on the meal", tag: "Recommended", html: A,
+    p: "Foods sit under their meal, and the time belongs to the meal: one indigo chip per group, because foods eaten together share a time. A food moved off it shows its own time in its meta line. One line per food, a compact stepper, and space between groups instead of a rule between every row.",
+    r: "<b>Watch:</b> changing one food's time needs a long press or a tap on the food. Worth it: the default is right almost every time, and today every food pays for a time field it never uses." },
+  { t: "B. The day, as a rail", html: B,
+    p: "Time is the structure, since the time decides the meal. Foods hang off stops on a vertical rail in the order they were eaten, earliest first. Each stop carries its time large, its meal small, and Change. Reads like the day it records.",
+    r: "<b>Watch:</b> the most distinctive, and the busiest for one food. Moving a single food to another time splits a stop, which needs its own design." },
+  { t: "C. Quiet rows, open one", html: C,
+    p: "Every food is one calm line: name, meal, time, kcal, and the helping. Tapping a food opens it in place with the stepper and three time choices: Now, the suggested time, or Other. No clock field on screen until it is wanted.",
+    r: "<b>Watch:</b> one extra tap to change anything. Fine for a sheet whose usual answer is \"all correct, log\", poor if people edit most foods." },
+  { t: "D. What it does to your day", html: D,
+    p: "Opens on the reason to log: the score jump and each macro's gain, drawn as the Eat screen draws them, one green with the macro's own icon. The foods sit under it as a compact list with their time on the meta line.",
+    r: "<b>Watch:</b> the preview has to come from the same rule the score uses, never a second copy of the number. It also says what the success moment says next, so that moment would need a different job." }
+];
+
+document.getElementById("grid").innerHTML = OPTS.map(function (o) {
+  return '<div class="col"><div class="cap"><h2>' + o.t + (o.tag ? "<em>" + o.tag + "</em>" : "") + "</h2><p>" + o.p + '</p><div class="risk">' + o.r + "</div></div>" + o.html + "</div>";
+}).join("");
+</script>
+</body>
+</html>

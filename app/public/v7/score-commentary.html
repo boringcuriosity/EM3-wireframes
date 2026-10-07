@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score commentary</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap">
+<style>
+  :root{ --brand-50:#F3FCF8; --brand-700:#2A805A; --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-500:#667085; --g-600:#475467; --g-900:#101828; --in-50:#EEF4FF; --in-600:#444CE7; --in-700:#3538CD; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1760px;margin:0 auto;padding:44px 24px 80px}
+  h1{font-size:30px;line-height:38px;font-weight:600;margin:0 0 8px}
+  .lede{font-size:15px;line-height:24px;color:var(--g-600);max-width:80ch;margin:0}
+  h3{font-size:13px;letter-spacing:.6px;text-transform:uppercase;color:var(--g-500);margin:32px 0 12px;font-weight:600}
+  .cases{border-collapse:collapse;font-size:13.5px;line-height:20px;max-width:900px;width:100%}
+  .cases th{text-align:left;font-weight:600;color:var(--g-500);font-size:12px;padding:6px 12px;border-bottom:1px solid var(--g-200)}
+  .cases td{padding:8px 12px;border-bottom:1px solid var(--g-100);color:var(--g-600);vertical-align:top}
+  .cases td:first-child{color:var(--g-900);white-space:nowrap}.cases td:nth-child(2){font-variant-numeric:tabular-nums;white-space:nowrap}
+  .cases .lk{color:var(--in-700);font-weight:500}
+  .scen{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+  .scen div{border:1px solid var(--g-200);border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:20px;color:var(--g-600)}
+  .scen b{display:block;color:var(--g-900);font-weight:600;margin-bottom:2px}
+  .scen q{display:block;margin-top:6px;color:var(--g-900);quotes:none}
+  .bar{position:sticky;top:0;z-index:5;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);padding:14px 0;margin-top:24px;border-bottom:1px solid var(--g-100);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .bar span{font-size:13px;color:var(--g-500);margin-right:4px}
+  .bar button{height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--g-200);background:#fff;font:500 13px Roboto,sans-serif;color:var(--g-600);cursor:pointer}
+  .bar button.on{background:var(--g-900);border-color:var(--g-900);color:#fff}
+  .duo{display:flex;gap:40px;align-items:flex-start;margin-top:32px;flex-wrap:wrap}
+  .list{flex:1;min-width:320px;max-width:620px;display:flex;flex-direction:column;gap:8px;position:sticky;top:24px}
+  .list button{display:grid;grid-template-columns:1fr auto;gap:4px 12px;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid var(--g-200);background:#fff;cursor:pointer;font:400 13.5px/20px Roboto,sans-serif;color:var(--g-600);letter-spacing:.2px}
+  .list button:hover{border-color:#C7D7FE}
+  .list button.on{border-color:var(--in-600);background:var(--in-50);box-shadow:0 0 0 1px var(--in-600)}
+  .list .nm{font-weight:600;color:var(--g-900)}
+  .list .ln{grid-column:1 / -1}
+  .list .lk{color:var(--in-700);font-weight:500}
+  .list .kg{background:linear-gradient(90deg,#444CE7,#1A9FBF);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}.list .kc{color:#1A9FBF}
+  .list .dc{justify-self:end;height:20px;padding:0 6px;border-radius:6px;display:inline-flex;align-items:center;font:600 12px/1 Roboto,sans-serif;font-variant-numeric:tabular-nums}
+  .list .dc.down{background:#FFFAEB;color:#B54708;box-shadow:inset 0 0 0 1px #FEDF89}.list .dc.calm{background:#F2F4F7;color:#475467;box-shadow:inset 0 0 0 1px #E4E7EC}.list .dc.up{background:#ECFDF3;color:#067647;box-shadow:inset 0 0 0 1px #ABEFC6}
+  .row{display:flex;flex-wrap:wrap;gap:32px;margin-top:24px}
+  .col{width:390px}
+  .cap h2{font-size:17px;line-height:24px;font-weight:600;margin:0 0 4px}
+  .cap h2 em{font-style:normal;font-size:12px;font-weight:600;color:var(--brand-700);background:var(--brand-50);padding:2px 8px;border-radius:9999px;margin-left:6px;vertical-align:2px}
+  .cap p{font-size:13.5px;line-height:21px;color:var(--g-600);margin:0 0 12px;min-height:84px}
+  .phone{width:390px;height:780px;border-radius:44px;overflow:hidden;background:#fff;border:1px solid var(--g-200);box-shadow:0 24px 48px -18px rgba(16,24,40,.22)}
+  .phone iframe{width:390px;height:780px;border:0;display:block}
+  .meta{font-size:12.5px;color:var(--g-500);margin-top:10px}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>A line under the score</h1>
+  <p class="lede">After each log, one short sentence under the score says how much that log moved it, in a quote card. Pick a case on the right to see it on the screen.</p>
+  <div class="duo"><div id="row"></div><div class="list" id="bar"></div></div>
+</div>
+
+<script>
+/* the moments: which Eat state sits behind, what the score shows, and the words */
+var SC = {
+  start: { label: "Not started", state: "empty", score: 0, delta: "0", tone: "calm", lead: "Log your first meal to see your nutrition sufficiency score grow.", rest: "" },
+  pre: { label: "Pre-breakfast", state: "empty", score: 1, delta: "+1%", tone: "up", lead: "Your score went up by 1%,", rest: "keep logging your meals.", cta: "Learn more by asking KAIRA" },
+  plan: { label: "Breakfast as planned", state: "first", score: 23, delta: "+23%", tone: "up", lead: "Your score went up by 23%,", rest: "keep logging your meals.", cta: "Learn more by asking KAIRA" },
+  some: { label: "Only some breakfast", state: "first", score: 9, delta: "+9%", tone: "up", lead: "Your score went up by 9%,", rest: "keep logging your meals.", cta: "Learn more by asking KAIRA" },
+  double: { label: "Double breakfast", state: "first", score: 5, delta: "+5%", tone: "down", lead: "Your score went up by only 5%,", rest: "you could have gained 18% more.", cta: "Find out why from KAIRA" },
+  triple: { label: "Triple breakfast", state: "empty", score: 0, delta: "0", tone: "down", lead: "Your score did not change,", rest: "you could have gained 23%.", cta: "Find out why from KAIRA" },
+  whole: { label: "Whole day at breakfast", state: "empty", score: 0, delta: "0", tone: "down", lead: "Your score did not change,", rest: "you could have gained 23%.", cta: "Find out why from KAIRA" },
+  pizza: { label: "Big pizza at lunch", state: "first", score: 9, delta: "\u221214%", tone: "down", lead: "Your score dropped by 14%,", rest: "", cta: "find out why from KAIRA" }
+};
+var NOW = "pizza";
+/* the handwritten note and the two beats are built from the same words */
+/* What sits under the line has to agree with it. Day targets are the Eat
+   screen's (95g protein, 238g carbs, 63g fats, 1,900 kcal); a planned breakfast
+   is about a quarter of that, the same share of points it carries in the score.
+   The KAIRA card says what to do next, so it never repeats the line above it. */
+var DAY = { mac: [[0, 95], [0, 238], [0, 63]], kcal: 1900 };
+function day(p, c, f) { return [[p, 95], [c, 238], [f, 63]]; }
+var BELOW = {
+  start:  { mac: day(0, 0, 0), kcal: 0 },
+  pre:    { mac: day(1, 3, 3), kcal: 40,
+            kaira: "<strong>A light start.</strong> Breakfast carries much more of your score, so a plate with dal, eggs or paneer moves it the most." },
+  plan:   { mac: day(22, 55, 14), kcal: 440,
+            kaira: "<strong>Breakfast was right on plan.</strong> Lunch carries the biggest share of your score, so keeping it to plan matters most." },
+  some:   { mac: day(9, 22, 5), kcal: 165,
+            kaira: "<strong>Breakfast was lighter than planned,</strong> mostly short on protein. A little paneer or dal at lunch makes up for it." },
+  double: { mac: day(44, 110, 28), kcal: 880,
+            kaira: "<strong>Breakfast was about twice the plan,</strong> so most of it went past breakfast's targets. Lunch on plan still adds its full share." },
+  triple: { mac: day(66, 165, 42), kcal: 1320,
+            kaira: "<strong>Breakfast was about three times the plan,</strong> well past every target. Lunch on plan still adds its full share." },
+  whole:  { mac: day(95, 238, 63), kcal: 1900,
+            kaira: "<strong>Breakfast held the whole day's food,</strong> far past breakfast's own targets. Meals on plan from here still add their share." },
+  pizza:  { mac: day(103, 253, 65), kcal: 2040,
+            kaira: "<strong>Lunch went well past plan,</strong> mostly fats and carbs from the pizza. Dinner on plan still adds its full share." }
+};
+/* What Ask KAIRA opens with. The question is the user's, already sent; the
+   answer walks the logic in plain steps: what breakfast is worth, what was
+   eaten against the plan, the rule, the result, and what is still open. */
+function tg(t, tone) {
+  var c = tone === "down" ? "background:#FFFAEB;color:#B54708;box-shadow:inset 0 0 0 1px #FEDF89" : tone === "up" ? "background:#ECFDF3;color:#067647;box-shadow:inset 0 0 0 1px #ABEFC6" : "background:#F2F4F7;color:#475467;box-shadow:inset 0 0 0 1px #E4E7EC";
+  return '<span style="display:inline-flex;align-items:center;height:18px;padding:0 5px;border-radius:5px;font:600 11.5px/1 Roboto,sans-serif;font-variant-numeric:tabular-nums;' + c + '">' + t + "</span>";
+}
+function plate(rows, tone) {
+  return '<span style="display:block;margin-top:12px;color:#101828">Resulting macro intake:</span>' +
+    '<span style="display:block;margin-top:6px;border-top:1px solid #E0EAFF">' + rows.map(function (r) {
+    return '<span style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F2F4F7">' +
+      '<span style="flex:1;color:#475467">' + r[0] + '</span>' +
+      '<span style="font-variant-numeric:tabular-nums;color:#667085"><b style="color:#101828">' + r[1] + 'g</b> / ' + r[2] + 'g</span>' + (r[3] === 1 ? tg("\u2713", "up") : tg(+r[3] < 1 ? Math.round(r[3] * 100) + "%" : "\u00D7" + r[3], tone || "down")) + "</span>";
+  }).join("") + "</span>";
+}
+/* what they had, by name, on the gold arrow KAIRA uses in Trend; anything beyond the plan carries a small Extra tag */
+function foods(list) {
+  return '<span style="display:block;margin:8px 0 2px">' + list.map(function (f) {
+    return '<span style="display:flex;align-items:center;gap:8px;padding:3px 0"><img src="assets/trend-bullet.svg" alt="" width="16" height="16" style="flex:none">' +
+      '<span style="flex:1;color:#101828">' + f[0] + "</span>" + (f[1] ? tg("Extra", "down") : "") + "</span>";
+  }).join("") + "</span>";
+}
+var BF = [["2 moong dal cheela"], ["1 bowl curd"]];
+var OK = "No worries, keep logging honestly.";
+SC.double.ask = {
+  q: "Why did my nutrition sufficiency score only go up by +5%? It says I could have gained +18% more. How?",
+  a: [
+    "You had more than the Eat plan suggested by your coach at breakfast, and the extra held your nutrition sufficiency score back.",
+    "Your nutrition sufficiency score went up by only " + tg("+5%", "down") + " because you had:" + foods(BF.concat([["2 aloo parathas with butter", 1], ["1 glass sweet lassi", 1]])) +
+      plate([["Protein", 44, 22, 2], ["Carbs", 110, 55, 2], ["Fats", 28, 14, 2]]),
+    "A little over your Eat plan still earns full points. Past that, the extra takes points back, so you got " + tg("+5%", "down") + " of a possible " + tg("+23%", "up") + ".",
+    OK + " Lunch as per your Eat plan adds its full " + tg("+28%", "up") + "."
+  ]
+};
+/* every meal's share of the day, from the plan's calories */
+var SHARES = [["Pre-breakfast", "1%"], ["Breakfast", "23%"], ["Lunch", "28%"], ["Evening snack", "17%"], ["Dinner", "27%"], ["Bedtime", "4%"]];
+function shares(mark) {
+  return '<span style="display:block;margin-top:8px;border-top:1px solid #E0EAFF">' + SHARES.map(function (r) {
+    var on = mark && mark.indexOf(r[0]) > -1;
+    return '<span style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F2F4F7">' +
+      '<span style="flex:1;color:' + (on ? "#101828;font-weight:600" : "#475467") + '">' + r[0] + "</span>" + tg("up to " + r[1], on ? "up" : "calm") + "</span>";
+  }).join("") + "</span>";
+}
+SC.pre.ask = {
+  q: "My score went up by +1%. How do I grow it from here?",
+  a: [
+    "Nice start! You had a light pre-breakfast, just as the Eat plan suggested by your coach:" + foods([["5 soaked almonds"], ["1 glass methi water"]]),
+    "Pre-breakfast is a small meal, so it adds a small share, up to " + tg("+1%", "up") + ". Breakfast is next and can add up to " + tg("+23%", "up") + ".",
+    "Keep logging honestly, every meal adds up."
+  ]
+};
+SC.plan.ask = {
+  q: "My score went up by +23%. What does that mean?",
+  a: [
+    "Well done! Your breakfast matched the Eat plan suggested by your coach, so it added its full share of " + tg("+23%", "up") + ".",
+    "You had:" + foods(BF) + plate([["Protein", 22, 22, 1], ["Carbs", 55, 55, 1], ["Fats", 14, 14, 1]]),
+    "Lunch is next and carries the biggest share, up to " + tg("+28%", "up") + ". Keep logging honestly."
+  ]
+};
+SC.some.ask = {
+  q: "My score went up by +9%. Could it have been more?",
+  a: [
+    "You had a lighter breakfast than the Eat plan suggested by your coach, so it added less than it could.",
+    "You had:" + foods([["1 moong dal cheela"]]) + "The Eat plan suggested by your coach also had:" + foods([["1 more moong dal cheela"], ["1 bowl curd"]]) +
+      plate([["Protein", 9, 22, "0.4"], ["Carbs", 22, 55, "0.4"], ["Fats", 5, 14, "0.4"]], "calm"),
+    "That is about 40% of your Eat plan, so you got " + tg("+9%", "up") + " of a possible " + tg("+23%", "up") + ".",
+    OK + " Lunch as per your Eat plan adds its full " + tg("+28%", "up") + "."
+  ]
+};
+SC.triple.ask = {
+  q: "Why didn't my nutrition sufficiency score change? It says I could have gained +23%.",
+  a: [
+    "You had a lot more than the Eat plan suggested by your coach at breakfast, so it did not add to your nutrition sufficiency score.",
+    "Your nutrition sufficiency score stayed at " + tg("0%", "calm") + " because you had:" + foods(BF.concat([["3 aloo parathas with butter", 1], ["2 glasses sweet lassi", 1]])) +
+      plate([["Protein", 66, 22, 3], ["Carbs", 165, 55, 3], ["Fats", 42, 14, 3]]),
+    "That much extra used up all of breakfast's points. A breakfast as per your Eat plan would have added " + tg("+23%", "up") + ".",
+    OK + " Your next meal as per your Eat plan first makes up a little for this, then each meal adds its full share."
+  ]
+};
+SC.whole.ask = {
+  q: "Why didn't my nutrition sufficiency score change? It says I could have gained +23%.",
+  a: [
+    "You had nearly a whole day's food at breakfast, so it did not add to your nutrition sufficiency score.",
+    "Your nutrition sufficiency score stayed at " + tg("0%", "calm") + " because you had:" + foods([["4 aloo parathas with butter", 1], ["2 bowls poha", 1], ["1 glass mango shake", 1], ["2 bananas", 1]]) +
+      plate([["Protein", 95, 22, "4.3"], ["Carbs", 238, 55, "4.3"], ["Fats", 63, 14, "4.5"]]),
+    "Each meal is scored against its own Eat plan, so a day's worth of food at breakfast counts only towards breakfast.",
+    OK + " Meals as per your Eat plan from here each add their share."
+  ]
+};
+SC.pizza.ask = {
+  q: "Why did my nutrition sufficiency score drop by 14% after lunch?",
+  a: [
+    "You had more than the Eat plan suggested by your coach at lunch, and that brought your nutrition sufficiency score down.",
+    "Your nutrition sufficiency score dropped by " + tg("\u221214%", "down") + " because you had:" + foods([["1 large paneer pizza", 1], ["Garlic bread with cheese dip", 1], ["1 can cola", 1]]) +
+      "The Eat plan suggested by your coach had:" + foods([["1 bowl dal"], ["2 rotis"], ["1 bowl sabzi"]]) + plate([["Protein", 81, 27, 3], ["Carbs", 198, 66, 3], ["Fats", 51, 17, 3]]),
+    "A meal that far over takes points back, up to half its share. Lunch's share is 28%, so it took " + tg("\u221214%", "down") + ".",
+    OK + " Dinner as per your Eat plan still adds " + tg("+27%", "up") + "."
+  ]
+};
+Object.keys(SC).forEach(function (k) { var c = SC[k]; c.hand = "<b>" + c.lead + "</b>" + (c.rest ? " " + c.rest : ""); c.beats = [c.lead.replace(/,$/, "."), cap(c.rest)]; });
+function cap(t) { return t ? t[0].toUpperCase() + t.slice(1) : t; }
+/* the whole phrase is the tap target, only KAIRA and the chevron carry the indigo */
+var CHEV_IN = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-left:1px"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
+/* the chevron is glued to the last word, so it never wraps onto a line alone */
+function kaira(t) {
+  var i = t.lastIndexOf(" "), head = t.slice(0, i + 1), last = t.slice(i + 1);
+  var hl = function (x) { return x.replace("KAIRA", '<span class="ask kg">KAIRA</span>'); };
+  return hl(head) + '<span style="white-space:nowrap">' + hl(last) + '<span class="ask kc">' + CHEV_IN + "</span></span>";
+}
+function ask(s) { return s.cta ? ' <span class="cta" style="cursor:pointer">' + kaira(s.cta) + "</span>" : ""; }
+
+var KMARK = '<svg class="km" viewBox="0 0 22 24" fill="none"><defs><linearGradient id="kg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#444CE7"/><stop offset="1" stop-color="#22CCEE"/></linearGradient></defs><path d="M11 1.2 20.1 6.6v10.8L11 22.8 1.9 17.4V6.6z" stroke="url(#kg)" stroke-width="2.2" stroke-linejoin="round"/></svg>';
+var CHEV = '<svg class="ch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+
+/* shared base: centred under the gauge, fades up once the score has landed. No bounce. */
+var BASE = "#cm{position:relative;z-index:3;margin:20px auto 0;padding:0 24px;display:flex;justify-content:center;font-family:Roboto,sans-serif;letter-spacing:.2px}" +
+  "#cm .in{opacity:0;transform:translateY(4px);filter:blur(6px);transition:opacity .36s cubic-bezier(.2,.7,.2,1),transform .36s cubic-bezier(.2,.7,.2,1),filter .36s cubic-bezier(.2,.7,.2,1)}" +
+  "#cm.on .in{opacity:1;transform:none;filter:none}" +
+  "@media (prefers-reduced-motion:reduce){#cm .in{transform:none;filter:none}}" +
+  "#cm .ask{color:#3538CD;font-weight:500;white-space:nowrap;cursor:pointer}" +
+  "#cm .kg,.list .kg{background:linear-gradient(90deg,#444CE7,#1A9FBF);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}#cm .kc,.list .kc{color:#1A9FBF}" +
+  "#railSect{margin-top:20px !important}";
+
+var V = [
+  { t: "1. Whisper", tag: "Recommended", h: "36px",
+    p: "One centred line in grey, the key phrase in ink, Ask KAIRA as a plain indigo link at the end. Nothing to look at but the words, so it never competes with the score.",
+    css: "#cm .in{max-width:300px;text-align:center;font-size:13px;line-height:19px;color:#475467}#cm b{color:#101828;font-weight:600}",
+    html: function (s) { return '<div class="in"><b>' + s.lead + "</b> " + s.rest + ask(s) + "</div>"; } },
+
+  { t: "2. Handwritten, Kalam", h: "44px",
+    p: "A note in Kalam, a handwriting face drawn in India (it also covers Hindi), with a short hand-drawn arrow that rises from the note straight up at the score and draws itself in. Feels like your coach scribbled it on the screen.",
+    font: "Kalam:wght@400;700",
+    css: "#cm{padding:0 28px}" +
+      "#cm .in{position:relative;max-width:300px;text-align:center;font:400 16px/20px Kalam,cursive;color:#344054;letter-spacing:0}#cm b{font-weight:700;color:#101828}" +
+      "#cm .ar{position:absolute;left:calc(50% - 8px);top:-24px;width:16px;height:22px;color:#667085;overflow:visible}" +
+      "#cm .ar path{stroke-dasharray:30;stroke-dashoffset:30;transition:stroke-dashoffset .9s .15s cubic-bezier(.2,.7,.2,1)}#cm .ar path+path{transition-delay:.7s;transition-duration:.25s}#cm.on .ar path{stroke-dashoffset:0}" +
+      "#cm .ask{font:500 13px/20px Roboto,sans-serif;letter-spacing:.2px}",
+    html: function (s) { return '<div class="in"><svg class="ar" viewBox="0 0 16 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21C6.5 15 7 8 8 2"/><path d="M4 6L8 1.5L12 5.5"/></svg>' + s.hand + ask(s) + "</div>"; } },
+
+  { t: "3. Quote mark", h: "52px",
+    p: "A soft card with a large filled quote mark at the left end, so the line reads as something KAIRA said about your day. Left aligned, the mark carries the voice and the text stays plain.",
+    css: "#cm .in{position:relative;overflow:hidden;width:100%;max-width:342px;padding:10px 14px 10px 52px;border-radius:14px;background:#F9FAFB;font-size:12.5px;line-height:18px;color:#475467}" +
+      "#cm .q{position:absolute;left:8px;top:50%;width:40px;height:40px;transform:translateY(-50%);color:#E0EAFF}#cm .tx{position:relative;display:block}" +
+      /* waiting: the card is already there at its final height, two soft bars in it, and a band of KAIRA's light sweeping across */
+      "#cm .in{opacity:1 !important;transform:none !important;filter:none !important}" +
+      "#cm .tx{-webkit-mask-image:linear-gradient(90deg,#000 40%,transparent 60%);mask-image:linear-gradient(90deg,#000 40%,transparent 60%);-webkit-mask-size:300% 100%;mask-size:300% 100%;-webkit-mask-position:100% 0;mask-position:100% 0;transition:-webkit-mask-position 1.1s cubic-bezier(.4,0,.2,1),mask-position 1.1s cubic-bezier(.4,0,.2,1)}" +
+      "#cm.on .tx{-webkit-mask-position:0 0;mask-position:0 0}" +
+      "#cm .sk{position:absolute;left:52px;right:16px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;transition:opacity .5s .15s}" +
+      "#cm .sk i{display:block;height:9px;border-radius:5px;background:#E9EEF7}#cm .sk i:last-child{width:58%}" +
+      "#cm.on .sk{opacity:0}" +
+      "#cm .sw{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:inherit}" +
+      "#cm .sw::before{content:'';position:absolute;top:0;bottom:0;left:0;width:55%;transform:translateX(-110%);" +
+      "background:linear-gradient(100deg,rgba(255,255,255,0),rgba(164,188,253,.38) 40%,rgba(165,240,252,.42) 60%,rgba(255,255,255,0));animation:csweep 1.25s cubic-bezier(.4,0,.2,1) infinite}" +
+      "#cm.on .sw::before{animation:csweep 1.1s cubic-bezier(.4,0,.2,1) 1 forwards}" +
+      "@keyframes csweep{to{transform:translateX(200%)}}" +
+      "@media (prefers-reduced-motion:reduce){#cm .sw{display:none}#cm .tx{-webkit-mask-image:none;mask-image:none;opacity:0;transition:opacity .3s}#cm.on .tx{opacity:1}}" +
+      "#cm .tx{position:relative}#cm b{color:#101828;font-weight:600}" +
+      /* the number sits in the same capsule as Change and reason: green up, amber when it went up less or came down */
+      "#cm .dc{display:inline-flex;align-items:center;height:20px;padding:0 6px;margin:0 1px;border-radius:6px;vertical-align:1px;font:600 12px/1 Roboto,sans-serif;font-variant-numeric:tabular-nums}" +
+      "#cm .dc.down{background:#FFFAEB;color:#B54708;box-shadow:inset 0 0 0 1px #FEDF89}#cm .dc.calm{background:#F2F4F7;color:#475467;box-shadow:inset 0 0 0 1px #E4E7EC}#cm .dc.up{background:#ECFDF3;color:#067647;box-shadow:inset 0 0 0 1px #ABEFC6}",
+    html: function (s) { var lead = s.lead.replace(/ by (only )?\d+%?\.?/, ' by $1<span class="dc ' + s.tone + '">' + s.delta + "</span>"); return '<div class="in"><svg class="q" viewBox="0 0 24 24" fill="currentColor"><path d="M4.6 18.7C3.5 17.5 3 16.3 3 14.3c0-3.5 2.5-6.6 6-8.2l.9 1.4C6.6 9.3 5.9 11.6 5.7 13.1c.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Zm10 0c-1.1-1.2-1.6-2.4-1.6-4.4 0-3.5 2.5-6.6 6-8.2l.9 1.4c-3.3 1.8-4 4.1-4.2 5.6.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Z"/></svg><span class="sk"><i></i><i></i></span><span class="sw"></span><span class="tx"><b>' + lead + "</b> " + s.rest.replace(/ gained (\d+%)\.?/, ' gained <span class="dc calm">+$1</span>') + ask(s) + "</span></div>"; } },
+
+  { t: "4. Falling pearl", h: "36px",
+    p: "One of the gauge's own pearls drops out of the score and lands at the start of the line. On a drop it lands grey, the pearl the day just lost; on a rise it stays green. The commentary is made of the score itself.",
+    css: "#cm .in{display:flex;align-items:flex-start;gap:8px;max-width:316px;font-size:13px;line-height:19px;color:#475467}#cm b{color:#101828;font-weight:600}" +
+      "#cm .pl{flex:none;width:10px;height:10px;margin-top:4px;border-radius:50%;transform:translate(var(--px,0),-60px);opacity:0;" +
+      "background:radial-gradient(circle at 35% 30%,#A6F4C5,#12B76A 55%,#027A48);box-shadow:0 1px 2px rgba(16,24,40,.2);" +
+      "transition:transform .9s cubic-bezier(.3,0,.2,1),opacity .3s,background .6s .9s}" +
+      "#cm.on .pl{transform:none;opacity:1}#cm.on .pl.down{background:radial-gradient(circle at 35% 30%,#F2F4F7,#D0D5DD 55%,#98A2B3)}",
+    html: function (s) { return '<div class="in"><span class="pl ' + (s.tone === "down" || s.tone === "calm" && s.score === 0 ? "down" : "") + '"></span><span><b>' + s.lead + "</b> " + s.rest + ask(s) + "</span></div>"; },
+    after: function (cm) { var pl = cm.querySelector(".pl"), r = pl.getBoundingClientRect(); pl.style.setProperty("--px", (195 - r.left - 5) + "px"); } },
+
+  { t: "5. Marker stroke", h: "38px",
+    p: "The key phrase gets a swipe of highlighter, drawn left to right with a slightly rough edge, like someone marked the one thing that matters. Warm yellow on a drop, mint on a good day.",
+    css: "#cm .in{max-width:300px;text-align:center;font-size:13px;line-height:20px;color:#475467}" +
+      "#cm b{position:relative;color:#101828;font-weight:600;padding:0 3px;white-space:nowrap}" +
+      "#cm b::before{content:'';position:absolute;z-index:-1;left:0;right:0;top:3px;bottom:1px;border-radius:3px 6px 4px 7px;background:var(--mk);transform:scaleX(0) skewX(-6deg);transform-origin:left;transition:transform .6s .25s cubic-bezier(.2,.7,.2,1)}" +
+      "#cm.on b::before{transform:scaleX(1) skewX(-6deg)}#cm b{isolation:isolate}",
+    html: function (s) { var mk = s.tone === "down" ? "#FEF0C7" : s.tone === "up" ? "#D1FADF" : "#E0EAFF"; return '<div class="in" style="--mk:' + mk + '"><b>' + s.lead + "</b> " + s.rest + ask(s) + "</div>"; } },
+
+  { t: "6. KAIRA row", h: "44px",
+    p: "KAIRA's mark on the left, the line beside it, a chevron when there is something to ask. A hairline in KAIRA's two-tone gradient makes it hers without a heavy card.",
+    css: "#cm .in{display:flex;align-items:center;gap:10px;width:100%;max-width:342px;min-height:44px;padding:8px 12px;border-radius:12px;border:1px solid transparent;" +
+      "background:linear-gradient(#fff,#fff) padding-box,linear-gradient(100deg,#A4BCFD,#A5F0FC) border-box;font-size:12.5px;line-height:17px;color:#475467}" +
+      "#cm .km{width:16px;height:18px;flex:none}#cm .tx{flex:1}#cm b{color:#101828;font-weight:600}#cm .ch{width:16px;height:16px;flex:none;color:#3538CD}",
+    html: function (s) { return '<div class="in">' + KMARK + '<span class="tx"><b>' + s.lead + "</b> " + s.rest + "</span>" + (s.cta ? CHEV : "") + "</div>"; } },
+
+  { t: "7. Change and reason", h: "40px",
+    p: "The change as a small capsule, the reason beside it. The capsule tells you which way it went before you read a word. Amber for down, grey for a start, green for up.",
+    css: "#cm .in{display:flex;align-items:flex-start;gap:8px;max-width:330px;font-size:12.5px;line-height:18px;color:#475467}" +
+      "#cm .dc{flex:none;height:22px;min-width:30px;padding:0 7px;border-radius:7px;display:grid;place-items:center;font:600 12px/1 Roboto,sans-serif;font-variant-numeric:tabular-nums}" +
+      "#cm .dc.down{background:#FFFAEB;color:#B54708;box-shadow:inset 0 0 0 1px #FEDF89}#cm .dc.calm{background:#F2F4F7;color:#475467;box-shadow:inset 0 0 0 1px #E4E7EC}#cm .dc.up{background:#ECFDF3;color:#067647;box-shadow:inset 0 0 0 1px #ABEFC6}" +
+      "#cm .tx{padding-top:2px}",
+    html: function (s) { return '<div class="in"><span class="dc ' + s.tone + '">' + s.delta + '</span><span class="tx">' + cap(s.rest || s.lead) + ask(s) + "</span></div>"; } },
+
+  { t: "8. Word by word", h: "38px",
+    p: "The line arrives a word at a time, each one fading in from a soft blur, so it feels said in the moment. Played once per moment, then it simply sits there. Ask KAIRA arrives last.",
+    css: "#cm .in{max-width:300px;text-align:center;font-size:13px;line-height:19px;color:#475467}#cm b{color:#101828;font-weight:600}" +
+      "#cm .w{display:inline-block;opacity:0;filter:blur(5px);transform:translateY(3px);transition:opacity .32s,filter .32s,transform .32s cubic-bezier(.2,.7,.2,1);white-space:pre}" +
+      "#cm.on .w{opacity:1;filter:none;transform:none}",
+    html: function (s) {
+      var n = 0, w = function (txt, bold) { return txt.split(" ").map(function (x) { return '<span class="w" style="transition-delay:' + (n++ * 40) + 'ms">' + (bold ? "<b>" + x + "</b>" : x) + " </span>"; }).join(""); };
+      return '<div class="in">' + w(s.lead, true) + w(s.rest) + (s.cta ? '<span class="w ask" style="transition-delay:' + (n * 40 + 200) + 'ms">' + s.cta + " \u203A</span>" : "") + "</div>";
+    } },
+
+  { t: "9. Two beats", h: "38px",
+    p: "First what happened and why, then it slides up and the next step takes its place and stays. Two short lines in the space of one, read in order.",
+    css: "#cm .in{position:relative;width:310px;height:38px;overflow:hidden;text-align:center;font-size:13px;line-height:19px;color:#475467}" +
+      "#cm .bt{position:absolute;left:0;right:0;top:0;transition:transform .6s cubic-bezier(.22,1,.36,1),opacity .5s}#cm .b2{transform:translateY(100%);opacity:0;color:#101828;font-weight:500}" +
+      "#cm.two .b1{transform:translateY(-100%);opacity:0}#cm.two .b2{transform:none;opacity:1}",
+    html: function (s) { return '<div class="in"><div class="bt b1">' + s.beats[0] + '</div><div class="bt b2">' + s.beats[1] + ask(s) + "</div></div>"; },
+    after: function (cm) { if (cm.querySelector(".b2").textContent.trim()) setTimeout(function () { cm.classList.add("two"); }, 2600); } }
+];
+
+/* only the quote card now */
+V = V.filter(function (v) { return / Quote mark$/.test(v.t); });
+
+/* the cases, beside the phone: each one is the switch for it */
+var bar = document.getElementById("bar");
+Object.keys(SC).forEach(function (k) {
+  var c = SC[k], b = document.createElement("button");
+  b.innerHTML = '<span class="nm">' + c.label + '</span><span class="dc ' + c.tone + '">' + c.delta + '</span><span class="ln">' + c.lead + (c.rest ? " " + c.rest : "") + (c.cta ? " " + kaira(c.cta).replace(/class="ask"/g, 'class="lk"') : "") + "</span>";
+  b.dataset.k = k; b.className = k === NOW ? "on" : "";
+  b.onclick = function () { NOW = k; [].forEach.call(bar.querySelectorAll("button"), function (x) { x.classList.toggle("on", x.dataset.k === k); }); load(); };
+  bar.appendChild(b);
+});
+
+document.getElementById("row").innerHTML = V.map(function (v, i) {
+  return '<div class="col"><div class="phone"><iframe id="f' + i + '" title="' + v.t + '"></iframe></div></div>';
+}).join("");
+
+/* the score waits for its host to say go, so this page answers each phone */
+/* Before it mounts, watch for the score's frame and give it this case's number,
+   settled (still=1), so switching cases shows the score as it stands rather
+   than replaying its intro. */
+addEventListener("message", function (e) {
+  if (e.data !== "hero:ready" || !e.source) return;
+  try {
+    var hero = e.source.document.getElementById("hero"), sc = SC[NOW].score;
+    /* the +n / -n the score shows over its number after a log, held still here */
+    var gain = parseInt(SC[NOW].delta.replace("\u2212", "-"), 10) || 0;
+    new e.source.MutationObserver(function (ms, ob) {
+      var hf = hero.querySelector("iframe");
+      if (!hf) return;
+      ob.disconnect();
+      hf.src = hf.src.replace(/score=\d+/, "score=" + sc).replace(/&from=\d+/, "") + "&still=1&info=1" + (gain && NOW !== "start" ? "&gain=" + gain : "");
+    }).observe(hero, { childList: true, subtree: true });
+  } catch (err) {}
+  e.source.postMessage("hero:mount", "*");
+});
+
+function dress(fr, v, s) {
+  var d = fr.contentDocument, stage = d && d.getElementById("stage");
+  if (!stage) return setTimeout(function () { dress(fr, v, s); }, 200);
+  if (v.font) { var lk = d.createElement("link"); lk.rel = "stylesheet"; lk.href = "https://fonts.googleapis.com/css2?family=" + v.font + "&display=swap"; d.head.appendChild(lk); }
+  var st = d.createElement("style"); st.textContent = BASE + v.css; d.head.appendChild(st);
+  /* the macros, calories and KAIRA card for this case */
+  var w = fr.contentWindow, below = BELOW[NOW];
+  if (below && NOW !== "start") {
+    if (w.paintMacros) w.paintMacros(below.mac, null, true);
+    if (w.paintCal) w.paintCal(below.kcal, DAY.kcal);
+  }
+  /* the line above carries the insight, so KAIRA's card is only the way to log */
+  var ks = d.getElementById("kairaSay");
+  if (ks) ks.innerHTML = "Time to log your meal! Snap a photo or just say what you ate.";
+  /* no label, no rule, the two buttons sharing the width under the text */
+  var kst = d.createElement("style");
+  kst.textContent = ".kaira p{text-wrap:wrap !important}.kaira .kact{border-top:0 !important;padding-top:0 !important;margin-top:12px !important;padding-left:39px}" +
+    ".kaira .klab{display:none !important}.kaira .kact .btns{display:flex;gap:8px;justify-content:flex-start}" +
+    ".kaira .kact .kbtn{flex:1 1 0 !important}";
+  d.head.appendChild(kst);
+  var cm = d.createElement("div"); cm.id = "cm"; cm.innerHTML = v.html(s);
+  /* Ask KAIRA opens her chat on the phone, with the question already sent */
+  cm.addEventListener("click", function (e) {
+    var c = SC[NOW];
+    if (e.target.closest(".cta") && c.ask && fr.contentWindow.kairaAsk) fr.contentWindow.kairaAsk(c.ask.q, c.ask.a);
+  });
+  stage.parentNode.insertBefore(cm, stage.nextSibling);
+  /* in the app it waits for the score to finish counting. Here it plays when the
+     phone scrolls into view, since the browser pauses animation in off-screen frames */
+  fr._play = function () {
+    cm.classList.remove("on", "two", "open"); cm.innerHTML = v.html(s); void cm.offsetWidth;
+    setTimeout(function () { cm.classList.add("on"); if (v.after) v.after(cm); }, 1600);
+  };
+  if (fr._seen) fr._play();
+}
+var IO = new IntersectionObserver(function (es) {
+  es.forEach(function (e) { var fr = e.target; fr._seen = e.isIntersecting; if (e.isIntersecting && fr._play) fr._play(); });
+}, { threshold: .3 });
+function load() {
+  var s = SC[NOW];
+  V.forEach(function (v, i) {
+    var fr = document.getElementById("f" + i);
+    fr._play = null; IO.observe(fr);
+    fr.onload = function () { dress(fr, v, s); };
+    fr.src = "r3/eat.html?state=" + s.state + "&plog=card&chrome=0&_=" + NOW;
+  });
+}
+load();
+</script>
+</body>
+</html>

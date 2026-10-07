@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan bar, the X</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --brand-50:#F3FCF8; --brand-600:#299D6B; --brand-700:#2A805A;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3;
+    --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-100:#E0EAFF; --in-900:#2D3282; --err-50:#FEF3F2; --err-600:#D92D20;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1900px;margin:0 auto;padding:40px 24px 80px}
+  h1{font-size:28px;line-height:36px;font-weight:600;margin:0 0 8px}
+  .lede{max-width:820px;font-size:15px;line-height:24px;color:var(--g-600);margin:0 0 32px}
+  .grid{display:flex;flex-wrap:wrap;gap:30px;align-items:flex-start}
+  .col{width:360px;flex:0 0 360px}
+  .cap{margin-bottom:14px;min-height:170px}
+  .cap h2{font-size:16px;line-height:23px;font-weight:600;margin:0 0 6px}
+  .cap h2 em{font-style:normal;font-size:12px;font-weight:600;color:var(--brand-700);background:var(--brand-50);padding:2px 8px;border-radius:9999px;margin-left:6px;vertical-align:2px}
+  .cap p{font-size:13px;line-height:20px;color:var(--g-600);margin:0 0 6px}
+  .cap .risk{font-size:12px;line-height:18px;color:var(--g-500)}
+  .cap .risk b{color:var(--g-700);font-weight:600}
+  .lab{font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--g-400);margin:14px 0 8px}
+
+  /* the screen behind: a faint meal card, so the float reads as floating */
+  .stage{position:relative;height:118px;border-radius:16px;background:var(--g-50);overflow:hidden;padding:20px 12px 0}
+  .stage::before{content:"";position:absolute;left:12px;right:12px;top:-30px;height:70px;border-radius:20px;background:#fff;border:1px solid var(--g-200)}
+
+  /* the bar, as plan-tray.js draws it */
+  .flw{position:relative;border-radius:20px}
+  .rmz{position:absolute;inset:0 0 0 auto;width:160px;display:flex;align-items:center;justify-content:flex-end;padding-right:22px;border-radius:20px;background:var(--err-50);color:var(--err-600);font:600 16px/1 Roboto}
+  .fl{position:relative;display:flex;align-items:center;gap:10px;padding:10px;background:#fff;border-radius:20px;
+    box-shadow:0 1px 3px rgba(16,24,40,.10),0 12px 28px -8px rgba(16,24,40,.28)}
+  .open .fl{transform:translateX(-104px)}
+  .ic{width:52px;height:52px;flex-shrink:0;border-radius:14px;background:var(--in-100);display:grid;place-items:center}
+  .tx{flex:1;min-width:0}
+  .tx b{display:block;font:600 16px/22px Roboto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tx span{display:inline-flex;align-items:center;gap:2px;font:500 13px/18px Roboto;color:var(--brand-600);white-space:nowrap}
+  .tx span i{font-style:normal;color:var(--g-300);margin:0 4px}
+  .tx span .clr{color:var(--g-500)}
+  .go{flex:0 0 auto;height:52px;padding:0 18px;margin-bottom:4px;border-radius:12px;background:var(--brand-600);color:#fff;box-shadow:0 4px 0 var(--brand-700);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font:700 15px/1 Roboto}
+  .go small{font:500 12px/14px Roboto;color:rgba(255,255,255,.85)}
+
+  /* 0: today, a 28px grey disc */
+  .x0{width:28px;height:28px;flex-shrink:0;margin-right:6px;border-radius:50%;background:var(--g-100);color:var(--g-600);display:grid;place-items:center}
+  /* 1: a badge on the corner */
+  .x1{position:absolute;top:-8px;right:-6px;width:22px;height:22px;border-radius:50%;background:#fff;color:var(--g-600);display:grid;place-items:center;
+    box-shadow:0 0 0 1px var(--g-200),0 2px 4px rgba(16,24,40,.12)}
+  /* 2: the bare glyph */
+  .x2{width:20px;flex-shrink:0;margin:0 2px 0 -2px;color:var(--g-400);display:grid;place-items:center}
+  /* 4: swipe hint */
+  .hint{position:absolute;right:10px;top:50%;width:4px;height:24px;margin-top:-12px;border-radius:2px;background:var(--g-200)}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Plan bar: where the X goes</h1>
+  <p class="lede">The floating bar has four things in a row: the icon, the headline, Log, and the X. The X is the least used of the four and today it takes about 40px, so Log sits off centre and the right edge feels heavier than the left. Five ways to give that room back. Each one keeps Remove one step away, so a stray tap never empties the bar.</p>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+var X = function (n) { return '<svg width="' + n + '" height="' + n + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>'; };
+var BOWL = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2D3282" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 11h17"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 7.5c0-1.2 1.1-1.5 1.1-2.7"/><path d="M8.6 7.5c0-1.2 1.1-1.5 1.1-2.7"/></svg>';
+var CHEV = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
+var GO = '<div class="go">Log<small>3 items</small></div>';
+var SUB = '<span>Edit quantity &amp; time' + CHEV + '</span>';
+
+function bar(o, open) {
+  return '<div class="stage"><div class="flw' + (open ? " open" : "") + '">' + (o.remove ? '<div class="rmz">Remove</div>' : "") +
+    '<div class="fl"><div class="ic">' + BOWL + '</div><div class="tx"><b>Ready to log</b>' + (o.sub || SUB) + "</div>" + GO + (o.x || "") + "</div></div></div>";
+}
+
+var OPTS = [
+  { title: "0. Today", x: '<div class="x0">' + X(13) + "</div>", remove: true, open: true,
+    body: "A 28px grey disc at the end, after Log.",
+    risk: "<b>Why it feels heavy:</b> the disc plus its gap is about 40px, Log is pushed in from the edge, and the right side of the bar carries three shapes to the left side's one." },
+  { title: "1. Badge on the corner", tag: "Recommended", x: '<div class="x1">' + X(11) + "</div>", remove: true, open: true,
+    body: "The X leaves the row and sits on the bar's top right corner, the way a dismissable chip or a notification does. Log moves flush to the edge, so the bar has the same 10px inset on both sides and the row is just icon, words, action.",
+    risk: "<b>Watch:</b> the badge is 22px drawn, so it needs a 44px invisible hit area around it. It overlaps the card behind by a few pixels, which is what makes it read as removable." },
+  { title: "2. Bare glyph", x: '<div class="x2">' + X(16) + "</div>", remove: true, open: true,
+    body: "The grey disc goes and the X is a quiet grey glyph, 16px, its tap area overlapping the bar's padding. Smallest change from today.",
+    risk: "<b>Watch:</b> still takes a slot in the row, about 20px, so Log stays a little off the edge. Lighter, but not symmetric." },
+  { title: "3. Clear in the subtext", sub: '<span>Edit quantity &amp; time<i>·</i><span class="clr">Clear</span></span>', remove: false,
+    body: "No X at all. The line under the headline reads Edit quantity &amp; time · Clear, in grey for Clear. The row is icon, words, Log.",
+    risk: "<b>Watch:</b> two taps on one line, close together, and Clear empties the bar on one tap unless it asks first. Loses the Zomato reveal." },
+  { title: "4. Swipe to remove", x: '<div class="hint"></div>', remove: true, open: true,
+    body: "No X. Dragging the bar left reveals Remove, the iOS mail pattern. A small grip on the right edge hints that it moves.",
+    risk: "<b>Watch:</b> nobody finds a swipe they were not shown. Removing is rare, so it can be hidden, but the grip alone will not teach it." }
+];
+
+document.getElementById("grid").innerHTML = OPTS.map(function (o) {
+  return '<div class="col"><div class="cap"><h2>' + o.title + (o.tag ? "<em>" + o.tag + "</em>" : "") + "</h2><p>" + o.body + '</p><div class="risk">' + o.risk + "</div></div>" +
+    '<div class="lab">Closed</div>' + bar(o, false) +
+    (o.open ? '<div class="lab">After ' + (o.x && o.x.indexOf("hint") > -1 ? "the swipe" : "the X") + "</div>" + bar(o, true) : "") + "</div>";
+}).join("");
+</script>
+</body>
+</html>

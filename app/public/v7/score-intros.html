@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score intros</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap">
+<style>
+  /* Six new ways for the nutrition sufficiency score to arrive. Every one ends on
+     the same resting pose as Cloud Drop: a milky glass bubble, 30 orbs round a
+     270° arc filling left to right, and the number (no status tag on this page). Only the
+     way in changes. Canvas 2D, one loop, no libraries. ?score= sets the number. */
+  :root {
+    --gray-200: #E4E7EC; --gray-300: #D0D5DD; --gray-400: #98A2B3; --gray-500: #667085; --gray-600: #475467;
+    --gray-900: #101828; --ink: #1d2939;
+    --indigo-25: #F5F8FF; --indigo-600: #444CE7; --indigo-900: #2D3282;
+    --shadow: 2px 3px 0 0 rgba(152,162,179,.35);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--gray-900); font-family: Roboto, Arial, sans-serif; letter-spacing: .25px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 56px 24px 80px; }
+  h1 { font-weight: 600; font-size: 40px; line-height: 48px; margin: 0 0 12px; }
+  .lede { max-width: 720px; margin: 0 0 24px; font-size: 16px; line-height: 26px; color: var(--gray-600); }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 32px; }
+  .bar .lab { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); margin: 0 4px 0 12px; }
+  .pill { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; font: 600 14px/20px Roboto, sans-serif; border: 1px solid var(--gray-200);
+    background: #fff; color: var(--gray-600); border-radius: 9999px; cursor: pointer; text-decoration: none; }
+  .pill:hover { border-color: var(--gray-300); color: var(--gray-900); }
+  .pill.on { border-color: var(--indigo-600); background: var(--indigo-25); color: var(--indigo-900); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 28px; }
+  /* the rest of the options, folded away under the top three */
+  .more { margin-top: 32px; border-top: 1px solid var(--gray-200); padding-top: 16px; }
+  .more summary { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; cursor: pointer; list-style: none;
+    font: 600 16px/24px Roboto, sans-serif; color: var(--gray-900); }
+  .more summary::-webkit-details-marker { display: none; }
+  .more summary::after { content: ""; width: 8px; height: 8px; margin-left: 4px; border: solid var(--gray-500); border-width: 0 1.5px 1.5px 0;
+    transform: translateY(-2px) rotate(45deg); transition: transform .2s; }
+  .more[open] summary::after { transform: translateY(2px) rotate(-135deg); }
+  .more summary span { font-weight: 400; color: var(--gray-500); }
+  .more .grid { margin-top: 16px; }
+  .card { display: flex; flex-direction: column; border: 1px solid var(--gray-200); border-radius: 16px; box-shadow: var(--shadow); background: #fff; overflow: hidden; }
+  .stage { position: relative; width: 340px; height: 300px; margin: 16px auto 0; cursor: pointer; }
+  .stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .stage iframe { width: 340px; height: 300px; border: 0; display: block; pointer-events: none; }
+  .meta { display: flex; flex-direction: column; gap: 4px; padding: 16px 20px 20px; border-top: 1px solid var(--gray-200); margin-top: 16px; flex: 1; }
+  .meta h2 { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
+  .meta p { margin: 0; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+  .meta .len { font-size: 12px; font-weight: 500; color: var(--gray-400); }
+  .meta .pill { align-self: flex-start; margin-top: 8px; }
+
+  /* the resting text, the same type as Cloud Drop */
+  .score { position: absolute; left: 170px; top: 141px; text-align: center; color: var(--ink); opacity: 0; pointer-events: none; will-change: transform, opacity, filter; }
+  .num { font: 500 36px/1 Roboto, sans-serif; letter-spacing: -.03em; font-variant-numeric: tabular-nums; text-shadow: 0 1px 12px rgba(255,255,255,.6); }
+  .num i { font-style: normal; font-weight: 400; font-size: .4em; vertical-align: .95em; margin-left: 2px; }
+  .word { font: 400 14px/1 Roboto, sans-serif; margin-top: 2px; opacity: .92; }
+  .end { position: absolute; top: 240px; font: 400 14px/1 Roboto, sans-serif; color: #7a7f8c; opacity: 0; transform: translateX(-50%); font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Score intros</h1>
+  <p class="lede">New ways for the score to arrive. Each one lands on the same resting pose as Cloud Drop: the glass bubble, the orbs filling left to right round the arc, and the number. Only the way in changes. Tap any score to play it again.</p>
+  <div class="bar">
+    <button class="pill" id="all">Play all again</button>
+    <span class="lab">Score</span>
+    <a class="pill" href="?score=85">85</a><a class="pill" href="?score=62">62</a><a class="pill" href="?score=38">38</a>
+  </div>
+  <div class="grid" id="grid"></div>
+  <details class="more" id="more"><summary>More options <span id="moreCount"></span></summary><div class="grid" id="moreGrid"></div></details>
+</div>
+
+<script>
+const Q = new URLSearchParams(location.search);
+// sizes are Cloud Drop's embedded hero exactly: in its 300px frame one gauge unit is 655.5px (SIZE 2.185 x 300)
+const KT = 5.2 / 3.8;   // choreography seconds per real second during an intro
+const U = 655.5, TAU = Math.PI * 2, W = 340, H = 300, CX = 170, CY = 141, R = .112 * U, RING = .132 * U, P = 30;
+const A0 = .75 * Math.PI, SW = 1.5 * Math.PI;   // the gauge: 270° from bottom left, clockwise over the top
+const SCORE = Math.max(0, Math.min(100, Math.round(+(Q.get('score') ?? 85)) || 0));
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+document.querySelectorAll('.bar a').forEach(a => a.classList.toggle('on', +a.textContent === SCORE));
+
+const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const seg = (t, a, b) => cl((t - a) / (b - a));
+const eOut = x => 1 - (1 - x) ** 3, eIn = x => x * x * x;
+const eIO = x => x < .5 ? 4 * x * x * x : 1 - (-2 * x + 2) ** 3 / 2;
+const mix = (a, b, k) => a + (b - a) * k;
+const at = (a, r) => [CX + Math.cos(a) * r, CY + Math.sin(a) * r];
+function rng(s) { return () => { s = s + 0x6D2B79F5 | 0; let t = Math.imul(s ^ s >>> 15, 1 | s); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function canvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+
+// the 30 orbs, zigzag like beads: big on the inner line, small just outside, as Cloud Drop seats them
+const SEATS = Array.from({ length: P }, (_, i) => ({ a: A0 + i / (P - 1) * SW, ro: (i % 2 ? .19 : .165) * U, r: (i % 2 ? .0075 : .0115) * U * (1 + .1 * Math.sin(i * 2.3)) }));
+const fillOf = (i, p) => cl((SCORE * p / 100 * P - i) * 2);
+// idle: each orb traces its own small circle and drifts a hair along the arc, as in Cloud Drop
+const wob = (i, t) => { const w = .7 + .2 * (i % 3), ph = i * 2.4, s = SEATS[i], d = .012 * Math.sin(t * .4 + i) * s.ro;
+  return [.9 * Math.cos(t * w + ph) - Math.sin(s.a) * d, .9 * Math.sin(t * w + ph) + Math.cos(s.a) * d]; };
+const breath = (t, T) => 1 + .009 * Math.sin(t * 1.3) * seg(t, T, T + 1);
+
+// real assets: the orb from the score, and GoodFlip's contour frond
+let orbG = null, orbE = null, frG = null, frT = null;
+const ORB = new Image(), FROND = new Image();
+ORB.onload = () => {
+  const s = 128; orbG = canvas(s, s); orbG.getContext('2d').drawImage(ORB, 0, 0, s, s);
+  // the empty orb, as Cloud Drop's orb shader makes it: the artwork greyed by luminance x1.35, drawn at half strength
+  orbE = canvas(s, s); const x = orbE.getContext('2d');
+  x.drawImage(ORB, 0, 0, s, s);
+  const im = x.getImageData(0, 0, s, s), d = im.data;
+  for (let i = 0; i < d.length; i += 4) { const l = Math.min(255, (.299 * d[i] + .587 * d[i + 1] + .114 * d[i + 2]) * 1.35); d[i] = d[i + 1] = d[i + 2] = l; }
+  x.putImageData(im, 0, 0);
+};
+FROND.onload = () => {
+  const tint = col => { const c = canvas(184, 284), x = c.getContext('2d'); x.drawImage(FROND, 0, 0, 184, 284);
+    x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, 184, 284); return c; };
+  frG = tint('#12B76A'); frT = tint('#2DA6A6');
+};
+ORB.src = 'r3/heroes/cloud/orb.svg'; FROND.src = 'icons/calorie-frond.svg';
+
+// an empty orb sits 1.3x larger than a filled one, and a filled one stands on a soft green shadow
+function orb(c, x, y, r, f, a = 1) {
+  if (r < .2 || !orbG) return;
+  r *= 1.3 - .3 * f;
+  if (f < 1) { c.globalAlpha = a * (1 - f) * .5; c.drawImage(orbE, x - r, y - r, r * 2, r * 2); }
+  if (f > 0) {
+    const sy = y + r * .12, g = c.createRadialGradient(x, sy, 0, x, sy, r * 1.15);
+    g.addColorStop(0, 'rgba(5,96,58,.22)'); g.addColorStop(.75, 'rgba(5,96,58,.16)'); g.addColorStop(1, 'rgba(5,96,58,0)');
+    c.globalAlpha = a * f; c.fillStyle = g; c.fillRect(x - r * 1.2, sy - r * 1.2, r * 2.4, r * 2.4);
+    c.drawImage(orbG, x - r, y - r, r * 2, r * 2);
+  }
+  c.globalAlpha = 1;
+}
+
+// the gauge, as Cloud Drop draws it: a haze band behind the orbs (green behind the filled ones, grey behind
+// the empty), then a thin line, solid grey, with the filled part running #32D583 to #039855 along the arc
+const BAND = .172 * U, BANDW = .04 * U, FADE = [.34 * 300, .49 * 300];   // the embed fades everything to white past this
+const fadeAt = d => 1 - (k => k * k * (3 - 2 * k))(cl((d - FADE[0]) / (FADE[1] - FADE[0])));
+function haze(c, a0, a1, rgb, k) {
+  if (a1 <= a0 + .002) return;
+  const r0 = BAND - 2.2 * BANDW, r1 = BAND + 2.2 * BANDW, g = c.createRadialGradient(CX, CY, r0, CX, CY, r1);
+  for (let n = 0; n <= 10; n++) { const d = mix(r0, r1, n / 10); g.addColorStop(n / 10, `rgba(${rgb},${k * Math.exp(-(((d - BAND) / BANDW) ** 2)) * fadeAt(d)})`); }
+  c.fillStyle = g; c.beginPath(); c.arc(CX, CY, r1, a0, a1); c.arc(CX, CY, r0, a1, a0, true); c.closePath(); c.fill();
+}
+function ring(c, inK, p) {
+  if (inK <= 0) return;
+  const end = A0 + SW * inK, fe = A0 + SW * Math.min(inK, SCORE / 100 * p);
+  haze(c, A0, fe, '26,190,110', .6 * .22);
+  haze(c, fe, end, '219,222,230', .35);
+  c.save(); c.lineWidth = 1.5;
+  c.strokeStyle = '#BDBFC9'; c.beginPath(); c.arc(CX, CY, RING, fe, end); c.stroke();
+  if (fe > A0 + .005) {
+    let g = '#1FB46E';
+    if (c.createConicGradient) { g = c.createConicGradient(A0, CX, CY); g.addColorStop(0, '#32D583'); g.addColorStop(.75, '#039151'); g.addColorStop(1, '#039151'); }
+    c.strokeStyle = g; c.beginPath(); c.arc(CX, CY, RING, A0, fe); c.stroke();
+  }
+  c.restore();
+}
+
+// the bubble at rest, ported from Cloud Drop's shader as it settles: cool white glass, no outline, the
+// edge turning grey-mint over its outer fifth, a sharp key light upper left, a soft one lower right,
+// a 6% contact shadow under it, and the mint glow behind everything
+function bubble(c, x, y, r, t, o = {}) {
+  if (r < .5) return;
+  const k = r / R, g = o.glow ?? 1;
+  c.save(); c.globalAlpha = o.alpha ?? 1;
+  // painted behind what is already drawn (orbs, ring), the way the shader lays the glow down first
+  c.globalCompositeOperation = 'destination-over';
+  const sx = x + 3.5 * k, sy = y + 14 * k, sh = c.createRadialGradient(sx, sy, Math.max(0, r - 6 * k), sx, sy, r + 10.5 * k);
+  sh.addColorStop(0, `rgba(16,24,40,${.06 * g})`); sh.addColorStop(1, 'rgba(16,24,40,0)');
+  c.fillStyle = sh; c.fillRect(sx - r - 12, sy - r - 12, r * 2 + 24, r * 2 + 24);
+  if (g > 0) {
+    const gR = FADE[1] * Math.max(k, .3), gr = c.createRadialGradient(x, y, 0, x, y, gR);
+    for (let n = 0; n <= 12; n++) {
+      const d = n / 12 * gR, dd = d / Math.max(k, .3);
+      gr.addColorStop(n / 12, `rgba(224,245,235,${.55 * g * Math.exp(-((Math.max(dd / R - 1, 0) * .6) ** 1.5)) * fadeAt(dd)})`);
+    }
+    c.fillStyle = gr; c.fillRect(x - gR, y - gR, gR * 2, gR * 2);
+  }
+  c.globalCompositeOperation = 'source-over';
+  c.save(); c.beginPath(); c.arc(x, y, r, 0, TAU); c.clip();
+  let gr = c.createRadialGradient(x, y, 0, x, y, r);
+  // a soft grey band just inside the rim, then the rim itself lifts back to near white, as the shader's fresnel brightens it
+  gr.addColorStop(0, '#FFFFFF'); gr.addColorStop(.7, '#FFFFFF'); gr.addColorStop(.86, '#F8FBFA'); gr.addColorStop(.94, '#F3F7F5');
+  gr.addColorStop(1, '#FAFCFB');
+  c.fillStyle = gr; c.fillRect(x - r, y - r, r * 2, r * 2);
+  const ch = o.churn ?? 1;
+  for (let n = 0; n < 3; n++) {   // the settled cloud liquid, still turning, barely there
+    const bx = x + Math.cos(t * .37 + n * 2.1) * r * .38, by = y + Math.sin(t * .29 + n * 1.7) * r * .32 + r * .1, br = r * (.5 + .1 * n);
+    const col = n === 1 ? '200,240,240' : '210,244,226', g2 = c.createRadialGradient(bx, by, 0, bx, by, br);
+    g2.addColorStop(0, `rgba(${col},${.16 * ch})`); g2.addColorStop(1, `rgba(${col},0)`);
+    c.fillStyle = g2; c.fillRect(bx - br, by - br, br * 2, br * 2);
+  }
+  if (o.level > 0) {
+    const surf = y + r - 2 * r * o.level, amp = o.amp ?? .8, la = o.tideA ?? .8;
+    const wave = xx => surf + amp * Math.sin(xx * .11 + t * 2.4) + amp * .6 * Math.sin(xx * .06 - t * 1.5);
+    c.beginPath(); c.moveTo(x - r, y + r);
+    for (let xx = -r; xx <= r; xx += 2) c.lineTo(x + xx, wave(xx));
+    c.lineTo(x + r, y + r); c.closePath();
+    const lg = c.createLinearGradient(0, surf, 0, y + r);
+    lg.addColorStop(0, `rgba(166,244,197,${la})`); lg.addColorStop(1, `rgba(18,183,106,${la})`);
+    c.fillStyle = lg; c.fill();
+    c.beginPath(); for (let xx = -r; xx <= r; xx += 2) c.lineTo(x + xx, wave(xx));
+    c.strokeStyle = `rgba(255,255,255,${la})`; c.lineWidth = 1.2; c.stroke();
+  }
+  if (o.inside) o.inside(c);
+  // fresnel: a whisper of green-leaning sheen near the rim, kept light
+  const fr = c.createRadialGradient(x, y, r * .8, x, y, r);
+  fr.addColorStop(0, 'rgba(200,236,218,0)'); fr.addColorStop(.8, 'rgba(200,236,218,.1)'); fr.addColorStop(1, 'rgba(255,255,255,.35)');
+  c.fillStyle = fr; c.fillRect(x - r, y - r, r * 2, r * 2);
+  const spot = (px, py, rad, a) => { const s = c.createRadialGradient(px, py, 0, px, py, rad);
+    s.addColorStop(0, `rgba(255,255,255,${a})`); s.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = s; c.fillRect(px - rad, py - rad, rad * 2, rad * 2); };
+  spot(x - .367 * r, y - .557 * r, r * .6, .45);   // the broad sheen round the key light
+  spot(x - .367 * r, y - .557 * r, r * .1, 1);     // the key light itself, small and sharp
+  spot(x + .283 * r, y + .429 * r, r * .38, .55);  // the fill light, lower right
+  c.restore();
+  c.restore();
+}
+
+// liquid that merges: blobs summed at half resolution, then cut at a threshold, so
+// two drops grow a neck and pinch apart like real liquid.
+// ponytail: CPU threshold on a 170x140 field, fine for one or two playing at once; a shader if it ever runs in a list
+const GS = .5;
+function goo(st, c, blobs, col) {
+  if (!st.g) { st.g = canvas(W * GS, H * GS); st.gx = st.g.getContext('2d', { willReadFrequently: true }); }
+  const g = st.g, x = st.gx;
+  x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, g.width, g.height);
+  x.globalCompositeOperation = 'lighter';
+  for (const b of blobs) {
+    if (b.r < .4) continue;
+    const bx = b.x * GS, by = b.y * GS, br = b.r * GS * 2, gr = x.createRadialGradient(bx, by, 0, bx, by, br);
+    gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = gr; x.fillRect(bx - br, by - br, br * 2, br * 2);
+  }
+  const im = x.getImageData(0, 0, g.width, g.height), d = im.data;
+  for (let i = 3; i < d.length; i += 4) { const v = (d[i] - 122) * 14; d[i] = v < 0 ? 0 : v > 255 ? 255 : v; }
+  x.putImageData(im, 0, 0);
+  x.globalCompositeOperation = 'source-in'; x.fillStyle = col; x.fillRect(0, 0, g.width, g.height);
+  c.drawImage(g, 0, 0, W, H);
+}
+
+/* ---------------- the intros ----------------
+   draw(c, t, st) paints one frame at t seconds and returns how far the text has come:
+   num (the number fading in), p (how much of the score is filled), tag (when 0 and 100 arrive), and val to override the count. */
+const rM = rng(7), FLOCK = Array.from({ length: 64 }, (_, j) => ({ a: rM() * TAU, r0: 140 + rM() * 140, d: rM() * .6,
+  s: j < 26 ? 3 + rM() * 3.2 : 1.2 + rM() * 1.8, orb: j < 26, turns: .35 + rM() * .35 }));
+const rS = rng(11), SILK_C = ['18,183,106', '50,213,131', '45,166,166', '108,233,166'];
+const SILK = Array.from({ length: 18 }, (_, j) => ({ a0: j / 18 * TAU + rS() * .3, r0: 200 + rS() * 80, turns: 1 + rS() * .6,
+  d: rS() * .9, col: SILK_C[j % 4], w: .7 + rS() * 1.1, len: .3 + rS() * .15 }));
+
+const INTROS = [
+  { name: 'Ripples', len: '3.8s',
+    line: 'Contour lines close in like rings on water and sink into the glass. The last one floats back out and settles as the gauge.',
+    draw(c, t) {
+      const br = R * eIO(seg(t, .35, 2.5)); let swell = 0;
+      for (let j = 0; j < 12; j++) {
+        const tb = j * .15, k = seg(t, tb, tb + 1.75); if (k <= 0 || k >= 1) continue;
+        const e = eIO(k), base = mix(240, Math.max(br, 6), e), amp = (1 - e) * .075, a = seg(k, 0, .22) * (1 - seg(k, .78, 1));
+        swell += Math.exp(-(((k - .97) / .05) ** 2));
+        const col = j % 3 === 2 ? '45,166,166' : '18,183,106';
+        for (const [off, al] of [[0, .55], [6, .16]]) {   // each contour carries a faint twin, so the field reads as a map
+          c.beginPath();
+          for (let s = 0; s <= 96; s++) {
+            const th = s / 96 * TAU, rr = (base + off * (1 - e)) * (1 + amp * (.6 * Math.sin(3 * th + j * 1.7 + t * .9) + .4 * Math.sin(5 * th - j + t * .7)));
+            s ? c.lineTo(CX + Math.cos(th) * rr, CY + Math.sin(th) * rr) : c.moveTo(CX + Math.cos(th) * rr, CY + Math.sin(th) * rr);
+          }
+          c.closePath(); c.strokeStyle = `rgba(${col},${al * a})`; c.lineWidth = 1.1; c.stroke();
+        }
+      }
+      const rk = eOut(seg(t, 2.45, 3.4));
+      if (rk > 0 && rk < 1) { c.beginPath(); c.arc(CX, CY, mix(br, RING, rk), 0, TAU); c.strokeStyle = `rgba(18,183,106,${.6 * (1 - rk)})`; c.lineWidth = 1.4; c.stroke(); }
+      const p = eIO(seg(t, 3.2, 4.5));
+      ring(c, eIO(seg(t, 2.8, 3.6)), p);
+      SEATS.forEach((s, i) => {
+        const ti = 3.0 + i * .03, k = eOut(seg(t, ti, ti + .7)); if (!k) return;
+        const [wx, wy] = wob(i, t), [x, y] = at(s.a, mix(RING, s.ro, k));
+        orb(c, x + wx * k, y + wy * k, s.r * k, fillOf(i, p));
+      });
+      bubble(c, CX, CY, br * (1 + .02 * swell) * breath(t, 4.6), t, { glow: eIO(seg(t, 1.2, 3)) });
+      return { num: eOut(seg(t, 2.7, 3.4)), p, tag: eOut(seg(t, 4.4, 5)) };
+    } },
+
+  { name: 'Murmuration', len: '3.8s',
+    line: 'Orbs and droplets drift in on a slow spiral and pool into one bubble. Then the bubble buds the orbs back out, each pinching off like a drop.',
+    draw(c, t, st) {
+      const br = R * eIO(seg(t, .9, 2.7)), blobs = [{ x: CX, y: CY, r: br }], flock = [], buds = [];
+      for (const q of FLOCK) {
+        const k = seg(t, q.d, q.d + 2.1); if (k >= 1) continue;
+        const e = eIO(k), rr = mix(q.r0, 0, e), an = q.a + q.turns * TAU * e;
+        if (br > 4 && rr < br * .7) continue;
+        const x = CX + Math.cos(an) * rr, y = CY + Math.sin(an) * rr * .92, r = q.s * eOut(seg(t, q.d * .4, q.d * .4 + .6));
+        blobs.push({ x, y, r: q.orb ? r * .9 : r });
+        if (q.orb) flock.push([x, y, r, seg(rr, br * .8, br * 1.6)]);
+      }
+      const p = eIO(seg(t, 2.9, 4.3));
+      SEATS.forEach((s, i) => {
+        const ti = 2.7 + i * .035, k = seg(t, ti, ti + .95); if (!k) return;
+        const e = eOut(k), [ex, ey] = at(s.a, br * .86), [sx, sy] = at(s.a, s.ro), [wx, wy] = wob(i, t);
+        const x = mix(ex, sx + wx * e, e), y = mix(ey, sy + wy * e, e);
+        if (k < .6) blobs.push({ x, y, r: s.r * 1.25 * (1 - seg(k, .3, .6)) });
+        buds.push([x, y, s.r * eOut(seg(k, 0, .45)), fillOf(i, p)]);
+      });
+      goo(st, c, blobs, 'rgba(134,232,179,.95)');
+      ring(c, eIO(seg(t, 2.8, 4)), p);
+      flock.forEach(([x, y, r, a]) => orb(c, x, y, r, 1, a));
+      bubble(c, CX, CY, br * breath(t, 4.4), t, { glow: eIO(seg(t, 1.6, 3.2)) });
+      buds.forEach(([x, y, r, f]) => orb(c, x, y, r, f));
+      return { num: eOut(seg(t, 2.6, 3.3)), p, tag: eOut(seg(t, 4.4, 5)) };
+    } },
+
+  { name: 'Unfurl', len: '3.8s',
+    line: 'Eight contour fronds open into a lotus, turn, and fold down into the bubble. The orbs slide out along the arc like beads on a string.',
+    draw(c, t) {
+      const open = eOut(seg(t, 0, 1.5)), shut = eIO(seg(t, 1.35, 2.8)), sc = 1 - shut * .98, rot = .35 * open + 2.2 * shut, al = 1 - seg(t, 2.3, 2.8);
+      if (frG && al > 0 && open > 0) {
+        c.save(); c.beginPath(); c.arc(CX, CY, Math.max(1, open * 175), 0, TAU); c.clip();
+        c.translate(CX, CY); c.rotate(rot); c.scale(sc, sc);
+        for (let k = 0; k < 8; k++) {
+          c.save(); c.rotate(k * TAU / 8); c.globalAlpha = al * (k % 2 ? .5 : .85);
+          c.drawImage(k % 2 ? frT : frG, -39, -121 - 12, 78, 121); c.restore();
+        }
+        c.restore();
+      }
+      const br = R * eIO(seg(t, 1.6, 3.0)), p = eIO(seg(t, 3.4, 4.6));
+      ring(c, eIO(seg(t, 2.6, 3.7)), p);
+      SEATS.forEach((s, i) => {
+        const ti = 2.55 + (P - 1 - i) * .026, k = eIO(seg(t, ti, ti + 1.05)); if (!k) return;
+        const kk = seg(k, .9, 1), [wx, wy] = wob(i, t), [x, y] = at(mix(A0, s.a, k), mix(br * .9, s.ro, eOut(seg(k, 0, .2))));
+        orb(c, x + wx * kk, y + wy * kk, s.r * eOut(seg(k, 0, .25)), fillOf(i, p));
+      });
+      bubble(c, CX, CY, br * breath(t, 4.6), t, { glow: eIO(seg(t, 2, 3.4)) });
+      return { num: eOut(seg(t, 3.0, 3.6)), p, tag: eOut(seg(t, 4.6, 5.2)) };
+    } },
+
+  { name: 'Comet', len: '3.8s',
+    line: 'One orb drops in and sends out a ripple. A comet runs the arc and leaves the orbs behind it, then the seed opens into the bubble.',
+    draw(c, t) {
+      const drop = eOut(seg(t, 0, .85)), sy = mix(-24, CY, drop), grow = eIO(seg(t, 2.55, 3.6)), br = mix(8, R, grow);
+      for (const d of [.8, 1.0]) {
+        const rk = eOut(seg(t, d, d + .9));
+        if (rk > 0 && rk < 1) { c.beginPath(); c.arc(CX, CY, mix(8, RING + 26, rk), 0, TAU); c.strokeStyle = `rgba(18,183,106,${(1 - rk) * .5})`; c.lineWidth = 1.2; c.stroke(); }
+      }
+      const ck = eIO(seg(t, 1.15, 2.9)), ha = A0 + SW * ck, sA = A0 + SW * SCORE / 100;
+      ring(c, ck, 1);
+      SEATS.forEach((s, i) => {
+        const k = eOut(cl((ha - s.a) / .35)); if (!k) return;
+        const [wx, wy] = wob(i, t), [x, y] = at(s.a, mix(RING, s.ro, k));
+        orb(c, x + wx * k, y + wy * k, s.r * k, fillOf(i, 1));
+      });
+      if (ck > 0 && ck < 1) {
+        c.lineCap = 'round';
+        for (let n = 0; n < 28; n++) {
+          const a1 = ha - n * .022; if (a1 - .022 < A0) break;
+          const f = 1 - n / 28;
+          c.strokeStyle = `rgba(${a1 < sA ? '50,213,131' : '152,162,179'},${f * f * .9})`; c.lineWidth = 3 * f + .4;
+          c.beginPath(); c.arc(CX, CY, RING, a1 - .022, a1); c.stroke();
+        }
+        const [x, y] = at(ha, RING), gr = c.createRadialGradient(x, y, 0, x, y, 14);
+        gr.addColorStop(0, ha < sA ? 'rgba(50,213,131,.6)' : 'rgba(152,162,179,.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+        c.fillStyle = gr; c.fillRect(x - 14, y - 14, 28, 28);
+        c.fillStyle = '#fff'; c.beginPath(); c.arc(x, y, 2, 0, TAU); c.fill();
+      }
+      const sa = 1 - seg(t, 2.55, 2.9);
+      if (sa > 0) {
+        for (let g = 3; g > 0; g--) orb(c, CX, mix(-24, CY, eOut(seg(t - g * .045, 0, .85))), 8 - g, 1, .2 / g * (1 - drop * drop));
+        orb(c, CX, sy, 8, 1, sa);
+      }
+      bubble(c, CX, CY, br * breath(t, 4.9), t, { alpha: 1 - sa, glow: eIO(seg(t, 2.7, 3.6)) });
+      const bk = seg(t, 3.0, 4.0);
+      if (bk > 0 && bk < 1) { c.beginPath(); c.arc(CX, CY, mix(R, R * 1.6, eOut(bk)), 0, TAU); c.strokeStyle = `rgba(50,213,131,${(1 - bk) * .35})`; c.lineWidth = 2; c.stroke(); }
+      return { num: eOut(seg(t, 3.1, 3.7)), p: eIO(seg(t, 3.2, 4.3)), tag: eOut(seg(t, 4.3, 4.9)) };
+    } },
+
+  { name: 'Silk', len: '3.8s',
+    line: 'Threads of green and teal spiral in from every side and wind themselves into a ball of glass. Each orb unspools from it to its seat.',
+    draw(c, t) {
+      const br = R * eIO(seg(t, .7, 2.8)), brT = Math.max(br, 4);
+      c.lineCap = 'round';
+      for (const q of SILK) {
+        const h = (1 + q.len) * eIO(seg(t, q.d, q.d + 2.2)), hd = Math.min(1, h), tl = cl(h - q.len);
+        if (h <= 0 || tl >= 1) continue;
+        let px, py;
+        for (let n = 0; n <= 40; n++) {
+          const s = mix(tl, hd, n / 40), rr = brT + (q.r0 - brT) * (1 - s) ** 1.5, an = q.a0 + q.turns * TAU * s;
+          const x = CX + Math.cos(an) * rr, y = CY + Math.sin(an) * rr;
+          if (n) {
+            const f = n / 40;
+            c.strokeStyle = `rgba(${q.col},${f * .8})`; c.lineWidth = q.w * (.4 + .6 * f);
+            c.beginPath(); c.moveTo(px, py); c.lineTo(x, y); c.stroke();
+          }
+          px = x; py = y;
+        }
+      }
+      const wound = seg(t, 1.2, 1.8) * (1 - seg(t, 3.0, 4.2)), p = eIO(seg(t, 3.0, 4.3));
+      ring(c, eIO(seg(t, 2.8, 3.9)), p);
+      SEATS.forEach((s, i) => {
+        const ti = 2.7 + i * .03, k = eOut(seg(t, ti, ti + .9)); if (!k) return;
+        const [wx, wy] = wob(i, t), [x, y] = at(s.a - .6 * (1 - k), mix(br, s.ro, k));
+        orb(c, x + wx * k, y + wy * k, s.r * eOut(seg(k, 0, .4)), fillOf(i, p));
+      });
+      bubble(c, CX, CY, br * breath(t, 4.9), t, { glow: eIO(seg(t, 1.6, 3.2)),
+        inside(x) {   // the wound threads, still turning behind the glass before they dissolve into the churn
+          if (wound <= 0) return;
+          x.lineCap = 'round';
+          for (let k = 0; k < 5; k++) {
+            const a = t * 1.2 * (k % 2 ? 1 : -1) + k;
+            x.strokeStyle = `rgba(${SILK_C[k % 4]},${.35 * wound})`; x.lineWidth = 1.2;
+            x.beginPath(); x.arc(CX, CY, br * (.3 + .12 * k), a, a + 1.6); x.stroke();
+          }
+        } });
+      return { num: eOut(seg(t, 2.7, 3.3)), p, tag: eOut(seg(t, 4.4, 5)) };
+    } },
+];
+
+/* ---------------- the page ---------------- */
+const grid = document.getElementById('grid'), DPR = Math.min(devicePixelRatio || 1, 2), stages = [];
+
+function card(name, len, line, stageHTML) {
+  const el = document.createElement('article'); el.className = 'card';
+  el.innerHTML = `<div class="stage">${stageHTML}</div><div class="meta"><h2>${name}<span class="len">${len}</span></h2><p>${line}</p><button class="pill">Play again</button></div>`;
+  grid.append(el); return el;
+}
+
+// the score as it is today, for comparison: the real Cloud Drop, embedded the way the Eat screen embeds it
+const NOW = 'r3/heroes/cloud/index.html?build=17&embed=1&y=.03&v=Cloud%20Drop&score=' + SCORE;
+const nowCard = card('Today: Cloud Drop', '3.8s', 'For comparison. Ink blooms from the centre in two spiral arms, pulls back into the bubble, then the orbs bud out and fill.',
+  `<iframe src="${NOW}" title="" tabindex="-1" aria-hidden="true"></iframe>`);
+const replayNow = () => { nowCard.querySelector('iframe').src = NOW + '&r=' + Date.now(); };
+nowCard.querySelector('.pill').onclick = nowCard.querySelector('.stage').onclick = replayNow;
+
+// Cloud Drop itself, with new ways in (r3/heroes/cloud/intros.html?intro=): the same shader and the same rest
+const SHADER = [
+  ['murmuration', 'Murmuration', '3.8s', 'No ink: droplets and orbs spiral in from every side and pool into the glass as liquid, then each orb buds out and pinches off.'],
+  ['feed', 'Feed', '3.8s', 'The orbs come first, round the arc. Each lets a droplet go, left to right, and the bubble is made of them.'],
+  ['ribbons', 'Ribbons', '3.8s', 'Three silk ribbons, twisting as they travel, spiral in and wrap round the bubble. An orb rides each tip and sinks into the glass after it.'],
+  ['topo', 'Topography', '3.8s', 'Contour lines draw themselves out round the bubble like a map, with orbs riding them. Then they close onto the ring and the gauge takes over.'],
+  ['stream', 'Streamlines', '3.8s', 'Streamlines bend round the growing bubble like water round a stone. Orbs ride the current until the flow stills and the bubble draws them in.'],
+  ['aurora', 'Aurora', '3.8s', 'Soft curtains of green, teal and blue light sway across the top, then pour down into the glass, dripping droplets and orbs as they go.'],
+  ['enso', 'Ensō', '3.8s', 'One brush stroke paints a zen circle, pressing in, then drying out. Droplets flick off its tail, and the circle fills with liquid.'],
+];
+const shaderReplays = SHADER.map(([id, name, len, line]) => {
+  const src = 'r3/heroes/cloud/intros.html?build=17&embed=1&y=.03&v=Cloud%20Drop&intro=' + id + '&score=' + SCORE;
+  const el = card('Cloud Drop: ' + name, len, line, `<iframe src="${src}" title="" tabindex="-1" aria-hidden="true"></iframe>`);
+  const replay = () => { el.querySelector('iframe').src = src + '&r=' + Date.now(); };
+  el.querySelector('.pill').onclick = el.querySelector('.stage').onclick = replay;
+  return replay;
+});
+
+INTROS.forEach(v => {
+  const el = card(v.name, v.len, v.line,
+    `<canvas width="${W * DPR}" height="${H * DPR}"></canvas>` +
+    `<div class="score"><div class="num"><span>0</span><i>%</i></div><div class="word">Sufficient</div></div>` +
+    `<span class="end" style="left:${CX - 93}px">0</span><span class="end" style="left:${CX + 93}px">100</span>` );
+  const st = { v, c: el.querySelector('canvas').getContext('2d'), score: el.querySelector('.score'), n: el.querySelector('.num span'),
+    ends: el.querySelectorAll('.end'), t0: performance.now(), vis: false };
+  const replay = () => { st.t0 = performance.now(); };
+  el.querySelector('.pill').onclick = el.querySelector('.stage').onclick = replay;
+  st.replay = replay;
+  stages.push(st);
+  new IntersectionObserver(([e]) => { if (e.isIntersecting && !st.vis) st.t0 = performance.now(); st.vis = e.isIntersecting; }).observe(el);
+});
+// no status tags on this page: hide Cloud Drop's own chip inside each frame, every time one loads (or replays)
+document.querySelectorAll('.stage iframe').forEach(f => f.addEventListener('load', () => {
+  const st = f.contentDocument.createElement('style'); st.textContent = '.tag { display: none !important; }'; f.contentDocument.head.append(st);
+}));
+// keep the top three in view; the rest fold into the accordion, and play from the start when it opens
+const moreGrid = document.getElementById('moreGrid'), rest = [...grid.children].slice(3);
+rest.forEach(el => moreGrid.append(el));
+document.getElementById('moreCount').textContent = rest.length;
+document.getElementById('more').addEventListener('toggle', e => { if (e.target.open) shaderReplays.slice(2).forEach(r => r()); });
+document.getElementById('all').onclick = () => { replayNow(); shaderReplays.forEach(r => r()); stages.forEach(s => s.replay()); };
+
+function frame(now) {
+  for (const st of stages) {
+    if (!st.vis) continue;
+    // each intro is choreographed over about 5.2s and played faster, so it lands within 3.8s;
+    // after that the clock runs at normal speed, so the idle motion stays calm
+    const e = (now - st.t0) / 1000, t = RM ? 30 + e : e < 3.8 ? e * KT : 3.8 * KT + (e - 3.8), c = st.c;
+    c.setTransform(DPR, 0, 0, DPR, 0, 0); c.clearRect(0, 0, W, H);
+    const o = st.v.draw(c, t, st);
+    const k = o.num;
+    st.score.style.opacity = k;
+    st.score.style.filter = k < 1 ? `blur(${(1 - k) * 6}px)` : '';
+    st.score.style.transform = `translate(-50%,-50%) scale(${.94 + .06 * k})`;
+    st.n.textContent = o.val ?? Math.round(SCORE * o.p);
+    st.ends.forEach(e => { e.style.opacity = o.tag; });
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

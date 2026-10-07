@@ -18,7 +18,7 @@ The Eat pillar's day view. It answers three things in order: how the day is goin
 | 2 | Week strip | Seven days as bars, each at that day's sufficiency. Today is solid, and open capped while the day is still running. Tapping a bar loads that day. |
 | 3 | Date chip | The day being viewed, with a step back arrow and a step forward arrow. Opens the date sheet. To its right, the change from yesterday, in grey, and only once today's plan is complete. |
 | 4 | Score | Nutrition sufficiency as the Plate: a ring of dots with a fork and knife either side. The number and the word SUFFICIENT, nothing else. Under it, one verdict pill. |
-| 5 | What shaped your score? | Protein, carbs, fats and fibre, each as its icon filling to its level, four side by side, with "43/95g" and the name. A nutrient that reaches its target fills solid and blooms. |
+| 5 | What shaped your score? | Protein, carbs and fats, each as its icon filling to its level, three side by side, with "43/95g" and the name. A nutrient that reaches its target fills solid and blooms. |
 | 6 | Calorie strip | "942 of 1,900 kcal" and "958 left today", on the indigo wash the design system gives calories. |
 | 7 | Kaira card | One or two sentences of insight, then "Log your meal" with Snap and Voice. |
 | 8 | Your meals | Every meal of the day, always open, in coach plan order. |
@@ -28,13 +28,13 @@ Not on this screen: water logging, a "Now" or "Later" tag, any highlight on the 
 
 ## 3. The score
 
-- One number, nutrition sufficiency out of 100, the mean of four capped ratios: protein, carbs, fats and fibre against the coach's targets.
+- One number, nutrition sufficiency out of 100, the mean of three capped ratios: protein, carbs and fats against the coach's targets.
 - It counts up from zero when the screen opens, over about 1.2 seconds.
 - The plate carries the number and the word SUFFICIENT only. No meal counts, no dates, no verdicts.
 - Green, because the score is the one thing that carries the pillar's colour. Everything else may use the wider palette.
 - A day still being lived gets no verdict and no comparison. Until today's plan is complete the pill reports progress, and the change from yesterday is withheld, because a partial day cannot be judged against a finished one. A finished day, and any past day, gets its verdict: green, amber or red.
 
-How it is worked out: sufficiency = protein, carbs, fats and fibre, each capped at its target, then averaged. The cap is why extra rice cannot fill in for missing protein.
+How it is worked out: sufficiency = protein, carbs and fats, each capped at its target, then averaged. The cap is why extra rice cannot fill in for missing protein.
 
 ## 4. Screen states
 
@@ -104,7 +104,7 @@ The moment after a save. Flag: `r3/logged.html?state=`.
 - It opens on the landing: a full screen green field, one white tick, one line, then it clears itself. One treatment on every state, no conditional colour. Whether you logged is not the same question as how the day is going, and the score answers the second one.
 - The score animates from the old number to the new one. With no score, it counts what went in.
 - One line from Kaira, carrying the insight.
-- The four macros, as the Eat screen draws them: the glyph fills to its own level, four side by side, no bar.
+- The three macros, as the Eat screen draws them: the glyph fills to its own level, three side by side, no bar.
 - What went in, with quantity and calories, as the quietest card on the screen.
 - Never a meal count. A plan can hold three meals or nine, so no "2 of 6" and no fixed progress track. The line points at the next log instead.
 - The primary button changes per state: back to the day, or on to the next meal. It is the only button.
@@ -127,7 +127,7 @@ The moment after a save. Flag: `r3/logged.html?state=`.
 One sheet, opened from the info icon beside the Eat line and from tapping the plate.
 
 - Hero: the number on a tinted band, or a lock when there is nothing to measure against.
-- Card: "Your intake", the four nutrients and calories, values only.
+- Card: "Your intake", the three nutrients and calories, values only.
 - Sections, in order: What is Eat? What is nutrition sufficiency? How is it worked out? How does it help? Where do your targets come from?
 - Bold question headings, dashed rules between them, the formula given as the answer.
 - The coach who set the targets appears as a small card with a Message button, not as a sentence.
@@ -175,7 +175,7 @@ Before a plan exists there is nothing to report, so Kaira's card teaches and end
 
 Flag: `?rail=`. Both are live, and the control panel switches them.
 
-- `rail=icons`, **the default.** The four macros, each glyph filling to its own level. The macros are the score, so this answers the question with the thing the score is made of.
+- `rail=icons`, **the default.** The three macros, each glyph filling to its own level. The macros are the score, so this answers the question with the thing the score is made of.
 - `rail=cards`, a scrolling rail of glass cards naming the biggest gap, what is closest to target, meals logged and calories left. Reads as insight rather than as data.
 
 The heading follows the day: "What shaped your score?" once there is a score with food in it, "Today's targets" when the day only has goals, "What was logged that day" on a past day, "Your day so far" otherwise.
@@ -186,7 +186,7 @@ Four questions came out of reading the live app and the backend. They are answer
 
 | Question | Decision | Cost |
 |---|---|---|
-| Fibre has no target and no column in the backend. Keep it? | **Keep it.** Fibre stays the fourth nutrient, on the screen and in the score. | The backend adds a fibre target and a fibre column. |
+| Fibre has no target and no column in the backend. Keep it? | **No.** The score is protein, carbs and fats, the three the plan already sets. | None. |
 | The API allows a future date. Allow it? | **No.** The chip's forward arrow stops on today and the date sheet greys the rest of the month. | A client rule. The API is unchanged. |
 | A coach's food that was not eaten: delete it? | **No. Abstain.** One word for it, Skip, in one place: the meal card's ⋮ menu. A coach's food is never deleted. | Three states per plan food, not two. |
 | Should ticking a plan food log it straight away? | **No.** Every tick confirms quantity and time, and the time decides the meal. | One extra step, in exchange for a day that is true. |
@@ -195,14 +195,13 @@ Sources: `research/web-flows.md` (the live webview) and `research/backend-rules.
 
 ## 13. What the backend needs
 
-There is no score on the server. `calories_adherence_patient` returns raw grams and calories, and its only percentage is the composition of what was eaten. Sufficiency is ours to define. Four things must be built before this screen is true.
+There is no score on the server. `calories_adherence_patient` returns raw grams and calories, and its only percentage is the composition of what was eaten. Sufficiency is ours to define. Three things must be built before this screen is true.
 
 | # | Needed | Why |
 |---|---|---|
-| 1 | A fibre target on the diet plan, and a fibre column on the food log | Plans carry protein, carbs and fat only, and `patient_food_item_logs` has no fibre column. A quarter of the score cannot be computed without both. |
-| 2 | A sufficiency value per day, cheap to read a month at a time | The date sheet draws a ring per day. Reading every log row for thirty days is not a read the app can make. |
-| 3 | A history row when plan approval overwrites the calorie goal | Approval writes `patient_goal_rel.goal_value` in place, so a past day cannot be read against the goal that applied then. |
-| 4 | A decided day boundary | `todays_date()` returns the server's local date with its IST shift commented out, so "today" is neither the user's day nor explicitly IST. |
+| 1 | A sufficiency value per day, cheap to read a month at a time | The date sheet draws a ring per day. Reading every log row for thirty days is not a read the app can make. |
+| 2 | A history row when plan approval overwrites the calorie goal | Approval writes `patient_goal_rel.goal_value` in place, so a past day cannot be read against the goal that applied then. |
+| 3 | A decided day boundary | `todays_date()` returns the server's local date with its IST shift commented out, so "today" is neither the user's day nor explicitly IST. |
 
 Already there, used as is: photo and voice as first class log sources, Kaira's logging endpoints including the unknown food lookup, meal time windows as plan data, logging onto an earlier day, and 7D to 1Y ranges for the Trend tab.
 

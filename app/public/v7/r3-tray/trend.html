@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trend</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="goodflip-ui.css">
+<link rel="stylesheet" href="../icons/glyph-masks.css">
+<style>
+  /* ============================================================
+     Trend, the Eat pillar's weekly read.
+
+     One route, six states through ?state=, and a week selector
+     that actually moves. Three of the six states are the page
+     before there is a week worth reading.
+
+     UX from the EM3 wireframe's Trend tab and the app's own
+     TrendShell. Visual language from the ring file's weekly
+     vitals pages, which are the only place GoodFlip has drawn a
+     week of anything: a date-range pill with a chevron each side,
+     a headline number with its verdict beside it, a two stat
+     sub-panel, then the chart with its axis and a legend under it.
+
+     The score is --ok-600, never --brand-600. Green stays under
+     10% of the page: the bars, the verdict and the one button.
+     Kaira is indigo, the way she is on the day view.
+     ============================================================ */
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  [hidden] { display: none !important; }
+  body { background: #FFFFFF; font-family: Roboto, "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: .25px; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; letter-spacing: inherit; color: inherit; }
+  svg { display: block; }
+
+  .col { position: relative; max-width: var(--col); margin: 0 auto; min-height: 100vh;
+    padding-bottom: 88px; overflow-x: hidden; background: #FFFFFF; }
+  .gut { padding-left: var(--gut); padding-right: var(--gut); }
+  .sect { margin-top: 40px; }
+  .ico { stroke: currentColor; fill: none; stroke-width: 2;
+    stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  /* The back arrow is its own shape, not a chevron: a stroked line with a
+     flared tail. It is fill based, so it cannot wear .ico, which sets
+     fill:none and stroke:currentColor and would render it invisible. */
+  .backico { width: 22px; height: 22px; fill: currentColor; stroke: none; flex-shrink: 0; }
+
+  /* ------------------------------------------- the pillar line and chip */
+  /* Copied value for value from eat.html, because a tab that sits one tap
+     away should not move its own title. Same 52px row, same 18px icon, same
+     tag, same info button in the same corner. */
+  .eatline { display: flex; align-items: center; gap: 8px; min-height: 52px; }
+  .eatline b { font: 600 18px/24px Roboto, sans-serif; color: var(--g-900); flex-shrink: 0; }
+  .eatline .tag { flex: 1; min-width: 0; font: 400 14px/20px Roboto, sans-serif;
+    color: var(--g-500); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .info { width: 44px; height: 44px; margin-right: -12px; border: 0; background: none;
+    display: grid; place-items: center; color: var(--g-400); cursor: pointer;
+    border-radius: var(--r-pill); flex-shrink: 0; }
+  .info:hover { color: var(--g-500); background: var(--g-100); }
+
+  /* The period chip. The day view picks a day with it, this picks a week.
+     One control, one behaviour, two scales. */
+  /* When there is no week comparison yet, .solo centres the week pill. */
+  .dateline { display: flex; align-items: center; justify-content: space-between;
+    gap: 8px; padding-top: 4px; }
+  .dateline.solo { justify-content: center; }
+  .dateline.solo .pill { margin-left: 0; }
+  .dateline.solo .dayd { display: none; }
+  .pill { display: flex; align-items: center; gap: 2px; margin-left: -12px; }
+  .pill .arr { width: 44px; height: 44px; border: 0; background: none; display: grid;
+    place-items: center; color: var(--g-500); cursor: pointer; border-radius: var(--r-pill); }
+  .pill .arr:hover:not([disabled]) { background: var(--g-50); }
+  .pill .arr[disabled] { color: var(--g-300); cursor: default; }
+  .pill .lbl { display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 8px;
+    border: 0; background: none; cursor: pointer; border-radius: var(--r-pill);
+    font: 600 16px/22px Roboto, sans-serif; color: var(--g-900); white-space: nowrap; }
+  .pill .lbl[disabled] { cursor: default; }
+  .pill .lbl:hover { background: var(--g-50); }
+  .dayd { display: flex; align-items: center; gap: 4px; font-size: 12px; line-height: 18px;
+    color: var(--g-400); white-space: nowrap; }
+
+  /* ------------------------------------------------------- the cards */
+  .card { background: #fff; border: 1px solid var(--g-100); border-radius: var(--r-lg);
+    padding: 16px; box-shadow: var(--shadow-card); }
+  .card + .card { margin-top: 16px; }
+  .card h3 { margin: 0; font: 600 14px/20px Roboto, sans-serif; color: var(--g-900); }
+
+  /* --------------------------------------------------- the score card */
+  .scorehead { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .num { display: flex; align-items: baseline; gap: 4px; margin-top: 10px; }
+  /* The one place this screen spends a big number. --ok-600 is the score
+     green; --brand-600 would be a button pretending to be a measurement. */
+  .num b { font: 700 40px/40px Roboto, sans-serif; color: var(--ok-600); letter-spacing: -1px; }
+  .num i { font: 700 18px/24px Roboto, sans-serif; font-style: normal; color: var(--g-400); }
+  .num .delta { margin-left: 6px; font: 600 12px/18px Roboto, sans-serif; color: var(--g-500);
+    align-self: center; }
+  .num .delta.up { color: var(--ok-600); }
+  .caption { margin: 8px 0 0; font: 400 12px/18px Roboto, sans-serif; color: var(--g-500); }
+
+  /* The two stat sub-panel the vitals pages put under the number. */
+  .facts { display: flex; margin-top: 14px; border-radius: var(--r-md);
+    background: var(--g-50); border: 1px solid var(--g-100); overflow: hidden; }
+  .facts .f { flex: 1; padding: 10px 12px; }
+  .facts .f + .f { border-left: 1px solid var(--g-100); }
+  .facts .k { font: 400 11px/16px Roboto, sans-serif; color: var(--g-500); }
+  .facts .v { margin-top: 2px; font: 600 14px/20px Roboto, sans-serif; color: var(--g-900); }
+
+  /* ---------------------------------------------------------- the chart */
+  /* House mechanics, unchanged from the three pillars that already draw a
+     week: a dashed target line, solid bars for days with data, a dashed
+     outline for days without. A gap is always drawn, never skipped and
+     never printed as a zero. */
+  /* No y axis and no gridlines. The design language is explicit that the
+     number is the headline and the chart is context, and all three pillars
+     already draw this week the same way: each bar carries its own value, so
+     an axis would only repeat what is already printed. */
+  .chart { position: relative; margin-top: 22px; }
+  .plot { position: relative; display: flex; align-items: flex-end; gap: 8px; height: 132px; }
+  .plot .goal { position: absolute; left: 0; right: 0; height: 0;
+    border-top: 1.5px dashed var(--ok-300); }
+  .plot .goal b { position: absolute; right: 0; top: -15px;
+    font: 600 10px/12px Roboto, sans-serif; color: var(--ok-600); background: #fff; padding: 0 3px; }
+  .plot .d { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column;
+    justify-content: flex-end; height: 100%; }
+  .plot .val { font: 700 10px/14px Roboto, sans-serif; color: var(--ok-600); text-align: center; }
+  .plot .bar { width: 100%; border-radius: 4px 4px 0 0; background: var(--ok-500);
+    transition: height .5s var(--ease); }
+  .plot .d.none .bar { background: #fff; border: 1.5px dashed var(--g-300); }
+  .plot .d.best .bar { background: var(--ok-600); }
+  .days { display: flex; gap: 8px; margin-top: 8px; }
+  .days span { flex: 1; text-align: center; font: 400 11px/16px Roboto, sans-serif;
+    color: var(--g-700); }
+  .days span.off { color: var(--g-400); }
+
+  /* The legend the vitals pages put under every chart. */
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px;
+    padding-top: 12px; border-top: 1px solid var(--g-100); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px;
+    font: 400 11px/16px Roboto, sans-serif; color: var(--g-500); }
+  .legend .sw { width: 14px; height: 10px; border-radius: 2px 2px 0 0; background: var(--ok-500); }
+  .legend .sw.none { background: #fff; border: 1.5px dashed var(--g-300); }
+  .legend .sw.goal { height: 0; border-radius: 0; background: none;
+    border-top: 1px dashed var(--ok-300); }
+
+  .note { margin: 12px 0 0; font: 400 11px/17px Roboto, sans-serif; color: var(--g-500); }
+
+  /* ----------------------------------------------------- the Kaira card */
+  /* Lifted from eat.html so she looks the same in both tabs: a notched top
+     left corner, a 2px indigo to teal gradient edge, her mark in the well. */
+  /* Figma draws this as the Kaira insights nudge, 4719:3057: a 3px stroke in
+     her gradient at full strength, indigo #444CE7 on the left to cyan #44E7E7
+     on the right, running across rather than diagonally. Ours was 2px of
+     --in-200 to --teal-200, which are the 200 tints, so the edge was both
+     thinner and washed out and the card read as a faint box rather than as
+     hers. */
+  .kaira { border-radius: 0 var(--r-lg) var(--r-lg) var(--r-lg); padding: 16px;
+    box-shadow: var(--shadow-card); border: 3px solid transparent;
+    background: linear-gradient(#fff, #fff) padding-box,
+      linear-gradient(100deg, var(--in-600), var(--teal-600)) border-box; }
+  .kaira .say { display: flex; gap: 12px; align-items: flex-start; }
+  .kmark { width: 27px; height: 30px; display: grid; place-items: center; flex-shrink: 0; }
+  .kaira .lead { flex: 1; min-width: 0; margin: 0;
+    font: 600 16px/23px Roboto, Arial, sans-serif;
+    color: var(--g-900); text-wrap: pretty; }
+
+  /* Her nested advice inside another card, at the quieter end. */
+  /* ------------------------------------------------------ daily averages */
+  /* Four half gauges on a horizontal rail, so the whole breakdown costs one
+     card height instead of four rows. The arc is deliberately wider than its
+     tile: its ends run off the edges and are clipped, so each gauge reads as
+     a slice of something larger rather than a floating crescent. Butt caps,
+     because a round cap would make the cut look like a mistake.
+
+     One rule for all four, never a hue per macro: colour says how close to
+     target, and the word under the glyph says the same, because the system
+     does not allow a health state to be signalled by colour alone. */
+  .avghead { display: flex; align-items: baseline; justify-content: space-between;
+    margin: 0 0 12px; }
+  .avghead h3 { margin: 0; font: 600 14px/20px Roboto, sans-serif; color: var(--g-900); }
+  .avghead span { font: 400 14px/21px Roboto, sans-serif; color: var(--g-500); }
+
+  /* bleeds to both screen edges so the fourth tile is cut, which is what
+     invites the swipe */
+  .avgrail { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; touch-action:pan-x; overscroll-behavior-x:contain;
+   
+    margin: 0 calc(var(--gut) * -1); padding: 2px var(--gut) 4px;
+    scroll-snap-type: x proximity; }
+  .avgrail::-webkit-scrollbar { display: none; }
+
+  .gtile { position: relative; flex: 0 0 152px; width: 152px; height: 150px;
+    border-radius: var(--r-md); overflow: hidden; scroll-snap-align: start;
+    background: #fff; border: 1px solid var(--g-100); box-shadow: var(--shadow-card); }
+  .gtile .lab { position: absolute; left: 14px; top: 12px;
+    font: 400 14px/21px Roboto, sans-serif; color: var(--g-500); }
+  .gtile .v { position: absolute; left: 14px; top: 33px;
+    font: 600 17px/22px Roboto, sans-serif; color: var(--g-900); }
+  .gtile .v s { text-decoration: none; font-weight: 400; font-size: 14px; color: var(--g-500); }
+  /* wider than the tile on purpose: the ends disappear into the edges */
+  .gtile svg { position: absolute; left: 50%; bottom: -14px; transform: translateX(-50%); }
+  .gtile .mouth { position: absolute; left: 0; right: 0; bottom: 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  /* indigo names the macro; the word beside it carries whether it is on
+     target, so the glyph is never the only thing saying so */
+  .gtile .g { width: 22px; height: 22px; background: var(--in-600);
+    -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+  .gtile .st { font: 400 14px/21px Roboto, sans-serif; color: var(--ok-600); }
+  .gtile.short { background: linear-gradient(180deg, #FFFAEB, #fff 60%); }
+  .gtile.short .st { color: var(--amber-600); }
+
+  /* --------------------------------------------------------- the consult */
+  .consult { display: flex; gap: 12px; align-items: flex-start; }
+  .consult .thumb { width: 56px; height: 56px; border-radius: var(--r-md); flex-shrink: 0;
+    display: grid; place-items: center; color: var(--ok-600);
+    background: linear-gradient(135deg, var(--brand-50), var(--brand-200));
+    border: 1px solid var(--brand-200); }
+  .consult .thumb .ico { width: 26px; height: 26px; }
+  .consult .t { flex: 1; min-width: 0; }
+  .eyebrow { display: flex; align-items: center; gap: 6px;
+    font: 700 11px/16px Roboto, sans-serif; letter-spacing: .5px; text-transform: uppercase;
+    color: var(--gold-800); }
+  .eyebrow .ico { width: 13px; height: 13px; stroke-width: 2; }
+  .consult .h { margin-top: 4px; font: 600 16px/22px Roboto, Arial, sans-serif;
+    color: var(--g-900); }
+  .consult p { margin: 4px 0 0; font: 400 12px/18px Roboto, sans-serif; color: var(--g-600); }
+
+  /* ------------------------------------------------------- forward hook */
+  /* The house recessed card, the same indigo to grey wash goodflip-ui.css
+     already uses for a block that sits back from the page. The wireframe had
+     a near black card with teal body text, which is not a GoodFlip pairing
+     and failed contrast at 4.2:1 besides. Nothing here is a surface the
+     system does not already own. */
+  .hook { border-radius: var(--r-lg); padding: 16px; border: 1px solid var(--in-100);
+    background: linear-gradient(180deg, var(--in-50), var(--g-50) 55%, var(--g-50)); }
+  .hook .k { font: 700 11px/16px Roboto, sans-serif; letter-spacing: .5px;
+    text-transform: uppercase; color: var(--in-700); }
+  .hook p { margin: 6px 0 0; font: 400 13px/20px Roboto, sans-serif; color: var(--g-700);
+    text-wrap: pretty; }
+
+  /* --------------------------------------------------- the locked week */
+  /* The page before there is a week worth reading. Not a blank tab and not
+     a rule being explained: the read is simply locked, the week ahead is
+     drawn so you can see it filling, and the lock breathes once every few
+     seconds so the card feels alive rather than broken. */
+  .locked { position: relative; overflow: hidden; }
+  .lockrow { display: flex; align-items: center; gap: 10px; }
+  .lockrow .lk { position: relative; width: 36px; height: 36px; flex-shrink: 0;
+    border-radius: var(--r-pill); display: grid; place-items: center;
+    background: var(--gold-50); color: var(--gold-800); }
+  /* one slow breath, so it reads as waiting rather than stuck */
+  .lockrow .lk::after { content: ""; position: absolute; inset: 0; border-radius: inherit;
+    border: 2px solid var(--gold-300); animation: breathe 3.2s var(--ease) infinite; }
+  @keyframes breathe {
+    0%, 70%, 100% { transform: scale(1); opacity: 0; }
+    35%           { transform: scale(1.35); opacity: .7; }
+  }
+  @media (prefers-reduced-motion: reduce) { .lockrow .lk::after { animation: none; } }
+  .lockrow .t { flex: 1; min-width: 0; }
+  .lockrow .t b { display: block; font: 600 14px/21px Roboto, sans-serif; color: var(--g-900); }
+  .lockrow .t span { font: 400 12px/18px Roboto, sans-serif; color: var(--g-500); }
+
+  .ahead { display: flex; align-items: flex-end; gap: 8px; height: 72px; margin-top: 20px; }
+  .ahead .d { flex: 1; border-radius: 4px 4px 0 0; background: var(--ok-500); }
+  .ahead .d.off { background: #fff; border: 1.5px dashed var(--g-300); }
+
+  /* how far through the week, as one quiet track */
+  .fill { display: block; height: 6px; margin-top: 16px; border-radius: var(--r-pill);
+    background: var(--g-200); overflow: hidden; }
+  .fill i { display: block; height: 100%; border-radius: var(--r-pill);
+    background: var(--ok-500); transition: width .6s var(--ease); }
+  .filllab { margin: 8px 0 0; font: 400 12px/18px Roboto, sans-serif; color: var(--g-500); }
+  .filllab strong { color: var(--g-900); font-weight: 600; }
+
+  /* ----------------------------------------------------- the week sheet */
+  /* Same shell, same rules and the same numbers as the day view's date
+     sheet: title top left, filled close circle top right, no drag handle,
+     90vh ceiling, header fixed while the body scrolls. Only the rows inside
+     differ, because a week is picked from a list and a day from a grid. */
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0;
+    pointer-events: none; transition: opacity .3s ease-out; z-index: 40; }
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: var(--col);
+    max-height: 90vh; display: flex; flex-direction: column; background: #fff;
+    border-radius: var(--r-lg) var(--r-lg) 0 0; transform: translate(-50%, 100%);
+    transition: transform .3s ease-out; z-index: 41;
+    box-shadow: 0 20px 25px -5px rgba(0,0,0,.1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; padding: 16px var(--gut) 8px; }
+  .shead h4 { margin: 0; font: 600 18px/24px Roboto, sans-serif; }
+  .sheet .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none;
+    padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0;
+    border-radius: var(--r-pill); }
+  .sbody { overflow-y: auto; -webkit-overflow-scrolling: touch;
+    padding: 0 var(--gut) calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .open-week .scrim { opacity: 1; pointer-events: auto; }
+  .open-week .sheet { transform: translate(-50%, 0); }
+
+  /* A week is easier to recognise as a row of dates than as a line of text,
+     so this is the day view's date sheet with the unit changed: the same
+     bound pad, the same month header, the same day rings, and the whole row
+     as one button. Picking a week and picking a day then feel like the same
+     gesture at two scales. See eat.html for the pad and the ring. */
+  .wpad { position: relative; margin: 16px 0 0; padding: 36px 0 8px;
+    border-radius: var(--r-md) var(--r-md) 0 0;
+    background: linear-gradient(180deg, var(--in-25) 0%, #FFFFFF 92%);
+    border-top: 2px solid var(--in-400); border-bottom: 1px solid var(--g-100); }
+  /* Shaheer's binding artwork, tiled along the pad's top edge. Decoration. */
+  .wpad .dsr { position: absolute; left: 12px; right: 12px; top: -2px; height: 34px;
+    pointer-events: none; background: url(assets/binding.svg) no-repeat center top;
+    background-size: 100% 34px; }
+  .dsm { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 0; }
+  .dsm .arr { width: 44px; height: 44px; border: 0; background: none; color: var(--g-500);
+    display: grid; place-items: center; cursor: pointer; border-radius: var(--r-pill); }
+  .dsm .arr:hover:not([disabled]) { background: var(--g-50); }
+  .dsm .arr[disabled] { color: var(--g-300); cursor: default; }
+  .dsm .mo { min-width: 152px; text-align: center; font: 700 16px/22px Roboto, sans-serif; }
+
+  /* Figma has this component drawn: Select Week, design system node
+     7393:9310, and again on the ring file's Vitals pages as the weekly leg
+     of the Heart Rate period switcher. It is a row pill, 358 wide and 48
+     tall on a 60 pitch, radius 12, with an 8px bar flush against its left
+     edge carrying the row's state. Those are this file's own numbers
+     already, so nothing had to be rescaled to take it. */
+  .wcols { display: grid; grid-template-columns: repeat(7, 1fr); width: 100%; }
+  .whead { padding: 0 10px 0 18px; }
+  .whead span { text-align: center; font: 600 12px/16px Roboto, sans-serif;
+    color: var(--g-400); padding: 6px 0 10px; }
+  .wrow { position: relative; min-height: 52px; padding: 8px 10px 8px 18px;
+    align-items: center; border: 0; border-radius: var(--r-md); cursor: pointer;
+    background: var(--g-100); overflow: hidden;
+    transition: background .15s var(--ease); }
+  .wrow + .wrow { margin-top: 12px; }
+  /* the bar, flush left and the full height of the pill */
+  .wrow::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 8px; background: var(--g-400); }
+  .wrow:hover:not([disabled]) { background: var(--g-200); }
+  .wrow[disabled] { background: var(--g-50); cursor: default; }
+  .wrow[disabled]::before { background: var(--g-200); }
+  .wrow.on { background: var(--brand-100); }
+  .wrow.on::before { background: var(--brand-600); }
+  .wrow.on:hover { background: var(--brand-100); }
+
+  .wd { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .wn { font: 400 16px/22px Roboto, sans-serif; color: var(--g-500); }
+  .wrow[disabled] .wn { color: var(--g-300); }
+  .wrow.on .wn { color: var(--brand-600); }
+  /* Figma's row is bare digits. A dot under each one says whether the day was
+     logged, which is the only thing that separates one past week from another
+     and is the same mark the day view's pad hangs under every date. */
+  .wdot { width: 6px; height: 6px; border-radius: var(--r-pill); background: var(--g-300); }
+  .wdot.in { background: var(--brand-600); }
+  .wrow[disabled] .wdot { background: var(--g-200); }
+  .wsl { margin: 0; padding: 20px 0 0; text-align: center;
+    font: 400 12px/18px Roboto, sans-serif; color: var(--g-400); }
+
+  /* ----------------------------------------------------------- the nav */
+  .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%;
+    max-width: var(--col); background: #fff; border-top: 1px solid var(--g-200); display: flex;
+    padding: 8px 6px calc(8px + var(--gf-home-h, 20px) + env(safe-area-inset-bottom, 0px)); z-index: 20; }
+  .nav a, .nav button { flex: 1; border: 0; background: none; display: flex; flex-direction: column;
+    align-items: center; gap: 4px; font-size: 12px; color: var(--g-500); cursor: pointer;
+    min-height: 48px; justify-content: center; text-decoration: none; }
+  .nav .on { color: var(--brand-600); font-weight: 700; }
+  /* mobile has no hover, so without this a nav tap answers with nothing until
+     the next screen paints */
+  .nav a, .nav button { transition: transform .2s ease-out, color .15s ease-out; }
+  .nav a:active, .nav button:active { transform: scale(.92); }
+  .nav .ico { width: 22px; height: 22px; stroke-width: 1.8; }
+  .nav .on .ico { stroke-width: 2.4; }
+</style>
+<link rel="stylesheet" href="assets/trend-week.css?v=3">
+<script src="assets/kaira.js"></script>
+<script src="assets/lottie_light.min.js"></script>
+<script src="assets/trend-week.js?v=5"></script>
+</head>
+<body>
+
+<div class="col">
+
+  <!-- The same two rows the day view opens on, in the same order and at the
+       same sizes: the pillar line, then the chip that picks the period. No
+       back arrow, because the bottom nav already owns going back. -->
+  <div class="eatline gut">
+    <svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px;color:var(--g-900)"><path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg>
+    <b>Trend</b><span class="tag">How your weeks are going.</span>
+    <button class="info" id="infoBtn" aria-label="What is nutrition sufficiency?"><svg class="ico" viewBox="0 0 24 24" style="width:20px;height:20px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button>
+  </div>
+
+  <div class="dateline gut">
+    <div class="pill">
+      <button class="arr" id="prev" aria-label="The week before"><svg class="ico" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <button class="lbl" id="weekBtn" aria-label="Select week" aria-haspopup="dialog"><svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span id="range">Mar 01 - Mar 07</span></button>
+      <button class="arr" id="next" aria-label="The week after"><svg class="ico" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+    </div>
+    <span class="dayd" id="weekDelta"></span>
+  </div>
+
+  <div class="gut" style="margin-top:20px" id="stack"></div>
+
+  <div class="gf-footer" aria-hidden="true"></div>
+
+  <div class="scrim" id="scrim"></div>
+  <div class="sheet" id="weekSheet" role="dialog" aria-modal="true" aria-labelledby="wsTitle">
+    <div class="shead">
+      <h4 id="wsTitle">Select week</h4>
+      <button class="x" id="wsX" aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+    </div>
+    <div class="sbody">
+      <div class="wpad">
+        <div class="dsr" aria-hidden="true"></div>
+        <div class="dsm">
+          <button class="arr" id="wsPrev" aria-label="The month before"><svg class="ico" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <span class="mo" id="wsMonth"></span>
+          <button class="arr" id="wsNext" aria-label="The month after"><svg class="ico" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+        </div>
+        <div class="wcols whead" id="wsHead" aria-hidden="true"></div>
+        <div id="wsList"></div>
+      </div>
+      <p class="wsl">A dot marks a day you logged.</p>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <a href="app.html"><svg class="backico" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path fill="currentColor" d="M9.409 3.444c-.015-.015-.473-.13-1.018-.255s-.997-.208-1.004-.185-.064.401-.125.84c-.124.882-.424 1.911-.744 2.555-1 2.006-2.791 3.334-4.964 3.68L1 10.165v1.773l.502.084c3.286.551 5.429 3.008 5.83 6.686.026.24.057.436.069.436.11 0 1.947-.443 1.982-.478.025-.025.006-.25-.042-.5-.531-2.765-2.053-5.015-4.027-5.955l-.474-.226 9.74-.018 6.16-.01v-1.794l-6.176-.011-9.717-.018.598-.303c1.552-.786 2.78-2.328 3.503-4.397.206-.59.517-1.934.46-1.99"/></svg>Back</a>
+    <a href="eat.html" data-nav="eat"><svg class="ico" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>Eat</a>
+    <a href="#" class="on"><svg class="ico" viewBox="0 0 24 24"><path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg>Trend</a>
+    <a href="learn.html" data-nav="learn"><svg class="ico" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Learn</a>
+  </nav>
+
+</div>
+
+<script>
+/* ============================================================
+   One screen, six states, three weeks of data.
+
+   ?state= ft | fad | kg | wc | w2 | cg
+     ft, fad, kg   the week is still filling in, 0 / 1 / 3 days
+     wc            the first complete week, nothing to compare to
+     w2            a second complete week, so a delta appears
+     cg            protein flat across two weeks, so Kaira hands over
+
+   ?week=0|1|2 picks which week the selector is sitting on.
+   ============================================================ */
+
+var Q = new URLSearchParams(location.search);
+var STATE = ["ft", "fad", "kg", "wc", "w2", "cg"].indexOf(Q.get("state")) >= 0 ? Q.get("state") : "wc";
+var ICON = "../icons/";
+
+/* How many days are in, for the three waiting states */
+var FILLED = { ft: 0, fad: 1, kg: 3 };
+
+/* Three complete weeks. The score is never stored: it is the mean of the
+   days that were logged, computed below, so the number and the bars can
+   never drift apart the way they did in the wireframe. */
+var WEEKS = [
+  {
+    range: "1 - 7 Mar",
+    bars: [62, 74, 55, 68, 81, null, null],
+    macros: [
+      { k: "protein", lab: "Protein", had: 66, goal: 94, unit: "g" },
+      { k: "carbs",   lab: "Carbs",   had: 214, goal: 236, unit: "g" },
+      { k: "fats",    lab: "Fats",    had: 55, goal: 62, unit: "g" },
+      { k: "fibre",   lab: "Fibre",   had: 26, goal: 30, unit: "g" }
+    ]
+  },
+  {
+    range: "8 - 14 Mar",
+    bars: [70, 82, 60, 75, 83, null, null],
+    macros: [
+      { k: "protein", lab: "Protein", had: 71, goal: 94, unit: "g" },
+      { k: "carbs",   lab: "Carbs",   had: 219, goal: 236, unit: "g" },
+      { k: "fats",    lab: "Fats",    had: 57, goal: 62, unit: "g" },
+      { k: "fibre",   lab: "Fibre",   had: 27, goal: 30, unit: "g" }
+    ]
+  },
+  {
+    range: "15 - 21 Mar",
+    bars: [72, 78, 70, 76, 74, 80, null],
+    macros: [
+      { k: "protein", lab: "Protein", had: 72, goal: 94, unit: "g" },
+      { k: "carbs",   lab: "Carbs",   had: 224, goal: 236, unit: "g" },
+      { k: "fats",    lab: "Fats",    had: 58, goal: 62, unit: "g" },
+      { k: "fibre",   lab: "Fibre",   had: 28, goal: 30, unit: "g" }
+    ]
+  }
+];
+
+var DAYS = ["M", "T", "W", "T", "F", "S", "S"];
+var LONG = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+/* The weekly target. 80 is also where the verdict turns into a strong week,
+   so the dashed line and the pill are saying the same thing. */
+var GOAL = 80;
+
+/* Which week each state is looking at, and how far back it can go. */
+var LAST = { wc: 0, w2: 1, cg: 2 };
+
+function scoreOf(w) {
+  var v = w.bars.filter(function (b) { return b !== null; });
+  return Math.round(v.reduce(function (a, b) { return a + b; }, 0) / v.length);
+}
+function loggedOf(w) { return w.bars.filter(function (b) { return b !== null; }).length; }
+function bestOf(w) {
+  var top = -1, at = 0;
+  w.bars.forEach(function (b, i) { if (b !== null && b > top) { top = b; at = i; } });
+  return LONG[at];
+}
+/* The gap is the single lowest macro against its own target. One gap, so
+   only one thing on the page is allowed to wear the marker. */
+function gapOf(w) {
+  return w.macros.slice().sort(function (a, b) {
+    return (a.had / a.goal) - (b.had / b.goal);
+  })[0];
+}
+
+/* The week's insight, written from the week itself: a one line lead, the
+   week in a sentence, what went well, then the one gap and how to close it. */
+var SUGGEST = {
+  protein: "Add eggs, paneer or curd at breakfast on 3 mornings",
+  fibre: "Add a bowl of salad or sprouts at lunch",
+  fats: "Add a spoon of nuts or seeds to one meal a day",
+  carbs: "Add a roti or a small bowl of rice at dinner"
+};
+function insightOf(wi) {
+  var w = WEEKS[wi], s = scoreOf(w), n = loggedOf(w), prev = wi > 0 ? scoreOf(WEEKS[wi - 1]) : null, gap = gapOf(w);
+  var most = WEEKS.slice(0, wi).every(function (x) { return loggedOf(x) < n; });   /* only when it beats every week before */
+  var close = w.macros.filter(function (x) { return x !== gap && x.had / x.goal >= .9; }).map(function (x) { return x.lab.toLowerCase(); });
+  var top = Math.max.apply(null, w.bars.filter(function (b) { return b !== null; }));
+  var well = [most && wi > 0 ? "Your most consistent week yet, " + n + " days logged" : n + " days logged this week"];
+  if (close.length) {
+    var list = close.length === 1 ? close[0] : close.slice(0, -1).join(", ") + " and " + close[close.length - 1];
+    well.push(list.charAt(0).toUpperCase() + list.slice(1) + " landed close to target");
+  }
+  well.push("<b>" + bestOf(w) + "</b> was your best day, at " + top + "%");
+  var flat = STATE === "cg" && wi === 2;
+  return {
+    head: (s >= 70 ? "A solid week" : s >= 50 ? "A steady week" : "A week to build on") + ", held back by one thing: " + gap.lab.toLowerCase() + ".",
+    p1: "You logged <b>" + n + " of 7 days</b> and landed at <b>" + s + "%</b>" +
+      (prev === null ? "." : s > prev ? ", up " + (s - prev) + " on last week." : s < prev ? ", down " + (prev - s) + " on last week." : ", level with last week."),
+    well: well,
+    gap: gap.lab + " sat at about <b>" + gap.had + gap.unit + " a day</b>, " + (gap.goal - gap.had) + gap.unit + " under your " + gap.goal + gap.unit + "." +
+      (flat ? " It has stayed near the same mark for three weeks, so it is the shape of the day, not effort." : ""),
+    steps: [SUGGEST[gap.k], flat ? "Worth talking through with your coach this week" : s < 80 ? "That alone takes your week past 80" : "Keep the rest just as it is"]
+  };
+}
+
+/* ------------------------------------------------------------ the shell */
+
+var week = LAST[STATE] === undefined ? 0 : LAST[STATE];
+var qw = parseInt(Q.get("week"), 10);
+if (!isNaN(qw) && qw >= 0 && qw <= LAST[STATE]) week = qw;
+
+/* The insight opens once, with the gift, for the newest week; earlier weeks
+   were opened before and come back folded. ?insight=open shows it open,
+   ?insight=ready parks the gift. */
+var OPENED = {};
+try { OPENED = JSON.parse(sessionStorage.getItem("gfTrendOpen") || "{}"); } catch (e) {}
+var FILLING_WEEK = [62, 74, 55, 68, 81, 70, 76];
+
+function paint() {
+  var waiting = FILLED[STATE] !== undefined, m;
+  if (waiting) {
+    var n = FILLED[STATE];
+    m = { mode: "filling", filled: n, kaira: "locked",
+      days: FILLING_WEEK.map(function (b, i) { return i < n ? b : null; }),
+      macros: WEEKS[0].macros.map(function (x) { return { k: x.k, lab: x.lab, goal: x.goal, unit: x.unit, had: n ? x.had : null }; }) };
+  } else {
+    var w = WEEKS[week], s = scoreOf(w), key = STATE + ":" + week, force = Q.get("insight");
+    var newest = week === LAST[STATE];
+    m = { mode: "week", days: w.bars, score: s, tag: s >= 70 ? "solid" : s >= 50 ? "grow" : "attention", macros: w.macros,
+      insight: insightOf(week),
+      kaira: force === "open" ? "revealed" : force === "ready" ? "ready" : newest && !OPENED[key] ? "ready" : "revealed",
+      folded: force !== "open" && !newest,
+      onUnlock: function () { OPENED[key] = 1; try { sessionStorage.setItem("gfTrendOpen", JSON.stringify(OPENED)); } catch (e) {} } };
+  }
+  GFTrendWeek.render(document.getElementById("stack"), m);
+  document.getElementById("range").textContent = waiting ? "This week" : WEEKS[week].range;
+  document.getElementById("prev").disabled = waiting || week === 0;
+  document.getElementById("next").disabled = waiting || week === LAST[STATE];
+  /* Nothing to pick from while the first week is still filling in. */
+  document.getElementById("weekBtn").disabled = waiting;
+  /* the week pill always centres: KAIRA's insight carries the comparison */
+  var d = document.getElementById("weekDelta");
+  d.textContent = "";
+  d.closest(".dateline").classList.add("solo");
+}
+
+document.getElementById("prev").onclick = function () { if (week > 0) { week--; paint(); } };
+document.getElementById("next").onclick = function () { if (week < LAST[STATE]) { week++; paint(); } };
+
+/* ------------------------------------------------------- the week sheet */
+/* The chip opens it, a row picks a week, the scrim and the circle close it.
+   Exactly the day view's contract, one scale up. */
+var col = document.querySelector(".col");
+/* One month, because one month is all the prototype has. 1 March is a
+   Monday here, so every week is exactly one row and the grid needs no
+   leading blanks. Both arrows sit disabled at the edge of the data. */
+var MONTH = { name: "March", days: 31 };
+var ROWS = Math.ceil(MONTH.days / 7);
+
+function drawSheet() {
+  document.getElementById("wsMonth").textContent = MONTH.name;
+  document.getElementById("wsPrev").disabled = true;
+  document.getElementById("wsNext").disabled = true;
+  document.getElementById("wsHead").innerHTML =
+    DAYS.map(function (d) { return "<span>" + d + "</span>"; }).join("") + "<span></span>";
+
+  var last = LAST[STATE], h = "";
+  for (var i = 0; i < ROWS; i++) {
+    /* a week the user cannot reach yet still shows its dates: the month is
+       the month, and hiding the rest of it would make the pad look broken */
+    var w = i <= last ? WEEKS[i] : null, cells = "";
+    for (var c = 0; c < 7; c++) {
+      var d = i * 7 + c + 1;
+      if (d > MONTH.days) { cells += '<span class="wd"></span>'; continue; }
+      var logged = !!w && w.bars[c] !== null;
+      cells += '<span class="wd"><span class="wn">' + d + "</span>" +
+        '<span class="wdot' + (logged ? " in" : "") + '"></span></span>';
+    }
+    h += '<button class="wcols wrow' + (i === week ? " on" : "") + '"' +
+      (w ? ' data-w="' + i + '"' : " disabled") +
+      ' aria-label="' + (w
+        ? w.range + ", scored " + scoreOf(w)
+        : "the week of " + (i * 7 + 1) + " " + MONTH.name + ", no read yet") + '"' +
+      (i === week ? ' aria-current="true"' : "") + ">" + cells + "</button>";
+  }
+  document.getElementById("wsList").innerHTML = h;
+}
+function openSheet() { drawSheet(); col.classList.add("open-week"); }
+function closeSheet() { col.classList.remove("open-week"); }
+document.getElementById("weekBtn").onclick = openSheet;
+/* ?sheet=1 parks the sheet open, the same flag the day view's date sheet
+   answers to, so a still can be taken of it */
+if (Q.get("sheet") === "1") openSheet();
+document.getElementById("wsX").onclick = closeSheet;
+document.getElementById("scrim").onclick = closeSheet;
+document.getElementById("wsList").addEventListener("click", function (e) {
+  var b = e.target.closest(".wrow");
+  if (!b) return;
+  week = parseInt(b.dataset.w, 10);
+  closeSheet();
+  paint();
+});
+
+paint();
+
+/* The other tabs are their own screens, reached the way the logging
+   screen is: a message when framed, a navigation when not. */
+document.addEventListener("click", function (e) {
+  var nv = e.target.closest && e.target.closest("[data-nav]");
+  if (!nv) return;
+  var to = nv.getAttribute("data-nav");
+  e.preventDefault();
+  if (window.parent !== window) return parent.postMessage({ nav: to }, "*");
+  location.href = to + ".html";
+});
+</script>
+<script src="chrome.js"></script>
+</body>
+</html>

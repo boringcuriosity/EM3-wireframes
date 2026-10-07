@@ -1,0 +1,3236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Eat</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="../icons/glyph-masks.css">
+<link rel="stylesheet" href="goodflip-ui.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  /* several blocks here are flex or grid, so hidden has to beat their display */
+  [hidden] { display: none !important; }
+  body { background: #FFFFFF; font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: 0.25px; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; letter-spacing: inherit; color: inherit; }
+  .col { position: relative; max-width: 390px; margin: 0 auto; min-height: 100vh; padding-bottom: 88px; overflow-x: hidden;
+    background: #FFFFFF; }
+  .gut { padding-left: var(--gut); padding-right: var(--gut); }
+  .ico { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  /* The back arrow is its own shape, not a chevron: a stroked line with a
+     flared tail. It is fill based, so it cannot wear .ico, which sets
+     fill:none and stroke:currentColor and would render it invisible. */
+  .backico { width: 22px; height: 22px; fill: currentColor; stroke: none; flex-shrink: 0; }
+  /* one section rhythm: heading, 16 to its content, 40 to the next section */
+  .sect { margin-top: 40px; }
+  /* The first section under a plate with no verdict pill. The plate's canvas
+     runs 32px past its own outermost dots, so clearing that dead band takes a
+     negative margin rather than a small positive one.
+     It has to be positioned as well as pulled up: the stage above is
+     position:relative, so without a layer of its own a plain block sliding
+     under it is painted over and loses its top edge. */
+  .sect.ksect { margin-top: 24px; }   /* KAIRA reads as part of the score above her, not a new section */
+  .sect.tight { position: relative; z-index: 1; margin-top: -10px; }
+
+  /* ---------------------------------------------------------------- header */
+  .eatline { display: flex; align-items: center; gap: 8px; height: 52px; font-size: 14px; color: var(--g-500); }
+  .eatline b { color: var(--g-900); font-weight: 600; font-size: 16px; }
+  /* the tagline takes its own width, so the info mark sits right after it; the Earn chip holds the right end */
+  .eatline .info { position: relative; width: 28px; height: 28px; margin: 0 0 0 -4px; flex-shrink: 0; }
+  .eatline .info::after { content: ""; position: absolute; inset: -8px; }   /* still a 44px target */
+  .eatline .tag { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .info { width: 44px; height: 44px; margin-right: -12px; border: 0; background: none; display: grid; place-items: center;
+    color: var(--g-400); cursor: pointer; border-radius: var(--r-pill); flex-shrink: 0; }
+  .info:hover { color: var(--g-500); background: var(--g-100); }
+
+  /* the day chip. The delta is grey on purpose, never green.
+     When there is no comparison yet, .solo centres the pill so the row
+     does not read as empty on the right. */
+  .dateline { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 4px; }
+  .dateline.solo { justify-content: center; }
+  .dateline.solo .pill { margin-left: 0; }
+  .dateline.solo .dayd { display: none; }
+  .pill { display: flex; align-items: center; gap: 2px; margin-left: -12px; }
+  .pill .arr { width: 44px; height: 44px; border: 0; background: none; display: grid; place-items: center; color: var(--g-500); cursor: pointer; border-radius: var(--r-pill); }
+  .pill .arr:hover:not([disabled]) { background: var(--g-50); }
+  /* the arrows hug "Today": a 24px box each (just the chevron), the label's own padding trimmed,
+     and a 44px target kept by an invisible ring that reaches past the box */
+  .pill { margin-left: -2px; gap: 0; }
+  .pill .arr { position: relative; width: 24px; }
+  .pill .arr::after { content: ""; position: absolute; inset: 0 -10px; }
+  .dateline .pill .lbl { padding: 0 5px; }   /* .dateline so it wins over the base .pill .lbl rule below */
+  /* "Today" ends in text, whose side bearing plus the chevron's own inset left a wider gap than the calendar icon does on the left */
+  #nextDay { margin-left: -6px; }   /* measured: keeps both sides equal, about 13px */
+  .pill .arr[disabled] { color: var(--g-300); cursor: default; }
+  .pill .lbl { display: flex; align-items: center; gap: 6px; height: 44px; padding: 0 8px; border: 0; background: none; cursor: pointer;
+    border-radius: var(--r-sm); font-size: 14px; font-weight: 600; color: var(--g-900); }
+  .pill .lbl:hover { background: var(--g-50); }
+  .dayd { display: flex; align-items: center; gap: 4px; font-size: 12px; line-height: 18px; color: var(--g-400); white-space: nowrap; }
+
+  /* ------------------------------------------------------------ the stage */
+  /* The plate keeps its own face. Behind it sits one wash in the verdict's
+     colour, fading into white with no seam, so a poor day does not read green. */
+  .stage { position: relative; overflow: hidden; padding: 8px 0 4px; --tint: rgba(152,162,179,.12); }
+  .stage .tint { position: absolute; left: 50%; top: -30px; width: 520px; height: 330px; transform: translateX(-50%); pointer-events: none;
+    background: radial-gradient(closest-side, var(--tint), rgba(255,255,255,0) 70%); transition: background .5s var(--ease); }
+  .stage::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 72px; pointer-events: none;
+    background: linear-gradient(180deg, rgba(255,255,255,0), #fff 78%); }
+  .stage.ok { --tint: rgba(18,183,106,.16); }
+  .stage.warn { --tint: rgba(231,193,68,.22); }
+  .stage.bad { --tint: rgba(217,45,32,.12); }
+  .vwrap { position: relative; z-index: 2; display: flex; justify-content: center; margin-top: -4px; }
+  .gf-verdict.flat {
+    background: linear-gradient(90deg, var(--g-100), var(--g-50) 30%, var(--g-50) 70%, var(--g-100)) padding-box,
+      conic-gradient(from 180deg, var(--g-300), var(--g-200) 25%, var(--g-200) 50%, var(--g-300) 75%, var(--g-200)) border-box;
+    color: var(--g-600);
+  }
+
+  /* the score, at 65%: heroes still draw into 342x320, the wrapper just shows it smaller */
+  #heroWrap { position: relative; z-index: 1; width: 222px; height: 208px; margin: 0 auto; }
+  #hero { position: absolute; left: 0; top: 0; width: 342px; height: 320px; transform: scale(.65); transform-origin: 0 0; }
+  .hero-missing { position: absolute; inset: 24px; border: 1.5px dashed var(--g-200); border-radius: var(--r-xl); display: grid; place-items: center; text-align: center; color: var(--g-400); font-size: 12px; }
+  .hero-missing b { display: block; font-family: Roboto, Arial, sans-serif; font-size: 40px; color: var(--g-900); font-weight: 600; line-height: 1; margin-bottom: 8px; }
+
+  /* ---------------------------------------------- what shaped your score */
+  /* Two ways to answer the same question, picked with ?rail=.
+     icons (the default) puts the four macros under the heading, so the screen
+     carries one macro block instead of two. cards keeps the glass stat rail. */
+  /* Figma's own 12px gap, and flex-start so a short card is never grown to
+     match a tall one */
+  .gf-rail { padding-bottom: 10px; gap: 12px; align-items: flex-start; }
+  /* Figma floats these over hero art, so its face is white at 0.40 and the
+     art shows through. Here they sit on a white page, and a translucent face
+     let the conic border-box gradient print straight through the card as a
+     dark wedge down the middle. So the face is opaque, which keeps the conic
+     where it belongs: in the 1px border. The faint vertical shift stands in
+     for the glass. */
+  .gf-stat { background: linear-gradient(180deg, #FBFCFF 0%, #FFFFFF 64%) padding-box,
+      conic-gradient(from 90deg, var(--g-300) 62.8%, var(--in-600) 75.1%, var(--g-300) 87.2%) border-box; }
+  .gf-stat.shim-stat { background: var(--g-50); border-color: var(--g-100); box-shadow: none; }
+  .gf-stat.shim-stat::before { display: none; }
+
+  /* ---------------------------------------------------------- the macros */
+  /* The calorie block below gets its presence from a flat indigo wash. This one
+     is the same family, not the same trick: a white base lit from the top by a
+     faint indigo wash, and a radial bloom sitting behind the glyph row, which is
+     the ring designs' own device. It reads as lit rather than tinted, so it does
+     not become a second flat slab under the score. */
+  /* Neutral, not green and no longer indigo either. Green is the verdict
+     colour, what the score and the sufficiency read are entitled to say, so
+     filling four glyphs green told the user four times over that something was
+     going well when all it meant was that a number had a value. Indigo said
+     the same thing more quietly but still spent a family colour on a fact, and
+     it sat on an indigo ground, so the vessels and the card were the same hue.
+     A macro is a measurement. It is drawn in ink.
+     Which ink is open: neutrals are compared in ../macro-fill-options.html
+     and this is variant A, graphite, the same ramp as the type. */
+  /* Variant O. The macro card and the calorie strip are one object now: one
+     tinted ground, no border, no shadow, the nutrients on top and their sum in
+     a footer under a hairline. Flat because the card informs rather than
+     invites, which is also the house rule; across both Figma files it is
+     10,388 flat surfaces to 998 lifted. */
+  .macros { position: relative; border: 0; box-shadow: none; overflow: hidden;
+    border-radius: var(--r-lg) var(--r-lg) 0 0; background: var(--in-50); padding: 16px; }
+  .gf-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .gf-h .tag { font-size: 12px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; color: var(--g-500); background: var(--g-100); border-radius: var(--r-pill); padding: 2px 8px; }
+  /* Four glyphs side by side, each one filling to its own level. The icon IS
+     the gauge: no bar beside it, nothing to read twice. A hard stop inside the
+     mask would look like a cut, so the waterline carries a 3px lighter band and
+     the fill is animated through a registered custom property, which is the
+     only way a gradient stop can transition at all. */
+  @property --f { syntax: "<percentage>"; inherits: false; initial-value: 0%; }
+  /* space-between, so the first and last glyph sit exactly on the 16px the
+     card is padded by. Equal columns left them 18px inside that line, which
+     read as loose in the middle and tight at the ends. */
+  .mgrid { position: relative; display: flex; justify-content: space-between; gap: 12px; }
+  /* Two gaps, so two containers. M3 is explicit that gaps belong on the parent
+     and a margin on a child is the thing to avoid, so the value and its name
+     are wrapped rather than nudged: 8 from the glyph, 4 between the two lines,
+     because proximity is what says they belong together. */
+  .m { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; flex: 0 0 auto; }
+  /* A soft ellipse on the ground under each vessel, so it sits above the card
+     rather than on it. Neutral, not tinted: a coloured ellipse reads as a glow.
+     It hangs off .m, not off .gwrap, because the outline filter on .gwrap
+     catches its pseudo-elements too and would ring the ellipse in grey. 40px
+     is the glyph box, so the shadow meets the base of the vessel. */
+  .m::before { content: ""; position: absolute; top: 37px; left: 50%; width: 26px; height: 7px;
+    transform: translateX(-50%); border-radius: var(--r-pill); pointer-events: none;
+    background: radial-gradient(closest-side, rgba(16,24,40,.16), rgba(16,24,40,.05) 62%, rgba(16,24,40,0)); }
+  .mtext { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+  /* A hairline around each vessel, built from eight zero-blur drop shadows
+     because a mask cannot take a stroke, and on the wrapper rather than the
+     masked element because CSS applies filter before mask: on the same node
+     the outline is drawn and then clipped away by its own mask. */
+  .gwrap { position: relative; width: 40px; height: 40px;
+    /* The shadows overlap, so an alpha here would stack into a dark ring. A
+       flat colour instead, which keeps the hairline even. #B4BCC9 is the
+       value this treatment was built with, in ../../liquid-score/index.html.
+       FOUR points, not eight: north, south, east, west, no diagonals.
+       Variant E in ../macro-stroke-options.html. The diagonal pair lands at
+       .71px from centre against the cardinal pair's .5px, so it thickens the
+       corners of the rim by half again and the edge reads heavier than it
+       measures. Dropping it leaves the hairline lighter, and slightly open
+       where a curve runs at 45 degrees, which on these rounded vessels is
+       most of the outline. That softness is the point. */
+    --out: #B4BCC9;
+    filter: drop-shadow(.5px 0 0 var(--out)) drop-shadow(-.5px 0 0 var(--out))
+      drop-shadow(0 .5px 0 var(--out)) drop-shadow(0 -.5px 0 var(--out)); }
+  /* the bloom only shows when a nutrient is home, so it reads as an event */
+  /* No bloom behind a nutrient that is home. The outline filter on .gwrap
+     applies to everything inside it, pseudo-elements included, so a round
+     bloom came back outlined as a grey disc. It was redundant anyway: a
+     vessel filled to the top is already the signal that the target is met. */
+  /* No cast shadow. It belonged to a white card that sat above the page; in a
+     flat card it puts back the elevation the card just gave up, and on a
+     tinted ground it reads as dirt rather than as lift. */
+
+  /* The fill is liquid, not a flat block: deep at the base, lighter as it rises,
+     and brightest right at the surface, which is what gives it a meniscus
+     instead of a cut. The empty part carries its own faint gradient too, so the
+     unfilled glyph never looks like a solid grey sticker. */
+  .gfill { position: absolute; inset: 0; --f: 0%;
+    background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.34), rgba(255,255,255,0) 58%),
+      linear-gradient(to top,
+        var(--g-900) 0%,
+        var(--g-700) calc(var(--f) * .34),
+        var(--g-500) calc(var(--f) * .72),
+        var(--g-400) calc(var(--f) - 6%),
+        var(--g-400) calc(var(--f) - 1.5%),
+        #C4CBD6 var(--f),
+        #D3D9E2 100%);
+    transition: --f .9s var(--ease); }
+  .m.done .gfill { background: linear-gradient(to top, var(--g-900), var(--g-500) 55%, var(--g-400)); }
+
+  /* Optical balance. The four masks fill their box differently: the droplet is
+     a solid tall wedge and the fibre glyph is tall and busy, so both read
+     heavier than the bean and the loaf at the same nominal size. */
+  /* Sized by HEIGHT, not width: `contain` lets a tall glyph reach the full box
+     while a wide one stops short, which is why the droplet and the sprout read
+     heavier than the bean and the loaf. Capping their height evens the row. */
+  .gfill.glyph-fats { -webkit-mask-size: auto 80%; mask-size: auto 80%; }
+  .gfill.glyph-fibre { -webkit-mask-size: auto 84%; mask-size: auto 84%; }
+  /* no target to measure against, so the glyph is a flat silhouette, not a gauge */
+  /* Grams with no target: the glyph is full, so it is drawn as a full vessel of
+     the same slate liquid, deep at the base and lit from the top left, rather
+     than a flat grey sticker. */
+  .gfill.flat { background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.38), rgba(255,255,255,0) 58%),
+      linear-gradient(to top, #1D2939 0%, #344054 30%, #475467 62%, #667085 88%, #98A2B3 100%); }
+  /* Targets set and nothing logged is not a lesser state, so the glyphs are
+     the same solid grey a day with no targets gets. At --g-200 they read as
+     ghosts of icons, which made the card look switched off rather than
+     waiting. */
+  .gfill.empty { background:
+      radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.4), rgba(255,255,255,0) 58%),
+      linear-gradient(to top, #475467 0%, #667085 40%, #98A2B3 80%, #B9C0CC 100%); }
+  /* The value and its target are one number read in two parts, so they are
+     one size and only weight separates them. */
+  .mval { font: 400 13px/18px Roboto, sans-serif; white-space: nowrap; letter-spacing: 0; color: var(--g-500); }
+  .mval strong { font-weight: 700; color: var(--g-900); }
+  .mval span { color: var(--g-500); font-weight: 400; }
+  /* the same colour the Calories label carries below: both name a measure */
+  .mname { font: 400 11px/16px Roboto, sans-serif; color: var(--g-500); }
+  .mnote { position: relative; margin: 16px 0 0; font-size: 12px; line-height: 18px; color: var(--g-500); display: flex; gap: 8px; align-items: flex-start; }
+
+  /* before the plan: the card explains instead of measuring */
+  /* When Kaira's mark is on this card, the card is hers, so it takes her
+     border and her clipped top-left corner rather than sitting in a grey
+     strip that belongs to nothing. Same two-tone gradient border as .kaira
+     below, same shadow, so the two read as one object in two places. */
+  .macros.kcard { border: 3px solid transparent; border-radius: 0 var(--r-lg) var(--r-lg) var(--r-lg);
+    background: linear-gradient(180deg, var(--in-25) 0%, #FFFFFF 46%) padding-box,
+      linear-gradient(100deg, var(--in-600), var(--teal-600)) border-box; }
+  .mhead { margin: -16px -16px 16px; padding: 14px 16px; display: flex; gap: 12px;
+    align-items: flex-start; border-bottom: 1px solid var(--in-100); }
+  .mhead h4 { margin: 0; font-size: 16px; font-weight: 600; line-height: 24px; }
+  .mhead p { margin: 4px 0 0; font-size: 12px; line-height: 18px; color: var(--g-500); }
+
+  /* ------------------------------------------------------- the calories */
+  /* GoodFlip puts calories on an indigo wash with a warm flame, never on green.
+     Green measures the score; this measures the budget, so it takes its own hue. */
+  /* the footer of the card above, not a card of its own */
+  #calstrip { width: 100%; margin-top: 0; }
+  /* The per-metric card's two additions: the macro's own glyph in place of a
+     line icon, and a flat bar carrying the same level the glyph fills to in
+     the other variant. Indigo, because a macro is a fact and not a verdict. */
+  /* the target is the quiet half of the figure, the way the drawn card sets
+     a unit beside its number */
+  .gf-stat .v s { text-decoration: none; font-size: 13px; font-weight: 400; color: var(--g-500); }
+  .gf-stat .sg { width: 18px; height: 18px; background: var(--in-600);
+    -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+
+  /* with ?rail=icons the macros have moved up under the score heading, so this
+     section is the calorie block alone: it loses the heading's 16px and keeps a
+     section's worth of air above it rather than a card's 12 */
+  #nutSect.calonly { margin-top: 24px; }
+  #nutSect.calonly #calstrip { margin-top: 0; }
+  /* One line: the label, then the sum. The bar, the "left today" and the
+     frond all stand down, because the four gauges above already answer "how
+     far through", and a fifth filled shape in the same ink would claim to be
+     a fifth gauge by similarity when it is only a label. They stay in the DOM
+     so the live repaint still finds them. */
+  .calc { position: relative; display: flex; align-items: baseline; gap: 8px;
+    border-radius: 0 0 var(--r-lg) var(--r-lg); background: var(--in-50);
+    border-top: 1px solid var(--in-100); padding: 12px 16px; overflow: hidden; }
+  .calc .wm, .calc .cb, .calc .cr { display: none; }
+  .calc .ct svg { display: none; }
+  /* No target means no bar and nothing on the right, so the card has no reason
+     to be three rows tall. Label and figure share one line. */
+  /* the frond bleeds off the right edge, so on one line the figure has to
+     stop short of it rather than sit under it */
+  .calc.slim { display: flex; align-items: baseline; gap: 10px; padding: 10px 44px 10px 14px; }
+  .calc.slim .ch { flex: 0 0 auto; }
+  .calc.slim .cv { margin-top: 0; margin-left: auto; }
+  .calc.slim .wm { right: -90px; top: -58px; }
+  /* Further out and higher than Figma places it. In the source the block is
+     340x69 and the frond runs off the right edge; our block is shorter, so the
+     same offset let too much of it sit over the number and the bar. */
+  .calc .wm { position: absolute; right: -84px; top: -70px; width: 131px; height: 156px; pointer-events: none; user-select: none; }
+  .calc .ch { position: relative; flex: 0 0 auto; }
+  .calc .ct { font: 400 11px/16px Roboto, sans-serif; color: var(--g-500); }
+  .calc .cr { font-size: 12px; line-height: 18px; color: var(--g-500); white-space: nowrap; }
+  .calc .cv { position: relative; margin: 0 0 0 auto; font: 400 13px/18px Roboto, sans-serif;
+    color: var(--g-500); white-space: nowrap; }
+  .calc .cv b { font: 700 13px/18px Roboto, sans-serif; color: var(--g-900); }
+  .calc .cb { position: relative; display: block; height: 6px; margin-top: 8px; border-radius: var(--r-pill); background: var(--in-100); overflow: hidden; }
+  .calc .cb i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--in-600); transition: width .6s var(--ease); }
+  .calc.over .cb i { background: var(--amber-600); }
+
+  /* kaira */
+  /* Figma draws this as the Kaira insights nudge, 4719:3057: a 3px stroke in
+     her gradient at full strength, indigo #444CE7 on the left to cyan #44E7E7
+     on the right, running across rather than diagonally. Ours was 2px of
+     --in-200 to --teal-200, which are the 200 tints, so the edge was both
+     thinner and washed out and the card read as a faint box rather than as
+     hers. */
+  .kaira { border-radius: 0 var(--r-lg) var(--r-lg) var(--r-lg); padding: 16px;
+    box-shadow: var(--shadow-card); border: 3px solid transparent;
+    background: linear-gradient(#fff, #fff) padding-box, linear-gradient(100deg, var(--in-600), var(--teal-600)) border-box; }
+  .kact { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--g-100); }
+  .klab { display: block; font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--g-400); }
+  .kact .btns { margin-top: 8px; }
+  .kaira .say { display: flex; gap: 12px; align-items: flex-start; }
+  .kmark { width: 36px; height: 36px; border-radius: 9999px; background: var(--in-25); display: grid; place-items: center; flex-shrink: 0; }
+  .kaira p { flex: 1; min-width: 0; margin: 0; font-size: 14px; line-height: 21px; color: var(--g-700); text-wrap: pretty; }
+  .kaira p strong { color: var(--g-900); font-weight: 600; }
+  .logday { width: 100%; min-height: 44px; border: 0; background: none; color: var(--brand-600); font-size: 14px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .logday:hover { text-decoration: underline; }
+
+  /* Before the plan: Kaira teaches and offers the two ways to log, in one card.
+     Three ways to spend the vertical space, chosen with ?v=1|2|3. */
+  /* the pre-plan card: one text column, the teaching in its own quiet block,
+     then the two ways to log under a rule */
+  .edu { padding: 16px; }
+  .edu .eh { display: flex; gap: 12px; align-items: center; }
+  .edu .kmark { width: 36px; height: 36px; }
+  .edu h4 { margin: 0; font-size: 18px; font-weight: 600; line-height: 24px; color: var(--g-900); }
+  .edu .sub { margin: 2px 0 0; font-size: 12px; line-height: 18px; color: var(--g-500); }
+  .edu .btns { margin-top: 12px; }
+  .edu .kact { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--g-100); }
+  .elist { margin-top: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .erow { display: flex; gap: 12px; align-items: flex-start; }
+  /* teaching is gold's job in this system, never the brand green */
+  .erow .ic { flex-shrink: 0; width: 36px; display: grid; place-items: center; margin-top: -1px; color: var(--gold-800); }
+  .erow .t { font-size: 14px; line-height: 21px; color: var(--g-700); text-wrap: pretty; }
+  /* v2: the two steps as one strip */
+  .stepbar { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+  .stepbar .n { width: 22px; height: 22px; border-radius: 9999px; background: var(--g-700); color: #fff; font-size: 12px; font-weight: 700; display: grid; place-items: center; flex-shrink: 0; }
+  .stepbar .lb { font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .stepbar .ln { flex: 1; height: 2px; border-radius: 2px; background: linear-gradient(90deg, var(--g-200), var(--g-100)); }
+  .stepsub { margin: 8px 0 0; font-size: 12px; line-height: 18px; color: var(--g-500); }
+  /* v3: shortest at rest, the rest one tap away */
+  .more { margin-top: 12px; border-top: 1px solid var(--g-100); }
+  .more summary { list-style: none; display: flex; align-items: center; gap: 6px; min-height: 44px; font-size: 14px; font-weight: 600; color: var(--g-700); cursor: pointer; }
+  .more summary::-webkit-details-marker { display: none; }
+  .more summary .ico { width: 16px; height: 16px; transition: transform .25s cubic-bezier(.4,0,.2,1); }
+  .more[open] summary .ico { transform: rotate(180deg); }
+  .more .inner { padding-bottom: 6px; }
+  /* Inside the disclosure the rows were a 36px icon column carrying a 12px
+     glyph, so nothing lined up with the summary above it, and the label and its
+     line ran together on one line because both were inline. One 20px column,
+     one left edge down the block, and the label gets a line of its own. */
+  .more .elist { gap: 14px; }
+  .more .erow { gap: 10px; align-items: flex-start; }
+  .more .erow .ic { width: 22px; justify-items: start; margin-top: 2px; }
+  .more .erow .t { display: block; }
+  .more .erow .t b { display: block; font-weight: 600; color: var(--g-900); }
+  .more .erow .t span { display: block; font-size: 12px; line-height: 18px; color: var(--g-500); }
+  /* the lock is a caveat, not teaching, so it keeps the same column and loses
+     the gold */
+  .more .erow.quiet .ic { color: var(--g-400); }
+  .more .erow.quiet .t { font-size: 12px; line-height: 18px; color: var(--g-500); }
+
+  /* diary */
+  .sec { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 16px; gap: 12px; }
+  .sec h2 { margin: 0; font: 400 14px/16.8px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-900); }
+  .sec span { font-size: 12px; color: var(--g-500); white-space: nowrap; }
+  .intro { margin: -8px 0 16px; font-size: 12px; line-height: 18px; color: var(--g-500); }
+  /* GoodFlip's repeating card, from the ring Home stack (5834:34325), retinted
+     indigo: radius 24, a wash over the top 29% only, a 1px conic border with
+     the accent at dead top centre fading to grey by 43 degrees each side, and
+     the lighter #E4E7EC letterpress. A repeating card takes its ornament on
+     the edges, never on the field, which is why there is no watermark here.
+     The wash is in-25, deliberately lighter than the calorie block's in-50, so
+     that block stays the anchor. */
+  .meal { margin-bottom: 16px; border-radius: var(--r-xl); border: 1px solid transparent;
+    box-shadow: 2px 2px 0 var(--g-200);
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 29%, #fff 100%) padding-box,
+      conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; }
+  .mh { display: flex; align-items: flex-start; gap: 8px; padding: 16px 16px 16px 16px; }
+  /* a quiet scene behind the meal's header (icons/meals/bg, one Gemini scene per
+     meal): pinned to the top right, fading out to the left and downward so
+     the title and the list sit on white */
+  .meal.scene { position: relative; isolation: isolate; }
+  /* the scene shows through the divider under the header */
+  .meal.scene .mbi { border-top-color: rgb(234 236 240 / .35); }
+  [data-art="pic"] .meal.scene::before { display: none; }
+  [data-art="pic"] .meal.scene .mbi { border-top-color: var(--g-100); }
+  [data-art="scene"] .mh .mpic { display: none; }
+  /* never taller than the card: a slim card (no plan, header only) gets the
+     whole scene scaled down to its own height rather than one spilling out */
+  .meal.scene::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 100%; max-height: 132px; z-index: -1;
+    border-radius: inherit; opacity: .55;
+    background: var(--scene) right top / auto 100% no-repeat;
+    -webkit-mask: linear-gradient(90deg, transparent 18%, #000 62%), linear-gradient(180deg, #000 45%, transparent);
+    -webkit-mask-composite: source-in; mask-composite: intersect; }
+  .mh .t { flex: 1; min-width: 0; }
+  /* each meal's GoodFlip pictogram (icons/meals/gemini), the same height as its two lines */
+  .mh .mpic { width: 44px; height: 44px; flex-shrink: 0; margin: -1px 4px -1px -4px; object-fit: contain; }
+  .mh .n { display: flex; align-items: center; gap: 8px; font-size: 16px; line-height: 22px; font-weight: 600; }
+  .mh .s { font-size: 12px; line-height: 18px; color: var(--g-500); margin-top: 2px; }
+  /* Outlined, not filled. GoodFlip's repeating cards carry a filled green disc,
+     but ours would sit inches from the filled green tick on every food row and
+     the two would read as the same control. The outline keeps it green without
+     that collision, and keeps six of them off the page as solid marks. */
+  .plus { width: 44px; height: 44px; margin: -6px -6px -6px 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+  .plus i { width: 26px; height: 26px; border-radius: 9999px; border: 1.5px solid var(--brand-600); background: #fff; color: var(--brand-600); display: grid; place-items: center; }
+  .plus:hover i { background: var(--brand-50); }
+  /* no coach plan: the square plus the rest of the logging doors use, not the plan card's circle */
+  .plus.sq i { width: auto; height: auto; border: 0; border-radius: 6px; background: none; }
+  .plus.sq:hover i { background: var(--brand-50); }
+  /* the glyph's square is 17 of its 24, so at 30px it matches the 26px circle the planned cards carry */
+  .plus.sq svg { width: 30px; height: 30px; stroke-width: 1.7; }   /* a touch lighter than the glyph's 2, since it is drawn larger */
+  .mb > div { overflow: hidden; }
+  .mbi { margin: 0 16px; padding: 12px 0 16px; border-top: 1px solid var(--g-100); }
+  /* One rule for every uppercase section label on this card. They used to sit
+     12/12, 12/6 and 12/16 above and below their content: one symmetric, one
+     correct, one inverted, so the Tips heading was further from the tips than
+     from the rule above it.
+     USWDS asks for at least 1.5x more space above a heading than below it and
+     Carbon ships 2:1, which is 24 above and 8 below here. Every label on this
+     card follows a divider, so THE RULE OWNS THE 24: 12 above it, 12 below it,
+     then the label, then 8 to its content. Stacking a 24 margin on top of the
+     divider's own 12 gave 36, which is a section break, not a heading.
+     line-height is declared so the space around them is a decision rather than
+     a font-metric accident, which is what made the old rhythm unmeasurable. */
+  .lab, .elselab { font-family: Roboto, sans-serif; font-size: 12px; line-height: 16px;
+    font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: var(--g-500);
+    margin: 12px 0 8px; }
+  /* the rule these two sit under already spends the 12 */
+  .textrow > .elselab, .tips > .lab { margin-top: 0; }
+  /* no extras above it, so the card's own header rule spends the 12 instead */
+  .mbi > .lab:first-child { margin-top: 0; }
+  /* No scroll container. Declaring overflow-x alone forces overflow-y to
+     auto, and every chip's 44px hit ::after stands 6px proud of the 32px row,
+     so the rail became a 6px vertical scroller that stole the page's gesture.
+     The options fit the card, so they wrap instead. */
+  /* 16, not 18. 18 appears on no published spacing ladder, M3's included, and
+     it was the one off-grid value doing structural work on this card. */
+  .chips { position: relative; z-index: 1; display: flex; flex-wrap: wrap; gap: 8px;
+    margin-bottom: 16px; }
+  /* The chip is the option's ordinal, with what the whole option costs under
+     it. The chip is its own 44px target because it holds two lines, so it no
+     longer borrows one. */
+  /* One line of text, so the pill is slim. The tap target is still 44px, held
+     open by a transparent ::after rather than by growing the pill. */
+  .chip { position: relative; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px;
+    height: 32px; padding: 0 14px;
+    border-radius: 9999px; border: 1px solid var(--g-200); background: #fff; color: var(--g-500); cursor: pointer; }
+  .chip::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+  .chip .ot { display: block; text-align: left; }
+  .chip .ot b { display: block; font-size: 14px; font-weight: 600; line-height: 18px; color: var(--g-700); white-space: nowrap; }
+  /* ---- The chip carries two things at once, on two different properties ----
+     Food can be logged from more than one option, so "selected" and "not
+     selected" cannot cover it. There are six states here, not two: viewing is
+     one axis and progress is the other, and they are independent.
+     The FILL is progress: the tint runs left to right in proportion to how
+     many of that option's foods are in the day, so the chip is its own meter.
+     The RING is viewing. Keeping them on separate properties is the whole
+     point, because both want to be green and would otherwise compete.
+     Explored in ../option-chip-options.html, variant B. */
+  /* An option with anything logged in it earns a tint, an edge and a check; there is
+     no progress fill, because options share foods and a fill would claim both. */
+  .chip.done { border-color: var(--brand-200); background: var(--brand-50); }
+  /* Viewing is a ring, not a fill: a filled chip is already saying progress,
+     so selection had to move to a property the fill does not use. */
+  .chip.on { background: #fff; border-color: var(--brand-600);
+    box-shadow: 0 0 0 1px var(--brand-600); }
+  .chip.on .ot b { color: var(--brand-600); }
+  /* The rhythm is one number on the parent, not a margin on each child. M3 is
+     explicit: "Define padding and gaps on the parent container" and "Avoid
+     defining margins on child elements as they usually aren't uniform".
+     12 is M3's own ItemBetweenSpace for a contained list. */
+  .items, .extras { display: flex; flex-direction: column; gap: 12px; }
+  /* 16 from the mark to the name. M3 ItemLeadingSpace, Compose
+     LeadingContentEndPadding, Flutter horizontalTitleGap and the iOS
+     imageToTextPadding all specify 16 for a list row's leading element. */
+  .item { display: flex; align-items: flex-start; gap: 16px; }
+  /* No min-height. It added 4px of dead space under every two-line row, so the
+     declared 14 between rows painted as 18, and a row whose name wrapped lost
+     the slack and painted as 14. There was no constant rhythm at all. */
+  /* everything on the right settles onto the name's first line, so the row
+     reads as one line with a helping under it rather than a drift */
+  .item .kc { margin-top: 3px; }
+  .item .manual { margin-top: 0; }
+  /* The mark is 24 and the target is 44, held by an overlay that costs no
+     layout, which is what .chip and .askk already do. Five different negative
+     margins used to hold the same 44 open. */
+  .tickbtn { position: relative; width: 24px; height: 24px; border: 0; background: none;
+    padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+  .tickbtn::after { content: ""; position: absolute; left: 50%; top: 50%;
+    width: 44px; height: 44px; transform: translate(-50%, -50%); }
+  .tickbtn[disabled] { cursor: default; }
+  .tick { width: 24px; height: 24px; border-radius: 9999px; border: 1.5px solid var(--g-300); background: #fff; display: grid; place-items: center; flex-shrink: 0; }
+  .tick.on { background: var(--ok-600); border-color: var(--ok-600); }
+  .item .nm { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; line-height: 20px; }
+  /* the helping sits under the name. Beside it, a long dish and its helping
+     competed for the same line and the calorie figure got squeezed. */
+  .item .nm span { display: block; margin-top: 2px; color: var(--g-500);
+    font-weight: 400; font-size: 12px; line-height: 18px; }
+  .item.done .nm { color: var(--g-700); }
+  .manual { font-size: 12px; font-weight: 600; color: var(--g-500); background: var(--g-50); border: 1px solid var(--g-200); border-radius: 9999px; padding: 2px 8px; flex-shrink: 0; }
+  .kc { font-size: 12px; color: var(--g-500); white-space: nowrap; }
+  .note { font-size: 12px; color: var(--g-500); line-height: 18px; margin: 0 0 8px; }
+  /* 12 above the rule; the label below it brings its own 12, so the dashed
+     rule sits centred in 24 the same way every other divider here does */
+  .extras { padding-bottom: 12px; border-bottom: 1px dashed var(--g-200); }
+  /* inside a meal card, too tight for 8px of travel, so the system's flat */
+
+
+  /* GoodFlip's own quiet action, and the reverse, which is quieter still */
+  /* a column now: the label sits above the two routes it names */
+  /* 12 above the rule as well as below it. There was nothing above it before,
+     so the rule sat hard against the last food and read as part of the list it
+     was supposed to be separating. All four dividers on this card are now 12
+     and 12. */
+  .textrow { display: flex; flex-direction: column; align-items: stretch;
+    margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--g-200); }
+  /* The words are the heading of a small group, not the button. Underneath,
+     the two ways to do it are named outright, so no glyph has to carry the
+     meaning on its own: a plus promises "you do the typing", Kaira's mark
+     promises "tell me and I will work it out", and those are different jobs.
+     Explored in ../else-row-options.html, variant G. */
+  /* its type and spacing come from the shared .lab rule above */
+  /* They fill the card rather than hugging their words, so the two routes read
+     as equal halves of one decision and neither looks like the afterthought. */
+  /* One segmented control, two halves: a white box with a hairline edge, split by a hairline.
+     Neither half is filled, so the two routes read as equal choices of one decision. */
+  .acts { display: flex; border: 1px solid var(--g-200); border-radius: var(--r-md); background: #fff; overflow: hidden; }
+  .achip { flex: 1; min-width: 0; display: inline-flex; align-items: center; justify-content: center;
+    gap: 7px; min-height: 48px; padding: 0 12px; border: 0; border-radius: 0;
+    background: #fff; color: var(--brand-700);
+    font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer; }
+  .achip + .achip { border-left: 1px solid var(--g-200); }
+  .achip:active { background: var(--g-50); }
+  /* DIRECT CHILD ONLY. Kaira's mark is an svg nested inside her .gfk span,
+     which GFKaira.mark() has already sized and which the span's own box is
+     built around, so a bare ".achip svg" rule reaches in and resizes her
+     artwork inside a box that does not move with it: the hexagon grows out of
+     its own container and the chip's gap is measured against the stale box.
+     The plus is a direct child of the button, so ">" separates them.
+     19, because the square plus is a thin outline holding a small cross and
+     carries far less ink than her solid hexagon at the same nominal size. It
+     still sits under the label's 20px line, which is the ceiling before a mark
+     starts to outrank the words it belongs to. */
+  .achip > svg { width: 19px; height: 19px; flex-shrink: 0; }
+  .achip .gfk { flex-shrink: 0; }
+  /* Searching is the road most people take, so it keeps the fill. Kaira is the
+     way out when you cannot name the food, the rarer case, so she is outlined.
+     Drawing them as identical twins would be a false balance. */
+  .achip.k { color: var(--in-600); }
+  .tips { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--g-100); }
+  /* A tip row and a food row have the same anatomy, a 20px title over an 18px
+     line, so they get the same 12 between them and the same 16 from the mark.
+     They used to be 8 apart against the food rows' 18, which is the same job
+     drawn two ways. The side padding gives the tick's wash something to sit
+     in, and the negative margin puts the content back where it was. */
+  .tiplist { display: flex; flex-direction: column; gap: 12px; }
+  .tip { position: relative; display: flex; gap: 16px; align-items: flex-start;
+    padding: 0 8px; margin: 0 -8px; border-radius: var(--r-md); }
+  /* the mark sits on the headline's own line; the 44 is the overlay's job */
+  /* The headline carries Kaira's chip where the info circle used to sit, so a
+     question is asked about THIS tip rather than about tips in general. A tip
+     title can be long, so the line wraps and the chip follows it down rather
+     than squeezing the words. */
+  /* Text, not a flex row. As a flex container the words were one item and the
+     chip another, so the chip could only ever sit beside the whole title or
+     drop below all of it: it could not follow the last word. Left as plain
+     inline content the chip flows after the final word the way another word
+     would, and wraps with it, which is what makes it read as trailing the
+     title rather than as a second thing under it. */
+  .tip .tt { font-size: 14px; font-weight: 600; line-height: 20px; }
+  /* Her clipped corner: square top left, rounded elsewhere, the one shape that
+     is hers alone in this pillar. Her card and her sheet cut the same corner,
+     so the chip is recognisably hers before a word of it is read. A hairline,
+     not a fill: there is one of these on every tip, and at that count a filled
+     chip stops being a detail and becomes the texture of the screen.
+     Explored in ../ask-kaira-chip-options.html, variant D. */
+  .askk { position: relative; display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+    vertical-align: middle; margin-left: 8px;
+    height: 24px; padding: 0 9px 0 6px; cursor: pointer;
+    font-size: 11.5px; font-weight: 600; letter-spacing: .3px; color: var(--in-700);
+    border: 1px solid transparent; border-radius: 0 var(--r-pill) var(--r-pill) var(--r-pill);
+    background: linear-gradient(180deg, var(--in-25), #FFFFFF 70%) padding-box,
+      linear-gradient(100deg, var(--in-600), var(--teal-600)) border-box;
+    transition: transform .22s var(--ease), box-shadow .3s var(--ease); }
+  /* the hit area is 44 while the chip stays 24, the same trick every small
+     control on this card uses */
+  .askk::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+  .askk:hover { box-shadow: 0 2px 10px rgba(68,76,231,.18); }
+  .askk:active { transform: scale(.97); }
+  .askk .gfk { flex-shrink: 0; }
+  /* Once a tip is done there is nothing left to ask about it, so her chip goes
+     rather than sitting there greyed. */
+  .tip.done .askk { display: none; }
+  .tip .td { font-size: 12px; color: var(--g-500); line-height: 18px; margin-top: 2px; }
+  .tip.done .tt { color: var(--g-500); }
+
+  /* ---- Ticking a tip, lifted from the To-do in the EM3 wireframes ----
+     Transcribed from app/public/v6/assets (taskPop, haloOut, confettiOut,
+     checkDraw, flashOut, strikeWipe). Every keyframe, duration, delay and
+     cubic-bezier below is the shipped value, including taskPop's overshoot at
+     1.56, which is the one place this pillar is allowed to bounce: it is what
+     the To-do already does when a task is done, and a tip is the same kind of
+     small win. Six things fire together, and the whole moment is over in
+     1.1s, which is how long the wireframe holds its own state. */
+  @keyframes taskPop { 0% { transform: scale(1); } 30% { transform: scale(1.32); }
+    55% { transform: scale(.92); } 75% { transform: scale(1.06); } 100% { transform: scale(1); } }
+  @keyframes haloOut { 0% { opacity: .5; transform: scale(.65); } 100% { opacity: 0; transform: scale(2.6); } }
+  @keyframes confettiOut { 0% { opacity: 0; transform: translate(0) scale(.4) rotate(0); }
+    15% { opacity: 1; } 70% { opacity: 1; }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1) rotate(var(--rot)); } }
+  @keyframes checkDraw { to { stroke-dashoffset: 0; } }
+  @keyframes flashOut { 0% { opacity: .85; } 35% { opacity: .5; } 100% { opacity: 0; } }
+
+  /* 1. the mark pops */
+  .tmark.pop { animation: taskPop .55s cubic-bezier(.34,1.56,.64,1) both; }
+  /* 2. a ring leaves it and opens to 2.6x */
+  .tmark.pop::after { content: ""; position: absolute; inset: -3px; border-radius: 50%;
+    border: 2px solid var(--ok-600); pointer-events: none;
+    animation: haloOut .8s cubic-bezier(.22,.7,.3,1) forwards; }
+  /* 3. the check draws itself rather than appearing */
+  .tmark.pop svg path { stroke-dasharray: 1; stroke-dashoffset: 1;
+    animation: checkDraw .34s cubic-bezier(.4,0,.2,1) .12s forwards; }
+  /* 4. twelve pieces on fixed vectors, three colours, staggered 26ms apart */
+  .burst { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+  .burst i { position: absolute; left: 50%; top: 50%; display: block;
+    animation: confettiOut .72s cubic-bezier(.16,.7,.3,1) forwards; }
+  /* 5. the row itself flashes its pillar tint and drains */
+  .tip.cheer::before { content: ""; position: absolute; inset: 2px -10px; border-radius: 12px;
+    background: var(--brand-100); pointer-events: none; z-index: 0;
+    animation: flashOut .9s ease forwards; }
+  /* the flash is behind the words, never over them */
+  .tip > * { position: relative; z-index: 1; }
+  /* No strike-through. The To-do rules a task out because the line is a job
+     that is now closed. A tip is advice you took, so ruling it out reads as
+     cancelling it. The mark and the colour say done on their own. */
+  .tip .tt, .tip .td { transition: color .3s ease-out; }
+  /* A tip is ticked off the same way a food is, so it wears the same mark:
+     same 24px circle, same green. The two differ in what happens behind them,
+     a food confirms quantity and time while a tip just toggles, but that is a
+     difference in flow, not in what the control means, and "done" is "done". */
+  .tmark { position: relative; width: 24px; height: 24px; border-radius: 9999px; border: 1.5px solid var(--g-300);
+    background: #fff; display: grid; place-items: center; flex-shrink: 0;
+    transition: background .18s ease-out, border-color .18s ease-out, transform .18s cubic-bezier(.4,0,.2,1); }
+  .tmark.on { background: var(--ok-600); border-color: var(--ok-600); }
+
+  /* ---- Kaira's own pair, transcribed from the production app ----
+     src/components/atoms/Button/KairaButton.variants.ts, variants "kaira" and
+     "kaira-outline", as rendered by molecules/diet/KairaFoodLogWidget.tsx.
+
+     These are NOT the house .gf-btn. They carry no depth lip: the design
+     system says the depth bar is never present on the Kaira pair, and the
+     production component has no box-shadow and no pressed state either. What
+     reads as depth is a 2px gradient RING: the button itself is painted with
+     the gradient and padded 2px, and the face sits on top 2px smaller. The
+     ring runs 0deg and the face runs 114deg, so the two disagree by 114
+     degrees and the edge catches light on one side. That disagreement is the
+     whole effect. */
+  .btns { display: flex; gap: 8px; margin-top: 8px; }
+  .kbtn { flex: 1; min-width: 0; display: inline-flex; align-items: center; justify-content: center;
+    padding: 2px; border: 0; border-radius: 14px; overflow: hidden; cursor: pointer;
+    background: linear-gradient(0deg, #299D6B 6.47%, #2A805A 91.92%);
+    transition: all .15s cubic-bezier(.4,0,.2,1); }
+  .kbtn > span { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 8px 16px; border-radius: 12px;
+    /* 14/20 at weight 400, not the 700 our house buttons use. The production
+       CTA passes children rather than a label, so the bold label slot never
+       applies and the type comes from TextV2 label-medium. */
+    font: 400 14px/20px Roboto, sans-serif; letter-spacing: .25px; }
+  .kbtn svg { width: 16px; height: 16px; flex-shrink: 0; }
+  /* both labels are 400. The b element is only a hook for the gradient clip on
+     the secondary, so its own bold has to be undone. */
+  .kbtn b { font-weight: 400; }
+  /* primary: the face is the same two greens on a diagonal */
+  .kbtn > span { background: linear-gradient(114deg, #299D6B 6.47%, #2A805A 91.92%); color: #fff; }
+  /* secondary: white face, and the word itself is the gradient, clipped to the
+     glyphs at 108deg. The mic stays flat brand green. */
+  .kbtn.out > span { background: #fff; }
+  .kbtn.out b { font-weight: 400; background: linear-gradient(108deg, #299D6B 6.47%, #2A805A 91.92%);
+    -webkit-background-clip: text; background-clip: text; color: transparent; line-height: 1.25; }
+  .kbtn.out svg { color: #299D6B; }
+
+  /* loading */
+  .shim { background: linear-gradient(90deg, var(--g-100) 25%, var(--g-200) 37%, var(--g-100) 63%); background-size: 400% 100%; border-radius: 6px; animation: sweep 1.5s linear infinite; }
+  @keyframes sweep { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+  .shim-card { height: 96px; border-radius: var(--r-lg); margin-bottom: 12px; }
+
+  /* chrome */
+  /* Kaira floats in the right gutter, which is the same 44px column every meal
+     card's + sits in, so a scroll that stops on a meal header puts her 48px
+     button on top of a 44px one and swallows it whole. Measured: the two
+     columns are identical, and a + lands under her at about one scroll position
+     in five. Clearing it means taking her off the corner, which is a placement
+     decision rather than a bug fix, so it is left for Shaheer to pick. */
+  /* Bottom right, as designed. It does overlap the meal card "+" and the row
+     overflow menus at some scroll positions; that is the standard floating
+     button trade and the fix belongs in those targets, not here. */
+  /* The launcher is the product's, drawn by assets/kaira.js, so this only
+     places it. It is 60px there, not 48, and carries its own rim and shadow. */
+  .fab { position: fixed; bottom: 100px; left: calc(50% + 195px - 76px); width: 60px; height: 60px; z-index: 20; }
+  @media (max-width: 390px) { .fab { left: auto; right: var(--gut); } }
+  /* the card mark: the same hexagon, at the size a card sets it */
+  .kmark { width: 27px; height: 30px; background: none; display: block; }
+  .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 390px; background: #fff; border-top: 1px solid var(--g-200); display: flex; padding: 8px 6px calc(8px + var(--gf-home-h, 20px) + env(safe-area-inset-bottom, 0px)); z-index: 20; }
+  .nav button { flex: 1; border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; color: var(--g-500); cursor: pointer; min-height: 48px; justify-content: center; }
+  .nav button.on { color: var(--brand-600); font-weight: 700; }
+  /* mobile has no hover, so without this a nav tap answers with nothing until
+     the next screen paints */
+  .nav button { transition: transform .2s ease-out, color .15s ease-out; }
+  .nav button:active { transform: scale(.92); }
+
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: opacity .3s ease-out; z-index: 40; }
+  /* house rules: a sheet is at most 90% of the screen, its title sits top left
+     beside a filled close circle, there is no drag handle, and long content
+     scrolls under a header that stays put */
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh; display: flex; flex-direction: column;
+    background: #fff; border-radius: var(--r-lg) var(--r-lg) 0 0; transform: translate(-50%, 100%); transition: transform .3s ease-out; z-index: 41; box-shadow: 0 20px 25px -5px rgba(0,0,0,.1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px var(--gut) 8px; }
+  .sbody { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 var(--gut) calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .open-date .scrim { opacity: 1; pointer-events: auto; }
+  .open-date #dateSheet { transform: translate(-50%, 0); }
+  .sheet h4 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .sheet p { margin: 0 0 12px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  /* the 44px target overhangs the gutter by 6 so the circle itself lands on it */
+  .sheet .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  .sheet .ok { width: 100%; height: 48px; margin-top: 12px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff; font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; }
+
+  /* the date sheet: one month of days, each carrying its own sufficiency ring.
+     The month sits on a bound paper pad, so the calendar reads as its own
+     object rather than as more sheet. */
+  .dspad { position: relative; margin: 16px 0 0; padding: 36px 0 6px; border-radius: var(--r-md) var(--r-md) 0 0;
+    background: linear-gradient(180deg, var(--in-25) 0%, #FFFFFF 92%); border-top: 2px solid var(--in-400); border-bottom: 1px solid var(--g-100); }
+  /* Shaheer's artwork, tiled along the pad's top edge: bead below the line, wire
+     crossing it, tail above. Decoration only. */
+  .dsr { position: absolute; left: 12px; right: 12px; top: -2px; height: 34px; pointer-events: none;
+    background: url(assets/binding.svg) no-repeat center top; background-size: 100% 34px; }
+  .dsm { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 8px 0 8px; }
+  .dsm .arr { width: 44px; height: 44px; border: 0; background: none; color: var(--g-500); display: grid; place-items: center; cursor: pointer; border-radius: 9999px; }
+  .dsm .arr:hover:not([disabled]) { background: var(--g-50); }
+  .dsm .arr[disabled] { color: var(--g-300); cursor: default; }
+  .dsm .mo { min-width: 152px; text-align: center; font-size: 16px; font-weight: 700; }
+  .dsw { display: grid; grid-template-columns: repeat(7, 1fr); }
+  .dsw span { text-align: center; font-size: 12px; font-weight: 600; color: var(--g-400); padding: 6px 0 12px; }
+  .dsg { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 12px; padding: 12px 0 8px; }
+  .dsd { min-height: 62px; padding: 8px 0; border: 0; background: none; border-radius: var(--r-md);
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; cursor: pointer; }
+  .dsd:hover:not([disabled]) { background: var(--g-50); }
+  .dsd[disabled] { cursor: default; }
+  .dsn { font-size: 12px; font-weight: 600; color: var(--g-700); line-height: 16px; }
+  .dsd[disabled] .dsn { color: var(--g-300); }
+  .dsd.today .dsn { color: var(--g-900); font-weight: 700; }
+  .dsd.sel { background: var(--brand-50); box-shadow: inset 0 0 0 1.5px var(--brand-600); }
+  .dsd.sel:hover { background: var(--brand-50); }
+  .dsblank { min-height: 62px; }
+  .dsl { margin: 0; padding: 24px 0 16px; font-size: 12px; line-height: 18px; color: var(--g-400); text-align: center; }
+  .dsmsg { text-align: center; padding: 24px 8px 8px; }
+  .dsmsg p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  /* an error is not a brand moment: Retry is a plain secondary */
+  .dsretry { height: 44px; margin-top: 12px; padding: 0 24px; border-radius: var(--r-md); border: 1px solid var(--g-300);
+    background: #fff; color: var(--g-700); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .dsretry:hover { background: var(--g-50); }
+  /* logged, but before the plan existed: indigo is this system's colour for logging */
+  .dsdot { width: 8px; height: 8px; border-radius: 9999px; background: var(--in-400); margin: 12px 0; }
+  /* a loading day keeps the ring's shape, so the grid does not change size when the month lands */
+  .dsshim { position: relative; width: 32px; height: 32px; border-radius: 9999px; }
+  .dsshim i { position: absolute; inset: 3px; border-radius: 9999px; background: #fff; }
+
+  /* education sheets: the same Cloud Drop score as the day view (compact),
+     a white card of the rows behind it, then short sections by dashed rules */
+  .ehero { position: relative; margin: 0 calc(var(--gut) * -1); padding: 4px var(--gut) 0; overflow: hidden;
+    background: linear-gradient(180deg, var(--g-50) 0%, #fff 78%); }
+  /* Day view mounts the gauge at 300px; the sheet uses the same frame so the
+     12px status tag stays at real pixels (never scaled below the house minimum). */
+  .ehero .eg { position: relative; width: 100%; height: 280px; margin: 0 auto; overflow: hidden; }
+  .ehero .eg iframe { display: block; width: 100%; height: 300px; border: 0; background: transparent; pointer-events: none;
+    margin-top: -10px; }
+  .ecap { margin: -4px 0 10px; text-align: center; font-size: 12px; line-height: 18px; color: var(--g-500); }
+  .ecard { position: relative; margin: 0; background: #fff; border: 1px solid var(--g-200); border-radius: var(--r-lg); padding: 2px 16px;
+    box-shadow: var(--shadow-card); }
+  .er { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; min-height: 44px; padding: 6px 0;
+    border: 0; border-bottom: 1px solid var(--g-100); background: none; text-align: left; font: inherit; letter-spacing: inherit; }
+  .ecard .er:last-child { border-bottom: 0; }
+  .er .k { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--g-600); }
+  .er .v { display: flex; align-items: center; gap: 4px; font-size: 14px; color: var(--g-900); white-space: nowrap; }
+  .er.tot .k, .er.tot .v { font-weight: 700; color: var(--g-900); }
+  /* Macros and calories share one filled silhouette treatment (grey ink). */
+  .eglyph { width: 18px; height: 18px; flex-shrink: 0; background: var(--g-500); }
+  .eglyph.svg { background: none; color: var(--g-500); }
+  .eglyph.svg svg { width: 18px; height: 18px; display: block; }
+  .esec { padding: 16px 0 0; }
+  .esec h5 { margin: 0 0 8px; font-size: 14px; line-height: 16.8px; font-weight: 600; color: var(--g-900); }
+  .ehd { padding: 12px 16px 2px; font-size: 12px; line-height: 18px; color: var(--g-400); }
+  /* the coach is a person, not the score */
+  .ecoach { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 12px; border-radius: var(--r-md); background: var(--g-50); border: 1px solid var(--g-200); }
+  .ecoach .av { flex-shrink: 0; width: 36px; height: 36px; border-radius: 9999px; background: var(--in-100); color: var(--in-900); font-size: 12px; font-weight: 700; display: grid; place-items: center; }
+  .ecoach .t { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .ecoach .t b { font-size: 14px; line-height: 20px; color: var(--g-900); }
+  .ecoach .t span { font-size: 12px; line-height: 18px; color: var(--g-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ecoach .msg { flex-shrink: 0; min-height: 44px; padding: 0 16px; border-radius: 9999px; border: 1px solid var(--g-300); background: #fff; color: var(--g-700); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .ecoach .msg:hover { background: var(--g-50); }
+  /* the formula is a fact, so it sits in the system's tinted panel, not in green body copy */
+  .eformula { margin: 8px 0 12px; padding: 12px; border-radius: var(--r-md); background: var(--g-100);
+    font-size: 14px; line-height: 21px; font-weight: 400; color: var(--g-700); }
+  .elist2 { margin: 8px 0 0; padding-left: 20px; }
+  .elist2 li { margin: 0 0 4px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .esec p { margin: 0 0 8px; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
+  .esec p:last-child { margin-bottom: 0; }
+  .edash { border: 0; border-top: 1px dashed var(--g-200); margin: 16px 0 0; }
+  .esheet.on { transform: translate(-50%, 0); }
+
+  /* ---- Kaira's chat sheet ----
+     The tap that opened this WAS the question, so the thread starts with it
+     already sent. Asking somebody to retype what they just tapped is what
+     makes a chat feel like a form. She answers after a beat, because an
+     answer in the same frame reads as a lookup, and the point of her being
+     here is the half a card cannot hold.
+     Ported from app/src/components/KairaChatSheet.jsx, with three things put
+     right on the way: her mark there is green with a letter K, which the
+     design system explicitly forbids, so this uses her real indigo to teal
+     one; her bubble clipped the bottom-left when the top-left is her corner
+     everywhere else in this pillar; and the close was a bare glyph when the
+     house rule is a filled circle. */
+  .ksheet { height: 90vh; }
+  .ksheet .shead { align-items: center; gap: 10px; padding: 16px var(--gut) 12px;
+    border-bottom: 1px solid var(--g-100); }
+  .ksheet .kwho { flex: 1; min-width: 0; }
+  .ksheet .kwho b { display: block; font-size: 14px; line-height: 20px; font-weight: 700; color: var(--g-900); }
+  .ksheet .kwho span { display: block; font-size: 11px; line-height: 16px; color: var(--g-500); margin-top: 1px; }
+  .ksheet .sbody { flex: 1 1 auto; display: flex; flex-direction: column; padding-top: 16px; }
+  /* Sent, past tense. The mirrored corner of hers, so the two sides of the
+     conversation are visibly the same shape facing each other. */
+  .kme { align-self: flex-end; max-width: 82%; margin-bottom: 16px; padding: 10px 13px;
+    border-radius: var(--r-lg) var(--r-lg) 4px var(--r-lg);
+    background: var(--in-50); color: var(--in-800, #2D31A6);
+    font-size: 12.5px; line-height: 1.5; }
+  .krow { display: flex; gap: 8px; margin-bottom: 10px; }
+  /* Her mark rides beside the first line only, so a two part answer reads as
+     one person talking rather than as two notifications. The gutter is held
+     open on every row so the continuations stay aligned under it. */
+  .kgut { width: 22px; flex-shrink: 0; }
+  .kbub { max-width: 88%; padding: 11px 13px; border-radius: 4px var(--r-lg) var(--r-lg) var(--r-lg);
+    background: #fff; border: 1px solid var(--in-100);
+    font-size: 12.5px; line-height: 1.55; color: var(--g-900); }
+  .krow { animation: rise .32s cubic-bezier(.32,.72,0,1) both; }
+  /* Three dots out of step with each other. The stagger is what makes it read
+     as thinking rather than as a loading bar. */
+  .kdots { display: inline-flex; gap: 4px; padding: 4px 2px; }
+  .kdots i { width: 6px; height: 6px; border-radius: 9999px; background: var(--g-400);
+    animation: kpulse 1.1s ease-in-out infinite; }
+  .kdots i:nth-child(2) { animation-delay: .18s; }
+  .kdots i:nth-child(3) { animation-delay: .36s; }
+  @keyframes kpulse { 0%,100% { opacity: .35; transform: scale(1); } 50% { opacity: 0; transform: scale(1.45); } }
+  /* A real looking box that goes nowhere on purpose. This screen has one
+     answer to give and a working field would promise a second. */
+  .kfoot { flex: 0 0 auto; display: flex; gap: 9px; align-items: center;
+    padding: 10px var(--gut) calc(18px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--g-100); }
+  .kfield { flex: 1; min-width: 0; padding: 11px 15px; border-radius: var(--r-pill);
+    background: var(--g-50); border: 1px solid var(--g-200);
+    font-size: 12.5px; color: var(--g-400); }
+  .ksend { width: 38px; height: 38px; flex-shrink: 0; border-radius: 9999px;
+    background: var(--g-50); border: 1px solid var(--g-200); color: var(--g-400);
+    display: grid; place-items: center; }
+  .open-edu .scrim { opacity: 1; pointer-events: auto; }
+
+  /* ============================================================
+     Interactive layer. The score keeps the green, Kaira keeps the
+     indigo, gold marks the one gap and the rare perfect day, and
+     teal carries the quiet explanations.
+     ============================================================ */
+
+  /* a tick that fills and springs, rather than swapping a state */
+  /* The lift lives in the keyframes (.7 to 1.14 to 1), so the curve only has
+     to decelerate. A springy cubic-bezier on top of an overshooting keyframe
+     bounces twice, and the design system's curves are ease-out anyway. */
+  .tick { transition: background .18s ease-out, border-color .18s ease-out, transform .18s cubic-bezier(.4,0,.2,1); }
+  .tickbtn:not([disabled]):active .tick, .tickbtn:not([disabled]):active .tmark { transform: scale(.88); }
+  .tick.pop { animation: tickpop .34s cubic-bezier(.25,.1,.25,1); }
+  @keyframes tickpop { 0% { transform: scale(.7); } 55% { transform: scale(1.14); } 100% { transform: scale(1); } }
+  .tick svg { animation: tickdraw .22s ease-out; }
+  @keyframes tickdraw { from { opacity: 0; transform: scale(.5); } to { opacity: 1; transform: scale(1); } }
+  .item { transition: opacity .2s ease-out; }
+  .item .nm, .item .kc { transition: color .2s ease-out; }
+
+  /* a meal that just filled up settles once, then goes quiet again */
+  .meal { transition: border-color .3s ease-out, box-shadow .3s ease-out; }
+  .meal.settled { border-color: var(--ok-300); box-shadow: 0 0 0 3px rgba(18,183,106,.08), var(--shadow-card); }
+
+  /* cards arrive in order rather than all at once */
+  .rise { animation: rise .42s cubic-bezier(.25,.1,.25,1) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  /* the score moved: a number rises off the plate and fades */
+  #heroWrap { transition: transform .22s ease-out; }
+  #heroWrap.bump { animation: bump .5s cubic-bezier(.25,.1,.25,1); }
+  @keyframes bump { 0% { transform: scale(1); } 40% { transform: scale(1.035); } 100% { transform: scale(1); } }
+  .delta { position: absolute; left: 50%; top: 42%; transform: translate(-50%, 0); font-size: 16px; font-weight: 700;
+    color: var(--ok-600); pointer-events: none; animation: deltaup 1.1s ease-out forwards; z-index: 3; }
+  .delta.down { color: var(--g-400); }
+  @keyframes deltaup { 0% { opacity: 0; transform: translate(-50%, 6px) scale(.9); } 22% { opacity: 1; transform: translate(-50%, -6px) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -34px) scale(1); } }
+
+  /* the one gap, in gold, and only when there is one */
+  .gap { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; padding: 2px 8px; border-radius: 9999px;
+    background: var(--gold-50); border: 1px solid var(--gold-200); color: var(--gold-800); font-size: 12px; font-weight: 600; letter-spacing: 0; }
+  .gap svg { width: 12px; height: 12px; }
+
+  /* undo lives in a toast, so nothing needs confirming */
+  .toast { position: fixed; left: 50%; bottom: 96px; transform: translate(-50%, 16px); width: calc(100% - var(--gut) * 2); max-width: 358px;
+    display: flex; align-items: center; gap: 12px; padding: 12px 12px 12px 16px; border-radius: var(--r-md); background: var(--g-800); color: #fff;
+    font-size: 14px; box-shadow: 0 10px 15px -3px rgba(0,0,0,.18); opacity: 0; pointer-events: none;
+    transition: opacity .2s ease-out, transform .2s ease-out; z-index: 45; }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .toast span { flex: 1; min-width: 0; }
+  .toast button { border: 0; background: none; color: #fff; font-size: 14px; font-weight: 700; cursor: pointer;
+    text-decoration: underline; padding: 6px 8px; margin: -6px -4px -6px 0; border-radius: var(--r-sm); }
+
+  /* No Reset day control. It only called location.reload(), which is what the
+     browser's own refresh already does, and it parked a demo affordance in the
+     corner of every screenshot of the real thing. */
+
+  /* the item menu */
+  .menurow { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; border: 0; background: none; text-align: left;
+    font: inherit; letter-spacing: inherit; font-size: 14px; color: var(--g-700); cursor: pointer; border-bottom: 1px solid var(--g-100); }
+  .menurow:last-child { border-bottom: 0; }
+  .menurow.warn { color: var(--red-600); }
+  .menurow .mi { width: 32px; display: grid; place-items: center; color: var(--g-400); }
+  .menurow.warn .mi { color: var(--red-600); }
+  .qty { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0 4px; }
+  .qty .lab2 { font-size: 14px; color: var(--g-700); }
+  .qty .st { display: flex; align-items: center; gap: 4px; }
+  .qty .st button { width: 44px; height: 44px; border-radius: 9999px; border: 1px solid var(--g-200); background: #fff; color: var(--g-700);
+    font-size: 20px; line-height: 1; cursor: pointer; display: grid; place-items: center; }
+  .qty .st button:hover:not([disabled]) { background: var(--g-50); }
+  .qty .st button[disabled] { color: var(--g-300); cursor: default; }
+  .qty .st b { min-width: 58px; text-align: center; font-size: 16px; }
+  /* why a food is in the plan is teaching, not action: teal, quiet */
+  .why { display: flex; gap: 12px; margin-top: 12px; padding: 12px; border-radius: var(--r-md); background: var(--teal-100); border: 1px solid var(--teal-200); }
+  .why svg { flex-shrink: 0; color: var(--teal-800); margin-top: 1px; }
+  .why p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .why.quiet { background: var(--g-50); border-color: var(--g-100); }
+  .why.quiet svg { color: var(--g-400); }
+
+
+  /* the confirm step: a quantity, a time, and where that time sends the food */
+  .cfrow + .cfrow { border-top: 1px solid var(--g-100); }
+  .cfcal { font-size: 12px; line-height: 18px; color: var(--g-500); margin: 2px 0 0; }
+  .cfmove { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 0; padding: 12px; border-radius: var(--r-md);
+    background: var(--gold-50); border: 1px solid var(--gold-200); font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .cfmove svg { flex-shrink: 0; color: var(--gold-700); margin-top: 1px; }
+
+  /* the rare day everything lands: gold, once, then gone */
+  .bloom { position: fixed; left: 50%; top: 210px; width: 320px; height: 320px; margin: -160px 0 0 -160px; border-radius: 9999px;
+    pointer-events: none; z-index: 5; background: radial-gradient(closest-side, rgba(231,193,68,.28), rgba(231,193,68,0) 70%);
+    animation: bloom 1.6s ease-out forwards; }
+  @keyframes bloom { 0% { opacity: 0; transform: scale(.5); } 30% { opacity: 1; } 100% { opacity: 0; transform: scale(1.25); } }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="col" id="col">
+
+  <div class="eatline gut">
+    <svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px;color:var(--g-900)"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
+    <b>Eat</b><span class="tag">Fuel your body right</span>
+    <button class="info" id="infoBtn" aria-label="What is nutrition sufficiency?"><svg class="ico" viewBox="0 0 24 24" style="width:20px;height:20px"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg></button>
+  </div>
+
+  <div class="dateline gut">
+    <div class="pill">
+      <button class="arr" id="prevDay" aria-label="Previous day"><svg class="ico" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <button class="lbl" id="dayBtn" aria-label="Select date" aria-haspopup="dialog"><svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span id="dayLabel">Today</span></button>
+      <button class="arr" id="nextDay" aria-label="Next day" disabled><svg class="ico" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+    </div>
+    <span class="dayd" id="dayDelta"></span>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="tint" aria-hidden="true"></div>
+    <div id="heroWrap" role="button" tabindex="0" aria-label="What is nutrition sufficiency?" style="cursor:pointer"><div id="hero"></div></div>
+    <div class="vwrap"><span class="gf-verdict flat" id="verdict"></span></div>
+  </div>
+
+  <!-- One question, two ways of answering it. ?rail=icons (the default) moves
+       the macro card up into this section; ?rail=cards keeps the stat rail. -->
+  <div class="sect" id="railSect">
+    <h2 class="gf-h gut" id="railTitle">What shaped your score?</h2>
+    <div class="gf-rail" id="rail"></div>
+    <div class="gut" id="railMacros" hidden></div>
+  </div>
+
+  <div class="gut sect" id="nutSect">
+    <h2 class="gf-h" id="nutTitle"></h2>
+    <div class="macros" id="macros"></div>
+    <div id="calstrip"></div>
+  </div>
+
+  <div class="gut sect ksect">
+    <div class="kaira">
+      <div class="say">
+        <span class="kmark" id="kairaMark"></span>
+        <p id="kairaSay"></p>
+      </div>
+      <div class="kact" id="kairaAct"></div>
+    </div>
+  </div>
+
+  <div class="gut sect">
+    <div class="sec"><h2 id="secTitle">Your meals</h2><span id="secCount"></span></div>
+    <div id="diaryIntro"></div>
+    <div id="diary"></div>
+  </div>
+
+  <div class="gf-footer" aria-hidden="true"></div>
+
+  <!-- the product's own launcher, written by assets/kaira.js -->
+  <div class="fab" id="kairaFab"></div>
+
+  <nav class="nav">
+    <button><svg class="backico" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path fill="currentColor" d="M9.409 3.444c-.015-.015-.473-.13-1.018-.255s-.997-.208-1.004-.185-.064.401-.125.84c-.124.882-.424 1.911-.744 2.555-1 2.006-2.791 3.334-4.964 3.68L1 10.165v1.773l.502.084c3.286.551 5.429 3.008 5.83 6.686.026.24.057.436.069.436.11 0 1.947-.443 1.982-.478.025-.025.006-.25-.042-.5-.531-2.765-2.053-5.015-4.027-5.955l-.474-.226 9.74-.018 6.16-.01v-1.794l-6.176-.011-9.717-.018.598-.303c1.552-.786 2.78-2.328 3.503-4.397.206-.59.517-1.934.46-1.99"/></svg>Back</button>
+    <button class="on"><svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:2.2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>Eat</button>
+    <button data-nav="trend"><svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:1.8"><path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg>Trend</button>
+    <button data-nav="learn"><svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Learn</button>
+  </nav>
+
+  <div class="scrim" id="scrim"></div>
+
+  <div class="sheet" id="dateSheet" role="dialog" aria-modal="true" aria-labelledby="dsTitle">
+    <div class="shead">
+      <h4 id="dsTitle">Select date</h4>
+      <button class="x" id="dsX" aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+    </div>
+    <div class="sbody">
+      <div class="dspad">
+        <div class="dsr" aria-hidden="true"></div>
+        <div class="dsm">
+          <button class="arr" id="dsPrev" aria-label="Previous month"><svg class="ico" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+          <span class="mo" id="dsMonth"></span>
+          <button class="arr" id="dsNext" aria-label="Next month"><svg class="ico" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+        </div>
+        <div class="dsw" id="dsWeek"></div>
+      </div>
+      <div id="dsBody"></div>
+    </div>
+  </div>
+
+  <div id="eduSheets"></div>
+</div>
+
+<!-- The chosen hero, and only the chosen hero. The other thirty live behind
+     ?hero= and are fetched on demand, so the sixty phones in the companion
+     document no longer pull three.js and thirty-one scripts each. -->
+<script src="assets/kaira.js"></script>
+<script>
+  /* Both are the product's components, so the screen only says where they go */
+  document.getElementById("kairaFab").innerHTML = GFKaira.fab("Ask KAIRA");
+  document.getElementById("kairaMark").innerHTML = GFKaira.mark(30, { halo: false });
+</script>
+<script src="heroes/plate.js"></script>
+<script src="assets/flipcoin-toast.js?v=1"></script>
+<script src="assets/plan-tray.js?v=4"></script>
+<script src="assets/flipcoin-earn.js?v=6"></script>
+<script>
+/* ============================================================
+   One table, every state. Everything below reads from it: the
+   date pill, the plate, the macros, the calorie strip, Kaira
+   and the day's meals. See STATES.md for where each one happens.
+   ============================================================ */
+
+var Q = new URLSearchParams(location.search);
+
+var KAIRA = {
+  /* Before the plan the card above already explains the job, so Kaira does not
+     repeat it. She gives the nudge that gets the first line in. */
+  noplanempty: "Start with whatever you ate last, even a cup of chai. <strong>The first log is the hardest.</strong>",
+  /* Before a plan there is nothing to measure, so Kaira does not analyse. She
+     says the one thing that matters now and hands over the ways to log. This
+     line used to sit as a heading on the macro card, which split her across
+     two blocks on a screen that only needed her once. */
+  noplan: "<strong>Keep logging.</strong> The more you log, the better your coach can help. Nothing is judged.",
+  empty: "<strong>Your targets are set.</strong> Your score starts with your first meal.",
+  first: "<strong>Protein is low so far.</strong> Add some at lunch.",
+  mid: "<strong>Protein is behind at 43g of 95g.</strong> Roasted chana at your evening snack adds 9g.",
+  full: "<strong>Protein reached 78g of 95g today</strong>, just 17g short of your target.",
+  perfect: "<strong>Every target met today.</strong> This is a day worth repeating.",
+  past: "<strong>Protein was low that day, 48g of 95g.</strong> Lunch was the gap.",
+  missed: "Nothing logged that day. <strong>Even one meal from memory helps.</strong>",
+  /* A day past its targets is still a day that got read, so this neither
+     congratulates nor scolds. It names the one thing that is actually
+     actionable tomorrow and leaves the rest alone. */
+  over: "<strong>Carbs went to 310g of 238g</strong>, mostly after 8 pm. Fibre is still short."
+};
+
+/* eaten / target per macro, in the order protein, carbs, fats, fibre */
+var STATES = {
+  mid: {
+    day: "Today", next: false,
+    hero: { score: 54, mealsIn: 3, mealSlots: 6 },
+    macros: { mode: "targets", title: "What you have eaten", v: [[43, 95], [121, 238], [32, 63], [21, 30]] },
+    cal: { mode: "fuse", eaten: 942, goal: 1900 },
+    kaira: { say: KAIRA.mid, act: "log" },
+    diary: { mode: "plan", title: "Your meals", count: "", logged: "mid" }
+  },
+  empty: {
+    day: "Today", next: false,
+    hero: { score: 0, mealsIn: 0, mealSlots: 6 },
+    /* nothing eaten yet, so the card shows what the day is aiming at rather
+       than four zeros */
+    /* the plan has landed, nothing eaten yet: the same card as any scored day, every macro at 0 of its target */
+    macros: { mode: "targets", title: "What shaped your score?", v: [[0, 95], [0, 238], [0, 63], [0, 30]] },
+    cal: { mode: "goal", goal: 1900 },
+    kaira: { say: KAIRA.empty, act: "log" },
+    diary: { mode: "plan", title: "Your meals", count: "", logged: "none" }
+  },
+  first: {
+    day: "Today", next: false,
+    hero: { score: 12, mealsIn: 1, mealSlots: 6 },
+    macros: { mode: "targets", title: "What you have eaten", v: [[5, 95], [42, 238], [6, 63], [4, 30]] },
+    cal: { mode: "fuse", eaten: 242, goal: 1900 },
+    kaira: { say: KAIRA.first, act: "log" },
+    diary: { mode: "plan", title: "Your meals", count: "", logged: "first" }
+  },
+  full: {
+    day: "Today", next: false,
+    hero: { score: 88, mealsIn: 6, mealSlots: 6 },
+    macros: { mode: "targets", title: "What you have eaten", v: [[78, 95], [226, 238], [55, 63], [26, 30]] },
+    cal: { mode: "fuse", eaten: 1740, goal: 1900 },
+    kaira: { say: KAIRA.full, act: "log" },
+    diary: { mode: "plan", title: "Your meals", count: "", logged: "all" }
+  },
+  perfect: {
+    day: "Today", next: false,
+    hero: { score: 100, mealsIn: 6, mealSlots: 6 },
+    macros: { mode: "targets", title: "What you have eaten", v: [[95, 95], [238, 238], [63, 63], [30, 30]] },
+    cal: { mode: "fuse", eaten: 1900, goal: 1900 },
+    kaira: { say: KAIRA.perfect, act: "log" },
+    diary: { mode: "plan", title: "Your meals", count: "", logged: "all" }
+  },
+  /* Every meal in and then some. Sufficiency measures whether targets were
+     met, and three of the four were, so the score stays high while the
+     calories run over: the two numbers answer different questions and this is
+     the day that proves it. */
+  over: {
+    day: "Today", next: false,
+    hero: { score: 92, mealsIn: 6, mealSlots: 6 },
+    macros: { mode: "targets", title: "What you have eaten", v: [[88, 95], [310, 238], [78, 63], [22, 30]] },
+    cal: { mode: "fuse", eaten: 2340, goal: 1900 },
+    kaira: { say: KAIRA.over, act: "log" },
+    diary: { mode: "plan", title: "Your meals", count: "", logged: "all" }
+  },
+  /* Care user before the diet consultation, nothing logged yet. There is no
+     score to show and no target to miss, so the card explains the job instead
+     of measuring it. */
+  noplanempty: {
+    day: "Today", next: false,
+    hero: { score: null, mealsIn: 0, mealSlots: 4 },
+    /* nothing to measure, so the macros card stands down entirely and Kaira's
+       card carries the teaching and the two ways to log */
+    macros: { mode: "hide" },
+    cal: { mode: "hide" },
+    kaira: { edu: 1, act: "log" },
+    diary: { mode: "free", title: "Your meals", count: "", logged: false }
+  },
+  /* Same day, food in. The grams are real from the first meal even though the
+     score is not, so the card stops explaining and starts showing. */
+  noplan: {
+    day: "Today", next: false,
+    hero: { score: null, mealsIn: 2, mealSlots: 4 },
+    macros: { mode: "grams", title: "What you have eaten",
+      v: [[54], [157], [41], [12]],
+      lock: "Your sufficiency score will unlock once your coach has assigned you a diet plan after your first consultation." },
+    cal: { mode: "line", eaten: 1213 },
+    kaira: { say: KAIRA.noplan, act: "log" },
+    diary: { mode: "free", title: "Your meals", count: "", logged: true }
+  },
+  past: {
+    day: "Mon, 14 Sep", next: true,
+    hero: { score: 61, mealsIn: 6, mealSlots: 6, dateLabel: "Monday, 14 Sep" },
+    macros: { mode: "targets", title: "What you ate", v: [[48, 95], [198, 238], [41, 63], [13, 30]] },
+    cal: { mode: "fuse", eaten: 1604, goal: 1900, still: true },
+    kaira: { say: KAIRA.past, act: "logday" },
+    diary: { mode: "past", title: "Your meals", count: "", logged: "all" }
+  },
+  missed: {
+    day: "Sun, 13 Sep", next: true,
+    hero: { score: null, mealsIn: 0, mealSlots: 6, dateLabel: "Sunday, 13 Sep" },
+    /* an empty day says so once, rather than four times in zeros */
+    macros: { mode: "blank", title: "What you ate", note: "Nothing was logged that day. You can still add it from memory." },
+    cal: { mode: "none", goal: 1900 },
+    kaira: { say: KAIRA.missed, act: "logday" },
+    diary: { mode: "past", title: "Your meals", count: "", logged: "none" }
+  },
+  loading: {
+    day: "Today", next: false,
+    hero: { score: null, mealsIn: 0, mealSlots: 6 },
+    macros: { mode: "loading" },
+    cal: { mode: "loading" },
+    kaira: { mode: "loading" },
+    diary: { mode: "loading", title: "Your meals", count: "" }
+  }
+};
+
+var NAME = Q.get("state") || "mid";
+var S = STATES[NAME] || STATES.mid;
+S.id = STATES[NAME] ? NAME : "mid";
+
+/* ?rail= picks how "What shaped your score?" answers itself. icons is the
+   default: the four macros, with their glyphs and their bars, sit under that
+   heading and there is no second macro card lower down. cards is the glass
+   stat rail. Anything else falls back to icons. On the one state with nothing
+   to measure at all, noplanempty, there are no macros to show, so that state
+   keeps the cards whichever way the flag is set. */
+var RAILMODE = Q.get("rail") === "cards" ? "cards" : "icons";
+/* meal card art: both (default), ?art=pic for the pictogram only, ?art=scene for the scene only */
+document.documentElement.dataset.art = Q.get("art") || "both";
+/* How the meal card offers "log the rest of this plan". cta is the full width
+   secondary button we shipped; tick is a parent control row that commands the
+   food rows below it; text is GoodFlip's own quiet action. */
+var ICONRAIL = RAILMODE === "icons" && S.macros.mode !== "hide";
+
+var fmt = function (n) { return n.toLocaleString("en-US"); };
+var REDUCED = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function run(dur, step) {
+  if (REDUCED) { step(1); return function () {}; }
+  var t0 = performance.now(), id = 0, live = true, done = false;
+  (function frame(t) {
+    if (!live) return;
+    /* clamped at both ends: a frame clock that does not share its timebase with
+       performance.now would otherwise drive the easing past either end and
+       print numbers that were never real */
+    var p = Math.max(0, Math.min(1, (t - t0) / dur));
+    step(1 - Math.pow(1 - p, 3));
+    if (p < 1) id = requestAnimationFrame(frame); else done = true;
+  })(t0);
+  /* a tab that stops painting still has to arrive at the right number, so the
+     last frame is guaranteed on a timer rather than left to the frame loop */
+  setTimeout(function () { if (live && !done) { done = true; step(1); } }, dur + 90);
+  return function () { live = false; cancelAnimationFrame(id); };
+}
+
+/* ============================================================
+   The day being viewed, and the calendar behind the chip.
+
+   Today is Tuesday 15 September 2026. The person joined on 1 Sep
+   and their coach set the plan on 5 Sep, so this one month holds
+   every kind of day the sheet has to draw: scored, perfect, one
+   nothing was logged on, four that came before the plan, and the
+   days that have not happened yet.
+   ============================================================ */
+var CAL = {
+  today: { y: 2026, m: 9, d: 15 },
+  join: { y: 2026, m: 9, d: 1 },
+  score: {
+    "2026-9-5": 74, "2026-9-6": 52, "2026-9-7": 88, "2026-9-8": 100, "2026-9-9": 70,
+    "2026-9-10": 46, "2026-9-11": 79, "2026-9-12": 66, "2026-9-14": 61, "2026-9-15": 54
+  },
+  /* logged, but before the plan existed, so there is nothing to score them against */
+  preplan: { "2026-9-1": 1, "2026-9-2": 1, "2026-9-3": 1, "2026-9-4": 1 }
+};
+
+var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+var SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+var WDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+var DAY_MS = 86400000;
+
+function dkey(y, m, d) { return y + "-" + m + "-" + d; }
+function dts(y, m, d) { return Date.UTC(y, m - 1, d); }
+var TODAY_TS = dts(CAL.today.y, CAL.today.m, CAL.today.d);
+var JOIN_TS = dts(CAL.join.y, CAL.join.m, CAL.join.d);
+
+function dayKind(y, m, d) {
+  var t = dts(y, m, d);
+  if (t > TODAY_TS) return "future";
+  if (t < JOIN_TS) return "before";
+  if (t === TODAY_TS) return "today";
+  if (CAL.preplan[dkey(y, m, d)]) return "preplan";
+  if (CAL.score[dkey(y, m, d)] != null) return "scored";
+  return "missed";
+}
+function dayLabel(y, m, d) {
+  return WDAY[new Date(dts(y, m, d)).getUTCDay()] + ", " + d + " " + SHORT[m - 1];
+}
+/* which page state a day opens into */
+var STATE_FOR = { today: "mid", scored: "past", missed: "missed", preplan: "noplan" };
+
+/* The day the page is actually showing. Usually ?date, but a bare ?state=past
+   or ?state=missed names its day in the chip alone, and the week strip and the
+   delta have to agree with the chip rather than with the calendar. */
+function selectedTs(day) {
+  if (day === "Today") return TODAY_TS;
+  for (var i = 1; i <= 21; i++) {
+    var t = new Date(TODAY_TS - i * DAY_MS);
+    if (dayLabel(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate()) === day) return t.getTime();
+  }
+  return TODAY_TS;
+}
+
+/* the day on screen: ?date=y-m-d, or today */
+var VIEW = (function () {
+  var raw = Q.get("date");
+  if (raw) {
+    var p = raw.split("-").map(Number);
+    if (p.length === 3 && p.every(function (n) { return n === n; })) return { y: p[0], m: p[1], d: p[2] };
+  }
+  return { y: CAL.today.y, m: CAL.today.m, d: CAL.today.d };
+})();
+var VKIND = dayKind(VIEW.y, VIEW.m, VIEW.d);
+
+/* a date in the query names the day, so the chip and the score follow it */
+if (Q.get("date") && VKIND !== "today") {
+  S.day = dayLabel(VIEW.y, VIEW.m, VIEW.d);
+  S.next = true;
+  if (VKIND === "scored") {
+    var sc = CAL.score[dkey(VIEW.y, VIEW.m, VIEW.d)];
+    S.hero.score = sc;
+    /* Sufficiency is the mean of the four capped ratios, so a day's macros can
+       be read back from its score: two nudged down, two up, mean unchanged.
+       Without this the plate and the grams under it would disagree. */
+    var T = [95, 238, 63, 30], OFF = [-6, 4, 2, 0];
+    S.macros.v = T.map(function (t, i) {
+      var p = sc >= 98 ? 1 : Math.max(0, Math.min(1, (sc + OFF[i]) / 100));
+      return [Math.round(t * p), t];
+    });
+    S.cal = { mode: "fuse", eaten: Math.round(1900 * sc / 1000) * 10, goal: 1900, still: true };
+    var pr = S.macros.v[0][0];
+    S.kaira.say = sc >= 98 ? "<strong>Every target met that day.</strong> Worth remembering what you ate."
+      : pr < 66 ? "<strong>Protein ran low that day, " + pr + "g of 95g.</strong> It is the one to watch."
+      : "Protein landed at <strong>" + pr + "g of 95g</strong> that day.";
+  }
+  /* a day before the plan, reached from the sheet, is a finished day: it stops
+     talking about tonight */
+  if (VKIND === "preplan") {
+    S.cal = { mode: "line", eaten: 1213, past: true };
+    S.kaira.say = "That day came before your plan. <strong>Your coach reads these days</strong> when they build it.";
+    S.kaira.act = "logday";
+  }
+}
+
+document.getElementById("dayLabel").textContent = S.day;
+
+(function () {
+  var col = document.getElementById("col");
+  var prevDay = document.getElementById("prevDay"), nextDay = document.getElementById("nextDay");
+  var monthEl = document.getElementById("dsMonth"), bodyEl = document.getElementById("dsBody");
+  var dsPrev = document.getElementById("dsPrev"), dsNext = document.getElementById("dsNext");
+
+  /* the sheet is a demo, so a flag can park it in a state that needs a server
+     to reach: ?sheet=1 open, and empty | loading | error */
+  var flag = Q.get("sheet");
+  var mode = flag === "loading" || flag === "error" ? flag : "grid";
+  var SHOW = { y: VIEW.y, m: VIEW.m };
+
+  document.getElementById("dsWeek").innerHTML = ["M", "T", "W", "T", "F", "S", "S"]
+    .map(function (d) { return "<span>" + d + "</span>"; }).join("");
+
+  function ring(pct, o) {
+    o = o || {};
+    var C = 2 * Math.PI * 13;
+    /* a day nothing was logged on is drawn dashed, so it reads as open rather
+       than as a day that cannot be reached */
+    return '<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">' +
+      '<circle cx="16" cy="16" r="13" fill="none" style="stroke:var(' + (o.faint ? "--g-100" : "--g-200") + ')" stroke-width="3"' +
+        (o.open ? ' stroke-dasharray="3 4" stroke-linecap="round"' : "") + "/>" +
+      (pct > 0 ? '<circle cx="16" cy="16" r="13" fill="none" style="stroke:var(--brand-600)" stroke-width="3" stroke-linecap="round" ' +
+        'stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct)).toFixed(1) + '" transform="rotate(-90 16 16)"/>' : "") +
+      (o.full ? '<circle cx="16" cy="16" r="3" style="fill:var(--brand-200)"/>' : "") + "</svg>";
+  }
+
+  function cell(y, m, d) {
+    var k = dayKind(y, m, d);
+    var sc = CAL.score[dkey(y, m, d)];
+    var off = k === "future" || k === "before";
+    var sel = VIEW.y === y && VIEW.m === m && VIEW.d === d && !off;
+    var vis = k === "preplan" ? '<span class="dsdot"></span>'
+      : off ? ring(0, { faint: true })
+      : k === "missed" ? ring(0, { open: true })
+      : ring(sc / 100, { full: sc >= 100 });
+    var says = k === "future" ? "not yet" : k === "before" ? "before you joined"
+      : k === "preplan" ? "logged, before your plan" : k === "missed" ? "nothing logged"
+      : sc + " out of 100";
+    return '<button class="dsd' + (k === "today" ? " today" : "") + (sel ? " sel" : "") + '"' + (off ? " disabled" : "") +
+      ' data-d="' + d + '" aria-label="' + d + " " + MONTHS[m - 1] + ", " + says + '"' + (sel ? ' aria-current="date"' : "") + '>' +
+      '<span class="dsn">' + d + "</span>" + vis + "</button>";
+  }
+
+  function grid() {
+    var y = SHOW.y, m = SHOW.m;
+    var first = (new Date(dts(y, m, 1)).getUTCDay() + 6) % 7;
+    var days = new Date(Date.UTC(y, m, 0)).getUTCDate();
+    var h = "";
+    for (var i = 0; i < first; i++) h += '<div class="dsblank"></div>';
+    for (var d = 1; d <= days; d++) h += cell(y, m, d);
+    return '<div class="dsg">' + h + "</div>";
+  }
+
+  function draw() {
+    monthEl.textContent = MONTHS[SHOW.m - 1] + " " + SHOW.y;
+    dsPrev.disabled = dts(SHOW.y, SHOW.m, 1) <= dts(CAL.join.y, CAL.join.m, 1);
+    dsNext.disabled = dts(SHOW.y, SHOW.m, 1) >= dts(CAL.today.y, CAL.today.m, 1);
+
+    if (mode === "loading") {
+      var sh = "";
+      for (var i = 0; i < 30; i++) {
+        sh += '<div class="dsd" style="cursor:default"><span class="shim" style="width:14px;height:12px"></span>' +
+          '<span class="shim dsshim"><i></i></span></div>';
+      }
+      bodyEl.innerHTML = '<div class="dsg">' + sh + "</div>";
+      return;
+    }
+    if (mode === "error") {
+      bodyEl.innerHTML = '<div class="dsmsg"><p>We could not load this month. Check your connection and try again.</p>' +
+        '<button class="dsretry" id="dsRetry">Retry</button></div>';
+      document.getElementById("dsRetry").onclick = function () { mode = "grid"; draw(); };
+      return;
+    }
+    bodyEl.innerHTML = grid() +
+      '<p class="dsl">The ring is your nutrition sufficiency out of 100</p>';
+  }
+
+  function go(y, m, d) {
+    var k = dayKind(y, m, d);
+    if (k === "future" || k === "before") return;
+    var q = new URLSearchParams(location.search);
+    q.set("state", STATE_FOR[k]);
+    if (k === "today") q.delete("date"); else q.set("date", dkey(y, m, d));
+    q.delete("sheet");
+    location.search = q.toString();
+  }
+  function step(delta) {
+    var t = new Date(dts(VIEW.y, VIEW.m, VIEW.d) + delta * DAY_MS);
+    go(t.getUTCFullYear(), t.getUTCMonth() + 1, t.getUTCDate());
+  }
+
+  /* the chip: back a day, forward a day, and the label opens the month */
+  prevDay.disabled = dts(VIEW.y, VIEW.m, VIEW.d) - DAY_MS < JOIN_TS;
+  nextDay.disabled = !S.next;
+  prevDay.onclick = function () { step(-1); };
+  nextDay.onclick = function () { step(1); };
+
+  var SEL_TS = selectedTs(S.day);
+
+
+  /* The delta beside the date. Grey, always, whichever way it went. A day that
+     has barely started has nothing to compare, so it says nothing rather than
+     reporting a drop that is only the clock. When empty, .solo centres the
+     date pill so the row does not look unfinished on the right. */
+  window.paintDelta = function (score, mealsIn) {
+    var el = document.getElementById("dayDelta");
+    var line = el && el.closest(".dateline");
+    if (!el) return;
+    /* A day still being lived has no number to compare. Yesterday is a whole
+       day; today is however much of one has happened. Showing "-7" against a
+       finished day punishes the user for the time of day, so the delta waits
+       until today's plan is actually complete. */
+    var running = S.day === "Today" &&
+      (mealsIn == null ? S.hero.mealsIn : mealsIn) < (S.hero.mealSlots || 6);
+    var prev = new Date(SEL_TS - DAY_MS);
+    var was = CAL.score[dkey(prev.getUTCFullYear(), prev.getUTCMonth() + 1, prev.getUTCDate())];
+    if (score == null || was == null || running) {
+      el.textContent = "";
+      if (line) line.classList.add("solo");
+      return;
+    }
+    var n = Math.round(score - was);
+    el.innerHTML = '<svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px">' +
+      (n < 0 ? '<path d="M22 17l-8.5-8.5-5 5L2 7"/><path d="M16 17h6v-6"/>'
+             : '<path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/>') +
+      "</svg>" + (n > 0 ? "+" : "") + n + " from yesterday";
+    if (line) line.classList.remove("solo");
+  };
+  window.paintDelta(S.hero.score);
+
+  var open = function () { SHOW = { y: VIEW.y, m: VIEW.m }; draw(); col.classList.add("open-date"); };
+  var close = function () { col.classList.remove("open-date"); };
+  document.getElementById("dayBtn").onclick = open;
+  document.getElementById("dsX").onclick = close;
+  dsPrev.onclick = function () { SHOW.m--; if (SHOW.m < 1) { SHOW.m = 12; SHOW.y--; } draw(); };
+  dsNext.onclick = function () { SHOW.m++; if (SHOW.m > 12) { SHOW.m = 1; SHOW.y++; } draw(); };
+  bodyEl.addEventListener("click", function (e) {
+    var b = e.target.closest(".dsd");
+    if (b && b.dataset.d) go(SHOW.y, SHOW.m, +b.dataset.d);
+  });
+  window.closeDateSheet = close;
+  if (flag === "1" || flag === "loading" || flag === "error") open();
+})();
+
+/* ---------- scripts fetched only when a flag asks for them ---------- */
+/* plate.js is the hero, so it ships in the page. Everything else, including
+   three.js and the alternate calorie strips, is a ?hero= or ?cal= experiment
+   and is pulled in only when one of those flags names it. */
+var LAZY = { three: "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js", shaders: "vendor/paper-shaders.js" };
+var HERO_DIR = {
+  cloud: "", orb: "", portal: "", smoke: "", metal: "", sunrise: "", metalhex: "", chrome: "", vortex: "",
+  aura: "", planet: "", lotus: "", blob: "", citrus: "", broth: "",
+  pebble: "backup/", gem: "backup/", stardust: "backup/", ferro: "backup/", pool: "backup/",
+  dinnerplate: "backup/", thali: "backup/", hexfood: "backup/", scale: "backup/", halo3d: "backup/",
+  halodome: "backup/", halobeads: "backup/", fluted: "backup/", merge: "backup/", jar: "backup/", sprout: "backup/"
+};
+function loadScripts(list, done) {
+  var i = 0;
+  (function next() {
+    if (i >= list.length) return done();
+    var s = document.createElement("script");
+    s.src = list[i++];
+    s.onload = next;
+    s.onerror = next;
+    document.head.appendChild(s);
+  })();
+}
+
+/* ---------- the plate ---------- */
+(function () {
+  var name = Q.get("hero") || "cloud";   /* Cloud Drop is the score; ?hero=plate brings back the old one */
+  var el = document.getElementById("hero");
+  var shown = S.hero.score == null ? "" : S.hero.score + "%";
+
+  /* an alternate hero is a flag, so it arrives with its dependencies when the
+     flag is there and costs nothing when it is not */
+  if (!(window.HEROES && window.HEROES[name]) && HERO_DIR[name] != null) {
+    /* the liquid score brings its own renderer, so it skips three.js */
+    loadScripts((name === "cloud" ? [] : [LAZY.three, LAZY.shaders]).concat("heroes/" + HERO_DIR[name] + name + ".js" + (name === "cloud" ? "?v=17" : "")), start);   /* ?v busts the cache when the liquid score is updated */
+    return;
+  }
+  start();
+
+  function start() {
+  var make = window.HEROES && window.HEROES[name];
+  if (typeof make !== "function") {
+    el.innerHTML = '<div class="hero-missing"><div><b>' + shown + '</b>Hero "' + name + '" is on its way</div></div>';
+    return;
+  }
+  /* ponytail: run the hero only while it is on screen. The gallery shows many
+     phones at once and Chrome drops the oldest WebGL contexts past ~16. */
+  var opts = { score: S.hero.score, state: S.id, mealsIn: S.hero.mealsIn, mealSlots: S.hero.mealSlots };
+  /* arriving from a log: the logger left the gain behind, so the score starts
+     where the day stood and steps up, rather than playing its intro again */
+  try {
+    var gained = +sessionStorage.getItem("gfLogged");
+    sessionStorage.removeItem("gfLogged");
+    if (gained > 0 && S.hero.score != null) opts.from = Math.max(0, S.hero.score - gained);
+  } catch (e) {}
+  /* a log earns FlipCoins: the app's coin toast lands once the score has finished stepping up. Only after a log:
+     gfLogged is set by the logger alone and cleared above on first read, so a reload never replays it */
+  if (gained > 0 && window.GFFlipcoin)
+    setTimeout(window.GFFlipcoin.show, 2000);
+  var live = null;
+  var mount = function () {
+    if (live) return;
+    el.innerHTML = "";
+    try { live = make(el, opts) || { dispose: function () {} }; }
+    catch (e) { console.error(e); live = { dispose: function () {} }; el.innerHTML = '<div class="hero-missing"><div><b>' + shown + '</b>Hero "' + name + '" failed to load</div></div>'; }
+  };
+  var unmount = function () {
+    if (!live) return;
+    try { live.dispose(); } catch (e) {}
+    live = null;
+    el.innerHTML = "";
+  };
+  if (window.top === window) {
+    mount();
+  } else {
+    window.addEventListener("message", function (e) {
+      if (e.data === "hero:mount") mount();
+      else if (e.data === "hero:unmount") unmount();
+    });
+    parent.postMessage("hero:ready", "*");
+  }
+
+  /* The hero owns its own number and only counts up when it mounts, so a live
+     score is a remount with a new one. The page pays for the wait with its own
+     feedback first: a rising delta and a pulse, both inside 400ms. */
+  var pending = null, timer = null;
+  window.setHeroScore = function (n, delta) {
+    if (opts.score === n && !delta) return;
+    opts.score = n;
+    if (delta) {
+      var wrap = document.getElementById("heroWrap");
+      wrap.classList.remove("bump");
+      void wrap.offsetWidth;
+      wrap.classList.add("bump");
+      var tag = document.createElement("div");
+      tag.className = "delta" + (delta < 0 ? " down" : "");
+      tag.textContent = (delta > 0 ? "+" : "") + delta;
+      wrap.appendChild(tag);
+      setTimeout(function () { tag.remove(); }, 1200);
+    }
+    /* if the hero can take a new number in place, let it. A day that was empty
+       or had a padlock has also crossed into a scored state, so it is told
+       which one. Otherwise the hero is remounted, which reads as a re-tally. */
+    if (live && typeof live.set === "function") {
+      window.HERO_NATIVE = true;
+      /* a history day or a locked one keeps its own face, whatever the number
+         does. A live day follows the score. */
+      var TODAY = { empty: 1, first: 1, mid: 1, full: 1, perfect: 1 };
+      var into = null;
+      if (TODAY[opts.state]) {
+        into = n <= 0 ? "empty" : n >= 100 ? "perfect" : n >= 80 ? "full" : opts.state === "empty" ? "first" : "mid";
+        if (into === opts.state) into = null; else opts.state = into;
+      }
+      live.set(n, into ? { state: into } : {});
+      return;
+    }
+    pending = n;
+    clearTimeout(timer);
+    timer = setTimeout(function () {
+      if (pending === null) return;
+      pending = null;
+      unmount();
+      mount();
+    }, 420);
+  };
+  }
+})();
+
+/* ---------- the verdict, and the wash behind the plate ----------
+   The plate keeps its own face. What follows the score is the pill under it
+   and one tint behind it, so a day that is not going well does not read green.
+   Early in the day the pill reports progress instead, because a score that is
+   meant to be low at breakfast is not a bad score.                          */
+(function () {
+  var pill = document.getElementById("verdict"), stage = document.getElementById("stage");
+  /* GoodFlip's own verdict wording, taken from the CGM screens, where the
+     emoji sits inside the text node so the status survives greyscale and is
+     never carried by colour alone. The voice is a coach, not a grader:
+     "Let's work on this", never "Needs attention". */
+  var BANDS = [[100, "ok", "\uD83C\uDF1F Every target met"], [85, "ok", "\uD83C\uDF1F You're on track"],
+               [50, "warn", "\u26C5 Room to improve"], [0, "bad", "\u26A0\uFE0F Let's work on this"]];
+
+  window.paintVerdict = function (score, mealsIn) {
+    var slots = S.hero.mealSlots || 6;
+    var live = S.day === "Today";
+    var cls = "flat", text;
+    if (S.macros.mode === "loading") {
+      pill.className = "shim";
+      pill.style.cssText = "width:120px;height:22px;border-radius:8px";
+      pill.textContent = "";
+      return;
+    }
+    if (score == null && (S.macros.mode === "grams" || S.macros.mode === "hide")) {
+      /* The plate already has a padlock in its middle. A chip under it saying
+         the score is not set is the same sentence a second time, and it is a
+         verdict slot being used to report an absence. */
+      pill.hidden = true;
+      stage.className = "stage flat";
+      /* Without a pill the plate ends on empty light, so the 40px a section
+         needs to clear a verdict is just more of the same gap. Pull the first
+         thing under the plate up to meet it.
+
+         On the next frame, not now: this runs before the macro block has
+         decided whether to hide itself, so asking now picks the section that
+         is about to disappear and the gap stays exactly as it was. */
+      requestAnimationFrame(function () {
+        var next = stage.nextElementSibling;
+        while (next && (next.hidden || next.offsetParent === null)) next = next.nextElementSibling;
+        if (next) next.classList.add("tight");
+      });
+      return;
+    }
+    pill.hidden = false;
+    if (score == null) {
+      text = "Nothing logged";
+    } else if (live && mealsIn < slots) {
+      /* Today is not finished, so there is no verdict to give: a score of 54 at
+         lunchtime is not "room to improve", it is halfway through. And it is
+         never a tally. The score measures how well the day is fed, not how many
+         meals were attended, and a plan can hold three meals or nine, so a
+         count here would bind the score to a number it does not depend on. */
+      text = mealsIn > 0 ? "\uD83C\uDF31 Building your day" : "Log your first meal";
+    } else {
+      for (var i = 0; i < BANDS.length; i++) {
+        if (score >= BANDS[i][0]) { cls = BANDS[i][1]; text = BANDS[i][2]; break; }
+      }
+    }
+    pill.className = "gf-verdict " + cls;
+    pill.textContent = text;
+    stage.className = "stage " + cls;
+  };
+  window.paintVerdict(S.hero.score, S.hero.mealsIn);
+})();
+
+/* ---------- macros ---------- */
+(function () {
+  var M = S.macros;
+  var box = document.getElementById("macros"), h2 = document.getElementById("nutTitle");
+  var nutSect = document.getElementById("nutSect");
+  /* ?rail=icons: the card itself moves up under "What shaped your score?", so
+     the screen carries one macro block rather than two. It keeps its own shape
+     and its own contents, only its heading and its place change, and the
+     section it leaves behind is the calorie block alone. The rail owns the
+     heading from here, so this card stops writing one. */
+  if (ICONRAIL) {
+    var slot = document.getElementById("railMacros");
+    slot.hidden = false;
+    slot.appendChild(box);
+    /* and its footer with it. They are one card now, so they cannot live in
+       two sections with a section margin between them. */
+    slot.appendChild(document.getElementById("calstrip"));
+    nutSect.remove();
+    document.getElementById("rail").hidden = true;
+    h2.hidden = true;
+    h2 = document.getElementById("railTitle");
+    h2.appendChild(document.createElement("span")).className = "gapslot";
+  } else {
+    /* The rail is now one card per macro plus calories, so this section would
+       print the same eight numbers a second time. The cards variant IS the
+       answer to "what shaped your score", not a preface to it. */
+    nutSect.hidden = true;
+    h2.innerHTML = (M.title || "Your nutrition") + (M.tag ? '<span class="tag">' + M.tag + '</span>' : "") + '<span class="gapslot"></span>';
+  }
+  /* nothing to measure and nothing eaten, so the section stands down and
+     Kaira's card carries the day. The first thing logged brings the calories
+     back, which is why the section is hidden rather than removed. */
+  if (M.mode === "hide") {
+    /* With no targets there is nothing that shaped anything, so the whole
+       question goes rather than being answered with two cards that say the
+       score is not set. Kaira's card below carries the day on its own. */
+    box.remove(); nutSect.hidden = true;
+    document.getElementById("railSect").hidden = true;
+    return;
+  }
+  if (M.mode === "loading") {
+    if (!ICONRAIL) h2.innerHTML = '<span class="shim" style="display:block;height:16px;width:150px"></span>';
+    box.innerHTML = '<div class="mgrid">' + [0, 1, 2, 3].map(function () {
+        return '<div class="m"><div class="shim" style="width:64px;height:16px"></div>' +
+          '<div class="shim" style="width:80px;height:24px"></div><div class="shim" style="height:4px"></div></div>';
+      }).join("") + '</div>';
+    return;
+  }
+  var LOCK = '<svg class="ico" viewBox="0 0 24 24" style="width:14px;height:14px;color:var(--g-300);margin-top:2px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+  var KMARK = '<svg width="26" height="28" viewBox="0 0 22 24" fill="none" style="flex-shrink:0;margin-top:1px"><path d="M11 1.2 20.1 6.6v10.8L11 22.8 1.9 17.4V6.6z" style="stroke:var(--in-600)" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+  /* the concentric arc watermark the system puts behind its nutrition numbers,
+     bled off the card's right edge. Decoration only, and it carries no colour. */
+  box.classList.toggle("kcard", !!M.head);
+  var head = M.head ? '<div class="mhead">' + KMARK + '<div><h4>' + M.head.title + '</h4><p>' + M.head.sub + '</p></div></div>' : "";
+  var lock = M.lock ? '<p class="mnote">' + LOCK + M.lock + '</p>' : "";
+
+  /* Macros are one colour with their own icons, never a hue each. The glyph is
+     a mask, so the flat grey the Figma uses is just the element's background. */
+  var G = [
+    { cls: "glyph-protein", name: "Protein" },
+    { cls: "glyph-carbs", name: "Carbs" },
+    { cls: "glyph-fats", name: "Fats" },
+    { cls: "glyph-fibre", name: "Fibre" }
+  ];
+  var SPARK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M3 12h3M18 12h3M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>';
+
+  function cells(vals) {
+    return G.map(function (g, i) {
+      var v = (vals || [])[i] || [0, 0], eaten = v[0], target = v[1];
+      var pct = M.mode === "goals" ? 0 : (target ? Math.max(0, Math.min(1, eaten / target)) : 0);
+      /* a day with no food in it names its targets or stays quiet, never prints
+         a column of zeros */
+      var val = M.mode === "grams" ? "<strong>" + fmt(eaten) + "g</strong>"
+        : M.mode === "goals" ? "<strong>" + fmt(target) + "</strong><span>g</span>"
+        : M.mode === "blank" ? "<span>Not logged</span>"
+        : "<strong data-n=\"" + eaten + "\">" + fmt(eaten) + "</strong><span>/" + fmt(target) + "g</span>";
+      /* with no target there is nothing to measure against, so the row carries a
+         plain rule rather than a bar that would imply one */
+      /* the glyph is the gauge: grams mode has no target so it stays a flat
+         silhouette, goals mode has nothing in it yet so it stays empty */
+      var fillCls = M.mode === "grams" ? " flat" : M.mode === "goals" || M.mode === "blank" ? " empty" : "";
+      var done = pct >= 1 ? " done" : "";
+      return '<div class="m' + done + '">' +
+        '<span class="gwrap"><span class="gfill ' + g.cls + fillCls + '"' +
+        (fillCls ? "" : ' style="--f:' + (pct * 100).toFixed(1) + '%"') + '></span></span>' +
+        '<span class="mtext"><span class="mval">' + val + '</span>' +
+        '<span class="mname">' + g.name + '</span></span></div>';
+    }).join("");
+  }
+
+  /* cells() writes the final --f inline, so a freshly built glyph would simply
+     appear at its level. Park each fill at `from`, force a reflow, then let it
+     travel. On arrival `from` is zero and the four stagger; on a repaint it is
+     wherever each glyph already stood, so a tick moves it rather than resetting.
+     The percentages are read back off the DOM, so there is no second source. */
+  function travel(grid, from) {
+    var fills = grid.querySelectorAll(".gfill");
+    var to = [].map.call(fills, function (f) { return f.style.getPropertyValue("--f") || "0%"; });
+    for (var i = 0; i < fills.length; i++) {
+      if (fills[i].classList.contains("flat") || fills[i].classList.contains("empty")) continue;
+      fills[i].style.transitionDelay = (from ? 0 : i * 90) + "ms";
+      fills[i].style.setProperty("--f", from ? from[i] || "0%" : "0%");
+    }
+    void grid.offsetWidth;
+    for (var j = 0; j < fills.length; j++) fills[j].style.setProperty("--f", to[j]);
+    return to;
+  }
+  function fillsNow(grid) {
+    return [].map.call(grid.querySelectorAll(".gfill"), function (f) {
+      return getComputedStyle(f).getPropertyValue("--f").trim() || "0%";
+    });
+  }
+
+  box.innerHTML = head +
+    '<div class="mgrid">' + cells(M.v) + '</div>' +
+    (M.note ? '<p class="mnote">' + M.note + '</p>' : "") + lock;
+
+  if (!REDUCED) { var g0 = box.querySelector(".mgrid"); if (g0) travel(g0, null); }
+
+  /* Live repaint. The glyphs cross-fade to their new fill, the grams count
+     rather than jump, and the furthest nutrient from its target is named once,
+     in gold, because that is the single thing worth acting on. */
+  window.paintMacros = function (vals, gapName, live) {
+    var grid = box.querySelector(".mgrid");
+    if (!grid) return;
+    /* the first thing logged turns a card of targets, or an empty past day,
+       into a card of real grams */
+    if (live && (M.mode === "goals" || M.mode === "blank")) {
+      M.mode = "targets";
+      /* with ?rail=icons the heading belongs to the rail, which rewrites it
+         from the same day a moment later, so this card leaves it alone */
+      if (!ICONRAIL && h2 && h2.firstChild) h2.firstChild.nodeValue = S.id === "past" || S.id === "missed" ? "What you ate" : "What you have eaten";
+      var note = box.querySelector(".mnote");
+      if (note && !M.lock) note.remove();
+    }
+    var olds = [].map.call(grid.querySelectorAll(".mval strong"), function (s) { return +s.getAttribute("data-n") || 0; });
+    var wasAt = REDUCED ? null : fillsNow(grid);
+    grid.innerHTML = cells(vals);
+    if (wasAt) travel(grid, wasAt);
+    var news = [].map.call(grid.querySelectorAll(".mval strong"), function (s) { return +s.getAttribute("data-n") || 0; });
+    if (olds.length === news.length) {
+      var nodes = grid.querySelectorAll(".mval strong");
+      run(520, function (t) {
+        for (var i = 0; i < nodes.length; i++) nodes[i].textContent = fmt(Math.round((olds[i] + (news[i] - olds[i]) * t) * 10) / 10);
+      });
+    }
+    var slot = h2.querySelector(".gapslot");
+    if (slot) slot.innerHTML = gapName ? '<span class="gap">' + SPARK + gapName + ' is the gap</span>' : "";
+  };
+})();
+
+/* ---------- the calorie budget ----------
+   Not the fuse. The fuse was decoration and it was the third green graphic in
+   a 300px run. Calories are not what the score measures, so they take the
+   system's own calorie dressing instead: an indigo wash, a warm flame, and a
+   bar that reads as a budget at a glance.                                    */
+(function () {
+  var host = document.getElementById("calstrip"), C = S.cal;
+  var sect = document.getElementById("nutSect");
+
+  /* an explicit ?cal= is the strip picker, so it wins and shows its own numbers */
+  var want = Q.get("cal");
+  if (want && C.mode === "fuse") {
+    loadScripts(["parts/cal.js"], function () {
+      var list = (window.PARTS && window.PARTS.cal) || [];
+      var opt = list.filter(function (o) { return o.id === want; })[0];
+      if (opt) opt.mount(host); else build();
+    });
+    return;
+  }
+  build();
+
+  function build() {
+  if (C.mode === "loading") {
+    host.innerHTML = '<div class="shim" style="height:78px;border-radius:12px;margin-top:12px"></div>';
+    return;
+  }
+  /* nothing logged and no goal: a bar at zero would be a picture of nothing,
+     so the block stands down and the card above does the talking. It is only
+     hidden, because the first thing logged brings it back. */
+  if (C.mode === "hide") host.hidden = true;
+
+  /* the same concentric arcs the system puts behind its calorie numbers */
+  /* GoodFlip's own calorie watermark, exported from the design system
+     (eIycxrJSM8IOSLgAavFUE4, node 5399:4628): a flame shaped frond of 17
+     nested contour lines in #E0EAFF. It used to be concentric circles drawn
+     here by hand, which was not the pattern at all. In Figma it is 131x156
+     sitting at x+238 of a 340 wide block, so it runs off the right edge. */
+  var WM = '<img class="wm" src="../icons/calorie-frond.svg" alt="" aria-hidden="true">';
+  /* the one warm gradient in the nutrition set, amber to red */
+  /* Shaheer's flame, the filled cut rather than the outlined one, in the
+     house ink. Filled because at 16px an outline loses its inner
+     detail anyway, and a solid silhouette is the same mark every
+     glyph on this screen already is. */
+  var FLAME = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">' +
+    '<path fill="#101828" d="m6.156 9.323-.002.002-.004.003-.01.008a2 2 0 0 0-.126.104 5 5 0 0 0-.302.291c-.24.253-.548.629-.837 1.132-.582 1.015-1.071 2.528-.796 4.551.271 1.997 1.11 3.666 2.528 4.83C8.021 21.404 9.935 22 12.25 22c2.387 0 4.293-.895 5.554-2.43 1.25-1.521 1.808-3.596 1.675-5.864-.128-2.176-1.313-3.827-2.36-5.285l-.299-.417c-1.142-1.612-2.043-3.097-1.824-5.175A.75.75 0 0 0 14.25 2c-.382 0-.82.118-1.242.296a6.5 6.5 0 0 0-1.373.8c-.925.698-1.85 1.75-2.343 3.156C8.8 7.654 9.05 8.99 9.41 9.963c.237.639-.02 1.27-.407 1.454a.706.706 0 0 1-.927-.31L7.27 9.576a.75.75 0 0 0-1.113-.252"/></svg>';
+
+  var shownCal = C.eaten || 0;
+  var when = S.id === "past" || S.id === "missed" || C.past ? " that day" : " today";
+
+  function right(eaten, goal) {
+    if (!goal) return "";   /* an absent target is not news */
+    var left = goal - eaten;
+    return left >= 0 ? fmt(left) + " left" + when : fmt(-left) + " over";
+  }
+  function value(eaten, goal) {
+    if (C.mode === "none") return "<b>No calories</b> logged" + when;
+    if (C.mode === "goal") return "<b>" + fmt(goal) + "</b> kcal is the goal" + when;
+    if (!goal) return "<b>" + fmt(eaten) + "</b> kcal";
+    return "<b>" + fmt(eaten) + "</b> of " + fmt(goal) + " kcal";
+  }
+  function pct(eaten, goal) { return goal ? Math.max(0, Math.min(1, eaten / goal)) : 0; }
+
+  function draw(eaten, goal) {
+    var over = goal && eaten > goal;
+    host.innerHTML = '<div class="calc' + (over ? " over" : "") + (goal ? "" : " slim") + '">' + WM +
+      '<div class="ch"><span class="ct">' + FLAME + 'Calories</span>' +
+      '<span class="cr">' + (C.mode === "goal" ? "Log a meal to start the count" : right(eaten, goal)) + '</span></div>' +
+      '<div class="cv">' + value(eaten, goal) + '</div>' +
+      (goal ? '<span class="cb"><i style="width:0%"></i></span>' : "") + "</div>";
+  }
+
+  function fillTo(eaten, goal, delay) {
+    var i = host.querySelector(".cb i");
+    if (!i) return;
+    var w = (pct(eaten, goal) * 100).toFixed(1) + "%";
+    if (REDUCED || C.still) { i.style.width = w; return; }
+    setTimeout(function () { i.style.width = w; }, delay);
+  }
+
+  if (C.mode !== "hide") {
+    draw(C.eaten || 0, C.goal || 0);
+    fillTo(C.mode === "goal" ? 0 : C.eaten || 0, C.goal || 0, 80);
+  }
+
+  /* Live repaint. The number counts across and the bar slides on from where it
+     already is. The first thing logged on an empty day turns the goal line
+     into a budget. */
+  window.paintCal = function (eaten, goal) {
+    goal = goal || C.goal || 0;
+    var cv = host.querySelector(".cv"), cr = host.querySelector(".cr");
+    /* a block that was standing down, or was a goal line, becomes a budget */
+    if (!cv || (goal && !host.querySelector(".cb")) || C.mode === "goal" || C.mode === "none") {
+      if (eaten <= 0 && (C.mode === "goal" || C.mode === "none" || C.mode === "hide")) return;
+      C.mode = goal ? "fuse" : "line";
+      host.hidden = false;
+      if (sect) sect.hidden = false;
+      draw(eaten, goal); shownCal = eaten; fillTo(eaten, goal, 30); return;
+    }
+    var was = shownCal;
+    shownCal = eaten;
+    host.querySelector(".calc").classList.toggle("over", !!(goal && eaten > goal));
+    run(520, function (t) {
+      var n = Math.round(was + (eaten - was) * t);
+      cv.innerHTML = value(n, goal);
+      if (cr) cr.textContent = right(n, goal);
+    });
+    fillTo(eaten, goal, 0);
+  };
+  }
+})();
+
+/* ---------- the nutrition sufficiency sheet ----------
+   One sheet, opened from the info icon and from the score. The hero is the
+   same Cloud Drop as the day view (compact), so the number, orbs and status
+   tag match what the person just saw. A quiet grey wash sits behind it, then
+   the intake card and short sections. Three states: a day with a score, a day
+   before the plan exists, and a finished earlier day.                     */
+(function () {
+  var col = document.getElementById("col"), host = document.getElementById("eduSheets");
+
+  var XICON = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg>';
+  /* Filled flame, same cut as the logger: one solid silhouette like the macros. */
+  var FLAME = '<span class="eglyph svg" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path fill="currentColor" d="m6.156 9.323-.002.002-.004.003-.01.008a2 2 0 0 0-.126.104 5 5 0 0 0-.302.291c-.24.253-.548.629-.837 1.132-.582 1.015-1.071 2.528-.796 4.551.271 1.997 1.11 3.666 2.528 4.83C8.021 21.404 9.935 22 12.25 22c2.387 0 4.293-.895 5.554-2.43 1.25-1.521 1.808-3.596 1.675-5.864-.128-2.176-1.313-3.827-2.36-5.285l-.299-.417c-1.142-1.612-2.043-3.097-1.824-5.175A.75.75 0 0 0 14.25 2c-.382 0-.82.118-1.242.296a6.5 6.5 0 0 0-1.373.8c-.925.698-1.85 1.75-2.343 3.156C8.8 7.654 9.05 8.99 9.41 9.963c.237.639-.02 1.27-.407 1.454a.706.706 0 0 1-.927-.31L7.27 9.576a.75.75 0 0 0-1.113-.252"/></svg></span>';
+
+  /* what this day knows */
+  var M = S.macros || {}, TGT = [95, 238, 63, 30];
+  var NUTS = [
+    { cls: "glyph-protein", name: "Protein" }, { cls: "glyph-carbs", name: "Carbs" },
+    { cls: "glyph-fats", name: "Fats" }, { cls: "glyph-fibre", name: "Fibre" }
+  ];
+  var LOCKED = M.mode === "grams" || M.mode === "hide";
+  var PAST = S.day !== "Today";
+  var SCORE = S.hero.score;
+  var VALS = M.v || [];
+  function val(i) {
+    var v = VALS[i] || [];
+    return { eaten: v[0] || 0, target: v.length > 1 ? v[1] : null };
+  }
+
+  var rows = NUTS.map(function (n, i) {
+    var v = val(i), txt;
+    /* the card says "intake" once in its heading, so a row is only its number */
+    if (LOCKED) txt = M.mode === "grams" ? v.eaten + "g" : "0g";
+    else if (SCORE == null) txt = "None";
+    else txt = fmt(v.eaten) + " of " + fmt(v.target || TGT[i]) + "g";
+    return '<div class="er"><span class="k"><span class="' + n.cls + ' eglyph"></span>' + n.name + '</span>' +
+      '<span class="v">' + txt + "</span></div>";
+  }).join("");
+  var CAL = S.cal || {};
+  var calRow = LOCKED ? fmt(CAL.eaten || 0) + " kcal"
+    : CAL.mode === "none" ? "None"
+    : fmt(CAL.eaten || 0) + " of " + fmt(CAL.goal || 1900) + " kcal";
+  var head = SCORE == null && !LOCKED ? "Your intake, nothing logged" : "Your intake";
+  var card = '<div class="ecard"><div class="ehd">' + head + "</div>" + rows +
+    '<div class="er"><span class="k">' + FLAME + "Calories</span>" +
+    '<span class="v">' + calRow + "</span></div></div>";
+
+  /* Hero: the day view's Cloud Drop, shorter. The score, orbs and tag live
+     inside it; a quiet caption only adds the day when it is not today. */
+  var caption = LOCKED ? "Your score unlocks once your plan is ready"
+    : SCORE == null ? "Nothing was logged on " + S.day
+    : PAST ? S.day : "";
+  var hero = '<div class="ehero"><div class="eg" id="esGauge"></div>' +
+    (caption ? '<div class="ecap">' + caption + "</div>" : "") + "</div>";
+
+  /* Mount the liquid score only while the sheet is open, so it shares one
+     WebGL context with the day view rather than holding a second forever. */
+  function sheetHeroSrc() {
+    /* still=1: settle at the final score, no pour / spin — the day view already
+       played that once. */
+    var q = "heroes/cloud/index.html?build=17&embed=1&y=.03&v=Cloud%20Drop&still=1";
+    if (LOCKED) return q + "&lock=" + (S.id === "noplanempty" ? "lit" : "quiet");
+    if (SCORE == null) return q + "&score=0&tag=none";
+    q += "&score=" + Math.round(SCORE);
+    if ((S.hero.mealsIn || 0) === 0) q += "&tag=log";
+    return q;
+  }
+  function mountSheetHero() {
+    var el = document.getElementById("esGauge");
+    if (!el || el.querySelector("iframe")) return;
+    el.innerHTML = '<iframe title="" tabindex="-1" aria-hidden="true" src="' + sheetHeroSrc() + '"></iframe>';
+  }
+  function unmountSheetHero() {
+    var el = document.getElementById("esGauge");
+    if (el) el.innerHTML = "";
+  }
+
+  var C = S.cal || {};
+
+  /* who set the targets, and the way to change them, as a card rather than a
+     sentence: the app shows the coach the same way on its calorie sheet */
+  var COACHCARD =
+    '<div class="ecoach">' +
+      '<span class="av">SC</span>' +
+      '<span class="t"><b>Sahana Chandra</b><span>Eat coach · Set 14 Aug</span></span>' +
+      '<button class="msg">Message</button>' +
+    "</div>";
+
+  /* one set of words for every state: nothing here depends on whether a plan
+     exists or a score has started */
+  var SECS = [
+    { h: "What is Eat?", p: ["Everything you eat in a day, kept in one place. Your coach's plan, what you really ate, and how the two line up."] },
+    { h: "What is nutrition sufficiency?", p: [
+      "Nutrition sufficiency is one number, out of 100, for how much of your day's targets you actually met. It begins at zero each morning and grows with every meal you log, so half a day logged reads as half a day, not as a bad one."] },
+    { h: "How your score works", p: [
+      "Your score shows how well today's food matched the targets your coach set for you.",
+      "<b>Protein and fibre:</b> reach your target. Going over is fine.",
+      "<b>Carbs and fats:</b> stay close to your target. A little over is okay, but too much brings your score down.",
+      "<b>Calories:</b> eating a lot more than your day's target takes a few points off."] },
+    { h: "How does it help?", li: [
+      "Steady energy, instead of an afternoon slump.",
+      "Your body gets what it needs to repair and recover.",
+      "It shows your coach what to change next."] },
+    { h: "Where do your targets come from?", p: [
+      "Your coach sets them for you after your consultation, from your goal, your body and your health. Until then there is nothing to measure against, so the score waits while you keep logging.",
+      "They change whenever your plan changes."], coach: true }
+  ];
+
+  var secs = SECS.map(function (x, i) {
+    return (i ? '<hr class="edash">' : "") + '<div class="esec"><h5>' + x.h + "</h5>" +
+      (x.f ? '<p class="eformula">' + x.f + "</p>" : "") +
+      (x.p ? x.p.map(function (t) { return "<p>" + t + "</p>"; }).join("") : "") +
+      (x.li ? '<ul class="elist2">' + x.li.map(function (t) { return "<li>" + t + "</li>"; }).join("") + "</ul>" : "") +
+      (x.coach ? COACHCARD : "") + "</div>";
+  }).join("");
+
+  host.innerHTML = '<div class="sheet esheet" id="es-suff" role="dialog" aria-modal="true" aria-labelledby="est-suff">' +
+    '<div class="shead"><h4 id="est-suff">Nutrition sufficiency</h4>' +
+      '<button class="x" id="esX" aria-label="Close">' + XICON + "</button></div>" +
+    '<div class="sbody">' + hero + card + secs + "</div></div>";
+
+  var sheet = document.getElementById("es-suff");
+  var open = function () {
+    window.closeSheets();
+    sheet.classList.add("on");
+    col.classList.add("open-edu");
+    mountSheetHero();
+  };
+  /* the backdrop and Escape close whichever sheet is up, including the ones the
+     interactive layer adds later */
+  var close = function () {
+    [].forEach.call(document.querySelectorAll(".esheet.on"), function (s) { s.classList.remove("on"); });
+    col.classList.remove("open-edu");
+    col.classList.remove("open-date");
+    unmountSheetHero();
+  };
+  window.closeSheets = close;
+  document.getElementById("infoBtn").onclick = open;
+  document.getElementById("esX").onclick = close;
+  document.getElementById("scrim").onclick = close;
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+
+  var plate = document.getElementById("heroWrap");
+  plate.onclick = open;
+  plate.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } };
+
+  var flag = Q.get("sheet");
+  if (flag === "suff" || flag === "info") open();
+})();
+
+/* ---------- diary ---------- */
+var I = {
+  /* pathLength="1" so a stroke-dasharray of 1 means the whole stroke, which is
+     what lets the tip's mark draw its check on rather than switch it on. It
+     changes nothing for the food ticks, which set no dasharray. */
+  check: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M20 6L9 17l-5-5"/></svg>',
+  checkG: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+  /* a plus in a square, so it is visibly not the round tick a planned food
+     carries: this adds something the plan never listed */
+  plusSq: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>',
+  info: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="stroke:var(--g-400)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>',
+  /* The production CTA icons: Font Awesome 5 solid via react-icons, which
+     stamps fill="currentColor" and stroke-width="0", so they are solid
+     silhouettes rather than the outlined pair the rest of this screen uses.
+     The microphone's viewBox is 352 x 512, and the app forces it into a
+     square 16 box, so it renders very slightly narrowed. Kept as the app has
+     it, because matching it is the point. */
+  camFill: '<svg viewBox="0 0 512 512" fill="currentColor" aria-hidden="true"><path d="M512 144v288c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V144c0-26.5 21.5-48 48-48h88l12.3-32.9c7-18.7 24.9-31.1 44.9-31.1h125.5c20 0 37.9 12.4 44.9 31.1L376 96h88c26.5 0 48 21.5 48 48zM376 288c0-66.2-53.8-120-120-120s-120 53.8-120 120 53.8 120 120 120 120-53.8 120-120zm-32 0c0 48.5-39.5 88-88 88s-88-39.5-88-88 39.5-88 88-88 88 39.5 88 88z"/></svg>',
+  micFill: '<svg viewBox="0 0 352 512" fill="currentColor" aria-hidden="true"><path d="M176 352c53.02 0 96-42.98 96-96V96c0-53.02-42.98-96-96-96S80 42.98 80 96v160c0 53.02 42.98 96 96 96zm160-160h-16c-8.84 0-16 7.16-16 16v48c0 74.8-64.49 134.82-140.79 127.38C96.71 376.89 48 317.11 48 250.3V208c0-8.84-7.16-16-16-16H16c-8.84 0-16 7.16-16 16v40.16c0 89.64 63.97 169.55 152 181.69V464H96c-8.84 0-16 7.16-16 16v16c0 8.84 7.16 16 16 16h160c8.84 0 16-7.16 16-16v-16c0-8.84-7.16-16-16-16h-56v-33.77C285.71 418.47 352 344.9 352 256v-48c0-8.84-7.16-16-16-16z"/></svg>',
+  cam: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>',
+  mic: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/></svg>',
+  dash: '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M5 12h14"/></svg>',
+  pen: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>'
+};
+
+/* The two doors Kaira offers, both named, with Snap the single primary.
+   Searching a food by name is the meal card's +, which is where a person is
+   already looking when they know what the food was. */
+var DOORS = '<div class="btns">' +
+  '<button class="kbtn" data-door="snap"><span>' + I.camFill + '<b>Snap</b></span></button>' +
+  '<button class="kbtn out" data-door="voice"><span>' + I.micFill + '<b>Voice</b></span></button></div>';
+
+/* Every food carries its macros per unit, taken from the app's own food table
+   (app/src/screens/log/foods.js), so calories are derived, not typed, and a
+   quantity change moves all four nutrients together. */
+var f = function (name, unit, n, p, c, fa, fb, why) {
+  var it = { name: name, unit: unit, n: n, p: p, c: c, fa: fa, fb: fb, why: why || "" };
+  it.qty = n > 1 ? n + " x " + unit : unit;
+  it.cal = Math.round((p * 4 + c * 4 + fa * 9) * n);
+  return it;
+};
+var MEALS = [
+  { id: "pre", name: "Pre-breakfast", time: "6:00 - 7:00 AM", core: false,
+    opts: [[f("Black tea with cinnamon", "1 cup", 1, 0, 2.5, 0, 0, "Cinnamon is here for blood sugar, and the tea is unsweetened so it costs you nothing.")],
+      [f("Jeera water", "1 glass", 1, 0, 0.7, 0, 0, "It wakes digestion up before the first real meal.")]] },
+  { id: "bf", name: "Breakfast", time: "8:00 - 10:00 AM", core: true,
+    extras: [f("Banana", "1 piece", 1, 1, 25, 0, 3)],
+    opts: [
+      [f("Boiled egg", "1 egg", 2, 6, 1, 5, 0, "Two eggs carry 12g of protein, which is the single biggest lever on your morning score."),
+       f("Lauki oats besan chilla", "1 piece", 2, 3.5, 10, 2.5, 2, "Besan brings protein where a plain oats bowl would not, and lauki adds volume for very little."),
+       f("Green chutney", "1 spoon", 2, 0, 1, 0, 0.5, "Flavour without oil, so the chilla does not need any."),
+       f("Curd", "1 katori", 1, 5, 7, 3, 0, "Protein plus the culture your gut wants, and it cools the meal.")],
+      [f("Vegetable poha", "1 bowl", 1, 5, 42, 6, 4, "Your carb anchor for the morning, with vegetables folded in so the fibre comes free."),
+       f("Curd", "1 katori", 1, 5, 7, 3, 0, "Poha alone is mostly carbs, so curd is what keeps this option's protein honest."),
+       f("Boiled egg", "1 egg", 1, 6, 1, 5, 0, "One egg is the cheapest 6g of protein on the plan.")],
+      [f("Idli", "1 piece", 2, 2, 13, 0.5, 1, "Steamed, fermented and easy on the stomach, which is why it opens the day well."),
+       f("Sambar", "1 katori", 1, 4, 14, 3, 4, "The dal in it is what turns idli from a carb plate into a meal."),
+       f("Curd", "1 katori", 1, 5, 7, 3, 0, "Protein plus the culture your gut wants, and it cools the meal."),
+       f("Boiled egg", "1 egg", 1, 6, 1, 5, 0, "One egg is the cheapest 6g of protein on the plan.")]
+    ],
+    tips: [{ title: "Drink warm methi seed water before breakfast", tip: "Soak a spoon of seeds overnight. Drink the water first thing.", done: true }] },
+  { id: "lunch", name: "Lunch", time: "1:00 - 3:00 PM", core: true,
+    opts: [
+      [f("Dahi, low-fat", "1 bowl", 1, 9, 12, 3, 0, "Nine grams of protein for very little fat, and it sits well with a warm meal."),
+       f("Garden salad", "1 bowl", 1, 1, 3.5, 0, 3, "Eaten first, it slows everything after it down. That is the whole point of it."),
+       f("Vegetable quinoa pulao", "1 bowl", 1, 6, 28, 4, 5, "Quinoa carries protein a rice pulao does not, so lunch does not lean on the dal alone."),
+       f("Rajma", "1 katori", 1, 9, 25, 3, 7, "Seven grams of fibre in one katori, which is a quarter of your day.")],
+      [f("Roti", "1 piece", 2, 3, 15, 2, 2, "Two rotis are your carb budget for lunch, measured so the evening still has room."),
+       f("Mixed veg sabzi", "1 katori", 1, 3, 12, 6, 4, "The fibre and the colour. Keep the oil to one spoon and it stays cheap."),
+       f("Dal", "1 katori", 1, 9, 20, 4, 5, "Roti and dal together make a complete protein, which neither is on its own."),
+       f("Garden salad", "1 bowl", 1, 1, 3.5, 0, 3, "Eaten first, it slows everything after it down. That is the whole point of it.")]
+    ] },
+  { id: "snack", name: "Evening snack", time: "5:00 - 6:30 PM", core: true,
+    opts: [[f("Roasted makhana", "1 bowl", 1, 3, 18, 1.5, 2, "It fills the 6pm gap for under 100 calories, which is why it is here and not a biscuit."),
+      f("Roasted chana", "1 handful", 1, 9, 27, 4, 6, "Nine grams of protein from a snack is rare. This is the one that protects your dinner.")],
+      [f("Roasted chana", "1 handful", 1, 9, 27, 4, 6, "Nine grams of protein from a snack is rare. This is the one that protects your dinner."),
+       f("Curd", "1 katori", 1, 5, 7, 3, 0, "Protein plus the culture your gut wants, and it cools the meal.")]] },
+  { id: "dinner", name: "Dinner", time: "8:00 - 9:30 PM", core: true,
+    opts: [
+      [f("Multigrain roti", "1 piece", 2, 2.5, 13, 2, 3, "More fibre than a wheat roti for the same calories, and at night that matters more."),
+       f("Mixed veg sabzi", "1 katori", 1, 3, 12, 6, 4, "The fibre and the colour. Keep the oil to one spoon and it stays cheap."),
+       f("Dal", "1 katori", 1, 9, 20, 4, 5, "Protein last thing at night is what keeps the morning reading steady."),
+       f("Garden salad", "1 bowl", 1, 1, 3.5, 0, 3, "Eaten first, it slows everything after it down. That is the whole point of it.")],
+      [f("Dal khichdi", "1 bowl", 1, 8, 38, 6, 5, "One pot, light on the stomach, and the dal in it still brings 8g of protein."),
+       f("Curd", "1 katori", 1, 5, 7, 3, 0, "Protein plus the culture your gut wants, and it cools the meal."),
+       f("Mixed veg sabzi", "1 katori", 1, 3, 12, 6, 4, "The fibre and the colour. Keep the oil to one spoon and it stays cheap."),
+       f("Garden salad", "1 bowl", 1, 1, 3.5, 0, 3, "Eaten first, it slows everything after it down. That is the whole point of it.")]
+    ] },
+  { id: "bed", name: "Bedtime", time: "10:00 - 11:00 PM", core: false,
+    opts: [[f("Walnut", "1 piece", 2, 0.6, 0.5, 2.6, 0.3, "Two walnuts are for the fat, not the calories. They are the last small thing of the day."),
+      f("Chamomile tea", "1 cup", 1, 0, 0.5, 0, 0, "It is here to end the day, not to feed you.")]],
+    tips: [{ title: "Soak 5 almonds ready for tomorrow morning", tip: "In a small bowl of water, before bed. Peel them in the morning.", done: false }] }
+];
+
+/* Each meal's suggested window, read back out of the line the card already
+   shows, in minutes. The app decides a log's meal from the time it was eaten,
+   so the window is what the confirm step measures a chosen time against. */
+function mins(s) {
+  var p = s.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i);
+  var h = +p[1] % 12;
+  if (p[3] && p[3].toUpperCase() === "PM") h += 12;
+  return h * 60 + +p[2];
+}
+function clock(t) {
+  t = (t + 1440) % 1440;
+  var h = Math.floor(t / 60), m = t % 60;
+  return (h % 12 || 12) + ":" + (m < 10 ? "0" : "") + m + " " + (h < 12 ? "AM" : "PM");
+}
+MEALS.forEach(function (m) {
+  var e = m.time.split(" - "), ap = (e[1].match(/AM|PM/i) || [""])[0];
+  m.from = mins(/AM|PM/i.test(e[0]) ? e[0] : e[0] + " " + ap);
+  m.to = mins(e[1]);
+  m.at = m.from + 30; /* where the confirm step opens: half an hour in */
+});
+/* the meal a time belongs to: the window it falls in, else the nearest one */
+function mealAt(t) {
+  var best = null, near = 1e9;
+  MEALS.forEach(function (m) {
+    if (S.diary.mode === "free" && !m.core) return;
+    var gap = t < m.from ? m.from - t : t > m.to ? t - m.to : 0;
+    if (gap < near) { near = gap; best = m; }
+  });
+  return best;
+}
+
+/* which option each meal is on, and which of its items are logged */
+var LOGS = {
+  none: {},
+  first: { bf: { opt: 1, done: [0] } },
+  mid: { pre: { opt: 0, done: [0] }, bf: { opt: 0, done: "all", extras: true }, lunch: { opt: 1, done: [0, 1, 2] } },
+  all: { pre: { opt: 0, done: "all" }, bf: { opt: 0, done: "all", extras: true }, lunch: { opt: 1, done: "all" },
+    snack: { opt: 0, done: "all" }, dinner: { opt: 0, done: "all" }, bed: { opt: 0, done: "all" } }
+};
+
+(function applyLogs() {
+  var L = LOGS[S.diary.logged] || LOGS.none;
+  MEALS.forEach(function (m) {
+    var l = L[m.id];
+    m.chosen = l ? l.opt : -1;
+    m.show = l ? l.opt : 0;
+    m.logExtras = !!(l && l.extras);
+    m.opts.forEach(function (items, oi) {
+      items.forEach(function (it, ii) {
+        it.done = !!(l && oi === l.opt && (l.done === "all" || (l.done || []).indexOf(ii) > -1));
+      });
+    });
+    /* anything logged outside the plan sits in one list above it, whether it
+       came with the day or was added by hand just now */
+    m.manual = (m.logExtras ? (m.extras || []).slice() : []);
+    m.manual.forEach(function (it) { it.done = true; });
+    m.tips && m.tips.forEach(function (t) { t.done = S.diary.logged === "all" || (S.diary.logged === "mid" && t.title.indexOf("methi") > -1); });
+  });
+})();
+
+var sum = function (xs) { return xs.reduce(function (n, x) { return n + x.cal; }, 0); };
+var RO = S.diary.mode === "past";
+
+/* ============================================================
+   The live day.
+
+   The state table's numbers stay authoritative on open, so every
+   documented state still reads exactly as STATES.md says. From
+   there each thing ticked, added or removed applies its own
+   macros as a delta, and the score is recomputed the real way:
+   the mean of four ratios, each capped at its target.
+   ============================================================ */
+var MK = ["p", "c", "fa", "fb"];
+var MNAME = ["Protein", "Carbs", "Fats", "Fibre"];
+var TGT = (S.macros.v || []).map(function (v) { return v[1]; });
+var SCORED = S.hero.score !== null && TGT.length === 4 && TGT[0];
+var GOAL = S.cal.goal || 0;
+
+var LIVE = { cal: S.cal.eaten || 0 };
+MK.forEach(function (k, i) { LIVE[k] = ((S.macros.v || [])[i] || [0])[0] || 0; });
+
+/* How a coach's plan food gets logged: "card" (the default) logs it on this
+   screen from a bar at the bottom; "logger" sends the tick to the logging
+   screen as before. ?plog= picks, and the choice is remembered. */
+var PLOG = (function () {
+  var v = Q.get("plog");
+  try { if (v) localStorage.setItem("gfPlog", v); else v = localStorage.getItem("gfPlog"); } catch (e) {}
+  return v === "logger" ? "logger" : "card";
+})();
+/* a log made from the bar comes back here as the page reloads under the win
+   moment: those foods are ticked and counted, once, and only on the same day */
+(function inlineLogs() {
+  var raw = null;
+  try { raw = JSON.parse(sessionStorage.getItem("gfInline") || "null"); sessionStorage.removeItem("gfInline"); } catch (e) {}
+  if (!raw || Date.now() - raw.t > 20000 || raw.state !== (Q.get("state") || "")) return;
+  var m = MEALS.filter(function (x) { return x.id === raw.meal; })[0];
+  if (!m) return;
+  raw.refs.forEach(function (ref) {
+    var p = ref.split("|"), it = (m.opts[+p[1]] || [])[+p[2]];
+    if (it && !it.done) { it.done = true; apply(it, 1); }
+  });
+  if (m.chosen < 0) m.chosen = raw.opt;
+  m.show = raw.opt;
+  /* land at the top, where the score is stepping up, as a log from the logger does */
+  try { history.scrollRestoration = "manual"; } catch (e) {}
+  window.scrollTo(0, 0);
+})();
+
+function rawScore(t) {
+  if (!SCORED) return null;
+  var s = 0;
+  MK.forEach(function (k, i) { s += Math.min(1, TGT[i] ? t[k] / TGT[i] : 0); });
+  return Math.round(s / MK.length * 100);
+}
+/* the table's score wins on open, so the difference between it and the formula
+   is carried forward rather than snapping away on the first tick */
+var LIFT = SCORED ? S.hero.score - rawScore(LIVE) : 0;
+var SHOWN = SCORED ? S.hero.score : null;
+
+function apply(it, sign) {
+  MK.forEach(function (k) { LIVE[k] = Math.max(0, Math.round((LIVE[k] + sign * it[k] * it.n) * 10) / 10); });
+  LIVE.cal = Math.max(0, LIVE.cal + sign * it.cal);
+}
+
+/* the nutrient furthest from its target, which is the one thing worth saying */
+function gapIdx() {
+  if (!SCORED) return -1;
+  var worst = -1, low = 1;
+  MK.forEach(function (k, i) {
+    var r = TGT[i] ? LIVE[k] / TGT[i] : 1;
+    if (r < low) { low = r; worst = i; }
+  });
+  return low >= 0.999 ? -1 : worst;
+}
+
+/* the biggest untouched source of one nutrient still left on today's plan, so
+   the fix Kaira offers is always something the day can still do */
+function bestLeft(k) {
+  var best = null;
+  MEALS.forEach(function (m) {
+    var items = m.opts[m.chosen < 0 ? m.show : m.chosen] || [];
+    items.forEach(function (it) {
+      if (it.done || it[k] * it.n <= 0) return;
+      if (!best || it[k] * it.n > best.it[k] * best.it.n) best = { it: it, m: m };
+    });
+  });
+  return best;
+}
+var kairaSay = document.getElementById("kairaSay");
+/* early in a scored day (1 to 3 meals in), every KAIRA line ends on the same
+   ask: the score only grows with logging */
+function nudge(html) {
+  var n = mealsIn();
+  return SCORED && S.day === "Today" && n >= 1 && n <= 3
+    ? html + " Keep logging all your meals to grow your sufficiency score." : html;
+}
+function speak() {
+  if (!kairaSay || S.kaira.edu || S.kaira.mode === "loading") return;
+  var g = gapIdx();
+  if (g < 0) { kairaSay.innerHTML = KAIRA.perfect; return; }
+  if (LIVE.cal <= 0) { kairaSay.innerHTML = nudge(S.kaira.say); return; }
+  var lag = "<strong>" + MNAME[g] + " is behind at " + fmt(Math.round(LIVE[MK[g]] * 10) / 10) + "g of " + TGT[g] + "g.</strong>";
+  var b = bestLeft(MK[g]);
+  kairaSay.innerHTML = nudge(b
+    ? lag + " " + b.it.name + " at your " + b.m.name.toLowerCase() + " adds " + Math.round(b.it[MK[g]] * b.it.n * 10) / 10 + "g."
+    : lag + " Your plan is done for today.");
+}
+
+var bloomed = S.hero.score === 100;
+function refresh() {
+  var vals = MK.map(function (k, i) { return [Math.round(LIVE[k] * 10) / 10, TGT[i]]; });
+  var g = gapIdx();
+  if (window.paintMacros) window.paintMacros(vals, g > -1 && LIVE.cal > 0 ? MNAME[g] : "", LIVE.cal > 0);
+  if (window.paintCal) window.paintCal(Math.round(LIVE.cal), GOAL);
+  if (SCORED) {
+    var next = Math.max(0, Math.min(100, rawScore(LIVE) + LIFT));
+    if (window.setHeroScore) window.setHeroScore(next, next - SHOWN);
+    SHOWN = next;
+    /* the one day everything lands gets one bloom of light, and only once. The
+       plate blooms for itself when it can, so the page does not do it twice. */
+    if (next === 100 && !bloomed && !REDUCED && !window.HERO_NATIVE) {
+      bloomed = true;
+      var b = document.createElement("div");
+      b.className = "bloom";
+      document.body.appendChild(b);
+      setTimeout(function () { b.remove(); }, 1700);
+    }
+    if (next < 100) bloomed = false;
+  }
+  speak();
+  /* the rail, the verdict and the delta all read the same day, so they move
+     together with the score rather than going stale behind it */
+  if (window.paintRail) window.paintRail();
+  if (window.paintVerdict) window.paintVerdict(SHOWN, mealsIn());
+  if (window.paintDelta) window.paintDelta(SHOWN, mealsIn());
+}
+
+/* ---------- rows ---------- */
+function itemRow(it, opts) {
+  opts = opts || {};
+  var dis = RO;
+  var lab = it.done ? it.name + " is logged, tap for options" : "Log " + it.name;
+  return '<div class="item' + (it.done ? " done" : "") + '" data-ref="' + opts.ref + '">' +
+    '<button class="tickbtn"' + (dis ? " disabled" : "") + ' aria-label="' + lab + '" aria-pressed="' + (it.done ? "true" : "false") + '">' +
+      '<span class="tick' + (it.done ? " on" : "") + '">' + (it.done ? I.check : "") + '</span></button>' +
+    '<span class="nm">' + it.name + '<span>' + it.qty + '</span></span>' +
+    (it.moved ? '<span class="manual">Moved here</span>' : opts.manual ? '<span class="manual">Manual</span>' : "") +
+    '<span class="kc">' + it.cal + ' cal</span>' +
+    '</div>';   /* no row menu: a logged food's tick opens its sheet, a waiting food's tick logs it */
+}
+
+function body(m) {
+  var h = "";
+  if (m.manual.length) h += '<div class="extras">' + m.manual.map(function (it, i) { return itemRow(it, { manual: true, ref: m.id + "|m|" + i }); }).join("") + '</div>';
+  h += '<div class="lab">Your coach\'s plan</div>';
+  if (m.opts.length > 1) {
+    h += '<div class="chips">' + m.opts.map(function (o, i) {
+      /* No progress on a chip: options often share foods, so a fill would claim
+         two options at once. The chip simply carries a check once any food in
+         it is logged. */
+      var any = o.some(function (x) { return x.done; });
+      return '<button class="chip' + (i === m.show ? " on" : "") + (any ? " done" : "") +
+          '" data-meal="' + m.id + '" data-opt="' + i + '"' +
+          ' aria-label="Option ' + (i + 1) + (any ? ", logged" : "") + '">' +
+        '<span class="ot"><b>Option ' + (i + 1) + '</b></span>' +
+        (any ? I.checkG : "") + '</button>';
+    }).join("") + '</div>';
+  }
+  var items = m.opts[m.show];
+  /* Another option, while one is already going. Nothing is disabled: what you
+     actually ate always goes in. The line is guidance, and it says what the
+     coach intended rather than what the screen will not let you do. */
+  /* No sentence explaining which option was started. The chip says it: a
+     paragraph that repeats what a control already shows is a second copy of
+     the same state, and it went stale the moment the chips were able to carry
+     progress themselves. */
+  /* wrapped, so the 12 between rows is one gap on the parent rather than a
+     margin repeated on every child */
+  h += '<div class="items">' +
+    items.map(function (it, i) { return itemRow(it, { ref: m.id + "|" + m.show + "|" + i }); }).join("") +
+    '</div>';
+  /* Neither Log all nor Undo all. Writing four foods at once was a shortcut
+     past the screen that asks for a quantity and a time, and the undo existed
+     only to make that shortcut reversible. What is left is the one thing a
+     plan cannot anticipate: that you ate something it does not list. */
+  if (!RO) {
+    h += '<div class="textrow"><div class="elselab">Had something else?</div>' +
+      '<div class="acts">' +
+        '<button class="achip elsebtn" data-meal="' + m.id + '">' + I.plusSq + 'Search and log</button>' +
+        '<button class="achip k kairabtn" data-meal="' + m.id + '">' + GFKaira.mark(16, { halo: false }) + 'Log with KAIRA</button>' +
+      '</div></div>';
+  }
+  if (m.tips) {
+    h += '<div class="tips"><div class="lab">Tips from your coach</div><div class="tiplist">' + m.tips.map(function (t, i) {
+      /* a tip's mark is square and grey, not the round green tick, because it
+         does not open the confirm step a food's tick opens */
+      return '<div class="tip' + (t.done ? " done" : "") + '" data-tip="' + m.id + "|" + i + '"><button class="tickbtn"' + (RO ? " disabled" : "") + ' aria-label="' + (t.done ? "Mark as not done: " : "Mark as done: ") + t.title + '" aria-pressed="' + (t.done ? "true" : "false") + '">' +
+        '<span class="tmark' + (t.done ? " on" : "") + '">' + (t.done ? I.check : "") + '</span></button>' +
+        /* Kaira's chip takes the info circle's place. A circle could only say
+           "there is more about this"; she can actually answer the question the
+           tip raises, and the chip says so in words. */
+        '<div><div class="tt"><span>' + t.title + '</span>' +
+          '<button class="askk" data-tipask="' + m.id + "|" + i + '">' + GFKaira.mark(12, { halo: false }) + 'Ask KAIRA</button>' +
+        '</div><div class="td">' + t.tip + '</div></div></div>';
+    }).join("") + '</div></div>';
+  }
+  return h;
+}
+
+/* What the meal has taken in. It counts every logged food in the meal, whichever
+   option it sat under, so switching the chips changes what you are looking at
+   and never what the day adds up to. The target beside it still comes from the
+   option on screen. */
+function mealCal(m) {
+  return m.opts.reduce(function (n, o) {
+    return n + sum(o.filter(function (x) { return x.done; }));
+  }, sum(m.manual));
+}
+
+function card(m) {
+  var logged = mealCal(m);
+  var target = sum(m.opts[m.show]);
+  /* a meal with nothing in it says what it holds, or that the day passed it by,
+     rather than opening with a zero */
+  var line = logged ? logged + " of " + target + " kcal" : target + " kcal planned";
+  return '<section class="meal scene" style="--scene:url(../icons/meals/bg-v1/' + m.id + '.webp)" id="meal-' + m.id + '">' +
+    '<div class="mh">' + '<img class="mpic" src="../icons/meals/gemini/' + m.id + '.png?v=2" alt="" aria-hidden="true">' +
+      '<div class="t"><div class="n">' + m.name + '</div>' +
+      '<div class="s">Suggested ' + m.time.replace(" - ", "\u2013") + ' · ' + line + '</div></div>' +
+      /* no plus here: a planned meal carries "I have eaten something else" at
+         the foot of its own list, which says what the button was for */
+    '</div>' +
+    '<div class="mb"><div><div class="mbi">' + body(m) + '</div></div></div></section>';
+}
+
+/* no plan yet: four core meals, nothing to tick, just a way in */
+function freeSeed(m) {
+  return S.diary.logged ? (m.id === "bf" ? 727 : m.id === "lunch" ? 486 : 0) : 0;
+}
+function freeCard(m) {
+  var logged = freeSeed(m) + sum(m.manual);
+  return '<section class="meal scene" style="--scene:url(../icons/meals/bg-v1/' + m.id + '.webp)" id="meal-' + m.id + '"><div class="mh">' + '<img class="mpic" src="../icons/meals/gemini/' + m.id + '.png?v=2" alt="" aria-hidden="true">' +
+    '<div class="t"><div class="n">' + m.name + '</div>' +
+    '<div class="s">Suggested ' + m.time.replace(" - ", "\u2013") + (logged ? ' · ' + logged + ' kcal logged' : '') + '</div></div>' +
+    '<button class="plus sq" aria-label="Log something for ' + m.name + '" data-meal="' + m.id + '" data-stop="1"><i>' + I.plusSq + '</i></button></div>' +
+    (m.manual.length ? '<div class="mb"><div><div class="mbi"><div class="extras">' +
+      m.manual.map(function (it, i) { return itemRow(it, { manual: true, ref: m.id + "|m|" + i }); }).join("") + '</div></div></div></div>' : "") +
+    '</section>';
+}
+
+var diary = document.getElementById("diary");
+document.getElementById("secTitle").textContent = S.diary.title;
+document.getElementById("secCount").textContent = S.diary.count || "";
+if (S.diary.intro) document.getElementById("diaryIntro").innerHTML = '<p class="intro">' + S.diary.intro + '</p>';
+
+function render() {
+  if (S.diary.mode === "loading") {
+    diary.innerHTML = '<div class="shim shim-card"></div><div class="shim shim-card"></div><div class="shim shim-card"></div>';
+    return;
+  }
+  if (S.diary.mode === "free") {
+    diary.innerHTML = MEALS.filter(function (m) { return m.core; }).map(freeCard).join("");
+    return;
+  }
+  var h = MEALS.map(card).join("");
+  diary.innerHTML = h;
+}
+render();
+
+/* how much of the day has actually been logged. The plan mode counts a meal
+   with any calories in it, the free mode counts the ones that carry a log. */
+/* The first meal of the day that has nothing in it yet, in plan order. It is
+   what the rail names instead of counting meals off against a total. */
+function nextMealName() {
+  var found = null;
+  MEALS.forEach(function (m) {
+    if (found) return;
+    if (S.diary.mode === "free") { if (m.core && freeSeed(m) + sum(m.manual) === 0) found = m.name; }
+    else if (mealCal(m) === 0) found = m.name;
+  });
+  return found;
+}
+
+function mealsIn() {
+  var n = 0;
+  MEALS.forEach(function (m) {
+    if (S.diary.mode === "free") { if (m.core && freeSeed(m) + sum(m.manual) > 0) n++; }
+    else if (mealCal(m) > 0) n++;
+  });
+  return n;
+}
+
+/* ---------- what shaped your score ----------
+   Four glass cards in indigo, sitting directly under a green score. That
+   contrast is the point, and it is also the first real answer the screen gives
+   to "why is it 54?". Every value is read off the live day, never typed.     */
+(function () {
+  var host = document.getElementById("rail"), sect = document.getElementById("railSect");
+  var title = document.getElementById("railTitle");
+  /* a finished day is spoken about in the past tense, here as well as in the
+     calorie block beside it */
+  var PASTDAY = S.day !== "Today";
+  var IC = {
+    gap: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 20h16"/></svg>',
+    near: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>',
+    meals: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>',
+    lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
+  };
+
+  /* Two ways of answering "what shaped your score", and this is the second:
+     one card per subject instead of one card holding all four. The rail used
+     to mix summaries ("your biggest gap", "up next") with a full macro card
+     underneath, which said the same numbers twice and left no card that was
+     simply about protein. Now each card has exactly one subject and the last
+     one is calories, so the reader compares like with like by scrolling
+     rather than by scanning across a row.
+
+     The bar is the same measure the glyph fills to in the other variant, laid
+     flat. With no target there is nothing to measure against, so the bar is
+     left off rather than drawn empty. */
+  function cards() {
+    var G = ["glyph-protein", "glyph-carbs", "glyph-fats", "glyph-fibre"];
+    var M = S.macros, vals = M.v || [], out = [];
+    if (M.mode !== "hide" && M.mode !== "loading") {
+      MNAME.forEach(function (name, i) {
+        var v = vals[i] || [0, 0], had = v[0], tgt = v[1];
+        var val = M.mode === "grams" ? fmt(had) + "g"
+          : M.mode === "goals" ? "<s>target</s> " + fmt(tgt) + "g"
+          : M.mode === "blank" ? "<s>Not logged</s>"
+          : fmt(had) + "<s> of " + fmt(tgt) + "g</s>";
+        out.push({ glyph: G[i], label: name, value: val,
+          pct: M.mode === "targets" && tgt ? Math.min(1, had / tgt) : null,
+          over: M.mode === "targets" && tgt ? had > tgt : false });
+      });
+    }
+    /* calories last, because it is the sum the four above add up to */
+    var anyFood = LIVE.cal > 0;
+    var cv = !GOAL ? (anyFood ? fmt(Math.round(LIVE.cal)) + "<s> kcal</s>" : "<s>None yet</s>")
+      : S.cal.mode === "none" ? "<s>None logged</s>"
+      : fmt(Math.round(LIVE.cal)) + "<s> of " + fmt(GOAL) + "</s>";
+    out.push({ icon: IC.cal, label: "Calories", value: cv,
+      pct: GOAL ? Math.min(1, LIVE.cal / GOAL) : null,
+      over: GOAL ? LIVE.cal > GOAL : false });
+    return out;
+  }
+
+  window.paintRail = function () {
+    if (S.diary.mode === "loading") {
+      if (!ICONRAIL) {
+        host.innerHTML = [0, 1, 2].map(function () {
+          return '<div class="gf-stat shim-stat"><div class="shim" style="height:14px;width:96px"></div>' +
+            '<div class="shim" style="height:20px;width:120px;margin-top:10px"></div></div>';
+        }).join("");
+      }
+      return;
+    }
+    /* Only ask what shaped a score when there is one. On a day with no plan, a
+       day not started and a day nothing was logged on, what sits below answers
+       "there is no score", so the question above it was asking for trouble.
+       With ?rail=icons the four macros sit there instead, and a day that has
+       only targets in it has to say so rather than read as grams eaten. */
+    if (title) {
+      /* Before a plan there is no score, so there is nothing this heading can
+         ask. The card below is four numbers with no target, and naming it
+         does not change what it is. */
+      /* one heading for this card wherever there is a score to shape, so the
+         section reads the same from the first minute of a plan to the last */
+      var text = S.macros.mode === "grams" ? "" : "What shaped your score?";
+      /* the gold gap badge is the macro card's, so it is kept rather than
+         written over */
+      var slot = title.querySelector(".gapslot");
+      title.textContent = text;
+      if (slot) title.appendChild(slot);
+    }
+    if (ICONRAIL) return;
+    host.innerHTML = cards().map(function (c) {
+      var mark = c.glyph ? '<span class="sg ' + c.glyph + '"></span>' : c.icon;
+      return '<div class="gf-stat">' +
+        '<div class="row">' + mark + c.label + "</div>" +
+        '<div class="v">' + c.value + "</div></div>";
+    }).join("");
+  };
+  window.paintRail();
+  if (S.diary.mode === "loading") sect.querySelector(".gf-h").innerHTML = '<span class="shim" style="display:block;height:16px;width:170px"></span>';
+})();
+
+/* ---------- kaira ---------- */
+(function () {
+  var say = document.getElementById("kairaSay"), act = document.getElementById("kairaAct");
+
+  /* Before the plan there is nothing to report, so Kaira's card does the
+     teaching and ends with the ways to log. Three ways to fit that in the
+     least height, because this is the screen a new user lands on. */
+  if (S.kaira.edu) {
+    var v = Q.get("v") || "1";
+    var card = document.querySelector(".kaira");
+    var BTNS = DOORS;
+    var LOCK14 = '<svg class="ico" viewBox="0 0 24 24" style="width:14px;height:14px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+    var FORK = '<svg class="ico" viewBox="0 0 24 24" style="width:14px;height:14px"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>';
+    var USER = '<svg class="ico" viewBox="0 0 24 24" style="width:14px;height:14px"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>';
+    var CHEV = '<svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M6 9l6 6 6-6"/></svg>';
+    var FORK18 = '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>';
+    var USER18 = '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>';
+    var LOCK18 = '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
+    var MARK = card.querySelector(".kmark").outerHTML;
+    var head = function (sub) {
+      return '<div class="eh">' + MARK + '<div><h4>Show us what you eat.</h4>' +
+        (sub ? '<p class="sub">' + sub + '</p>' : "") + "</div></div>";
+    };
+    var body;
+    if (v === "2") {
+      /* the two steps as one strip, and the lock message left to the plate */
+      body = head("No targets yet, and nothing to get right.") +
+        '<div class="stepbar"><span class="n">1</span><span class="lb">Log it</span><span class="ln"></span>' +
+        '<span class="n">2</span><span class="lb">Your coach reads it</span></div>' +
+        '<p class="stepsub">Even the papad and the two biscuits with chai. Nothing is judged, and your plan is built around what they see.</p>' +
+        BTNS;
+    } else if (v === "3") {
+      /* One sentence and the buttons, and nothing else until it is asked for.
+         The sentence is the headline, so the card at rest is a line, two
+         buttons and a way in. The papad, the coach and the lock all wait
+         behind the disclosure, where they line up on one left edge. */
+      body = head("") + BTNS +
+        '<details class="more"><summary>How this works' + CHEV + '</summary><div class="inner">' +
+        '<div class="elist">' +
+          '<div class="erow"><span class="ic">' + FORK + '</span><span class="t"><b>Log everything you eat</b><span>Even the papad and the two biscuits with chai. Nothing is judged.</span></span></div>' +
+          '<div class="erow"><span class="ic">' + USER + '</span><span class="t"><b>Your coach reads it</b><span>They speak to you and build your plan around it.</span></span></div>' +
+          '<div class="erow quiet"><span class="ic">' + LOCK14 + '</span><span class="t">Your sufficiency score unlocks once your coach has assigned your plan.</span></div>' +
+        '</div>' +
+        "</div></details>";
+    } else {
+      /* two tight rows: label and line share one breath each */
+      body = head("") +
+        '<div class="elist">' +
+          '<div class="erow"><span class="ic">' + FORK18 + '</span><span class="t">Log everything you eat, we do not judge, promise.</span></div>' +
+          '<div class="erow"><span class="ic">' + USER18 + '</span><span class="t">Your coach will look at this before building your Eat plan.</span></div>' +
+          '<div class="erow"><span class="ic">' + LOCK18 + '</span><span class="t">Your sufficiency score unlocks after your first consultation, once your plan is ready.</span></div>' +
+        '</div>' +
+        '<div class="kact"><span class="klab">Log your meal</span>' + BTNS + '</div>';
+    }
+    card.classList.add("edu");
+    card.innerHTML = body;
+    /* the gallery next door prints this, so the three ideas can be compared on
+       height rather than on feel alone. Measured straight away rather than in a
+       frame callback, because an iframe that is not painting never gets one. */
+    var report = function () {
+      var h = Math.round(card.getBoundingClientRect().height);
+      card.dataset.height = h;
+      if (window.top !== window) parent.postMessage("kcard:" + v + ":" + h, "*");
+    };
+    report();
+    window.addEventListener("load", report);
+    return;
+  }
+
+  if (S.kaira.mode === "loading") {
+    say.innerHTML = '<span class="shim" style="display:block;height:14px;margin-bottom:8px"></span><span class="shim" style="display:block;height:14px;width:70%"></span>';
+    act.remove();
+    return;
+  }
+  say.innerHTML = nudge(S.kaira.say);
+  if (S.kaira.act === "log") {
+    act.innerHTML = '<span class="klab">Log your meal</span>' + DOORS;
+  } else if (S.kaira.act === "logday") {
+    act.innerHTML = '<button class="logday">' + I.pen + 'Log for that day</button>';
+  } else {
+    act.remove();
+  }
+})();
+
+/* ============================================================
+   Interaction.
+
+   Everything here is client side and reversible. Nothing asks
+   for confirmation: ticking undoes, removing offers undo in a
+   toast, and Reset day puts the whole demo back.
+   ============================================================ */
+(function () {
+  var XI = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg>';
+  var byId = function (id) { return MEALS.filter(function (m) { return m.id === id; })[0]; };
+  var host = document.getElementById("eduSheets");
+  var col = document.getElementById("col");
+
+  /* ---------- one sheet builder, house rules baked in ---------- */
+  /* Her answers. Two bubbles each, because the first says the mechanism and
+     the second says what to do with it. She names one mechanism and nothing to
+     do: the tip already carries the ask, so a line ending in "so do it" is the
+     same request twice and the second one reads as nagging. */
+  var KANS = {
+    "Soak 5 almonds for tomorrow": [
+      "Almond skins carry tannins, which bind to the iron and zinc in the nut and to the enzymes your gut uses to break it down. Soaking pulls those tannins into the water, and the skin slips off with them.",
+      "You also soften the cell walls, so the vitamin E and the good fats underneath are easier to absorb. Overnight in plain water is enough. Peel them in the morning and throw the water away."
+    ],
+    "Drink warm water with methi": [
+      "Methi seeds are wrapped in a soluble fibre called galactomannan. In water it turns to gel, and that gel slows how fast your stomach empties into the gut.",
+      "So the sugar from breakfast arrives in a slow stream rather than a wave, and the spike your body has to answer is smaller. On an empty stomach the gel is already in place before the food lands, which is why the timing matters as much as the seeds."
+    ]
+  };
+  var KFALLBACK = [
+    "Your coach put this one in your day because it is small enough to hold on the days you have no time, and those are the days it counts.",
+    "Try it today and notice how the rest of your day feels."
+  ];
+  /* The same ask, turned back into a question. Composed from the title rather
+     than written per tip, so a tip only ever has to say what it is. */
+  function askAbout(title) {
+    return "Tell me why I should " + title.charAt(0).toLowerCase() + title.slice(1) + ".";
+  }
+  var KSEND = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+
+  function askKaira(title) {
+    var el = document.getElementById("kairachat");
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "kairachat";
+      el.setAttribute("role", "dialog");
+      el.setAttribute("aria-modal", "true");
+      host.appendChild(el);
+    }
+    window.closeSheets();
+    el.className = "sheet esheet ksheet";
+    el.innerHTML =
+      '<div class="shead">' + GFKaira.mark(30, { halo: false }) +
+        '<span class="kwho"><b>KAIRA</b><span>AI care assistant</span></span>' +
+        '<button class="x" aria-label="Close">' + XI + '</button></div>' +
+      '<div class="sbody" id="kchat">' +
+        '<div class="kme">' + askAbout(title) + '</div>' +
+        '<div class="krow" id="kthink"><span class="kgut">' + GFKaira.mark(22, { halo: false }) + '</span>' +
+          '<span class="kbub"><span class="kdots"><i></i><i></i><i></i></span></span></div>' +
+      '</div>' +
+      '<div class="kfoot"><div class="kfield">Ask KAIRA anything</div>' +
+        '<div class="ksend">' + KSEND + '</div></div>';
+    el.querySelector(".x").onclick = function () { window.closeSheets(); };
+    setTimeout(function () { el.classList.add("on"); col.classList.add("open-edu"); }, 16);
+    /* She answers after a beat, and the beat is the point. */
+    setTimeout(function () {
+      var thread = el.querySelector("#kchat"), think = el.querySelector("#kthink");
+      if (!think) return;
+      think.remove();
+      var lines = KANS[title] || KFALLBACK;
+      thread.insertAdjacentHTML("beforeend", lines.map(function (t, i) {
+        return '<div class="krow" style="animation-delay:' + (i * .12) + 's">' +
+          '<span class="kgut">' + (i === 0 ? GFKaira.mark(22, { halo: false }) : "") + '</span>' +
+          '<span class="kbub">' + t + '</span></div>';
+      }).join(""));
+      /* 2200, up from 1400. A real answer to "why should I" is a thing she
+         works out, and at 1400 the dots were gone before the eye had settled
+         on them. The ceiling is about 5s: past that a typing indicator needs
+         a status line or it reads as stuck. */
+    }, REDUCED ? 200 : 2200);
+    return el;
+  }
+
+  function openSheet(id, title, html) {
+    var el = document.getElementById(id);
+    /* a sheet that swaps its own contents stays up, rather than bouncing out
+       and back in on the way to its own next screen */
+    var already = el && el.classList.contains("on");
+    if (!already && window.closeSheets) window.closeSheets();
+    if (!el) {
+      el = document.createElement("div");
+      el.id = id;
+      el.setAttribute("role", "dialog");
+      el.setAttribute("aria-modal", "true");
+      host.appendChild(el);
+    }
+    el.className = "sheet esheet" + (already ? " on" : "");
+    el.innerHTML = '<div class="shead"><h4>' + title + '</h4><button class="x" aria-label="Close">' + XI + '</button></div><div class="sbody">' + html + '</div>';
+    el.querySelector(".x").onclick = function () { window.closeSheets(); };
+    if (already) return el;
+    setTimeout(function () { el.classList.add("on"); col.classList.add("open-edu"); }, 16);
+    return el;
+  }
+  window.GFOpenSheet = openSheet;   /* for assets/flipcoin-earn.js */
+
+  /* ---------- undo lives in a toast, so nothing needs a confirm ---------- */
+  var tEl = null, tT = null;
+  function toast(msg, undo) {
+    if (!tEl) {
+      tEl = document.createElement("div");
+      tEl.className = "toast";
+      document.body.appendChild(tEl);
+    }
+    tEl.innerHTML = '<span>' + msg + '</span>' + (undo ? '<button>Undo</button>' : "");
+    if (undo) tEl.querySelector("button").onclick = function () { hide(); undo(); };
+    setTimeout(function () { tEl.classList.add("on"); }, 16);
+    clearTimeout(tT);
+    tT = setTimeout(hide, 4000);
+    function hide() { clearTimeout(tT); tEl.classList.remove("on"); }
+  }
+
+  /* The twelve pieces, on the To-do's own vectors: [dx, dy, size]. They are a
+     fixed table rather than random, so the burst is the same shape every time
+     and can be judged, which is why the wireframe hard-codes it too. Every
+     third piece is a bar rather than a dot, and the colours cycle gold, the
+     pillar green, GoodFlip green. */
+  var BURST = [[-30,-18,8],[-14,-30,6],[4,-34,5],[22,-26,7],[34,-8,6],[32,12,5],
+               [18,26,7],[0,32,6],[-18,27,5],[-32,10,7],[-24,-4,4],[26,-2,4]];
+  /* The wireframe cycles gold, GoodFlip green, then the pillar's own colour,
+     and on Eat the last two are both #299D6B, so two pieces in three came out
+     the same green and the burst read as one flat colour. Four pillar hues
+     instead, which is what makes it actually read as confetti. The score is
+     the only thing that owns a pillar colour, so the rest of the palette is
+     free here. */
+  /* The four pillar colours the wireframes use: Measure gold, Move indigo,
+     Mind teal, Eat green. --teal-600 in this system is a pale cyan, so the
+     teal here is --teal-800, which is the Mind hue the wireframes actually
+     carry and the only one of the four that reads on white. */
+  var BURST_C = ["var(--gold-600)", "var(--in-600)", "var(--teal-800)", "var(--brand-600)"];
+  /* the To-do's own spread parameter, the value its toast uses, nudged up so a
+     burst off a 24px mark carries as far as one off the wireframe's 21px */
+  var SPREAD = 1.5;
+  function burst() {
+    var wrap = document.createElement("span");
+    wrap.className = "burst";
+    wrap.setAttribute("aria-hidden", "true");
+    BURST.forEach(function (p, a) {
+      var bar = a % 3 === 1, l = p[2] * Math.min(SPREAD, 2.4);
+      var i = document.createElement("i");
+      i.style.cssText =
+        "width:" + (bar ? l * .5 : l * .7) + "px;height:" + (bar ? l : l * .7) + "px;" +
+        "margin-left:" + (-l / 2) + "px;margin-top:" + (-l / 2) + "px;" +
+        "border-radius:" + (bar ? "1.5px" : "50%") + ";" +
+        "background:" + BURST_C[a % 4] + ";" +
+        "--dx:" + (p[0] * SPREAD).toFixed(1) + "px;--dy:" + (p[1] * SPREAD).toFixed(1) + "px;" +
+        "--rot:" + ((a % 2 ? 1 : -1) * (120 + a * 22)) + "deg;" +
+        "animation-delay:" + (a % 4) * 26 + "ms";
+      wrap.appendChild(i);
+    });
+    return wrap;
+  }
+
+  /* ---------- repaint one meal, and let the tick finish its spring ---------- */
+  function repaint(m, pop) {
+    var sec = document.getElementById("meal-" + m.id);
+    if (!sec) return;
+    sec.outerHTML = S.diary.mode === "free" ? freeCard(m) : card(m);
+    sec = document.getElementById("meal-" + m.id);
+    if (pop) {
+      var row = sec.querySelector('[data-ref="' + pop + '"] .tick');
+      if (row) row.classList.add("pop");
+      /* the same hook carries a tip, which wears the mark rather than the tick
+         and gets its ring and its wash alongside the pop */
+      var tipEl = sec.querySelector('[data-tip="' + pop + '"]');
+      if (tipEl && tipEl.classList.contains("done")) {
+        tipEl.classList.add("cheer");
+        var tmk = tipEl.querySelector(".tmark");
+        if (tmk) { tmk.classList.add("pop"); tmk.appendChild(burst()); }
+      }
+    }
+    /* Celebrate a meal completing, once, on the repaint that completes it.
+       This used to fire on every repaint where the shown option happened to be
+       finished, so switching to an option you had already completed flashed the
+       card again for something you only looked at. */
+    var items = m.opts[m.show];
+    var full = m.chosen === m.show && items.length > 0 &&
+      items.every(function (x) { return x.done; });
+    var key = m.id + "|" + m.show;
+    if (full && pop && !CELEBRATED[key]) {
+      CELEBRATED[key] = 1;
+      sec.classList.add("settled");
+      setTimeout(function () { sec.classList.remove("settled"); }, 1400);
+    }
+    if (!full) delete CELEBRATED[key];
+  }
+
+  var CELEBRATED = {};
+
+  function find(ref) {
+    var p = ref.split("|"), m = byId(p[0]);
+    return { m: m, list: p[1] === "m" ? m.manual : m.opts[+p[1]], i: +p[2], manual: p[1] === "m" };
+  }
+
+  function setDone(m, it, on) {
+    if (it.done === on) return;
+    it.done = on;
+    apply(it, on ? 1 : -1);
+    if (on && m.chosen < 0) m.chosen = m.show;
+    if (!on && m.chosen >= 0 && !m.opts[m.chosen].some(function (x) { return x.done; }) && !m.manual.length) m.chosen = -1;
+  }
+
+  /* Logging happens on its own screen, so Snap, Voice and + leave this one */
+  /* Trend and Learn are their own screens, reached the way the logger is */
+  document.addEventListener("click", function (e) {
+    var nv = e.target.closest && e.target.closest("[data-nav]");
+    if (!nv) return;
+    var to = nv.getAttribute("data-nav");
+    if (window.parent !== window) return parent.postMessage({ nav: to }, "*");
+    location.href = to + ".html";
+  });
+
+  /* Some doors know more than which meal they came from. A tick knows the option
+     the card is showing and the food that was ticked, and the logging screen
+     cannot open on that option with that food picked up unless both travel with
+     it. The third argument carries them, and both routes out of here, the frame
+     and the bare page, carry the same set. */
+  function goLog(entry, meal, more) {
+    var flags = { entry: entry, meal: meal || "", plog: PLOG };
+    for (var k in more || {}) if (more[k] !== undefined && more[k] !== "") flags[k] = String(more[k]);
+    /* the meal's logged foods ride along, so the logger ticks exactly what this card ticks (2A) */
+    var lm = MEALS.filter(function (m) { return m.id === meal; })[0];
+    if (lm && lm.chosen > -1) {
+      var ids = lm.opts[lm.chosen].concat(lm.manual || []).filter(function (it) { return it.done && LOGID[it.name]; })
+        .map(function (it) { return LOGID[it.name]; });
+      if (ids.length) { flags.had = ids.join(","); flags.hadopt = String(lm.chosen); }
+    }
+    if (window.parent !== window) return parent.postMessage({ nav: "log", flags: flags }, "*");
+    var q = [];
+    for (var j in flags) if (flags[j] !== "") q.push(j + "=" + encodeURIComponent(flags[j]));
+    location.href = "log.html?" + q.join("&");
+  }
+
+  /* The day view knows its foods by name, the logging screen knows them by id,
+     and both lists were copied out of the same table in the app. This is the
+     join between the two, so a ticked food can arrive already in the tray. */
+  var LOGID = {
+    "Black tea with cinnamon": "blacktea", "Jeera water": "jeerawater",
+    "Boiled egg": "eggs", "Lauki oats besan chilla": "chilla", "Green chutney": "chutney",
+    "Curd": "curd", "Vegetable poha": "poha", "Idli": "idli", "Sambar": "sambar",
+    "Dahi, low-fat": "dahi", "Garden salad": "gardensalad", "Vegetable quinoa pulao": "quinoa",
+    "Rajma": "rajma", "Roti": "roti", "Mixed veg sabzi": "sabzi", "Dal": "dal",
+    "Roasted makhana": "makhana", "Roasted chana": "chana", "Multigrain roti": "multiroti",
+    "Dal khichdi": "khichdi", "Walnut": "walnut", "Chamomile tea": "chamomile",
+    "Banana": "banana"
+  };
+
+  /* ---------- the sheet a logged food's tick opens ---------- */
+  var MI = {
+    back: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4M3 3v5h5"/></svg>',
+    bin: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'
+  };
+  var mrow = function (act, ico, text, warn) {
+    return '<button class="menurow' + (warn ? " warn" : "") + '" data-act="' + act + '"><span class="mi">' + ico + '</span>' + text + '</button>';
+  };
+
+  /* Only a logged food has a sheet, opened from its tick: change the quantity,
+     or take it off the day (a hand-added food is removed instead). A food not
+     eaten has no menu and no Skip, it simply stays unticked; a coach's food is
+     never deleted, the way it cannot be on the live app. */
+  function itemMenu(ref) {
+    var t = find(ref), it = t.list[t.i], m = t.m;
+    var html = "";
+    html += mrow("qty", I.pen, "Change the quantity");
+    if (!t.manual) html += mrow("untick", MI.back, "Take it off your day");
+    html += (t.manual ? mrow("del", MI.bin, "Remove this", true) : "");
+    var el = openSheet("it-sheet", it.name, html);
+    el.querySelector(".sbody").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-act]");
+      if (!b) return;
+      if (b.dataset.act === "qty") return qty(m, it, ref);
+      /* Taking a log back does not ask again, the sheet was the asking, but it
+         drops the score and the calories so it hands back the same way Skip
+         and Remove do. */
+      if (b.dataset.act === "untick") {
+        window.closeSheets();
+        setDone(m, it, false);
+        repaint(m, ref);
+        refresh();
+        toast(it.name + " taken off your day", function () {
+          setDone(m, it, true);
+          repaint(m, ref);
+          refresh();
+        });
+        return;
+      }
+      /* remove: the row goes, and the toast holds the way back */
+      var was = it.done, at = t.i;
+      if (was) apply(it, -1);
+      t.list.splice(at, 1);
+      it.done = false;
+      window.closeSheets();
+      repaint(m);
+      refresh();
+      toast(it.name + " removed", function () {
+        t.list.splice(at, 0, it);
+        if (was) { it.done = true; apply(it, 1); }
+        repaint(m);
+        refresh();
+      });
+    });
+  }
+
+  function qty(m, it, ref) {
+    var n = it.n;
+    var el = openSheet("it-sheet", it.name, '<div class="qty"><span class="lab2">How much did you have?</span>' +
+      '<span class="st"><button data-q="-1" aria-label="Less">&minus;</button><b id="qn"></b><button data-q="1" aria-label="More">+</button></span></div>' +
+      '<p class="cfcal" id="qc"></p><button class="ok" data-save="1">Save</button>');
+    var nb = el.querySelector("#qn"), cb = el.querySelector("#qc");
+    var per = Math.round(it.p * 4 + it.c * 4 + it.fa * 9);
+    function paint() {
+      nb.textContent = n + " x " + it.unit;
+      cb.textContent = per * n + " cal, " + Math.round(it.p * n * 10) / 10 + "g protein";
+      el.querySelector('[data-q="-1"]').disabled = n <= 1;
+    }
+    paint();
+    el.querySelector(".sbody").addEventListener("click", function (e) {
+      var s = e.target.closest("[data-q]");
+      if (s) { n = Math.max(1, Math.min(6, n + +s.dataset.q)); return paint(); }
+      if (!e.target.closest("[data-save]")) return;
+      if (it.done) apply(it, -1);
+      it.n = n;
+      it.qty = n > 1 ? n + " x " + it.unit : it.unit;
+      it.cal = per * n;
+      if (it.done) apply(it, 1);
+      window.closeSheets();
+      repaint(m, it.done ? ref : "");
+      refresh();
+    });
+  }
+
+  /* ---------- the confirm step on a tick ----------
+     A tick is a log, and a log carries a quantity and a time. The time is not
+     decoration: it is what decides which meal the food lands in, so when the
+     chosen time sits in another meal's window the sheet says so before you
+     agree to it. */
+  var CLOCKI = '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0M12 7v5l3 2"/></svg>';
+
+  function confirmLog(m, it, ref) {
+    var n = it.n, t = typeof it.at === "number" ? it.at : m.at;
+    var per = Math.round(it.p * 4 + it.c * 4 + it.fa * 9);
+    var el = openSheet("it-sheet", it.name,
+      '<div class="qty cfrow"><span class="lab2">How much did you have?</span>' +
+      '<span class="st"><button data-q="-1" aria-label="Less">&minus;</button><b id="qn"></b><button data-q="1" aria-label="More">+</button></span></div>' +
+      '<p class="cfcal" id="qc"></p>' +
+      '<div class="qty cfrow" style="margin-top:12px;padding-top:14px"><span class="lab2">When did you have it?</span>' +
+      '<span class="st"><button data-t="-15" aria-label="Earlier">&minus;</button><b id="tn"></b><button data-t="15" aria-label="Later">+</button></span></div>' +
+      '<div class="cfmove" id="mv" hidden>' + CLOCKI + '<p style="margin:0" id="mvt"></p></div>' +
+      '<button class="ok" data-save="1">Log it</button>');
+    var nb = el.querySelector("#qn"), cb = el.querySelector("#qc"), tb = el.querySelector("#tn"),
+      mv = el.querySelector("#mv"), mvt = el.querySelector("#mvt");
+    function dest() { return mealAt(t) || m; }
+    function paint() {
+      nb.textContent = n + " x " + it.unit;
+      cb.textContent = per * n + " cal, " + Math.round(it.p * n * 10) / 10 + "g protein";
+      tb.textContent = clock(t);
+      el.querySelector('[data-q="-1"]').disabled = n <= 1;
+      var d = dest();
+      mv.hidden = d === m;
+      if (d !== m) mvt.textContent = clock(t) + " falls in your " + d.name.toLowerCase() + ", so it will be logged there.";
+    }
+    paint();
+    el.querySelector(".sbody").addEventListener("click", function (e) {
+      var q = e.target.closest("[data-q]"), s = e.target.closest("[data-t]");
+      if (q) { n = Math.max(1, Math.min(6, n + +q.dataset.q)); return paint(); }
+      if (s) { t = (t + +s.dataset.t + 1440) % 1440; return paint(); }
+      if (!e.target.closest("[data-save]")) return;
+      var d = dest();
+      window.closeSheets();
+      if (d === m) {
+        /* the quantity and the time belong to the log, so the plan row only
+           takes them when the log is what the plan row becomes */
+        it.n = n;
+        it.qty = n > 1 ? n + " x " + it.unit : it.unit;
+        it.cal = per * n;
+        it.at = t;
+        setDone(m, it, true);
+        repaint(m, ref);
+        refresh();
+        toast(it.name + " logged at " + clock(t), function () {
+          setDone(m, it, false);
+          repaint(m, ref);
+          refresh();
+        });
+        return;
+      }
+      /* the time sent it elsewhere, so that is where it shows up */
+      var mv2 = f(it.name, it.unit, n, it.p, it.c, it.fa, it.fb, it.why);
+      mv2.done = true; mv2.moved = true; mv2.at = t;
+      d.manual.push(mv2);
+      apply(mv2, 1);
+      repaint(d);
+      refresh();
+      toast(it.name + " logged in " + d.name.toLowerCase() + " at " + clock(t), function () {
+        d.manual.splice(d.manual.indexOf(mv2), 1);
+        apply(mv2, -1);
+        repaint(d);
+        refresh();
+      });
+    });
+  }
+
+  /* ---------- wiring ---------- */
+  diary.addEventListener("click", function (e) {
+    var chip = e.target.closest(".chip");
+    if (chip) {
+      var cm = byId(chip.dataset.meal);
+      cm.show = +chip.dataset.opt;
+      repaint(cm);
+      return;
+    }
+
+    var plus = e.target.closest(".plus");
+    if (plus) return goLog("plus", plus.dataset.meal);
+
+    /* "I have eaten something else": the one way into logging a planned meal
+       leaves from, now that Log all is gone. It opens the tray empty, because
+       whatever is being added is by definition not on the plan. */
+    var els = e.target.closest(".elsebtn");
+    if (els) {
+      /* a push, not a cut: this screen eases left and dims while the logger
+         slides in over it (assets/search-push.js), and the logger opens with
+         the search field focused and the keyboard up */
+      try { sessionStorage.setItem("gfPush", "search"); } catch (err) {}
+      if (REDUCED || !document.body.animate) return goLog("plus", els.dataset.meal);
+      document.body.animate([{ transform: "none", opacity: 1 }, { transform: "translateX(-24%)", opacity: .55 }],
+        { duration: 220, easing: "cubic-bezier(.4,0,1,1)", fill: "forwards" });
+      return setTimeout(function () { goLog("plus", els.dataset.meal); }, 200);
+    }
+
+    /* Log with KAIRA opens her chat (log.html?entry=kaira), the same screen
+       the logger's KAIRA strip opens */
+    var kb = e.target.closest(".kairabtn");
+    if (kb) return goLog("kaira", kb.dataset.meal);   /* her chat, in the logger */
+    var ta = e.target.closest(".askk");
+    if (ta) {
+      var tq = ta.dataset.tipask.split("|"), qm = byId(tq[0]), qt = qm.tips[+tq[1]];
+      return askKaira(qt.title);
+    }
+
+    var tick = e.target.closest(".tickbtn");
+    if (!tick || tick.disabled) return;
+
+    var tip = tick.closest(".tip");
+    if (tip) {
+      var tp = tip.dataset.tip.split("|"), tm = byId(tp[0]), t = tm.tips[+tp[1]];
+      t.done = !t.done;
+      /* only doing a tip is celebrated. Taking one back is a correction, and
+         a correction that throws confetti reads as mockery. */
+      repaint(tm, tip.dataset.tip);
+      return;
+    }
+
+    var row = tick.closest(".item");
+    if (!row) return;
+    var tgt = find(row.dataset.ref), item = tgt.list[tgt.i];
+    /* Ticking a coach's food is the start of a log, not the whole of it, so it
+       goes where every other log goes rather than asking here. The logging
+       screen opens on Your plan, on the option this card is showing, with the
+       ticked food already in the tray, so the person sees the thing they chose
+       and can still change the quantity and the time before it is written.
+       A food added by hand is not on the plan and has no option to open on, so
+       it keeps the confirm sheet.
+
+       Pressing the mark on a food already logged opens its menu rather than
+       undoing it. Undo was the one destructive thing on this card reachable in
+       a single tap, on a 24px mark sitting beside the name people press to
+       read about the food, and the toast was the only thing standing behind
+       it. The menu names what it is about to do first, and still holds Change
+       the quantity, which is what most of those taps actually wanted. */
+    if (!item.done) {
+      if (tgt.manual) return confirmLog(tgt.m, item, row.dataset.ref);
+      /* the "On the card" variant (the default): the plan is logged right here,
+         one meal at a time, from a bar at the bottom (assets/plan-tray.js) */
+      if (PLOG === "card" && window.GFPlanTray) return GFPlanTray.toggle({ m: tgt.m, ref: row.dataset.ref, it: item });
+      return goLog("tick", tgt.m.id, { opt: tgt.m.show, food: LOGID[item.name], qty: item.n });
+    }
+    return itemMenu(row.dataset.ref);
+  });
+
+  /* Snap and Voice, wherever Kaira offers them. They open the logging screen at
+     the meal the clock is in, which is the same meal a food logged now would
+     land in. Kaira's own button is her sheet's, not this screen's. */
+  document.addEventListener("click", function (e) {
+    var now = new Date(), nm = mealAt(now.getHours() * 60 + now.getMinutes());
+    var door = e.target.closest("[data-door]");
+    if (door) return goLog(door.dataset.door, nm && nm.id);
+    /* Logging a day from memory is a typing job, not a speaking one, and the
+       button's own pencil icon says so. It used to open the microphone. */
+    if (e.target.closest(".logday")) return goLog("search", nm && nm.id);
+  });
+
+  /* cards arrive in order on open, which is enough to make the page feel built
+     rather than dumped */
+  if (!REDUCED) {
+    [].forEach.call(document.querySelectorAll("#diary .meal"), function (el, i) {
+      el.classList.add("rise");
+      el.style.animationDelay = Math.min(i, 5) * 55 + 60 + "ms";
+    });
+  }
+})();
+</script>
+<script src="chrome.js"></script>
+<script src="assets/kaira-aurora.js?v=3"></script>
+</body>
+</html>
