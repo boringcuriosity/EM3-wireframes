@@ -219,12 +219,13 @@
     <details class="setrow">
       <summary>Settings</summary>
         <div class="knobs">
+          <label class="tg"><span>Free buffer below target (%)</span><input type="number" min="0" max="90" data-knob="below" id="k-below"></label>
           <label class="tg"><span>Free buffer above target (%)</span><input type="number" min="0" data-knob="buffer" id="k-buffer"></label>
           <label class="tg"><span>Credit lost per 1% past the buffer</span><input type="number" min="0" step="0.5" data-knob="slope" id="k-slope"></label>
           <label class="tg"><span>Smallest buffer (g)</span><input type="number" min="0" data-knob="minBuf" id="k-minBuf"></label>
           <label class="tg"><span>Lowest a macro can score (0 = no negative marking)</span><input type="number" min="-100" max="0" step="10" data-knob="floor" id="k-floor"></label>
         </div>
-      <button class="btn" id="resetK" style="margin-top:12px">Reset to the agreed rules</button>
+      <button class="btn" id="resetK" style="margin-top:12px">Reset to ±20%, the agreed rules</button>
     </details>
   </section>
 
@@ -330,7 +331,7 @@ var DAY = MT.reduce(function (a, t) { K.forEach(function (k) { a[k] += t[k]; });
 var UPTO = (function () { var run = zero(), out = []; MT.forEach(function (t) { K.forEach(function (k) { run[k] += t[k]; }); out.push(copy(run)); }); return out; })();
 
 /* ============================================================ the logic */
-var RULES = { buffer: 20, slope: 1, minBuf: 5, floor: -50 };
+var RULES = { below: 20, buffer: 20, slope: 1, minBuf: 3, floor: -50 };
 
 /* each meal counts for its share of the day's planned calories */
 function weight(i) { return MT[i].kcal / DAY.kcal * 100; }
@@ -339,7 +340,9 @@ function bufferG(e, st) { return Math.max(e * st.buffer / 100, st.minBuf); }
    Past the buffer: lose `slope` credit for every 1% of the target over. Credit can go
    below zero (negative marking), down to `floor`, so a meal can take back up to its own share */
 function credit(x, e, st) {
-  if (x <= e) return x / e * 100;
+  var low = e * (1 - st.below / 100);   /* full credit from this far below the target */
+  if (x < low) return x / low * 100;
+  if (x <= e) return 100;
   var free = e + bufferG(e, st);
   if (x <= free) return 100;
   return Math.max(st.floor, 100 - (x - free) / e * 100 * st.slope);
@@ -419,7 +422,7 @@ var PRESETS = [
 function applyPreset(st, p) { st.log = day(p.log); st.skip = {}; st.miss = day(p.miss); st.preset = p.id; }
 
 /* ============================================================ state */
-var S = { buffer: RULES.buffer, slope: RULES.slope, minBuf: RULES.minBuf, floor: RULES.floor, log: day({}), skip: {}, miss: day({}), preset: "empty", hot: {} };
+var S = { below: RULES.below, buffer: RULES.buffer, slope: RULES.slope, minBuf: RULES.minBuf, floor: RULES.floor, log: day({}), skip: {}, miss: day({}), preset: "empty", hot: {} };
 
 /* every action goes through here, so column 3 can show the before and after */
 function act(label, mutate) {
@@ -438,7 +441,7 @@ function renderDay() {
   $("daytiles").innerHTML = [["Calories", g(DAY.kcal) + " kcal"], ["Protein", g(DAY.p) + " g"], ["Carbs", g(DAY.c) + " g"], ["Fats", g(DAY.f) + " g"]]
     .map(function (t) { return '<div class="tile"><span>' + t[0] + '</span><b>' + t[1] + '</b></div>'; }).join("");
 }
-function renderKnobs() { ["buffer", "slope", "minBuf", "floor"].forEach(function (k) { $("k-" + k).value = S[k]; }); }
+function renderKnobs() { ["below", "buffer", "slope", "minBuf", "floor"].forEach(function (k) { $("k-" + k).value = S[k]; }); }
 
 /* ---- column 1 */
 function stepper(slot, x) {
@@ -498,7 +501,7 @@ function gapBox(r) {
       if (c.x > c.free) items.push('<li><span class="dot r"></span><span><b>' + meal + ' · ' + c.m.name + ' over:</b> ' + g(c.x) + ' g eaten. Target ' + g(c.e) + ' g, up to ' + g(c.free) + ' g allowed.</span></li>');
     });
     row.checks.forEach(function (c) {
-      if (c.cr < 90 && c.x < c.e) items.push('<li><span class="dot a"></span><span><b>' + meal + ' · ' + c.m.name + ' short:</b> ' + g(c.x) + ' g eaten of ' + g(c.e) + ' g.</span></li>');
+      if (c.cr < 90 && c.x < c.e * (1 - S.below / 100)) items.push('<li><span class="dot a"></span><span><b>' + meal + ' · ' + c.m.name + ' short:</b> ' + g(c.x) + ' g eaten of ' + g(c.e) + ' g.</span></li>');
     });
   });
   if (!items.length) items.push('<li><span class="dot"></span><span><b>On plan</b> for every meal logged so far.</span></li>');
@@ -539,9 +542,13 @@ function bufText(c) {
 }
 function macroLine(c) {
   var tg, txt, nm = '<b>' + c.m.name + ':</b> ';
-  if (c.x < c.e) {
+  var low = c.e * (1 - S.below / 100);
+  if (c.x < low) {
     tg = '<span class="tag short">Short</span>';
-    txt = nm + gm(c.x) + ' g eaten, short of the ' + gm(c.e) + ' g target. ' + gm(c.x) + ' ÷ ' + gm(c.e) + ' = ' + g(c.cr) + '%, so Credit <span class="res">' + g(c.cr) + '</span>';
+    txt = nm + gm(c.x) + ' g eaten. Full credit starts at ' + gm(low) + ' g (' + S.below + '% below the ' + gm(c.e) + ' g target). ' + gm(c.x) + ' ÷ ' + gm(low) + ' = ' + g(c.cr) + '%, so Credit <span class="res">' + g(c.cr) + '</span>';
+  } else if (c.x < c.e) {
+    tg = '<span class="tag ok">Within</span>';
+    txt = nm + gm(c.x) + ' g eaten, within ' + S.below + '% below the ' + gm(c.e) + ' g target, so Credit <span class="res">100</span>';
   } else if (c.x <= c.free) {
     tg = '<span class="tag ok">Within</span>';
     txt = nm + gm(c.x) + ' g eaten. Allowed ' + gm(c.free) + ' g ' + bufText(c) + '. Within the allowed amount, so Credit <span class="res">100</span>';
@@ -584,7 +591,7 @@ function renderCalc(r) {
 function renderRules() {
   $("rules").innerHTML = '<ul>' +
     '<li><b>Each meal has its own targets</b> for protein, carbs and fats: the items the coach planned for it, added up.</li>' +
-    '<li><b>Under a target:</b> credit is how much of it was reached. Half the protein means 50.</li>' +
+    '<li><b>Under a target:</b> free down to ' + S.below + '% below it. Further under, credit is how much of that was reached.</li>' +
     '<li><b>Over a target:</b> free up to ' + S.buffer + '% above it (at least ' + S.minBuf + ' g). Past that, ' + S.slope + ' credit is lost for every 1% of the target over. This applies to protein too.</li>' +
     '<li><b>Negative marking:</b> a macro far over its target can score below zero, but no lower than ' + S.floor + '. So a very bad meal doesn\'t just earn nothing, it takes back up to ' + (-S.floor) + '% of its own share from the day.</li>' +
     '<li><b>Meal score</b> = the average of its credits. Calories are shown but not scored, since they come from these three.</li>' +
@@ -626,16 +633,16 @@ function init() {
       var pr = PRESETS.filter(function (x) { return x.id === d.preset; })[0];
       act("Loaded: " + pr.name, function () { applyPreset(S, pr); });
     } else if (t.id === "resetK") {
-      act("Rules reset to 1 mark per 1%, lowest -50", function () { S.buffer = RULES.buffer; S.slope = RULES.slope; S.minBuf = RULES.minBuf; S.floor = RULES.floor; }); renderKnobs();
+      act("Rules reset to ±20%, 1 mark per 1%, lowest -50", function () { S.below = RULES.below; S.buffer = RULES.buffer; S.slope = RULES.slope; S.minBuf = RULES.minBuf; S.floor = RULES.floor; }); renderKnobs();
     } else return;
     all();
   });
   document.addEventListener("change", function (e) {
     var t = e.target, k = t.dataset.knob; if (!k) return;
     var v = parseFloat(t.value), old = S[k];
-    v = k === "floor" ? Math.min(0, Math.max(-100, v)) : Math.max(0, v);
+    v = k === "floor" ? Math.min(0, Math.max(-100, v)) : k === "below" ? Math.min(90, Math.max(0, v)) : Math.max(0, v);
     if (isNaN(v) || v === old) { t.value = old; return; }
-    var names = { buffer: "Free buffer", slope: "Credit lost per 1%", minBuf: "Smallest buffer", floor: "Lowest credit" };
+    var names = { below: "Free buffer below", buffer: "Free buffer", slope: "Credit lost per 1%", minBuf: "Smallest buffer", floor: "Lowest credit" };
     act(names[k] + " changed: " + old + " to " + v, function () { S[k] = v; });
     all();
   });

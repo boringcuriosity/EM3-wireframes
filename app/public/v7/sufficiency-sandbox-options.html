@@ -1,0 +1,576 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plate Score Sandbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand:#299D6B; --brand-700:#2A805A; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0;
+    --ink:#101828; --text:#344054; --muted:#667085; --faint:#98A2B3; --line:#E4E7EC; --line2:#F2F4F7; --bg:#F9FAFB;
+    --red:#D92D20; --red-50:#FEF3F2; --amber:#DC6803; --amber-50:#FFFAEB; --green:#039855; --ease:cubic-bezier(.2,.7,.2,1);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:400 14px/20px Roboto,system-ui,sans-serif;letter-spacing:.2px;-webkit-font-smoothing:antialiased}
+  button,select,input{font:inherit;letter-spacing:inherit;color:inherit}
+  .wrap{max-width:1500px;margin:0 auto;padding:28px 20px 56px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) minmax(320px,.8fr);gap:20px;align-items:start}
+  header{grid-column:1/-1;display:flex;flex-direction:column;gap:6px}
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--brand)}
+  h1{margin:0;font:600 30px/38px 'Playfair Display',Georgia,serif;color:var(--ink)}
+  header p{margin:0;color:var(--muted);max-width:900px}
+
+  .controls{grid-column:1/-1;display:grid;gap:14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .lab{font-size:12px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--faint);margin:0 0 8px}
+  .lab span{text-transform:none;letter-spacing:.2px;font-weight:400}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{min-height:34px;padding:0 14px;border-radius:999px;border:1px solid var(--line);background:#fff;font-weight:500;color:var(--text);cursor:pointer}
+  .chip.on{border-color:var(--brand);background:var(--brand-50);color:var(--brand-700)}
+  .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .tile{border:1px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--bg)}
+  .tile span{display:block;font-size:12px;color:var(--muted)}
+  .tile b{font-size:17px;color:var(--ink)}
+
+  .colhead{display:flex;align-items:center;gap:10px;margin:0 0 12px}
+  .colhead .n{width:26px;height:26px;border-radius:999px;background:var(--brand);color:#fff;font-weight:700;font-size:13px;display:grid;place-items:center;flex:0 0 auto}
+  .colhead b{font:600 19px/24px 'Playfair Display',Georgia,serif;color:var(--ink)}
+  .col{min-width:0}
+  .col-score{position:sticky;top:16px;align-self:start;max-height:calc(100vh - 32px);overflow:auto;padding-bottom:4px;scrollbar-width:thin}
+  .setrow{border-top:1px solid var(--line2);padding-top:12px}
+  .setrow .knobs{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+  /* food */
+  .meals{display:flex;flex-direction:column;gap:14px}
+  .meal{background:#fff;border:1px solid var(--line);border-radius:18px;overflow:hidden}
+  .meal.hot{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-100)}
+  .mh{display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--brand-50);border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .mh .t{flex:1;min-width:160px}
+  .mh b{display:block;font-size:16px;color:var(--ink)}
+  .mh small{display:block;color:var(--muted);font-size:12px}
+  .mh .tgt{color:var(--text);font-weight:500}
+  .share{font-weight:700;font-size:12px;color:#fff;background:var(--brand);border-radius:999px;padding:3px 10px;white-space:nowrap}
+  .st{font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;white-space:nowrap;border:1px solid var(--line);background:#fff;color:var(--muted)}
+  .st.logged{color:var(--brand-700);border-color:var(--brand-200)}
+  .st.skipped{color:var(--amber);border-color:#FEDF89;background:var(--amber-50)}
+  .mb{padding:2px 16px 14px}
+  .sub{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--faint);margin:12px 0 2px}
+  .food{display:flex;align-items:center;gap:10px;padding:8px 0}
+  .food+.food{border-top:1px solid var(--line2)}
+  .food .nm{flex:1;min-width:0}
+  .food .nm div:first-child{font-weight:500;color:var(--ink)}
+  .food .nm div:last-child{font-size:12px;color:var(--muted)}
+  .food.has .nm div:first-child{color:var(--brand-700)}
+  .food.missed .nm div:first-child{color:var(--faint);text-decoration:line-through}
+  .food .k{font-size:12px;color:var(--muted);white-space:nowrap}
+  .step{display:flex;align-items:center;gap:4px;flex-shrink:0}
+  .step button{width:30px;height:30px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:16px;line-height:1;display:grid;place-items:center}
+  .step .plus{border-color:var(--brand);color:var(--brand)}
+  .step output{min-width:18px;text-align:center;font-weight:600}
+  .step:not(.has) .minus,.step:not(.has) output{visibility:hidden}
+  .lnk{border:0;background:none;color:var(--amber);font-size:12px;font-weight:600;cursor:pointer;padding:6px 4px;white-space:nowrap}
+  .lnk.undo{color:var(--brand)}
+  .addrow{display:flex;gap:8px;margin-top:6px}
+  .addrow select{flex:1;min-width:0;height:36px;border:1px solid var(--line);border-radius:10px;padding:0 10px;background:#fff}
+  .btn{height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:600;cursor:pointer;color:var(--text)}
+  .btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+  .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px dashed var(--line)}
+  .note{color:var(--muted);margin:12px 0 0}
+
+  /* score */
+  .card{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px}
+  .scorecard{display:flex;flex-direction:column;gap:16px}
+  .hero{display:flex;flex-direction:column;align-items:center;gap:8px;position:relative}
+  .gauge{width:240px;height:132px;display:block}
+  .gauge path{transition:stroke-dashoffset .6s var(--ease),stroke-opacity .2s}
+  .num{position:absolute;top:54px;left:0;right:0;text-align:center;font:600 48px/52px Roboto,sans-serif;color:var(--ink);letter-spacing:-1px}
+  .num i{font-style:normal;font-size:20px;font-weight:500;vertical-align:22px;margin-left:2px}
+  .cap{font-size:12px;color:var(--muted);text-align:center}
+  .band{display:inline-flex;align-items:center;justify-content:center;height:24px;padding:0 10px;border-radius:8px;white-space:nowrap;font:500 12px/1 Roboto,sans-serif;border:1px solid transparent;color:var(--t-ink);background:var(--t-fill) padding-box,var(--t-line) border-box}
+  [data-s="good"]{--t-ink:#039855;--t-fill:linear-gradient(112deg,#d1fadf 3%,#ecfdf3 20%,#ecfdf3 80%,#d1fadf 94%);--t-line:conic-gradient(from 90deg,#32d583 0deg,#039855 12deg,#32d583 37deg,#32d583 175deg,#039855 194deg,#32d583 224deg,#32d583 360deg)}
+  [data-s="grow"]{--t-ink:#dc6803;--t-fill:linear-gradient(120deg,#fef0c7 3%,#fffaeb 20%,#fffaeb 80%,#fef0c7 94%);--t-line:conic-gradient(from 90deg,#fdb022 0deg,#dc6803 8deg,#fdb022 27deg,#fdb022 177deg,#dc6803 190deg,#fdb022 214deg,#fdb022 360deg)}
+  [data-s="attention"]{--t-ink:#d92d20;--t-fill:linear-gradient(122deg,#fee4e2 3%,#fef3f2 20%,#fef3f2 80%,#fee4e2 94%);--t-line:conic-gradient(from 90deg,#f97066 0deg,#d92d20 7deg,#f97066 26deg,#f97066 177deg,#d92d20 189deg,#f97066 212deg,#f97066 360deg)}
+  [data-s="log"]{--t-ink:#667085;--t-fill:linear-gradient(124deg,#f2f4f7 3%,#f9fafb 20%,#f9fafb 80%,#f2f4f7 94%);--t-line:conic-gradient(from 90deg,#f2f4f7 0deg,#e4e7ec 7deg,#f2f4f7 24deg,#f2f4f7 177deg,#e4e7ec 188deg,#f2f4f7 210deg,#f2f4f7 360deg)}
+  .bands{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .bands div{font-size:11px;text-align:center;padding:6px 2px;border-radius:8px;color:var(--muted);background:var(--bg);line-height:15px}
+  .bands div.on{font-weight:600;color:var(--t-ink);background:var(--t-fill) padding-box,var(--t-line) border-box;border:1px solid transparent}
+  .delta{position:absolute;top:8px;right:4px;font-weight:700;font-size:15px;opacity:0;transition:opacity .3s}
+  .delta.show{opacity:1}.delta.up{color:var(--green)}.delta.down{color:var(--red)}
+  .gap{background:var(--brand-50);border:1px solid var(--brand-100);border-radius:14px;padding:12px 14px;font-size:13px;line-height:19px}
+  .gap .gt{font-weight:600;color:var(--ink);margin-bottom:6px}
+  .gap ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+  .gap li{display:flex;gap:8px;align-items:flex-start}
+  .gap li b{color:var(--ink)}
+  .dot{width:8px;height:8px;border-radius:999px;flex:0 0 auto;margin-top:6px;background:var(--brand)}
+  .dot.r{background:var(--red)}.dot.a{background:var(--amber)}
+  .macros{display:flex;flex-direction:column;gap:10px}
+  .mr{display:flex;justify-content:space-between;font-size:13px}
+  .mr b{color:var(--ink)}
+  .bar{height:8px;border-radius:999px;background:var(--line2);overflow:hidden;margin-top:5px}
+  .bar span{display:block;height:100%;background:var(--brand);border-radius:999px;transition:width .5s var(--ease)}
+  .bar span.over{background:var(--red)}
+  .kcal{display:flex;justify-content:space-between;border-top:1px solid var(--line2);padding-top:10px;margin-top:10px;font-size:13px}
+  .kcal b{color:var(--ink)}
+  details.set{border-top:1px solid var(--line2);padding-top:12px}
+  summary{cursor:pointer;font-weight:600;color:var(--ink);list-style:none;display:flex;align-items:center;gap:8px}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"";margin-left:auto;width:8px;height:8px;border-right:2px solid var(--faint);border-bottom:2px solid var(--faint);transform:rotate(45deg);transition:transform .2s}
+  details[open] summary::after{transform:rotate(-135deg)}
+  .knobs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
+  .tg{border:1px solid var(--line);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:2px;background:#fff}
+  .tg span{font-size:11px;color:var(--muted);line-height:14px}
+  .tg input{width:100%;border:0;padding:0;font:600 16px/22px Roboto,sans-serif;color:var(--ink);background:none;outline:none}
+  .tg:focus-within{border-color:var(--brand)}
+
+  /* calculation */
+  .calcwrap{display:flex;flex-direction:column;gap:14px}
+  .feed{display:flex;flex-direction:column;gap:8px}
+  .ev{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:#fff}
+  .ev.newest{border-color:var(--brand);background:var(--brand-50)}
+  .evh{display:flex;align-items:flex-start;gap:8px}
+  .evh .l{flex:1;font-weight:600;color:var(--ink);font-size:13px}
+  .pill{font-weight:700;font-size:12px;border-radius:999px;padding:2px 8px;white-space:nowrap}
+  .pill.up{color:var(--green);background:#ECFDF3}.pill.down{color:var(--red);background:var(--red-50)}.pill.zero{color:var(--muted);background:var(--line2)}
+  .evs{font-size:12px;color:var(--muted);margin-top:2px}
+  .ev ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:12px}
+  .ev li .m{font-weight:600;color:var(--ink)}
+  .ev li .why{display:block;color:var(--muted);padding-left:10px}
+  .u{color:var(--green);font-weight:600}.d{color:var(--red);font-weight:600}
+  .empty{color:var(--muted);font-size:13px}
+  .mm{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}
+  .mm.hot{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-100)}
+  .mm.off{background:var(--bg)}
+  .mmh{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--line2)}
+  .mm.off .mmh{border-bottom:0}
+  .mmh b{color:var(--ink)}
+  .mmh span{font-size:12px;color:var(--muted)}
+  .mmh .p{margin-left:auto;font-weight:700;color:var(--ink);font-size:13px}
+  .mmb{padding:8px 12px 12px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th,td{text-align:left;padding:5px 3px;border-bottom:1px solid var(--line2);vertical-align:top}
+  th{color:var(--faint);font-weight:600;text-transform:uppercase;letter-spacing:.4px;font-size:10px}
+  td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+  td small{display:block;color:var(--muted);font-size:11px;line-height:14px}
+  .c100{color:var(--green);font-weight:700}.cmid{color:var(--amber);font-weight:700}.c0{color:var(--red);font-weight:700}
+  .steps{margin-top:8px;display:flex;flex-direction:column;gap:3px;font-size:12px;font-variant-numeric:tabular-nums}
+  .steps div{display:flex;justify-content:space-between;gap:10px}
+  .steps div span:first-child{color:var(--muted)}
+  .steps .tot{border-top:1px dashed var(--line);padding-top:5px;margin-top:2px;font-weight:700;color:var(--ink)}
+  .steps .tot span:first-child{color:var(--ink)}
+  .sum{background:var(--ink);color:#fff;border-radius:14px;padding:12px 14px;font-size:13px;line-height:20px}
+  .sum b{font-size:16px}
+  .rules{font-size:12px;line-height:18px}
+  .rules ul{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:5px}
+  .rules b{color:var(--ink)}
+  .sum .eq{font-size:14px;line-height:22px}
+  .sum .rest{display:block;color:#98A2B3;font-size:12px;margin-top:4px}
+  .mc{border:1px solid var(--line);border-radius:14px;background:#fff;overflow:hidden}
+  .mc.hot{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-100)}
+  .mch{display:flex;align-items:baseline;gap:8px;padding:10px 14px;background:var(--brand-50);border-bottom:1px solid var(--line2)}
+  .mch b{font-size:15px;color:var(--ink)}
+  .mch span{font-size:12px;color:var(--muted)}
+  .mch .p{margin-left:auto;font-weight:700;color:var(--ink);font-size:14px;white-space:nowrap}
+  .stp{padding:10px 14px;border-bottom:1px solid var(--line2);font-size:13px;line-height:19px}
+  .stp:last-child{border-bottom:0}
+  .stp .h{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--faint);margin-bottom:4px}
+  .stp .v{color:var(--ink)}
+  .stp .v2{color:var(--muted);font-size:12px;margin-top:3px}
+  .mline{display:flex;gap:8px;align-items:flex-start;margin-top:7px}
+  .tag{font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;white-space:nowrap;flex:0 0 auto;margin-top:1px;min-width:56px;text-align:center}
+  .tag.ok{color:var(--green);background:#ECFDF3}.tag.short{color:var(--amber);background:var(--amber-50)}.tag.over{color:var(--red);background:var(--red-50)}.tag.na{color:var(--muted);background:var(--line2)}
+  .mline .t{flex:1}
+  .mline .t b{color:var(--ink)}
+  .res{font-weight:700;color:var(--ink)}
+  .trk{position:relative;margin-top:16px}
+  .trk .bar{margin-top:0}
+  .tk{position:absolute;top:-3px;height:14px;width:2px;margin-left:-1px;background:var(--ink);opacity:.35;border-radius:2px}
+  .tk b{position:absolute;bottom:15px;left:50%;transform:translateX(-50%);font-size:10px;line-height:10px;color:var(--muted)}
+  .tk.next{opacity:1;background:var(--brand-700)}
+  .tk.next b{color:var(--brand-700);font-weight:700}
+  .ticknote{font-size:11px;color:var(--faint);margin:2px 0 0;line-height:15px}
+
+  @media (max-width:1180px){
+    .wrap{grid-template-columns:minmax(0,1fr) minmax(320px,.8fr)}
+    .col-food,.col-calc{grid-column:1}
+    .col-score{grid-column:2;grid-row:3 / span 2}
+    .setrow .knobs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media (max-width:760px){
+    .wrap{grid-template-columns:1fr;padding:18px 14px 44px}
+    .col-food,.col-calc,.col-score{grid-column:auto}
+    .col-score{position:static;max-height:none;grid-row:auto}
+    .tiles,.setrow .knobs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  /* the plate sandbox: what it adds to the first one */
+  .rulechips .chip small{display:block;font-size:11px;font-weight:400;color:var(--muted);line-height:14px}
+  .chip.tall{min-height:44px;padding:4px 14px;text-align:left;border-radius:12px}
+  .opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-top:6px}
+  .ocard{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:#fff}
+  .ocard.on{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-100)}
+  .ocard h4{margin:0 0 4px;font-size:13px;color:var(--ink);display:flex;gap:6px;align-items:baseline}
+  .ocard h4 span{font-weight:400;color:var(--muted);font-size:12px}
+  .it{display:flex;align-items:center;gap:8px;padding:6px 0}
+  .it+.it{border-top:1px solid var(--line2)}
+  .it .nm{flex:1;min-width:0;font-size:12.5px;color:var(--ink)}
+  .it .nm small{display:block;color:var(--muted);font-size:11px}
+  .it .sh{font-size:11px;font-weight:700;color:var(--brand-700);background:var(--brand-50);border-radius:999px;padding:1px 7px;white-space:nowrap}
+  .it.has .nm{color:var(--brand-700);font-weight:600}
+  .step button{width:26px;height:26px;font-size:14px}
+  .plate{display:flex;align-items:center;gap:10px;margin:10px 0 2px;font-size:13px;flex-wrap:wrap}
+  .plate .bar{flex:1;min-width:160px;height:10px;position:relative;overflow:visible;margin:0}
+  .plate .bar i{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink);opacity:.35}
+  .plate .bar .zone{position:absolute;top:0;bottom:0;background:var(--brand-100);border-radius:999px}
+  .plate .bar .fill{position:absolute;top:0;bottom:0;left:0;background:var(--brand);border-radius:999px}
+  .plate .bar .fill.over{background:var(--amber)}
+  .plate b{color:var(--ink)}
+  .mscore{font-weight:700;border-radius:999px;padding:2px 10px;font-size:12px;white-space:nowrap}
+  .mscore.ok{color:var(--green);background:#ECFDF3}.mscore.mid{color:var(--amber);background:var(--amber-50)}.mscore.bad{color:var(--red);background:var(--red-50)}
+  .say{margin:8px 0 0;font-size:13px;color:var(--text);background:var(--bg);border-radius:10px;padding:8px 10px}
+  .say b{color:var(--ink)}
+  .tline{font-size:12px;color:var(--text);margin-top:2px}
+  /* the meal at a glance */
+  .vz{border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin:8px 0 4px;background:#fff}
+  .vz.empty{color:var(--muted);font-size:12.5px;background:var(--bg)}
+  .vrow{display:grid;grid-template-columns:118px 1fr 92px;align-items:center;gap:10px;min-height:30px}
+  .vl{font-size:12px;color:var(--text)}
+  .vt{position:relative;height:12px;border-radius:999px;background:var(--line2)}
+  .vzone{position:absolute;top:0;bottom:0;background:var(--brand-200);border-radius:999px}
+  .vfill{position:absolute;top:3px;bottom:3px;left:0;border-radius:999px;background:var(--brand)}
+  .vfill.short{background:var(--amber)}.vfill.over{background:var(--red)}
+  .vmark{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--ink)}
+  .vmark b{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:10px;line-height:10px;color:var(--muted);white-space:nowrap;font-weight:600}
+  .vv{text-align:right;font-size:12px;color:var(--muted);white-space:nowrap}
+  .vv b{font-size:15px;margin-right:4px}.vv b.ok{color:var(--green)}.vv b.short{color:var(--amber)}.vv b.over{color:var(--red)}
+  .vv.muted{font-size:11px}
+  .mixbar{display:flex;overflow:hidden;height:20px;background:none}
+  .mixbar span{display:flex;align-items:center;justify-content:center;color:#fff;font-size:10.5px;font-weight:600;white-space:nowrap;overflow:hidden}
+  .mixbar span+span{border-left:2px solid #fff}
+  .vsep{height:1px;background:var(--line2);margin:10px 0 14px}
+  .vrow + .vrow{margin-top:6px}
+  .vfoot{display:flex;align-items:center;gap:10px;margin-top:10px}
+  .vfoot .say{flex:1;margin:0}
+  .vkey{display:flex;gap:14px;margin-top:8px;font-size:11px;color:var(--muted)}
+  .vkey i{display:inline-block;width:14px;height:8px;border-radius:4px;margin-right:5px;vertical-align:0}
+  .vkey .k1{background:var(--brand)}.vkey .k2{background:var(--brand-200)}.vkey .k3{width:2px;height:12px;background:var(--ink);vertical-align:-2px}
+  .od{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--oc);margin-right:2px;align-self:center}
+  .ocard.on{border-color:var(--oc);box-shadow:0 0 0 2px color-mix(in srgb,var(--oc) 18%,transparent)}
+  .formula{margin-top:16px;padding:16px 18px}
+  .formula .f{font:500 12.5px/20px ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink);background:var(--bg);border-radius:8px;padding:8px 10px;margin:0 0 6px}
+  .formula .f span{color:var(--muted)}
+  .formula h5{margin:12px 0 4px;font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--faint)}
+  .formula h5:first-child{margin-top:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Sandbox · one full plate</span>
+    <h1>EAT/Sufficiency score: any option, any mix</h1>
+    <p>Real plan templates from the coach portal, food by food. Tick any foods from any options, in any amount. Each food counts by its share of its own option's calories, the shares add up to "how much of a plate", and the meal is scored against the same blend of the options' macros, with 20% free either way.</p>
+  </header>
+
+  <section class="controls">
+    <div><p class="lab">Plan template <span>(from the coach portal's Diet Templates)</span></p><div class="chips" id="tpls"></div></div>
+    <div><p class="lab">How the meal target is set</p><div class="chips rulechips" id="rules"></div></div>
+    <div><p class="lab">Try a day</p><div class="chips" id="days"></div></div>
+    <details class="setrow">
+      <summary>Settings</summary>
+      <div class="knobs">
+        <label class="tg"><span>Free below the target (%)</span><input type="number" min="0" max="90" data-knob="below" id="k-below"></label>
+        <label class="tg"><span>Free above the target (%)</span><input type="number" min="0" data-knob="buffer" id="k-buffer"></label>
+        <label class="tg"><span>Points lost per 1% past it</span><input type="number" min="0" step="0.5" data-knob="slope" id="k-slope"></label>
+        <label class="tg"><span>Lowest a macro can score</span><input type="number" min="-100" max="0" step="10" data-knob="floor" id="k-floor"></label>
+      </div>
+      <button class="btn" id="resetK" style="margin-top:12px">Reset to ±20%, 1 point per 1%, −50</button>
+    </details>
+  </section>
+
+  <div class="col col-food">
+    <div class="colhead"><span class="n">1</span><b>Eat from any options</b></div>
+    <div class="meals" id="meals"></div>
+  </div>
+
+  <div class="col col-calc">
+    <div class="colhead"><span class="n">2</span><b>How it's calculated</b></div>
+    <div class="calcwrap">
+      <div class="sum" id="sum"></div>
+      <div class="calcwrap" id="mealcalc"></div>
+      <details class="card rules" open>
+        <summary>The rules in one place</summary>
+        <div id="rulestext"></div>
+      </details>
+    </div>
+  </div>
+
+  <div class="col col-score">
+    <div class="colhead"><span class="n">3</span><b>The score</b></div>
+    <div class="card scorecard" aria-live="polite">
+      <div class="hero">
+        <svg class="gauge" viewBox="0 0 240 132" aria-hidden="true">
+          <path d="M20 120a100 100 0 0 1 200 0" fill="none" stroke="#F2F4F7" stroke-width="16" stroke-linecap="round"/>
+          <path id="arc" d="M20 120a100 100 0 0 1 200 0" fill="none" stroke="#299D6B" stroke-width="16" stroke-linecap="round"/>
+        </svg>
+        <div class="num" id="num">0<i>%</i></div>
+        <span class="band" id="band" data-s="log"></span>
+        <div class="cap" id="cap"></div>
+      </div>
+      <div>
+        <p class="lab">The day, against the plan</p>
+        <div class="macros" id="macros"></div>
+        <div class="kcal" id="kcal"></div>
+      </div>
+    </div>
+    <div class="card formula">
+      <p class="lab" style="margin:0 0 10px">The formula</p>
+      <div id="formula"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* Real templates from the coach portal (Diet Templates, read 8 Oct 2026), renamed by what they are for.
+   meals: n = slot, o = options; each option is a list of foods [name, quantity, kcal, protein g, carbs g, fats g]. */
+var TPL = [{"name":"Weight loss, 1,200 kcal (GLP)","meals":[{"n":"Early morning","o":[[["Jeera saunf water","1 glass",2,0,0,0]]]},{"n":"Breakfast","o":[[["Dahi vegetable dalia","1 bowl",107,4,21,1]],[["Ragi porridge (salted)","1 bowl",175,5,26,6],["Buttermilk (lowfat)","1 glass",100,7.5,12.5,2.5]],[["Idli","3 number",183,6,39,0],["Green chutney","1 spoon",4,0,1,0],["Sambhar","1 bowl",123,6,18,3]],[["Oats upma","1 bowl",213,7,34,6],["moong sprouts","1 serving",101,7,18,0]],[["Paneer paratha (multigrain)","1.5 number",304.5,12,43.5,10.5],["Capsicum Tomato Chutney","1 spoon",8,0,0,1]],[["Moong dal chilla","2 number",232,12,34,6],["Amla Coriander Chutney","1 spoon",6,0,1,0]],[["Mix Dal Dosa","1.5 number",228,7.5,42,3],["Sambhar","1 bowl",123,6,18,3]]]},{"n":"Morning snack","o":[[["ajwain chass","1 glass",89,5,8,5]],[["Chia seeds with curd","1 bowl",124,6,10,7]],[["Papaya","1 bowl",58.5,1.5,15,0]],[["Kiwi","1 number",51.0,0.8,13.0,0]],[["orange","1 medium",72,1.5,16.5,0]]]},{"n":"Lunch","o":[[["Khichdi","1 bowl",290,10,57.5,2.5],["Drumstick pods (boiled without salt)","1 serving",21.6,1.2,4.8,0]],[["Curd Rice","1.5 bowl",219,6,34.5,6],["Carrots (boiled without salt)","1 serving",29.8,0.8,6.8,0]],[["boiled white rice (without starch)","1 bowl",126.4,4.7,25.3,0],["masoor dal with vegetables","1 bowl",139,7,22,3],["Buttermilk (lowfat)","1 glass",100,7.5,12.5,2.5]],[["Cucumber salad","1 bowl",16,1,2,0],["Multigrain Chapati","2 number",140,4,22,4],["Cauliflower chickpea curry","1 bowl",130,6,15,6],["Buttermilk (lowfat)","1 glass",100,7.5,12.5,2.5]],[["tomato carrot raita","0.5 bowl",39,2,4,2],["multigrain methi chapati","2 number",138,6,28,2],["Rajma curry","1 bowl",171,8,25,5],["Bhindi capsicum subji","0.5 serving",40.5,1,4.5,2.5]],[["paneer vegetable pulao","1 bowl",235,9,26,11],["Dahi (skim)","1 bowl",95.2,10.2,13.6,0]],[["Uttapam","1 number",225,7,39,4],["Coconut coriander chutney","1 spoon",30,1,2,2],["Sambhar","1 bowl",123,6,18,3]]]},{"n":"Evening snack","o":[[["Moong palak soup","1 bowl",112,7,18,1]],[["ajwain chass","1 glass",89,5,8,5]],[["makhane ki kheer","1 bowl",176,5,16,11]],[["moong sprouts dahi chaat","1 bowl",111,5,15,4]],[["sukha bhel","0.5 bowl",85.5,2.5,14,2.5],["Boiled kala chana","1 serving",120,6,20,2]]]},{"n":"Dinner","o":[[["Tomato oats soup","1 bowl",102,4,20,1],["Dahi (skim)","1 bowl",95.2,10.2,13.6,0]],[["mixed dal vegetable khichdi","1 bowl",233,8,41,5],["kadhi (plain, regular)","1 bowl",87,4,8,5]],[["rice flour besan chilla","1.5 number",226.5,6,31.5,9],["Chana Dal Chutney","1 spoon",44,1,4,2]],[["Barley lentil soup","1 bowl",164,8,29,3],["Multigrain Chapati","1 number",70,2,11,2],["lobiya palak subji","1 serving",132,7,19,4]],[["soya peas paneer pulao","1 bowl",188,6,31,4],["Cucumber Raita","1 bowl",91,6,10,3]],[["Phulka (thin chapati)","2 number",102,4,22,0],["mix dal (Moong tuvar masoor dal)","1 bowl",150,8,22,3],["Lauki ki subji","0.5 serving",39.5,0.5,2,3.5]]]},{"n":"Bedtime","o":[[["Jeera ajwain water","0.5 glass",1,0,0,0]],[["Haldi Milk","1 glass",170,8,18,8]]]}]},{"name":"Diabetes and weight loss, 1,500 kcal","meals":[{"n":"Early morning","o":[[["Jeera Water","1 glass",3,0,0,0]]]},{"n":"Breakfast","o":[[["Moong dal chilla","2 number",232,12,34,6],["Curd (Dahi, Plain Yogurt)","1 bowl",103.7,5.1,8.5,5.1]],[["Ragi porridge (salted)","1 bowl",175,5,26,6],["Buttermilk (low fat)","1 glass",137.2,9.8,12.2,4.9]],[["Idli","2 number",122,4,26,0],["Green chutney","1 spoon",4,0,1,0]],[["Oats upma","1 bowl",213,7,34,6],["moong sprouts","1 serving",101,7,18,0]],[["Paneer paratha (multigrain)","1 number",203,8,29,7],["Capsicum Tomato Chutney","1 spoon",8,0,0,1]],[["Moong dal chilla","2 number",232,12,34,6],["Amla Coriander Chutney","1 spoon",6,0,1,0]],[["Mix Dal Dosa","1 number",152,5,28,2],["Sambhar","1 bowl",123,6,18,3]]]},{"n":"Morning snack","o":[[["Buttermilk (low fat)","1 glass",137.2,9.8,12.2,4.9]],[["Chia seeds with curd","1 bowl",124,6,10,7]],[["Carrot Lentil Soup","1 bowl",193,11,37,2]],[["Banana apple oats smoothie","1 glass",253,6,46,6]]]},{"n":"Lunch","o":[[["Khichdi","1 bowl",290,10,57.5,2.5],["Curd (Dahi, Plain Yogurt)","1 bowl",103.7,5.1,8.5,5.1]],[["Curd Rice","1 bowl",146,4,23,4],["Carrots (boiled without salt)","1 serving",29.8,0.8,6.8,0]],[["boiled white rice (without starch)","1 bowl",126.4,4.7,25.3,0],["masoor dal with vegetables","1 bowl",139,7,22,3]],[["Cucumber salad","1 bowl",16,1,2,0],["Multigrain chapathi with ghee","1 number",93,2,11,5],["Cauliflower chickpea curry","1 bowl",130,6,15,6],["Buttermilk (low fat)","1 glass",137.2,9.8,12.2,4.9]],[["tomato carrot raita",".5 bowl",39,2,4,2],["Multigrain Chapati","2 number",140,4,22,4],["Rajma curry","1 bowl",171,8,25,5],["Bhindi capsicum subji","0.5 serving",40.5,1,4.5,2.5]],[["paneer vegetable pulao","1 bowl",235,9,26,11],["Curd (Dahi, Plain Yogurt)","1 bowl",103.7,5.1,8.5,5.1]],[["Uttapam","1 number",225,7,39,4],["Coconut chutney","1 spoon",46,1,3,4]]]},{"n":"Evening snack","o":[[["Moong palak soup","1 bowl",112,7,18,1]],[["ajwain chass","1 glass",89,5,8,5]],[["makhane ki kheer","1 bowl",176,5,16,11]],[["moong sprouts dahi chaat","1 bowl",111,5,15,4]],[["sukha bhel","0.5 bowl",85.5,2.5,14,2.5],["Boiled kala chana","1 serving",120,6,20,2]]]},{"n":"Dinner","o":[[["Tomato oats soup","1 bowl",102,4,20,1],["Curd (Dahi, Plain Yogurt)","1 bowl",103.7,5.1,8.5,5.1]],[["mixed dal vegetable khichdi","1 bowl",233,8,41,5],["kadhi (plain, regular)","0.5 bowl",43.5,2,4,2.5]],[["rice flour besan chilla","1.5 number",226.5,6,31.5,9],["Chana Dal Chutney","1 spoon",44,1,4,2]],[["Barley lentil soup","1 bowl",164,8,29,3],["Multigrain Chapati","1 number",70,2,11,2],["lobiya palak subji","1 serving",132,7,19,4]],[["soya peas paneer pulao","1 bowl",188,6,31,4],["Cucumber Raita","1 bowl",91,6,10,3]],[["Phulka (thin chapati)","2 number",102,4,22,0],["mix dal (Moong tuvar masoor dal)","1 bowl",150,8,22,3],["Lauki ki subji","0.5 serving",39.5,0.5,2,3.5]]]},{"n":"Bedtime","o":[[["Jeera ajwain water","0.5 glass",1,0,0,0]],[["Haldi Milk","1 glass",170,8,18,8]]]}]},{"name":"Fatty liver, five options a meal","meals":[{"n":"Early morning","o":[[["Jeera saunf water","1 glass",2,0,0,0],["basil seeds (sabja)","1 spoon",16.3,1.6,3.4,0.3]],[["mint coriander sabja juice","1 glass",20,1,4,0]]]},{"n":"Breakfast","o":[[["moong sprouts poha","1.5 bowl",249,7.5,45,4.5]],[["besan chilla","1.5 number",153,6,15,7.5],["Curd (Dahi, Plain Yogurt)","1 bowl",103.7,5.1,8.5,5.1]],[["Oats upma","0.75 bowl",159.8,5.2,25.5,4.5],["Curd (Dahi, Plain Yogurt)","1 bowl",103.7,5.1,8.5,5.1]],[["Gobi paneer paratha","1.5 number",265.5,9,37.5,10.5],["tomato chutney","3 spoon",18,0,3,0]],[["Mix Dal Dosa","1 number",152,5,28,2],["Sambhar","1 bowl",123,6,18,3]],[["Ragi Idli","1.5 number",231,9,40.5,3],["Chana Dal Chutney","1 spoon",44,1,4,2]],[["Besan Methi Thepla","2 number",240,8,36,8],["pudina chutney","1 spoon",7,0,1,0]]]},{"n":"Morning snack","o":[[["Papaya","1 bowl",58.5,1.5,15,0],["almond","5 piece",65.5,2.1,1.1,5.9],["Flaxseed","1 spoon",42.7,1.4,2.3,3.4]],[["Apple","1 number",78,0,21,0],["Walnuts","2 number",52.3,1.2,1.1,5.2],["Flaxseed","1 spoon",42.7,1.4,2.3,3.4]],[["Orange","1 number",61.2,1.2,15,0],["almond","5 piece",65.5,2.1,1.1,5.9],["Flaxseed","1 spoon",42.7,1.4,2.3,3.4]],[["Coconut water","1 glass",46,2,9,1],["basil seeds (sabja)","1 spoon",16.3,1.6,3.4,0.3],["almond","5 piece",65.5,2.1,1.1,5.9]],[["Musk melon","1 bowl",68,2,16,0],["Walnuts","2 number",52.3,1.2,1.1,5.2],["Chia seeds (bagrry''s)","1 spoon",29.7,1.7,3.4,2.6]],[["Pomegranates","1 bowl",144.4,3.5,33.1,1.7],["almond","5 piece",65.5,2.1,1.1,5.9],["sunflower seeds","1 teaspoon",31,1,0.9,2.6]]]},{"n":"Lunch","o":[[["Chapati (Roti)","2 number",174,6,38,2],["cabbage onion subji","1 serving",78,2,10,4],["carrot cucumber tomato salad","0.5 bowl",41,0.5,4.5,2.5],["Curd (Dahi, Plain Yogurt)","0.5 bowl",51.9,2.5,4.2,2.5]],[["boiled white rice (without starch)","1 bowl",126.4,4.7,25.3,0],["cauliflower moong dal","1 bowl",108,6,17,2],["Cucumber Raita","1 bowl",91,6,10,3]],[["Jowar roti","1 number",72,2,15,1],["Mix Vegetable subji (dry)","1 serving",79,2,10,4],["Tomato tur dal","1 bowl",101,4,13,4],["Buttermilk (low fat)","1 glass",137.2,9.8,12.2,4.9]],[["Chapati (Roti)","2 number",174,6,38,2],["bhindi do pyaza","1 serving",77,2,9,4],["Veg raita","1 bowl",58,3,7,2]],[["Vegetable pulao","1 bowl",167,3,25,6],["Carrot tomato onion raita","1.5 bowl",112.5,6,13.5,4.5]]]},{"n":"Evening snack","o":[[["Black coffee (without sugar)","1 cup",4.8,0,0,0],["Roasted chana (chickpeas)","1 handful",80,4,13,2]],[["Amla turmeric juice","1 glass",31,0,7,0],["Sprouts chaat (moong)","1 bowl",156,6,25,4]],[["Green tea","1 cup",2.5,0,0,0],["makhana","1 bowl",147,5,21,5]]]},{"n":"Dinner","o":[[["Garden salad (no dressing)","1 bowl",18,1,4,0],["Multigrain Chapati","2 number",140,4,22,4],["Masoor dal with soya chunks","1 bowl",156,11,20,4]],[["Mix veg salad (no dressing, no salt)","1 bowl",34,2,7,0],["Vegetable Daliya Khichdi","1 bowl",178,7,25,6],["Veg raita","1 bowl",58,3,7,2]],[["Sprouts vegetable salad","1 bowl",89,5,16,1],["Multigrain Chapati","2 number",140,4,22,4],["Lobia beans Curry (black eyed beans)","1 bowl",114,5,15,4]],[["Cucumber Carrot Salad","1 bowl",49,1,9,1],["Moong Dal Khichdi (Chilkewali Dal Khichdi)","1 bowl",293,9,54,4],["Drumstick tomato curry","1 bowl",73,2,9,4]],[["onion tomato salad","1 bowl",40,1,9,0],["wheat dosa","2 number",166,4,26,6],["vegetable sambar","1 bowl",124,3,15,6]]]}]},{"name":"Weight loss for PCOS, 1,500 kcal","meals":[{"n":"Early morning","o":[[["Jeera ajwain water","1 glass",2,0,0,0],["almond","5 piece",65.5,2.1,1.1,5.9],["Walnuts","3 number",78.5,1.8,1.7,7.8]]]},{"n":"Breakfast","o":[[["Vegetable Poha","1 bowl",248,5,46,5],["Nimbu pani (no salt,sugar)","1 glass",3,0,1,0]],[["Paneer club sandwich","1 number",441,15,38,26],["toned milk (Amul)","1 cup",141.5,7.3,12.2,7.3]],[["besan chilla","2 number",204,8,20,10],["pudina chutney","1 spoon",7,0,1,0],["toned milk (Amul)","1 cup",141.5,7.3,12.2,7.3]],[["Upma","1 bowl",342,10,48,12],["toned milk (Amul)","1 cup",141.5,7.3,12.2,7.3]]]},{"n":"Morning snack","o":[[["Papaya","1 bowl",58.5,1.5,15,0],["Pumpkin Seeds (true elements)","1 spoon",48.2,1.4,0.7,3.9]],[["Mango","1 number",168.8,1.2,43.8,1.2],["Chia seeds (bagrry''s)","1 spoon",29.7,1.7,3.4,2.6]],[["Coconut water","1 glass",46,2,9,1]]]},{"n":"Lunch","o":[[["Multigrain Chapati","2 number",140,4,22,4],["Paneer bhurji","1 serving",189,11,12,11],["Curd (Dahi, Plain Yogurt)","1 bowl",103.7,5.1,8.5,5.1]],[["Multigrain Chapati","2 number",140,4,22,4],["mix dal (Moong tuvar masoor dal)","1 bowl",150,8,22,3],["Beetroot cucumber raita","1 bowl",80,4,8,4]],[["Vegetable pulao","1 bowl",167,3,25,6],["Sprouts vegetable salad","1 bowl",89,5,16,1],["Curd (Dahi, Plain Yogurt)","1 bowl",103.7,5.1,8.5,5.1]],[["Multigrain Chapati","2 number",140,4,22,4],["Paneer peas bhurji","1 serving",174,10,14,9],["Curd (Dahi, Plain Yogurt)","1 bowl",103.7,5.1,8.5,5.1]]]},{"n":"Evening snack","o":[[["Green tea","1 cup",2.5,0,0,0],["makhana","1 bowl",147,5,21,5]],[["Green tea","1 cup",2.5,0,0,0],["Peanuts (boiled, with salt)","1 handful",63.6,2.8,4.2,4.4]],[["Mix cut fruits","1 bowl",82,1,21,0],["Chia seeds (bagrry''s)","1 spoon",29.7,1.7,3.4,2.6]]]},{"n":"Dinner","o":[[["Multigrain Chapati","2 number",140,4,22,4],["Turai aur tamatar sabzi","1 bowl",106,2,10,8],["Curd (Dahi, Plain Yogurt)","1 bowl",103.7,5.1,8.5,5.1]],[["Oats Khichdi","1 bowl",191,7,33,5],["Cucumber Raita","1 bowl",91,6,10,3],["Paneer stir fry","1 serving",160,7,10,10]],[["Multigrain Chapati","2 number",140,4,22,4],["Soya chunks curry","1 bowl",109,7,10,5],["tomato carrot raita","1 bowl",78,4,8,4]],[["Chana Salad With veggies (Chickpea Salad)","1 bowl",166,5,18,9],["Multi grain bread (toasted)","1 number",69.1,3.6,11.3,1.2],["Mixed Vegetable Sauteed","1 serving",119,2,10,9]]]},{"n":"Bedtime","o":[[["fennel seed water","1 glass",10,0,2,0]],[["Banana","1 number",105.0,1.2,27.1,0]]]}]},{"name":"Liver care, 1,700 kcal","meals":[{"n":"Early morning","o":[[["Jeera Water","1 glass",3,0,0,0],["almond","5 piece",65.5,2.1,1.1,5.9],["Walnuts","3 number",78.5,1.8,1.7,7.8],["Dates","2 number",45.1,0.3,12,0]]]},{"n":"Breakfast","o":[[["oats pesarattu (moong dal oats dosa)","1 number",118,6,18,3],["Green chutney","1 spoon",4,0,1,0]],[["Vegetable Upma","1 bowl",212,6,35,5],["moong sprouts","1 serving",101,7,18,0]],[["mixed sprouts poha","1.5 bowl",319.5,12,57,6]],[["Idli","3 number",183,6,39,0],["Sambhar","1 bowl",123,6,18,3]],[["oats porridge (oats dalia)","1 bowl",180,7,27,5],["Boiled egg whites","2 number",34,8,0,0]],[["Puttu","1 serving",218,3,35,8],["kadala curry (kala chana curry)","1 bowl",157,5,19,7]],[["Mix Dal Dosa","2 number",304,10,56,4],["Sambhar","1 bowl",123,6,18,3]]]},{"n":"Morning snack","o":[[["Apple","1 number",78,0,21,0],["pistachio nut","1 Tbsp",93.9,3,2.4,8.1]],[["Buttermilk (low fat)","1 glass",137.2,9.8,12.2,4.9]],[["Carrot Lentil Soup","1 bowl",193,11,37,2]]]},{"n":"Lunch","o":[[["White rice (long-grain, parboiled, cooked)","0.75 bowl",145.8,3.6,30.8,0],["whole moong curry (Green gram curry)","1 bowl",168,7,20,7],["Aviyal (kerala style)","1 bowl",133,3,17,7]],[["Multigrain Chapati","2 number",140,4,22,4],["ridge gourd moong dal subji","1 serving",125,6,18,3],["Buttermilk (low fat)","1 glass",137.2,9.8,12.2,4.9]],[["Ragi urad dal dosa (without oil)","1.5 number",157.5,6,30,1.5],["Beans sambar","1 bowl",136,5,19,6],["Buttermilk (low fat)","1 glass",137.2,9.8,12.2,4.9]],[["Khichdi","1 bowl",290,10,57.5,2.5],["Curd (Dahi, Plain Yogurt)","1 bowl",103.7,5.1,8.5,5.1]],[["White rice (plain, cooked)","0.75 bowl",181.3,2.8,40.5,0],["Fish curry","1 bowl",175,25,5,6]]]},{"n":"Evening snack","o":[[["Lentil lobia rajma soup with spinach","1 bowl",160,9,28,2]],[["Oats upma","0.75 bowl",159.8,5.2,25.5,4.5]],[["Roasted chana (chickpeas)","1 handful",80,4,13,2]]]},{"n":"Dinner","o":[[["Multigrain Chapati","2 number",140,4,22,4],["Toor dal","1 bowl",116,6,17,3],["bhindi subji dry","1 serving",105,2,10,7]],[["Multigrain Chapati","2 number",140,4,22,4],["Sprouted Moong Curry","1 bowl",121,4,14,6]],[["Peas and beans pulav","1 bowl",196,4,34,5],["Curd (Dahi, Plain Yogurt)","1 bowl",103.7,5.1,8.5,5.1]],[["White rice (long-grain, parboiled, cooked)","1 bowl",194.3,4.7,41.1,0],["Sprouted Horse gram sambhar","1 bowl",79,2,12,3]],[["Spinach And Pea Soup","1 bowl",86,5,11,3],["Multigrain Chapati","2 number",140,4,22,4],["Toor dal","1 bowl",116,6,17,3]],[["Idli","3 number",183,6,39,0],["Sambhar","1 bowl",123,6,18,3]]]},{"n":"Bedtime","o":[[["Haldi Milk","1 glass",170,8,18,8]]]}]},{"name":"Weight gain, 2,200 kcal","meals":[{"n":"Early morning","o":[[["Banana","1 number",105.0,1.2,27.1,0]],[["Chickoo (sapota)","2 number",100,2,24,0]]]},{"n":"Breakfast","o":[[["Multi grain bread (toasted)","4 number",276.5,14.4,45.1,4.8],["Omelette (1 whole egg 1 egg white)","1 number",101,9,1,7],["Badam milk","1 glass",205,9,17,12]],[["Aloo Paratha (Multigrain)","2 number",322,10,50,10],["Coconut coriander chutney","1 spoon",30,1,2,2],["Badam milk","1 glass",205,9,17,12]],[["milk (regular, plain)","1 glass",122.5,7.3,12.2,4.9],["Rolled oats (True elements)","1.5 serving",175.5,6.8,30.1,3.1],["Banana","1 number",105.0,1.2,27.1,0],["Peanut butter","2 spoon",129.4,4.8,5.3,11],["Honey","1 spoon",36.5,0,9.8,0]],[["Curd (Dahi, Plain Yogurt)","1.5 bowl",155.6,7.7,12.8,7.7],["Rolled oats (True elements)","2 serving",234,9,40.2,4.2],["strawberry","5 medium",33,0.8,7.5,0],["Honey (Dabur)","1 spoon",32,0,8,0],["Chia Seeds (true elements)","1 spoon",45.7,1.4,2.4,3.3]],[["Chapati (Roti)","2 number",174,6,38,2],["egg white masala omelet","1 number",61,4,4,3],["dry fruit milk shake (without sugar)","1 glass",300,10,33,16]]]},{"n":"Morning snack","o":[[["Mixed nuts","1 handful",92.5,2.5,3.3,8.4],["Dates","4 number",90.2,0.6,24,0]],[["Peanuts (dry-roasted, without salt)","1 handful",117.4,4.8,4.2,10],["Figs, dried, uncooked","4 number",79.7,1.0,20.5,0.3]]]},{"n":"Lunch","o":[[["Chapati (Roti)","2 number",174,6,38,2],["Moongachi Amti (Green moong curry)","1 bowl",109,3,8,9],["Gobhi mutter","1 serving",83,3,11,4],["White rice (plain, cooked)","0.5 bowl",120.9,1.9,27.0,0],["Mix veg salad (no dressing, no salt)","1 bowl",34,2,7,0]],[["White rice (plain, cooked)","1 bowl",241.8,3.7,53.9,0],["Chicken Curry","1 bowl",217,13,9,15],["Chapati (Roti)","1 number",87,3,19,1],["onion tomato salad","1 bowl",40,1,9,0]],[["White rice (plain, cooked)","1.25 bowl",302.2,4.7,67.4,0],["Rajma curry","1.25 bowl",213.8,10,31.2,6.2],["muli beet salad","1 bowl",36,2,8,0]],[["Chapati (Roti)","3 number",261,9,57,3],["Soya kheema","1 serving",107,6,10,5],["bhindi peanut subji","1 serving",158,5,13,11],["Cucumber","1 bowl",14,1,3,0]],[["Uttapam","1.5 number",337.5,10.5,58.5,6],["Sambhar","1.5 bowl",184.5,9,27,4.5],["Coconut coriander chutney","1 spoon",30,1,2,2]]]},{"n":"Evening snack","o":[[["egg white (boiled)","2 number",34,8,0,0]],[["Roasted chicken breast (homemade)","1 number",155,26,1,5]],[["Peanut chikki (sing chikki)","2 number",192,4,22,10]]]},{"n":"Dinner","o":[[["Chapati (Roti)","2 number",174,6,38,2],["paneer mutter corn subji","1 serving",152,8,19,6],["beetroot salad","1 bowl",47,2,11,0]],[["chicken fried rice","1 bowl",416,17,54,14],["Curd (Dahi, Plain Yogurt)","1 bowl",103.7,5.1,8.5,5.1],["onion tomato salad","1 bowl",40,1,9,0]],[["Chapati (Roti)","2 number",174,6,38,2],["Mix Vegetable subji (dry)","1 serving",79,2,10,4],["mix dal (Moong tuvar masoor dal)","1 bowl",150,8,22,3],["White rice (plain, cooked)","0.5 bowl",120.9,1.9,27.0,0],["Cucumber","1 bowl",14,1,3,0]],[["Chana Dal Pulao","2 bowl",436,12,76,10],["Carrot Beetroot Salad","1 bowl",99,2,13,5]],[["Chapati (Roti)","2 number",174,6,38,2],["Chicken Curry","1 bowl",217,13,9,15],["White rice (plain, cooked)","0.5 bowl",120.9,1.9,27.0,0],["beetroot cucumber salad","1 bowl",29,1,6,0]]]},{"n":"Bedtime","o":[[["Milk (low fat 1%)","1 glass",102.5,7.3,12.2,2.4]]]}]},{"name":"Ramadan, 1,400 kcal","meals":[{"n":"Breakfast","o":[[["egg white veggie omelette","2 number",204,14,8,14],["Chapati (Roti)","3 number",261,9,57,3],["buttermilk with basil seeds","1 glass",89,5,9,4]],[["Paneer paratha (multigrain)","2 number",406,16,58,14],["Chana Dal Chutney","1 spoon",44,1,4,2]],[["Chapati (Roti)","3 number",261,9,57,3],["Mix Vegetable subji (dry)","1 serving",79,2,10,4],["curd with flaxseed powder","1 bowl",107,6,8,6],["egg white (boiled)","2 number",34,8,0,0]],[["Overnight Oats with Chia seeds","1.5 bowl",420,16.5,63,13.5],["Boiled egg whites","2 number",34,8,0,0]],[["Paneer cucumber sandwich (brown bread)","1 number",244,9,31,9],["turmeric milk (without sugar)","1 glass",149,8,12,8],["Chana Dal Chutney","2 spoon",88,2,8,4]],[["boiled white rice (without starch)","1.25 bowl",158,5.9,31.6,0],["masoor dal with vegetables","1.5 bowl",208.5,10.5,33,4.5],["Mix Vegetable subji (dry)","1 serving",79,2,10,4]],[["dalia keema (chicken)","1.75 bowl",315,24.5,28,12.2],["curd with flaxseed powder","1 bowl",107,6,8,6]]]},{"n":"Evening snack","o":[[["Dates","2 number",45.1,0.3,12,0],["warm water with lime","1 glass",2,0,1,0],["Mix cut fruits","1 bowl",82,1,21,0],["Chickpea cucumber salad","1.25 bowl",181.2,6.2,23.8,7.5],["almond","6 piece",78.6,2.5,1.3,7.1]],[["Dates","2 number",45.1,0.3,12,0],["Jeera saunf water","1 glass",2,0,0,0],["Mix cut fruits","1 bowl",82,1,21,0],["Sprouts vegetable salad","1.25 bowl",111.2,6.2,20,1.2],["Walnuts","3 number",78.5,1.8,1.7,7.8]],[["Dates","2 number",45.1,0.3,12,0],["Coconut water","1 glass",46,2,9,1],["Mix cut fruits","1 bowl",82,1,21,0],["chickpea moong sprouts salad","1.25 bowl",118.8,6.2,21.2,1.2],["Pumpkin Seeds (true elements)","1 spoon",48.2,1.4,0.7,3.9],["Flaxseed","1 spoon",42.7,1.4,2.3,3.4]],[["Dates","2 number",45.1,0.3,12,0],["Mint lemon juice (with sugar)","1 glass",33,0,8,0],["almond","5 piece",65.5,2.1,1.1,5.9],["Three beans salad","1 bowl",237,14,39,4]],[["Dates","2 number",45.1,0.3,12,0],["Mix cut fruits","1 bowl",82,1,21,0],["chana rajma salad","1 bowl",119,6,18,3],["amla cucumber juice","1 glass",39,1,8,0],["Roasted Sunflower pumpkin & flax seeds (urban platter)","0.5 handful",58.9,2.6,1.7,5.1]]]},{"n":"Dinner","o":[[["Chapati (Roti)","3 number",261,9,57,3],["Tomato tur dal","1.5 bowl",151.5,6,19.5,6],["Curd (Dahi, Plain Yogurt)","1 bowl",103.7,5.1,8.5,5.1],["green beans stir fry","1 serving",65,2,9,3]],[["boiled white rice (without starch)","1.5 bowl",189.6,7.1,37.9,0],["pepper egg curry","1.5 bowl",246,12,18,13.5],["Buttermilk (lowfat)","1 glass",100,7.5,12.5,2.5]],[["lemon chicken curry","1.5 bowl",220.5,31.5,4.5,7.5],["boiled white rice (without starch)","1.5 bowl",189.6,7.1,37.9,0]],[["Missi Roti","3 number",276,12,39,9],["Chole (curry)","1 bowl",222,9,31,8],["Cucumber Carrot Salad","1 bowl",49,1,9,1],["buttermilk with flaxseeds","1 glass",66,3,5,4]],[["Chicken Pulao","1.25 bowl",486.2,18.8,55,21.2],["Cucumber carrot raita","1 bowl",83,5,7,4]],[["Chapati (Roti)","3 number",261,9,57,3],["Chicken Curry","1 bowl",217,13,9,15],["Cucumber Flaxseed Raita","0.5 bowl",59,4,3.5,3.5]],[["Chicken Haleem","1.25 bowl",343.8,28.8,23.8,15],["carrot cucumber tomato capsicum salad","1 bowl",34,1,8,0],["Chapati (Roti)","2 number",174,6,38,2]]]}]}];
+/* foods eaten that are not in the plan, to try "extra" */
+var EXTRA = [["Samosa", "1 piece", 262, 4, 24, 17], ["Banana", "1 piece", 105, 1.3, 27, 0.4], ["Masala chai with sugar", "1 cup", 90, 2, 14, 3],
+  ["Paneer bhurji", "1 katori", 230, 14, 6, 15], ["Gulab jamun", "2 pieces", 300, 3, 50, 12], ["Whey protein", "1 scoop", 120, 24, 3, 1.5]];
+
+var MAC = [{ k: 3, name: "Protein" }, { k: 4, name: "Carbs" }, { k: 5, name: "Fats" }];
+/* one colour per option, so the cards, the target bar and the macro bars read together */
+var OC = ["#444CE7", "#0E9384", "#DC6803", "#C11574", "#6172F3", "#15B79E", "#B54708", "#7A5AF8", "#2E90FA", "#66C61C"];
+var RULES = [
+  { id: "plate", name: "One full plate", sub: "Recommended. Any option, any mix" },
+  { id: "avg", name: "Plan's average, ±20%", sub: "The average option, whatever is eaten" }
+];
+var DEF = { below: 20, buffer: 20, slope: 1, minBuf: 3, floor: -50 };
+var S = { t: 0, rule: "plate", below: DEF.below, buffer: DEF.buffer, slope: DEF.slope, minBuf: DEF.minBuf, floor: DEF.floor, eat: {}, extra: {} };
+
+function $(id) { return document.getElementById(id); }
+function g(n) { return Math.round(n); }
+function gm(n) { var r = Math.round(n * 10) / 10; return r % 1 === 0 ? String(r) : r.toFixed(1); }
+function f1(n) { return (Math.round(n * 10) / 10).toFixed(1); }
+function f2(n) { return (Math.round(n * 100) / 100).toFixed(2); }
+function T() { return TPL[S.t]; }
+function sum(items, k) { return items.reduce(function (s, x) { return s + x[k]; }, 0); }
+/* an option's totals: [kcal, p, c, f] at positions 2..5 like a food */
+function tot(o) { return [0, 0, sum(o, 2), sum(o, 3), sum(o, 4), sum(o, 5)]; }
+function avgOpt(m) { var t = [0, 0, 0, 0, 0, 0]; m.o.forEach(function (o) { var x = tot(o); for (var k = 2; k < 6; k++) t[k] += x[k] / m.o.length; }); return t; }
+
+/* ---------------------------------------------------------------- scoring */
+function credit(x, e, st) {
+  if (e <= 0) return null;
+  var low = e * (1 - st.below / 100);
+  if (x < low) return x / low * 100;
+  var free = e + Math.max(e * st.buffer / 100, st.minBuf);
+  return x <= free ? 100 : Math.max(st.floor, 100 - (x - free) / e * 100 * st.slope);
+}
+/* one meal: how much of each option was eaten (by calories), the plate, the target, the score */
+function meal(m, i) {
+  var por = S.eat[i] || {}, ex = S.extra[i] || {}, eaten = [0, 0, 0, 0, 0, 0], shares = [], plate = 0;
+  m.o.forEach(function (o, oi) {
+    var ok = sum(o, 2), got = 0;
+    o.forEach(function (f, fi) { var n = por[oi + "|" + fi] || 0; if (!n) return; got += f[2] * n; for (var k = 2; k < 6; k++) eaten[k] += f[k] * n; });
+    var sh = ok > 0 ? got / ok : 0; shares.push(sh); plate += sh;
+  });
+  Object.keys(ex).forEach(function (j) { var f = EXTRA[j], n = ex[j]; for (var k = 2; k < 6; k++) eaten[k] += f[k] * n; });
+  var any = plate > 0 || Object.keys(ex).length > 0, tgt, how;
+  if (S.rule === "plate" && plate > 0) {
+    /* the target is one full plate, blended from the options in the proportion they were eaten */
+    tgt = [0, 0, 0, 0, 0, 0];
+    m.o.forEach(function (o, oi) { if (!shares[oi]) return; var x = tot(o); for (var k = 2; k < 6; k++) tgt[k] += x[k] * shares[oi] / plate; });
+    how = shares.map(function (s, oi) { return s ? "option " + (oi + 1) + " " + g(s / plate * 100) + "%" : ""; }).filter(Boolean).join(" + ");
+  } else { tgt = avgOpt(m); how = S.rule === "plate" ? "nothing from the plan, so the plan's average option" : "the plan's average option"; }
+  var cr = MAC.map(function (mm) { return { name: mm.name, x: eaten[mm.k], e: tgt[mm.k], cr: credit(eaten[mm.k], tgt[mm.k], S) }; });
+  var scored = cr.filter(function (c) { return c.cr !== null; });
+  var score = scored.length ? scored.reduce(function (s, c) { return s + c.cr; }, 0) / scored.length : 100;
+  return { any: any, plate: plate, shares: shares, eaten: eaten, tgt: tgt, how: how, cr: cr, score: score };
+}
+function weights(tp) { var kc = tp.meals.map(function (m) { return avgOpt(m)[2]; }), d = kc.reduce(function (s, x) { return s + x; }, 0); return kc.map(function (x) { return x / d * 100; }); }
+function compute() {
+  var tp = T(), w = weights(tp), rows = [], total = 0, n = 0, day = [0, 0, 0, 0, 0, 0];
+  tp.meals.forEach(function (m, i) {
+    var r = meal(m, i), pts = r.any ? w[i] * r.score / 100 : 0;
+    for (var k = 2; k < 6; k++) day[k] += r.eaten[k];
+    if (r.any) { total += pts; n++; }
+    rows.push({ m: m, i: i, w: w[i], r: r, pts: pts });
+  });
+  return { rows: rows, total: Math.max(0, Math.round(total)), n: n, day: day };
+}
+/* what KAIRA could say about the meal, in plain words */
+function words(r, i) {
+  var ex = Object.keys(S.extra[i] || {}).map(function (j) { return EXTRA[j][0]; });
+  return words0(r) + (ex.length ? " Plus " + ex.join(", ") + ", not in the plan." : "");
+}
+function words0(r) {
+  if (!r.any) return "";
+  var ex = r.cr.filter(function (c) { return c.cr !== null && c.cr < 90; });
+  var pl = S.rule === "plate" ? r.plate : 0, tk = r.eaten[2], ak = r.tgt[2];
+  var size = S.rule === "plate" && r.plate > 0 ? pl : tk / (ak || 1);
+  var lead = size < 0.4 ? "A small part of the meal." : size < 0.7 ? "About half the meal." : size <= 1.3 ? "About one full plate." : size < 1.75 ? "A bit more than the meal." : "About " + gm(Math.round(size * 2) / 2) + " times the meal.";
+  if (!ex.length) return "<b>" + lead + "</b> Every macro is where the plan wants it.";
+  return "<b>" + lead + "</b> " + ex.map(function (c) { return c.name + (c.x < c.e ? " short" : " over"); }).join(", ") + ".";
+}
+
+/* ---------------------------------------------------------------- render */
+function cls(s) { return s >= 90 ? "ok" : s >= 75 ? "mid" : "bad"; }
+function renderControls() {
+  $("tpls").innerHTML = TPL.map(function (t, i) { return '<button class="chip' + (S.t === i ? " on" : "") + '" data-t="' + i + '">' + t.name + "</button>"; }).join("");
+  $("rules").innerHTML = RULES.map(function (r) { return '<button class="chip tall' + (S.rule === r.id ? " on" : "") + '" data-rule="' + r.id + '">' + r.name + "<small>" + r.sub + "</small></button>"; }).join("");
+  $("days").innerHTML = [["first", "Option 1, every meal"], ["mix", "Mix: first food of option 1, the rest of option 2"], ["half", "Half of option 1, every meal"],
+    ["extra", "Option 1 plus a samosa at lunch"], ["double", "Option 1 twice at breakfast"], ["random", "Random foods"], ["clear", "Clear"]]
+    .map(function (d) { return '<button class="chip" data-day="' + d[0] + '">' + d[1] + "</button>"; }).join("");
+  ["below", "buffer", "slope", "floor"].forEach(function (k) { $("k-" + k).value = S[k]; });
+}
+function stepper(key, n, kind) {
+  return '<div class="step' + (n ? " has" : "") + '"><button class="minus" data-' + kind + '="' + key + '|-">&minus;</button><output>' + gm(n) + '</output><button class="plus" data-' + kind + '="' + key + '|+">+</button></div>';
+}
+function renderMeals(c) {
+  $("meals").innerHTML = c.rows.map(function (row) {
+    var m = row.m, r = row.r, por = S.eat[row.i] || {}, ex = S.extra[row.i] || {};
+    var opts = m.o.map(function (o, oi) {
+      var ok = sum(o, 2);
+      return '<div class="ocard' + (r.shares[oi] ? " on" : "") + '" style="--oc:' + OC[oi % OC.length] + '"><h4><i class="od"></i>Option ' + (oi + 1) + "<span>" + g(ok) + " kcal" + (r.shares[oi] ? " · eaten " + g(r.shares[oi] * 100) + "%" : "") + "</span></h4>" + o.map(function (f, fi) {
+        var n = por[oi + "|" + fi] || 0, sh = ok > 0 ? f[2] / ok * 100 : 0;
+        return '<div class="it' + (n ? " has" : "") + '"><div class="nm">' + f[0] + "<small>" + f[1] + " · " + g(f[2]) + " kcal</small></div>" +
+          '<span class="sh" title="Share of option ' + (oi + 1) + "'s calories\">" + (sh < 1 ? "<1" : g(sh)) + "%</span>" + stepper(row.i + "|" + oi + "|" + fi, n, "f") + "</div>";
+      }).join("") + "</div>";
+    }).join("");
+    var extras = Object.keys(ex).map(function (j) { var f = EXTRA[j]; return '<div class="it has"><div class="nm">' + f[0] + " <small>" + f[1] + " · " + g(f[2]) + " kcal · not in the plan</small></div>" + stepper(row.i + "|" + j, ex[j], "x") + "</div>"; }).join("");
+    var pl = Math.min(r.plate, 2.5) / 2.5 * 100, lo = (1 - S.below / 100) / 2.5 * 100, hi = (1 + S.buffer / 100) / 2.5 * 100;
+    return '<section class="meal' + (r.any ? " hot" : "") + '"><div class="mh"><div class="t"><b>' + m.n + "</b><small>" + m.o.length + (m.o.length === 1 ? " option" : " options") + " · counts for " + (row.w < 1 ? "under 1%" : g(row.w) + "%") + " of the day</small></div>" +
+      (r.any ? '<span class="mscore ' + cls(r.score) + '">' + g(r.score) + "%</span>" : "") + "</div>" +
+      '<div class="mb">' + visual(Object.assign({ i: row.i }, m), r) +
+      '<div class="opts">' + opts + "</div>" +
+      '<p class="sub">Not in the plan</p>' + extras +
+      '<div class="addrow"><select data-sel="' + row.i + '"><option value="">Add a food not in the plan</option>' + EXTRA.map(function (f, j) { return '<option value="' + j + '">' + f[0] + " (" + f[1] + ")</option>"; }).join("") + '</select><button class="btn" data-add="' + row.i + '">Add</button></div>' +
+      "</div></section>";
+  }).join("");
+}
+/* the meal at a glance: how much of a plate, what the target is made of, and each macro against its zone */
+function visual(m, r) {
+  if (!r.any) return '<div class="vz empty">Tick foods below. This panel shows how they change the target and the score.</div>';
+  var plateMax = 2, pz = function (v) { return Math.min(v, plateMax) / plateMax * 100; };
+  var plate = '<div class="vrow"><span class="vl">How much of a plate</span><div class="vt"><span class="vzone" style="left:' + pz(1 - S.below / 100) + "%;width:" + (pz(1 + S.buffer / 100) - pz(1 - S.below / 100)) + '%"></span>' +
+    '<span class="vfill" style="width:' + pz(r.plate || r.eaten[2] / (r.tgt[2] || 1)) + '%"></span><i class="vmark" style="left:' + pz(1) + '%"><b>1 plate</b></i></div><span class="vv">' + f2(S.rule === "plate" && r.plate ? r.plate : r.eaten[2] / (r.tgt[2] || 1)) + "</span></div>";
+  var mix = S.rule === "plate" && r.plate > 0
+    ? '<div class="vrow"><span class="vl">Target made from</span><div class="vt mixbar">' + r.shares.map(function (sh, oi) {
+        if (!sh) return ""; var w = sh / r.plate * 100;
+        return '<span style="width:' + w + "%;background:" + OC[oi % OC.length] + '" title="Option ' + (oi + 1) + '">' + (w >= 26 ? "Option " + (oi + 1) + " · " + g(w) + "%" : w >= 12 ? g(w) + "%" : "") + "</span>";
+      }).join("") + '</div><span class="vv"></span></div>'
+    : '<div class="vrow"><span class="vl">Target made from</span><div class="vt mixbar"><span style="width:100%;background:#98A2B3">The plan\'s average option</span></div><span class="vv"></span></div>';
+  var macros = r.cr.map(function (c) {
+    if (c.cr === null) return '<div class="vrow"><span class="vl">' + c.name + '</span><div class="vt"></div><span class="vv muted">not scored</span></div>';
+    var max = Math.max(c.e * 2, c.x * 1.05), sc = function (v) { return Math.min(v, max) / max * 100; };
+    var lo = c.e * (1 - S.below / 100), hi = c.e + Math.max(c.e * S.buffer / 100, S.minBuf);
+    var state = c.cr >= 90 ? "ok" : c.cr >= 75 ? "short" : "over";   /* colour by score: green, amber, red */
+    return '<div class="vrow"><span class="vl">' + c.name + '</span><div class="vt"><span class="vzone" style="left:' + sc(lo) + "%;width:" + (sc(hi) - sc(lo)) + '%"></span>' +
+      '<span class="vfill ' + state + '" style="width:' + sc(c.x) + '%"></span><i class="vmark" style="left:' + sc(c.e) + '%"><b>' + gm(c.e) + ' g</b></i></div>' +
+      '<span class="vv"><b class="' + state + '">' + g(c.cr) + "</b><small>" + gm(c.x) + " g " + (c.x < lo ? "low" : c.x > hi ? "high" : "") + "</small></span></div>";
+  }).join("");
+  return '<div class="vz">' + plate + mix + '<div class="vsep"></div>' + macros +
+    '<div class="vfoot"><span class="say">' + words(r, m.i) + '</span><span class="mscore ' + cls(r.score) + '">Meal ' + g(r.score) + "%</span></div>" +
+    '<div class="vkey"><span><i class="k1"></i>eaten</span><span><i class="k2"></i>full marks zone</span><span><i class="k3"></i>target</span></div></div>';
+}
+function macroTxt(o) { return g(o[2]) + " kcal · P " + gm(o[3]) + " · C " + gm(o[4]) + " · F " + gm(o[5]); }
+function line(c) {
+  if (c.cr === null) return '<div class="mline"><span class="tag na">Not scored</span><span class="t"><b>' + c.name + ":</b> the target has none.</span></div>";
+  var low = c.e * (1 - S.below / 100), free = c.e + Math.max(c.e * S.buffer / 100, S.minBuf), tag, txt;
+  if (c.x < low) { tag = "short"; txt = gm(c.x) + " g, under the " + gm(low) + " g where full marks start, so " + g(c.cr); }
+  else if (c.x <= free) { tag = "ok"; txt = gm(c.x) + " g, inside " + gm(low) + " to " + gm(free) + " g, so 100"; }
+  else { tag = "over"; txt = gm(c.x) + " g, past " + gm(free) + " g, so " + g(c.cr); }
+  return '<div class="mline"><span class="tag ' + tag + '">' + { short: "Short", ok: "Within", over: "Over" }[tag] + '</span><span class="t"><b>' + c.name + ":</b> " + txt + "</span></div>";
+}
+function renderCalc(c) {
+  var logged = c.rows.filter(function (x) { return x.r.any; });
+  $("sum").innerHTML = logged.length
+    ? '<div class="eq">Score <b>' + c.total + "</b> = " + logged.map(function (x) { return x.m.n + " " + f1(x.pts); }).join(" + ") + '</div><span class="rest">' + (c.n < c.rows.length ? c.rows.length - c.n + " meals not eaten yet, 0 points." : "Every meal is in.") + "</span>"
+    : '<div class="eq">Score <b>0</b>. Nothing eaten yet.</div><span class="rest">Add any food from any option, or try a day above.</span>';
+  $("mealcalc").innerHTML = logged.map(function (x) {
+    var r = x.r, sc = r.cr.filter(function (c) { return c.cr !== null; }).map(function (c) { return g(c.cr); });
+    var shareTxt = r.shares.map(function (s, oi) { return s ? f2(s) + " of option " + (oi + 1) : ""; }).filter(Boolean).join(" + ");
+    return '<div class="mc"><div class="mch"><b>' + x.m.n + "</b><span>counts for " + f1(x.w) + '%</span><span class="p">' + f1(x.pts) + " pts</span></div>" +
+      (S.rule === "plate" ? '<div class="stp"><div class="h">1 · How much of a plate</div><div class="v">' + (shareTxt || "nothing from the plan") + " = <b>" + f2(r.plate) + " plate</b></div><div class=\"v2\">Each food counts by its share of its own option's calories.</div></div>" : "") +
+      '<div class="stp"><div class="h">' + (S.rule === "plate" ? "2" : "1") + " · Eaten</div><div class=\"v\">" + macroTxt(r.eaten) + "</div></div>" +
+      '<div class="stp"><div class="h">' + (S.rule === "plate" ? "3" : "2") + " · Target, " + r.how + '</div><div class="v">' + macroTxt(r.tgt) + "</div></div>" +
+      '<div class="stp"><div class="h">' + (S.rule === "plate" ? "4" : "3") + " · Points per macro</div>" + r.cr.map(line).join("") + "</div>" +
+      '<div class="stp"><div class="h">' + (S.rule === "plate" ? "5" : "4") + ' · To points</div><div class="v">Meal score = (' + sc.join(" + ") + ") ÷ " + sc.length + " = " + g(r.score) + "%</div>" +
+      '<div class="v">' + x.m.n + " = " + f1(x.w) + " × " + g(r.score) + '% = <span class="res">' + f1(x.pts) + "</span></div></div></div>";
+  }).join("");
+  $("rulestext").innerHTML = "<ul>" +
+    "<li><b>Each food counts by its share of its own option's calories.</b> Chilla at 220 of option 1's 300 kcal counts as 0.73; chutney at 10 kcal counts as 0.03. Options can have any number of foods.</li>" +
+    "<li><b>The shares add up to how much of a plate was eaten.</b> 1.00 is one full plate, from one option or a mix.</li>" +
+    "<li><b>The target is one full plate, blended</b> from the options in the proportion they were eaten. A mixed plate is measured against a mixed target.</li>" +
+    "<li><b>Each macro gets full marks from " + S.below + "% below to " + S.buffer + "% above its target.</b> Further below, it scores the share reached; further above, it loses " + S.slope + " point per 1%, down to " + S.floor + ".</li>" +
+    "<li><b>Food not in the plan</b> adds its macros to what was eaten. If nothing from the plan was eaten, the target is the plan's average option.</li>" +
+    "<li><b>Each meal counts for its share of the day</b>, from its average option's calories. The day adds the meals, never below 0.</li></ul>";
+}
+function renderScore(c) {
+  var L = 314.16;
+  $("arc").setAttribute("stroke-dasharray", L); $("arc").setAttribute("stroke-dashoffset", L * (1 - Math.min(100, c.total) / 100)); $("arc").setAttribute("stroke-opacity", c.total ? 1 : 0);
+  $("num").innerHTML = c.total + "<i>%</i>";
+  $("band").textContent = c.n ? c.n + " of " + c.rows.length + " meals in" : "Eat from any option";
+  $("cap").textContent = c.n === c.rows.length ? "Every meal is in. This is the day's score." : c.n ? "Score so far." : "";
+  var dp = [0, 0, 0, 0, 0, 0]; T().meals.forEach(function (m) { var a = avgOpt(m); for (var k = 2; k < 6; k++) dp[k] += a[k]; });
+  $("macros").innerHTML = MAC.map(function (m) {
+    var x = c.day[m.k], t = dp[m.k], p = x / t * 100;
+    return '<div><div class="mr"><span><b>' + m.name + "</b></span><span><b>" + g(x) + "</b> of " + g(t) + ' g</span></div><div class="bar"><span class="' + (p > 100 + S.buffer ? "over" : "") + '" style="width:' + Math.min(100, p) + '%"></span></div></div>';
+  }).join("");
+  $("kcal").innerHTML = '<span>Calories <span style="color:var(--faint)">(shown, not scored)</span></span><span><b>' + g(c.day[2]) + "</b> of " + g(dp[2]) + " kcal</span>";
+}
+/* the whole idea as formulas, with the live settings */
+function renderFormula() {
+  var lo = (1 - S.below / 100).toFixed(2).replace(/0$/, ""), hi = (1 + S.buffer / 100).toFixed(2).replace(/0$/, "");
+  $("formula").innerHTML =
+    "<h5>1 · Plate</h5><div class=\"f\">plate = Σ food kcal ÷ its option's kcal</div>" +
+    "<h5>2 · Target</h5><div class=\"f\">target = Σ (option's plate ÷ plate) × option macros<br><span>nothing from the plan → the average option</span></div>" +
+    "<h5>3 · Macro points</h5><div class=\"f\">eaten &lt; " + lo + "T → eaten ÷ " + lo + "T × 100<br>" + lo + "T to " + hi + "T → 100<br>eaten &gt; " + hi + "T → 100 − (eaten − " + hi + "T) ÷ T × 100, min " + S.floor + "<br><span>T = target; the top edge is at least T + " + S.minBuf + " g</span></div>" +
+    "<h5>4 · Meal</h5><div class=\"f\">meal score = (protein + carbs + fats) ÷ 3</div>" +
+    "<h5>5 · Day</h5><div class=\"f\">share = meal's average option kcal ÷ day's kcal<br>day score = Σ share × meal score, min 0</div>";
+}
+function all() { var c = compute(); renderControls(); renderMeals(c); renderCalc(c); renderScore(c); renderFormula(); }
+
+/* ---------------------------------------------------------------- try a day */
+function eatOption(i, oi, n) { var p = S.eat[i] = S.eat[i] || {}; T().meals[i].o[oi].forEach(function (f, fi) { p[oi + "|" + fi] = (p[oi + "|" + fi] || 0) + n; }); }
+function tryDay(id) {
+  S.eat = {}; S.extra = {};
+  if (id === "clear") return;
+  T().meals.forEach(function (m, i) {
+    if (id === "first" || id === "extra") eatOption(i, 0, 1);
+    else if (id === "half") eatOption(i, 0, 0.5);
+    else if (id === "double") eatOption(i, 0, m.n === "Breakfast" ? 2 : 1);
+    else if (id === "mix") {
+      /* the first food of option 1 with the rest of option 2, where both have two or more foods */
+      if (m.o.length < 2 || m.o[0].length < 2 || m.o[1].length < 2) return eatOption(i, 0, 1);
+      var p = S.eat[i] = {}; p["0|0"] = 1; m.o[1].forEach(function (f, fi) { if (fi > 0) p["1|" + fi] = 1; });
+    } else if (id === "random") {
+      var q = S.eat[i] = {}; m.o.forEach(function (o, oi) { o.forEach(function (f, fi) { if (Math.random() < 1 / m.o.length) q[oi + "|" + fi] = 1; }); });
+    }
+    if (id === "extra" && m.n === "Lunch") S.extra[i] = { 0: 1 };
+  });
+}
+
+document.addEventListener("click", function (e) {
+  var b = e.target.closest("button"); if (!b) return;
+  var d = b.dataset;
+  if (d.t) { S.t = +d.t; S.eat = {}; S.extra = {}; }
+  else if (d.rule) S.rule = d.rule;
+  else if (d.day) tryDay(d.day);
+  else if (d.f) { var p = d.f.split("|"), mi = p[0], key = p[1] + "|" + p[2], q = S.eat[mi] = S.eat[mi] || {}; q[key] = Math.max(0, (q[key] || 0) + (p[3] === "+" ? 1 : -1)); if (!q[key]) delete q[key]; }
+  else if (d.x) { var px = d.x.split("|"), qx = S.extra[px[0]] = S.extra[px[0]] || {}; qx[px[1]] = Math.max(0, (qx[px[1]] || 0) + (px[2] === "+" ? 1 : -1)); if (!qx[px[1]]) delete qx[px[1]]; }
+  else if (d.add) { var sel = document.querySelector('select[data-sel="' + d.add + '"]'); if (!sel.value) return; var qa = S.extra[d.add] = S.extra[d.add] || {}; qa[sel.value] = (qa[sel.value] || 0) + 1; }
+  else if (b.id === "resetK") Object.assign(S, DEF);
+  else return;
+  all();
+});
+document.addEventListener("change", function (e) {
+  var k = e.target.dataset.knob; if (!k) return;
+  var v = parseFloat(e.target.value); if (isNaN(v)) return all();
+  S[k] = k === "floor" ? Math.min(0, Math.max(-100, v)) : k === "below" ? Math.min(90, Math.max(0, v)) : Math.max(0, v);
+  all();
+});
+all();
+</script>
+</body>
+</html>

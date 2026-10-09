@@ -1,0 +1,831 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coach Plan Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="icons/glyph-masks.css">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800&family=Montserrat:wght@700;800&family=Poppins:wght@600&display=swap" rel="stylesheet">
+<style>
+  /* the coach portal's own tokens (research/coach-portal-ui.md, measured 7 Oct 2026) */
+  :root{
+    --green:#299D6B; --green-off:#A5D6C1; --mint:#E7F5EF; --chip:#EAF6F1; --fld:#F0F6F3; --hair:#DFEAE5; --hair2:#F0F0F0; --grey:#CECECE;
+    --bg:#F7FAF9; --ink:#1E2622; --head:#24463A; --muted:#97A49D; --danger:#B8442E; --ok:#28A745; --amber:#B54708; --amber-bg:#FFFAEB; --amber-line:#FEDF89;
+    --red-bg:#FEF3F2; --red-line:#FECDCA;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:400 14px/20px Onest,system-ui,sans-serif}
+  button,input{font:inherit;color:inherit}
+  button{cursor:pointer}
+  .app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+
+  /* patient menu */
+  .side{background:#fff;border-right:1px solid var(--hair);padding:18px 16px 24px}
+  .pt{display:flex;align-items:center;gap:10px;padding:6px 4px 16px;border-bottom:1px solid var(--hair);margin-bottom:12px}
+  .av{width:42px;height:42px;border-radius:14px;background:var(--green);color:#fff;display:grid;place-items:center;font:700 15px Montserrat,sans-serif;flex:none}
+  .pt b{display:block;font:700 15px/20px Montserrat,sans-serif;color:var(--head)}
+  .pt span{font-size:12px;color:var(--muted)}.pt em{font-style:normal;color:var(--green)}
+  .sec{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin:16px 6px 6px}
+  .nav{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:11px;font-size:13.5px;font-weight:500;color:var(--head)}
+  .nav.sub{padding-left:28px;font-size:12.5px}
+  .nav.on{background:#E8F5EF;color:var(--green);font-weight:600}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+
+  /* top bar and content */
+  .main{min-width:0}
+  .top{height:67px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;background:rgba(247,250,249,.82);border-bottom:1px solid var(--hair);position:sticky;top:0;z-index:5;backdrop-filter:blur(8px)}
+  .top h2{margin:0;font:800 18px Montserrat,sans-serif;color:var(--head)}
+  .acct{display:flex;align-items:center;gap:8px}.acct i{width:30px;height:30px;border-radius:50%;background:var(--green);color:#fff;font:700 11px/30px Onest;text-align:center;font-style:normal}
+  .acct b{display:block;font-size:12.5px;line-height:15px;color:var(--head)}.acct span{font-size:10.5px;color:var(--muted)}
+  .content{padding:28px 30px 60px}
+  .btn{height:38px;padding:0 16px;border-radius:11px;font-size:13px;font-weight:600;border:1.5px solid var(--green);background:#fff;color:var(--green);display:inline-flex;align-items:center;gap:6px}
+  .btn.fill{background:var(--green);color:#fff}
+  .btn.sm{height:34px;font-size:12.5px}
+  .btn.danger{border-color:var(--danger);color:var(--danger)}
+  .btn[disabled]{background:var(--green-off);border-color:var(--green-off);color:#fff;cursor:not-allowed}
+  .btn.ghost{border:0;background:none;padding:0 4px}
+
+  /* A. list of plans */
+  .chips{display:flex;gap:7px;margin-bottom:18px;flex-wrap:wrap}
+  .chips span{height:38px;padding:0 16px;border-radius:11px;border:1.5px solid var(--hair);background:#fff;color:var(--head);font-size:13px;font-weight:600;display:inline-flex;align-items:center}
+  .chips span.on{background:var(--green);border-color:var(--green);color:#fff}
+  .card{background:#fff;border:1px solid var(--hair);border-radius:22px;padding:16px 20px;display:flex;align-items:center;gap:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(20,56,42,.06)}
+  .card .ic{width:34px;height:34px;border-radius:10px;background:var(--chip);display:grid;place-items:center;color:var(--green);flex:none}
+  .card .t{flex:1;min-width:0}.card b{font:700 15px Montserrat,sans-serif;color:var(--head)}
+  .badge{display:inline-block;margin-left:8px;padding:3px 5px;border-radius:4px;color:#fff;font-size:11px;font-weight:700;vertical-align:2px}
+  .card small{display:block;font-size:11.5px;color:var(--muted);margin-top:3px}
+
+  /* sheet */
+  .sheet{position:fixed;inset:0;background:#fff;z-index:20;display:flex;flex-direction:column}
+  .sheet[hidden]{display:none}
+  .shd{height:57px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid var(--hair)}
+  .shd b{font-size:16px;font-weight:600;color:var(--green)}.shd button{border:0;background:none;font-size:24px;line-height:1}
+  .sbody{flex:1;overflow:auto;padding:10px 40px 140px}
+  h3.ttl{text-align:center;font-size:21px;font-weight:700;color:var(--green);margin:18px 0}
+
+  /* B. template table */
+  table{width:100%;border-collapse:collapse}
+  th{background:var(--green);color:#fff;font-weight:700;text-align:left;padding:16px;font-size:14px}
+  th:first-child{border-radius:8px 0 0 0}th:last-child{border-radius:0 8px 0 0}
+  td{padding:16px;border-bottom:1px solid var(--hair2)}
+  tr.on td{background:#FAFAFA}
+  .radio{width:16px;height:16px;border-radius:50%;border:1px solid var(--green);display:inline-block;vertical-align:middle;position:relative}
+  tr.on .radio{background:var(--green)}tr.on .radio::after{content:"";position:absolute;inset:4px;border-radius:50%;background:#fff}
+  td a{color:var(--green);text-decoration:none}
+
+  /* C. editor */
+  .row3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin:14px 0}
+  .fl{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}.fl i{color:#f00;font-style:normal}
+  .box{background:var(--fld);border:1.5px solid var(--hair);border-radius:11px;padding:4px 13px;min-height:53px;display:flex;align-items:center;font-size:13.5px;font-weight:600;color:#333}
+  .box input{border:0;background:none;width:100%;outline:none;font-weight:600}
+  .box.off{color:#7a8a82}
+  .nut{border:1px solid var(--grey);border-radius:16px;padding:10px}
+  .gl{font:600 11.2px Poppins,sans-serif;color:var(--green)}
+  .ga{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  .ga div{border:1px solid #d9d9d9;background:rgba(0,0,0,.04);border-radius:6px;padding:4px 8px;color:var(--green);font-size:13px}
+  .mtabs{display:flex;border-bottom:1px solid var(--green);margin-top:24px;overflow-x:auto}
+  .mtab{min-width:150px;padding:8px 22px;border:0;background:none;font-size:14px;color:var(--ink);white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px;border-bottom:2px solid transparent}
+  .mtab.on{background:var(--mint);color:var(--green);border-bottom-color:var(--green)}
+  .flag{width:8px;height:8px;border-radius:50%;background:var(--danger);flex:none}
+
+  /* NEW: the meal's targets, the heart of this mock */
+  .tgt{margin:16px 0;border:1.5px solid var(--green);border-radius:16px;background:linear-gradient(180deg,#F5FBF8,#fff);padding:14px 16px}
+  .tgt .hd{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .tgt .hd b{font-size:15px;color:var(--head)}
+  .new{font-size:10px;font-weight:800;letter-spacing:1px;color:#fff;background:#444CE7;border-radius:4px;padding:2px 6px}
+  .tgt .hd .why{flex-basis:100%;font-size:12.5px;color:#5b6b63}
+  .tgt .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}
+  .tf{background:#fff;border:1.5px solid var(--hair);border-radius:11px;padding:8px 12px}
+  .tf label{display:block;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted)}
+  .tf input{border:0;outline:none;width:100%;font-size:18px;font-weight:700;color:var(--head);background:none;padding:2px 0}
+  .tf small{font-size:11px;color:var(--muted)}
+  .tf.edited{border-color:#A4BCFD;background:#F5F8FF}
+  .fits{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+  .pill{font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;border:1px solid var(--hair);background:#fff}
+  .pill.ok{color:#067647;background:#ECFDF3;border-color:#ABEFC6}.pill.bad{color:var(--danger);background:var(--red-bg);border-color:var(--red-line)}
+  .pill.skip{color:#667085;background:#F2F4F7;border-color:#E4E7EC}
+
+  .meta{display:flex;align-items:center;gap:12px;margin:14px 0;font-size:12.8px;flex-wrap:wrap}
+  .tp{border:1px solid #d9d9d9;border-radius:6px;padding:5px 10px;background:#fff}
+  .sw{width:44px;height:22px;border-radius:11px;background:#bfbfbf;display:inline-block;position:relative;vertical-align:middle;margin-left:8px}
+  .sw::after{content:"";position:absolute;left:2px;top:2px;width:18px;height:18px;border-radius:50%;background:#fff}
+  .otabs{display:flex;border:1px solid var(--green);overflow-x:auto}
+  .otab{padding:7px 18px;border:0;background:none;white-space:nowrap;display:flex;align-items:center;gap:6px;border-bottom:2px solid transparent;font-weight:500}
+  .otab.on{color:var(--green);border-bottom-color:var(--green)}
+  .otab.add{color:var(--green)}
+  .opt{border:1px solid #000;padding:12px 15px 15px;border-top:0}
+  .ob{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:12px;margin-bottom:12px;font-size:13px}
+  .ob.bad{background:var(--red-bg);border:1px solid var(--red-line);color:#7A271A}
+  .ob.ok{background:#ECFDF3;border:1px solid #ABEFC6;color:#05603A}
+  .ob.skip{background:#F2F4F7;border:1px solid #E4E7EC;color:#475467}
+  .ob b{display:block;font-size:13.5px}
+  .ob .acts{margin-left:auto;display:flex;gap:8px;flex:none}
+  .tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:4px 0 16px}
+  .tile{background:var(--mint);border-radius:10px;padding:14px 10px;text-align:center}
+  .tile b{display:block;font-size:15px;font-weight:600;color:var(--green)}
+  .tile span{color:var(--green)}
+  .tile em{display:block;font-style:normal;font-size:11.5px;margin-top:2px}
+  .tile em.ok{color:#067647}.tile em.bad{color:var(--danger)}
+  .portion{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:13px}
+  .portion button{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--green);background:#fff;color:var(--green);font-weight:700}
+  .portion output{min-width:44px;text-align:center;font-weight:700}
+  .foods{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+  .food{border:1px solid var(--green);border-radius:16px;padding:10px 14px}
+  .food label{font:600 12.8px Poppins,sans-serif;color:var(--green)}
+  .food div{font-weight:600;color:var(--head)}
+
+  .foot{position:fixed;left:0;right:0;bottom:0;z-index:21;background:#fff;border-top:1px solid var(--hair);padding:12px 40px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .foot .status{flex:1;min-width:240px;font-size:13px}
+  .foot .status b{color:var(--danger)}.foot .status b.ok{color:#067647}
+  .foot .btn{border-radius:6px}
+  .day{margin:0 0 6px;font-size:12.5px;color:#5b6b63}
+  .warn{background:var(--amber-bg);border:1px solid var(--amber-line);color:var(--amber);border-radius:10px;padding:8px 12px;font-size:12.5px;margin-top:8px}
+
+  /* preview dialog */
+  .scrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:30;display:grid;place-items:center;padding:16px}
+  .scrim[hidden]{display:none}
+  .dlg{background:#fff;border-radius:8px;width:min(720px,100%);max-height:86vh;overflow:auto;padding:20px 24px}
+  .dlg h4{margin:0 0 4px;font-size:16px;font-weight:600}
+  .dlg table td,.dlg table th{padding:9px 10px;font-size:13px}
+  .toast{position:fixed;left:50%;top:20px;transform:translateX(-50%);background:var(--head);color:#fff;border-radius:10px;padding:10px 16px;font-size:13px;z-index:40;opacity:0;transition:opacity .25s}
+  .toast.on{opacity:1}
+  @media (max-width:900px){.app{grid-template-columns:1fr}.side{display:none}.row3,.tgt .grid,.tiles{grid-template-columns:1fr 1fr}.sbody{padding:10px 16px 160px}.foot{padding:12px 16px}}
+  /* Current / New: how the portal is today, and with meal targets */
+  .vt{display:inline-flex;border:1.5px solid var(--hair);border-radius:999px;padding:2px;background:#fff}
+  .vt button{border:0;background:none;border-radius:999px;padding:5px 12px;font-size:12px;font-weight:600;color:var(--muted)}
+  .vt button.on{background:var(--head);color:#fff}
+  .rng{display:flex;align-items:center;gap:6px}
+  .rng input{width:56px;border:0;outline:none;font-size:18px;font-weight:700;color:var(--head);background:none;padding:2px 0}
+  .rng span{color:var(--muted)}
+  .shd b{white-space:nowrap}
+  /* New view: the option's totals, side by side */
+  .stats{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border:1px solid var(--hair);border-radius:14px;background:#fff;margin:4px 0 16px;overflow:hidden}
+  .st{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;padding:12px 14px}
+  .st+.st{border-left:1px solid var(--hair)}
+  .si{grid-row:1 / span 2;width:34px;height:34px;border-radius:10px;background:var(--mint);color:var(--green);display:grid;place-items:center}
+  .si svg{width:18px;height:18px}
+  .si i{display:block;width:18px;height:18px;background:var(--green)}
+  .sv b{font-size:20px;line-height:24px;font-weight:700;color:var(--head);font-variant-numeric:tabular-nums}
+  .sv small{font-size:12px;font-weight:500;color:var(--muted);margin-left:3px}
+  .sl{font-size:12px;color:#5b6b63}
+  .st.faint .sv b{color:var(--muted);font-weight:500}
+  @media (max-width:900px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.st:nth-child(4){border-left:0}.st:nth-child(n+4){border-top:1px solid var(--hair)}}
+  /* the meal target, in the timing row: three editable numbers that read as fields */
+  .mt{display:inline-flex;align-items:center;gap:10px;margin-left:20px;padding:8px 10px 8px 14px;border:1.5px solid var(--hair);border-radius:14px;background:#F5FBF8;flex-wrap:wrap}
+  .mt.edited{border-color:#A4BCFD;background:#F5F8FF}
+  .mtl{display:inline-flex;flex-direction:column;gap:3px;font-size:14px;font-weight:700;color:var(--head);margin-right:4px}
+  .mtl .new{align-self:flex-start;font-size:9.5px;padding:1px 6px}
+  .mtw{font-size:13px;color:var(--muted)}
+  .mtf{display:grid;grid-template-rows:auto auto auto;gap:1px;min-width:108px;background:#fff;border:1.5px solid var(--hair);border-radius:11px;padding:6px 12px;cursor:text;transition:border-color .15s}
+  /* read state: plain numbers split by hairlines; edit state: real input boxes */
+  .mtf{cursor:default;background:none;border:0;border-left:1px solid var(--hair);border-radius:0;padding:4px 16px}
+  .mtf.ed{cursor:text;background:#fff;border:1.5px solid var(--hair);border-radius:11px;padding:6px 12px}
+  .mt.editing .mtl{margin-right:4px}
+  .mtf.ed:hover{border-color:#A6D9C1}
+  .mtf.ed:focus-within{border-color:var(--green);box-shadow:0 0 0 3px rgba(41,157,107,.12)}
+  .mt.editing{border-color:var(--green);background:#fff}
+  .mfv b{font:700 18px/24px Onest,sans-serif;color:var(--head)}
+  .mta{display:inline-flex;align-items:center;gap:8px;margin-left:2px}
+  .mtu{display:inline-flex;align-items:center;gap:5px}
+  .mtu .pen{width:14px;height:14px}
+  .mtsave{border:1.5px solid var(--green);background:var(--green);color:#fff;font-weight:600;font-size:12.5px;cursor:pointer;padding:5px 12px;border-radius:8px}
+  .mtlink{border:0;background:none;color:var(--muted);font-size:12.5px;text-decoration:underline;cursor:pointer;padding:4px}
+  .mfl{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  .mfv{display:flex;align-items:center;gap:3px;font-size:13px;color:var(--muted)}
+  .mfv input{width:56px;border:0;outline:none;background:none;font:700 18px/24px Onest,sans-serif;color:var(--head);padding:0;-moz-appearance:textfield;border-bottom:1.5px dashed #C9D8D0}
+  .mfv input:focus{border-bottom-color:var(--green)}
+  .mfv input::-webkit-outer-spin-button,.mfv input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .mfv .pen{width:14px;height:14px;margin-left:auto;color:var(--green);opacity:.7}
+  .mfr{font-size:11px;color:var(--muted)}
+  .mth{display:inline-flex;align-items:center;gap:5px}
+  .mti{position:relative;width:15px;height:15px;border-radius:50%;border:1.2px solid var(--muted);color:var(--muted);font:700 9.5px/13px Onest;text-align:center;cursor:help;flex:none}
+  .mti .tip{display:none;position:absolute;left:50%;bottom:30px;transform:translateX(-50%);width:250px;background:var(--head);color:#fff;font:400 12.5px/18px Onest;text-align:left;border-radius:8px;padding:8px 10px;z-index:5}
+  .mti:hover .tip,.mti:focus .tip{display:block}
+  .mtu{border:1.5px solid var(--green);background:#fff;color:var(--green);font-weight:600;font-size:12.5px;cursor:pointer;padding:5px 10px;border-radius:8px}
+  /* the editor, field for field as the portal */
+  .ehead{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-top:18px}
+  .ehead .ttl{font-size:23px}
+  .ehead .btn.ghost{justify-self:start;font-size:17px;color:var(--green)}
+  .va{display:flex;justify-content:flex-end;margin:14px 0 6px}
+  .row2{display:grid;grid-template-columns:minmax(0,600px) minmax(0,580px);column-gap:0;row-gap:18px;margin:10px 0 18px}
+  .row2 .box{border-radius:11px 0 0 11px}
+  .row2 > div:nth-child(2n) .box{border-radius:11px}
+  .gl.dr{font-size:13px;margin-bottom:8px}
+  .range{display:inline-flex;align-items:center;gap:14px;height:44px;padding:0 12px;border:1px solid #d9d9d9;border-radius:3px;background:#fff;color:var(--green);font-size:14px}
+  .range .ar{color:#bfbfbf}
+  .flx{display:flex;align-items:center;gap:6px}
+  .ii{display:inline-flex;margin-left:auto;color:#8c8c8c;cursor:help}
+  .ii svg{width:16px;height:16px}
+  .nut{position:relative}
+  .nutii{position:absolute;right:12px;top:12px}
+  .pctbox{width:68%}
+  .ga{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:10px}
+  .ga > div{border:0 !important;background:none !important;padding:0 !important}
+  .gv{margin-top:4px;border:1px solid #d9d9d9;background:rgba(0,0,0,.04);border-radius:6px;padding:7px 12px;color:var(--green);font-size:13.5px}
+  .meta .hide{margin-left:auto;display:inline-flex;align-items:center;gap:8px}
+  .tp{display:inline-flex;align-items:center;gap:8px}
+  .tipsrow{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:16px;margin:4px 0 16px}
+  .tipsrow b{font-size:17px;font-weight:600}
+  .tipsrow textarea{min-height:96px;border:1px solid var(--grey);font:400 13px/18px ui-monospace,Menlo,monospace;color:var(--green);padding:6px 8px;resize:vertical}
+  .tiles9{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin:4px 0 20px}
+  .tiles9 .tile{padding:22px 10px}
+  .tiles9 .tile b{font-size:17px}
+  .fcards{display:flex;flex-direction:column;gap:16px;margin-top:20px}
+  .fcard{border:1px solid var(--green);border-radius:16px;padding:16px 16px 14px}
+  .fgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 48px}
+  .ff label{display:block;font:600 12.8px Poppins,sans-serif;color:var(--green);margin-bottom:6px}
+  .ff label i{color:#f00;font-style:normal}
+  .fv{display:flex;align-items:center;width:100%;height:50px;border-radius:10px;background:var(--fld);border:1.5px solid var(--hair);padding:0 14px;font:500 13.5px Onest,sans-serif;color:#333}
+  .fv.off{color:#333;opacity:.95}
+  input.fv{outline:none}input.fv:focus{border-color:var(--green)}
+  .fsel{position:relative;border-bottom:1px solid #d9d9d9;border-top:1px solid #f0f0f0}
+  .fsel select{width:100%;height:42px;border:0;background:#fff;font:500 13.5px Onest,sans-serif;color:#333;padding:0 30px 0 12px;appearance:none;-webkit-appearance:none;cursor:pointer;outline:none}
+  .fsel svg{position:absolute;right:10px;top:14px;color:#8c8c8c;pointer-events:none}
+  .fdel{display:flex;justify-content:flex-end;margin-top:14px}
+  .fdel .btn{gap:6px;border-radius:8px}
+  .addfood{margin-top:14px;border-radius:6px;height:32px;font-size:12.5px}
+  @media (max-width:900px){.row2{grid-template-columns:1fr}.fgrid{grid-template-columns:1fr 1fr;gap:12px}.tiles9{grid-template-columns:1fr 1fr}}
+  .otab.off{color:#98A2B3}
+  .offtag{font-size:10.5px;font-weight:600;color:#667085;background:#F2F4F7;border:1px solid #E4E7EC;border-radius:999px;padding:1px 7px}
+  .fsel .fsearch{width:100%;height:42px;border:0;background:#fff;font:500 13.5px Onest,sans-serif;color:#333;padding:0 30px 0 12px;outline:none;cursor:text}
+  .fsel:focus-within{border-bottom-color:var(--green)}
+  .fopts{position:absolute;left:0;right:0;top:44px;z-index:8;max-height:260px;overflow:auto;background:#fff;border-radius:8px;box-shadow:0 6px 16px rgba(0,0,0,.12),0 3px 6px -4px rgba(0,0,0,.12);padding:4px}
+  .fo{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13.5px}
+  .fon{display:flex;flex-direction:column;min-width:0}.fon small{color:#8c8c8c;font-size:11.5px}
+  .fom{display:grid;grid-template-columns:62px 46px 46px 46px;gap:4px;font-size:12px;color:#5b6b63;font-variant-numeric:tabular-nums;text-align:right;flex:none}
+  .fom .fk{color:#333;font-weight:500}
+  .fo:hover{background:#E7F5EF}
+  .fo b{font-weight:500;color:#333}.fom span{white-space:nowrap}
+  .fnone{padding:14px 10px;color:#bfbfbf;font-size:13px;text-align:center}
+  /* tips, in the Eat screen's format */
+  .tipsbox{margin:24px 0 4px;border:1px solid var(--hair);border-radius:14px;padding:14px 16px;background:#fff}
+  .thd{display:flex;align-items:center;gap:8px}.thd b{font-size:17px;font-weight:600}
+  .tnote{margin:8px 0 12px;font-size:12.5px;line-height:18px;color:#7A5A00;background:#FFFAEB;border:1px solid #FEDF89;border-radius:10px;padding:8px 12px}
+  .trow{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-top:1px solid #F0F0F0}
+  .tnum{flex:none;width:22px;height:22px;border-radius:50%;background:var(--mint);color:var(--green);font:700 12px/22px Onest;text-align:center;margin-top:8px}
+  .tfs{flex:1;display:flex;flex-direction:column;gap:6px}
+  .tfs input{width:100%;border:1.5px solid var(--hair);border-radius:10px;background:var(--fld);padding:9px 12px;outline:none;font:inherit}
+  .tfs input:focus{border-color:var(--green);background:#fff}
+  .tfs .th{font-weight:600;font-size:14px;color:var(--head)}
+  .tfs .ts{font-size:13px;color:#5b6b63}
+  .tdel{flex:none;border:0;background:none;color:var(--danger);cursor:pointer;padding:8px;margin-top:2px}
+  .tempty{color:var(--muted);font-size:13px;padding:6px 0 4px}
+  .addtip{margin-top:10px;height:32px;border-radius:6px}
+  .traw{margin-top:12px;font-size:12px;color:var(--muted)}
+  .traw summary{cursor:pointer}
+  .traw pre{white-space:pre-wrap;font:12px/17px ui-monospace,Menlo,monospace;color:var(--green);background:#F7FAF9;border-radius:8px;padding:8px 10px;margin:8px 0 0}
+  .rd{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--danger);margin:0 6px 1px;vertical-align:middle}
+  .obl{list-style:none;margin:6px 0;padding:0}.obl li{margin:2px 0}.obl .rd{margin-left:0}
+  .st.off .sv b{color:var(--danger)}
+  .flag.amber,.rd.amber{background:#F79009}
+  .ob.warn2{background:#FFFAEB;border:1px solid #FEDF89;color:#7A2E0E}
+  .st.offa .sv b{color:#B54708}
+  .amb{color:#B54708;font-weight:600}
+  .fx{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}
+  .fx span{font-size:12px;color:#5b6b63;width:100%}
+  .fx .btn{height:auto;min-height:32px;padding:6px 12px;text-align:left;border-radius:8px;font-size:12.5px}
+  .fx .why2{width:100%;font-size:12px;color:#5b6b63;margin:-2px 0 4px}
+  .cfm{display:flex;gap:14px}
+  .cfi{flex:none;width:36px;height:36px;border-radius:50%;background:#FEF0C7;color:#B54708;font:800 18px/36px Onest;text-align:center}
+  .cfm h4{font-size:17px;margin:4px 0 6px}
+  .cfm p{margin:0 0 8px;color:#475467;font-size:13.5px}
+  .cfl{margin:0 0 12px;padding-left:18px;color:#475467;font-size:13px;line-height:20px}
+  .cfc{display:flex;gap:8px;align-items:center;font-size:13px;color:var(--head);font-weight:500;cursor:pointer}
+  .vchip{margin-left:8px;font-size:11px;font-weight:600;color:#3538CD;background:#EEF4FF;border-radius:999px;padding:2px 8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="pt"><span class="av">P</span><div><b>Patient A</b><span>34 · F · Indication: <em>Diabetes</em></span></div></div>
+    <div class="nav">Overview</div><div class="nav">Chat with Kaira</div>
+    <div class="sec">Care triad</div>
+    <div class="nav"><span class="dot"></span>Diet Coach</div>
+    <div class="nav sub">Baseline Assessment</div><div class="nav sub">Follow-up Assessments</div>
+    <div class="nav sub on">List of Diet Plans</div><div class="nav sub">Adherence &amp; User View</div><div class="nav sub">Diet Reports</div>
+    <div class="nav"><span class="dot" style="background:#0E9384"></span>Exercise Coach</div>
+    <div class="nav"><span class="dot" style="background:#7A5AF8"></span>Success Coach</div>
+  </aside>
+  <main class="main">
+    <div class="top"><h2>List of Diet Plans</h2><div style="display:flex;gap:16px;align-items:center"><span class="vt" data-vt></span><button class="btn fill" id="create">+ Create Diet Plan</button><div class="acct"><i>CA</i><div><b>Coach A</b><span>Nutritionist</span></div></div></div></div>
+    <div class="content">
+      <div class="chips"><span class="on">All</span><span>Pending</span><span>Approved</span><span>Drafts</span><span>Rejected</span><span>Inactive</span></div>
+      <div id="plans"></div>
+    </div>
+  </main>
+</div>
+
+<!-- B + C: the create sheet -->
+<div class="sheet" id="sheet" hidden>
+  <div class="shd"><b>Create Diet Plan</b><span style="display:flex;align-items:center;gap:14px"><span class="vt" data-vt></span><button id="close" aria-label="Close">&times;</button></span></div>
+  <div class="sbody" id="sbody"></div>
+</div>
+<div class="foot" id="foot" hidden></div>
+<div class="scrim" id="scrim" hidden><div class="dlg" id="dlg"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* Templates from the coach portal's Diet Templates library (read 7 and 8 Oct 2026), renamed by what they are for.
+   meals: n = the portal's meal name, o = options; each food is [name, quantity, measure, kcal, protein, carbs, fats] per one unit. */
+var TPL = [{"name":"Weight loss, 1,200 kcal (GLP)","goal":1200,"pct":[22,23,55],"meals":[{"n":"EARLY MORNING","o":[[["Jeera saunf water",1.0,"glass",2.0,0.0,0.0,0.0]]]},{"n":"Breakfast","o":[[["Dahi vegetable dalia",1.0,"bowl",107.0,4.0,21.0,1.0]],[["Ragi porridge (salted)",1.0,"bowl",175.0,5.0,26.0,6.0],["Buttermilk (lowfat)",1.0,"glass",100.0,7.5,12.5,2.5]],[["Idli",3.0,"number",61.0,2.0,13.0,0.0],["Green chutney",1.0,"spoon",4.0,0.0,1.0,0.0],["Sambhar",1.0,"bowl",123.0,6.0,18.0,3.0]],[["Oats upma",1.0,"bowl",213.0,7.0,34.0,6.0],["moong sprouts",1.0,"serving",101.0,7.0,18.0,0.0]],[["Paneer paratha (multigrain)",1.5,"number",203.0,8.0,29.0,7.0],["Capsicum Tomato Chutney",1.0,"spoon",8.0,0.0,0.0,1.0]],[["Moong dal chilla",2.0,"number",116.0,6.0,17.0,3.0],["Amla Coriander Chutney",1.0,"spoon",6.0,0.0,1.0,0.0]],[["Mix Dal Dosa",1.5,"number",152.0,5.0,28.0,2.0],["Sambhar",1.0,"bowl",123.0,6.0,18.0,3.0]]]},{"n":"Morning Snack","o":[[["ajwain chass",1.0,"glass",89.0,5.0,8.0,5.0]],[["Chia seeds with curd",1.0,"bowl",124.0,6.0,10.0,7.0]],[["Papaya",1.0,"bowl",58.5,1.5,15.0,0.0]],[["Kiwi",1.0,"number",51.03,0.81,12.96,0.0]],[["orange",1.0,"medium",72.0,1.5,16.5,0.0]]]},{"n":"Lunch","o":[[["Khichdi",1.0,"bowl",290.0,10.0,57.5,2.5],["Drumstick pods (boiled without salt)",1.0,"serving",21.6,1.2,4.8,0.0]],[["Curd Rice",1.5,"bowl",146.0,4.0,23.0,4.0],["Carrots (boiled without salt)",1.0,"serving",29.75,0.85,6.8,0.0]],[["boiled white rice (without starch)",1.0,"bowl",126.4,4.74,25.28,0.0],["masoor dal with vegetables",1.0,"bowl",139.0,7.0,22.0,3.0],["Buttermilk (lowfat)",1.0,"glass",100.0,7.5,12.5,2.5]],[["Cucumber salad",1.0,"bowl",16.0,1.0,2.0,0.0],["Multigrain Chapati",2.0,"number",70.0,2.0,11.0,2.0],["Cauliflower chickpea curry",1.0,"bowl",130.0,6.0,15.0,6.0],["Buttermilk (lowfat)",1.0,"glass",100.0,7.5,12.5,2.5]],[["tomato carrot raita",0.5,"bowl",78.0,4.0,8.0,4.0],["multigrain methi chapati",2.0,"number",69.0,3.0,14.0,1.0],["Rajma curry",1.0,"bowl",171.0,8.0,25.0,5.0],["Bhindi capsicum subji",0.5,"serving",81.0,2.0,9.0,5.0]],[["paneer vegetable pulao",1.0,"bowl",235.0,9.0,26.0,11.0],["Dahi (skim)",1.0,"bowl",95.2,10.2,13.6,0.0]],[["Uttapam",1.0,"number",225.0,7.0,39.0,4.0],["Coconut coriander chutney",1.0,"spoon",30.0,1.0,2.0,2.0],["Sambhar",1.0,"bowl",123.0,6.0,18.0,3.0]]]},{"n":"Evening Snack","o":[[["Moong palak soup",1.0,"bowl",112.0,7.0,18.0,1.0]],[["ajwain chass",1.0,"glass",89.0,5.0,8.0,5.0]],[["makhane ki kheer",1.0,"bowl",176.0,5.0,16.0,11.0]],[["moong sprouts dahi chaat",1.0,"bowl",111.0,5.0,15.0,4.0]],[["sukha bhel",0.5,"bowl",171.0,5.0,28.0,5.0],["Boiled kala chana",1.0,"serving",120.0,6.0,20.0,2.0]]]},{"n":"Dinner","o":[[["Tomato oats soup",1.0,"bowl",102.0,4.0,20.0,1.0],["Dahi (skim)",1.0,"bowl",95.2,10.2,13.6,0.0]],[["mixed dal vegetable khichdi",1.0,"bowl",233.0,8.0,41.0,5.0],["kadhi (plain, regular)",1.0,"bowl",87.0,4.0,8.0,5.0]],[["rice flour besan chilla",1.5,"number",151.0,4.0,21.0,6.0],["Chana Dal Chutney",1.0,"spoon",44.0,1.0,4.0,2.0]],[["Barley lentil soup",1.0,"bowl",164.0,8.0,29.0,3.0],["Multigrain Chapati",1.0,"number",70.0,2.0,11.0,2.0],["lobiya palak subji",1.0,"serving",132.0,7.0,19.0,4.0]],[["soya peas paneer pulao",1.0,"bowl",188.0,6.0,31.0,4.0],["Cucumber Raita",1.0,"bowl",91.0,6.0,10.0,3.0]],[["Phulka (thin chapati)",2.0,"number",51.0,2.0,11.0,0.0],["mix dal (Moong tuvar masoor dal)",1.0,"bowl",150.0,8.0,22.0,3.0],["Lauki ki subji",0.5,"serving",79.0,1.0,4.0,7.0]]]},{"n":"BED TIME","o":[[["Jeera ajwain water",0.5,"glass",2.0,0.0,0.0,0.0]],[["Haldi Milk",1.0,"glass",170.0,8.0,18.0,8.0]]]}]},{"name":"Diabetes and weight loss, 1,500 kcal","goal":1500,"pct":[22,23,55],"meals":[{"n":"EARLY MORNING","o":[[["Jeera Water",1.0,"glass",3.0,0.0,0.0,0.0]]]},{"n":"Breakfast","o":[[["Moong dal chilla",2.0,"number",116.0,6.0,17.0,3.0],["Curd (Dahi, Plain Yogurt)",1.0,"bowl",103.7,5.1,8.5,5.1]],[["Ragi porridge (salted)",1.0,"bowl",175.0,5.0,26.0,6.0],["Buttermilk (low fat)",1.0,"glass",137.2,9.8,12.25,4.9]],[["Idli",2.0,"number",61.0,2.0,13.0,0.0],["Green chutney",1.0,"spoon",4.0,0.0,1.0,0.0]],[["Oats upma",1.0,"bowl",213.0,7.0,34.0,6.0],["moong sprouts",1.0,"serving",101.0,7.0,18.0,0.0]],[["Paneer paratha (multigrain)",1.0,"number",203.0,8.0,29.0,7.0],["Capsicum Tomato Chutney",1.0,"spoon",8.0,0.0,0.0,1.0]],[["Moong dal chilla",2.0,"number",116.0,6.0,17.0,3.0],["Amla Coriander Chutney",1.0,"spoon",6.0,0.0,1.0,0.0]],[["Mix Dal Dosa",1.0,"number",152.0,5.0,28.0,2.0],["Sambhar",1.0,"bowl",123.0,6.0,18.0,3.0]]]},{"n":"Morning Snack","o":[[["Buttermilk (low fat)",1.0,"glass",137.2,9.8,12.25,4.9]],[["Chia seeds with curd",1.0,"bowl",124.0,6.0,10.0,7.0]],[["Carrot Lentil Soup",1.0,"bowl",193.0,11.0,37.0,2.0]],[["Banana apple oats smoothie",1.0,"glass",253.0,6.0,46.0,6.0]]]},{"n":"Lunch","o":[[["Khichdi",1.0,"bowl",290.0,10.0,57.5,2.5],["Curd (Dahi, Plain Yogurt)",1.0,"bowl",103.7,5.1,8.5,5.1]],[["Curd Rice",1.0,"bowl",146.0,4.0,23.0,4.0],["Carrots (boiled without salt)",1.0,"serving",29.75,0.85,6.8,0.0]],[["boiled white rice (without starch)",1.0,"bowl",126.4,4.74,25.28,0.0],["masoor dal with vegetables",1.0,"bowl",139.0,7.0,22.0,3.0]],[["Cucumber salad",1.0,"bowl",16.0,1.0,2.0,0.0],["Multigrain chapathi with ghee",1.0,"number",93.0,2.0,11.0,5.0],["Cauliflower chickpea curry",1.0,"bowl",130.0,6.0,15.0,6.0],["Buttermilk (low fat)",1.0,"glass",137.2,9.8,12.25,4.9]],[["tomato carrot raita",0.5,"bowl",78.0,4.0,8.0,4.0],["Multigrain Chapati",2.0,"number",70.0,2.0,11.0,2.0],["Rajma curry",1.0,"bowl",171.0,8.0,25.0,5.0],["Bhindi capsicum subji",0.5,"serving",81.0,2.0,9.0,5.0]],[["paneer vegetable pulao",1.0,"bowl",235.0,9.0,26.0,11.0],["Curd (Dahi, Plain Yogurt)",1.0,"bowl",103.7,5.1,8.5,5.1]],[["Uttapam",1.0,"number",225.0,7.0,39.0,4.0],["Coconut chutney",1.0,"spoon",46.0,1.0,3.0,4.0]]]},{"n":"Evening Snack","o":[[["Moong palak soup",1.0,"bowl",112.0,7.0,18.0,1.0]],[["ajwain chass",1.0,"glass",89.0,5.0,8.0,5.0]],[["makhane ki kheer",1.0,"bowl",176.0,5.0,16.0,11.0]],[["moong sprouts dahi chaat",1.0,"bowl",111.0,5.0,15.0,4.0]],[["sukha bhel",0.5,"bowl",171.0,5.0,28.0,5.0],["Boiled kala chana",1.0,"serving",120.0,6.0,20.0,2.0]]]},{"n":"Dinner","o":[[["Tomato oats soup",1.0,"bowl",102.0,4.0,20.0,1.0],["Curd (Dahi, Plain Yogurt)",1.0,"bowl",103.7,5.1,8.5,5.1]],[["mixed dal vegetable khichdi",1.0,"bowl",233.0,8.0,41.0,5.0],["kadhi (plain, regular)",0.5,"bowl",87.0,4.0,8.0,5.0]],[["rice flour besan chilla",1.5,"number",151.0,4.0,21.0,6.0],["Chana Dal Chutney",1.0,"spoon",44.0,1.0,4.0,2.0]],[["Barley lentil soup",1.0,"bowl",164.0,8.0,29.0,3.0],["Multigrain Chapati",1.0,"number",70.0,2.0,11.0,2.0],["lobiya palak subji",1.0,"serving",132.0,7.0,19.0,4.0]],[["soya peas paneer pulao",1.0,"bowl",188.0,6.0,31.0,4.0],["Cucumber Raita",1.0,"bowl",91.0,6.0,10.0,3.0]],[["Phulka (thin chapati)",2.0,"number",51.0,2.0,11.0,0.0],["mix dal (Moong tuvar masoor dal)",1.0,"bowl",150.0,8.0,22.0,3.0],["Lauki ki subji",0.5,"serving",79.0,1.0,4.0,7.0]]]},{"n":"BED TIME","o":[[["Jeera ajwain water",0.5,"glass",2.0,0.0,0.0,0.0]],[["Haldi Milk",1.0,"glass",170.0,8.0,18.0,8.0]]]}]},{"name":"Fatty liver, five options a meal","goal":1300,"pct":[20,20,60],"meals":[{"n":"Morning","o":[[["Jeera saunf water",1.0,"glass",2.0,0.0,0.0,0.0],["basil seeds (sabja)",1.0,"spoon",16.31,1.61,3.36,0.28]],[["mint coriander sabja juice",1.0,"glass",20.0,1.0,4.0,0.0]]]},{"n":"Breakfast","o":[[["moong sprouts poha",1.5,"bowl",166.0,5.0,30.0,3.0]],[["besan chilla",1.5,"number",102.0,4.0,10.0,5.0],["Curd (Dahi, Plain Yogurt)",1.0,"bowl",103.7,5.1,8.5,5.1]],[["Oats upma",0.75,"bowl",213.0,7.0,34.0,6.0],["Curd (Dahi, Plain Yogurt)",1.0,"bowl",103.7,5.1,8.5,5.1]],[["Gobi paneer paratha",1.5,"number",177.0,6.0,25.0,7.0],["tomato chutney",3.0,"spoon",6.0,0.0,1.0,0.0]],[["Mix Dal Dosa",1.0,"number",152.0,5.0,28.0,2.0],["Sambhar",1.0,"bowl",123.0,6.0,18.0,3.0]],[["Ragi Idli",1.5,"number",154.0,6.0,27.0,2.0],["Chana Dal Chutney",1.0,"spoon",44.0,1.0,4.0,2.0]],[["Besan Methi Thepla",2.0,"number",120.0,4.0,18.0,4.0],["pudina chutney",1.0,"spoon",7.0,0.0,1.0,0.0]]]},{"n":"Morning Snack","o":[[["Papaya",1.0,"bowl",58.5,1.5,15.0,0.0],["almond",5.0,"piece",13.1,0.42,0.22,1.18],["Flaxseed",1.0,"spoon",42.72,1.44,2.32,3.36]],[["Apple",1.0,"number",78.0,0.0,21.0,0.0],["Walnuts",2.0,"number",26.16,0.6,0.56,2.6],["Flaxseed",1.0,"spoon",42.72,1.44,2.32,3.36]],[["Orange",1.0,"number",61.25,1.25,15.0,0.0],["almond",5.0,"piece",13.1,0.42,0.22,1.18],["Flaxseed",1.0,"spoon",42.72,1.44,2.32,3.36]],[["Coconut water",1.0,"glass",46.0,2.0,9.0,1.0],["basil seeds (sabja)",1.0,"spoon",16.31,1.61,3.36,0.28],["almond",5.0,"piece",13.1,0.42,0.22,1.18]],[["Musk melon",1.0,"bowl",68.0,2.0,16.0,0.0],["Walnuts",2.0,"number",26.16,0.6,0.56,2.6],["Chia seeds (bagrry''s)",1.0,"spoon",29.68,1.68,3.36,2.56]],[["Pomegranates",1.0,"bowl",144.42,3.48,33.06,1.74],["almond",5.0,"piece",13.1,0.42,0.22,1.18],["sunflower seeds",1.0,"teaspoon",31.0,1.0,0.9,2.6]]]},{"n":"Lunch","o":[[["Chapati (Roti)",2.0,"number",87.0,3.0,19.0,1.0],["cabbage onion subji",1.0,"serving",78.0,2.0,10.0,4.0],["carrot cucumber tomato salad",0.5,"bowl",82.0,1.0,9.0,5.0],["Curd (Dahi, Plain Yogurt)",0.5,"bowl",103.7,5.1,8.5,5.1]],[["boiled white rice (without starch)",1.0,"bowl",126.4,4.74,25.28,0.0],["cauliflower moong dal",1.0,"bowl",108.0,6.0,17.0,2.0],["Cucumber Raita",1.0,"bowl",91.0,6.0,10.0,3.0]],[["Jowar roti",1.0,"number",72.0,2.0,15.0,1.0],["Mix Vegetable subji (dry)",1.0,"serving",79.0,2.0,10.0,4.0],["Tomato tur dal",1.0,"bowl",101.0,4.0,13.0,4.0],["Buttermilk (low fat)",1.0,"glass",137.2,9.8,12.25,4.9]],[["Chapati (Roti)",2.0,"number",87.0,3.0,19.0,1.0],["bhindi do pyaza",1.0,"serving",77.0,2.0,9.0,4.0],["Veg raita",1.0,"bowl",58.0,3.0,7.0,2.0]],[["Vegetable pulao",1.0,"bowl",167.0,3.0,25.0,6.0],["Carrot tomato onion raita",1.5,"bowl",75.0,4.0,9.0,3.0]]]},{"n":"Evening Snack","o":[[["Black coffee (without sugar)",1.0,"cup",4.8,0.0,0.0,0.0],["Roasted chana (chickpeas)",1.0,"handful",80.0,4.0,13.0,2.0]],[["Amla turmeric juice",1.0,"glass",31.0,0.0,7.0,0.0],["Sprouts chaat (moong)",1.0,"bowl",156.0,6.0,25.0,4.0]],[["Green tea",1.0,"cup",2.45,0.0,0.0,0.0],["makhana",1.0,"bowl",147.0,5.0,21.0,5.0]]]},{"n":"Dinner","o":[[["Garden salad (no dressing)",1.0,"bowl",18.0,1.0,4.0,0.0],["Multigrain Chapati",2.0,"number",70.0,2.0,11.0,2.0],["Masoor dal with soya chunks",1.0,"bowl",156.0,11.0,20.0,4.0]],[["Mix veg salad (no dressing, no salt)",1.0,"bowl",34.0,2.0,7.0,0.0],["Vegetable Daliya Khichdi",1.0,"bowl",178.0,7.0,25.0,6.0],["Veg raita",1.0,"bowl",58.0,3.0,7.0,2.0]],[["Sprouts vegetable salad",1.0,"bowl",89.0,5.0,16.0,1.0],["Multigrain Chapati",2.0,"number",70.0,2.0,11.0,2.0],["Lobia beans Curry (black eyed beans)",1.0,"bowl",114.0,5.0,15.0,4.0]],[["Cucumber Carrot Salad",1.0,"bowl",49.0,1.0,9.0,1.0],["Moong Dal Khichdi (Chilkewali Dal Khichdi)",1.0,"bowl",293.0,9.0,54.0,4.0],["Drumstick tomato curry",1.0,"bowl",73.0,2.0,9.0,4.0]],[["onion tomato salad",1.0,"bowl",40.0,1.0,9.0,0.0],["wheat dosa",2.0,"number",83.0,2.0,13.0,3.0],["vegetable sambar",1.0,"bowl",124.0,3.0,15.0,6.0]]]}]},{"name":"Weight loss for PCOS, 1,500 kcal","goal":1500,"pct":[25,20,55],"meals":[{"n":"Early Morning","o":[[["Jeera ajwain water",1.0,"glass",2.0,0.0,0.0,0.0],["almond",5.0,"piece",13.1,0.42,0.22,1.18],["Walnuts",3.0,"number",26.16,0.6,0.56,2.6]]]},{"n":"Breakfast","o":[[["Vegetable Poha",1.0,"bowl",248.0,5.0,46.0,5.0],["Nimbu pani (no salt,sugar)",1.0,"glass",3.0,0.0,1.0,0.0]],[["Paneer club sandwich",1.0,"number",441.0,15.0,38.0,26.0],["toned milk (Amul)",1.0,"cup",141.52,7.32,12.2,7.32]],[["besan chilla",2.0,"number",102.0,4.0,10.0,5.0],["pudina chutney",1.0,"spoon",7.0,0.0,1.0,0.0],["toned milk (Amul)",1.0,"cup",141.52,7.32,12.2,7.32]],[["Upma",1.0,"bowl",342.0,10.0,48.0,12.0],["toned milk (Amul)",1.0,"cup",141.52,7.32,12.2,7.32]]]},{"n":"Morning Snack","o":[[["Papaya",1.0,"bowl",58.5,1.5,15.0,0.0],["Pumpkin Seeds (true elements)",1.0,"spoon",48.16,1.44,0.72,3.92]],[["Mango",1.0,"number",168.75,1.25,43.75,1.25],["Chia seeds (bagrry''s)",1.0,"spoon",29.68,1.68,3.36,2.56]],[["Coconut water",1.0,"glass",46.0,2.0,9.0,1.0]]]},{"n":"Lunch","o":[[["Multigrain Chapati",2.0,"number",70.0,2.0,11.0,2.0],["Paneer bhurji",1.0,"serving",189.0,11.0,12.0,11.0],["Curd (Dahi, Plain Yogurt)",1.0,"bowl",103.7,5.1,8.5,5.1]],[["Multigrain Chapati",2.0,"number",70.0,2.0,11.0,2.0],["mix dal (Moong tuvar masoor dal)",1.0,"bowl",150.0,8.0,22.0,3.0],["Beetroot cucumber raita",1.0,"bowl",80.0,4.0,8.0,4.0]],[["Vegetable pulao",1.0,"bowl",167.0,3.0,25.0,6.0],["Sprouts vegetable salad",1.0,"bowl",89.0,5.0,16.0,1.0],["Curd (Dahi, Plain Yogurt)",1.0,"bowl",103.7,5.1,8.5,5.1]],[["Multigrain Chapati",2.0,"number",70.0,2.0,11.0,2.0],["Paneer peas bhurji",1.0,"serving",174.0,10.0,14.0,9.0],["Curd (Dahi, Plain Yogurt)",1.0,"bowl",103.7,5.1,8.5,5.1]]]},{"n":"Evening Snack","o":[[["Green tea",1.0,"cup",2.45,0.0,0.0,0.0],["makhana",1.0,"bowl",147.0,5.0,21.0,5.0]],[["Green tea",1.0,"cup",2.45,0.0,0.0,0.0],["Peanuts (boiled, with salt)",1.0,"handful",63.6,2.8,4.2,4.4]],[["Mix cut fruits",1.0,"bowl",82.0,1.0,21.0,0.0],["Chia seeds (bagrry''s)",1.0,"spoon",29.68,1.68,3.36,2.56]]]},{"n":"Dinner","o":[[["Multigrain Chapati",2.0,"number",70.0,2.0,11.0,2.0],["Turai aur tamatar sabzi",1.0,"bowl",106.0,2.0,10.0,8.0],["Curd (Dahi, Plain Yogurt)",1.0,"bowl",103.7,5.1,8.5,5.1]],[["Oats Khichdi",1.0,"bowl",191.0,7.0,33.0,5.0],["Cucumber Raita",1.0,"bowl",91.0,6.0,10.0,3.0],["Paneer stir fry",1.0,"serving",160.0,7.0,10.0,10.0]],[["Multigrain Chapati",2.0,"number",70.0,2.0,11.0,2.0],["Soya chunks curry",1.0,"bowl",109.0,7.0,10.0,5.0],["tomato carrot raita",1.0,"bowl",78.0,4.0,8.0,4.0]],[["Chana Salad With veggies (Chickpea Salad)",1.0,"bowl",166.0,5.0,18.0,9.0],["Multi grain bread (toasted)",1.0,"number",69.12,3.6,11.28,1.2],["Mixed Vegetable Sauteed",1.0,"serving",119.0,2.0,10.0,9.0]]]},{"n":"post dinner","o":[[["fennel seed water",1.0,"glass",10.0,0.0,2.0,0.0]],[["Banana",1.0,"number",105.02,1.18,27.14,0.0]]]}]},{"name":"Liver care, 1,700 kcal","goal":1700,"pct":[20,22,58],"meals":[{"n":"EARLY MORNING","o":[[["Jeera Water",1.0,"glass",3.0,0.0,0.0,0.0],["almond",5.0,"piece",13.1,0.42,0.22,1.18],["Walnuts",3.0,"number",26.16,0.6,0.56,2.6],["Dates",2.0,"number",22.56,0.16,6.0,0.0]]]},{"n":"Breakfast","o":[[["oats pesarattu (moong dal oats dosa)",1.0,"number",118.0,6.0,18.0,3.0],["Green chutney",1.0,"spoon",4.0,0.0,1.0,0.0]],[["Vegetable Upma",1.0,"bowl",212.0,6.0,35.0,5.0],["moong sprouts",1.0,"serving",101.0,7.0,18.0,0.0]],[["mixed sprouts poha",1.5,"bowl",213.0,8.0,38.0,4.0]],[["Idli",3.0,"number",61.0,2.0,13.0,0.0],["Sambhar",1.0,"bowl",123.0,6.0,18.0,3.0]],[["oats porridge (oats dalia)",1.0,"bowl",180.0,7.0,27.0,5.0],["Boiled egg whites",2.0,"number",17.0,4.0,0.0,0.0]],[["Puttu",1.0,"serving",218.0,3.0,35.0,8.0],["kadala curry (kala chana curry)",1.0,"bowl",157.0,5.0,19.0,7.0]],[["Mix Dal Dosa",2.0,"number",152.0,5.0,28.0,2.0],["Sambhar",1.0,"bowl",123.0,6.0,18.0,3.0]]]},{"n":"Morning Snack","o":[[["Apple",1.0,"number",78.0,0.0,21.0,0.0],["pistachio nut",1.0,"Tbsp",93.9,3.0,2.4,8.1]],[["Buttermilk (low fat)",1.0,"glass",137.2,9.8,12.25,4.9]],[["Carrot Lentil Soup",1.0,"bowl",193.0,11.0,37.0,2.0]]]},{"n":"Lunch","o":[[["White rice (long-grain, parboiled, cooked)",0.75,"bowl",194.333,4.747,41.08,0.0],["whole moong curry (Green gram curry)",1.0,"bowl",168.0,7.0,20.0,7.0],["Aviyal (kerala style)",1.0,"bowl",133.0,3.0,17.0,7.0]],[["Multigrain Chapati",2.0,"number",70.0,2.0,11.0,2.0],["ridge gourd moong dal subji",1.0,"serving",125.0,6.0,18.0,3.0],["Buttermilk (low fat)",1.0,"glass",137.2,9.8,12.25,4.9]],[["Ragi urad dal dosa (without oil)",1.5,"number",105.0,4.0,20.0,1.0],["Beans sambar",1.0,"bowl",136.0,5.0,19.0,6.0],["Buttermilk (low fat)",1.0,"glass",137.2,9.8,12.25,4.9]],[["Khichdi",1.0,"bowl",290.0,10.0,57.5,2.5],["Curd (Dahi, Plain Yogurt)",1.0,"bowl",103.7,5.1,8.5,5.1]],[["White rice (plain, cooked)",0.75,"bowl",241.8,3.72,53.933,0.0],["Fish curry",1.0,"bowl",175.0,25.0,5.0,6.0]]]},{"n":"Evening Snack","o":[[["Lentil lobia rajma soup with spinach",1.0,"bowl",160.0,9.0,28.0,2.0]],[["Oats upma",0.75,"bowl",213.0,7.0,34.0,6.0]],[["Roasted chana (chickpeas)",1.0,"handful",80.0,4.0,13.0,2.0]]]},{"n":"Dinner","o":[[["Multigrain Chapati",2.0,"number",70.0,2.0,11.0,2.0],["Toor dal",1.0,"bowl",116.0,6.0,17.0,3.0],["bhindi subji dry",1.0,"serving",105.0,2.0,10.0,7.0]],[["Multigrain Chapati",2.0,"number",70.0,2.0,11.0,2.0],["Sprouted Moong Curry",1.0,"bowl",121.0,4.0,14.0,6.0]],[["Peas and beans pulav",1.0,"bowl",196.0,4.0,34.0,5.0],["Curd (Dahi, Plain Yogurt)",1.0,"bowl",103.7,5.1,8.5,5.1]],[["White rice (long-grain, parboiled, cooked)",1.0,"bowl",194.34,4.74,41.08,0.0],["Sprouted Horse gram sambhar",1.0,"bowl",79.0,2.0,12.0,3.0]],[["Spinach And Pea Soup",1.0,"bowl",86.0,5.0,11.0,3.0],["Multigrain Chapati",2.0,"number",70.0,2.0,11.0,2.0],["Toor dal",1.0,"bowl",116.0,6.0,17.0,3.0]],[["Idli",3.0,"number",61.0,2.0,13.0,0.0],["Sambhar",1.0,"bowl",123.0,6.0,18.0,3.0]]]},{"n":"BED TIME","o":[[["Haldi Milk",1.0,"glass",170.0,8.0,18.0,8.0]]]}]},{"name":"Weight gain, 2,200 kcal","goal":2200,"pct":[15,25,60],"meals":[{"n":"Once awake","o":[[["Banana",1.0,"number",105.02,1.18,27.14,0.0]],[["Chickoo (sapota)",2.0,"number",50.0,1.0,12.0,0.0]]]},{"n":"Breakfast","o":[[["Multi grain bread (toasted)",4.0,"number",69.12,3.6,11.28,1.2],["Omelette (1 whole egg 1 egg white)",1.0,"number",101.0,9.0,1.0,7.0],["Badam milk",1.0,"glass",205.0,9.0,17.0,12.0]],[["Aloo Paratha (Multigrain)",2.0,"number",161.0,5.0,25.0,5.0],["Coconut coriander chutney",1.0,"spoon",30.0,1.0,2.0,2.0],["Badam milk",1.0,"glass",205.0,9.0,17.0,12.0]],[["milk (regular, plain)",1.0,"glass",122.5,7.35,12.25,4.9],["Rolled oats (True elements)",1.5,"serving",117.0,4.5,20.1,2.1],["Banana",1.0,"number",105.02,1.18,27.14,0.0],["Peanut butter",2.0,"spoon",64.68,2.42,2.64,5.5],["Honey",1.0,"spoon",36.48,0.0,9.84,0.0]],[["Curd (Dahi, Plain Yogurt)",1.5,"bowl",103.7,5.1,8.5,5.1],["Rolled oats (True elements)",2.0,"serving",117.0,4.5,20.1,2.1],["strawberry",5.0,"medium",6.6,0.15,1.5,0.0],["Honey (Dabur)",1.0,"spoon",32.0,0.0,8.0,0.0],["Chia Seeds (true elements)",1.0,"spoon",45.68,1.44,2.4,3.28]],[["Chapati (Roti)",2.0,"number",87.0,3.0,19.0,1.0],["egg white masala omelet",1.0,"number",61.0,4.0,4.0,3.0],["dry fruit milk shake (without sugar)",1.0,"glass",300.0,10.0,33.0,16.0]]]},{"n":"Morning Snack","o":[[["Mixed nuts",1.0,"handful",92.55,2.55,3.3,8.4],["Dates",4.0,"number",22.56,0.16,6.0,0.0]],[["Peanuts (dry-roasted, without salt)",1.0,"handful",117.4,4.8,4.2,10.0],["Figs, dried, uncooked",4.0,"number",19.92,0.24,5.12,0.08]]]},{"n":"Lunch","o":[[["Chapati (Roti)",2.0,"number",87.0,3.0,19.0,1.0],["Moongachi Amti (Green moong curry)",1.0,"bowl",109.0,3.0,8.0,9.0],["Gobhi mutter",1.0,"serving",83.0,3.0,11.0,4.0],["White rice (plain, cooked)",0.5,"bowl",241.8,3.72,53.94,0.0],["Mix veg salad (no dressing, no salt)",1.0,"bowl",34.0,2.0,7.0,0.0]],[["White rice (plain, cooked)",1.0,"bowl",241.8,3.72,53.94,0.0],["Chicken Curry",1.0,"bowl",217.0,13.0,9.0,15.0],["Chapati (Roti)",1.0,"number",87.0,3.0,19.0,1.0],["onion tomato salad",1.0,"bowl",40.0,1.0,9.0,0.0]],[["White rice (plain, cooked)",1.25,"bowl",241.8,3.72,53.936,0.0],["Rajma curry",1.25,"bowl",171.0,8.0,25.0,5.0],["muli beet salad",1.0,"bowl",36.0,2.0,8.0,0.0]],[["Chapati (Roti)",3.0,"number",87.0,3.0,19.0,1.0],["Soya kheema",1.0,"serving",107.0,6.0,10.0,5.0],["bhindi peanut subji",1.0,"serving",158.0,5.0,13.0,11.0],["Cucumber",1.0,"bowl",14.0,1.0,3.0,0.0]],[["Uttapam",1.5,"number",225.0,7.0,39.0,4.0],["Sambhar",1.5,"bowl",123.0,6.0,18.0,3.0],["Coconut coriander chutney",1.0,"spoon",30.0,1.0,2.0,2.0]]]},{"n":"Evening Snack","o":[[["egg white (boiled)",2.0,"number",17.0,4.0,0.0,0.0]],[["Roasted chicken breast (homemade)",1.0,"number",155.0,26.0,1.0,5.0]],[["Peanut chikki (sing chikki)",2.0,"number",96.0,2.0,11.0,5.0]]]},{"n":"Dinner","o":[[["Chapati (Roti)",2.0,"number",87.0,3.0,19.0,1.0],["paneer mutter corn subji",1.0,"serving",152.0,8.0,19.0,6.0],["beetroot salad",1.0,"bowl",47.0,2.0,11.0,0.0]],[["chicken fried rice",1.0,"bowl",416.0,17.0,54.0,14.0],["Curd (Dahi, Plain Yogurt)",1.0,"bowl",103.7,5.1,8.5,5.1],["onion tomato salad",1.0,"bowl",40.0,1.0,9.0,0.0]],[["Chapati (Roti)",2.0,"number",87.0,3.0,19.0,1.0],["Mix Vegetable subji (dry)",1.0,"serving",79.0,2.0,10.0,4.0],["mix dal (Moong tuvar masoor dal)",1.0,"bowl",150.0,8.0,22.0,3.0],["White rice (plain, cooked)",0.5,"bowl",241.8,3.72,53.94,0.0],["Cucumber",1.0,"bowl",14.0,1.0,3.0,0.0]],[["Chana Dal Pulao",2.0,"bowl",218.0,6.0,38.0,5.0],["Carrot Beetroot Salad",1.0,"bowl",99.0,2.0,13.0,5.0]],[["Chapati (Roti)",2.0,"number",87.0,3.0,19.0,1.0],["Chicken Curry",1.0,"bowl",217.0,13.0,9.0,15.0],["White rice (plain, cooked)",0.5,"bowl",241.8,3.72,53.94,0.0],["beetroot cucumber salad",1.0,"bowl",29.0,1.0,6.0,0.0]]]},{"n":"Bedtime","o":[[["Milk (low fat 1%)",1.0,"glass",102.48,7.32,12.2,2.44]]]}]},{"name":"Ramadan, 1,400 kcal","goal":1400,"pct":[15,25,60],"meals":[{"n":"Breakfast","o":[[["egg white veggie omelette",2.0,"number",102.0,7.0,4.0,7.0],["Chapati (Roti)",3.0,"number",87.0,3.0,19.0,1.0],["buttermilk with basil seeds",1.0,"glass",89.0,5.0,9.0,4.0]],[["Paneer paratha (multigrain)",2.0,"number",203.0,8.0,29.0,7.0],["Chana Dal Chutney",1.0,"spoon",44.0,1.0,4.0,2.0]],[["Chapati (Roti)",3.0,"number",87.0,3.0,19.0,1.0],["Mix Vegetable subji (dry)",1.0,"serving",79.0,2.0,10.0,4.0],["curd with flaxseed powder",1.0,"bowl",107.0,6.0,8.0,6.0],["egg white (boiled)",2.0,"number",17.0,4.0,0.0,0.0]],[["Overnight Oats with Chia seeds",1.5,"bowl",280.0,11.0,42.0,9.0],["Boiled egg whites",2.0,"number",17.0,4.0,0.0,0.0]],[["Paneer cucumber sandwich (brown bread)",1.0,"number",244.0,9.0,31.0,9.0],["turmeric milk (without sugar)",1.0,"glass",149.0,8.0,12.0,8.0],["Chana Dal Chutney",2.0,"spoon",44.0,1.0,4.0,2.0]],[["boiled white rice (without starch)",1.25,"bowl",126.4,4.736,25.28,0.0],["masoor dal with vegetables",1.5,"bowl",139.0,7.0,22.0,3.0],["Mix Vegetable subji (dry)",1.0,"serving",79.0,2.0,10.0,4.0]],[["dalia keema (chicken)",1.75,"bowl",180.0,14.0,16.0,7.0],["curd with flaxseed powder",1.0,"bowl",107.0,6.0,8.0,6.0]]]},{"n":"Evening Snack","o":[[["Dates",2.0,"number",22.56,0.16,6.0,0.0],["warm water with lime",1.0,"glass",2.0,0.0,1.0,0.0],["Mix cut fruits",1.0,"bowl",82.0,1.0,21.0,0.0],["Chickpea cucumber salad",1.25,"bowl",145.0,5.0,19.0,6.0],["almond",6.0,"piece",13.1,0.42,0.22,1.18]],[["Dates",2.0,"number",22.56,0.16,6.0,0.0],["Jeera saunf water",1.0,"glass",2.0,0.0,0.0,0.0],["Mix cut fruits",1.0,"bowl",82.0,1.0,21.0,0.0],["Sprouts vegetable salad",1.25,"bowl",89.0,5.0,16.0,1.0],["Walnuts",3.0,"number",26.16,0.6,0.56,2.6]],[["Dates",2.0,"number",22.56,0.16,6.0,0.0],["Coconut water",1.0,"glass",46.0,2.0,9.0,1.0],["Mix cut fruits",1.0,"bowl",82.0,1.0,21.0,0.0],["chickpea moong sprouts salad",1.25,"bowl",95.0,5.0,17.0,1.0],["Pumpkin Seeds (true elements)",1.0,"spoon",48.16,1.44,0.72,3.92],["Flaxseed",1.0,"spoon",42.72,1.44,2.32,3.36]],[["Dates",2.0,"number",22.56,0.16,6.0,0.0],["Mint lemon juice (with sugar)",1.0,"glass",33.0,0.0,8.0,0.0],["almond",5.0,"piece",13.1,0.42,0.22,1.18],["Three beans salad",1.0,"bowl",237.0,14.0,39.0,4.0]],[["Dates",2.0,"number",22.56,0.16,6.0,0.0],["Mix cut fruits",1.0,"bowl",82.0,1.0,21.0,0.0],["chana rajma salad",1.0,"bowl",119.0,6.0,18.0,3.0],["amla cucumber juice",1.0,"glass",39.0,1.0,8.0,0.0],["Roasted Sunflower pumpkin & flax seeds (urban platter)",0.5,"handful",117.7,5.14,3.44,10.28]]]},{"n":"Dinner","o":[[["Chapati (Roti)",3.0,"number",87.0,3.0,19.0,1.0],["Tomato tur dal",1.5,"bowl",101.0,4.0,13.0,4.0],["Curd (Dahi, Plain Yogurt)",1.0,"bowl",103.7,5.1,8.5,5.1],["green beans stir fry",1.0,"serving",65.0,2.0,9.0,3.0]],[["boiled white rice (without starch)",1.5,"bowl",126.4,4.74,25.28,0.0],["pepper egg curry",1.5,"bowl",164.0,8.0,12.0,9.0],["Buttermilk (lowfat)",1.0,"glass",100.0,7.5,12.5,2.5]],[["lemon chicken curry",1.5,"bowl",147.0,21.0,3.0,5.0],["boiled white rice (without starch)",1.5,"bowl",126.4,4.74,25.28,0.0]],[["Missi Roti",3.0,"number",92.0,4.0,13.0,3.0],["Chole (curry)",1.0,"bowl",222.0,9.0,31.0,8.0],["Cucumber Carrot Salad",1.0,"bowl",49.0,1.0,9.0,1.0],["buttermilk with flaxseeds",1.0,"glass",66.0,3.0,5.0,4.0]],[["Chicken Pulao",1.25,"bowl",389.0,15.0,44.0,17.0],["Cucumber carrot raita",1.0,"bowl",83.0,5.0,7.0,4.0]],[["Chapati (Roti)",3.0,"number",87.0,3.0,19.0,1.0],["Chicken Curry",1.0,"bowl",217.0,13.0,9.0,15.0],["Cucumber Flaxseed Raita",0.5,"bowl",118.0,8.0,7.0,7.0]],[["Chicken Haleem",1.25,"bowl",275.0,23.0,19.0,12.0],["carrot cucumber tomato capsicum salad",1.0,"bowl",34.0,1.0,8.0,0.0],["Chapati (Roti)",2.0,"number",87.0,3.0,19.0,1.0]]]}]}];
+/* Tips from the same templates, keyed "template|meal|option": raw is the portal's text; tips are the same advice,
+   rewritten in the Eat screen's format (a headline and one line on how), with the benefits left to KAIRA */
+var TIPS = {"0|0|0": {"raw": "🌿 Jeera and Saunf Water\nSoak 1 tsp cumin and fennel seeds in 1 glass of water overnight.\n\nNext morning, boil it for 2–3 minutes, strain, and drink warm on an empty stomach.\n\n✅ Key Benefits\n1️⃣ Boosts Digestion \n\nSemaglutide: Drug slows gastric emptying → can cause bloating.\n\nWarm jeera and saunf water helps stimulate digestive enzymes gently → reduces bloating & mild nausea.", "tips": [["Soak jeera and saunf overnight", "1 tsp each in a glass of water."], ["Boil it in the morning, then sip warm", "2 to 3 minutes, strain, on an empty stomach."]]}, "0|1|0": {"raw": "ON DAY OF INJECTION UNTIL SYMPTOM GETS BETTER GO FOR OPTION 1 TO 3 FOLLOWED BY POST INJECTION MEAL OPTIONS \n✅Cook broken wheat (daliya) with finely chopped soft vegetables like carrot and bottle gourd until soft and mushy. 🌿 Once cooked, cool slightly and mix in fresh plain curd before serving warm.\n\n🔹 Benefits :\n🌱 Helps soothe the stomach and is easy to digest when nausea or bloating is common on Semaglutide injection days.\n💪 Provides gentle protein from curd and fibre from veggies, supporting weight loss and PCOS insulin balance.\n💧 Keeps you hydrated and nourished without feeling heavy, making it ideal until appetite and gut comfort improve.", "tips": [["On injection days, pick options 1 to 3", "Until you feel better, then move to the other options."], ["Cook the dalia soft with vegetables", "Carrot and bottle gourd, chopped fine, until mushy."], ["Stir in plain curd once it cools a little", "Then serve it warm."]]}, "0|1|1": {"raw": "✅Cook ragi or jowar flour in water to make a smooth, soft porridge and let it cool slightly. 🌿 Mix in fresh plain curd or thin buttermilk just before eating.\n Benefits :\n🌾 Keeps meals light and gut-friendly during Semaglutide injection days while giving slow-release energy.\n💪 Supports weight loss and PCOS by providing low-GI complex carbs plus good gut bacteria from curd/buttermilk.\n💧 Easy to digest, keeps you hydrated, and helps control nausea or bloating naturally.", "tips": [["Cook ragi or jowar into a smooth porridge", "In water, then let it cool a little."], ["Mix in curd or thin buttermilk", "Just before you eat."]]}, "0|1|2": {"raw": "✅Steam soft idlis using fermented rice and urad batter; serve them warm with fresh coriander-mint green chutney. 🌿 Add a small bowl of boiled or lightly tempered chana dal to chutney for extra protein.\n\n🔹 Benefits :\n🍃 Light, fermented idli is gentle on digestion — ideal for Semaglutide injection days or recovery phase.\n💪 Chana dal adds protein to prevent muscle loss and supports healthy weight loss and PCOS management.\n🌱 Green chutney adds freshness, antioxidants, and flavour without heaviness.", "tips": [["Steam the idlis soft", "Serve warm with coriander mint chutney."], ["Add a little chana dal to the chutney", "Boiled or lightly tempered."]]}, "0|1|3": {"raw": "Dry roast rolled oats, then cook with chopped veggies like carrots, beans, and capsicum; season lightly with spices. 🌿 Top with boiled moong sprouts just before serving for an extra protein boost.\n\n🔹 Benefits :\n🌾 High fibre oats + sprouts keep you full longer, supporting steady weight loss as normal appetite returns.\n💪 Moong sprouts add plant protein, great for muscle health and PCOS-friendly balanced meals.\n🥗 Easy to digest, nutrient-rich, and perfect to stabilise energy and gut health post-injection.", "tips": [["Dry roast the oats first", "Then cook with carrot, beans and capsicum."], ["Top with boiled moong sprouts", "Just before serving."]]}, "0|1|4": {"raw": "Make a soft filling with crumbled paneer, mild spices, and fresh veggies  then stuff into multigrain flour dough and cook parathas on a tawa with minimal oil. 🌿 Serve  with a fresh capsicum-tomato chutney for extra flavor and antioxidants.\n🔹 Benefits :\n💪 Provides high-quality protein and good carbs to help rebuild strength and support weight loss without muscle loss.\n🌾 Multigrain flour adds extra fibre and low-GI carbs, great for PCOS insulin balance.\n🍅 Capsicum-tomato chutney adds vitamin C and taste, making healthy eating delicious and gut-friendly!", "tips": [["Stuff the paratha with crumbled paneer", "Mild spices and fresh vegetables, in multigrain dough."], ["Cook on a tawa with very little oil", "Serve with capsicum tomato chutney."]]}, "0|1|5": {"raw": "Grind soaked moong dal into a smooth batter, spread thin on a hot pan, and cook crispy yet soft chillas. 🌿 Serve with a tangy fresh chutney made from grated amla, coriander, green chilli, and a squeeze of lemon.\n\n💪 High-protein chilla supports lean muscle and steady weight loss as appetite normalises post-injection.\n🍃 Amla coriander chutney adds vitamin C, boosts immunity, and helps balance hormones in PCOS.\n🌱 Light, easy to digest, and keeps meals exciting without heaviness", "tips": [["Make the chilla batter from soaked moong dal", "Spread thin on a hot pan."], ["Have it with amla coriander chutney", "Grated amla, coriander, green chilli, a squeeze of lemon."]]}, "0|1|6": {"raw": "Soak a mix of dals (moong, urad, chana) with a little rice, grind into a smooth batter, and make  dosas on a  pan using minimum ghee/oil . 🌿 Serve with warm, lightly spiced sambar loaded with soft veggies like pumpkin, carrot.\n🔹 Benefits:\n💪 Mix dal dosa gives balanced plant protein, supporting muscle maintenance and healthy weight loss.\n🥕 Sambar adds extra fibre, vitamins, and minerals, which help stabilise insulin levels for PCOS.\n🌱 Fermented, warm, and easy to digest — perfect for gut comfort and a satisfying meal post-injection.", "tips": [["Make the dosa from mixed dals and a little rice", "Moong, urad and chana, ground smooth."], ["Use very little ghee or oil", "Serve with sambar full of soft vegetables."]]}, "0|2|0": {"raw": "Whisk fresh homemade curd with water to make thin buttermilk; add a pinch of roasted jeera powder.\n\n🔹 Benefits :\n💧 Keeps you hydrated and soothes digestion, which helps manage nausea common on Semaglutide injection day.\n🌱 Provides mild probiotics that support gut health without feeling heavy.\n💪 Light and low-calorie, it helps you avoid skipping a meal while keeping the stomach calm.", "tips": [["Whisk curd with water into thin buttermilk", "Add a pinch of roasted jeera powder."]]}, "0|2|1": {"raw": "📅 Injection Days:\n\nHave plain curd with soaked chia seeds — it’s light, cooling, and easy to digest.\n\nIt helps soothe the stomach and keeps you hydrated.\n\n**📅 Post-Injection Days:\n\nContinue curd with chia seeds as a good source of protein, healthy fats, and fiber.\n\nIt supports gut health and adds variety to your meals.", "tips": [["Have plain curd with soaked chia seeds", "Soak the chia seeds before you mix them in."]]}, "0|2|2": {"raw": "-Choose seasonal low  GI fruits such as Apple, Papaya, Pear, Guava, Kiwi, Oranges, Sweet lime, Jamun and berries etc. Limit intake of Banana, Mango, Chickoo, Grapes and Seetaphal.", "tips": [["Pick a low GI fruit", "Apple, papaya, pear, guava, kiwi, orange or berries."], ["Keep banana, mango, chikoo and grapes small", "Once in a while, in a small portion."]]}, "0|2|3": {"raw": "-Choose seasonal low  GI fruits such as Apple, Papaya, Pear, Guava, Kiwi, Oranges, Sweet lime, Jamun and berries etc. Limit intake of Banana, Mango, Chickoo, Grapes and Seetaphal.", "tips": [["Pick a low GI fruit", "Apple, papaya, pear, guava, kiwi, orange or berries."], ["Keep banana, mango, chikoo and grapes small", "Once in a while, in a small portion."]]}, "0|2|4": {"raw": "-Choose seasonal low  GI fruits such as Apple, Papaya, Pear, Guava, Kiwi, Oranges, Sweet lime, Jamun and berries etc. Limit intake of Banana, Mango, Chickoo, Grapes and Seetaphal.", "tips": [["Pick a low GI fruit", "Apple, papaya, pear, guava, kiwi, orange or berries."], ["Keep banana, mango, chikoo and grapes small", "Once in a while, in a small portion."]]}, "0|3|0": {"raw": "✅ 🍽️ Eat Small, Frequent Meals: Have light meals every 2–3 hours to manage nausea and fullness.\n✅ 🥣 Choose Gentle Foods: Opt for soft, easy-to-digest options like khichdi, curd rice, soups, boiled vegetables, soft fruits.\n✅ 💧 Stay Hydrated: Drink plenty of fluids — clear soups, buttermilk, coconut water, infused water.\n✅ 🥗 Eat Slowly: Stop when you feel 70–80% full — helps digestion and reduces bloating.\n\n\n\n📅 Injection Days:\n\n✅ Light & Soothing: Plain moong dal khichdi is perfect — soft, easy to digest, gentle on the stomach.\n\n✅ Tip: Cook with minimal spices — just cumin, turmeric, pinch of salt — no heavy tadka.\n\n**📅 Post-Injection Days:\n\n✅ Balanced Version: Make it more nutritious by adding finely chopped veggies like carrots, spinach, or beans as digestion improves.\n\n✅ Boost Protein: Use extra dal or mix in some curd on the side — supports weight loss and PCOS nutrition.", "tips": [["On injection days, keep the khichdi plain", "Just jeera, haldi and a pinch of salt. No heavy tadka."], ["Eat slowly and stop at about 80% full", "Small meals every 2 to 3 hours if you feel nauseous."]]}, "0|3|1": {"raw": "✅ 🌿 Avoid Heavy Spices: Use mild seasoning — jeera, haldi, ginger — avoid too much oil, masala, fried food.\n✅ 🥄 Include Probiotic Foods: Have plain curd, buttermilk — helps gut health and soothes stomach.\n✅ 🥗 Eat Slowly: Stop when you feel 70–80% full — helps digestion and reduces bloating.\n\n\n📅 Injection Days:\n\n✅ Curd Rice: Very soothing and gentle — helps manage nausea and keeps you hydrated. Use plain homemade curd, well-cooked rice, a pinch of salt. Avoid tadka or heavy seasoning. 🍚🥣\n\n✅ Boiled Carrots: Soft, easy-to-digest, mild on the stomach. Provides vitamins without adding heaviness. 🥕\n\n📅 Post-Injection Days:\n\n✅ Curd Rice: Continue — add a sprinkle of grated carrot or cucumber for mild crunch and fiber if digestion is fine.", "tips": [["Make curd rice with plain homemade curd", "Well cooked rice, a pinch of salt, no tadka."], ["Boil the carrots soft", "On post-injection days, add grated carrot or cucumber to the curd rice."]]}, "0|3|2": {"raw": "📅 Injection Days:\n\n✅ Dal Rice: Simple, soft-cooked rice with DAL — mild spices only (turmeric, cumin, pinch of salt). 🍚🥣\n✅ Add Soft Veggies: Use easily digestible vegetables like bottle gourd, carrot, pumpkin — boil them well so they’re soft. 🥕🍲\n✅ Why Good: Gentle protein + mild fiber + easy carbs — soothing and filling without causing heaviness.\n\n📅 Post-Injection Days:\n✅ Upgrade for Balance: Add more variety — include spinach, beans, or peas as digestion allows. 🌿\n✅ Add Sides: Serve with a spoon of homemade curd or a small bowl of salad for extra nutrition. 🥗", "tips": [["Keep the dal rice mildly spiced", "Haldi, jeera and a pinch of salt."], ["Boil soft vegetables into it", "Bottle gourd, carrot or pumpkin."], ["Add curd or a small salad on other days", "When your stomach feels settled."]]}, "0|3|3": {"raw": "✅ 🥗 Shift to Balanced Meals: Gradually move to 3 main meals + 2 small snacks — balance protein, fiber, good fats.\n✅ 🍳 Add Protein: Include  paneer, pulses, curd, Greek yogurt, soya chunks, nuts & seeds.\n✅ 🌾 Include Whole Grains: Add millets like ragi, bajra, jowar, barley along with rice/wheat for fiber & variety.\n\n✅ Veg Salad: Add a small bowl of fresh salad  — chew well. 🥗\n✅ Multigrain/Millet Chapati: Have  chapatis made with bajra, jowar, or multigrain flour 🌾\n✅ VEG+ PULSE Curry: Safe after symptoms ease — gives protein + fiber. Use mild spices, cook PULSE soft. 🧆\n\n\nOU CAN TAKE ANY PULS/VEGETABLE CURRY HERE", "tips": [["Have a small bowl of salad first", "Chew it well."], ["Make chapatis from millet or multigrain flour", "Bajra, jowar or multigrain."], ["Any pulse or vegetable curry works", "Cooked soft, with mild spices."]]}, "0|3|4": {"raw": "✅ 🥄 Mindful Eating: Eat slowly, chew well — stop when 80% full to prevent bloating.\n✅ 🚫 Avoid Processed Foods: Skip bakery items, junk food, sugar-heavy snacks.\n✅ 🕒 Fix Meal Timings: Eat meals at regular times daily", "tips": [["Eat slowly and chew well", "Stop when you feel about 80% full."], ["Eat at the same times every day", "And skip bakery and packaged snacks."]]}, "0|3|5": {"raw": "✅ Paneer Veg Pulao: Great balanced meal once your digestion is comfortable. Use small cubes of paneer, mild veggies like carrots, peas, beans. Cook with light spices (jeera, bay leaf, pinch of turmeric) — keep it mild, not greasy. 🍚🧀🥕\n✅ Curd: Have a small bowl of plain homemade curd with the pulao — adds protein and probiotics for gut health. 🥣\n✅ Why Good: Balanced protein (paneer + curd), complex carbs (rice + veggies), gentle on stomach", "tips": [["Keep the paneer pulao mild", "Small paneer cubes, peas, carrot, light jeera and bay leaf."], ["Have a small bowl of plain curd with it", "Homemade, not too sour."]]}, "0|3|6": {"raw": "EATING OUT GUIDLINES\n1️⃣ 🥗 Pick Light Veg Options: Choose dishes that are steamed, boiled, grilled, or sautéed — no deep-fried snacks or heavy gravies.\n2️⃣ 🍽️ Portion Control: Eat slowly, chew well — stop when you feel 70–80% full.\n3️⃣ 🌾 Choose Whole Grains: Prefer whole wheat, millet, brown rice, or multigrain bread if possible.\n4️⃣ 🥣 Lean Protein: Add protein with paneer, lentils, chickpeas, kidney beans, tofu — skip heavy cheese-based sauces.\n\n\nSOME EXAMPLE CUISINEWISE\n✅ Asian: Clear veg soups, steamed momos (veg), rice paper rolls, stir-fried veggies with tofu/paneer (less oil).\n✅ Indian: Idli, plain dosa with minimal chutney, plain dal with steamed rice, tandoori roti with simple dal or veg curry (mild spice, less oil).\n✅ Continental: Grilled paneer steak with sautéed veggies, simple fresh salad, clear veg soup, baked sweet potato wedges.", "tips": [["Eating out? Pick steamed, grilled or sautéed", "Skip deep fried snacks and heavy gravies."], ["Add a protein", "Paneer, dal, chana, rajma or tofu."], ["Stop at about 80% full", "Eat slowly and chew well."]]}, "0|4|0": {"raw": "📅 Injection Days:\n✅ Why Good: Light, warm, easy to digest — moong dal gives gentle protein, spinach (palak) adds mild iron & fiber.\n✅ How to Have: Cook moong dal soft with a small handful of finely chopped spinach, mild spices only (turmeric, jeera, pinch of salt). Blend if needed for smoother digestion. Serve warm. 🍵🌿\n\n📅 Post-Injection Days:\n✅ Why Good: Continue as a protein + fiber boost when appetite improves. Add a little more spinach or a few extra mild veggies (like carrot).\n✅ How to Have: Same recipe — you can season lightly with ginger or garlic if tolerated. Eat warm with a small multigrain or plain roti if needed.", "tips": [["Cook moong dal soft with a little spinach", "Haldi, jeera and a pinch of salt. Blend it if you like."], ["Have it warm", "With a small roti on post-injection days, if you want."]]}, "0|4|1": {"raw": "📅 Injection Days:\n✅ Why Good: Very soothing, helps with bloating, mild nausea, and keeps digestion calm. Ajwain aids digestion and reduces gas.\n✅ How to Have: Whisk ½ cup plain homemade curd with 1 cup water, add a pinch of roasted ajwain powder, a pinch of salt\n\n📅 Post-Injection Days:\n✅ Why Good: Continue daily if you like — helps digestion, cools the stomach, hydrates you, especially good for PCOS digestion too.\n✅ How to Have: Same recipe — keep it mild, avoid adding fried tadka. Have mid-morning or evening.\n\nNote-Always use fresh curd, not too sour. Lightly roast ajwain before adding — makes it gentler on the stomach.", "tips": [["Whisk curd with water and roasted ajwain", "½ cup curd, 1 cup water, a pinch of salt."], ["Use fresh curd that isn't too sour", "Roast the ajwain lightly first."]]}, "0|4|2": {"raw": "📅 Post-Injection Days:\n\n✅ Why Good: Light, gentle sweet option — protein from milk, fiber from makhana, no added sugar \n\n✅ How to Make:\n1️⃣ Lightly dry roast 1 cup makhana, crush coarsely.\n2️⃣ Boil with 1 cup low-fat milk + a pinch of cardamom.\n3️⃣ Use natural sweetener if needed — like DATES.\n4️⃣ Optional: Add a few crushed nuts (almonds, pistachios) for extra protein & crunch.\n\n\nYOU CAN OPT FOR SIMPLE MAKHANA SALAD WITH VEGGIES HERE", "tips": [["Roast the makhana, then crush it", "1 cup, lightly dry roasted."], ["Boil it with low-fat milk and cardamom", "Sweeten with a date if you need to, add a few crushed nuts."]]}, "0|4|3": {"raw": "📅 Post-Injection Days:\n\n✅ Why Good: Great light snack — gives protein (sprouts + curd), fiber (veggies), probiotics (curd) — supports weight loss & PCOS.\n\n✅ How to Make:\n1️⃣ Lightly steam or blanch sprouts (moong, matki) if digestion is still sensitive.\n2️⃣ Mix with plain homemade curd, finely chopped cucumber, tomato, coriander.\n3️⃣ Add a pinch of roasted jeera powder, black salt, squeeze of lemon. No sweet chutney or fried sev.", "tips": [["Steam the sprouts lightly", "Moong or matki, if your stomach is sensitive."], ["Mix with curd, cucumber, tomato and coriander", "Roasted jeera, black salt, lemon. No sweet chutney or sev."]]}, "0|4|4": {"raw": "📅 Post-Injection Days:\n\n✅ Why Good: Light, crunchy, satisfying snack — when digestion is better. Add protein to balance carbs and make it PCOS-friendly.\n\n✅ How to Make:\n1️⃣ Use puffed rice (murmura) as the base — about 1 cup.\n2️⃣ Add finely chopped onion, tomato, cucumber, coriander.\n3️⃣ For protein: Mix in a handful of boiled kala chana OR steamed moong sprouts OR roasted CHANA OR small paneer cubes.\n4️⃣ Sprinkle roasted jeera, black salt, lemon juice — skip fried farsan, sweet chutney, and extra oil.", "tips": [["Start with a cup of murmura", "Add onion, tomato, cucumber and coriander."], ["Mix in a protein", "Kala chana, sprouts, roasted chana or paneer cubes."], ["Skip the farsan, sweet chutney and extra oil", "Jeera, black salt and lemon are enough."]]}, "0|5|0": {"raw": "📅 Injection Days:\n✅ Tomato Oats Dal Soup: Gentle, warm, easy to digest. Use yellow moong dal + fresh tomato + a spoon of rolled oats to slightly thicken the soup. 🍅🥣\n✅ Note: If oats feel too heavy or you don’t tolerate them well, use 1–2 tsp rice flour instead — it makes the soup smooth & light, good for sensitive digestion. 🌾➡️🍚\n\n📅 Post-Injection Days:\n✅ Tomato Oats Dal Soup: Continue — good protein + fiber. You can keep oats or switch to rice flour for a lighter version if needed.\n✅ Grilled Paneer: Add as a protein-rich side once your appetite is back — lightly grill small cubes with mild spices (jeera, turmeric, salt) — no heavy oil or masala. 🧀🔥", "tips": [["Make the soup with moong dal, tomato and a spoon of oats", "Use rice flour instead if oats feel heavy."], ["Add grilled paneer on other days", "Small cubes, mild spices, very little oil."]]}, "0|5|1": {"raw": "📅 Injection Days:\n\n✅ Mix Dal Vegetable Khichdi: Use only moong dal or split yellow dal if nausea is strong — cook with soft veggies like carrot, bottle gourd, or pumpkin. Keep it semi-liquid and very mildly spiced (turmeric, cumin, pinch of salt). Avoid heavy tadka or too many dals on injection day if digestion is weak. 🍚🥕\n\n✅ Plain Kadhi: A light, thin kadhi made with whisked curd and a pinch of besan (just enough to bind) is soothing. Use mild spices — jeera, turmeric, and curry leaves — no heavy tadka or fried pakoras.\n\n📅 Post-Injection Days:\n\n✅ Mix Dal Vegetable Khichdi: Add 2–3 dals (like moong, masoor, arhar) plus more chopped veggies (beans, spinach, peas) for extra protein & fiber. Mild spices, minimal oil — balanced meal for PCOS too. 🌾🥕🌿\n\n✅ Plain Kadhi: Enjoy with khichdi — helps digestion, cooling for the gut. You can add mild ginger or coriander. Keep it light, thin, and without fried fritters to keep it easy on the stomach. 🥣\n\n✅ NOTE: Portion moderate, chew well, stop at 80% full. Kadhi should be fresh, not sour.", "tips": [["Keep the khichdi semi-liquid and mild", "Moong dal with soft carrot, bottle gourd or pumpkin."], ["Make the kadhi thin", "Curd with a pinch of besan, jeera and curry leaves. No pakoras."]]}, "0|5|2": {"raw": "📅 Post-Injection Days Dinner:\n\n✅ Why Good for Dinner: Light, warm, protein-rich, and easy on digestion if cooked soft. Works well when you want a break from rice or chapati.\n\n✅ How to Have: Make chillas with rice flour + besan + mild veggies (like grated carrot, spinach). Cook on a non-stick pan with very little oil. Serve warm. 🌿🌾\n\n✅ Chana Dal Chutney: Small portion — 2–3 tablespoons. Mildly spiced — no heavy tadka, no garlic if digestion is sensitive. 🥣\n\n✅ Balanced: Good mix of carbs + protein + fiber — supports PCOS meal balance and keeps dinner light but filling.", "tips": [["Make chillas from rice flour and besan", "Add grated carrot or spinach, very little oil."], ["Keep the chana dal chutney to 2 to 3 spoons", "Mildly spiced."]]}, "0|5|3": {"raw": "📅 Post-Injection Days Dinner:\n\n✅ Barley Lentil Soup: Perfect warm starter — barley adds gentle fiber, lentils add protein — good for PCOS-friendly balanced dinner. 🍲\n\n✅ Multigrain Chapati:  chapati made with multigrain flour or millet flour (like jowar/bajra) — adds complex carbs & fiber. 🌾\n\n✅ Pulse Veg Subji: Use light pulses like chana dal, green moong,lobia or rajma (if digestion is fine) cooked soft with mild veggies (beans, carrot, spinach). Light tadka — cumin, turmeric, ginger — no heavy oil. 🥣🥗\n\n✅ Balanced: Gives good protein, fiber, and keeps dinner light but filling — supports weight loss and PCOS.", "tips": [["Start with barley lentil soup", "Warm, before the chapati."], ["Make the chapati from millet or multigrain flour", "Jowar, bajra or multigrain."], ["Cook the pulse subji soft with a light tadka", "Jeera, haldi and ginger."]]}, "0|5|4": {"raw": "📅 Post-Injection Days Dinner:\n\n✅ Soya & Paneer Pulao: Great balanced dinner when appetite improves — mild protein (soya + paneer), good carbs (rice), gentle veggies. Use small soya chunks (soak & boil well), small paneer cubes, and mild veggies like peas or carrots. Light seasoning only — jeera, bay leaf, turmeric — avoid heavy masala. 🍚🧀\n\n✅ Cucumber Raita: Perfect cooling side — plain homemade curd with finely chopped cucumber, pinch of roasted jeera & black salt. Helps digestion, keeps the meal light. 🥣🥒\n\n✅ Why Good: Gives protein + fiber + probiotics.", "tips": [["Soak and boil the soya chunks well", "Then cook with paneer, peas and carrot."], ["Have cucumber raita on the side", "Plain curd, cucumber, roasted jeera, black salt."]]}, "0|5|5": {"raw": "MEAL TIME INSTRUCTIONS\n1️⃣ 🌅 Breakfast: Within 1 hour of waking up — don’t skip! Helps control cravings later. Ideal time: 7–9 AM. 🍳🥣\n\n2️⃣ 🍵 Mid-Morning Snack: Small, light snack or drink if needed. Keeps you hydrated & energy stable. Ideal: 10–11 AM. 🫗🍌\n\n3️⃣ 🍽️ Lunch: Should be your main balanced meal. Protein + fiber + good carbs. Ideal: 12:30–2 PM. 🥗🍚\n\n4️⃣ ☕ Evening Snack: Light mini meal — soup, buttermilk, sprouts, or fruit. Avoid fried snacks or biscuits. Ideal: 4–5:30 PM. 🥣🌿\n\n5️⃣ 🌙 Dinner: Lightest meal of the day — warm, easy to digest, eat early. Ideal: 7–8:30 PM. 🍲🌾\n\n6️⃣ 💧 Hydration: Sip water/herbal water throughout the day. Aim for 2.5–3 liters daily — small sips, not big gulps at once. 💧\n\n7️⃣ 🚫 Avoid Late Night Eating: Try to finish dinner at least 2–3 hours before bedtime — helps Mounjaro work better & prevents reflux/bloating.", "tips": [["Have breakfast within an hour of waking", "Ideally between 7 and 9 AM."], ["Make dinner the lightest meal, and eat early", "Ideally between 7 and 8:30 PM."], ["Sip 2.5 to 3 litres of water through the day", "Small sips, not big gulps."]]}, "0|6|0": {"raw": "✅ Jeera Ajwain Water — Injection Day, Bedtime\n\n**📅 Injection Day Use:\n\n✅ Why Good: Jeera (cumin) and ajwain (carom seeds) help reduce bloating, gas, and mild indigestion — very helpful if you feel heavy or uncomfortable at night during Mounjaro use. 🌿💧\n\nNOTE-\nDo not drink a large amount — ½–1 cup is enough.\n\nSkip if you feel any burning or reflux — in that case, plain warm water or light chamomile tea is better.\n\n✅ How to Have:\n1️⃣ Boil ½ teaspoon jeera + ½ teaspoon ajwain in 1 cup of water for 5–7 minutes.\n2️⃣ Strain and sip it warm 15–30 minutes before bedtime.\n3️⃣ Do not make it too strong — mild is enough to aid digestion.\n\n✅ Bedtime Benefit: Soothes the stomach, prevents bloating or gas discomfort overnight, and supports gentle digestion.", "tips": [["Boil jeera and ajwain in a cup of water", "½ tsp each, for 5 to 7 minutes."], ["Sip it warm before bed", "15 to 30 minutes before. Half to one cup is enough."]]}, "0|6|1": {"raw": "📅 Post-Injection Days:\n\n✅ Why Good: Warm haldi milk (turmeric milk) is soothing, helps calm mild inflammation, supports immunity, and aids restful sleep — good when digestion is settled. 🌙🥛\n\n✅ How to Have:\n1️⃣ Use low-fat milk (or almond milk if preferred).\n2️⃣ Warm 1 cup milk gently — add ¼ teaspoon turmeric powder + pinch of black pepper (helps turmeric absorption).\n3️⃣ Avoid adding sugar", "tips": [["Warm a cup of low-fat milk with turmeric", "¼ tsp turmeric and a pinch of black pepper."], ["Skip the sugar", "Have it after the injection days."]]}};
+
+/* ?v=current shows the portal as it is today; the default is the new version with meal targets and checks */
+var NEW = new URLSearchParams(location.search).get("v") !== "current";
+
+/* ---------------------------------------------------------------- foods and totals */
+function food(f) { return { n: f[0], q: f[1], u: f[2], per: [f[3], f[4], f[5], f[6]] }; }
+function itemTot(it) { return it.per.map(function (v) { return v * (+it.q || 0); }); }
+function optTot(o) { return o.reduce(function (a, it) { var t = itemTot(it); return a.map(function (v, k) { return v + t[k]; }); }, [0, 0, 0, 0]); }
+/* every food in the library, for the Food Items dropdown */
+var CATALOG = (function () {
+  var seen = {}, list = [];
+  TPL.forEach(function (t) { t.meals.forEach(function (m) { m.o.forEach(function (o) { o.forEach(function (f) { if (!seen[f[0]]) { seen[f[0]] = 1; list.push(f); } }); }); }); });
+  return list.sort(function (a, b) { return a[0].localeCompare(b[0]); });
+})();
+
+/* ---------------------------------------------------------------- the new rules, kept small
+   A meal's target is the plan's own food: its middle option (the median of its options), macro by macro, in grams.
+   The patient gets full marks anywhere from 20% below to 20% above it.
+   One check before assigning: an option that, eaten exactly, would leave a macro scoring under 60 against the meal's target. */
+var BAND = 0.2, MING = 3, WATER = 20, SIZE = 1.75;  /* MING: the smallest room over a target, in grams */
+function med(a) { var b = a.slice().sort(function (x, y) { return x - y; }), h = b.length >> 1; return b.length % 2 ? b[h] : (b[h - 1] + b[h]) / 2; }
+function counted(m) { return m.o.map(function (o, i) { return i; }).filter(function (i) { return !m.o[i].off && optTot(m.o[i])[0] >= WATER; }); }
+/* a macro's points against its target: full marks from 20% under to 20% over (at least 3 g over) */
+/* ponytail: amber (60 to 75) hidden for now; set SHOW_AMBER = true to bring the yellow dots back */
+var SHOW_AMBER = false;
+var CUT = 60, AMBER = 75, MACN = ["Protein", "Carbs", "Fats"];
+function credit(x, e) {
+  if (e <= 0) return null;
+  var lo = e * (1 - BAND); if (x < lo) return x / lo * 100;
+  var hi = e + Math.max(e * BAND, MING);
+  return x <= hi ? 100 : Math.max(-50, 100 - (x - hi) / e * 100);
+}
+/* the check: if this option were eaten exactly, would any macro score under 60 against the meal's target? */
+function chk(m, i, q) {
+  var o = m.o[i], t = targetOf(m);
+  if (!t || o.off || optTot(o)[0] < WATER) return null;
+  var e = optTot(o).map(function (v) { return v * (q || 1); }), list = [];
+  [0, 1, 2].forEach(function (k) { var s = credit(e[k + 1], t[k]); /* compared as shown: a number that reads 60 pts is not red */
+    var r = s === null ? null : Math.round(s);
+    if (r !== null && r < (SHOW_AMBER ? AMBER : CUT)) list.push({ k: k, name: MACN[k], x: e[k + 1], e: t[k], s: s, low: e[k + 1] < t[k], red: r < CUT }); });
+  return list.length ? { list: list, red: list.some(function (b) { return b.red; }) } : null;
+}
+/* ---------------------------------------------------------------- fixing with foods, not portions
+   Candidate foods come from the portal's own food database, as used in the templates: only foods coaches already
+   plan for this kind of meal (a bedtime option is never offered a paratha). Three kinds of change are tried:
+   add one food, remove one food, or swap one food for another. The best one clears the check with the least change. */
+function slotKey(n) { var k = n.toLowerCase(); return /early|wake|awake|rising|^morning$/.test(k) ? "early" : /bed|post dinner/.test(k) ? "bed" : /evening/.test(k) ? "evening" : /morning snack|mid/.test(k) ? "msnack" : /breakfast/.test(k) ? "breakfast" : /lunch/.test(k) ? "lunch" : /dinner/.test(k) ? "dinner" : k; }
+var SLOTFOODS = (function () {
+  var map = {}, idx = {};
+  CATALOG.forEach(function (f, i) { idx[f[0]] = i; });
+  TPL.forEach(function (t) { t.meals.forEach(function (m) { var s = slotKey(m.n); map[s] = map[s] || {}; m.o.forEach(function (o) { o.forEach(function (f) { map[s][idx[f[0]]] = 1; }); }); }); });
+  Object.keys(map).forEach(function (s) { map[s] = Object.keys(map[s]).map(Number); });
+  return map;
+})();
+/* Fixes chosen by hand for the GLP template, food by food from the database, each checked to clear the macro check.
+   ops: add a food, remove a food, or swap one food for another; why: the reason it makes sense as a meal */
+var CURATED = {
+  "0|Breakfast|0": { label: "Add Curd (1.5 bowl)", why: "The template's own tip already says to mix curd into the dalia.", ops: [["add", "Curd (Dahi, Plain Yogurt)", 1.5]] },
+  "0|Breakfast|2": { label: "Swap Green chutney for Coconut coriander chutney (1 spoon)", why: "Coconut chutney is the usual pair with idli and adds the fat this option lacks.", ops: [["swap", "Green chutney", "Coconut coriander chutney", 1]] },
+  "0|Morning Snack|3": { label: "Add almond (5 piece)", why: "Fruit with a few nuts is a common mid-morning snack.", ops: [["add", "almond", 5]] },
+  "0|Morning Snack|2": { label: "Add almond (5 piece)", why: "Same pattern for every fruit option: fruit with a few almonds.", ops: [["add", "almond", 5]] },
+  "0|Morning Snack|4": { label: "Add almond (5 piece)", why: "Same pattern for every fruit option: fruit with a few almonds.", ops: [["add", "almond", 5]] },
+  "0|Evening Snack|3": { label: "Add Roasted chana (1 handful)", why: "Roasted chana stirred into the dahi chaat for crunch and protein.", ops: [["add", "Roasted chana (chickpeas)", 1]] },
+  "0|Lunch|0": { label: "Add Curd (1 bowl)", why: "Khichdi with curd is a classic, and gentle on injection days.", ops: [["add", "Curd (Dahi, Plain Yogurt)", 1]] },
+  "0|Lunch|1": { label: "Add Sprouts vegetable salad (1 bowl)", why: "Light protein next to curd rice, in line with the injection-day guidance.", ops: [["add", "Sprouts vegetable salad", 1]] },
+  "0|Evening Snack|0": { label: "Add Roasted Sunflower pumpkin & flax seeds (0.5 handful)", why: "Sprinkled on the soup; adds the fats it is missing.", ops: [["add", "Roasted Sunflower pumpkin & flax seeds (urban platter)", 0.5]] },
+  "0|Evening Snack|1": { label: "Add Roasted chana (1 handful)", why: "Chaas with roasted chana is a typical tea-time pair.", ops: [["add", "Roasted chana (chickpeas)", 1]] },
+  "0|Evening Snack|4": { label: "Swap sukha bhel for Peanuts (boiled, 1 handful)", why: "Kala chana with boiled peanuts is still a chaat, with far fewer carbs.", ops: [["swap", "sukha bhel", "Peanuts (boiled, with salt)", 1]] },
+  "0|Dinner|0": { label: "Swap Dahi (skim) for Curd (1 bowl)", why: "Same soothing dinner; regular curd adds the fat it lacks.", ops: [["swap", "Dahi (skim)", "Curd (Dahi, Plain Yogurt)", 1]] },
+  "0|Dinner|2": { label: "Add Cucumber Raita (1 bowl)", why: "A natural side for chilla, and lifts protein.", ops: [["add", "Cucumber Raita", 1]] },
+  "0|Breakfast|4": { label: "1 Paneer paratha instead of 1.5, add moong sprouts (1 serving)", why: "Same paratha, a little less of it, with sprouts on the side. Fats come down from 11.5 g to 8 g.", ops: [["swap", "Paneer paratha (multigrain)", "Paneer paratha (multigrain)", 1], ["add", "moong sprouts", 1]] }
+};
+function byName(n) { return CATALOG.filter(function (f) { return f[0] === n; })[0]; }
+function applyOps(o, ops) {
+  var out = o.slice();
+  ops.forEach(function (op) {
+    if (op[0] === "add") { var f = byName(op[1]), it = food(f); it.q = op[2]; out.push(it); }
+    if (op[0] === "remove") out = out.filter(function (x) { return x.n !== op[1]; });
+    if (op[0] === "swap") { var g = byName(op[2]); out = out.map(function (x) { if (x.n !== op[1]) return x; var it = food(g); it.q = op[3]; return it; }); }
+  });
+  return out;
+}
+function curatedFix(m, i) {
+  var c = CURATED[S.tpl + "|" + m.n + "|" + i];
+  if (!c) return null;
+  var opt = applyOps(m.o[i], c.ops), t = trial(m, i, opt);
+  return { label: c.label, why: c.why, opt: opt, w: t.w, kind: "curated" };
+}
+function worstOf(m, i) { var c = chk(m, i); return c ? Math.min.apply(null, c.list.map(function (b) { return b.s; })) : 100; }
+function trial(m, i, opt) { var keep = m.o[i]; opt.off = keep.off; m.o[i] = opt; var w = worstOf(m, i), k = optTot(opt)[0]; m.o[i] = keep; return { w: w, k: k }; }
+function foodFixes(m, i) {
+  var cur = curatedFix(m, i);
+  if (cur && cur.w > worstOf(m, i)) return [cur];
+  var o = m.o[i], base = optTot(o)[0], out = [], have = {};
+  o.forEach(function (it) { have[it.n] = 1; });
+  var cands = (SLOTFOODS[slotKey(m.n)] || []).filter(function (ci) { return !have[CATALOG[ci][0]]; });
+  var push = function (label, opt, kind) { var t = trial(m, i, opt); out.push({ label: label, opt: opt, w: t.w, dk: Math.abs(t.k - base), kind: kind }); };
+  o.forEach(function (it, fi) { if (o.length > 1) push("Remove " + it.n, o.filter(function (x, j) { return j !== fi; }), "remove"); });
+  cands.forEach(function (ci) {
+    var f = CATALOG[ci], add = food(f);
+    push("Add " + f[0] + " (" + num(f[1]) + " " + f[2] + ")", o.concat([add]), "add");
+    o.forEach(function (it, fi) { push("Swap " + it.n + " for " + f[0] + " (" + num(f[1]) + " " + f[2] + ")", o.map(function (x, j) { return j === fi ? food(f) : x; }), "swap"); });
+  });
+  /* best first: clears the check (75+), then the smallest change in calories, then add/remove over swap */
+  out.sort(function (a, b) { var ca = a.w >= AMBER, cb = b.w >= AMBER; return (cb - ca) || (ca ? a.dk - b.dk : b.w - a.w) || ((a.kind === "swap") - (b.kind === "swap")); });
+  var picked = [], seen = {};
+  out.forEach(function (x) { if (picked.length < 2 && !seen[x.kind] && x.w > worstOf(m, i)) { seen[x.kind] = 1; picked.push(x); } });
+  return picked;
+}
+/* a portion change only helps when every macro is off the same way; pick the one that clears the check */
+function portionFor(m, i) {
+  var c = chk(m, i), best = null;
+  if (!c) return null;
+  [0.5, 0.75, 1.25, 1.5, 2].forEach(function (q) { var a = chk(m, i, q); if ((!a || (c.red && !a.red)) && (!best || Math.abs(q - 1) < Math.abs(best - 1))) best = q; });
+  return best;
+}
+function target(m) {
+  var ids = counted(m);
+  if (!ids.length) return null;
+  /* the median, not the average: one very big or very small option doesn't pull the target */
+  return [1, 2, 3].map(function (k) { return Math.round(med(ids.map(function (i) { return optTot(m.o[i])[k]; }))); });
+}
+function targetOf(m) { return m.r || target(m); }
+/* kcal is shown for the coach's eye; the score itself runs on the three macros */
+function kcalOf(m) { if (m.rk != null) return m.rk; var ids = counted(m); return ids.length ? Math.round(med(ids.map(function (i) { return optTot(m.o[i])[0]; }))) : 0; }
+/* the same edges credit() uses: 20% under, and 20% or 3 g over, whichever is more; kcal is reference only, plain 20% */
+function zone(t, kc) { return [Math.round(t * (1 - BAND)), Math.round(kc ? t * (1 + BAND) : t + Math.max(t * BAND, MING))]; }
+/* the portal's Actual figures: each meal's average option (options with 0 kcal skipped), added up */
+function actual(P) {
+  return P.meals.reduce(function (a, m) {
+    var os = m.o.filter(function (o) { return !o.off && optTot(o)[0] > 0; });
+    if (!os.length) return a;
+    return a.map(function (v, k) { return v + os.reduce(function (s, o) { return s + optTot(o)[k]; }, 0) / os.length; });
+  }, [0, 0, 0, 0]);
+}
+
+/* ---------------------------------------------------------------- state */
+var S = { plans: [{ name: "Diabetes plan, September", st: "Approved", c: "#28A745", d: "05 Sep 2026  -  04 Oct 2026" }], plan: null, meal: 0, opt: 0, at: "list" };
+function $(id) { return document.getElementById(id); }
+function g(n) { return Math.round(n); }
+function f2(n) { return (Math.round(n * 100) / 100).toFixed(2); }
+function f3(n) { return String(Math.round(n * 1000) / 1000); }
+function num(v) { var r = Math.round(v * 10) / 10; return r % 1 ? r.toFixed(1) : String(r); }
+function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+var HALF = { 0.5: "a half", 0.75: "a ¾", 1.25: "a 1¼", 1.5: "a 1½", 2: "a double" };
+function toast(t) { var el = $("toast"); el.textContent = t; el.classList.add("on"); clearTimeout(el._t); el._t = setTimeout(function () { el.classList.remove("on"); }, 2600); }
+
+function renderToggle() {
+  [].forEach.call(document.querySelectorAll("[data-vt]"), function (el) {
+    el.innerHTML = '<button data-v="current"' + (NEW ? "" : ' class="on"') + '>Current</button><button data-v="new"' + (NEW ? ' class="on"' : "") + ">New</button>";
+  });
+}
+function renderPlans() {
+  $("plans").innerHTML = S.plans.map(function (p) {
+    return '<div class="card"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 7c-4-3-9 0-8 6s4 9 8 7c4 2 7-1 8-7s-4-9-8-6z"/><path d="M12 7c0-2 1-4 3-4"/></svg></span>' +
+      '<div class="t"><b>' + p.name + '</b><span class="badge" style="background:' + p.c + '">' + p.st + "</span><small>" + p.d + "</small></div>" +
+      '<button class="btn sm">View PDF →</button></div>';
+  }).join("");
+}
+
+/* B. choose from template */
+function openChooser() {
+  S.at = "choose"; $("sheet").hidden = false; $("foot").hidden = true;
+  var rows = TPL.map(function (t, i) {
+    var P = { meals: t.meals.map(function (m) { return { o: m.o.map(function (o) { return o.map(food); }) }; }) };
+    return '<tr data-row="' + i + '"><td><span class="radio"></span></td><td><a href="#">' + t.name + "</a>" + (t.ver ? '<span class="vchip">v' + t.ver + " · updated " + t.saved + "</span>" : "") + "</td><td>" + t.goal + "</td><td>" + f3(actual(P)[0]) + "</td><td>Coach " + "ABCDEFG"[i] + '</td><td><button class="btn" data-sel="' + i + '" disabled>Select Template</button></td></tr>';
+  }).join("");
+  $("sbody").innerHTML = '<h3 class="ttl">Choose from Template</h3><div style="text-align:right;margin-bottom:16px"><button class="btn" id="blank">Create New Diet Plan</button></div>' +
+    "<table><thead><tr><th>Select</th><th>Template Name</th><th>Total Calories Goal</th><th>Actual Calories</th><th>Created By</th><th>Actions</th></tr></thead><tbody>" + rows + "</tbody></table>";
+}
+
+/* C. the editor, filled from the template */
+function startPlan(i) {
+  var t = TPL[i];
+  LOG = [];
+  S.tpl = i; S.dirty = 0;
+  S.plan = { name: t.name, goal: t.goal, pct: t.pct.slice(), meals: t.meals.map(function (m, mi) { return { n: m.n, r: null, o: m.o.map(function (o, oi) {
+    var opt = o.map(food), k = TIPS[i + "|" + mi + "|" + oi] || {};
+    opt.raw = k.raw || ""; opt.tips = (k.tips || []).map(function (x) { return { h: x[0], s: x[1] }; });
+    return opt; }) }; }) };
+  S.meal = S.plan.meals.findIndex(function (m) { return m.o.length > 2; }); if (S.meal < 0) S.meal = 0; S.opt = 0; S.at = "edit";
+  renderEditor();
+}
+function nudges() {
+  var n = 0;
+  if (!NEW) return n;
+  S.plan.meals.forEach(function (m) { m.o.forEach(function (o, oi) { var c = chk(m, oi); if (c && !c.red) n++; }); });
+  return n;
+}
+/* the dot for a meal tab or an option tab: red if anything blocks, amber if it only could be better */
+function dot(c) { return c ? '<span class="flag' + (c.red ? "" : " amber") + '"></span>' : ""; }
+function problems() {
+  var list = [];
+  if (!NEW) return list;
+  S.plan.meals.forEach(function (m, mi) { m.o.forEach(function (o, oi) { var c = chk(m, oi); if (c && c.red) list.push({ mi: mi, oi: oi }); }); });
+  return list;
+}
+
+var PEN = '<svg class="pen" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+var INFO = '<svg class="info" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 16v-5M12 8h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+var TRASH = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>';
+var CHEV = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9l6 6 6-6"/></svg>';
+var CLOCK = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="none" stroke="#bfbfbf" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+var FLAME = '<svg viewBox="0 0 18 18" aria-hidden="true"><path fill="currentColor" d="m4.617 6.992-.002.002-.003.002-.007.006-.094.078a3 3 0 0 0-.227.218 4.5 4.5 0 0 0-.628.85c-.436.76-.803 1.895-.597 3.413.203 1.497.832 2.75 1.896 3.622 1.06.87 2.497 1.317 4.233 1.317 1.79 0 3.219-.671 4.165-1.823.938-1.14 1.356-2.696 1.256-4.397-.096-1.632-.985-2.87-1.77-3.964l-.224-.313c-.856-1.209-1.532-2.323-1.368-3.882a.56.56 0 0 0-.56-.621c-.286 0-.614.089-.931.222a5 5 0 0 0-1.03.6C8.033 2.847 7.34 3.635 6.97 4.69c-.369 1.052-.182 2.054.089 2.783.177.48-.015.953-.305 1.09a.53.53 0 0 1-.696-.231l-.605-1.15a.562.562 0 0 0-.835-.189"/></svg>';
+var SALT = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M8 9h8l1 11a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L8 9z"/><path d="M9 9a3 3 0 0 1 6 0"/></svg>';
+
+function renderEditor() {
+  var P = S.plan, m = P.meals[S.meal], o = m.o[S.opt] || [], e = optTot(o), bad = NEW && chk(m, S.opt), A = actual(P);
+
+  var head = '<div class="ehead"><button class="btn ghost" id="back">‹&nbsp;&nbsp;Back</button>' +
+    '<h3 class="ttl" style="margin:0">Create Diet Plan from Template</h3><span></span></div>' +
+    '<div class="va"><button class="btn">View Assessment</button></div>' +
+    '<div class="row2"><div><div class="fl">Name of the diet plan <i>*</i></div><div class="box"><input value="' + esc(P.name) + '"></div></div>' +
+    '<div><div class="gl dr">Date Range</div><div class="range"><span>2026-10-08</span><span class="ar">→</span><span>2026-10-09</span><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#bfbfbf" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div></div>' +
+    '<div><div class="fl">Total calories goal <i>*</i></div><div class="box"><input value="' + P.goal + '"></div></div>' +
+    '<div><div class="fl flx">Actual calories <i>*</i><span class="ii" title="The sum of each meal\'s average option. Options with 0 kcal are left out.">' + INFO + '</span></div><div class="box off">' + f3(A[0]) + "</div></div></div>" +
+    '<div class="row3">' + [["Protein", 0, 1, 4], ["Fat", 1, 3, 9], ["Carbs", 2, 2, 4]].map(function (x) {
+      var goalG = P.goal * P.pct[x[1]] / 100 / x[3];
+      return '<div class="nut"><span class="ii nutii">' + INFO + '</span><div class="fl">' + x[0] + ' percentage(%) <i>*</i></div><div class="box pctbox"><input value="' + P.pct[x[1]] + '"></div>' +
+        '<div class="ga"><div><span class="gl">Goal(gm)</span><div class="gv">' + f3(goalG) + '</div></div><div><span class="gl">Actual(gm)</span><div class="gv">' + f3(A[x[2]]) + "</div></div></div></div>";
+    }).join("") + "</div>";
+
+  var tabs = '<div class="mtabs">' + P.meals.map(function (x, i) {
+    var cs = NEW ? x.o.map(function (y, j) { return chk(x, j); }).filter(Boolean) : [];
+    var worst = cs.length ? { red: cs.some(function (c) { return c.red; }) } : null;
+    return '<button class="mtab' + (i === S.meal ? " on" : "") + '" data-meal="' + i + '">' + x.n + dot(worst) + "</button>";
+  }).join("") + '<button class="mtab" style="min-width:60px">+</button></div>';
+
+  var tg = "";
+  if (NEW) {
+    var r = targetOf(m);
+    tg = !r
+      ? '<span class="mt"><span class="mtl">Target</span><span class="mtw">Water or tea only, ticked as done</span></span>'
+      : (function () {
+          var ed = S.tedit === S.meal, ch = m.r || m.rk != null, k = kcalOf(m);
+          var f = [["Calories", k, "kcal", "k"], ["Protein", r[0], "g", 0], ["Carbs", r[1], "g", 1], ["Fats", r[2], "g", 2]].map(function (x) {
+            var z = zone(x[1], x[3] === "k");
+            return '<span class="mtf' + (ed ? " ed" : "") + '"><span class="mfl">' + x[0] + '</span><span class="mfv">' +
+              (ed ? '<input type="number" min="0" data-rd="' + x[3] + '" value="' + x[1] + '" aria-label="' + x[0] + ' target in ' + x[2] + '">' : "<b>" + x[1] + "</b>") +
+              x[2] + '</span><span class="mfr">full marks ' + z[0] + "–" + z[1] + " " + x[2] + "</span></span>";
+          }).join("");
+          return '<span class="mt' + (ch ? " edited" : "") + (ed ? " editing" : "") + '"><span class="mtl"><span class="mth">Target' + '<span class="mti" tabindex="0" aria-label="How this works">i<span class="tip">' + (ch ? "You changed this. " : "The middle option of this meal: half the options have less, half have more. ") + "The patient gets full marks from 20% under each number to 20% over it (at least 3 g over). Calories are for reference; the score uses protein, carbs and fats.</span></span>" + '</span><span class="new">New</span></span>' + f +
+            '<span class="mta">' + (ed
+              ? '<button class="mtsave" id="tsave">Save</button><button class="mtu" id="tcancel">Cancel</button>'
+              : '<button class="mtu" id="tedit">' + PEN + 'Edit</button>' + (ch ? '<button class="mtlink" id="reset">Reset to suggested</button>' : "")) + "</span></span>";
+        })()
+  }
+  var meta = '<div class="meta">Meal timing <span class="tp">08:00 am ' + CLOCK + '</span> to <span class="tp">09:00 am ' + CLOCK + "</span>" + tg + '<span class="hide">Hide this meal<span class="sw"></span></span></div>';
+
+  var otabs = '<div class="otabs">' + m.o.map(function (x, i) {
+    return '<button class="otab' + (i === S.opt ? " on" : "") + (x.off ? " off" : "") + '" data-opt="' + i + '">Option ' + (i + 1) + (x.off ? '<span class="offtag">Disabled</span>' : NEW ? dot(chk(m, i)) : "") + "</button>";
+  }).join("") + '<button class="otab add" id="addopt">+ Add Option</button></div>';
+
+  var ob = "";
+  if (o.off) ob = '<div class="ob skip"><div><b>This option is disabled.</b>The patient won\'t see it, and it is left out of the meal\'s target and checks.</div><div class="acts"><button class="btn sm" data-undooff="1">Undo</button></div></div>';
+  else if (bad) {
+    /* food suggestions are kept but hidden for now, like Fix with foods: FIX_ALL = true brings both back */
+    var FX = window.__FX = FIX_ALL ? foodFixes(m, S.opt) : [];
+    var lines = bad.list.map(function (b) { return '<li><span class="rd' + (b.red ? "" : " amber") + '"></span>' + b.name + " is " + (b.red ? "much " : "") + (b.low ? "lower" : "higher") + " than this meal's target (" + num(b.x) + " g vs " + b.e + " g)</li>"; }).join("");
+    ob = '<div class="ob ' + (bad.red ? "bad" : "warn2") + '"><div><b>' + (bad.red ? "A patient eating this option as planned would lose a lot of points. Fix it before assigning." : "A patient eating this option as planned may lose a few points. You can fix it or leave it.") + '</b><ul class="obl">' + lines + "</ul>" +
+      (FX.length ? '<div class="fx"><span>Suggested, from GoodFlip\'s food database:</span>' + FX.map(function (x, n) {
+        return '<button class="btn sm' + (n ? "" : " fill") + '" data-fx="' + n + '">' + esc(x.label) + (x.w >= AMBER ? "" : " (helps)") + "</button>" + (x.why ? '<span class="why2">' + esc(x.why) + "</span>" : ""); }).join("") + "</div>"
+        : "Adjust or swap a food, or disable this option.") + "</div>" +
+      '<div class="acts"><button class="btn sm danger" data-off="1">Disable</button></div></div>';
+  }
+  var tile = function (lab, v) { return '<div class="tile"><b>' + lab + "</b><span>" + v + "</span></div>"; };
+  var totals = NEW ? stats(e, bad ? bad.list : [])
+    : '<div class="tiles9">' + tile("Total Calories", g(e[0])) + tile("Total Carbs", f2(e[2])) + tile("Total Protien", f2(e[1])) + tile("Total Fats", f2(e[3])) +
+      tile("Total Fiber", "0.00") + tile("Total Sodium", "0.00") + tile("Total Potassium", "0.00") + tile("Total Sugar", "0.00") + tile("Total Fatty Acids", "0.00") + "</div>";
+  var cards = o.map(function (it, fi) {
+    /* the portal's Food Items field is a search box with a dropdown (Ant Select with search) */
+    var t = itemTot(it), sel = '<input class="fsearch" data-food="' + fi + '" value="' + esc(it.n) + '" placeholder="select food item" autocomplete="off" role="combobox" aria-expanded="false" aria-label="Food item"><div class="fopts" hidden></div>';
+    var fld = function (lab, v, req) { return '<div class="ff"><label>' + lab + (req ? "<i>*</i>" : "") + '</label><div class="fv off">' + v + "</div></div>"; };
+    return '<div class="fcard"><div class="fgrid">' +
+      '<div class="ff"><label>Food Items</label><div class="fsel">' + sel + CHEV + "</div></div>" +
+      '<div class="ff"><label>Quantity</label><input class="fv" type="number" min="0" step="0.5" data-qty="' + fi + '" value="' + it.q + '"></div>' +
+      fld("Measure", esc(it.u || "measure"), true) +
+      fld("Protien", f2(t[1])) + fld("Carbs", f2(t[2])) + fld("Fats", f2(t[3])) +
+      fld("Fibers", "—") + fld("Sodium", "—") + fld("Fatty Acids", "—") +
+      fld("Calories", f2(t[0])) + fld("Sugar", "—") + fld("Potassium", "—") +
+      '</div><div class="fdel"><button class="btn sm danger" data-del="' + fi + '">' + TRASH + "Delete</button></div></div>";
+  }).join("");
+  var body = '<div class="opt">' + ob +
+    (NEW ? "" : '<div class="tipsrow"><b>Tips</b><textarea placeholder="Add tips for this option">' + esc(o.raw || "") + "</textarea></div>") +
+    totals + '<div class="fcards">' + cards + '</div><button class="btn sm addfood" id="addfood">+ Add Food Items</button>' +
+    /* New view: tips come after the food, Current keeps the portal's order */
+    (NEW ? tipsEditor(o) : "") + "</div>";
+
+  $("sbody").innerHTML = head + tabs + meta + otabs + body;
+  renderFoot();
+}
+/* New view: tips as the patient sees them on Eat, a headline and one line on how; the why is KAIRA's */
+function tipsEditor(o) {
+  var rows = (o.tips || []).map(function (t, i) {
+    return '<div class="trow"><span class="tnum">' + (i + 1) + '</span><div class="tfs"><input class="th" data-tip="' + i + '|h" value="' + esc(t.h) + '" placeholder="Headline, for example: Soak the methi seeds overnight">' +
+      '<input class="ts" data-tip="' + i + '|s" value="' + esc(t.s) + '" placeholder="One line on how to do it"></div><button class="tdel" data-tipdel="' + i + '" aria-label="Delete tip">' + TRASH + "</button></div>";
+  }).join("");
+  return '<div class="tipsbox"><div class="thd"><b>Tips</b><span class="new">New</span></div>' +
+    '<div class="tnote">Say what to do: a short headline, then one line on how. Leave out the benefits. KAIRA explains them to the patient when they ask.</div>' +
+    (rows || '<div class="tempty">No tips for this option yet.</div>') + '<button class="btn sm addtip" id="addtip">+ Add tip</button>' +
+    "</div>";
+}
+/* New view: the option's totals in one row, each with its icon */
+function stats(e, flagged) {
+  flagged = flagged || [];
+  var cell = function (ic, lab, v, unit, faint, k) {
+    var f = k != null && flagged.filter(function (b) { return b.k === k; })[0];
+    return '<div class="st' + (faint ? " faint" : "") + (f ? (f.red ? " off" : " offa") : "") + '"><span class="si">' + ic + '</span><span class="sv"><b>' + v + "</b><small>" + unit + '</small></span><span class="sl">' + lab + (f ? '<span class="rd' + (f.red ? "" : " amber") + '" title="Off this meal\'s target"></span>' : "") + "</span></div>";
+  };
+  var gl = function (k) { return '<i class="glyph-' + k + '"></i>'; };
+  return '<div class="stats">' + cell(FLAME, "Calories", g(e[0]), "kcal") + cell(gl("protein"), "Protein", num(e[1]), "g", false, 0) + cell(gl("carbs"), "Carbs", num(e[2]), "g", false, 1) +
+    cell(gl("fats"), "Fats", num(e[3]), "g", false, 2) + cell(gl("fibre"), "Fiber", "–", "", true) + cell(SALT, "Sodium", "–", "", true) + "</div>";
+}
+function renderFoot() {
+  var list = problems(), f = $("foot");
+  f.hidden = false;
+  f.innerHTML = '<div class="status">' + (!NEW ? "" : list.length
+      ? "<b>" + list.length + (list.length === 1 ? " option needs" : " options need") + " a look before you assign.</b> " + '<button class="btn ghost" id="next" style="color:var(--green);height:auto">Show me →</button>'
+      : '<b class="ok">Nothing blocks assigning.</b>') + (nudges() ? ' <span class="amb">' + nudges() + (nudges() === 1 ? " option could" : " options could") + " be better.</span>" : "") + "</div>" +
+    (NEW && S.dirty ? '<button class="btn" id="savetpl">Save changes to master template</button>' : "") +
+    /* "Fix with foods" (fix the whole plan in one go) is kept but hidden for now: FIX_ALL = true brings it back */
+    (FIX_ALL && NEW && (problems().length || nudges()) ? '<button class="btn" id="fixall">Fix with foods</button>' : "") + (FIX_ALL && NEW && LOG.length ? '<button class="btn ghost" id="fixlog" style="color:var(--green)">' + LOG.length + " changes</button>" : "") +
+    '<button class="btn fill" style="border-radius:6px" id="savenext">Save &amp; Next</button><button class="btn" id="assign"' + (list.length ? " disabled" : "") + ">Preview &amp; Assign</button>" +
+    '<button class="btn fill">Save As Draft</button><button class="btn" id="cancel">Cancel</button>';
+}
+var LOG = [], FIX_ALL = false;
+function fixAll() {
+  var before = { red: problems().length, amber: nudges() };
+  /* the reviewed fixes for this template go in together, so they don't chase a moving middle option */
+  Object.keys(CURATED).forEach(function (k) {
+    var p = k.split("|"); if (+p[0] !== S.tpl) return;
+    var m = S.plan.meals.filter(function (x) { return x.n === p[1]; })[0], i = +p[2];
+    if (!m || !m.o[i] || m.o[i].fixed) return;
+    var keep = m.o[i], o2 = applyOps(keep, CURATED[k].ops);
+    o2.tips = keep.tips; o2.raw = keep.raw; o2.off = keep.off; o2.fixed = true; m.o[i] = o2;
+    LOG.push({ meal: m.n, opt: i + 1, what: CURATED[k].label, why: CURATED[k].why });
+  });
+  /* anything still red gets the best food change found automatically; amber is left to the coach */
+  S.plan.meals.forEach(function (m) {
+    m.o.forEach(function (o, i) {
+      var c = chk(m, i); if (!c || !c.red) return;
+      var fx = foodFixes(m, i)[0]; if (!fx) return;
+      fx.opt.off = o.off; fx.opt.tips = o.tips; fx.opt.raw = o.raw; m.o[i] = fx.opt;
+      LOG.push({ meal: m.n, opt: i + 1, what: fx.label, why: fx.why || "Found automatically: the smallest food change that clears it." });
+    });
+  });
+  renderEditor();
+  showLog(before);
+}
+function showLog(before) {
+  $("dlg").innerHTML = "<h4>Changes to the plan</h4>" +
+    (before ? '<p style="margin:0 0 12px;color:#5b6b63;font-size:13px">Red: ' + before.red + " → " + problems().length + ". Amber: " + before.amber + " → " + nudges() + ". Every food comes from GoodFlip's food database.</p>" : "") +
+    (LOG.length ? "<table><thead><tr><th>Meal</th><th>Option</th><th>Change</th><th>Why</th></tr></thead><tbody>" + LOG.map(function (x) { return "<tr><td>" + x.meal + "</td><td>" + x.opt + "</td><td>" + esc(x.what) + '</td><td style="color:#5b6b63">' + esc(x.why) + "</td></tr>"; }).join("") + "</tbody></table>" : "<p>No changes yet.</p>") +
+    '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px"><button class="btn fill" id="dlgBack">Done</button></div>';
+  $("scrim").hidden = false;
+}
+/* ---------------------------------------------------------------- save back to the master template (simulated)
+   Writes this plan's meals, options, foods and tips back over the template it came from, as a new version.
+   Plans already assigned to patients keep the version they were made from. */
+function edited() { S.dirty = (S.dirty || 0) + 1; }
+function askSaveTemplate() {
+  var t = TPL[S.tpl], v = (t.ver || 1);
+  $("dlg").innerHTML = '<div class="cfm"><div class="cfi">!</div><div><h4>Save changes to the master template?</h4>' +
+    '<p>This updates <b>' + esc(t.name) + "</b> for every coach who uses it. It becomes version " + (v + 1) + ".</p>" +
+    '<ul class="cfl"><li>' + Math.max(S.dirty, LOG.length) + (Math.max(S.dirty, LOG.length) === 1 ? " change" : " changes") + " to foods and options in this plan go into the template.</li>" +
+    "<li>Plans already assigned to patients don't change. They keep version " + v + ".</li>" +
+    "<li>New plans made from this template use version " + (v + 1) + ".</li>" +
+    "<li>Disabled options are left out of the template.</li></ul>" +
+    '<label class="cfc"><input type="checkbox" id="cfok"> I understand this changes the template for everyone</label></div></div>' +
+    '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:18px"><button class="btn" id="dlgBack">Cancel</button><button class="btn fill" id="cfsave" disabled>Save to template</button></div>';
+  $("scrim").hidden = false;
+}
+function saveTemplate() {
+  var t = TPL[S.tpl], P = S.plan;
+  t.meals = P.meals.map(function (m) {
+    return { n: m.n, o: m.o.filter(function (o) { return !o.off && o.length; }).map(function (o) { return o.map(function (it) { return [it.n, it.q, it.u, it.per[0], it.per[1], it.per[2], it.per[3]]; }); }) };
+  });
+  /* the tips travel with their options */
+  Object.keys(TIPS).forEach(function (k) { if (+k.split("|")[0] === S.tpl) delete TIPS[k]; });
+  P.meals.forEach(function (m, mi) { m.o.filter(function (o) { return !o.off && o.length; }).forEach(function (o, oi) {
+    TIPS[S.tpl + "|" + mi + "|" + oi] = { raw: o.raw || "", tips: (o.tips || []).map(function (x) { return [x.h, x.s]; }) }; }); });
+  t.ver = (t.ver || 1) + 1; t.saved = "Today";
+  S.dirty = 0;
+  $("scrim").hidden = true;
+  renderFoot();
+  toast(t.name + " saved as version " + t.ver + ". New plans will use it.");
+}
+function preview() {
+  var P = S.plan;
+  $("dlg").innerHTML = "<h4>Preview &amp; Assign</h4>" +
+    (NEW ? '<p style="margin:0 0 12px;color:#5b6b63;font-size:13px">Each meal is scored against its target, with full marks from 20% under to 20% over (at least 3 g over).</p>' +
+      "<table><thead><tr><th>Meal</th><th>Options</th><th>Protein</th><th>Carbs</th><th>Fats</th></tr></thead><tbody>" +
+      P.meals.map(function (m) { var r = targetOf(m); return "<tr><td>" + m.n + "</td><td>" + m.o.length + "</td>" + (r ? r.map(function (x) { return "<td>" + x + " g</td>"; }).join("") : '<td colspan="3">Ticked as done</td>') + "</tr>"; }).join("") + "</tbody></table>"
+      : '<p style="margin:0 0 12px;color:#5b6b63;font-size:13px">' + P.meals.length + " meals, " + P.meals.reduce(function (a, m) { return a + m.o.length; }, 0) + " options, for Patient A.</p>") +
+    '<div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px"><button class="btn" id="dlgBack">Back</button><button class="btn fill" id="doAssign">Assign</button></div>';
+  $("scrim").hidden = false;
+}
+function setView(v) {
+  NEW = v === "new";
+  var u = new URL(location.href); NEW ? u.searchParams.delete("v") : u.searchParams.set("v", "current"); history.replaceState(null, "", u);
+  renderToggle();
+  if (S.at === "edit") renderEditor();
+}
+
+/* ---------------------------------------------------------------- events */
+document.addEventListener("click", function (ev) {
+  var b = ev.target.closest("button, tr[data-row], a"); if (!b) return;
+  if (b.tagName === "A") ev.preventDefault();
+  var d = b.dataset || {};
+  if (d.v) return setView(d.v);
+  if (b.id === "create") return openChooser();
+  if (b.id === "close" || b.id === "cancel") { $("sheet").hidden = true; $("foot").hidden = true; S.at = "list"; return; }
+  if (b.id === "blank") return toast("This copy starts from a template. Pick one, then Select Template.");
+  if (b.matches("tr[data-row]")) {
+    [].forEach.call(document.querySelectorAll("tr[data-row]"), function (r) { r.classList.toggle("on", r === b); r.querySelector("[data-sel]").disabled = r !== b; });
+    return;
+  }
+  if (d.sel !== undefined) return startPlan(+d.sel);
+  if (b.id === "back") return openChooser();
+  if (d.meal !== undefined) { S.tedit = null; S.meal = +d.meal; S.opt = 0; return renderEditor(); }
+  if (d.opt !== undefined) { S.opt = +d.opt; return renderEditor(); }
+  var m = S.plan && S.plan.meals[S.meal];
+  if (b.id === "savenext") { S.tedit = null; S.meal = (S.meal + 1) % S.plan.meals.length; S.opt = 0; toast("Saved. Now " + S.plan.meals[S.meal].n + "."); return renderEditor(); }
+  if (b.id === "savetpl") return askSaveTemplate();
+  if (b.id === "cfsave") return saveTemplate();
+  if (["addopt", "addfood", "fixall"].indexOf(b.id) > -1 || d.del !== undefined || d.fx !== undefined || d.q || d.off || d.undooff || d.tipdel !== undefined || b.id === "addtip") edited();
+  if (b.id === "addopt") { m.o.push([]); S.opt = m.o.length - 1; return renderEditor(); }
+  if (b.id === "addtip") { (m.o[S.opt].tips = m.o[S.opt].tips || []).push({ h: "", s: "" }); renderEditor(); var hs = document.querySelectorAll(".trow .th"); if (hs.length) hs[hs.length - 1].focus(); return; }
+  if (d.tipdel !== undefined) { m.o[S.opt].tips.splice(+d.tipdel, 1); return renderEditor(); }
+  if (b.id === "addfood") { m.o[S.opt].push({ n: "", q: 1, u: "", per: [0, 0, 0, 0] }); return renderEditor(); }
+  if (d.del !== undefined) { m.o[S.opt].splice(+d.del, 1); toast("Food item removed."); return renderEditor(); }
+  if (d.fx !== undefined) { var fx = window.__FX[+d.fx]; fx.opt.off = m.o[S.opt].off; fx.opt.tips = m.o[S.opt].tips; fx.opt.raw = m.o[S.opt].raw; m.o[S.opt] = fx.opt; LOG.push({ meal: m.n, opt: S.opt + 1, what: fx.label, why: fx.why || "" }); toast(fx.label + "."); return renderEditor(); }
+  if (b.id === "fixall") return fixAll();
+  if (b.id === "fixlog") return showLog();
+  if (d.q) { m.o[S.opt].forEach(function (it) { it.q = Math.round(it.q * +d.q * 100) / 100; }); toast("Option " + (S.opt + 1) + " is now " + HALF[+d.q] + " portion."); return renderEditor(); }
+  if (d.off) { if (m.o.filter(function (x) { return !x.off; }).length < 2) return toast("A meal needs at least one option."); m.o[S.opt].off = true; toast("Option " + (S.opt + 1) + " disabled."); return renderEditor(); }
+  if (d.undooff) { m.o[S.opt].off = false; toast("Option " + (S.opt + 1) + " is back."); return renderEditor(); }
+  if (b.id === "reset") { m.r = null; m.rk = null; edited(); return renderEditor(); }
+  if (b.id === "tedit") { S.tedit = S.meal; renderEditor(); var fi = document.querySelector("[data-rd]"); if (fi) fi.focus(); return; }
+  if (b.id === "tcancel") { S.tedit = null; return renderEditor(); }
+  if (b.id === "tsave") {
+    var v = {}; [].forEach.call(document.querySelectorAll("[data-rd]"), function (x) { v[x.dataset.rd] = Math.max(0, Math.round(+x.value || 0)); });
+    var was = targetOf(m), nr = [v[0], v[1], v[2]];
+    if (nr.join() !== was.join()) m.r = nr;
+    if (v.k !== kcalOf(m)) m.rk = v.k;
+    S.tedit = null; edited(); toast("Target saved for " + m.n + "."); return renderEditor();
+  }
+  if (b.id === "next") { var it = problems()[0]; S.meal = it.mi; S.opt = it.oi; return renderEditor(); }
+  if (b.id === "assign") return preview();
+  if (b.id === "dlgBack") { $("scrim").hidden = true; return; }
+  if (b.id === "doAssign") {
+    S.plans.unshift({ name: S.plan.name, st: "Pending", c: "#DC6803", d: "08 Oct 2026  -  09 Oct 2026" });
+    $("scrim").hidden = true; $("sheet").hidden = true; $("foot").hidden = true; S.at = "list"; renderPlans(); toast("Plan sent for approval.");
+  }
+});
+/* editing: a quantity, a food swap, or a meal target */
+document.addEventListener("change", function (ev) {
+  var t = ev.target, d = t.dataset || {}, m = S.plan && S.plan.meals[S.meal];
+  if (!m) return;
+  if (d.qty !== undefined || d.tip !== undefined) edited();
+  if (d.qty !== undefined) { m.o[S.opt][+d.qty].q = Math.max(0, +t.value || 0); return renderEditor(); }
+
+  if (d.tip !== undefined) { var tp = d.tip.split("|"); m.o[S.opt].tips[+tp[0]][tp[1]] = t.value.trim(); return; }
+});
+/* Food Items: type to search, pick from the list */
+function foodList(inp) {
+  var box = inp.parentNode.querySelector(".fopts"), q = inp.value.trim().toLowerCase(), cur = S.plan.meals[S.meal].o[S.opt][+inp.dataset.food].n;
+  if (q === cur.toLowerCase()) q = "";
+  var hits = q ? CATALOG.map(function (f, ci) { return [f, ci]; }).filter(function (x) { return x[0][0].toLowerCase().indexOf(q) > -1; }).slice(0, 40) : [];
+  box.innerHTML = !q ? '<div class="fnone">Type to search food items</div>'
+    : hits.length ? hits.map(function (x) { var f = x[0]; var n1 = function (v) { return Math.round(v * 10) / 10; };
+      return '<div class="fo" data-pick="' + x[1] + '"><div class="fon"><b>' + esc(f[0]) + "</b><small>per 1 " + esc(f[2]) + '</small></div><div class="fom"><span class="fk">' + Math.round(f[3]) + ' kcal</span><span>P ' + n1(f[4]) + "g</span><span>C " + n1(f[5]) + "g</span><span>F " + n1(f[6]) + "g</span></div></div>"; }).join("")
+    : '<div class="fnone">No data</div>';
+  box.hidden = false; inp.setAttribute("aria-expanded", "true");
+}
+document.addEventListener("focusin", function (e) { if (e.target.classList && e.target.classList.contains("fsearch")) { e.target.select(); foodList(e.target); } });
+document.addEventListener("input", function (e) { if (e.target.classList && e.target.classList.contains("fsearch")) foodList(e.target); });
+document.addEventListener("focusout", function (e) {
+  if (!(e.target.classList && e.target.classList.contains("fsearch"))) return;
+  var inp = e.target; setTimeout(function () { var b = inp.parentNode && inp.parentNode.querySelector(".fopts"); if (b) b.hidden = true; inp.setAttribute("aria-expanded", "false");
+    var it = S.plan.meals[S.meal].o[S.opt][+inp.dataset.food]; if (it) inp.value = it.n; }, 120);
+});
+document.addEventListener("mousedown", function (e) {
+  var o = e.target.closest("[data-pick]"); if (!o) return;
+  e.preventDefault();
+  var inp = o.closest(".fsel").querySelector(".fsearch"), it = S.plan.meals[S.meal].o[S.opt][+inp.dataset.food], f = CATALOG[+o.dataset.pick];
+  it.n = f[0]; it.u = f[2]; it.per = [f[3], f[4], f[5], f[6]]; it.q = it.q || 1;
+  edited(); renderEditor();
+});
+document.addEventListener("change", function (e) { if (e.target.id === "cfok") $("cfsave").disabled = !e.target.checked; });
+$("scrim").addEventListener("click", function (e) { if (e.target === this) this.hidden = true; });
+renderToggle(); renderPlans();
+
+</script>
+</body>
+</html>

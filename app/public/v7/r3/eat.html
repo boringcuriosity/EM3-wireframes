@@ -1225,7 +1225,7 @@
 </script>
 <script src="heroes/plate.js"></script>
 <script src="assets/flipcoin-toast.js?v=1"></script>
-<script src="assets/plan-tray.js?v=37"></script>
+<script src="assets/plan-tray.js?v=38"></script>
 <script src="assets/flipcoin-earn.js?v=6"></script>
 <script>
 /* ============================================================
@@ -2503,9 +2503,14 @@ var PLOG = (function () {
 (function inlineLogs() {
   var raw = null;
   try { raw = JSON.parse(sessionStorage.getItem("gfInline") || "null"); sessionStorage.removeItem("gfInline"); } catch (e) {}
-  if (!raw || Date.now() - raw.t > 20000 || raw.state !== (Q.get("state") || "")) return;
+  var fresh = raw && (Q.get("session") || Date.now() - raw.t <= 20000) && raw.state === (Q.get("state") || "") ? raw.meals || [] : [];
+  /* ?session=1 (v7/api-flow.html): every log since the page opened is kept, not just the last one */
+  if (Q.get("session")) {
+    try { var kept = JSON.parse(sessionStorage.getItem("gfSession") || "[]"); fresh = kept.concat(fresh); sessionStorage.setItem("gfSession", JSON.stringify(fresh)); } catch (e) {}
+  }
+  if (!fresh.length) return;
   /* the bar can carry several meals at once: one entry each */
-  (raw.meals || []).forEach(function (e) {
+  fresh.forEach(function (e) {
     var m = MEALS.filter(function (x) { return x.id === e.meal; })[0];
     if (!m) return;
     e.refs.forEach(function (ref) {
@@ -3426,8 +3431,6 @@ function mealsIn() {
   diary.addEventListener("click", function (e) {
     var chip = e.target.closest(".chip");
     if (chip) {
-      if (chip.classList.contains("pt-lock"))
-        return toast("We recommend eating from one option per meal.", "error");
       var cm = byId(chip.dataset.meal);
       cm.show = +chip.dataset.opt;
       repaint(cm);
@@ -3530,7 +3533,7 @@ function mealsIn() {
   }
 })();
 </script>
-<script src="assets/score-say.js?v=1"></script>
+<script src="assets/score-say.js?v=2"></script>
 <script src="chrome.js"></script>
 <script src="assets/kaira-aurora.js?v=3"></script>
 </body>

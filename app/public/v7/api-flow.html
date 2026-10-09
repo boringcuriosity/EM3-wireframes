@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eat API Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand:#299D6B; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0; --brand-700:#2A805A;
+    --in-50:#EEF4FF; --in-100:#E0EAFF; --in-600:#444CE7; --in-700:#3538CD;
+    --amber:#DC6803; --amber-50:#FFFAEB; --red:#D92D20; --red-50:#FEF3F2;
+    --ink:#101828; --text:#344054; --muted:#667085; --faint:#98A2B3; --line:#E4E7EC; --line2:#F2F4F7; --bg:#F9FAFB;
+    --code:#0B1220; --code-2:#111A2E;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:400 14px/20px Roboto,system-ui,sans-serif;letter-spacing:.2px}
+  .wrap{max-width:1480px;margin:0 auto;padding:28px 24px 64px}
+  header h1{margin:0 0 6px;font-size:28px;line-height:36px;color:var(--ink);font-weight:700}
+  header p{margin:0;color:var(--muted);max-width:900px}
+  .legend{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .pill{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;border-radius:999px;padding:3px 10px;white-space:nowrap}
+  .k-phone{background:var(--brand-50);color:var(--brand-700);box-shadow:inset 0 0 0 1px var(--brand-200)}
+  .k-req{background:var(--in-50);color:var(--in-700);box-shadow:inset 0 0 0 1px var(--in-100)}
+  .k-server{background:#F4F3FF;color:#5925DC;box-shadow:inset 0 0 0 1px #D9D6FE}
+  .k-res{background:#F0F9FF;color:#026AA2;box-shadow:inset 0 0 0 1px #B9E6FE}
+  .k-ui{background:var(--amber-50);color:#B54708;box-shadow:inset 0 0 0 1px #FEDF89}
+
+  .grid{display:grid;grid-template-columns:420px minmax(0,1fr);gap:32px;margin-top:24px;align-items:start}
+  .left{position:sticky;top:20px}
+  .phone{width:390px;height:780px;border-radius:44px;overflow:hidden;background:#fff;border:1px solid var(--line);box-shadow:0 24px 48px -18px rgba(16,24,40,.22)}
+  .phone iframe{width:390px;height:780px;border:0;display:block}
+  .hint{margin-top:12px;font-size:12.5px;color:var(--muted);max-width:390px}
+  .hint b{color:var(--ink)}
+  .btnrow{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .btn{height:34px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:#fff;font:500 13px Roboto;color:var(--text);cursor:pointer}
+  .btn:hover{border-color:#C7D7FE}
+
+  /* live state */
+  .state{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px 18px;position:sticky;top:20px;z-index:3;box-shadow:0 8px 24px -16px rgba(16,24,40,.18)}
+  .state .top{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .state .top b{font-size:13px;color:var(--ink)}
+  .big{font:700 34px/38px Roboto;color:var(--ink);font-variant-numeric:tabular-nums}
+  .big small{font-size:15px;color:var(--muted);font-weight:500}
+  .delta{font-weight:700;font-size:13px;border-radius:999px;padding:2px 9px}
+  .delta.up{color:#067647;background:#ECFDF3}.delta.down{color:var(--red);background:var(--red-50)}
+  .src{font-size:12px;color:var(--muted)}
+  .mrows{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-top:12px}
+  .mr{border:1px solid var(--line2);border-radius:12px;padding:8px 10px;background:var(--bg)}
+  .mr.on{background:#fff;border-color:var(--brand-200)}
+  .mr .h{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink);font-weight:600}
+  .mr .h span{font-weight:700}
+  .mr .h span.ok{color:var(--brand-700)}.mr .h span.mid{color:var(--amber)}.mr .h span.bad{color:var(--red)}
+  .mix{display:flex;height:8px;border-radius:999px;overflow:hidden;background:var(--line2);margin:6px 0 4px}
+  .mix i{display:block;height:100%}
+  .mr small{display:block;font-size:11px;color:var(--muted)}
+
+  /* timeline */
+  .tl{position:relative;margin-top:18px;padding-left:28px}
+  .tl::before{content:"";position:absolute;left:10px;top:6px;bottom:6px;width:2px;background:var(--line)}
+  .ev{position:relative;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-bottom:12px;animation:in .35s cubic-bezier(.2,.7,.2,1)}
+  @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.ev{animation:none}}
+  .ev::before{content:"";position:absolute;left:-24px;top:18px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--dot,var(--line))}
+  .ev.is-phone{--dot:var(--brand)}.ev.is-req{--dot:var(--in-600)}.ev.is-server{--dot:#7A5AF8}.ev.is-res{--dot:#0BA5EC}.ev.is-ui{--dot:var(--amber)}
+  .ev .eh{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .ev .eh b{font-size:14px;color:var(--ink)}
+  .ev .eh .when{margin-left:auto;font-size:11px;color:var(--faint)}
+  .ev p{margin:8px 0 0;color:var(--text);font-size:13px}
+  .ev ul{margin:8px 0 0;padding-left:18px;font-size:13px}
+  .ev li{margin:3px 0}
+  .ep{display:inline-flex;align-items:center;gap:8px;font:500 12.5px "JetBrains Mono",ui-monospace,monospace;color:var(--ink)}
+  .verb{font-weight:700;border-radius:6px;padding:2px 7px;font-size:11px;color:#fff}
+  .verb.GET{background:#039855}.verb.POST{background:var(--in-600)}.verb.PATCH{background:#DC6803}.verb.DELETE{background:var(--red)}.verb.JOB{background:#7A5AF8}
+  pre{margin:10px 0 0;background:var(--code);color:#E4E7EC;border-radius:12px;padding:12px 14px;font:400 12px/18px "JetBrains Mono",ui-monospace,monospace;overflow:auto;max-height:340px}
+  pre .k{color:#7CD4FD}.pre .s{color:#A6F4C5}pre .s{color:#A6F4C5}pre .n{color:#FEC84B}pre .c{color:#98A2B3;font-style:italic}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .chip{font-size:12px;border-radius:999px;padding:3px 10px;background:var(--bg);border:1px solid var(--line)}
+  .chip b{color:var(--ink)}
+  .tgt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+  .tg{border:1px solid var(--line2);border-radius:10px;padding:8px 10px;background:var(--bg)}
+  .tg label{display:block;font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--faint)}
+  .tg .v{font-size:13px;color:var(--ink)}
+  .tg .bar{position:relative;height:8px;border-radius:999px;background:var(--line2);margin-top:6px}
+  .tg .zone{position:absolute;top:0;bottom:0;background:var(--brand-200);border-radius:999px}
+  .tg .fill{position:absolute;top:2px;bottom:2px;left:0;border-radius:999px;background:var(--brand)}
+  .tg .fill.mid{background:var(--amber)}.tg .fill.bad{background:var(--red)}
+  .tg .mark{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ink)}
+  .empty{color:var(--muted);font-size:13px;border:1px dashed var(--line);border-radius:14px;padding:14px 16px;background:#fff}
+
+  /* other flows */
+  h2{font-size:20px;color:var(--ink);margin:40px 0 4px}
+  .sub{color:var(--muted);margin:0 0 14px}
+  .flows{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+  .flow{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}
+  .flow h3{margin:0 0 8px;font-size:15px;color:var(--ink)}
+  .steps{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+  .st{display:flex;gap:10px;align-items:flex-start;font-size:13px}
+  .st .pill{flex:none;margin-top:1px}
+  .changes{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+  .changes table{width:100%;border-collapse:collapse;font-size:13px}
+  .changes th{text-align:left;background:var(--bg);color:var(--muted);font-size:11px;letter-spacing:.6px;text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--line)}
+  .changes td{padding:10px 14px;border-bottom:1px solid var(--line2);vertical-align:top}
+  .changes td:first-child{font-weight:600;color:var(--ink);white-space:nowrap}
+  code{font:500 12px "JetBrains Mono",ui-monospace,monospace;background:var(--line2);border-radius:5px;padding:1px 5px;color:var(--ink)}
+  @media (max-width:1000px){.grid{grid-template-columns:1fr}.left{position:static}.state{position:static}}
+  @media (max-width:440px){.phone,.phone iframe{width:100%}.wrap{padding:20px 16px 48px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>How Eat talks to the server</h1>
+    <p>Log a coach plan food on the phone. On the right, every step appears as it happens: what the phone works out on its own, the API request, what the server does, the response, and what changes on screen. Foods from several options of one meal can be logged together.</p>
+    <div class="legend">
+      <span class="pill k-phone">On the phone</span><span class="pill k-req">API request</span><span class="pill k-server">Server</span><span class="pill k-res">API response</span><span class="pill k-ui">Screen updates</span>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="left">
+      <div class="phone"><iframe id="ph" title="Eat screen" src="r3/eat.html?state=first&amp;chrome=0&amp;session=1"></iframe></div>
+      <p class="hint"><b>Try it:</b> scroll to Lunch or Dinner, tick a few foods (from two options, if you like), then tap <b>Log</b> on the floating bar.<br>The phone's score, its +x% step, the line under it and the macro tiles follow the new logic: the same numbers as the panel.</p>
+      <div class="btnrow"><button class="btn" id="restart">Start again</button></div>
+    </div>
+
+    <div>
+      <div class="state" id="state"></div>
+      <div class="tl" id="tl"></div>
+    </div>
+  </div>
+
+  <h2>Every other way in</h2>
+  <p class="sub">The same score block comes back from every write, so the screen always updates the same way.</p>
+  <div class="flows" id="flows"></div>
+
+  <h2>What changes in the system</h2>
+  <p class="sub">From reading the current repos (MyTatvaCore, MyTatva-Coach-React, app.goodflip.in, MyTatva-RN).</p>
+  <div class="changes"><table>
+    <thead><tr><th>Where</th><th>Today</th><th>New</th></tr></thead>
+    <tbody>
+      <tr><td>Plan storage</td><td>Each plan food stores food id, quantity and unit. Macros are looked up per food on every read.</td><td>When the coach saves, the server stores each food's kcal, protein, carbs, fats, its share of its option, each option's totals, and each meal's share of the day.</td></tr>
+      <tr><td>Plan edits</td><td>Overwrite the same plan.</td><td>Saved as a new plan version. Each day is scored against the version active that morning.</td></tr>
+      <tr><td>Plan read on Eat</td><td>Three calls; foods carry calories only.</td><td>One call, <code>GET /v9/diet/day</code>, with the plan (macros, shares, version), the day's logs and the score. Cached by plan version.</td></tr>
+      <tr><td>Logging</td><td>One request per ticked food. Snap and voice logs are not linked to the plan.</td><td>One request for everything in the bar, <code>POST /v9/diet/logs</code>, any options mixed. Snap and voice match foods to the plan where they can.</td></tr>
+      <tr><td>Score</td><td>Does not exist.</td><td>Worked out on the phone for an instant preview and by the server on every write. Every write returns the same score block.</td></tr>
+      <tr><td>Line under the score</td><td>None.</td><td>Chosen from the score block (went up, up only, no change, dropped) and filled from a template.</td></tr>
+      <tr><td>End of day</td><td>No job.</td><td>One scheduled job saves the day's score as final for Trend.</td></tr>
+      <tr><td>Coach portal</td><td>Shows the average option as Actual Calories.</td><td>Also shows each meal's target and flags an option about twice or half the size of the others before assigning.</td></tr>
+    </tbody>
+  </table></div>
+</div>
+
+<script>
+/* ---------------------------------------------------------------- the scoring (the same rules as the sandbox) */
+var R = { band: 0.2, minG: 3, floor: -50 };
+var OC = ["#444CE7", "#0E9384", "#DC6803", "#C11574", "#6172F3", "#15B79E"];
+function credit(x, e) {
+  if (e <= 0) return null;
+  var lo = e * (1 - R.band); if (x < lo) return x / lo * 100;
+  var hi = e + Math.max(e * R.band, R.minG);
+  return x <= hi ? 100 : Math.max(R.floor, 100 - (x - hi) / e * 100);
+}
+function itemMac(it, q) { var k = (q == null ? it.n : q); return { kcal: it.cal / it.n * k, p: it.p * k, c: it.c * k, f: it.fa * k }; }
+function optTot(o) { return o.reduce(function (a, it) { var m = itemMac(it); a.kcal += m.kcal; a.p += m.p; a.c += m.c; a.f += m.f; return a; }, { kcal: 0, p: 0, c: 0, f: 0 }); }
+function avgOpt(m) { var t = { kcal: 0, p: 0, c: 0, f: 0 }; m.opts.forEach(function (o) { var x = optTot(o); for (var k in t) t[k] += x[k] / m.opts.length; }); return t; }
+
+/* eaten = logged foods (+ what is waiting in the bar, if asked) */
+function mealCalc(m, tray) {
+  var eaten = { kcal: 0, p: 0, c: 0, f: 0 }, shares = m.opts.map(function () { return 0; }), any = false, foods = [];
+  m.opts.forEach(function (o, oi) {
+    var ok = optTot(o).kcal;
+    o.forEach(function (it, ri) {
+      var ref = m.id + "|" + oi + "|" + ri, q = it.done ? it.n : 0;
+      if (tray && tray[ref] != null) q += tray[ref];
+      if (!q) return;
+      any = true; var x = itemMac(it, q);
+      for (var k in eaten) eaten[k] += x[k];
+      if (ok > 0) shares[oi] += x.kcal / ok;
+      foods.push({ ref: ref, name: it.name, opt: oi, q: q, unit: it.unit, kcal: x.kcal, share: ok > 0 ? x.kcal / ok : 0, x: x });
+    });
+  });
+  (m.manual || []).forEach(function (it) { if (!it.done) return; any = true; var x = itemMac(it); for (var k in eaten) eaten[k] += x[k]; foods.push({ name: it.name, off: true, q: it.n, unit: it.unit, kcal: x.kcal, x: x }); });
+  var plate = shares.reduce(function (a, b) { return a + b; }, 0), tgt;
+  if (plate > 0) { tgt = { kcal: 0, p: 0, c: 0, f: 0 }; m.opts.forEach(function (o, oi) { if (!shares[oi]) return; var x = optTot(o); for (var k in tgt) tgt[k] += x[k] * shares[oi] / plate; }); }
+  else tgt = avgOpt(m);
+  var cr = [["Protein", "p"], ["Carbs", "c"], ["Fats", "f"]].map(function (d) { return { name: d[0], k: d[1], x: eaten[d[1]], e: tgt[d[1]], s: credit(eaten[d[1]], tgt[d[1]]) }; });
+  var sc = cr.filter(function (c) { return c.s !== null; }), score = sc.length ? sc.reduce(function (a, c) { return a + c.s; }, 0) / sc.length : 100;
+  return { any: any, plate: plate, shares: shares, eaten: eaten, tgt: tgt, cr: cr, score: score, foods: foods };
+}
+function dayCalc(W, tray) {
+  var M = W.MEALS, sh = M.map(function (m) { return avgOpt(m).kcal; }), tot = sh.reduce(function (a, b) { return a + b; }, 0), day = 0, meals = {};
+  M.forEach(function (m, i) {
+    var r = mealCalc(m, tray); r.share = sh[i] / tot * 100; r.pts = r.any ? r.share * r.score / 100 : 0; day += r.pts; meals[m.id] = r;
+  });
+  return { day: Math.max(0, Math.round(day)), raw: day, meals: meals };
+}
+
+/* ---------------------------------------------------------------- rendering helpers */
+function $(id) { return document.getElementById(id); }
+function g(n) { return Math.round(n); }
+function f1(n) { return (Math.round(n * 10) / 10).toString(); }
+function f2(n) { return (Math.round(n * 100) / 100).toFixed(2); }
+function cls(s) { return s >= 90 ? "ok" : s >= 75 ? "mid" : "bad"; }
+function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+/* pretty JSON with colours, and // notes kept as comments */
+function J(o, notes) {
+  var s = JSON.stringify(o, null, 2);
+  s = esc(s).replace(/"([^"]+)":/g, '<span class="k">"$1"</span>:').replace(/: "([^"]*)"/g, ': <span class="s">"$1"</span>').replace(/: (-?[\d.]+)/g, ': <span class="n">$1</span>');
+  return "<pre>" + (notes ? '<span class="c">// ' + esc(notes) + "</span>\n" : "") + s + "</pre>";
+}
+var T0 = Date.now();
+function when() { var s = (Date.now() - T0) / 1000; return s < 60 ? g(s) + "s" : g(s / 60) + "m"; }
+function ev(kind, label, title, body) {
+  var el = document.createElement("div"); el.className = "ev is-" + kind;
+  el.innerHTML = '<div class="eh"><span class="pill k-' + kind + '">' + label + "</span><b>" + title + '</b><span class="when">' + when() + "</span></div>" + body;
+  $("tl").prepend(el);
+  return el;
+}
+function ep(verb, path) { return '<span class="ep"><span class="verb ' + verb + '">' + verb + "</span>" + path + "</span>"; }
+function targetGrid(r) {
+  return '<div class="tgt">' + r.cr.map(function (c) {
+    if (c.s === null) return '<div class="tg"><label>' + c.name + '</label><div class="v">not scored</div></div>';
+    var max = Math.max(c.e * 2, c.x * 1.05), sc = function (v) { return Math.min(v, max) / max * 100; };
+    var lo = c.e * (1 - R.band), hi = c.e + Math.max(c.e * R.band, R.minG);
+    return '<div class="tg"><label>' + c.name + '</label><div class="v"><b>' + f1(c.x) + "</b> of " + f1(c.e) + " g · " + g(c.s) + "</div>" +
+      '<div class="bar"><span class="zone" style="left:' + sc(lo) + "%;width:" + (sc(hi) - sc(lo)) + '%"></span><span class="fill ' + cls(c.s) + '" style="width:' + sc(c.x) + '%"></span><span class="mark" style="left:' + sc(c.e) + '%"></span></div></div>';
+  }).join("") + "</div>";
+}
+function mixBar(r) {
+  if (!r.plate) return '<div class="mix"><i style="width:100%;background:#98A2B3"></i></div>';
+  return '<div class="mix">' + r.shares.map(function (s, i) { return s ? '<i style="width:' + s / r.plate * 100 + "%;background:" + OC[i % OC.length] + '"></i>' : ""; }).join("") + "</div>";
+}
+function mixWords(r) { return r.plate ? r.shares.map(function (s, i) { return s ? "option " + (i + 1) + " " + g(s / r.plate * 100) + "%" : ""; }).filter(Boolean).join(" + ") : "the plan's average option"; }
+
+/* the live state box */
+var LAST = null;
+function renderState(W, tray) {
+  var d = dayCalc(W, tray), base = dayCalc(W, null), dt = d.day - base.day;
+  $("state").innerHTML = '<div class="top"><b>Nutrition sufficiency (new logic)</b><span class="big">' + d.day + "<small>%</small></span>" +
+    (Object.keys(tray || {}).length ? '<span class="delta ' + (dt >= 0 ? "up" : "down") + '">' + (dt >= 0 ? "+" : "−") + Math.abs(dt) + "% if you log what is in the bar</span>" : "") +
+    '<span class="src">Logged: ' + base.day + "%. Worked out on the phone; the server confirms on Log.</span></div>" +
+    '<div class="mrows">' + W.MEALS.map(function (m) {
+      var r = d.meals[m.id];
+      return '<div class="mr' + (r.any ? " on" : "") + '"><div class="h">' + m.name + (r.any ? '<span class="' + cls(r.score) + '">' + g(r.score) + "%</span>" : "<span style=\"color:var(--faint)\">–</span>") + "</div>" +
+        mixBar(r) + "<small>" + (r.any ? f2(r.plate) + " plate · target " + mixWords(r) : "Counts for " + g(r.share) + "% of the day") + "</small></div>";
+    }).join("") + "</div>";
+  return d;
+}
+
+/* the line under the score, from the change and what the touched meals could have added */
+function lineFor(dt, miss, overate) {
+  if (dt > 0 && overate) return { lead: "Your score went up by only " + dt + "%,", rest: "you could have gained " + miss + "% more.", cta: "Find out why from KAIRA", delta: "+" + dt + "%", tone: "down" };
+  if (dt > 0) return { lead: "Your score went up by " + dt + "%,", rest: "keep logging your meals.", cta: "Learn more by asking KAIRA", delta: "+" + dt + "%", tone: "up" };
+  if (dt < 0) return { lead: "Your score dropped by " + Math.abs(dt) + "%,", rest: "", cta: "find out why from KAIRA", delta: "−" + Math.abs(dt) + "%", tone: "down" };
+  return { lead: "Your score did not change,", rest: "you could have gained " + miss + "%.", cta: "Find out why from KAIRA", delta: "0", tone: "down" };
+}
+function lineText(L) { return L.lead + (L.rest ? " " + L.rest : "") + (L.cta ? " " + L.cta + " ›" : ""); }
+/* what the phone shows: the new logic's score, the step to it, the line, and the day's macros */
+var PENDING = null;
+function dayPlan() { var t = { kcal: 0, p: 0, c: 0, f: 0 }; W.MEALS.forEach(function (m) { var a = avgOpt(m); for (var k in t) t[k] += a[k]; }); return t; }
+function paintPhone() {
+  var d = dayCalc(W, null), e = { kcal: 0, p: 0, c: 0, f: 0 }, P = dayPlan();
+  Object.keys(d.meals).forEach(function (id) { var x = d.meals[id].eaten; for (var k in e) e[k] += x[k]; });
+  var L = PENDING ? PENDING.line : d.day > 0 ? lineFor(d.day, 0, false) : { lead: "Log your first meal to see your nutrition sufficiency score grow.", rest: "", tone: "calm", delta: "0" };
+  if (W.GFSay && W.GFSay.show) W.GFSay.show(L);
+  setTimeout(function () {
+    if (W.paintMacros) W.paintMacros([[Math.round(e.p), Math.round(P.p)], [Math.round(e.c), Math.round(P.c)], [Math.round(e.f), Math.round(P.f)]], null, true);
+    if (W.paintCal) W.paintCal(Math.round(e.kcal), Math.round(P.kcal));
+  }, 1200);
+}
+/* the score's frame is written by the Eat screen; before it loads, point it at the new logic's number (and the step to it) */
+addEventListener("message", function (e) {
+  if (e.data !== "hero:ready" || !e.source) return;
+  W = document.getElementById("ph").contentWindow;   /* the score's frame can be ready before the phone's own load event */
+  try {
+    if (!W.MEALS) return;
+    var hero = W.document.getElementById("hero"), d = dayCalc(W, null), from = PENDING ? PENDING.from : null;
+    new W.MutationObserver(function (ms, ob) {
+      var hf = hero.querySelector("iframe"); if (!hf) return; ob.disconnect();
+      hf.src = hf.src.replace(/score=\d+/, "score=" + d.day).replace(/&from=\d+/, "") + (from != null && from !== d.day ? "&from=" + from + "&gain=" + (d.day - from) : "&still=1&info=1");
+    }).observe(hero, { childList: true, subtree: true });
+  } catch (err) {}
+});
+
+/* ---------------------------------------------------------------- following the phone */
+var W, prevTray = {}, seenOpen = false, loggedNow = false;
+function trayMap(items) { var t = {}; (items || []).forEach(function (x) { t[x.ref] = (t[x.ref] || 0) + x.n; }); return t; }
+function itemByRef(ref) { var p = ref.split("|"), m = W.MEALS.filter(function (x) { return x.id === p[0]; })[0]; return m && p[1] !== "m" ? { m: m, it: m.opts[+p[1]][+p[2]], opt: +p[1] } : null; }
+
+function onOpen() {
+  var d = renderState(W, null);
+  var plan = { plan_version: "pv_2026_10_08_a", meals: W.MEALS.slice(0, 2).map(function (m) {
+    var a = avgOpt(m);
+    return { slot: m.id, name: m.name, share_of_day: +(d.meals[m.id].share / 100).toFixed(3), options: m.opts.slice(0, 2).map(function (o, oi) {
+      var t = optTot(o);
+      return { option_id: m.id + "_o" + (oi + 1), kcal: g(t.kcal), p: +f1(t.p), c: +f1(t.c), f: +f1(t.f), items: o.slice(0, 2).map(function (it, ri) {
+        var x = itemMac(it); return { plan_item_id: m.id + "_o" + (oi + 1) + "_i" + (ri + 1), name: it.name, qty: it.n, unit: it.unit, kcal: g(x.kcal), p: +f1(x.p), c: +f1(x.c), f: +f1(x.f), share_of_option: +(x.kcal / (t.kcal || 1)).toFixed(2) };
+      }) };
+    }) };
+  }) };
+  ev("res", "API response", "The plan, the day's logs and the score, in one call",
+    "<p>Every food arrives with its own calories and macros, its share of its option, and each meal's share of the day. The phone keeps this and works the score out locally from now on.</p>" +
+    J({ plan: plan, logs: "…", score: { day: d.day, meals: "{ per meal: plate, target, eaten, score }" } }, "trimmed to two meals, two options and two foods"));
+  ev("req", "API request", "Opening Eat for today",
+    "<p>" + ep("GET", "/v9/diet/day?date=2026-10-08") + "</p><p>Sent with the cached plan version. If the plan has not changed, the server skips it and sends only logs and the score.</p>");
+}
+function onTray(items) {
+  var now = trayMap(items), added = [], removed = [];
+  Object.keys(now).forEach(function (r) { if (!(r in prevTray)) added.push(r); });
+  Object.keys(prevTray).forEach(function (r) { if (!(r in now)) removed.push(r); });
+  prevTray = now;
+  var d = renderState(W, now);
+  if (!added.length && !removed.length) return;
+  var ref = (added[0] || removed[0]), x = itemByRef(ref); if (!x) return;
+  var r = d.meals[x.m.id], it = x.it, xm = itemMac(it), ok = optTot(x.m.opts[x.opt]).kcal;
+  ev("phone", "On the phone", (added.length ? "Ticked " : "Removed ") + it.name + " · " + x.m.name,
+    "<p>No API call. The phone recalculates " + x.m.name.toLowerCase() + " from the plan it already has.</p>" +
+    '<div class="chips"><span class="chip">' + it.name + " is <b>" + g(xm.kcal) + " of " + g(ok) + " kcal</b> in option " + (x.opt + 1) + " = <b>" + f2(xm.kcal / ok) + "</b> of a plate</span>" +
+    '<span class="chip">Plate so far <b>' + f2(r.plate) + '</b></span><span class="chip">Target <b>' + mixWords(r) + '</b></span><span class="chip">Meal <b>' + (r.any ? g(r.score) + "%" : "–") + "</b></span></div>" +
+    (r.any ? mixBar(r) + targetGrid(r) : ""));
+}
+function onLog(detail) {
+  var before = dayCalc(W, null), tray = trayMap(detail.items), after = dayCalc(W, tray), dt = after.day - before.day;
+  var entries = detail.items.map(function (x) {
+    var y = itemByRef(x.ref); if (!y) return null;
+    var h = Math.floor(x.time / 60), mi = x.time % 60;
+    return { plan_item_id: y.m.id + "_o" + (y.opt + 1) + "_i" + (+x.ref.split("|")[2] + 1), option_id: y.m.id + "_o" + (y.opt + 1), qty: x.n, logged_at: "2026-10-08T" + (h < 10 ? "0" : "") + h + ":" + (mi < 10 ? "0" : "") + mi + ":00+05:30" };
+  }).filter(Boolean);
+  var touched = Array.from(new Set(detail.items.map(function (x) { return x.ref.split("|")[0]; })));
+  ev("req", "API request", "Log " + entries.length + (entries.length === 1 ? " food" : " foods") + " in one call",
+    "<p>" + ep("POST", "/v9/diet/logs") + "</p>" + J({ date: "2026-10-08", plan_version: "pv_2026_10_08_a", source: "plan", entries: entries }, "every food in the bar, from any options, in one request"));
+  ev("server", "Server", "Saves, then rescores the meals it touched",
+    "<ul><li>Saves the " + entries.length + " logs.</li>" +
+    touched.map(function (id) { var r = after.meals[id], m = W.MEALS.filter(function (x) { return x.id === id; })[0];
+      return "<li><b>" + m.name + ":</b> plate " + f2(r.plate) + ", target from " + mixWords(r) + ", meal score " + g(r.score) + "%, worth " + f1(r.pts) + " of its " + f1(r.share) + " points.</li>"; }).join("") +
+    "<li>Adds the meals: day score <b>" + after.day + "%</b> (was " + before.day + "%).</li><li>Stores each meal's breakdown, so KAIRA and the line under the score can read it later.</li></ul>");
+  var meals = {}; touched.forEach(function (id) { var r = after.meals[id];
+    meals[id] = { plate: +f2(r.plate), mix: r.shares.map(function (s, i) { return s ? { option_id: id + "_o" + (i + 1), part: +(s / r.plate).toFixed(2) } : null; }).filter(Boolean),
+      target: { p: +f1(r.tgt.p), c: +f1(r.tgt.c), f: +f1(r.tgt.f) }, eaten: { p: +f1(r.eaten.p), c: +f1(r.eaten.c), f: +f1(r.eaten.f) }, score: g(r.score), points: +f1(r.pts), could_have: +f1(r.share) }; });
+  var overate = touched.some(function (id) { return after.meals[id].score < 90 && after.meals[id].plate > 1 + R.band; });
+  var miss = Math.round(touched.reduce(function (a, id) { var r = after.meals[id]; return a + Math.max(0, r.share - r.pts); }, 0));
+  var line = dt > 0 ? (overate ? "up_only" : "up") : dt < 0 ? "dropped" : "no_change";
+  var L = lineFor(dt, miss, overate);
+  PENDING = { from: before.day, to: after.day, line: L };
+  ev("res", "API response", "The same score block every write returns",
+    J({ logs: entries.map(function (e, i) { return { id: "log_" + (i + 101), plan_item_id: e.plan_item_id }; }), score: { day: after.day, delta: dt, meals: meals, line: { case: line, x: Math.abs(dt), could_have: miss } } }));
+  var txt = lineText(L);
+  ev("ui", "Screen updates", "Score, line under it, macros",
+    "<ul><li>The win moment plays, then the score steps " + (dt >= 0 ? "up" : "down") + " from " + before.day + "% to <b>" + after.day + "%</b> with a " + (dt >= 0 ? "+" : "−") + Math.abs(dt) + "% chip.</li>" +
+    "<li>The line under the score reads: <i>" + txt + "</i></li><li>Protein, carbs and fats tiles and calories update from <code>score.meals</code> and the logs.</li>" +
+    "<li>KAIRA is called only if the person taps the line, with the stored breakdown.</li></ul>");
+  loggedNow = true; prevTray = {};
+}
+
+/* the phone screen reloads after a log; listeners are put back each time */
+var fr = $("ph");
+fr.addEventListener("load", function () {
+  W = fr.contentWindow;
+  var wait = function () {
+    if (!W.MEALS) return setTimeout(wait, 150);
+    W.addEventListener("gf:tray", function (e) { onTray(e.detail.items); });
+    W.addEventListener("gf:log", function (e) { onLog(e.detail); });
+    if (!seenOpen) { seenOpen = true; onOpen(); }
+    else renderState(W, null);
+    paintPhone();
+    if (loggedNow) { loggedNow = false; setTimeout(function () { PENDING = null; }, 4000); }
+  };
+  wait();
+});
+/* the score waits for its host to say go */
+addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+$("restart").addEventListener("click", function () {
+  try { ["gfInline", "gfLogged", "gfSession"].forEach(function (k) { fr.contentWindow.sessionStorage.removeItem(k); }); } catch (e) {}
+  PENDING = null;
+  $("tl").innerHTML = ""; seenOpen = false; prevTray = {}; T0 = Date.now(); fr.src = "r3/eat.html?state=first&chrome=0&session=1&_=" + Date.now();
+});
+
+/* ---------------------------------------------------------------- the other flows */
+var FLOWS = [
+  { t: "Coach assigns or edits a plan", s: [
+    ["req", ep("POST", "/v9/diet/plans")], ["server", "Works out every food's kcal and macros, its share of its option, each option's totals, each meal's share of the day. Checks options about twice or half the size of the others."],
+    ["server", "An edit is saved as a new plan version. Today keeps the version it started with; the new one applies from tomorrow."], ["res", "Plan version id. Phones refresh it on next open."]] },
+  { t: "Log from search", s: [
+    ["req", ep("POST", "/v9/diet/logs") + " with <code>food_id</code>, <code>qty</code>, <code>slot</code>, <code>source: \"search\"</code>"],
+    ["server", "Matches the food to the plan if it is one of today's plan foods; otherwise it counts as not in the plan."], ["res", "The same score block."]] },
+  { t: "Log with a photo or by voice", s: [
+    ["req", ep("POST", "/v9/kaira/food") + " (photo or speech)"], ["server", "KAIRA recognises the foods and writes the logs, matching them to plan foods where it can."],
+    ["res", "The same score block, sent back to the Eat screen, which updates in place without reloading."]] },
+  { t: "Change a quantity or undo", s: [
+    ["req", ep("PATCH", "/v9/diet/logs/:id") + " or " + ep("DELETE", "/v9/diet/logs/:id")], ["server", "Rescores that meal and the day."], ["res", "The same score block; the score steps to its new value."]] },
+  { t: "Ask KAIRA why", s: [
+    ["req", ep("POST", "/v9/kaira/ask") + " with the meal's stored breakdown"], ["server", "Answers from the breakdown: what was eaten, against which plate, which macro was off."], ["res", "Her answer in the chat sheet."]] },
+  { t: "End of the day", s: [
+    ["req", ep("JOB", "nightly")], ["server", "One scheduled job saves each person's day score and breakdown as final."], ["res", "Trend reads the saved days; late edits after midnight rescore that day and save it again."]] }
+];
+$("flows").innerHTML = FLOWS.map(function (f) {
+  return '<div class="flow"><h3>' + f.t + '</h3><div class="steps">' + f.s.map(function (s) {
+    var lab = { req: "API request", server: "Server", res: "API response" }[s[0]];
+    return '<div class="st"><span class="pill k-' + s[0] + '">' + lab + "</span><span>" + s[1] + "</span></div>";
+  }).join("") + "</div></div>";
+}).join("");
+</script>
+</body>
+</html>

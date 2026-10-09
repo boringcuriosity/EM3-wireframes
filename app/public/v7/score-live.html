@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Score, Live</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#101828;--g700:#344054;--muted:#667085;--line:#EAECF0;--brand:#299D6B;--brand2:#1B6B49;--mint:#ECF8F2;--mint2:#D5EFE2;--zone:#BFE5D3;--red:#D92D20;--amber:#DC6803;--ease:cubic-bezier(.2,0,0,1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#fff;font-family:Roboto,system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+.top{max-width:1240px;margin:0 auto;padding:28px 24px 8px;display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.top h1{font:600 clamp(26px,3vw,36px)/1.15 'Playfair Display',Georgia,serif}
+.top p{color:var(--muted);margin-top:6px;max-width:62ch;line-height:1.5}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{border:1.5px solid var(--brand);background:#fff;color:var(--brand2);font-weight:500;border-radius:10px;padding:9px 14px;font-size:14px}
+.btn.fill{background:var(--brand);color:#fff}
+.btn:disabled{opacity:.5;cursor:default}
+.wrap{max-width:1240px;margin:0 auto;padding:16px 24px 48px;display:grid;grid-template-columns:400px 1fr;gap:32px;align-items:start}
+/* ---------- phone */
+.phone{position:sticky;top:16px;width:390px;height:min(820px,calc(100vh - 32px));border:8px solid #101828;border-radius:44px;overflow:hidden;box-shadow:0 30px 60px -24px rgb(16 24 40/.35);background:#fff}
+.scr{height:100%;overflow-y:auto;padding:0 16px 40px;scrollbar-width:none;position:relative}
+.scr::-webkit-scrollbar{display:none}
+.sb{display:flex;justify-content:space-between;font-weight:700;font-size:14px;padding:14px 8px 6px}
+.ehead{display:flex;align-items:center;gap:8px;padding:8px 0}
+.ehead b{font-size:20px}.ehead span{color:var(--muted);font-size:15px}
+.ring{display:flex;flex-direction:column;align-items:center;padding:6px 0 4px;position:relative}
+.ring svg{width:190px;height:190px}
+.ring .val{position:absolute;top:58px;text-align:center}
+.ring .val b{font-size:44px;font-weight:600;letter-spacing:-1px}
+.ring .val sup{font-size:16px;color:var(--muted)}
+.ring .val span{display:block;color:var(--muted);font-size:14px}
+.arc{transition:stroke-dashoffset .7s var(--ease)}
+.macros{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.mc{border:1px solid #D1E0FF;background:#F5F8FF;border-radius:14px;padding:10px;font-size:12.5px;color:var(--muted);position:relative;overflow:hidden}
+.mc b{display:block;font-size:20px;color:#2D3282;margin-top:4px}
+.mc i{position:absolute;left:0;bottom:0;right:0;background:#D1E0FF;opacity:.55;transition:height .6s var(--ease)}
+.mc>*{position:relative}
+.kcal{display:flex;justify-content:space-between;font-size:13.5px;color:var(--muted);padding:8px 2px 14px;border-bottom:1px solid var(--line)}
+.kcal b{color:var(--ink)}
+.ym{font-size:15px;margin:16px 2px 10px}
+.card{border:1px solid var(--line);border-radius:22px;padding:16px;margin-bottom:12px;background:linear-gradient(180deg,#F8F9FF,#fff 90px);transition:box-shadow .3s var(--ease),border-color .3s}
+.card.focus{border-color:#A6D9C1;box-shadow:0 0 0 3px rgb(41 157 107/.12)}
+.card h3{font-size:17px;font-weight:600}
+.card .sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+.lab{font-size:11px;font-weight:600;letter-spacing:1px;color:var(--muted);margin:14px 0 8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;color:var(--g700)}
+.chip.on{border-color:var(--brand);color:var(--brand)}
+.chip.done::after{content:" ✓";color:var(--brand)}
+.it{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:8px 0}
+.tick{width:24px;height:24px;border-radius:50%;border:1.5px solid #D0D5DD;background:#fff;display:grid;place-items:center;padding:0}
+.tick.on{background:var(--brand);border-color:var(--brand)}
+.tick.on::after{content:"";width:10px;height:6px;border:2px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) translate(1px,-1px)}
+.it b{font-size:14px;font-weight:600;display:block}
+.it small{font-size:12px;color:var(--muted)}
+.it .r{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.step{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.step button{width:24px;height:24px;border:0;background:#fff;color:var(--brand);font-size:16px;line-height:1}
+.step span{min-width:26px;text-align:center;font-size:12.5px;font-weight:600;color:var(--ink)}
+.else{display:flex;border:1px solid var(--line);border-radius:12px;margin-top:6px}
+.else button{flex:1;border:0;background:none;padding:10px;font-size:13.5px;font-weight:600;color:var(--brand)}
+.xl{margin-top:6px;border:1px dashed var(--line);border-radius:12px;padding:4px 10px}
+.water{font-size:12.5px;color:var(--muted);margin-top:8px}
+.toast{position:absolute;left:50%;top:70px;transform:translate(-50%,-20px);opacity:0;background:var(--brand);color:#fff;border-radius:999px;padding:10px 16px;font-size:14px;font-weight:600;white-space:nowrap;pointer-events:none;transition:opacity .35s var(--ease),transform .35s var(--ease);z-index:3;box-shadow:0 10px 24px -10px rgb(41 157 107/.6)}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+.toast.down{background:#475467}
+/* ---------- behind the scenes */
+.bts{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:start}
+.bts>div:first-child,.bts .wide{grid-column:1/-1}
+.bts h2{font:600 24px/1.2 'Playfair Display',Georgia,serif}
+.bts .hint{color:var(--muted);font-size:14px;margin-top:4px}
+.box{border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+.box h4{font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;display:flex;justify-content:space-between;gap:10px}
+.box h4 em{font-style:normal;text-transform:none;letter-spacing:0;font-weight:500;color:var(--brand2)}
+.num{font-variant-numeric:tabular-nums}
+.src{display:grid;grid-template-columns:70px 1fr 64px;gap:10px;align-items:center;font-size:13.5px;margin:6px 0}
+.strip{position:relative;height:26px;border-bottom:1px solid var(--line)}
+.strip i{position:absolute;bottom:4px;width:10px;height:10px;border-radius:50%;background:#A6D9C1;transform:translateX(-50%)}
+.strip i.m{background:var(--brand);width:14px;height:14px;bottom:2px}
+.src b{color:var(--brand2);text-align:right}
+.logl{display:flex;flex-direction:column;gap:2px;font-size:13.5px}
+.logl div{display:grid;grid-template-columns:1fr 54px 54px 54px;gap:6px;padding:5px 0;border-bottom:1px dashed var(--line)}
+.logl div span{text-align:right;color:var(--muted)}
+.logl .h span,.logl .h{font-size:11.5px;color:var(--muted);font-weight:600;letter-spacing:.5px}
+.logl .t{border-bottom:0;font-weight:700}.logl .t span{color:var(--ink)}
+.logl .none{display:block;color:var(--muted);border:0}
+.mrow{display:grid;grid-template-columns:62px 1fr 76px;gap:12px;align-items:center;margin:10px 0 2px}
+.mrow>b{font-size:14px;font-weight:500}
+.bar{position:relative;height:18px;background:#F2F4F7;border-radius:9px;overflow:hidden}
+.bar .z{position:absolute;top:0;bottom:0;background:var(--zone)}
+.bar .e{position:absolute;left:0;top:5px;height:8px;border-radius:4px;background:var(--brand2);transition:width .6s var(--ease),background .3s}
+.bar .tk{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}
+.pts{font-size:18px;font-weight:700;text-align:right}
+.pts small{font-size:11px;font-weight:500;color:var(--muted)}
+.ok{color:var(--brand)}.mid{color:var(--amber)}.bad{color:var(--red)}
+.bar .e.mid{background:var(--amber)}.bar .e.bad{background:var(--red)}
+.why{grid-column:2/4;font:13px/1.45 ui-monospace,Menlo,monospace;color:var(--muted)}
+.eq{font:15px/1.5 ui-monospace,Menlo,monospace;background:var(--mint);color:var(--brand2);padding:12px 14px;border-radius:12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center}
+.eq b{font:600 28px/1 'Playfair Display',serif;color:var(--ink)}
+.day{display:flex;height:46px;border-radius:12px;overflow:hidden;background:#F2F4F7;gap:2px}
+.seg{position:relative;background:#E4E7EC;min-width:0}
+.seg i{position:absolute;left:0;top:0;bottom:0;background:var(--brand);transition:width .6s var(--ease)}
+.seg.f{outline:2px solid var(--ink);outline-offset:-2px;z-index:1}
+.seg span{position:absolute;left:6px;top:4px;font-size:11px;font-weight:600;color:#fff;mix-blend-mode:difference;white-space:nowrap;overflow:hidden;max-width:calc(100% - 8px)}
+.segl{display:flex;gap:2px;margin-top:6px}
+.segl div{min-width:0;font-size:11.5px;color:var(--muted);line-height:1.35}
+.segl b{display:block;color:var(--ink);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dayeq{margin-top:12px}
+.feed{display:flex;flex-direction:column;gap:6px;max-height:220px;overflow:auto;font-size:13.5px}
+.feed div{display:grid;grid-template-columns:1fr auto;gap:10px;padding:6px 0;border-bottom:1px solid var(--line)}
+.feed em{font-style:normal;font-weight:700}
+.feed .none{color:var(--muted);border:0;display:block}
+.key{display:flex;gap:16px;font-size:12px;color:var(--muted);margin-top:10px;flex-wrap:wrap}
+.key span{display:flex;align-items:center;gap:6px}.key i{display:inline-block;width:16px;height:9px;border-radius:3px}
+@media (max-width:1100px){.bts{grid-template-columns:1fr}}
+@media (max-width:900px){.wrap{grid-template-columns:1fr}.phone{position:relative;top:0;margin:0 auto;width:min(390px,100%);height:720px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="top">
+  <div><h1>From a tick to the score, live</h1>
+  <p>The fixed GLP 1,200 kcal plan. Tick foods on the phone, from one option, several options or off the plan. The right side shows every step of the calculation.</p></div>
+  <div class="acts"><button class="btn fill" id="p1">Play an on-plan day</button><button class="btn" id="p2">Play a mixed day</button><button class="btn" id="rs">Reset</button></div>
+</div>
+<div class="wrap">
+  <div class="phone"><div class="scr" id="scr"></div></div>
+  <div class="bts" id="bts"></div>
+</div>
+<script>
+var DATA = {"meals": [{"n": "Early Morning", "t": null, "o": [[["Jeera saunf water", 1.0, "glass", 2.0, 0.0, 0.0, 0.0]]]}, {"n": "Breakfast", "t": [312, 13, 47, 6], "o": [[["Dahi vegetable dalia", 1.0, "bowl", 107.0, 4.0, 21.0, 1.0], ["Curd (Dahi, Plain Yogurt)", 1.5, "bowl", 103.7, 5.1, 8.5, 5.1]], [["Ragi porridge (salted)", 1.0, "bowl", 175.0, 5.0, 26.0, 6.0], ["Buttermilk (lowfat)", 1.0, "glass", 100.0, 7.5, 12.5, 2.5]], [["Idli", 3.0, "number", 61.0, 2.0, 13.0, 0.0], ["Coconut coriander chutney", 1, "spoon", 30.0, 1.0, 2.0, 2.0], ["Sambhar", 1.0, "bowl", 123.0, 6.0, 18.0, 3.0]], [["Oats upma", 1.0, "bowl", 213.0, 7.0, 34.0, 6.0], ["moong sprouts", 1.0, "serving", 101.0, 7.0, 18.0, 0.0]], [["Paneer paratha (multigrain)", 1, "number", 203.0, 8.0, 29.0, 7.0], ["Capsicum Tomato Chutney", 1.0, "spoon", 8.0, 0.0, 0.0, 1.0], ["moong sprouts", 1, "serving", 101.0, 7.0, 18.0, 0.0]], [["Moong dal chilla", 2.0, "number", 116.0, 6.0, 17.0, 3.0], ["Amla Coriander Chutney", 1.0, "spoon", 6.0, 0.0, 1.0, 0.0]], [["Mix Dal Dosa", 1.5, "number", 152.0, 5.0, 28.0, 2.0], ["Sambhar", 1.0, "bowl", 123.0, 6.0, 18.0, 3.0]]]}, {"n": "Morning Snack", "t": [124, 4, 14, 6], "o": [[["ajwain chass", 1.0, "glass", 89.0, 5.0, 8.0, 5.0]], [["Chia seeds with curd", 1.0, "bowl", 124.0, 6.0, 10.0, 7.0]], [["Papaya", 1.0, "bowl", 58.5, 1.5, 15.0, 0.0], ["almond", 5, "piece", 13.1, 0.42, 0.22, 1.18]], [["Kiwi", 1.0, "number", 51.03, 0.81, 12.96, 0.0], ["almond", 5, "piece", 13.1, 0.42, 0.22, 1.18]], [["orange", 1.0, "medium", 72.0, 1.5, 16.5, 0.0], ["almond", 5, "piece", 13.1, 0.42, 0.22, 1.18]]]}, {"n": "Lunch", "t": [378, 17, 59, 9], "o": [[["Khichdi", 1.0, "bowl", 290.0, 10.0, 57.5, 2.5], ["Drumstick pods (boiled without salt)", 1.0, "serving", 21.6, 1.2, 4.8, 0.0], ["Curd (Dahi, Plain Yogurt)", 1, "bowl", 103.7, 5.1, 8.5, 5.1]], [["Curd Rice", 1.5, "bowl", 146.0, 4.0, 23.0, 4.0], ["Carrots (boiled without salt)", 1.0, "serving", 29.75, 0.85, 6.8, 0.0], ["Sprouts vegetable salad", 1, "bowl", 89.0, 5.0, 16.0, 1.0]], [["boiled white rice (without starch)", 1.0, "bowl", 126.4, 4.74, 25.28, 0.0], ["masoor dal with vegetables", 1.0, "bowl", 139.0, 7.0, 22.0, 3.0], ["Buttermilk (lowfat)", 1.0, "glass", 100.0, 7.5, 12.5, 2.5]], [["Cucumber salad", 1.0, "bowl", 16.0, 1.0, 2.0, 0.0], ["Multigrain Chapati", 2.0, "number", 70.0, 2.0, 11.0, 2.0], ["Cauliflower chickpea curry", 1.0, "bowl", 130.0, 6.0, 15.0, 6.0], ["Buttermilk (lowfat)", 1.0, "glass", 100.0, 7.5, 12.5, 2.5]], [["tomato carrot raita", 0.5, "bowl", 78.0, 4.0, 8.0, 4.0], ["multigrain methi chapati", 2.0, "number", 69.0, 3.0, 14.0, 1.0], ["Rajma curry", 1.0, "bowl", 171.0, 8.0, 25.0, 5.0], ["Bhindi capsicum subji", 0.5, "serving", 81.0, 2.0, 9.0, 5.0]], [["paneer vegetable pulao", 1.0, "bowl", 235.0, 9.0, 26.0, 11.0], ["Dahi (skim)", 1.0, "bowl", 95.2, 10.2, 13.6, 0.0]], [["Uttapam", 1.0, "number", 225.0, 7.0, 39.0, 4.0], ["Coconut coriander chutney", 1.0, "spoon", 30.0, 1.0, 2.0, 2.0], ["Sambhar", 1.0, "bowl", 123.0, 6.0, 18.0, 3.0]]]}, {"n": "Evening Snack", "t": [176, 9, 21, 6], "o": [[["Moong palak soup", 1.0, "bowl", 112.0, 7.0, 18.0, 1.0], ["Roasted Sunflower pumpkin & flax seeds (urban platter)", 0.5, "handful", 117.7, 5.14, 3.44, 10.28]], [["ajwain chass", 1.0, "glass", 89.0, 5.0, 8.0, 5.0], ["Roasted chana (chickpeas)", 1, "handful", 80.0, 4.0, 13.0, 2.0]], [["makhane ki kheer", 1.0, "bowl", 176.0, 5.0, 16.0, 11.0]], [["moong sprouts dahi chaat", 1.0, "bowl", 111.0, 5.0, 15.0, 4.0], ["Roasted chana (chickpeas)", 1, "handful", 80.0, 4.0, 13.0, 2.0]], [["Peanuts (boiled, with salt)", 1, "handful", 63.6, 2.8, 4.2, 4.4], ["Boiled kala chana", 1.0, "serving", 120.0, 6.0, 20.0, 2.0]]]}, {"n": "Dinner", "t": [306, 12, 46, 8], "o": [[["Tomato oats soup", 1.0, "bowl", 102.0, 4.0, 20.0, 1.0], ["Curd (Dahi, Plain Yogurt)", 1, "bowl", 103.7, 5.1, 8.5, 5.1]], [["mixed dal vegetable khichdi", 1.0, "bowl", 233.0, 8.0, 41.0, 5.0], ["kadhi (plain, regular)", 1.0, "bowl", 87.0, 4.0, 8.0, 5.0]], [["rice flour besan chilla", 1.5, "number", 151.0, 4.0, 21.0, 6.0], ["Chana Dal Chutney", 1.0, "spoon", 44.0, 1.0, 4.0, 2.0], ["Cucumber Raita", 1, "bowl", 91.0, 6.0, 10.0, 3.0]], [["Barley lentil soup", 1.0, "bowl", 164.0, 8.0, 29.0, 3.0], ["Multigrain Chapati", 1.0, "number", 70.0, 2.0, 11.0, 2.0], ["lobiya palak subji", 1.0, "serving", 132.0, 7.0, 19.0, 4.0]], [["soya peas paneer pulao", 1.0, "bowl", 188.0, 6.0, 31.0, 4.0], ["Cucumber Raita", 1.0, "bowl", 91.0, 6.0, 10.0, 3.0]], [["Phulka (thin chapati)", 2.0, "number", 51.0, 2.0, 11.0, 0.0], ["mix dal (Moong tuvar masoor dal)", 1.0, "bowl", 150.0, 8.0, 22.0, 3.0], ["Lauki ki subji", 0.5, "serving", 79.0, 1.0, 4.0, 7.0]]]}, {"n": "Bed Time", "t": [170, 8, 18, 8], "o": [[["Jeera ajwain water", 0.5, "glass", 2.0, 0.0, 0.0, 0.0]], [["Haldi Milk", 1.0, "glass", 170.0, 8.0, 18.0, 8.0]]]}], "extra": [["Vegetable Poha", 1.0, "bowl", 248.0, 5.0, 46.0, 5.0], ["Curd (Dahi, Plain Yogurt)", 1.0, "bowl", 103.7, 5.1, 8.5, 5.1], ["Roasted chana (chickpeas)", 1.0, "handful", 80.0, 4.0, 13.0, 2.0], ["almond", 5.0, "piece", 13.1, 0.42, 0.22, 1.18], ["Multigrain Chapati", 2.0, "number", 70.0, 2.0, 11.0, 2.0], ["Chapati (Roti)", 2.0, "number", 87.0, 3.0, 19.0, 1.0], ["Banana", 1.0, "number", 105.02, 1.18, 27.14, 0.0]]};
+/*CALC*/
+var BAND = 0.2, WATER = 20;
+function credit(x, e) {
+  if (e <= 0) return null;
+  var lo = e * (1 - BAND); if (x < lo) return x / lo * 100;
+  var hi = e + Math.max(e * BAND, 3);
+  return x <= hi ? 100 : Math.max(-50, 100 - (x - hi) / e * 100);
+}
+function med(a) { var b = a.slice().sort(function (x, y) { return x - y; }), h = b.length >> 1; return b.length % 2 ? b[h] : (b[h - 1] + b[h]) / 2; }
+function itemTot(f, q) { return [f[3] * q, f[4] * q, f[5] * q, f[6] * q]; }
+function optTot(o) { return o.reduce(function (a, f) { var t = itemTot(f, f[1]); return a.map(function (v, k) { return v + t[k]; }); }, [0, 0, 0, 0]); }
+function counted(m) { return m.o.filter(function (o) { return optTot(o)[0] >= WATER; }); }
+function mealScore(e, t) {
+  var s = [1, 2, 3].map(function (k) { return credit(e[k], t[k]); }).filter(function (v) { return v !== null; });
+  return s.reduce(function (a, b) { return a + b; }, 0) / s.length;
+}
+function dayWeights(meals) { var W = meals.reduce(function (a, m) { return a + (m.t ? m.t[0] : 0); }, 0); return meals.map(function (m) { return m.t ? m.t[0] / W : 0; }); }
+function dayScore(meals, eaten) {   /* eaten[i] = [kcal,p,c,f] or null when nothing logged */
+  var w = dayWeights(meals), raw = 0;
+  meals.forEach(function (m, i) { if (m.t && eaten[i]) raw += w[i] * mealScore(eaten[i], m.t); });
+  return { raw: raw, score: Math.max(0, Math.round(raw)) };
+}
+/*END*/
+var M = DATA.meals, X = DATA.extra, W = dayWeights(M);
+var DAYT = [0, 1, 2, 3].map(function (k) { return M.reduce(function (a, m) { return a + (m.t ? m.t[k] : 0); }, 0); });
+/* logged: key "meal|opt|item" or "meal|x|extra" -> quantity in the food's own unit */
+var L = {}, SHOW = M.map(function () { return 0; }), XOPEN = {}, FOCUS = 1, FEED = [], LAST = 0;
+function food(key) { var p = key.split("|"); return p[1] === "x" ? X[+p[2]] : M[+p[0]].o[+p[1]][+p[2]]; }
+function eaten(i) {
+  var any = false, t = [0, 0, 0, 0];
+  Object.keys(L).forEach(function (k) { if (+k.split("|")[0] !== i) return; any = true; var v = itemTot(food(k), L[k]); t = t.map(function (a, j) { return a + v[j]; }); });
+  return any ? t : null;
+}
+function allEaten() { return M.map(function (m, i) { return eaten(i); }); }
+function f1(x) { return (Math.round(x * 10) / 10).toString(); }
+function g(x) { return Math.round(x).toLocaleString("en-IN"); }
+function step(f) { return f[1] < 1 ? 0.5 : 1; }
+function qtxt(q, f) { return f1(q) + " " + f[2]; }
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+
+/* ---------------------------------------------------------------- phone */
+function renderPhone() {
+  var ds = dayScore(M, allEaten()), tot = [0, 0, 0, 0];
+  allEaten().forEach(function (e) { if (e) tot = tot.map(function (a, j) { return a + e[j]; }); });
+  var C = 2 * Math.PI * 80, off = C * (1 - Math.min(ds.score, 100) / 100);
+  var h = '<div class="sb"><span>9:41</span><span>●●● ▮</span></div><div class="ehead"><b>Eat</b><span>Fuel your body right</span></div>' +
+    '<div class="ring"><svg viewBox="0 0 190 190"><circle cx="95" cy="95" r="80" fill="none" stroke="#EAECF0" stroke-width="12"/>' +
+    '<circle class="arc" cx="95" cy="95" r="80" fill="none" stroke="#299D6B" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '" transform="rotate(-90 95 95)"/></svg>' +
+    '<div class="val"><b class="num">' + ds.score + '</b><sup>%</sup><span>Sufficient</span></div></div>' +
+    '<div class="macros">' + [["Protein", 1], ["Carbs", 2], ["Fats", 3]].map(function (x) {
+      return '<div class="mc"><i style="height:' + Math.min(100, tot[x[1]] / DAYT[x[1]] * 100).toFixed(0) + '%"></i><span>' + x[0] + '</span><b class="num">' + g(tot[x[1]]) + 'g</b><span>of ' + DAYT[x[1]] + 'g</span></div>';
+    }).join("") + '</div><div class="kcal"><span>Calories</span><span><b class="num">' + g(tot[0]) + '</b> of ' + g(DAYT[0]) + ' kcal</span></div><div class="ym">Your meals</div>';
+  M.forEach(function (m, i) {
+    var e = eaten(i), o = SHOW[i];
+    h += '<div class="card' + (i === FOCUS ? " focus" : "") + '" data-card="' + i + '"><h3>' + m.n + '</h3><div class="sub">' +
+      (m.t ? (e ? g(e[0]) + " of " : "") + m.t[0] + " kcal planned" : "Water or tea, ticked as done") + '</div><div class="lab">YOUR COACH\'S PLAN</div>';
+    if (m.o.length > 1) h += '<div class="chips">' + m.o.map(function (_, oi) {
+      var done = Object.keys(L).some(function (k) { var p = k.split("|"); return +p[0] === i && p[1] === String(oi); });
+      return '<button class="chip' + (oi === o ? " on" : "") + (done ? " done" : "") + '" data-opt="' + i + "|" + oi + '">Option ' + (oi + 1) + "</button>";
+    }).join("") + "</div>";
+    m.o[o].forEach(function (f, fi) { h += itemRow(i + "|" + o + "|" + fi, f); });
+    if (m.t) {
+      h += '<div class="lab">HAD SOMETHING ELSE?</div><div class="else"><button data-xo="' + i + '">' + (XOPEN[i] ? "Close search" : "+ Search and log") + "</button></div>";
+      if (XOPEN[i]) h += '<div class="xl">' + X.map(function (f, xi) { return itemRow(i + "|x|" + xi, f); }).join("") + "</div>";
+    }
+    h += "</div>";
+  });
+  var scr = document.getElementById("scr"), top = scr.scrollTop;
+  scr.innerHTML = h + '<div class="toast" id="toast"></div>';
+  scr.scrollTop = top;
+}
+function itemRow(key, f) {
+  var q = L[key], on = q !== undefined, k = f[3] * (on ? q : f[1]);
+  return '<div class="it"><button class="tick' + (on ? " on" : "") + '" data-tick="' + key + '" aria-label="Log ' + esc(f[0]) + '"></button><div><b>' + esc(f[0]) + "</b><small>" + qtxt(on ? q : f[1], f) + "</small></div>" +
+    '<div class="r">' + (on ? '<span class="step"><button data-dn="' + key + '" aria-label="Less">−</button><span>' + f1(q) + '</span><button data-up="' + key + '" aria-label="More">+</button></span>' : "") + g(k) + " cal</div></div>";
+}
+
+/* ---------------------------------------------------------------- behind the scenes */
+function renderBts() {
+  var i = FOCUS, m = M[i], e = eaten(i), all = allEaten(), ds = dayScore(M, all);
+  /* 5. the day */
+  var segs = "", labs = "", parts = [];
+  M.forEach(function (mm, j) {
+    if (!mm.t) return;
+    var ee = all[j], s = ee ? mealScore(ee, mm.t) : 0, c = W[j] * s; parts.push(c);
+    segs += '<div class="seg' + (j === FOCUS ? " f" : "") + '" style="flex:' + mm.t[0] + '"><i style="width:' + Math.max(0, Math.min(100, s)).toFixed(1) + '%"></i></div>';
+    labs += '<div style="flex:' + mm.t[0] + '"><b>' + mm.n + "</b>" + (W[j] * 100).toFixed(1) + "% · +" + c.toFixed(1) + "</div>";
+  });
+  var dayBox = '<div class="box wide" style="border-color:#A6D9C1"><h4>The day score <em>each block is a meal, sized by its share of the day; it fills with that meal\'s score</em></h4><div class="day">' + segs + '</div><div class="segl">' + labs + "</div>" +
+    '<div class="eq dayeq"><span>' + parts.map(function (p) { return p.toFixed(1); }).join(" + ") + ' = ' + ds.raw.toFixed(1) + '</span><span>day score <b class="num">' + ds.score + "</b></span></div></div>";
+  var h = '<div><h2>' + m.n + ', behind the scenes</h2><div class="hint">Tap any meal card on the phone to see its numbers here.</div></div>' + dayBox;
+  if (!m.t) {
+    h += '<div class="box"><h4>Not scored</h4><p style="color:var(--muted);font-size:14px">This meal is water or tea only (under 20 kcal), so it is ticked as done and has no target.</p></div>';
+  } else {
+    var t = m.t, opts = counted(m);
+    /* 1. where the target comes from */
+    h += '<div class="box"><h4>1 · The meal\'s target <em>middle of ' + opts.length + ' option' + (opts.length > 1 ? "s" : "") + ', set when the plan was assigned</em></h4>' +
+      [["Protein", 1], ["Carbs", 2], ["Fats", 3]].map(function (x) {
+        var vals = opts.map(function (o) { return optTot(o)[x[1]]; }), mx = Math.max.apply(null, vals.concat([t[x[1]]])) * 1.1 || 1;
+        return '<div class="src"><span>' + x[0] + '</span><div class="strip">' + vals.map(function (v) { return '<i style="left:' + (v / mx * 100).toFixed(1) + '%" title="' + f1(v) + ' g"></i>'; }).join("") +
+          '<i class="m" style="left:' + (t[x[1]] / mx * 100).toFixed(1) + '%"></i></div><b class="num">' + t[x[1]] + " g</b></div>";
+      }).join("") + '<div class="key"><span><i style="background:#A6D9C1;border-radius:50%;width:10px;height:10px"></i>each option</span><span><i style="background:var(--brand);border-radius:50%;width:12px;height:12px"></i>the middle one = target</span><span>Calories target: ' + t[0] + ' kcal (for reference)</span></div></div>';
+    /* 2. what was logged */
+    var keys = Object.keys(L).filter(function (k) { return +k.split("|")[0] === i; });
+    h += '<div class="box"><h4>2 · What was logged <em>added up, whichever option it came from</em></h4><div class="logl"><div class="h"><b>FOOD</b><span>P g</span><span>C g</span><span>F g</span></div>' +
+      (keys.length ? keys.map(function (k) { var f = food(k), v = itemTot(f, L[k]), p = k.split("|");
+        return "<div><b style=\"font-weight:500\">" + esc(f[0]) + ' <small style="color:var(--muted)">' + qtxt(L[k], f) + (p[1] === "x" ? " · off plan" : " · option " + (+p[1] + 1)) + "</small></b><span>" + f1(v[1]) + "</span><span>" + f1(v[2]) + "</span><span>" + f1(v[3]) + "</span></div>"; }).join("") +
+        '<div class="t"><b>Plate</b><span>' + f1(e[1]) + "</span><span>" + f1(e[2]) + "</span><span>" + f1(e[3]) + "</span></div>"
+        : '<div class="none">Nothing yet. Until something is logged, this meal counts as 0.</div>') + "</div></div>";
+    /* 3. points per number */
+    h += '<div class="box wide"><h4>3 · Points for each number <em>full marks from 20% under to 20% over (at least 3 g over)</em></h4>';
+    var pts = [];
+    [["Protein", 1], ["Carbs", 2], ["Fats", 3]].forEach(function (x) {
+      var T = t[x[1]], v = e ? e[x[1]] : 0;
+      if (T <= 0) { h += '<div class="mrow"><b>' + x[0] + '</b><div class="why">Target is 0 g, left out of the average.</div></div>'; return; }
+      var lo = T * 0.8, top = T + Math.max(T * 0.2, 3), mx = Math.max(top * 1.5, v * 1.08), s = credit(v, T), sr = Math.round(s); pts.push(s);
+      var cls = sr >= 100 ? "ok" : sr < 50 ? "bad" : "mid", why;
+      if (v < lo) why = f1(v) + " g is under " + f1(lo) + " g → " + f1(v) + " ÷ " + f1(lo) + " × 100 = " + sr;
+      else if (v <= top) why = f1(v) + " g is inside " + f1(lo) + "–" + f1(top) + " g → 100";
+      else why = f1(v) + " g is over " + f1(top) + " g → 100 − (" + f1(v) + " − " + f1(top) + ") ÷ " + T + " × 100 = " + sr;
+      h += '<div class="mrow"><b>' + x[0] + '</b><div class="bar"><span class="z" style="left:' + (lo / mx * 100).toFixed(1) + "%;width:" + ((top - lo) / mx * 100).toFixed(1) + '%"></span><span class="e ' + cls + '" style="width:' + Math.min(100, v / mx * 100).toFixed(1) + '%"></span><span class="tk" style="left:' + (T / mx * 100).toFixed(1) + '%"></span></div><span class="pts num ' + cls + '">' + sr + '<small> pts</small></span><div class="why">' + why + "</div></div>";
+    });
+    h += '<div class="key"><span><i style="background:var(--zone)"></i>full marks</span><span><i style="background:var(--ink);width:2px;height:12px"></i>target</span><span><i style="background:var(--brand2);height:6px"></i>eaten</span></div></div>';
+    /* 4. meal score and its share */
+    var ms = e ? mealScore(e, t) : 0, add = W[i] * ms;
+    h += '<div class="box"><h4>4 · Meal score, and what it adds to the day score above</h4><div class="eq"><span>(' + pts.map(function (p) { return Math.round(p); }).join(" + ") + ") ÷ " + pts.length + '</span><span>meal score <b class="num">' + (e ? Math.round(ms) : 0) + "</b></span></div>" +
+      '<div class="eq" style="margin-top:8px;background:#F5F8FF;color:#2D3282"><span>share ' + t[0] + " ÷ " + g(DAYT[0]) + " = " + (W[i] * 100).toFixed(1) + "% × " + (e ? Math.round(ms) : 0) + '</span><span>adds <b class="num">+' + add.toFixed(1) + "</b></span></div></div>";
+  }
+  h += '<div class="box"><h4>What happened</h4><div class="feed">' + (FEED.length ? FEED.slice().reverse().join("") : '<div class="none">Tick a food on the phone, or press Play.</div>') + "</div></div>";
+  document.getElementById("bts").innerHTML = h;
+}
+function render() { renderPhone(); renderBts(); }
+
+/* ---------------------------------------------------------------- actions */
+function change(key, q, quiet) {
+  var i = +key.split("|")[0], before = dayScore(M, allEaten()), f = food(key);
+  if (q === null || q <= 0) delete L[key]; else L[key] = q;
+  FOCUS = i;
+  var after = dayScore(M, allEaten()), d = after.score - before.score, e = eaten(i), m = M[i];
+  var what = (q === null || q <= 0 ? "Removed " : "Logged ") + f[0] + (q > 0 ? " (" + qtxt(q, f) + ")" : "");
+  FEED.push("<div><span>" + m.n + ": " + esc(what) + (m.t ? " → meal " + (e ? Math.round(mealScore(e, m.t)) : 0) : "") + "</span><em class=\"" + (d >= 0 ? "ok" : "bad") + "\">day " + after.score + (d ? " (" + (d > 0 ? "+" : "") + d + ")" : "") + "</em></div>");
+  render();
+  if (!quiet && d) toast(d);
+  var c = document.querySelector('[data-card="' + i + '"]'), sc = document.getElementById("scr"); if (c && PLAYING) sc.scrollTo({ top: c.offsetTop - 140, behavior: "smooth" });
+}
+function toast(d) {
+  var t = document.getElementById("toast"); if (!t) return;
+  t.textContent = d > 0 ? "+" + d + "% added to your sufficiency score" : d + "% from your sufficiency score";
+  t.className = "toast on" + (d < 0 ? " down" : ""); t.style.top = (document.getElementById("scr").scrollTop + 70) + "px";
+  clearTimeout(t._h); t._h = setTimeout(function () { t.className = "toast" + (d < 0 ? " down" : ""); }, 1800);
+}
+document.addEventListener("click", function (ev) {
+  var b = ev.target.closest("button, .card"); if (!b) return;
+  var d = b.dataset;
+  if (d.tick) { var f = food(d.tick); return change(d.tick, L[d.tick] !== undefined ? null : f[1]); }
+  if (d.up) { var f2 = food(d.up); return change(d.up, L[d.up] + step(f2)); }
+  if (d.dn) { var f3 = food(d.dn); return change(d.dn, L[d.dn] - step(f3)); }
+  if (d.opt) { var p = d.opt.split("|"); SHOW[+p[0]] = +p[1]; FOCUS = +p[0]; return render(); }
+  if (d.xo) { XOPEN[+d.xo] = !XOPEN[+d.xo]; FOCUS = +d.xo; return render(); }
+  if (d.card !== undefined && FOCUS !== +d.card) { FOCUS = +d.card; render(); }
+});
+
+/* ---------------------------------------------------------------- scripted days */
+var PLAYING = false;
+function opt(mi, oi) { return M[mi].o[oi].map(function (f, fi) { return [mi + "|" + oi + "|" + fi, f[1]]; }); }
+function byName(mi, oi, name) { var fi = M[mi].o[oi].findIndex(function (f) { return f[0] === name; }); return [mi + "|" + oi + "|" + fi, M[mi].o[oi][fi][1]]; }
+function ex(mi, name) { var xi = X.findIndex(function (f) { return f[0] === name; }); return [mi + "|x|" + xi, X[xi][1]]; }
+var DAYS = {
+  p1: [].concat(opt(0, 0), opt(1, 3), opt(2, 2), opt(3, 4), opt(4, 1), opt(5, 5), opt(6, 1)),
+  p2: [].concat(opt(0, 0), [byName(1, 2, "Idli"), byName(1, 5, "Moong dal chilla")], opt(3, 2), opt(3, 6), [ex(4, "Vegetable Poha")], opt(5, 0), opt(6, 0))
+};
+function play(which) {
+  reset(); PLAYING = true; var steps = DAYS[which], n = 0;
+  document.querySelectorAll(".acts .btn").forEach(function (b) { b.disabled = b.id !== "rs"; });
+  (function next() {
+    if (!PLAYING) return;
+    if (n >= steps.length) { PLAYING = false; document.querySelectorAll(".acts .btn").forEach(function (b) { b.disabled = false; }); return; }
+    var s = steps[n++], p = s[0].split("|");
+    if (p[1] !== "x") SHOW[+p[0]] = +p[1]; else XOPEN[+p[0]] = true;
+    change(s[0], s[1]); setTimeout(next, 1500);
+  })();
+}
+function reset() { PLAYING = false; L = {}; FEED = []; XOPEN = {}; SHOW = M.map(function () { return 0; }); FOCUS = 1; document.querySelectorAll(".acts .btn").forEach(function (b) { b.disabled = false; }); document.getElementById("scr").scrollTop = 0; render(); }
+document.getElementById("p1").onclick = function () { play("p1"); };
+document.getElementById("p2").onclick = function () { play("p2"); };
+document.getElementById("rs").onclick = reset;
+render();
+</script>
+</body>
+</html>

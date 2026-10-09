@@ -223,6 +223,7 @@
   }
 
   function render(fresh) {
+    emit("tray");
     if (!T || !T.items.length) {
       bar.classList.remove("up"); document.body.classList.remove("pt-on"); mark(); return;   /* the mode class stays, so it slides out as it came in */
     }
@@ -274,18 +275,12 @@
     document.querySelectorAll(".item[data-ref]").forEach(function (row) {
       row.classList.toggle("pt-sel", refs.indexOf(row.dataset.ref) > -1);
     });
-    /* One option per meal while the bar holds it: a meal's foods come from the
-       option they were picked in, so its other options are locked until the
-       bar is logged or cleared. Ref is meal|option|row; added foods (|m|) do
-       not belong to an option and lock nothing. */
-    var held = {};
-    refs.forEach(function (r) { var p = r.split("|"); if (p[1] !== "m") held[p[0]] = p[1]; });
-    document.querySelectorAll(".chip[data-meal][data-opt]").forEach(function (ch) {
-      var h = held[ch.dataset.meal], lock = h != null && ch.dataset.opt !== h;
-      ch.classList.toggle("pt-lock", lock);
-      if (lock) { ch.setAttribute("aria-disabled", "true"); ch.dataset.held = +h + 1; }
-      else { ch.removeAttribute("aria-disabled"); delete ch.dataset.held; }
-    });
+    /* Foods from several options of one meal can go in together: the score
+       measures one full plate, from any option or a mix, so nothing is locked. */
+  }
+  /* what the bar holds, for a page hosting this screen (v7/api-flow.html) */
+  function emit(type, extra) {
+    try { window.dispatchEvent(new CustomEvent("gf:" + type, { detail: Object.assign({ items: T ? T.items.map(function (x) { return { ref: x.ref, n: x.n, time: x.time }; }) : [] }, extra || {}) })); } catch (e) {}
   }
   /* the cards repaint themselves (an option switch, a skip), so the marks are put back after every change */
   var pending = false;
@@ -520,6 +515,7 @@
       window.scrollTo(0, 0);   /* so the reload never puts the day back where the bar was */
       location.reload();
     };
+    emit("log", { save: save });
     var rect = go.getBoundingClientRect();
     /* the win moment is loaded only now: its stylesheet owns ".wm", which this
        screen also uses (the calorie watermark), so it must not sit here idle */
@@ -572,5 +568,5 @@
     setTimeout(function () { var g = bar.querySelector(".go"); if (g) g.click(); }, 900);
   }, 700);
 
-  window.GFPlanTray = { toggle: toggle };
+  window.GFPlanTray = { toggle: toggle, items: function () { return T ? T.items.slice() : []; } };
 })();

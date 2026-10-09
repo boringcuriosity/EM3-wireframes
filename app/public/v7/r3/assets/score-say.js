@@ -235,11 +235,14 @@ window.GFSay = {
     if (d) opts.from = Math.max(0, s.score - d);
   }
 };
+var cm = null;
+/* a host page can say what the line reads (v7/api-flow.html): { lead, rest, cta, delta, tone, ask } */
+window.GFSay.show = function (c) { s = c; if (cm) { cm.innerHTML = html(s); cm.classList.add("on"); } };
 function mount() {
   var stage = document.getElementById("stage");
   if (!stage) return;
   var st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
-  var cm = document.createElement("div"); cm.id = "cm"; cm.innerHTML = html(s);
+  cm = document.createElement("div"); cm.id = "cm"; cm.innerHTML = html(s);
   cm.addEventListener("click", function (e) {
     if (e.target.closest(".cta") && s.ask && window.kairaAsk) window.kairaAsk(s.ask.q, s.ask.a);
   });
