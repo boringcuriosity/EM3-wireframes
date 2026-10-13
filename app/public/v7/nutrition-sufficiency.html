@@ -541,6 +541,21 @@
       <div class="cases" data-cases="sheet"></div>
     </section>
 
+    <section id="mealsheet">
+      <div class="snum">Section</div>
+      <h2>The meal sheet</h2>
+      <p>One meal, against its own target. It opens from the small info icon at the top right of a meal card, and only a card with a plan has that icon: a free card or a no-plan card has no target to measure against, so it has no icon and no sheet.</p>
+      <ul class="plain">
+        <li><b>Header:</b> the meal's name top left, the circle X top right. Under it: "Suggested 8:00–10:00 AM · what went in, against this meal’s target".</li>
+        <li><b>Four rows, always in this order:</b> Protein, Carbs, Fats, Calories. Each row gives the amount eaten and its ideal range ("Ideal: 19–29 g"), then a thin bar: an indigo fill for what went in, and two handles marking the ends of the range.</li>
+        <li><b>What counts:</b> the plan foods that are ticked, plus anything logged on top. The target is the plan option the user chose for that meal, or the one on show if they haven't chosen.</li>
+        <li><b>The range:</b> the meal's target give or take 20%. For protein, carbs and fats it is never narrower than 3 g either side, so a tiny target still has room.</li>
+        <li><b>Colour:</b> values are neutral grey. A value outside its range, over or under, turns error red, #D92D20. Nothing else changes colour. Macro icons stay neutral.</li>
+        <li><b>Under the bars:</b> a small legend for the range, then "What the ideal range means" in plain words.</li>
+      </ul>
+      <div class="cases" data-cases="mealsheet"></div>
+    </section>
+
     <section id="over">
       <div class="snum">Section</div>
       <h2>Past the target</h2>
@@ -552,6 +567,22 @@
         <li>Nothing else turns red: the score, the tag and KAIRA's line say what the day means. Red here only marks which number went past.</li>
       </ul>
       <div class="cases" data-cases="over"></div>
+    </section>
+
+    <section id="badge">
+      <div class="snum">Section</div>
+      <h2>The badge moment</h2>
+      <p>When the day's nutrition sufficiency reaches 80% or more, the day earns a badge, and a celebration sheet rises once. The version chosen is <b>Spotlight</b>: a deep green sheet, one cone of warm light, and the badge resolving at the foot of the beam.</p>
+      <ul class="plain">
+        <li><b>The badge:</b> one badge, always the same: a sprout from a mound of soil, in a gold rosette. No name and no levels. It only counts how many times it has been earned.</li>
+        <li><b>Title:</b> "Yay! You earned a badge". On a repeat: "Yay! Another badge".</li>
+        <li><b>Line:</b> "We've rewarded you with a badge because you gave your body what it needed today. Protein, carbs and fats all landed close to your coach's targets."</li>
+        <li><b>Coins:</b> a thin divider, then "+45 FlipCoins earned today", counting up from 0. The number is what the day's logging earned.</li>
+        <li><b>One button:</b> "Share your achievement". The circle X closes the sheet. No date, no second button.</li>
+        <li><b>Motion:</b> the sheet rises (0.1s), the cone widens (0.35s), the badge resolves (0.75s) with a pool of light under it, confetti in GoodFlip's colours rains from the top of the sheet for about 2s (0.9s), then the words and the coins. Everything eases; nothing bounces. With reduced motion on, there is no confetti and the coins show their final number.</li>
+        <li><b>Size:</b> 600 px tall. This celebration sheet is the one place the sheet rules bend: a dark full colour background and a centred layout.</li>
+      </ul>
+      <div class="cases" data-cases="badge"></div>
     </section>
 
     <section id="date">
@@ -784,6 +815,15 @@ const CASES = {
     ["state=over&sheet=suff", "The sufficiency sheet, past its targets", "sheet=suff", "The same three numbers turn red on its tiles and its calorie line."],
     ["state=mid&meal=bf", "A meal's sheet, outside its range", "meal=bf", "Breakfast from its info icon: carbs and calories sit outside their ideal range, so they turn red. Protein and fats are inside, so they don't."],
   ],
+  mealsheet: [
+    ["state=mid&meal=lunch", "Inside every range", "meal=lunch", "Lunch: 18 g protein (15–23), 62 g carbs (52–79), 14 g fats (11–17), 446 kcal (371–557). All inside, so all neutral."],
+    ["state=mid&meal=bf", "Outside on two", "meal=bf", "Breakfast: carbs at 56 g against 25–37 g and 486 kcal against 306–458 turn red. Protein and fats are inside and stay neutral."],
+    ["state=mid&meal=pre", "A tiny target", "meal=pre", "Early morning: the targets are close to zero, so the 3 g floor gives protein and fats a 0–3 g range instead of a zero-width one."],
+    ["state=daydone&meal=dinner", "Nothing logged yet", "meal=dinner", "Dinner with nothing ticked: every value is 0, under its range, so every value is red."],
+  ],
+  badge: [
+    ["badge-celebration-options.html?only=3&v=3", "Spotlight", "only=3", "The chosen version, playing once. Tap the dimmed day behind the sheet to play it again."],
+  ],
   date: [
     ["sheet=1", "Open on today", "sheet=1", "September. Dots before the plan existed, dashes where nothing was logged."],
     ["state=past&date=2026-9-8&sheet=1", "Opened from an earlier day", "date=2026-9-8", "Opened on 8 September, with today still marked."],
@@ -875,7 +915,9 @@ const SECTIONS = [
   ["logging", "The logging screen"],
   ["success", "The success screen"],
   ["sheet", "The sufficiency sheet"],
+  ["mealsheet", "The meal sheet"],
   ["over", "Past the target"],
+  ["badge", "The badge moment"],
   ["date", "The date sheet"],
   ["learn", "The Learn tab"],
   ["trend", "The Trend tab (out of scope)"],

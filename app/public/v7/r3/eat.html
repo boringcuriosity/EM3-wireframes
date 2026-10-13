@@ -293,6 +293,17 @@
   .macros.tiles .mval span { font: 500 13px/18px Roboto, sans-serif; color: var(--g-500); }
   .macros.tiles .mof { margin-top: 3px; font: 400 12px/16px Roboto, sans-serif; color: var(--g-600); font-variant-numeric: tabular-nums; }
   #railMacros.tiles .calc { background: transparent; border-radius: 0; border-top-color: var(--g-200); padding: 12px 10px; }
+  /* calories first: the rule moves under the line, between it and the tiles */
+  #railMacros.calfirst .calc { border-top: 0; padding: 14px 16px 12px; }   /* the flame and the kcal sit in from the edges, a little more than the tiles */
+  /* an inset white rule, not a full-width grey one: it parts the line from the tiles without boxing them */
+  #railMacros.calfirst .calc::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 0; height: 1.5px; border-radius: 1px; background: #fff; }
+  #railMacros.calfirst .macros.tiles { padding-top: 12px; }
+  /* calories on top reads as one more line of the card, so it takes the tiles' own sizes:
+     the flame drawn to the macro glyphs' visual size, the text back to 12 and 13 */
+  #railMacros.calfirst .calc .ct { font: 400 12px/16px Roboto, sans-serif; }
+  #railMacros.calfirst .calc .ct::before { width: 16px; height: 16px; }
+  #railMacros.calfirst .calc .cv { font: 400 13px/18px Roboto, sans-serif; }
+  #railMacros.calfirst .calc .cv b { font: 700 13px/18px Roboto, sans-serif; }
 
   /* before the plan: the card explains instead of measuring */
   /* When Kaira's mark is on this card, the card is hers, so it takes her
@@ -356,11 +367,11 @@
      same offset let too much of it sit over the number and the bar. */
   .calc .wm { position: absolute; right: -84px; top: -70px; width: 131px; height: 156px; pointer-events: none; user-select: none; }
   .calc .ch { position: relative; flex: 0 0 auto; }
-  .calc .ct { font: 400 12px/16px Roboto, sans-serif; color: var(--g-600); }   /* same as the macro names */
+  .calc .ct { font: 400 14px/20px Roboto, sans-serif; color: var(--g-600); }   /* a touch above the macro names: it labels the whole row, not a tile */
   .calc .cr { font-size: 12px; line-height: 18px; color: var(--g-500); white-space: nowrap; }
-  .calc .cv { position: relative; margin: 0 0 0 auto; font: 400 13px/18px Roboto, sans-serif;
+  .calc .cv { position: relative; margin: 0 0 0 auto; font: 400 14px/20px Roboto, sans-serif;
     color: var(--g-500); white-space: nowrap; }
-  .calc .cv b { font: 700 13px/18px Roboto, sans-serif; color: var(--g-900); }
+  .calc .cv b { font: 700 14px/20px Roboto, sans-serif; color: var(--g-900); }   /* the same 14px as its label */
   .calc .cb { position: relative; display: block; height: 6px; margin-top: 8px; border-radius: var(--r-pill); background: var(--in-100); overflow: hidden; }
   .calc .cb i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--in-600); transition: width .6s var(--ease); }
   .calc.over .cb i { background: var(--amber-600); }
@@ -578,6 +589,8 @@
   /* 12 above the rule; the label below it brings its own 12, so the dashed
      rule sits centred in 24 the same way every other divider here does */
   .extras { padding-bottom: 12px; border-bottom: 1px dashed var(--g-200); }
+  /* a card of hand-logged foods ends on the Had something else row, which brings its own rule */
+  .extras + .textrow { margin-top: 0; border-top: 0; }
   /* inside a meal card, too tight for 8px of travel, so the system's flat */
 
 
@@ -1927,6 +1940,8 @@ function loadScripts(list, done) {
     /* and its footer with it. They are one card now, so they cannot live in
        two sections with a section margin between them. */
     slot.appendChild(document.getElementById("calstrip"));
+    /* Calories on top, the three tiles under it: the default. ?calfirst=0 brings back macros first. */
+    if (Q.get("calfirst") !== "0") { slot.insertBefore(document.getElementById("calstrip"), box); slot.classList.add("calfirst"); }
     nutSect.remove();
     document.getElementById("rail").hidden = true;
     h2.hidden = true;
@@ -2683,13 +2698,7 @@ function body(m) {
      past the screen that asks for a quantity and a time, and the undo existed
      only to make that shortcut reversible. What is left is the one thing a
      plan cannot anticipate: that you ate something it does not list. */
-  if (!RO) {
-    h += '<div class="textrow"><div class="elselab">Had something else?</div>' +
-      '<div class="acts">' +
-        '<button class="achip elsebtn" data-meal="' + m.id + '">' + I.plusSq + 'Search and log</button>' +
-        '<button class="achip k kairabtn" data-meal="' + m.id + '">' + GFKaira.mark(16, { halo: false }) + 'Log with KAIRA</button>' +
-      '</div></div>';
-  }
+  h += elseRow(m);
   if (m.tips) {
     h += '<div class="tips"><div class="lab">Tips from your coach</div><div class="tiplist">' + m.tips.map(function (t, i) {
       /* a tip's mark is square and grey, not the round green tick, because it
@@ -2724,14 +2733,12 @@ function infoBtn(m) { return '<button class="minfo" data-minfo="' + m.id + '" da
 
 function card(m) {
   var logged = mealCal(m);
-  var target = sum(m.opts[m.show]);
-  /* a meal with nothing in it says what it holds, or that the day passed it by,
-     rather than opening with a zero */
-  var line = logged ? logged + " of " + target + " kcal" : target + " kcal planned";
+  /* the meal's target lives in its sheet (the info icon), so the card only says what went in */
+  var line = logged ? " · " + logged + " kcal" : "";
   return '<section class="meal scene" style="--scene:url(../icons/meals/bg/' + m.id + '.webp?v=2)" id="meal-' + m.id + '">' +
     '<div class="mh">' + '<img class="mpic" src="../icons/meals/gemini/' + m.id + '.png?v=2" alt="" aria-hidden="true">' +
       '<div class="t"><div class="n">' + m.name + '</div>' +
-      '<div class="s">Suggested ' + m.time.replace(" - ", "\u2013") + ' · ' + line + '</div></div>' +
+      '<div class="s">Suggested ' + m.time.replace(" - ", "\u2013") + line + '</div></div>' +
       /* no plus here: a planned meal carries "I have eaten something else" at
          the foot of its own list, which says what the button was for */
       infoBtn(m) +
@@ -2751,6 +2758,16 @@ var NOPLAN_FOODS = {
        f("Masala chai", "1 cup", 1, 2, 10, 3), f("Banana", "1 piece", 1, 1, 27, 0)],
   lunch: [f("Chole", "1 katori", 1, 9, 27, 6), f("Jeera rice", "1 bowl", 1, 4, 33, 4), f("Paneer tikka", "3 pieces", 1, 11, 3, 6)]
 };
+/* "Had something else?": Search and log, Log with KAIRA. The foot of any card with food in it. */
+function elseRow(m) {
+  if (RO) return "";
+  return '<div class="textrow"><div class="elselab">Had something else?</div>' +
+    '<div class="acts">' +
+      '<button class="achip elsebtn" data-meal="' + m.id + '">' + I.plusSq + 'Search and log</button>' +
+      '<button class="achip k kairabtn" data-meal="' + m.id + '">' + GFKaira.mark(16, { halo: false }) + 'Log with KAIRA</button>' +
+    '</div></div>';
+}
+
 function freeCard(m) {
   var seed = S.free ? FREE_FOODS : S.diary.logged ? NOPLAN_FOODS : null;
   if (seed && !m.freeSeeded) {
@@ -2762,10 +2779,12 @@ function freeCard(m) {
   return '<section class="meal' + (m.manual.length ? ' scene" style="--scene:url(../icons/meals/bg/' + m.id + '.webp?v=2)' : '') + '" id="meal-' + m.id + '"><div class="mh">' + '<img class="mpic" src="../icons/meals/gemini/' + m.id + '.png?v=2" alt="" aria-hidden="true">' +
     '<div class="t"><div class="n">' + m.name + '</div>' +
     '<div class="s">' + m.time.replace(" - ", "\u2013") + (logged ? ' · ' + logged + ' kcal logged' : '') + '</div></div>' +
-    /* no info door here: without a plan there is no target to show a meal against */
-    '<button class="plus sq" aria-label="Log something for ' + m.name + '" data-meal="' + m.id + '" data-stop="1"><i>' + I.plusSq + '</i></button></div>' +
+    /* no info door here: without a plan there is no target to show a meal against.
+       A slim card (nothing in it yet) keeps its square plus; once food opens the card up,
+       the ways in move to its foot, as on a planned card: Search and log, Log with KAIRA. */
+    (m.manual.length ? '' : '<button class="plus sq" aria-label="Log something for ' + m.name + '" data-meal="' + m.id + '" data-stop="1"><i>' + I.plusSq + '</i></button>') + '</div>' +
     (m.manual.length ? '<div class="mb"><div><div class="mbi"><div class="extras">' +
-      m.manual.map(function (it, i) { return itemRow(it, { manual: true, ref: m.id + "|m|" + i }); }).join("") + '</div></div></div></div>' : "") +
+      m.manual.map(function (it, i) { return itemRow(it, { manual: true, ref: m.id + "|m|" + i }); }).join("") + '</div>' + elseRow(m) + '</div></div></div>' : "") +
     '</section>';
 }
 
