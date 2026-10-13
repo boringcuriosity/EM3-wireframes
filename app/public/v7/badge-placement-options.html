@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Badge placement</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --g-900: #101828; --g-600: #475467; --g-500: #667085; --g-200: #EAECF0; --brand: #299D6B; --brand-50: #E6FAF1; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font: 400 15px/23px Roboto, sans-serif; }
+  .wrap { max-width: 1440px; margin: 0 auto; padding: 48px 32px 80px; }
+  h1 { margin: 0 0 8px; font: 800 36px/44px Roboto, sans-serif; letter-spacing: -.4px; }
+  .lede { max-width: 760px; margin: 0 0 8px; color: var(--g-600); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 28px; margin-top: 32px; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 12px; }
+  figure.rec .phone { box-shadow: 0 0 0 2px var(--brand), 0 18px 40px -20px rgba(16,24,40,.35); }
+  figcaption h3 { margin: 0; font: 700 17px/24px Roboto, sans-serif; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  figcaption p { margin: 4px 0 0; min-height: 84px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .tag { font: 600 11px/18px Roboto, sans-serif; padding: 1px 8px; border-radius: 9999px; background: var(--brand-50); color: #2A805A; }
+  .tag.n { background: #F2F4F7; color: var(--g-600); }
+  .phone { --z: .77; width: calc(390px * var(--z)); height: calc(780px * var(--z)); border-radius: 28px; overflow: hidden; box-shadow: 0 0 0 1px var(--g-200), 0 18px 40px -20px rgba(16,24,40,.35); }
+  .phone iframe { width: 390px; height: 780px; border: 0; display: block; transform: scale(var(--z)); transform-origin: 0 0; }
+  .open { font-size: 13px; color: var(--brand); }
+  @media (max-width: 520px) { .wrap { padding: 32px 16px 64px; } h1 { font-size: 28px; line-height: 36px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Where the badge lives</h1>
+  <p class="lede">Once the day's nutrition sufficiency reaches 80%, the badge stays on the Eat screen for that day, so it is still there after the celebration sheet closes. Four places to put it, each on a 100% day. The last phone is a 49% day: no badge.</p>
+  <p class="lede">Every phone is live. Scroll inside it to see the rest of the day.</p>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+const P = [
+  ["medal", "A medal that hangs", "A short ribbon in gold and Flip green drops from under the header and the rosette swings in once, then rests by the score. Feels like being handed a medal."],
+  ["quote", "In KAIRA's line", "The rosette takes the place of the quote mark in the line under the score, so the badge sits right beside the words about the day. No new element on the screen."],
+  ["head", "In the header", "A small gold chip with the badge and how many you have, beside Earn. Reads as a collection, and sits with the other reward."],
+  ["date", "Beside the date", "The rosette alone, on the right of the date row. Ties the badge to the day, but it's the easiest to miss."],
+  ["sticker", "A sticker on the day", "Stuck at a tilt on the corner of the Today pill, like a gold star on homework. Says this day was a good one."],
+  ["seal", "A seal on the numbers", "Pressed onto the corner of the macros card, as if certifying the protein, carbs and fats underneath. Puts the badge on the reason it was earned."],
+  ["none", "Below 80%: no badge", "The same screen on a day that hasn't reached 80%. Nothing shows until it does.", "Rule"],
+];
+document.getElementById("grid").innerHTML = P.map(([k, n, d, tag]) => {
+  const href = "r3/eat.html?state=" + (k === "none" ? "mid" : "perfect") + "&bar=float&badge=" + (k === "none" ? "chip" : k);
+  return '<figure' + (tag === "Recommended" ? ' class="rec"' : '') + '><figcaption><h3>' + n + (tag ? ' <span class="tag' + (tag === "Rule" ? " n" : "") + '">' + tag + '</span>' : '') + '</h3><p>' + d + '</p></figcaption>' +
+    '<div class="phone"><iframe src="' + href + '" title="' + n + '" loading="lazy"></iframe></div><a class="open" href="' + href + '" target="_blank">Open full size</a></figure>';
+}).join("");
+/* an embedded Eat screen waits for its host before it starts the score */
+addEventListener("message", e => { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+</script>
+</body>
+</html>

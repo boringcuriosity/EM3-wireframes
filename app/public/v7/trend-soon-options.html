@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trend coming soon</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --g-900: #101828; --g-600: #475467; --g-500: #667085; --g-200: #EAECF0; --brand: #299D6B; --brand-50: #E6FAF1; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font: 400 15px/23px Roboto, sans-serif; }
+  .wrap { max-width: 1440px; margin: 0 auto; padding: 48px 32px 80px; }
+  h1 { margin: 0 0 8px; font: 800 36px/44px Roboto, sans-serif; letter-spacing: -.4px; }
+  .lede { max-width: 760px; margin: 0 0 8px; color: var(--g-600); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 28px; margin-top: 32px; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 12px; }
+  figure.rec .phone { box-shadow: 0 0 0 2px var(--brand), 0 18px 40px -20px rgba(16,24,40,.35); }
+  figcaption h3 { margin: 0; font: 700 17px/24px Roboto, sans-serif; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  figcaption p { margin: 4px 0 0; min-height: 63px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .tag { font: 600 11px/18px Roboto, sans-serif; padding: 1px 8px; border-radius: 9999px; background: var(--brand-50); color: #2A805A; }
+  .tag.n { background: #F2F4F7; color: var(--g-600); }
+  .phone { --z: .77; width: calc(390px * var(--z)); height: calc(780px * var(--z)); border-radius: 28px; overflow: hidden; box-shadow: 0 0 0 1px var(--g-200), 0 18px 40px -20px rgba(16,24,40,.35); }
+  .phone iframe { width: 390px; height: 780px; border: 0; display: block; transform: scale(var(--z)); transform-origin: 0 0; }
+  .open { font-size: 13px; color: var(--brand); }
+  @media (max-width: 520px) { .wrap { padding: 32px 16px 64px; } h1 { font-size: 28px; line-height: 36px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Trend, coming soon</h1>
+  <p class="lede">The Trend tab isn't ready yet, so the tab says so, warmly and in one breath: what's coming, that logging now counts, and one button to hear when it lands. The real tab's bottom nav, no header, GoodFlip green with gold as the one accent. Motion plays once and ends still. Tap the art in any phone to play it again; tap Notify Me to see the toast and the quiet line that replaces the button.</p>
+  <p class="lede">Drawn from Mobbin (Oura's empty chart frames, Acorns' coming soon pill, stoic.'s filling days), Dribbble and Pinterest sprout and growing-chart motion, and the GoodFlip system: Playfair for the one headline, one primary button, no looping animation on an idle screen.</p>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+const P = [
+  ["fan", "A hand of cards", "Four small cards fanned like a hand, dealt one by one: protein, carbs and fats lines, sufficiency across the week, the weekly average and KAIRA insights.", "Recommended"],
+  ["deck", "A deck of glimpses", "The same four cards stacked, each one's top peeking above the next, the KAIRA insights card landing in front. Neat, and reads as more to come."],
+  ["bento", "A bento of Trend", "The four cards as a small grid, the way the real Trend screen might be laid out. The most literal preview."],
+  ["swipe", "Swipe to peek", "The cards in a row you can swipe through, the next one peeking from the edge. The only one people can play with."],
+  ["ghost", "The empty chart", "The real week chart, drawn empty: bars per day, a dashed score line, one pass of light. People see exactly what's coming.", "Earlier"],
+  ["days", "Days filling in", "Four weeks of days, the logged ones filling with green, today ringed. Turns the wait into a reason to log today.", "Earlier"],
+  ["flow", "The week flows", "One soft line across the week with a gentle green wash under it. Each day lands as a dot; today waits in gold. The calmest of the set.", "Recommended"],
+  ["rings", "A ring a day", "Two weeks of small rings, each filling to that day's score, the same ring as the score on Eat. Today is a dashed gold ring, still to fill."],
+  ["orbs", "Days as orbs", "The score's own orbs, one per day, rising and growing along a dotted path. The last one glows gold. Ties Trend to the score people already know."],
+  ["stack", "A stack of weeks", "Weeks as cards, the newest in front with its bars rising, older weeks tucked behind. Says you can flip back through time."],
+];
+document.getElementById("grid").innerHTML = P.map(([k, n, d, tag]) => {
+  const href = "r3/trend-soon.html?v=" + k;
+  return '<figure' + (tag === "Recommended" ? ' class="rec"' : '') + '><figcaption><h3>' + n + (tag ? ' <span class="tag' + (tag === "Recommended" ? "" : " n") + '">' + tag + '</span>' : '') + '</h3><p>' + d + '</p></figcaption>' +
+    '<div class="phone"><iframe src="' + href + '" title="' + n + '" loading="lazy"></iframe></div><a class="open" href="' + href + '" target="_blank">Open full size</a></figure>';
+}).join("");
+/* an embedded Eat screen waits for its host before it starts the score */
+addEventListener("message", e => { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+</script>
+</body>
+</html>

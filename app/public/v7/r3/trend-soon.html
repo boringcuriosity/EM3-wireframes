@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trend</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap">
+<link rel="stylesheet" href="goodflip-ui.css">
+<style>
+  /* ============================================================
+     Trend, coming soon. One screen, four ways to say it: ?v=
+       sprout   a trend line draws itself, a sprout opens at its tip
+       ghost    the real week chart, drawn empty, a light passing once
+       garden   three bars rise from the soil, one per nutrient
+       days     four weeks of days, the logged ones filling in
+     No header, the nav as on the Trend tab. Motion plays once and
+     ends still. A tap on the art plays it again.
+     ============================================================ */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: #fff; font-family: Roboto, Arial, sans-serif; letter-spacing: .25px; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; letter-spacing: inherit; }
+  .col { position: relative; max-width: var(--col); margin: 0 auto; min-height: 100vh; padding-bottom: 96px; overflow-x: hidden; background: #fff; display: flex; flex-direction: column; }
+  .gut { padding-left: var(--gut); padding-right: var(--gut); }
+  .ico { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+  .backico { width: 22px; height: 22px; fill: currentColor; stroke: none; flex-shrink: 0; }
+
+  .soon { flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; padding: 64px var(--gut) 8px; }
+  .art { position: relative; width: 100%; height: 260px; display: grid; place-items: center; cursor: pointer; }
+  .art::before { content: ""; position: absolute; inset: 10px 8px; border-radius: 50%; background: radial-gradient(closest-side, var(--brand-50), rgba(243,252,248,0)); }
+  .art > * { position: relative; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 4px 12px 4px 8px; border-radius: 9999px; background: var(--gold-100); color: var(--olive-700); font: 600 12px/18px Roboto, sans-serif; }
+  .pill svg { width: 14px; height: 14px; color: var(--gold-800); }
+  .soonchip { margin-top: 8px; }
+  .soonchip svg { width: 12px; height: 12px; }
+  h1 { margin: 14px 0 0; font: 600 28px/36px "Playfair Display", serif; letter-spacing: 0; color: var(--g-900); text-wrap: balance; }
+  h1 em { font-style: normal; color: var(--brand-600); }
+  .body { margin: 10px 0 0; max-width: 320px; font: 400 15px/23px Roboto, sans-serif; color: var(--g-600); text-wrap: pretty; }
+  .nudge { margin: 12px 0 0; font: 500 15px/22px Roboto, sans-serif; color: var(--g-700); }
+  .cta { width: 100%; margin-top: auto; padding: 24px var(--gut) 0; }
+  /* the system toast, as on Eat: top of the screen under the status bar, an icon and one line */
+  .toast { position: fixed; left: 50%; top: 62px; transform: translate(-50%, -12px); width: calc(100% - var(--gut) * 2); max-width: 358px;
+    display: flex; align-items: center; gap: 10px; padding: 12px 16px 12px 12px; border-radius: var(--r-md); background: #ECFDF3; color: var(--g-900);
+    border: 1px solid #039855; font-size: 14px; font-weight: 500; line-height: 20px;
+    box-shadow: 0 10px 15px -3px rgba(16,24,40,.10), 0 4px 6px -4px rgba(16,24,40,.08); opacity: 0; pointer-events: none;
+    transition: opacity .24s cubic-bezier(.2,0,0,1), transform .32s cubic-bezier(.16,1,.3,1); z-index: 60; }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+  .toast .ti { flex: 0 0 auto; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 9999px; background: #039855; }
+  /* once asked, the button gives way to a quiet line */
+  .told { display: flex; align-items: center; justify-content: center; gap: 6px; height: 48px; font: 600 15px/20px Roboto, sans-serif; color: var(--brand-700); animation: up .4s cubic-bezier(.4,0,.2,1) both; }
+  .told svg { width: 18px; height: 18px; }
+
+  /* the words arrive after the art, one step apart */
+  .up { opacity: 0; transform: translateY(8px); animation: up .5s cubic-bezier(.4,0,.2,1) var(--d, 0s) forwards; }
+  @keyframes up { to { opacity: 1; transform: none; } }
+
+  /* ---------- sprout: the line, then the sprout at its tip ---------- */
+  .sp .line { stroke-dasharray: 400; stroke-dashoffset: 400; animation: draw 1.4s cubic-bezier(.4,0,.2,1) .2s forwards; }
+  .sp .dot { opacity: 0; animation: fade .3s ease-out forwards; }
+  .sp .stem { stroke-dasharray: 40; stroke-dashoffset: 40; animation: draw .5s cubic-bezier(.4,0,.2,1) 1.45s forwards; }
+  .sp .leaf { transform-box: fill-box; opacity: 0; transform: scale(.2) rotate(var(--r)); animation: leaf .7s cubic-bezier(.2,0,0,1) var(--d) forwards; }
+  .sp .leaf.l { transform-origin: 100% 100%; --r: 30deg; --d: 1.8s; }
+  .sp .leaf.r { transform-origin: 0% 100%; --r: -30deg; --d: 1.95s; }
+  .sp .glow { opacity: 0; animation: fade 1s ease-out 1.6s forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes fade { to { opacity: 1; } }
+  @keyframes leaf { to { opacity: 1; transform: none; } }
+
+  /* ---------- ghost: the week chart, empty, with one pass of light ---------- */
+  .gh { width: 300px; padding: 16px 16px 12px; border-radius: 20px; background: #fff; box-shadow: 0 0 0 1px var(--g-200), 0 12px 24px -16px rgba(16,24,40,.18); overflow: hidden; position: relative; }
+  .gh .hd { display: flex; justify-content: space-between; align-items: center; }
+  .gh .sk { height: 10px; border-radius: 6px; background: var(--g-100, #F2F4F7); }
+  .gh .cols { display: flex; justify-content: space-between; align-items: flex-end; height: 130px; margin-top: 18px; padding: 0 4px; border-bottom: 1px solid var(--g-200); position: relative; }
+  .gh .day { display: flex; gap: 3px; align-items: flex-end; height: 100%; }
+  .gh .day i { width: 6px; border-radius: 3px 3px 0 0; background: var(--brand-200); height: 0; animation: grow .8s cubic-bezier(.4,0,.2,1) var(--d) forwards; }
+  .gh .day i:nth-child(2) { background: var(--brand-300); }
+  .gh .day i:nth-child(3) { background: var(--brand-100); }
+  .gh svg.sc { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .gh svg.sc path { stroke-dasharray: 4 5; opacity: 0; animation: fade .6s ease-out 1.3s forwards; }
+  .gh .wk { display: flex; justify-content: space-between; padding: 8px 6px 0; font: 500 11px/14px Roboto, sans-serif; color: var(--g-400); }
+  .gh .sheen { position: absolute; inset: 0; background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.85) 50%, transparent 65%) no-repeat; background-size: 250% 100%; background-position: 160% 0; animation: sheen 1.4s cubic-bezier(.4,0,.2,1) 1.6s forwards; }
+  .gh .tagc { position: absolute; top: 12px; right: 12px; }
+  @keyframes grow { to { height: var(--h); } }
+  @keyframes sheen { to { background-position: -60% 0; } }
+
+  /* ---------- garden: three bars rise from the soil ---------- */
+  .gd { display: flex; align-items: flex-end; gap: 22px; height: 210px; position: relative; padding: 0 18px; }
+  .gd .soil { position: absolute; left: -10px; right: -10px; bottom: 26px; height: 22px; border-radius: 50%; background: radial-gradient(closest-side, var(--brand-100), rgba(230,250,241,0)); }
+  .gd .b { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 58px; position: relative; }
+  .gd .stalk { width: 40px; height: 0; border-radius: 20px 20px 10px 10px; background: linear-gradient(180deg, var(--brand-400), var(--brand-200)); animation: grow .9s cubic-bezier(.4,0,.2,1) var(--d) forwards; position: relative; }
+  .gd .cap { position: absolute; left: 50%; top: -22px; width: 44px; height: 44px; margin-left: -22px; border-radius: 14px; background: var(--brand-600); display: grid; place-items: center; box-shadow: 0 6px 12px -6px rgba(29,77,56,.5); opacity: 0; transform: translateY(8px); animation: up .45s cubic-bezier(.4,0,.2,1) calc(var(--d) + .7s) forwards; }
+  .gd .cap i { width: 24px; height: 24px; background: #fff; -webkit-mask: var(--g) center / contain no-repeat; mask: var(--g) center / contain no-repeat; }
+  .gd .lb { font: 500 12px/16px Roboto, sans-serif; color: var(--g-500); }
+
+  /* ---------- days: four weeks, the logged days filling in ---------- */
+  .dy { display: grid; grid-template-columns: repeat(7, 30px); gap: 10px 12px; }
+  .dy .h { font: 500 11px/14px Roboto, sans-serif; color: var(--g-400); text-align: center; padding-bottom: 2px; }
+  .dy .c { width: 30px; height: 30px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px var(--g-200); position: relative; }
+  .dy .c.on::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #CBF0E0, #59B38C 60%, #2A805A); box-shadow: 0 3px 6px -3px rgba(29,77,56,.5); opacity: 0; transform: scale(.4); animation: pop .5s cubic-bezier(.2,0,0,1) var(--d) forwards; }
+  .dy .c.today { box-shadow: inset 0 0 0 2px var(--brand-600); }
+  .dy .c.today::before { content: ""; position: absolute; inset: -5px; border-radius: 50%; box-shadow: 0 0 0 2px var(--brand-300); opacity: 0; animation: ring 1.6s cubic-bezier(.4,0,.2,1) 1.6s forwards; }
+  .dy .c.future { box-shadow: inset 0 0 0 1.5px var(--g-100, #F2F4F7); }
+  @keyframes pop { to { opacity: 1; transform: none; } }
+  @keyframes ring { 40% { opacity: 1; } to { opacity: 0; transform: scale(1.25); } }
+
+  /* ---------- rings: two weeks, a small ring per day ---------- */
+  .rg { display: grid; grid-template-columns: repeat(7, 36px); gap: 12px 8px; }
+  .rg .h { font: 500 11px/14px Roboto, sans-serif; color: var(--g-400); text-align: center; }
+  .rg svg { width: 36px; height: 36px; transform: rotate(-90deg); overflow: visible; }
+  .rg .tr { stroke: var(--brand-200); }
+  .rg .pr { stroke: var(--brand-500); stroke-dasharray: 82 82; stroke-dashoffset: 82; animation: ringto .9s cubic-bezier(.4,0,.2,1) var(--d) forwards; }
+  .rg .td { stroke: var(--gold-700); stroke-dasharray: 3 4; }
+  .rg .fu { stroke: #F2F4F7; }
+  @keyframes ringto { to { stroke-dashoffset: var(--o); } }
+
+  /* ---------- orbs: the days as orbs on a rising wave ---------- */
+  .ob circle.o { opacity: 0; transform-box: fill-box; transform-origin: center; transform: scale(.3); animation: pop .55s cubic-bezier(.2,0,0,1) var(--d) forwards; }
+  .ob .wv { stroke-dasharray: 4 6; opacity: 0; animation: fade .8s ease-out .1s forwards; }
+  .ob .halo { opacity: 0; transform-box: fill-box; transform-origin: center; animation: haloin 1.2s cubic-bezier(.4,0,.2,1) 1.3s forwards; }
+  @keyframes haloin { from { opacity: 0; transform: scale(.6); } to { opacity: 1; transform: none; } }
+
+  /* ---------- stack: weeks as cards, the newest in front ---------- */
+  .stk { position: relative; width: 260px; height: 200px; }
+  .stk .cd { position: absolute; left: 50%; bottom: 0; width: 240px; height: 150px; margin-left: -120px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px var(--g-200), 0 10px 20px -14px rgba(16,24,40,.25); opacity: 0; animation: deal .7s cubic-bezier(.2,0,0,1) var(--d) forwards; }
+  .stk .cd.b2 { transform: translateY(-40px) scale(.84); background: var(--brand-100); --t: translateY(-40px) scale(.84); }
+  .stk .cd.b1 { transform: translateY(-20px) scale(.92); background: var(--brand-50); --t: translateY(-20px) scale(.92); }
+  .stk .cd.f { --t: none; padding: 16px 18px 14px; display: flex; flex-direction: column; }
+  .stk .cd .sk { width: 70px; height: 9px; border-radius: 5px; background: #F2F4F7; }
+  .stk .bars { flex: 1; display: flex; align-items: flex-end; justify-content: space-between; margin-top: 12px; }
+  .stk .bars i { width: 18px; border-radius: 6px 6px 3px 3px; background: linear-gradient(180deg, var(--brand-400), var(--brand-200)); height: 0; animation: grow .7s cubic-bezier(.4,0,.2,1) var(--d) forwards; }
+  .stk .bars i.t { animation: none; background: var(--gold-50); border: 1.5px dashed var(--gold-700); }
+  @keyframes deal { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: var(--t); } }
+
+  /* ---------- flow: one soft line for the week, today in gold ---------- */
+  .fl .area { opacity: 0; animation: fade 1s ease-out .9s forwards; }
+  .fl .ln { stroke-dasharray: 400; stroke-dashoffset: 400; animation: draw 1.3s cubic-bezier(.4,0,.2,1) .2s forwards; }
+  .fl .pt { opacity: 0; transform-box: fill-box; transform-origin: center; transform: scale(.3); animation: pop .45s cubic-bezier(.2,0,0,1) var(--d) forwards; }
+  .fl .lb { font: 500 11px Roboto, sans-serif; fill: #98A2B3; }
+  /* ---------- glimpse cards: what Trend will hold, as four small cards ---------- */
+  .gc { width: 168px; height: 116px; padding: 11px 12px 10px; border-radius: 16px; background: #fff; text-align: left;
+    box-shadow: 0 0 0 1px var(--g-200), 0 12px 22px -14px rgba(16,24,40,.28); display: flex; flex-direction: column; gap: 6px; }
+  .gc .lb { display: flex; align-items: center; gap: 5px; font: 600 11px/14px Roboto, sans-serif; color: var(--g-600); letter-spacing: .2px; }
+  .gc .lb i { width: 14px; height: 14px; background: var(--g-500); -webkit-mask: var(--g) center / contain no-repeat; mask: var(--g) center / contain no-repeat; }
+  .gc .bd { flex: 1; position: relative; min-height: 0; }
+  .gc svg { width: 100%; height: 100%; overflow: visible; }
+  .gc.bars .bd { display: flex; align-items: flex-end; justify-content: space-between; padding: 0 2px; }
+  .gc.bars .bd b { width: 13px; border-radius: 5px 5px 3px 3px; background: linear-gradient(180deg, var(--brand-400), var(--brand-200)); }
+  .gc.bars .bd b.t { background: var(--gold-50); border: 1.5px dashed var(--gold-700); }
+  .gc.avg .bd { display: flex; align-items: center; gap: 10px; }
+  .fan .gc.avg .rn, .bn .gc.avg .rn { width: 44px; height: 44px; }
+  .fan .gc .lb { font-size: 10px; }
+  .bn .gc.kai .ln:nth-child(3) { display: none; }
+  .bn .gc.kai .ln { margin-top: 6px; }
+  .gc.avg .rn { width: 58px; height: 58px; flex: none; }
+  .gc.avg .sk { display: block; height: 8px; border-radius: 5px; background: #F2F4F7; }
+  .gc.avg .up { opacity: 1; transform: none; animation: none; display: inline-flex; align-items: center; gap: 3px; margin-top: 8px; padding: 2px 7px; border-radius: 9999px; background: var(--brand-50); color: var(--brand-700); font: 600 10px/14px Roboto, sans-serif; white-space: nowrap; }
+    
+  .gc.kai .orb { width: 18px; height: 18px; margin: -2px 0; background: url(../icons/trend-kaira-mark.png) center / contain no-repeat; }
+  .gc.kai .ln { display: block; height: 8px; border-radius: 5px; background: #F2F4F7; margin-top: 7px; }
+  /* fan: a hand of cards, dealt one by one */
+  .fan { position: relative; width: 320px; height: 230px; }
+  .fan .gc { position: absolute; left: 50%; top: 50%; width: 124px; height: 112px; margin: -56px 0 0 -62px; padding: 10px; opacity: 0; transform-origin: 50% 130%;
+    animation: dealf .75s cubic-bezier(.2,0,0,1) var(--d) forwards; }
+  @keyframes dealf { from { opacity: 0; transform: translateY(40px) rotate(0); } to { opacity: 1; transform: translate(var(--x), var(--y)) rotate(var(--r)); } }
+  /* deck: stacked, each card's top peeking above the next */
+  .dk { position: relative; width: 250px; height: 232px; }
+  .dk .gc { position: absolute; left: 0; right: 0; bottom: 0; width: auto; height: 132px; opacity: 0; transform-origin: 50% 0;
+    animation: arrive .7s cubic-bezier(.2,0,0,1) var(--d) forwards, settle .8s cubic-bezier(.4,0,.2,1) var(--e) forwards; }
+  /* each card lands in front, holds long enough to read, then steps back as the next arrives */
+  @keyframes arrive { from { opacity: 0; transform: translateY(36px); } to { opacity: 1; transform: none; } }
+  @keyframes settle { from { opacity: 1; transform: none; } to { opacity: 1; transform: translateY(var(--y)) scale(var(--s)); } }
+  /* bento: a 2 by 2 grid */
+  .bn { display: grid; grid-template-columns: 150px 150px; gap: 8px; }
+  .bn .gc { width: auto; height: 84px; opacity: 0; transform: translateY(12px) scale(.96); animation: pop2 .55s cubic-bezier(.2,0,0,1) var(--d) forwards; }
+  .bn .gc:nth-child(1) { grid-column: span 2; height: 68px; }
+  .bn .gc:nth-child(4) { grid-column: span 2; height: 62px; }
+  @keyframes pop2 { to { opacity: 1; transform: none; } }
+  /* carousel: swipe through, the next card peeking */
+  .cr { width: calc(100% + 32px); margin: 0 -16px; }
+  .cr .tk { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 18px 70px 22px; scrollbar-width: none; }
+  .cr .tk::-webkit-scrollbar { display: none; }
+  .cr .gc { flex: none; width: 220px; height: 150px; scroll-snap-align: center; opacity: 0; transform: translateX(40px); animation: pop2 .6s cubic-bezier(.2,0,0,1) var(--d) forwards; }
+  .cr .dots { display: flex; justify-content: center; gap: 6px; }
+  .cr .dots i { width: 6px; height: 6px; border-radius: 9999px; background: var(--g-200); transition: width .3s cubic-bezier(.4,0,.2,1), background .3s; }
+  .cr .dots i.on { width: 18px; background: var(--brand-600); }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01s !important; animation-delay: 0s !important; } }
+
+  .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: var(--col); background: #fff; border-top: 1px solid var(--g-200); display: flex; padding: 8px 6px calc(8px + var(--gf-home-h, 20px) + env(safe-area-inset-bottom, 0px)); z-index: 20; }
+  .nav a, .nav button { flex: 1; border: 0; background: none; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; color: var(--g-500); cursor: pointer; min-height: 48px; justify-content: center; text-decoration: none; }
+  .nav .on { color: var(--brand-600); font-weight: 700; }
+  .nav .ico { width: 22px; height: 22px; stroke-width: 1.8; }
+  .nav .on .ico { stroke-width: 2.4; }
+</style>
+</head>
+<body>
+<div class="col">
+  <main class="soon" id="soon"></main>
+  <div class="toast" id="toast" role="status"><span class="ti"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span><span>You're on the list for Trends</span></div>
+  <nav class="nav">
+    <a href="app.html"><svg class="backico" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path fill="currentColor" d="M9.409 3.444c-.015-.015-.473-.13-1.018-.255s-.997-.208-1.004-.185-.064.401-.125.84c-.124.882-.424 1.911-.744 2.555-1 2.006-2.791 3.334-4.964 3.68L1 10.165v1.773l.502.084c3.286.551 5.429 3.008 5.83 6.686.026.24.057.436.069.436.11 0 1.947-.443 1.982-.478.025-.025.006-.25-.042-.5-.531-2.765-2.053-5.015-4.027-5.955l-.474-.226 9.74-.018 6.16-.01v-1.794l-6.176-.011-9.717-.018.598-.303c1.552-.786 2.78-2.328 3.503-4.397.206-.59.517-1.934.46-1.99"/></svg>Back</a>
+    <a href="eat.html" data-nav="eat"><svg class="ico" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>Eat</a>
+    <a href="#" class="on"><svg class="ico" viewBox="0 0 24 24"><path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg>Trend</a>
+    <a href="learn.html" data-nav="learn"><svg class="ico" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Learn</a>
+</div>
+<script>
+const CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+/* the score's verdict chip, in its gold state: the conic edge, the soft fill */
+const pill = d => '<span class="gf-verdict warn soonchip up" style="--d:' + d + 's">' + CLOCK + 'Coming soon</span>';
+const V = {
+  sprout: { art: () =>
+    '<svg class="sp" width="320" height="220" viewBox="0 0 320 220" fill="none">' +
+      '<path d="M20 186H300" stroke="#EAECF0" stroke-width="1.5" stroke-linecap="round"/>' +
+      [140, 94].map(y => '<path d="M20 ' + y + 'H300" stroke="#F2F4F7" stroke-width="1.5" stroke-dasharray="3 6" stroke-linecap="round"/>').join("") +
+      '<path class="line" d="M24 168 C 60 160, 74 132, 104 140 S 150 160, 176 122 S 222 108, 244 100" stroke="#59B38C" stroke-width="4" stroke-linecap="round" pathLength="400"/>' +
+      [[24, 168, .3], [104, 140, .65], [176, 122, 1], [244, 100, 1.35]].map(([x, y, d]) => '<circle class="dot" cx="' + x + '" cy="' + y + '" r="5" fill="#fff" stroke="#59B38C" stroke-width="3" style="animation-delay:' + d + 's"/>').join("") +
+      '<circle class="glow" cx="244" cy="74" r="44" fill="url(#gl)"/>' +
+      '<path class="stem" d="M244 100 V 64" stroke="#2A805A" stroke-width="4" stroke-linecap="round"/>' +
+      '<path class="leaf l" d="M243 74 C 232 74, 216 68, 213 50 C 230 47, 241 58, 243 74 Z" fill="#79CCA8" stroke="#2A805A" stroke-width="3" stroke-linejoin="round"/>' +
+      '<path class="leaf r" d="M245 64 C 248 46, 262 36, 280 36 C 281 54, 266 64, 245 64 Z" fill="#59B38C" stroke="#2A805A" stroke-width="3" stroke-linejoin="round"/>' +
+      '<defs><radialGradient id="gl"><stop stop-color="#FDE8A4" stop-opacity=".7"/><stop offset="1" stop-color="#FDE8A4" stop-opacity="0"/></radialGradient></defs></svg>',
+    t: 2.1, title: 'Your trends are <em>taking root</em>',
+    body: "Soon you'll see how your protein, carbs and fats move, week by week. Every meal you log now will show up here." },
+  ghost: { art: () => {
+      const H = [[46, 70, 30], [60, 82, 38], [40, 64, 26], [72, 90, 44], [54, 76, 34], [64, 86, 40], [50, 72, 32]];
+      return '<div class="gh"><div class="hd"><span class="sk" style="width:84px"></span></div>' +
+        '<div class="cols">' + H.map((h, i) => '<div class="day">' + h.map(v => '<i style="--h:' + v + '%;--d:' + (.2 + i * .07) + 's"></i>').join("") + '</div>').join("") +
+        '<svg class="sc" viewBox="0 0 268 130" preserveAspectRatio="none"><path d="M10 70 C 50 60, 80 76, 120 52 S 200 40, 258 30" stroke="#CDA935" stroke-width="2" fill="none" stroke-linecap="round"/></svg></div>' +
+        '<div class="wk">' + "MTWTFSS".split("").map(d => "<span>" + d + "</span>").join("") + '</div><span class="sheen"></span></div>';
+    },
+    t: 1.6, title: 'Trends are <em>on the way</em>',
+    body: "A week-by-week look at your protein, carbs and fats, and how your score moves with them. Keep logging and it'll be ready for you." },
+  garden: { art: () =>
+    '<div class="gd"><span class="soil"></span>' +
+      [["protein", "Protein", 92, .2], ["carbs", "Carbs", 132, .35], ["fats", "Fats", 70, .5]].map(([g, n, h, d]) =>
+        '<div class="b"><div class="stalk" style="--h:' + h + 'px;--d:' + d + 's"><span class="cap" style="--d:' + d + 's"><i style="--g:url(../icons/glyph-' + g + '.png)"></i></span></div><span class="lb">' + n + '</span></div>').join("") + '</div>',
+    t: 1.5, title: 'Protein, carbs and fats, <em>over time</em>',
+    body: "See which days you hit your coach's targets and which nutrient needs a little more. Trends are coming soon." },
+  days: { art: () => {
+      const LOG = new Set([0, 1, 2, 4, 5, 7, 8, 9, 10, 12, 14, 15, 16, 17]), TODAY = 18;
+      let cells = "MTWTFSS".split("").map(d => '<span class="h">' + d + '</span>').join("");
+      for (let i = 0; i < 28; i++) {
+        const r = Math.floor(i / 7), c = i % 7;
+        cells += '<span class="c' + (LOG.has(i) ? " on" : "") + (i === TODAY ? " today" : "") + (i > TODAY ? " future" : "") + '" style="--d:' + (.15 + (r + c) * .07) + 's"></span>';
+      }
+      return '<div class="dy">' + cells + '</div>';
+    },
+    t: 1.4, title: 'Every day you log <em>builds your trend</em>',
+    body: "Trends are coming soon. The days you log from now on will be here, waiting for you." },
+  rings: { art: () => {
+      const V = [.9, .7, 1, .8, .55, .95, .85, .75, 1, .65, null, "t", "f", "f"];
+      let h = "MTWTFSS".split("").map(d => '<span class="h">' + d + '</span>').join("");
+      V.forEach((v, i) => {
+        const c = v === "t" ? '<circle class="td" cx="17" cy="17" r="13" fill="none" stroke-width="3"/>'
+          : v === "f" ? '<circle class="fu" cx="17" cy="17" r="13" fill="none" stroke-width="3"/>'
+          : '<circle class="tr" cx="17" cy="17" r="13" fill="none" stroke-width="3"/>' + (v ? '<circle class="pr" cx="17" cy="17" r="13" fill="none" stroke-width="3" stroke-linecap="round" pathLength="82" style="--o:' + (82 * (1 - v)).toFixed(1) + ';--d:' + (.15 + i * .06) + 's"/>' : "");
+        h += '<svg viewBox="0 0 34 34">' + c + '</svg>';
+      });
+      return '<div class="rg">' + h + '</div>';
+    },
+    t: 1.4, title: 'Your weeks, <em>at a glance</em>',
+    body: "Each day gets its own ring, so you can see which days fed your body well and which need a little more." },
+  orbs: { art: () => {
+      const N = 9, P = [];
+      for (let i = 0; i < N; i++) { const x = 30 + i * 32, y = 150 - i * 9 - Math.sin(i * .9) * 16; P.push([x, y, 5 + i * 1.2]); }
+      const wave = "M" + P.map(p => p[0] + " " + p[1]).join(" L");
+      const last = P[N - 1];
+      return '<svg class="ob" width="320" height="220" viewBox="0 0 320 220" fill="none"><defs><radialGradient id="og" cx=".35" cy=".3" r=".8"><stop stop-color="#CBF0E0"/><stop offset=".6" stop-color="#59B38C"/><stop offset="1" stop-color="#2A805A"/></radialGradient>' +
+        '<radialGradient id="oh"><stop stop-color="#FDE8A4" stop-opacity=".8"/><stop offset="1" stop-color="#FDE8A4" stop-opacity="0"/></radialGradient></defs>' +
+        '<path class="wv" d="' + wave + '" stroke="#ABE6CC" stroke-width="2" stroke-linecap="round"/>' +
+        '<circle class="halo" cx="' + last[0] + '" cy="' + last[1] + '" r="' + (last[2] * 2.6) + '" fill="url(#oh)"/>' +
+        P.map((p, i) => '<circle class="o" cx="' + p[0] + '" cy="' + p[1] + '" r="' + p[2] + '" fill="url(#og)" style="--d:' + (.2 + i * .1) + 's"/>').join("") + '</svg>';
+    },
+    t: 1.5, title: 'Watch your days <em>add up</em>',
+    body: "Your daily scores side by side, so you can see the good weeks building. Keep logging and it'll be ready for you." },
+  stack: { art: () =>
+    '<div class="stk"><div class="cd b2" style="--d:.1s"></div><div class="cd b1" style="--d:.22s"></div><div class="cd f" style="--d:.34s"><span class="sk"></span><div class="bars">' +
+      [62, 80, 54, 92, 70, 0, 0].map((h, i) => '<i' + (i === 5 ? ' class="t" style="height:40%"' : i === 6 ? ' style="height:0"' : ' style="--h:' + h + '%;--d:' + (.75 + i * .07) + 's"') + '></i>').join("") + '</div></div></div>',
+    t: 1.4, title: 'Week after week, <em>in one place</em>',
+    body: "Flip back through your weeks and see how your protein, carbs and fats have moved." },
+  flow: { art: () => {
+      const X = [24, 70, 116, 162, 208, 254, 296], Y = [140, 118, 128, 96, 104, 80, 70];
+      let d = "M" + X[0] + " " + Y[0];
+      for (let i = 1; i < 7; i++) { const cx = (X[i - 1] + X[i]) / 2; d += " C " + cx + " " + Y[i - 1] + ", " + cx + " " + Y[i] + ", " + X[i] + " " + Y[i]; }
+      return '<svg class="fl" width="320" height="220" viewBox="0 0 320 220" fill="none"><defs><linearGradient id="fa" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#79CCA8" stop-opacity=".45"/><stop offset="1" stop-color="#79CCA8" stop-opacity="0"/></linearGradient>' +
+        '<radialGradient id="fh"><stop stop-color="#FDE8A4" stop-opacity=".85"/><stop offset="1" stop-color="#FDE8A4" stop-opacity="0"/></radialGradient></defs>' +
+        '<path class="area" d="' + d + ' L 296 176 L 24 176 Z" fill="url(#fa)"/>' +
+        '<path class="ln" d="' + d + '" stroke="#299D6B" stroke-width="3.5" stroke-linecap="round" pathLength="400"/>' +
+        '<path d="M24 176H296" stroke="#EAECF0" stroke-width="1.5"/>' +
+        X.map((x, i) => (i === 6 ? '<circle class="pt" cx="' + x + '" cy="' + Y[i] + '" r="18" fill="url(#fh)" style="--d:1.45s"/><circle class="pt" cx="' + x + '" cy="' + Y[i] + '" r="7" fill="#fff" stroke="#CDA935" stroke-width="3.5" style="--d:1.5s"/>'
+          : '<circle class="pt" cx="' + x + '" cy="' + Y[i] + '" r="4.5" fill="#fff" stroke="#299D6B" stroke-width="3" style="--d:' + (.3 + i * .18) + 's"/>') +
+          '<text class="lb" x="' + x + '" y="196" text-anchor="middle">' + "MTWTFSS"[i] + '</text>').join("") + '</svg>';
+    },
+    t: 1.6, title: 'See how your <em>week flows</em>',
+    body: "One simple line for your nutrition sufficiency, day by day. Today shows up the moment you log." },
+  fan: { art: () => glimpse("fan"), t: 1.6, title: 'A glimpse of <em>your weeks</em>',
+    body: "Your protein, carbs and fats over time, your daily score, your weekly average and what KAIRA notices. All coming soon." },
+  deck: { art: () => glimpse("deck"), t: 3.9, title: 'Your weeks, <em>all in one place</em>',
+    body: "How your protein, carbs and fats move, your score day by day, your weekly average, and a tip from KAIRA." },
+  bento: { art: () => glimpse("bento"), t: 1.3, title: "Here's what's <em>coming to Trend</em>",
+    body: "Everything about your weeks on one screen, from your daily score to what KAIRA notices about your meals." },
+  swipe: { art: () => glimpse("swipe"), t: 1.2, title: 'A peek at <em>Trend</em>',
+    body: "Swipe through what's coming: your nutrients over time, your daily score, your average and KAIRA's take." },
+};
+/* the four glimpse cards, laid out four ways */
+const G = "../icons/glyph-";
+const CARDS = [
+  () => '<div class="gc mac"><span class="lb">What you ate</span><div class="bd"><svg viewBox="0 0 144 60" preserveAspectRatio="none" fill="none">' +
+    [["M2 44 C 30 40, 44 22, 72 26 S 116 12, 142 8", 1], ["M2 30 C 26 34, 50 40, 76 34 S 118 28, 142 30", .55], ["M2 52 C 34 50, 56 46, 84 48 S 122 40, 142 42", .3]]
+      .map(([d, o]) => '<path d="' + d + '" stroke="#444CE7" stroke-opacity="' + o + '" stroke-width="2.4" stroke-linecap="round"/>').join("") + '</svg></div></div>',
+  () => '<div class="gc bars"><span class="lb">How you did</span><div class="bd">' + [70, 86, 58, 94, 76, 40, 0].map((h, i) => '<b' + (i === 5 ? ' class="t"' : '') + ' style="height:' + (i === 6 ? 6 : h) + '%' + (i === 6 ? ';background:#F2F4F7' : '') + '"></b>').join("") + '</div></div>',
+  () => '<div class="gc avg"><span class="lb">Where you stand</span><div class="bd"><svg class="rn" viewBox="0 0 58 58" fill="none"><circle cx="29" cy="29" r="24" stroke="#E6FAF1" stroke-width="7"/><circle cx="29" cy="29" r="24" stroke="#59B38C" stroke-width="7" stroke-linecap="round" pathLength="100" stroke-dasharray="78 100" transform="rotate(-90 29 29)"/></svg>' +
+    '<div style="flex:1"><span class="sk" style="width:44px;height:14px;border-radius:7px;background:#E6FAF1"></span><span class="sk" style="width:62px;margin-top:6px"></span><span class="up">&#8593; this week</span></div></div></div>',
+  () => '<div class="gc kai"><span class="lb"><span class="orb"></span>KAIRA insights</span><div class="bd"><span class="ln" style="width:100%"></span><span class="ln" style="width:86%"></span><span class="ln" style="width:58%"></span></div></div>',
+];
+function glimpse(kind) {
+  const c = CARDS.map(f => f());
+  const st = (html, style) => html.replace('class="gc', 'style="' + style + '" class="gc');
+  if (kind === "fan") {
+    const P = [["-96px", "16px", "-12deg"], ["-32px", "-4px", "-4deg"], ["32px", "-4px", "4deg"], ["96px", "16px", "12deg"]];
+    return '<div class="fan">' + c.map((h, i) => st(h, "--x:" + P[i][0] + ";--y:" + P[i][1] + ";--r:" + P[i][2] + ";--d:" + (.15 + i * .14) + "s;z-index:" + i)).join("") + '</div>';
+  }
+  if (kind === "deck") {
+    /* the back card first, the KAIRA card lands in front */
+    const G = 1.1;   /* seconds each card holds the front */
+    return '<div class="dk">' + [0, 1, 2, 3].map(i => st(c[i], "--y:" + (-(3 - i) * 31) + "px;--s:" + (1 - (3 - i) * .05).toFixed(2) + ";--d:" + (.2 + i * G) + "s;--e:" + (i < 3 ? .2 + (i + 1) * G - .1 : 99) + "s;z-index:" + i)).join("") + '</div>';
+  }
+  if (kind === "bento") return '<div class="bn">' + c.map((h, i) => st(h, "--d:" + (.15 + i * .12) + "s")).join("") + '</div>';
+  return '<div class="cr"><div class="tk" id="tk">' + c.map((h, i) => st(h, "--d:" + (.1 + i * .1) + "s")).join("") + '</div><div class="dots">' + c.map((_, i) => '<i' + (i ? '' : ' class="on"') + '></i>').join("") + '</div></div>';
+}
+/* one message on every version: what's coming, and what to do meanwhile */
+const TITLE = 'Trends are on the way';
+const BODY = "Soon you'll see the bigger picture of how your nutrition sufficiency is going, week after week, with insights from KAIRA.";
+const NUDGE = "Keep logging, and your trends will be ready soon.";
+const v = V[new URLSearchParams(location.search).get("v")] || V.sprout;
+function render() {
+  const t = v.t;
+  document.getElementById("soon").innerHTML =
+    '<div class="art" id="art">' + v.art() + '</div>' + pill(t) +
+    '<h1 class="up" style="--d:' + (t + .08) + 's">' + TITLE + '</h1>' +
+    '<p class="body up" style="--d:' + (t + .16) + 's">' + BODY + '</p>' +
+    '<p class="nudge up" style="--d:' + (t + .2) + 's">' + NUDGE + '</p>' +
+    '<div class="cta up" style="--d:' + (t + .24) + 's"><button class="gf-btn" id="notify">Notify Me</button></div>';
+  const art = document.getElementById("art");
+  const tk = document.getElementById("tk");
+  if (tk) {
+    /* a swipe moves the dots; the art doesn't replay on tap, so swiping stays swiping */
+    art.style.cursor = "default";
+    tk.addEventListener("scroll", () => { const i = Math.round(tk.scrollLeft / 232); art.querySelectorAll(".dots i").forEach((d, j) => d.classList.toggle("on", j === i)); }, { passive: true });
+  } else art.onclick = render;
+  document.getElementById("notify").onclick = e => {
+    e.currentTarget.outerHTML = '<p class="told"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>We\'ll let you know</p>';
+    const t = document.getElementById("toast"); t.classList.add("on"); setTimeout(() => t.classList.remove("on"), 3000);
+  };
+}
+render();
+/* ?told=1 shows the moment after Notify Me, for the doc */
+if (new URLSearchParams(location.search).get("told")) setTimeout(() => document.getElementById("notify").click(), (v.t + .6) * 1000);
+</script>
+<script src="chrome.js"></script>
+</body>
+</html>

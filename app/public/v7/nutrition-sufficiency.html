@@ -544,13 +544,13 @@
     <section id="mealsheet">
       <div class="snum">Section</div>
       <h2>The meal sheet</h2>
-      <p>One meal, against its own target. It opens from the small info icon at the top right of a meal card, and only a card with a plan has that icon: a free card or a no-plan card has no target to measure against, so it has no icon and no sheet.</p>
+      <p>One meal, against its own target. It opens from a small neutral chip, "ⓘ Nutrition breakdown", right under the meal's suggested time. Only a card with a plan has the chip: a free card or a no-plan card has no target to measure against, so it has no chip and no sheet.</p>
       <ul class="plain">
         <li><b>Header:</b> the meal's name top left, the circle X top right. Under it: "Suggested 8:00–10:00 AM · what went in, against this meal’s target".</li>
         <li><b>Four rows, always in this order:</b> Protein, Carbs, Fats, Calories. Each row gives the amount eaten and its ideal range ("Ideal: 19–29 g"), then a thin bar: an indigo fill for what went in, and two handles marking the ends of the range.</li>
         <li><b>What counts:</b> the plan foods that are ticked, plus anything logged on top. The target is the plan option the user chose for that meal, or the one on show if they haven't chosen.</li>
         <li><b>The range:</b> the meal's target give or take 20%. For protein, carbs and fats it is never narrower than 3 g either side, so a tiny target still has room.</li>
-        <li><b>Colour:</b> values are neutral grey. A value outside its range, over or under, turns error red, #D92D20. Nothing else changes colour. Macro icons stay neutral.</li>
+        <li><b>Colour:</b> values are neutral grey. A value outside its range, over or under, turns error red, #D92D20. Past the top of the range, the bar itself turns red from the top handle onward, in a light to error red gradient. Under the range, only the number is red. Macro icons stay neutral.</li>
         <li><b>Under the bars:</b> a small legend for the range, then "What the ideal range means" in plain words.</li>
       </ul>
       <div class="cases" data-cases="mealsheet"></div>
@@ -563,7 +563,7 @@
       <ul class="plain">
         <li><b>What shaped your score?</b> A macro tile's grams turn red once they pass that macro's target for the day (88g of 95g stays as it is; 310g of 238g turns red). The calorie line does the same once it passes the day's goal.</li>
         <li><b>The sufficiency sheet:</b> the same rule on its three tiles and its calorie line.</li>
-        <li><b>A meal's sheet</b> (the info icon on a planned meal card): a number turns red when it falls outside its ideal range, the meal's target give or take 20%, or 3 g for a macro. Under the range is red too, because the range is drawn right there on the bar.</li>
+        <li><b>A meal's sheet</b> (the Nutrition breakdown chip on a planned meal card): a number turns red when it falls outside its ideal range, the meal's target give or take 20%, or 3 g for a macro. Under the range is red too, because the range is drawn right there on the bar.</li>
         <li>Nothing else turns red: the score, the tag and KAIRA's line say what the day means. Red here only marks which number went past.</li>
       </ul>
       <div class="cases" data-cases="over"></div>
@@ -575,14 +575,24 @@
       <p>When the day's nutrition sufficiency reaches 80% or more, the day earns a badge, and a celebration sheet rises once. The version chosen is <b>Spotlight</b>: a deep green sheet, one cone of warm light, and the badge resolving at the foot of the beam.</p>
       <ul class="plain">
         <li><b>The badge:</b> one badge, always the same: a sprout from a mound of soil, in a gold rosette. No name and no levels. It only counts how many times it has been earned.</li>
-        <li><b>Title:</b> "Yay! You earned a badge". On a repeat: "Yay! Another badge".</li>
-        <li><b>Line:</b> "We've rewarded you with a badge because you gave your body what it needed today. Protein, carbs and fats all landed close to your coach's targets."</li>
+        <li><b>Title:</b> "Yay! You earned a medal". On a repeat: "Yay! Another medal".</li>
+        <li><b>Line:</b> "We've rewarded you with a medal because you gave your body what it needed today. Protein, carbs and fats all landed close to your coach's targets."</li>
         <li><b>Coins:</b> a thin divider, then "+45 FlipCoins earned today", counting up from 0. The number is what the day's logging earned.</li>
         <li><b>One button:</b> "Share your achievement". The circle X closes the sheet. No date, no second button.</li>
         <li><b>Motion:</b> the sheet rises (0.1s), the cone widens (0.35s), the badge resolves (0.75s) with a pool of light under it, confetti in GoodFlip's colours rains from the top of the sheet for about 2s (0.9s), then the words and the coins. Everything eases; nothing bounces. With reduced motion on, there is no confetti and the coins show their final number.</li>
         <li><b>Size:</b> 600 px tall. This celebration sheet is the one place the sheet rules bend: a dark full colour background and a centred layout.</li>
       </ul>
       <div class="cases" data-cases="badge"></div>
+
+      <h3>After the sheet: the medal that hangs</h3>
+      <p>Once the sheet closes, the badge stays on the Eat screen for the rest of that day, as a medal hanging just below the header on the right.</p>
+      <ul class="plain">
+        <li><b>What it is:</b> the same gold rosette, 40 px, on a short ribbon in gold and Flip green that tucks behind it.</li>
+        <li><b>When it shows:</b> only on a day whose nutrition sufficiency is 80% or more, on that day's view. A day below 80% shows nothing.</li>
+        <li><b>Motion:</b> on arrival the ribbon drops in from above and the medal swings once, settling still in about 1.4s. It never moves again while the screen is open. With reduced motion it simply appears.</li>
+        <li><b>Tap, to decide:</b> the natural answer is to play the celebration sheet again. The prototype doesn't do this yet.</li>
+      </ul>
+      <div class="cases" data-cases="medal"></div>
     </section>
 
     <section id="date">
@@ -593,7 +603,7 @@
       <h3>The sheet</h3>
       <ul class="plain">
         <li>One month at a time, a ring per day showing that day's sufficiency out of 100.</li>
-        <li>Legend at the bottom: "The ring is your nutrition sufficiency out of 100".</li>
+        <li>Legend at the bottom: "The ring is your nutrition sufficiency out of 100. A medal is a day at 80% or more."</li>
         <li>Tapping a day loads that day and closes the sheet.</li>
         <li>Closes on the X, on a tap outside, and on Escape.</li>
       </ul>
@@ -607,7 +617,7 @@
         <li>Logged before the plan existed: a dot instead of a ring, tappable.</li>
         <li>Before joining: greyed, not tappable.</li>
         <li>Future days, including later this month: greyed, not tappable.</li>
-        <li>Perfect day: full ring with a centre dot.</li>
+        <li>A day at 80% or more: the medal, small and without its ribbon, in place of the ring. That covers a perfect day too.</li>
       </ul>
 
       <h3>Month navigation</h3>
@@ -650,6 +660,22 @@
 
     <!-- Out of scope for this release. Kept for reference, not deleted: the
          phones still run, they just read as parked. -->
+    <section id="trendsoon">
+      <div class="snum">Section</div>
+      <h2>The Trend tab, coming soon</h2>
+      <p>Trend isn't in this release, so its tab opens a coming soon screen. It says what's on the way, that logging now counts, and offers one button to hear when it lands. Version chosen: <b>A hand of cards</b>.</p>
+      <ul class="plain">
+        <li><b>Layout:</b> no header, the Trend tab's bottom nav. Top to bottom: the cards, a "Coming soon" chip, the heading, two lines of copy, then Notify Me at the foot.</li>
+        <li><b>The cards:</b> four small cards fanned like a hand, a glimpse of what Trend will hold: What you ate (three macro lines over time), How you did (a sufficiency bar per day, today dashed in gold), Where you stand (the weekly average as a ring) and KAIRA insights (the KAIRA mark, placeholder lines). Shapes only: no numbers, no made-up data. Neutral labels and icons.</li>
+        <li><b>Chip:</b> the score's verdict chip in its gold state, with a clock: "Coming soon".</li>
+        <li><b>Heading:</b> "Trends are on the way", Playfair, neutral.</li>
+        <li><b>Copy:</b> "Soon you'll see the bigger picture of how your nutrition sufficiency is going, week after week, with insights from KAIRA." Then on its own line: "Keep logging, and your trends will be ready soon."</li>
+        <li><b>Notify Me:</b> the primary button. Tapped, it gives way to a quiet line, "✓ We'll let you know", and the system toast drops in at the top: "You're on the list for Trends". It can't be tapped twice.</li>
+        <li><b>Motion:</b> the cards are dealt in one by one, left to right, about 0.15s apart, then the chip and the words rise in. It plays once and ends still; a tap on the cards plays it again. Reduced motion shows the end state.</li>
+      </ul>
+      <div class="cases" data-cases="trendsoon"></div>
+    </section>
+
     <section id="trend" class="oos">
       <div class="snum">Out of scope</div>
       <h2>The Trend tab</h2>
@@ -813,13 +839,21 @@ const CASES = {
     ["state=over", "Past three targets", "state=over", "Carbs at 310g of 238g, fats at 78g of 63g and 2,340 of 1,900 kcal turn red. Protein, still short, stays as it is."],
     ["state=overone", "Past one, short on the rest", "state=overone", "Only fats went past, 70g of 63g, so only fats turn red."],
     ["state=over&sheet=suff", "The sufficiency sheet, past its targets", "sheet=suff", "The same three numbers turn red on its tiles and its calorie line."],
-    ["state=mid&meal=bf", "A meal's sheet, outside its range", "meal=bf", "Breakfast from its info icon: carbs and calories sit outside their ideal range, so they turn red. Protein and fats are inside, so they don't."],
+    ["state=mid&meal=bf", "A meal's sheet, outside its range", "meal=bf", "Breakfast from its Nutrition breakdown chip: carbs and calories sit outside their ideal range, so they turn red. Protein and fats are inside, so they don't."],
   ],
   mealsheet: [
     ["state=mid&meal=lunch", "Inside every range", "meal=lunch", "Lunch: 18 g protein (15–23), 62 g carbs (52–79), 14 g fats (11–17), 446 kcal (371–557). All inside, so all neutral."],
     ["state=mid&meal=bf", "Outside on two", "meal=bf", "Breakfast: carbs at 56 g against 25–37 g and 486 kcal against 306–458 turn red. Protein and fats are inside and stay neutral."],
     ["state=mid&meal=pre", "A tiny target", "meal=pre", "Early morning: the targets are close to zero, so the 3 g floor gives protein and fats a 0–3 g range instead of a zero-width one."],
     ["state=daydone&meal=dinner", "Nothing logged yet", "meal=dinner", "Dinner with nothing ticked: every value is 0, under its range, so every value is red."],
+  ],
+  medal: [
+    ["state=perfect&badge=medal", "A 100% day", "badge=medal", "The medal hangs below the Earn chip, beside the date and the score."],
+    ["state=mid&badge=medal", "Below 80%", "state=mid", "A 49% day: no medal."],
+  ],
+  trendsoon: [
+    ["r3/trend-soon.html?v=fan", "On arrival", "v=fan", "The cards dealt in, then the words. Tap the cards to play it again."],
+    ["r3/trend-soon.html?v=fan&told=1", "After Notify Me", "told=1", "The button gives way to a quiet line, and the toast confirms it at the top for 3 seconds."],
   ],
   badge: [
     ["badge-celebration-options.html?only=3&v=3", "Spotlight", "only=3", "The chosen version, playing once. Tap the dimmed day behind the sheet to play it again."],
@@ -920,6 +954,7 @@ const SECTIONS = [
   ["badge", "The badge moment"],
   ["date", "The date sheet"],
   ["learn", "The Learn tab"],
+  ["trendsoon", "Trend, coming soon"],
   ["trend", "The Trend tab (out of scope)"],
   ["decisions", "Decisions settled"],
   ["backend", "What the backend needs"],

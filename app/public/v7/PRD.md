@@ -151,7 +151,7 @@ Opens from the date chip.
 9. Logged before the plan existed: a dot instead of a ring, tappable.
 10. Before joining: greyed, not tappable.
 11. Future days, including later this month: greyed, not tappable.
-12. Perfect day: full ring with a centre dot.
+12. A day at 80% or more: the medal, small and without its ribbon, in place of the ring. That covers a perfect day too.
 
 **Month navigation**
 13. Back stops at the joining month, then the arrow is disabled.
