@@ -267,6 +267,8 @@
     background: rgba(255,255,255,.75); box-shadow: inset 0 0 0 1px rgba(164,188,253,.55);
     padding: 10px 12px; flex-direction: column; align-items: stretch; gap: 0; }
   .macros.tiles .m::before { display: none; }
+  /* no target line under the grams (a free user, grams only), so the tile drops the room it kept for one */
+  .macros.tiles .m.nof { height: 74px; }
   /* a slim highlight down the left wall of the glass */
   .macros.tiles .m::after { content: ""; position: absolute; left: 7px; top: 10px; width: 3px; height: 50%;
     border-radius: 2px; pointer-events: none; background: linear-gradient(to bottom, rgba(255,255,255,.5), rgba(255,255,255,0)); }
@@ -964,7 +966,9 @@
   .echips .eglyph { background: linear-gradient(to bottom, #475467, #101828); }
   .echips b, .ecal b { font: 700 15px/18px Roboto, sans-serif; color: var(--g-900); font-variant-numeric: tabular-nums; }
   .echips b small, .ecal b small { font: 400 12px/1 Roboto, sans-serif; color: var(--g-500); }
-  .ecal { display: flex; align-items: center; gap: 8px; margin: 12px 0 4px; padding: 12px 2px 0; border-top: 1px solid var(--g-200); font-size: 13.5px; color: var(--g-700); }
+  .ecal { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; padding: 0 2px 12px; border-bottom: 1px solid var(--g-200); font-size: 13.5px; color: var(--g-700); }
+  .ecal .eflm { flex: none; width: 16px; height: 16px; background: linear-gradient(to bottom, #475467, #101828);
+    -webkit-mask: url(../icons/flame-filled.svg) center / contain no-repeat; mask: url(../icons/flame-filled.svg) center / contain no-repeat; }
   .ecal b { margin-left: auto; font-weight: 600; }
   .sfoot { flex-shrink: 0; padding: 12px var(--gut) calc(16px + env(safe-area-inset-bottom, 0px)); background: #fff; border-top: 1px solid var(--g-100); }
   .ecta { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; margin-bottom: 7px; border: 0; border-radius: 12px;
@@ -2031,7 +2035,7 @@ function loadScripts(list, done) {
       var of = M.mode === "grams" || M.mode === "blank" || !target ? "" : '<span class="mof">of ' + fmt(target) + "g</span>";
       /* past its target, the number turns red (GoodFlip error 600); the tile and its fill stay as they are */
       var over = M.mode === "targets" && target && eaten > target;
-      return '<div class="m' + (pct >= 1 ? " done" : pct <= 0 ? " still" : "") + (over ? " over" : "") + '"><span class="tpool"><span class="gfill" style="--f:' + (pct * 100).toFixed(1) + '%"></span></span>' +
+      return '<div class="m' + (pct >= 1 ? " done" : pct <= 0 ? " still" : "") + (over ? " over" : "") + (of ? "" : " nof") + '"><span class="tpool"><span class="gfill" style="--f:' + (pct * 100).toFixed(1) + '%"></span></span>' +
         '<span class="ttop"><span class="tgl ' + g.cls + '"></span>' + g.name + '</span>' +
         '<span class="mval">' + val + '</span>' + of + '</div>';
     }).join("");
@@ -2247,8 +2251,9 @@ function loadScripts(list, done) {
       (LOCKED ? num(v.eaten, 0, "g") : num(SCORE == null ? 0 : v.eaten, v.target || TGT[i], "g")) + "</div>";
   }).join("");
   var CAL = S.cal || {};
-  var card = '<div class="echips">' + chips + '</div><div class="ecal"><span>Calories</span>' +
-    (LOCKED || CAL.mode === "none" ? num(CAL.eaten || 0, 0, " kcal") : num(CAL.eaten || 0, CAL.goal || 1900, " kcal")) + "</div>";
+  /* calories first, as on the Eat screen, with the same filled flame; the three macros follow */
+  var card = '<div class="ecal"><span class="eflm"></span><span>Calories</span>' +
+    (LOCKED || CAL.mode === "none" ? num(CAL.eaten || 0, 0, " kcal") : num(CAL.eaten || 0, CAL.goal || 1900, " kcal")) + '</div><div class="echips">' + chips + "</div>";
 
   /* Hero: the day view's Cloud Drop, shorter. The score, orbs and tag live
      inside it; a quiet caption only adds the day when it is not today. */

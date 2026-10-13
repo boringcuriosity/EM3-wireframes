@@ -690,40 +690,33 @@
   .qfacts { border-radius: 16px; overflow: hidden; border: 1px solid #F2F4F7;
     background: linear-gradient(180deg, #FCFCFD 0%, #F9FAFB 100%); }
   /* the total sits under the four parts, on its own line, with its own word */
-  .qcal { display: flex; align-items: center; gap: 8px; padding: 14px 16px;
-    border-top: 1px solid #F2F4F7; }
-  .qcal .cl { flex: 1; min-width: 0; font-size: 13px; color: #667085; }
-  /* the same grey the four macro glyphs carry, so the five marks in this panel
-     read as one set. Near black made the flame the heaviest thing in a panel
-     that is only stating facts, and it competed with the figure beside it. */
-  .qcal svg { align-self: center; flex-shrink: 0; }
-  .qcal svg path { fill: #667085; }
-  /* 20, not 26. The macro figures below are 15, and a 26 against a 15 is not a
-     hierarchy, it is two different sizes of type in one small panel. 20 still
-     leads, because calories is the headline number and it keeps the heavier
-     weight, but the five figures now read as one set of facts rather than one
-     headline with four footnotes. The unit drops to 13 for the same reason,
-     one step above the macro labels instead of two. */
-  /* the same 15 the macro figures carry, one weight heavier because it is the
-     total of them rather than another one of them */
-  .qcal b { font-size: 15px; line-height: 20px; font-weight: 700; color: #101828; }
-  .qcal .cu { font-size: 13px; color: #667085; }
-
-  .qmac { display: flex; }
-  .qmac div { flex: 1; min-width: 0; text-align: center; padding: 14px 4px 16px; }
-  .qmac div + div { border-left: 1px solid #F2F4F7; }
-  /* Neutral, not indigo. The four glyphs are identification, not measurement:
-     nothing here is scored, so a saturated colour claimed a meaning the row
-     does not carry, and four of them made a facts panel the loudest thing in
-     the sheet. Macros stay one colour with their own icons, which is the rule
-     everywhere else in this pillar; here that one colour is grey. */
-  .qmac .g { width: 22px; height: 22px; margin: 0 auto; background: #667085;
+  .qcal { display: flex; align-items: center; gap: 8px; padding: 16px;
+    border-bottom: 1px solid #F2F4F7; }
+  /* Two levels only. Figures lead: 18, bold, near black. Names and units
+     follow: 14, regular, g-600. Calories and the three macros share both
+     levels, and every mark is the Eat screen's glyph gradient at 18, so the
+     panel reads as one set of facts with the total on its own line. */
+  .qfacts .qflm, .qmac .g { flex: none; width: 18px; height: 18px;
+    background: linear-gradient(to bottom, #475467, #101828);
     -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat;
     mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
-  .qmac b { display: block; margin-top: 8px; font-size: 15px; line-height: 20px;
-    font-weight: 600; color: #101828; }
-  .qmac div span { display: block; margin-top: 1px; font-size: 12px; line-height: 18px;
-    color: #667085; }
+  .qcal .qflm { -webkit-mask-image: url(../icons/flame-filled.svg); mask-image: url(../icons/flame-filled.svg); }
+  .qcal .cl, .qmac .ml { font-size: 14px; line-height: 20px; color: #475467; }
+  .qcal .cl { flex: 1; min-width: 0; }
+  .qcal b, .qmac b { font-size: 18px; line-height: 24px; font-weight: 700; color: #101828;
+    font-variant-numeric: tabular-nums; }
+  .qcal .cu, .qmac b small { font-size: 14px; font-weight: 400; color: #475467; }
+  .qcal .cu { margin-left: -4px; }
+  .qmac b small { margin-left: 2px; }
+  /* the three figures are what the stepper changes, so they read first */
+  .qmac b { font-size: 22px; line-height: 28px; }
+
+  .qmac { display: flex; }
+  .qmac div { flex: 1; min-width: 0; display: flex; flex-direction: column;
+    align-items: center; gap: 4px; padding: 16px 4px; }
+  .qmac div + div { border-left: 1px solid #F2F4F7; }
+  /* the icon sits beside its name, as the flame does beside Calories */
+  .qmac .ml { display: flex; align-items: center; gap: 6px; }
 
   /* Once it is in the meal the primary becomes the control, in place: same
      green bar, same height, same lip. The button does not disappear and get
@@ -1900,14 +1893,15 @@ function renderSheet() {
          did not. Label left, figure right, which is how the day view's own
          calorie strip is built. */
       '<div class="qfacts">' +
+        /* calories first, as on the Eat screen and in its sheets; the three macros under it */
+        '<div class="qcal"><span class="qflm"></span><span class="cl">Calories</span>' +
+          "<b>" + fd.kcal + "</b><span class=\"cu\">kcal</span></div>" +
         '<div class="qmac">' +
           [["protein", "Protein", fd.p], ["carbs", "Carbs", fd.c],
            ["fats", "Fats", fd.f]].map(function (m) {
-            return '<div><span class="g glyph-' + m[0] + '"></span><b>' +
-              m[2] + "g</b><span>" + m[1] + "</span></div>";
+            return '<div><b>' + m[2] + '<small>g</small></b><span class="ml"><span class="g glyph-' + m[0] + '"></span>' +
+              m[1] + "</span></div>";
           }).join("") + "</div>" +
-        '<div class="qcal">' + I.flame + '<span class="cl">Calories</span>' +
-          "<b>" + fd.kcal + "</b><span class=\"cu\">kcal</span></div>" +
       "</div>" +
       /* a coach's food is confirmed before it goes in: how much, and when */
       (s.plan ? timePart() : "") +
