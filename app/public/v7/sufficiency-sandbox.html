@@ -273,7 +273,7 @@
 <script>
 /* ============================================================ data */
 /* per portion: protein, carbs, fats in grams; kcal derived (4/4/9) */
-function F(id, name, unit, p, c, f) { return { id: id, name: name, unit: unit, p: p, c: c, f: f, kcal: Math.round(p * 4 + c * 4 + f * 9) }; }
+function F(id, name, unit, p, c, f, kcal) { return { id: id, name: name, unit: unit, p: p, c: c, f: f, kcal: kcal != null ? kcal : Math.round(p * 4 + c * 4 + f * 9) }; }
 
 /* the coach's plan: the items per meal. Each meal's targets are these items added up */
 var SLOTS = [
@@ -293,17 +293,27 @@ var SLOTS = [
   { id: "bed", name: "Bedtime", win: "Suggested 10:00 to 11:00 PM",
     foods: [F("walnut", "Walnut", "2 pieces", 1.2, 1, 5.2), F("chamomile", "Chamomile tea", "1 cup", 0, 0.5, 0)] }
 ];
+/* junk foods from the GoodFlip food database (coach portal food picker, 12 Oct 2026); macros and kcal are the database values times the portion */
 var JUNK = [
-  F("paratha", "Aloo parathas with butter", "2 parathas", 10, 80, 40), F("pepsi", "Pepsi", "1 large", 0, 65, 0),
-  F("maggi", "Maggi with a slice of bread", "2 packs + 1 slice", 19, 124, 31),
-  F("icecream", "Belgian chocolate ice cream", "2 scoops", 5, 40, 22), F("margherita", "Margherita pizza", "1 full pizza", 44, 120, 40),
-  F("pasta", "White sauce pasta", "1 plate", 18, 80, 30), F("samchai", "Samosas with chai", "2 samosas + 1 chai", 11, 63, 31),
-  F("samosa", "Samosa", "1 piece", 4, 24, 14), F("pizza", "Pizza", "1 slice", 12, 33, 10),
-  F("fries", "French fries", "1 medium", 4, 44, 17), F("burger", "Burger", "1 piece", 14, 40, 18),
-  F("noodles", "Instant noodles", "1 pack", 6, 55, 16), F("chips", "Potato chips", "1 pack", 3, 26, 17),
-  F("pakora", "Pakora", "1 plate", 6, 30, 20), F("cola", "Cola", "1 can", 0, 35, 0),
-  F("gulab", "Gulab jamun", "2 pieces", 3, 50, 12), F("jalebi", "Jalebi", "100 g", 2, 60, 15),
-  F("choc", "Chocolate bar", "1 bar", 3, 28, 14), F("biscuit", "Cream biscuits", "4 pieces", 2, 30, 10)
+  F("paratha", "Aloo paratha with butter", "2 parathas + 2 tsp butter", 10, 64, 26.1, 503),
+  F("pepsi", "Pepsi", "1 bottle/can", 0, 39.08, 0, 140),
+  F("maggi", "Instant noodles with a slice of bread", "2 packs + 1 slice", 14.61, 100.21, 22.87, 669),
+  F("icecream", "Chocolate ice cream", "1 bowl", 5.28, 36.96, 14.52, 285),
+  F("margherita", "Margherita pizza", "4 slices", 36, 68, 36, 728),
+  F("pasta", "Spaghetti in white sauce", "1 bowl", 5, 19, 7, 156),
+  F("samchai", "Samosas with chai", "2 samosas + 1 cup chai", 9, 51, 22, 445),
+  F("samosa", "Samosa", "1 piece", 3, 22, 10, 193),
+  F("pizza", "Veg pizza", "1 slice", 4, 23, 5, 150),
+  F("fries", "French fries", "1 serving", 2, 19, 14, 204),
+  F("burger", "Veg cheese burger", "1 piece", 9, 52, 22, 461),
+  F("noodles", "Instant noodles", "1 pack", 6, 43, 11, 296),
+  F("chips", "Potato chips", "1 bowl", 1.92, 17.28, 10.88, 170),
+  F("pakora", "Vegetable pakoras", "1 serving", 10, 36.67, 13.33, 283),
+  F("cola", "Coke", "1 can", 0, 39.94, 0, 148),
+  F("gulab", "Gulab jamun", "2 pieces", 6, 32, 6, 210),
+  F("jalebi", "Jalebi", "2 pieces", 2, 54, 10, 314),
+  F("choc", "Cadbury Dairy Milk", "1 piece", 0.67, 5.67, 3, 53),
+  F("biscuit", "Cream biscuits", "4 biscuits", 2.8, 38.08, 14, 290)
 ];
 var HEALTHY = [
   F("paneer", "Paneer bhurji", "1 katori", 14, 6, 15), F("chicken", "Grilled chicken", "100 g", 31, 0, 4),

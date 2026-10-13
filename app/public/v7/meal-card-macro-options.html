@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meal card macros</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="r3/goodflip-ui.css">
+<link rel="stylesheet" href="icons/glyph-masks.css">
+<style>
+  /* Round 2. Once food is in a meal, its card says what that meal holds,
+     without covering the scene. The card shows intake only; the meal's own
+     targets live one tap away, in a bottom sheet behind an info icon. The card
+     is the real one from r3/eat.html. Logged food is indigo; each macro is
+     GoodFlip's own glyph, never its own hue. Standalone. */
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, Arial, sans-serif; letter-spacing: .25px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 56px 24px 80px; }
+  h1 { font-weight: 600; font-size: 40px; line-height: 48px; margin: 0 0 12px; }
+  .lede { max-width: 780px; margin: 0 0 12px; font-size: 16px; line-height: 26px; color: var(--g-600); }
+  .lede b, .shp b { color: var(--g-900); font-weight: 600; }
+  h2.sh { margin: 56px 0 6px; font-size: 24px; line-height: 32px; font-weight: 600; }
+  .shp { margin: 0 0 24px; max-width: 780px; font-size: 15px; line-height: 24px; color: var(--g-600); }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 28px; }
+  .bar .lab2 { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--g-400); margin-right: 4px; }
+  .pill { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; font: 600 14px/20px Roboto, sans-serif; border: 1px solid var(--g-200); background: #fff; color: var(--g-600); border-radius: 9999px; cursor: pointer; }
+  .pill.on { border-color: var(--in-600); background: var(--in-25); color: var(--in-900); }
+
+  .decide { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 0 0 8px; }
+  .dcard { border: 1px solid var(--g-200); border-radius: 16px; padding: 18px 20px; }
+  .dcard.rec { border-color: var(--brand-400); box-shadow: 2px 3px 0 0 var(--brand-200); }
+  .dcard h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; font-size: 16px; line-height: 24px; }
+  .dcard p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .dcard ul { margin: 8px 0 0; padding-left: 18px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(372px, 1fr)); gap: 28px; }
+  .opt { display: flex; flex-direction: column; border: 1px solid var(--g-200); border-radius: 16px; box-shadow: 2px 3px 0 0 rgba(152,162,179,.35); background: #fff; overflow: hidden; }
+  .opt.rec { border-color: var(--brand-400); box-shadow: 2px 3px 0 0 var(--brand-200); }
+  .stage { padding: 20px 7px 4px; background: var(--g-25); }
+  .meta { display: flex; flex-direction: column; gap: 6px; padding: 16px 20px 20px; border-top: 1px solid var(--g-200); flex: 1; }
+  .meta h3 { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
+  .tag { font-size: 12px; font-weight: 500; border-radius: 8px; padding: 2px 8px; color: var(--g-600); background: var(--g-100); }
+  .tag.rec { color: var(--brand-700); background: var(--brand-50); }
+  .tag.q { color: #B54708; background: #FFFAEB; }
+  .meta p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .meta .fit { font-size: 13px; line-height: 19px; color: var(--g-500); }
+  .meta .fit b { font-weight: 600; color: var(--g-700); }
+
+  /* ---------- the meal card, as r3/eat.html draws it ---------- */
+  .meal { position: relative; isolation: isolate; width: 358px; margin: 0 auto 16px; border-radius: var(--r-xl); border: 1px solid transparent;
+    box-shadow: 2px 2px 0 var(--g-200);
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 29%, #fff 100%) padding-box,
+      conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; }
+  .meal::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 100%; max-height: 132px; z-index: -1;
+    border-radius: inherit; opacity: .55; background: var(--scene) right top / auto 100% no-repeat;
+    -webkit-mask: linear-gradient(90deg, transparent 18%, #000 62%), linear-gradient(180deg, #000 45%, transparent);
+    -webkit-mask-composite: source-in; mask-composite: intersect; }
+  .mh { position: relative; display: flex; align-items: flex-start; gap: 8px; padding: 16px; }
+  /* the scene owns the right of the header: text keeps to the left, where the scene has faded */
+  .mh .t { flex: 1; min-width: 0; max-width: 252px; }
+  /* four pills need a little more than a line of text; they're frosted, so the scene still shows through */
+  .mh .t:has(.chipsx) { max-width: 290px; }
+  .n { font-size: 16px; line-height: 22px; font-weight: 600; }
+  .s { font-size: 12px; line-height: 18px; color: var(--g-500); margin-top: 2px; }
+  .mbi { margin: 0 16px; padding: 12px 0 16px; border-top: 1px solid rgb(234 236 240 / .6); }
+  .lab { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: var(--g-500); margin: 0 0 8px; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+  .row .tick { width: 24px; height: 24px; border-radius: 50%; flex: none; display: grid; place-items: center; background: var(--brand-600); color: #fff; line-height: 0; }
+  .row .tick.off { background: #fff; border: 1.5px solid var(--g-300); }
+  .row .tick svg { width: 14px; height: 14px; }
+  .row .t2 { flex: 1; min-width: 0; }
+  .row b { display: block; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--g-900); }
+  .row .t2 span { display: block; font-size: 12px; line-height: 16px; color: var(--g-500); }
+  .row .k { font-size: 12px; color: var(--g-500); white-space: nowrap; }
+
+  .gl { display: inline-block; width: 14px; height: 14px; flex: none; background: currentColor; -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+  .flame { display: inline-block; width: 14px; height: 14px; flex: none; background: currentColor; -webkit-mask: url(icons/flame-filled.svg) center / contain no-repeat; mask: url(icons/flame-filled.svg) center / contain no-repeat; }
+  /* the Eat screen's own calorie flame, the filled cut (r3/eat.html), so the meal card and the day agree */
+
+  /* A · one quiet line, kcal fourth */
+  .qline { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; font-size: 12px; line-height: 16px; color: var(--g-600); font-variant-numeric: tabular-nums; }
+  .qline span { display: inline-flex; align-items: center; gap: 4px; }
+  .qline .gl, .qline .flame { color: var(--in-500); }
+  /* C · chips, kcal as plain intake */
+  .chipsx { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .cx { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 7px; border-radius: 9999px; background: rgb(242 244 247 / .85); font-size: 12px; font-weight: 500; color: var(--g-700); font-variant-numeric: tabular-nums; }
+  .cx .gl, .cx .flame { width: 12px; height: 12px; color: var(--in-500); }
+  /* D · four columns under the header */
+  .cols { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0 16px; padding: 12px 0; border-top: 1px solid rgb(234 236 240 / .6); }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+  .col + .col { border-left: 1px solid var(--g-100); }
+  .col .gl, .col .flame { width: 16px; height: 16px; color: var(--in-500); }
+  .col b { font-size: 14px; line-height: 20px; font-weight: 700; color: var(--g-900); font-variant-numeric: tabular-nums; }
+  .col b small { font-size: 11px; font-weight: 500; color: var(--g-500); margin-left: 1px; }
+  .col span { font-size: 11px; line-height: 14px; color: var(--g-500); }
+  /* G · split bar */
+  .split { margin-top: 8px; }
+  .sbx { display: flex; gap: 2px; height: 6px; border-radius: 9999px; overflow: hidden; }
+  .sbx i:nth-child(1) { background: var(--in-700); } .sbx i:nth-child(2) { background: var(--in-400); } .sbx i:nth-child(3) { background: var(--in-200); }
+  .split .lg { display: flex; justify-content: space-between; margin-top: 6px; font-size: 12px; color: var(--g-600); font-variant-numeric: tabular-nums; }
+  .split .lg span { display: inline-flex; align-items: center; gap: 4px; }
+  .split .lg .gl, .split .lg .flame { color: var(--in-500); }
+  /* H · Breakdown chip, opens a strip in the card */
+  .tap { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; height: 26px; padding: 0 8px 0 10px; border-radius: 9999px; border: 1px solid var(--in-100); background: rgb(255 255 255 / .85); font: 600 12px Roboto, sans-serif; color: var(--in-700); cursor: pointer; }
+  .tap svg { width: 12px; height: 12px; transition: transform .25s cubic-bezier(.2,0,0,1); }
+  .meal.open .tap svg { transform: rotate(180deg); }
+  .drawer { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .3s cubic-bezier(.2,0,0,1); }
+  .meal.open .drawer { grid-template-rows: 1fr; }
+  .drawer > div { overflow: hidden; }
+  .dr { display: grid; grid-template-columns: repeat(4, 1fr); margin: 0 16px 12px; padding: 10px 4px; border-radius: 12px; background: var(--in-25); }
+  .dr span { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; color: var(--g-500); }
+  .dr b { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 700; color: var(--g-900); font-variant-numeric: tabular-nums; }
+  .dr .gl, .dr .flame { color: var(--in-500); }
+
+  /* the info door: a small frosted disc on the scene, so the scene still shows round it */
+  .info { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
+    background: rgb(255 255 255 / .72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: 0 0 0 1px rgb(224 234 255 / .9); color: var(--in-600); display: grid; place-items: center; }
+  .info::after { content: ""; position: absolute; inset: -6px; }
+  .info svg { width: 18px; height: 18px; }
+
+  /* ---------- the bottom sheet (GoodFlip rules: title top left, circle X top right, no handle) ---------- */
+  .phone { position: relative; width: 358px; height: 600px; margin: 0 auto 12px; border-radius: 28px; overflow: hidden; background: rgba(16,24,40,.42); box-shadow: 0 0 0 1px var(--g-200); }
+  .bs { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; overflow: auto; scrollbar-width: none; background: #fff; border-radius: 24px 24px 0 0; padding: 20px 16px 28px; }
+  .bs .hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
+  .bs h4 { margin: 0; font: 700 18px/24px Roboto, sans-serif; }
+  .bs .sub { font-size: 12px; line-height: 18px; color: var(--g-500); margin-bottom: 16px; }
+  .bs .x { width: 32px; height: 32px; border-radius: 50%; background: var(--g-100); display: grid; place-items: center; color: var(--g-700); flex: none; }
+  .bs .x svg { width: 16px; height: 16px; }
+  .bs .note { margin-top: 14px; font-size: 12px; line-height: 18px; color: var(--g-500); }
+  .st-ok { color: #027A48; } .st-lo, .st-hi { color: #B54708; }
+  .ssec { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: var(--g-500); margin: 18px 0 8px; }
+
+  /* S1 · GoodFlip's Nutritional Facts, for a whole meal */
+  .nf-k { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 2px; padding: 12px 14px; border-radius: 12px; background: var(--in-50); }
+  .nf-k::after { content: ""; position: absolute; right: -30px; top: -20px; width: 120px; height: 120px; border-radius: 50%; box-shadow: 0 0 0 10px rgb(255 255 255 / .35), 0 0 0 22px rgb(255 255 255 / .22), 0 0 0 34px rgb(255 255 255 / .12); }
+  .nf-k .l { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--g-700); }
+  .nf-k .l .flame { width: 16px; height: 16px; color: #F79009; }
+  .nf-k b { font-size: 26px; line-height: 32px; font-weight: 700; color: var(--g-900); font-variant-numeric: tabular-nums; }
+  .nf-k b small { font-size: 13px; font-weight: 500; color: var(--g-500); }
+  .nf-c { display: grid; grid-template-columns: repeat(3, 1fr); padding: 12px 0; border-bottom: 1px dashed var(--g-200); }
+  .nf-c span { display: flex; flex-direction: column; gap: 2px; }
+  .nf-c i.lb { display: inline-flex; align-items: center; gap: 4px; font-style: normal; font-size: 12px; color: var(--g-500); }
+  .nf-c .gl { color: var(--g-500); }
+  .nf-c b { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .nf-c em { font-style: normal; font-size: 11.5px; color: var(--g-500); }
+  .nf-f { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--g-100); font-size: 13px; }
+  .nf-f b { font-weight: 600; } .nf-f span { color: var(--g-500); font-size: 12px; } .nf-f .kk { color: var(--g-700); font-variant-numeric: tabular-nums; }
+
+  /* S2 · against the target: one bar per number, the full-marks band drawn on it */
+  .tb { padding: 12px 0; border-bottom: 1px solid var(--g-100); }
+  .tb .top { display: flex; align-items: center; gap: 8px; }
+  .tb .top .gl, .tb .top .flame { width: 18px; height: 18px; color: var(--in-500); }
+  .tb .nm { flex: 1; font-size: 14px; font-weight: 600; }
+  .tb .vl { font-size: 13px; color: var(--g-600); font-variant-numeric: tabular-nums; }
+  .tb .vl b { font-size: 15px; color: var(--g-900); }
+  .tb .track { position: relative; height: 8px; margin: 10px 0 6px; border-radius: 9999px; background: var(--g-100); }
+  .tb .band { position: absolute; top: 0; bottom: 0; border-radius: 9999px; background: var(--in-100); }
+  .tb .fill { position: absolute; left: 0; top: 2px; height: 4px; border-radius: 9999px; background: var(--in-500); }
+  .tb .tick2 { position: absolute; top: -3px; width: 2px; height: 14px; border-radius: 1px; background: var(--g-900); }
+  .tb .ws { font-size: 12px; font-weight: 600; }
+
+  /* S3 · big vessels: the day card's glyphs, with room to fill */
+  .vrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0 4px; }
+  .vbox { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+  .gv { position: relative; width: 64px; height: 64px;
+    filter: drop-shadow(.5px 0 0 var(--in-300)) drop-shadow(-.5px 0 0 var(--in-300)) drop-shadow(0 .5px 0 var(--in-300)) drop-shadow(0 -.5px 0 var(--in-300)); }
+  .gv i { position: absolute; inset: 0; -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    background: radial-gradient(118% 76% at 27% 16%, rgba(255,255,255,.34), rgba(255,255,255,0) 58%), linear-gradient(to top, var(--in-900) 0%, var(--in-500) var(--f), var(--in-50) var(--f), var(--in-25) 100%); }
+  .vbox b { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .vbox b small { font-size: 12px; font-weight: 500; color: var(--g-500); }
+  .vbox span { font-size: 12px; }
+  .kline { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--in-25); font-size: 13px; color: var(--g-600); }
+  .kline b { font-size: 18px; color: var(--g-900); font-variant-numeric: tabular-nums; }
+  .kline .flame { width: 16px; height: 16px; color: var(--in-500); margin-right: 6px; }
+
+  /* S4 · where the calories came from: a ring split three ways, plan beside */
+  .pl { display: flex; align-items: center; gap: 18px; margin: 4px 0 14px; }
+  .pl svg { width: 132px; height: 132px; flex: none; transform: rotate(-90deg); }
+  .pl .ctr { position: relative; }
+  .pl .ctr b { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; font-size: 22px; line-height: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .pl .ctr b small { display: block; font-size: 11px; font-weight: 500; color: var(--g-500); }
+  .pl ul { list-style: none; margin: 0; padding: 0; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+  .pl li { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--g-600); font-variant-numeric: tabular-nums; }
+  .pl li i.sw { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+  .pl li b { color: var(--g-900); }
+  .pl li .gl { color: var(--in-500); }
+  .cmp { display: grid; grid-template-columns: 1fr auto auto; gap: 8px 16px; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .cmp .h { font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--g-400); text-align: right; }
+  .cmp span { color: var(--g-600); } .cmp b { text-align: right; }
+  .cmp .gl, .cmp .flame { color: var(--in-500); }
+
+  /* S5 · what each food gave: each number split by the foods that made it */
+  .fg { padding: 10px 0; }
+  .fg .top { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+  .fg .top .gl, .fg .top .flame { width: 16px; height: 16px; color: var(--in-500); }
+  .fg .top span { margin-left: auto; font-weight: 500; color: var(--g-600); font-variant-numeric: tabular-nums; }
+  .fg .stk { display: flex; gap: 2px; height: 12px; margin-top: 8px; border-radius: 6px; overflow: hidden; background: var(--g-100); }
+  .fleg { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 4px; font-size: 12px; color: var(--g-600); }
+  .fleg span { display: inline-flex; align-items: center; gap: 5px; } .fleg i { width: 10px; height: 10px; border-radius: 3px; }
+
+  /* S6 · KAIRA's read first, the numbers as proof */
+  .read { display: flex; gap: 10px; padding: 14px; border-radius: 14px; background: linear-gradient(120deg, var(--in-50), #fff 80%); border: 1px solid var(--in-100); font-size: 14px; line-height: 21px; color: var(--g-800); }
+  .read .km { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--in-600); color: #fff; display: grid; place-items: center; font: 700 10px Roboto; letter-spacing: .4px; }
+  .read b { color: var(--g-900); }
+  .proof { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 14px; }
+  .proof span { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11.5px; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .proof span + span { border-left: 1px solid var(--g-100); }
+  .proof .gl, .proof .flame { width: 16px; height: 16px; color: var(--in-500); }
+  .proof b { font-size: 15px; color: var(--g-900); }
+  .proof em { font-style: normal; font-weight: 600; }
+
+  .src { columns: 2 320px; column-gap: 32px; padding: 0; margin: 0; list-style: none; }
+  .src li { break-inside: avoid; margin: 0 0 12px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .src b { color: var(--g-900); font-weight: 600; }
+  .src a { color: var(--in-600); }
+  @media (max-width: 520px) { .wrap { padding: 32px 16px 64px; } h1 { font-size: 30px; line-height: 38px; } .grid { grid-template-columns: 1fr; } .meal, .phone { width: 100%; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Meal card macros</h1>
+  <p class="lede">Round 2. Once food is in a meal, its card says what that meal holds, <b>without covering the scene</b>. Two rules make that work: the numbers keep to the left of the header, where the scene has already faded, and the header grows by one line at most. The meal's own targets move one tap away, into a sheet.</p>
+
+  <h2 class="sh">Targets on the card, or just the data?</h2>
+  <p class="shp">My recommendation: <b>the card shows only what went in; the sheet shows it against the meal's target.</b></p>
+  <div class="decide">
+    <div class="dcard rec"><h3>Just the data on the card <span class="tag rec">Recommended</span></h3>
+      <p>The card reports, it doesn't judge. "22 g · 55 g · 19 g · 478 kcal" is a fact anyone can read.</p>
+      <ul><li>The day already has a judge: the score and the macro card above. Six meal cards each saying "of 24 g" would be six more scores.</li><li>Every meal's target is the coach's estimate. Showing it everywhere makes people chase each meal to the gram, which is not what the plan asks.</li><li>No numbers to compare means less to read and more scene visible.</li></ul></div>
+    <div class="dcard"><h3>Targets in the sheet</h3>
+      <p>For anyone who asks "how did this meal do?", the ⓘ answers properly: each number against the meal's target, in plain words (on target, a little high, a little low), using the same ±20% the score uses.</p>
+      <ul><li>The question is asked, so the answer is welcome, not pushed.</li><li>The sheet has the room the card doesn't: bands, splits, which food gave what.</li></ul></div>
+  </div>
+
+  <h2 class="sh">On the card</h2>
+  <p class="shp">What stays from round 1, with your changes. Breakfast with four foods in: three from the coach's plan and a banana.</p>
+  <div class="bar"><span class="lab2">State</span><button class="pill on" data-st="mid">Breakfast logged</button><button class="pill" data-st="start">One food in</button></div>
+  <div class="grid" id="cards"></div>
+
+  <h2 class="sh">More, behind an info icon</h2>
+  <p class="shp">Every card here carries option A, the quiet line, plus a small frosted ⓘ in its top right corner, sitting on the scene without hiding it. Tap it and a sheet opens with the meal against its target. Six ways to draw that sheet, all with GoodFlip's sheet rules: title top left, circle X top right, no drag handle, never past 90% of the screen.</p>
+  <div class="grid" id="sheets"></div>
+
+  <h2 class="sh">What this draws on</h2>
+  <ul class="src" id="src"></ul>
+</div>
+
+<script>
+/* the foods, and the meal's targets (r3 Breakfast: 382 kcal, P 24, C 31, F 18) */
+const T = { k: 382, p: 24, c: 31, f: 18 };
+const ALL = [
+  { n: "Boiled egg", q: "2 x 1 egg", k: 146, p: 12.6, c: 1.1, f: 10 },
+  { n: "Lauki oats besan chilla", q: "2 x 1 piece", k: 153, p: 7.4, c: 22, f: 4.2 },
+  { n: "Curd", q: "1 katori", k: 75, p: 4, c: 5.6, f: 4 },
+  { n: "Banana", q: "1 piece", k: 104, p: 1.3, c: 27, f: 0.4 },
+];
+let ST = "mid";
+const foods = () => ST === "mid" ? ALL : [ALL[3]];
+const tot = () => foods().reduce((a, x) => ({ k: a.k + x.k, p: a.p + x.p, c: a.c + x.c, f: a.f + x.f }), { k: 0, p: 0, c: 0, f: 0 });
+const g = n => (n < 10 && n % 1 ? n.toFixed(1) : String(Math.round(n)));
+const NM = { p: "Protein", c: "Carbs", f: "Fats", k: "Calories" };
+const GL = { p: "protein", c: "carbs", f: "fats" };
+const gl = k => k === "k" ? '<i class="flame"></i>' : '<i class="gl glyph-' + GL[k] + '"></i>';
+const unit = k => k === "k" ? " kcal" : " g";
+/* the score's own rule: full marks within 20% (at least 3 g for a macro) */
+const band = k => { const b = k === "k" ? T[k] * .2 : Math.max(T[k] * .2, 3); return [Math.max(0, T[k] - b), T[k] + b]; };
+const word = (k, v) => { const [lo, hi] = band(k); return v < lo ? ["A little low", "st-lo"] : v > hi ? ["A little high", "st-hi"] : ["On target", "st-ok"]; };
+const TICK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>';
+const INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg>';
+const XI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const four = fn => ["p", "c", "f", "k"].map(fn).join("");   /* kcal is always fourth */
+const qline = () => '<div class="qline">' + four(k => '<span>' + gl(k) + g(tot()[k]) + unit(k) + '</span>') + '</div>';
+const head = (under, info) => '<div class="mh"><div class="t"><div class="n">Breakfast</div><div class="s">Suggested 8:00–10:00 AM</div>' + (under || '') + '</div>' + (info ? '<button class="info" aria-label="Breakfast, what went in">' + INFO + '</button>' : '') + '</div>';
+const list = () => '<div class="mbi"><div class="lab">Your coach\'s plan</div>' +
+  ALL.slice(0, 3).map(x => '<div class="row"><span class="tick' + (ST === "mid" ? '' : ' off') + '">' + (ST === "mid" ? TICK : '') + '</span><div class="t2"><b>' + x.n + '</b><span>' + x.q + '</span></div><span class="k">' + x.k + ' cal</span></div>').join("") + '</div>';
+const card = (inner, cls) => '<div class="meal ' + (cls || '') + '" style="--scene:url(icons/meals/bg/bf.webp?v=2)">' + inner + '</div>';
+
+const CARDS = [
+  { id: "A", name: "One quiet line", tags: ["Recommended"], rec: true,
+    why: "One line under the meal's time: each macro's glyph and grams, then kcal fourth. It reads like a food row, and stays left of the scene.",
+    fit: "<b>Best when</b> the card must stay calm. Every ⓘ sheet below builds on it.",
+    html: () => card(head(qline()) + list()) },
+  { id: "C", name: "Chips", tags: ["From GoodFlip's Food entries"],
+    why: "The same four numbers as soft grey pills, GoodFlip's food-entry pill. Kcal is plain intake now, fourth like the rest, no target.",
+    fit: "<b>Best when</b> you want each number to read as its own object. A little busier than A.",
+    html: () => card(head('<div class="chipsx">' + four(k => '<span class="cx">' + gl(k) + g(tot()[k]) + unit(k) + '</span>') + '</div>') + list()) },
+  { id: "D", name: "Four columns", tags: ["From GoodFlip's Food Logging"],
+    why: "A strip of four columns under the header, glyph over number over name, kcal last. It sits below the header, where the scene has faded downward.",
+    fit: "<b>Best when</b> the numbers matter as much as the foods. It adds a band to every card.",
+    html: () => card(head() + '<div class="cols">' + four(k => '<div class="col">' + gl(k) + '<b>' + g(tot()[k]) + '<small>' + (k === "k" ? "" : "g") + '</small></b><span>' + (k === "k" ? "kcal" : NM[k]) + '</span></div>') + '</div>' + list()) },
+  { id: "G", name: "One split bar", tags: ["Still deciding"], q: 1,
+    why: "A thin bar of three indigo steps: how the meal's calories split between protein, carbs and fats, with the four numbers under it.",
+    fit: "<b>Open question:</b> it answers 'is this meal balanced', which the day card already answers. Its better home may be the sheet (see S4), where there's room for a legend.",
+    html: () => { const s = tot(), e = 4 * s.p + 4 * s.c + 9 * s.f || 1, w = [4 * s.p / e, 4 * s.c / e, 9 * s.f / e].map(x => x * 100 + '%');
+      return card(head('<div class="split"><div class="sbx"><i style="width:' + w[0] + '"></i><i style="width:' + w[1] + '"></i><i style="width:' + w[2] + '"></i></div><div class="lg">' + four(k => '<span>' + gl(k) + g(s[k]) + unit(k) + '</span>') + '</div></div>') + list()); } },
+  { id: "H", name: "Breakdown, one tap away", tags: ["Least on screen"],
+    why: "The header carries only a small 'Breakdown' chip. Tap it and a strip opens inside the card: protein, carbs, fats, then kcal. Tap again to close.",
+    fit: "<b>Best when</b> you want the header almost empty. The numbers are hidden until asked for. Try the chip.",
+    html: () => card(head('<button class="tap" data-tap>Breakdown ' + CHEV + '</button>') + '<div class="drawer"><div><div class="dr">' + four(k => '<span><b>' + gl(k) + g(tot()[k]) + '</b>' + (k === "k" ? "kcal" : NM[k] + ", g") + '</span>') + '</div></div></div>' + list()) },
+];
+
+/* the sheets */
+const sheetHead = '<div class="hd"><h4>Breakfast</h4><span class="x">' + XI + '</span></div><div class="sub">Suggested 8:00–10:00 AM · what went in, against this meal\'s target</div>';
+const phone = body => '<div class="phone"><div class="bs">' + sheetHead + body + '</div></div>';
+const nfCols = () => '<div class="nf-c">' + ["p", "f", "c"].map(k => { const v = tot()[k], w = word(k, v); return '<span><i class="lb">' + gl(k) + NM[k] + '</i><b>' + g(v) + ' g</b><em>of ' + T[k] + ' g · <span class="' + w[1] + '">' + w[0].toLowerCase() + '</span></em></span>'; }).join("") + '</div>';
+/* the read: says what is off and why, from the foods, never a recap of the meal */
+function read() {
+  const s = tot(), off = ["p", "c", "f"].map(k => [k, word(k, s[k])]).filter(x => x[1][1] !== "st-ok");
+  if (!off.length) return "Every number landed in range. This is the breakfast your coach planned, as planned.";
+  const [k, w] = off[0], top = foods().slice().sort((a, b) => b[k] - a[k])[0];
+  return "<b>" + NM[k] + " came in " + w[0].toLowerCase().replace("a little ", "a little ") + "</b>: " + top.n.toLowerCase() + " gave " + g(top[k]) + " g of the " + g(s[k]) + ". " +
+    (w[1] === "st-hi" ? "Half a portion next time keeps it in range." : "A katori of dal or a boiled egg closes the gap.");
+}
+const SHEETS = [
+  { id: "S1", name: "Nutritional Facts, for the meal", tags: ["From GoodFlip's Food Logging"], rec: true,
+    why: "GoodFlip's own Nutritional Facts sheet, made for a whole meal: the indigo calorie block with its flame and the big number, the macro columns under it, each with its target and a word. Then the foods, each with its kcal.",
+    fit: "<b>Best when</b> you want the sheet to feel like GoodFlip already: same blocks, same icons, same order.",
+    body: () => { const s = tot(), w = word("k", s.k); return '<div class="nf-k"><span class="l"><i class="flame"></i>Calories</span><b>' + s.k + ' kcal <small>of ' + T.k + ' · <span class="' + w[1] + '">' + w[0].toLowerCase() + '</span></small></b></div>' + nfCols() +
+      '<div class="ssec">What went in</div>' + foods().map(x => '<div class="nf-f"><div><b>' + x.n + '</b> <span>' + x.q + '</span></div><span class="kk">' + x.k + ' kcal</span></div>').join(""); } },
+  { id: "S2", name: "Against the target", tags: ["Clearest answer"],
+    why: "One row per number, kcal last: what went in, the target, and a thin bar with the full-marks band shaded on it and a tick at the target. A plain word says where it landed. The score's own ±20%, made visible.",
+    fit: "<b>Best when</b> 'how did this meal do' is the question. It teaches the band without a word of explanation (Noom's target zone, Lifesum's words).",
+    body: () => four(k => { const v = tot()[k], [lo, hi] = band(k), mx = Math.max(T[k] * 1.6, v, 1), w = word(k, v);
+      return '<div class="tb"><div class="top">' + gl(k) + '<span class="nm">' + NM[k] + '</span><span class="vl"><b>' + g(v) + '</b> of ' + T[k] + unit(k) + '</span></div>' +
+        '<div class="track"><span class="band" style="left:' + lo / mx * 100 + '%;width:' + (hi - lo) / mx * 100 + '%"></span><span class="fill" style="width:' + Math.min(v / mx * 100, 100) + '%"></span><span class="tick2" style="left:calc(' + T[k] / mx * 100 + '% - 1px)"></span></div>' +
+        '<span class="ws ' + w[1] + '">' + w[0] + '</span></div>'; }) + '<div class="note">The shaded band is full marks: within 20% of the target, or 3 g for a macro.</div>' },
+  { id: "S3", name: "Big vessels", tags: ["Echoes the day card"],
+    why: "The vessels you cut from the card, at a size where the fill can be seen: three 64px glyphs filling indigo to this meal's target, grams and target under each. Kcal sits under them as one quiet line.",
+    fit: "<b>Best when</b> you want the meal and the day to speak one language. A full vessel is the whole message.",
+    body: () => '<div class="vrow">' + ["p", "c", "f"].map(k => { const v = tot()[k], w = word(k, v); return '<div class="vbox"><span class="gv"><i class="glyph-' + GL[k] + '" style="--f:' + Math.min(100, v / T[k] * 100) + '%"></i></span><b>' + g(v) + ' <small>of ' + T[k] + ' g</small></b><span class="' + w[1] + '">' + w[0] + '</span></div>'; }).join("") + '</div>' +
+      '<div class="kline"><span style="display:inline-flex;align-items:center"><i class="flame"></i>Calories</span><span><b>' + tot().k + '</b> of ' + T.k + ' kcal</span></div>' },
+  { id: "S4", name: "Where the calories came from", tags: ["Shows the balance"],
+    why: "A ring split three ways in indigo steps: how much of the meal's calories came from protein, carbs and fats, kcal in the middle. Under it, a small table: what went in, what was planned.",
+    fit: "<b>Best when</b> balance is the lesson. The natural home for G's split bar, with room for a legend.",
+    body: () => { const s = tot(), e = 4 * s.p + 4 * s.c + 9 * s.f || 1, parts = [["p", 4 * s.p / e, "#3538CD"], ["c", 4 * s.c / e, "#8098F9"], ["f", 9 * s.f / e, "#C7D7FE"]], C = 2 * Math.PI * 52; let off = 0;
+      const arcs = parts.map(([k, x, col]) => { const a = '<circle cx="66" cy="66" r="52" fill="none" stroke="' + col + '" stroke-width="16" stroke-dasharray="' + Math.max(0, x * C - 3) + ' ' + C + '" stroke-dashoffset="' + -off + '"/>'; off += x * C; return a; }).join("");
+      return '<div class="pl"><div class="ctr"><svg viewBox="0 0 132 132"><circle cx="66" cy="66" r="52" fill="none" stroke="#F2F4F7" stroke-width="16"/>' + arcs + '</svg><b>' + s.k + '<small>kcal</small></b></div><ul>' +
+        parts.map(([k, x, col]) => '<li><i class="sw" style="background:' + col + '"></i>' + gl(k) + '<span>' + NM[k] + '</span><b style="margin-left:auto">' + Math.round(x * 100) + '%</b></li>').join("") + '</ul></div>' +
+        '<div class="cmp"><span class="h"></span><span class="h">In</span><span class="h">Planned</span>' + four(k => { const w = word(k, s[k]); return '<span style="display:inline-flex;align-items:center;gap:6px">' + gl(k) + NM[k] + '</span><b class="' + w[1] + '">' + g(s[k]) + unit(k) + '</b><b style="color:var(--g-500);font-weight:500">' + T[k] + unit(k) + '</b>'; }) + '</div>'; } },
+  { id: "S5", name: "What each food gave", tags: ["Creative"],
+    why: "Each number as one bar, split by the foods that made it, in indigo steps with a food legend. 'Where did my carbs come from? The banana and the chilla.' The target sits at the right of each row.",
+    fit: "<b>Best when</b> you want the sheet to teach which foods do the work (Alma's contributing foods). Richest, and the most to read.",
+    body: () => { const fs = foods(), cols = ["#2D31A6", "#6172F3", "#A4BCFD", "#E0EAFF"], s = tot();
+      return four(k => '<div class="fg"><div class="top">' + gl(k) + NM[k] + '<span>' + g(s[k]) + ' of ' + T[k] + unit(k) + '</span></div><div class="stk">' +
+          fs.map((x, i) => '<i style="width:' + (x[k] / Math.max(s[k], T[k] * 1.2) * 100) + '%;background:' + cols[i] + '"></i>').join("") + '</div></div>') +
+        '<div class="fleg">' + fs.map((x, i) => '<span><i style="background:' + cols[i] + '"></i>' + x.n + '</span>').join("") + '</div>'; } },
+  { id: "S6", name: "KAIRA's read, then the proof", tags: ["From Oura's meal advisor"],
+    why: "One line first, from KAIRA, about what is off and which food did it, with one simple fix. Then the four numbers as proof, each with its target and colour-free status. The read never recaps the meal; it only says what's worth knowing.",
+    fit: "<b>Best when</b> you want the sheet to motivate, not just report: the EM3 idea. It needs a good sentence for every case, or it falls flat.",
+    body: () => '<div class="read"><span class="km">AI</span><span>' + read() + '</span></div><div class="proof">' + four(k => { const v = tot()[k], w = word(k, v); return '<span>' + gl(k) + '<b>' + g(v) + '</b>of ' + T[k] + unit(k) + '<em class="' + w[1] + '">' + w[0].replace("A little ", "") + '</em></span>'; }) + '</div>' +
+      '<div class="ssec">What went in</div>' + foods().map(x => '<div class="nf-f"><div><b>' + x.n + '</b> <span>' + x.q + '</span></div><span class="kk">' + x.k + ' kcal</span></div>').join("") },
+];
+
+function paint() {
+  document.getElementById("cards").innerHTML = CARDS.map(v =>
+    '<div class="opt' + (v.rec ? " rec" : "") + '"><div class="stage">' + v.html() + '</div><div class="meta"><h3>' + v.id + ' · ' + v.name +
+    v.tags.map(t => ' <span class="tag' + (t === "Recommended" ? " rec" : v.q ? " q" : "") + '">' + t + '</span>').join("") + '</h3><p>' + v.why + '</p><p class="fit">' + v.fit + '</p></div></div>').join("");
+  document.getElementById("sheets").innerHTML = SHEETS.map(v =>
+    '<div class="opt' + (v.rec ? " rec" : "") + '"><div class="stage">' + card(head(qline(), true) + list()) + phone(v.body()) + '</div><div class="meta"><h3>' + v.id + ' · ' + v.name +
+    v.tags.map(t => ' <span class="tag">' + t + '</span>').join("") + (v.rec ? ' <span class="tag rec">Recommended</span>' : '') + '</h3><p>' + v.why + '</p><p class="fit">' + v.fit + '</p></div></div>').join("");
+}
+paint();
+document.addEventListener("click", e => {
+  const s = e.target.closest("[data-st]");
+  if (s) { ST = s.dataset.st; document.querySelectorAll("[data-st]").forEach(x => x.classList.toggle("on", x === s)); paint(); }
+  const t = e.target.closest("[data-tap]"); if (t) t.closest(".meal").classList.toggle("open");
+});
+const SRC = [["GoodFlip Figma, Food Logging > Nutritional Facts bottom sheet (3506:1679, 5399:5221)", "An indigo calorie block with a flame and the big number, then icon columns for each macro, one food per block. Sheet S1, made for a whole meal."], ["<a href=\"https://mobbin.com/screens/e127787a-3aeb-47dd-877d-5f40d26a93da\">Lifesum, Breakfast nutrition</a>", "A calm table, '386 / 519 kcal', the meal's own number bold before the slash. Sheets S1 and S4."], ["<a href=\"https://mobbin.com/screens/d99b7761-f4dd-4448-bbfd-9053e6cf488c\">Lifesum, Breakfast rating</a>", "Graded words under each bar ('slightly low in carbs'). The plain status words in every sheet, without its red and its all-caps."], ["<a href=\"https://mobbin.com/screens/da5b31d7-3157-43b0-a53d-ee09cd657fbd\">Noom, Today's nutrition</a>", "The target as a shaded zone, not a line. Sheet S2's full-marks band."], ["<a href=\"https://mobbin.com/screens/17107624-1399-4332-ba88-4dd81a1df947\">MacroFactor, plate nutrition</a>", "Thin bars with a small tick at the target. Sheet S2's tick."], ["<a href=\"https://mobbin.com/screens/db44400f-843e-4185-b475-34808698df31\">Yazio, Breakfast detail</a>", "Every macro bar in one colour, '233 / 443'. Proof that one colour per bar works, as GoodFlip's rule asks."], ["<a href=\"https://mobbin.com/screens/2e1daf3b-c4e3-43af-bfef-eebeffbeb670\">Alma, contributing foods</a>", "Which foods made a macro. Sheet S5."], ["<a href=\"https://mobbin.com/screens/cb6f4dbd-b77c-4012-86a0-84d2c825159b\">Ultrahuman, your meal</a>", "One centred kcal number and the macro split around it. Sheet S4."], ["<a href=\"https://mobbin.com/screens/23c95f0f-0c21-4fd0-a809-5870b757cca8\">Oura, meal advisor</a>", "Two sentences of interpretation before any number. Sheet S6, as KAIRA."], ["<a href=\"https://mobbin.com/screens/ddbcdce9-68e1-4049-b999-d794ac0603be\">Bevel, nutritional goals</a>", "'Aim to meet' versus 'aim to stay near': protein is something to reach, fats something to stay near. Worth carrying into S2's words later."], ["GoodFlip Figma, Food Logging with KAIRA > stacked log", "A collapsed meal reads '300Kcal | 08:00AM'; expanded, a strip of four columns, each a macro glyph over its grams. Variant D."], ["GoodFlip Figma, Food Logging > Food entries", "Each food row carries a soft grey pill (Manual, KAIRA AI) and its kcal. Variant C borrows the pill."], ["EM3 r3/eat.html, What shaped your score", "The day's macro card: three glyphs filling indigo. Variant E is it at meal size; every option keeps its indigo for logged food."], ["<a href=\"https://mobbin.com/screens/db75399f-1659-4e09-ba4f-926d12503319\">Cal AI, recent meals</a>", "Bold kcal, then icon and grams with no labels: the glyph does the labelling. Variant A."], ["<a href=\"https://mobbin.com/screens/4e39baf4-cced-4365-8065-3f099767072f\">MacroFactor, food rows</a>", "A dense receipt line, '149 kcal \u00b7 8P 8F 11C', one grey weight. The receipt idea behind A."], ["<a href=\"https://mobbin.com/screens/21c14d44-1463-4f94-9c31-95cf7e8c8925\">BitePal, meal detail</a>", "Big kcal, then one thin segmented bar for the macro split. Variant G."], ["<a href=\"https://mobbin.com/screens/f9216faa-47b8-4b6c-9e69-6464b21c3d74\">Strava, feed card</a>", "A stats strip: small label over a bold value, evenly spaced. Variant D."], ["<a href=\"https://mobbin.com/screens/9c1cd051-dbea-497d-90b8-4df8848286ed\">Lifesum, recent</a>", "Kcal on one side, macros on the other, splitting the two jobs across the card. The kcal-and-macros split behind A."], ["<a href=\"https://mobbin.com/screens/0cc2792f-7c05-4667-9c0f-ba47d6e0c3fe\">Yazio, nutrition list</a>", "The meal's pictogram in a thin ring, '233 / 493 Cal' under the name, macros only on tap. Variant H."], ["<a href=\"https://mobbin.com/screens/18fd80b6-ec6f-4201-afe9-d4c168bf5ed4\">Noom</a> and <a href=\"https://mobbin.com/screens/c3aab207-f1b0-4788-a0b2-ee08e43cca93\">MyFitnessPal</a>", "One grey kcal per meal and no macros, because the day card above carries them. The case for H."], ["<a href=\"https://mobbin.com/screens/2360b267-2be9-4656-981d-17ab33e136a5\">Bevel</a> and <a href=\"https://mobbin.com/screens/b599837d-75f6-4374-b5d7-1990a189bfc0\">Alma</a>", "kcal on one side and three icon-and-gram pairs on the other, in one footer row. Variant A."]];
+document.getElementById("src").innerHTML = SRC.map(s => "<li><b>" + s[0] + ".</b> " + s[1] + "</li>").join("");
+</script>
+</body>
+</html>

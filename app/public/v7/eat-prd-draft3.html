@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eat PRD</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap">
+<style>
+  :root {
+    --brand-50: #F3FCF8; --brand-200: #CBF0E0; --brand-600: #299D6B; --brand-700: #2A805A;
+    --indigo-50: #EEF4FF; --indigo-600: #444CE7;
+    --gold-50: #FFFBEE; --gold-800: #A68A2D;
+    --red-600: #D92D20;
+    --gray-50: #F9FAFB; --gray-100: #F2F4F7; --gray-200: #E4E7EC; --gray-400: #98A2B3;
+    --gray-500: #667085; --gray-600: #475467; --gray-700: #344054; --gray-900: #101828;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--gray-900); font: 400 15px/1.6 Roboto, Arial, sans-serif; letter-spacing: .2px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 24px 96px; }
+  a { color: var(--brand-600); text-underline-offset: 2px; }
+
+  header { padding: 64px 0 32px; border-bottom: 1px solid var(--gray-200); }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--brand-700); }
+  h1 { font: 600 48px/1.1 "Playfair Display", serif; margin: 12px 0 8px; }
+  .lede { font-size: 20px; line-height: 1.45; color: var(--gray-700); margin: 0 0 20px; max-width: 640px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 13px; color: var(--gray-500); }
+
+  nav.toc { margin: 32px 0 8px; columns: 2; column-gap: 32px; font-size: 14px; }
+  nav.toc a { display: block; padding: 3px 0; color: var(--gray-700); text-decoration: none; }
+  nav.toc a:hover { color: var(--brand-600); }
+  nav.toc span { display: inline-block; width: 28px; color: var(--gray-400); font-variant-numeric: tabular-nums; }
+  @media (max-width: 640px) { nav.toc { columns: 1; } h1 { font-size: 38px; } }
+
+  section { padding-top: 48px; }
+  h2 { font-size: 24px; font-weight: 600; margin: 0 0 4px; display: flex; gap: 12px; align-items: baseline; }
+  h2 .n { font-size: 14px; color: var(--brand-600); font-variant-numeric: tabular-nums; }
+  h3 { font-size: 15px; font-weight: 600; margin: 24px 0 8px; color: var(--gray-900); }
+  .sub { color: var(--gray-600); margin: 0 0 16px; }
+  p { margin: 0 0 12px; }
+  ul { margin: 0 0 12px; padding-left: 20px; }
+  li { margin: 4px 0; }
+  li::marker { color: var(--gray-400); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0 16px; }
+  th { text-align: left; font-size: 12px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; color: var(--gray-500); padding: 8px 12px 8px 0; border-bottom: 1px solid var(--gray-200); }
+  td { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--gray-100); vertical-align: top; }
+  td:first-child { font-weight: 500; white-space: nowrap; }
+  td.wrap { white-space: normal; }
+  .tbl { overflow-x: auto; }
+  code { font: 500 12.5px/1 ui-monospace, Menlo, monospace; background: var(--gray-100); padding: 2px 6px; border-radius: 4px; color: var(--gray-700); }
+
+  .pillars { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin: 24px 0 0; }
+  .pillar { border: 1px solid var(--gray-200); border-radius: 12px; padding: 14px 16px; }
+  .pillar b { display: block; font-size: 15px; margin-bottom: 2px; }
+  .pillar span { font-size: 13.5px; color: var(--gray-600); line-height: 1.5; display: block; }
+
+  .formula { background: var(--brand-50); border: 1px solid var(--brand-200); border-radius: 12px; padding: 16px 20px; margin: 12px 0 16px; font-size: 14.5px; }
+  .formula div { padding: 3px 0; }
+  .formula b { color: var(--brand-700); }
+  .note { background: var(--gray-50); border-left: 3px solid var(--gray-400); padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 14px; color: var(--gray-700); margin: 12px 0; }
+  .note.gold { background: var(--gold-50); border-color: var(--gold-800); }
+  .q { color: var(--gray-700); font-style: italic; }
+  .tag { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 1px 6px; border-radius: 5px; }
+  .tag.up { background: #ECFDF3; color: #067647; }
+  .tag.amber { background: #FFFAEB; color: #B54708; }
+  .tag.calm { background: var(--gray-100); color: var(--gray-600); }
+  footer { margin-top: 64px; padding-top: 24px; border-top: 1px solid var(--gray-200); font-size: 13px; color: var(--gray-500); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">GoodFlip · PRD · Eat pillar</div>
+  <h1>Eat</h1>
+  <p class="lede">An entire diet module upgrade, built for better habit building.</p>
+  <div class="meta">
+    <span>Draft 3 · 12 Oct 2026</span>
+    <span>For design, dev and product</span>
+    <span>Live cases: <a href="nutrition-sufficiency.html">nutrition-sufficiency.html</a></span>
+    <span>Prototype: <a href="r3/eat.html">r3/eat.html</a></span>
+  </div>
+</header>
+<nav class="toc"><a href="#s1"><span>01</span>What Eat includes</a><a href="#s2"><span>02</span>Who sees what</a><a href="#s3"><span>03</span>The Eat screen</a><a href="#s4"><span>04</span>The score: nutrition sufficiency</a><a href="#s5"><span>05</span>Commentary against the score</a><a href="#s6"><span>06</span>Day states</a><a href="#s7"><span>07</span>Meal cards</a><a href="#s8"><span>08</span>Logging the plan on the card</a><a href="#s9"><span>09</span>The logging screen</a><a href="#s10"><span>10</span>Win moment</a><a href="#s11"><span>11</span>Sufficiency sheet</a><a href="#s12"><span>12</span>Date sheet and chip</a><a href="#s13"><span>13</span>Trend</a><a href="#s14"><span>14</span>Learn</a><a href="#s15"><span>15</span>Coach portal: plan checks</a><a href="#s16"><span>16</span>Backend</a><a href="#s17"><span>17</span>Rules everywhere</a><a href="#s18"><span>18</span>Open questions</a></nav>
+
+<section id="s1" style="padding-top:32px">
+  <h2><span class="n">01</span>What Eat includes</h2>
+  <p class="sub">Eat turns the coach's diet plan into a daily habit: log what you eat, see a score move, understand why it moved.</p>
+  <div class="pillars">
+    <div class="pillar"><b>New logging experience</b><span>Log the coach's plan right on the meal card. Search, Snap and Voice for everything else.</span></div>
+    <div class="pillar"><b>Score against logging</b><span>Nutrition sufficiency, out of 100. Every log moves it, meal by meal.</span></div>
+    <div class="pillar"><b>Commentary against the score</b><span>One line after every log says what that log did, with KAIRA one tap away to explain why.</span></div>
+    <div class="pillar"><b>Meal cards with the plan</b><span>Every meal open, with the coach's options, foods, and tips.</span></div>
+    <div class="pillar"><b>Win moment</b><span>A short celebration after every log, showing the gain.</span></div>
+    <div class="pillar"><b>Day history</b><span>Step back through days, or pick one from a month of score rings.</span></div>
+    <div class="pillar"><b>Trend</b><span>The week's score, each day, macros, and KAIRA's weekly insight.</span></div>
+    <div class="pillar"><b>Learn</b><span>Articles, podcasts and infographics on eating well.</span></div>
+    <div class="pillar"><b>Coach plan checks</b><span>The coach portal sets meal targets and flags options that would score badly.</span></div>
+  </div>
+</section>
+
+<section id="s2">
+  <h2><span class="n">02</span>Who sees what</h2>
+  <div class="tbl"><table>
+    <tr><th>User</th><th>Score</th><th>Targets</th><th>Meals</th><th>Commentary</th></tr>
+    <tr><td>Care user, plan assigned</td><td>Yes</td><td>Coach's targets</td><td>Coach's plan, all meals</td><td>Yes</td></tr>
+    <tr><td>Care user, before plan</td><td>Locked</td><td>None yet, grams only</td><td>Four core meals</td><td>Hidden</td></tr>
+    <tr><td>Free user</td><td>Hidden entirely</td><td>None, grams only</td><td>Four core meals, + to log</td><td>Hidden</td></tr>
+  </table></div>
+  <p>Calorie target: set by the coach by default. The user can edit it.</p>
+</section>
+
+<section id="s3">
+  <h2><span class="n">03</span>The Eat screen</h2>
+  <p class="sub">The day view. Top to bottom:</p>
+  <div class="tbl"><table>
+    <tr><th>#</th><th>Block</th><th>What it holds</th></tr>
+    <tr><td>1</td><td>Date chip</td><td class="wrap">"Today" or the date. Back and forward arrows. Tap opens the date sheet.</td></tr>
+    <tr><td>2</td><td>Eat line</td><td class="wrap">"Eat · Fuel your body right", info icon (sufficiency sheet), Earn chip (FlipCoins sheet).</td></tr>
+    <tr><td>3</td><td>Score</td><td class="wrap">Cloud Drop with the number and SUFFICIENT. Counts up from 0 over 1.2s. Tap opens the sufficiency sheet.</td></tr>
+    <tr><td>4</td><td>Commentary</td><td class="wrap">One line on what the last log did. See section 05.</td></tr>
+    <tr><td>5</td><td>Macros</td><td class="wrap">Protein, carbs, fats. Each icon fills to its level, with "43/95g" and the name.</td></tr>
+    <tr><td>6</td><td>Calorie strip</td><td class="wrap">"942 of 1,900 kcal" and "958 left for today". Shown, not scored.</td></tr>
+    <tr><td>7</td><td>KAIRA card</td><td class="wrap">"Log your meals by snapping a photo or saying what you ate." Snap and Voice buttons.</td></tr>
+    <tr><td>8</td><td>Your meals</td><td class="wrap">Every meal of the day, always open, in plan order.</td></tr>
+    <tr><td>9</td><td>Bottom nav</td><td class="wrap">Back, Eat, Trend, Learn. KAIRA's button floats above.</td></tr>
+  </table></div>
+  <p>Not on this screen: water, Now/Later tags, current meal highlight, expand and collapse, future days.</p>
+</section>
+
+<section id="s4">
+  <h2><span class="n">04</span>The score: nutrition sufficiency</h2>
+  <p class="sub">How well each meal matched the coach's plan on protein, carbs and fats, added up for the day. Out of 100.</p>
+
+  <h3>Inputs, fixed when the coach assigns the plan</h3>
+  <ul>
+    <li><b>Meal target:</b> protein, carbs, fats for each meal. The middle option's totals.</li>
+    <li><b>Meal share:</b> meal's planned calories ÷ day's planned calories. Shares add to 100%.</li>
+    <li>Meals under 20 kcal (water, tea) have no target and are not scored.</li>
+  </ul>
+
+  <h3>Points per macro, per meal</h3>
+  <div class="tbl"><table>
+    <tr><th>Eaten (x) vs target (T)</th><th>Points</th></tr>
+    <tr><td>Under 80% of T</td><td class="wrap">x ÷ (0.8 × T) × 100</td></tr>
+    <tr><td>80% of T up to the top</td><td class="wrap">100, full marks</td></tr>
+    <tr><td>Past the top</td><td class="wrap">100 − (x − top) ÷ T × 100, lowest −50</td></tr>
+  </table></div>
+  <p>Top = T + 20% of T, or T + 3 g, whichever is more.</p>
+
+  <div class="formula">
+    <div><b>Meal score</b> = (protein points + carbs points + fats points) ÷ 3</div>
+    <div><b>Meal adds</b> = meal share × meal score</div>
+    <div><b>Day score</b> = sum of every meal logged, rounded, never below 0</div>
+  </div>
+
+  <h3>Example: breakfast, 21.3% of the day, target 13 g P · 47 g C · 6 g F</h3>
+  <div class="tbl"><table>
+    <tr><th>What was eaten</th><th>P · C · F points</th><th>Meal score</th><th>Adds</th></tr>
+    <tr><td>One option, as planned</td><td>100 · 100 · 100</td><td>100</td><td>+21.3</td></tr>
+    <tr><td>Half a portion</td><td>67 · 69 · 62</td><td>66</td><td>+14.1</td></tr>
+    <tr><td>Two whole options</td><td>31 · 20 · 67</td><td>39</td><td>+8.3</td></tr>
+    <tr><td>All seven options</td><td>−50 · −50 · −50</td><td>−50</td><td>−10.6</td></tr>
+  </table></div>
+
+  <h3>Rules</h3>
+  <ul>
+    <li>A meal counts once anything is logged in it, or a plan food is skipped. Until then it adds 0.</li>
+    <li>Foods from any option and off-plan foods all add up into one plate for that meal.</li>
+    <li>The score is worked out again after every log, from the whole plate.</li>
+    <li>The meal a food counts toward is decided by its log time.</li>
+    <li>Starts at 0 each day. The score is green. Nothing else on the screen carries the pillar colour.</li>
+  </ul>
+  <p>Live: <a href="sufficiency-sandbox.html">sufficiency-sandbox.html</a> · <a href="scoring-deck.html">scoring-deck.html</a> · <a href="score-live.html">score-live.html</a></p>
+</section>
+
+<section id="s5">
+  <h2><span class="n">05</span>Commentary against the score</h2>
+  <p class="sub">After every log, one line in a quote card under the score. It waits as a shimmer while the score lands, then sweeps in from the left.</p>
+  <div class="tbl"><table>
+    <tr><th>Case</th><th>Line</th><th>Link</th></tr>
+    <tr><td>Went up</td><td class="wrap">"Your score went up by <span class="tag up">+23%</span>, keep logging your meals."</td><td>Learn more by asking KAIRA</td></tr>
+    <tr><td>Went up, less than it could</td><td class="wrap">"Your score went up by only <span class="tag amber">+5%</span>, you could have gained <span class="tag calm">+18%</span> more."</td><td>Find out why from KAIRA</td></tr>
+    <tr><td>Did not move</td><td class="wrap">"Your score did not change, you could have gained <span class="tag calm">+23%</span>."</td><td>Find out why from KAIRA</td></tr>
+    <tr><td>Dropped</td><td class="wrap">"Your score dropped by <span class="tag amber">−14%</span>"</td><td>Find out why from KAIRA</td></tr>
+    <tr><td>Not started</td><td class="wrap">"Log your first meal to see your nutrition sufficiency score grow."</td><td>None</td></tr>
+    <tr><td>Past day</td><td class="wrap">"This day ended at 61%."</td><td>Learn more by asking KAIRA</td></tr>
+  </table></div>
+  <h3>The KAIRA answer</h3>
+  <ul>
+    <li>Opens KAIRA's chat with the question already asked.</li>
+    <li>Answer, in order: what happened, the foods eaten by name (extras tagged), resulting macros against the Eat plan, the rule in one line, what the next meal can add.</li>
+    <li>Ends on a forward step. "Keep logging honestly."</li>
+  </ul>
+  <p>Hidden when there is no score: before a plan, free user, a day with nothing logged.</p>
+</section>
+
+<section id="s6">
+  <h2><span class="n">06</span>Day states</h2>
+  <p class="sub">Where there is no data, say what to do or show the target. Never print zeros.</p>
+  <div class="tbl"><table>
+    <tr><th>State</th><th>Score</th><th>Macros</th><th>Calories</th><th>Meals</th></tr>
+    <tr><td>No plan, nothing logged</td><td class="wrap">Padlock</td><td class="wrap">Hidden. KAIRA's card teaches and offers Snap, Voice</td><td class="wrap">Hidden</td><td class="wrap">Four core meals, name and time</td></tr>
+    <tr><td>No plan, food logged</td><td class="wrap">Padlock</td><td class="wrap">Grams only</td><td class="wrap">"1,213 kcal so far today"</td><td class="wrap">Four core meals with logs</td></tr>
+    <tr><td>Free user</td><td class="wrap">Hidden</td><td class="wrap">Grams only</td><td class="wrap">Day total</td><td class="wrap">Four core meals, + to log</td></tr>
+    <tr><td>Plan set, nothing logged</td><td class="wrap">0, empty</td><td class="wrap">0 of each target</td><td class="wrap">"1,900 kcal goal for today"</td><td class="wrap">All plan meals</td></tr>
+    <tr><td>First meal in</td><td class="wrap">Moves for the first time</td><td class="wrap">Real grams</td><td class="wrap">Real numbers</td><td class="wrap">All plan meals</td></tr>
+    <tr><td>Mid day</td><td class="wrap">Partial</td><td class="wrap">Real grams</td><td class="wrap">Real numbers</td><td class="wrap">All plan meals</td></tr>
+    <tr><td>Whole day in</td><td class="wrap">Final</td><td class="wrap">Real grams</td><td class="wrap">Real numbers</td><td class="wrap">All plan meals</td></tr>
+    <tr><td>Every target met</td><td class="wrap">100, one bloom of light</td><td class="wrap">All at target</td><td class="wrap">At goal</td><td class="wrap">All plan meals</td></tr>
+    <tr><td>Over the plan</td><td class="wrap">Pulled down by the extra</td><td class="wrap">Drawn past target</td><td class="wrap">Over goal, says so</td><td class="wrap">All plan meals</td></tr>
+    <tr><td>Past day</td><td class="wrap">That day's, still</td><td class="wrap">That day's grams</td><td class="wrap">That day's numbers</td><td class="wrap">Read only, "Log for that day"</td></tr>
+    <tr><td>Past day, nothing logged</td><td class="wrap">Empty</td><td class="wrap">"Nothing was logged that day"</td><td class="wrap">"No calories logged"</td><td class="wrap">Read only, "Log for that day"</td></tr>
+    <tr><td>Loading</td><td class="wrap">Shimmer</td><td class="wrap">Shimmer</td><td class="wrap">Shimmer</td><td class="wrap">Three placeholders</td></tr>
+  </table></div>
+</section>
+
+<section id="s7">
+  <h2><span class="n">07</span>Meal cards</h2>
+  <ul>
+    <li>Always open. Plan order.</li>
+    <li>Header: meal name, "Suggested 8:00 - 10:00 AM · 486 of 382 cal", + button.</li>
+    <li>"YOUR COACH'S PLAN": option chips, check on the chosen one. Food rows: tick circle, name, quantity, calories, ⋮ menu.</li>
+    <li>Food logged outside the plan sits above the plan with a "Manual" tag. Free users see no tag.</li>
+    <li>"TIPS FROM YOUR COACH": non-food plan items, each with a tick and a one-line tip.</li>
+  </ul>
+  <h3>A plan food has three states</h3>
+  <div class="tbl"><table>
+    <tr><th>State</th><th>Looks</th><th>Counts</th></tr>
+    <tr><td>Not yet</td><td class="wrap">Empty tick circle</td><td class="wrap">Nothing</td></tr>
+    <tr><td>Logged</td><td class="wrap">Filled tick</td><td class="wrap">Its macros, at the logged quantity</td></tr>
+    <tr><td>Skipped</td><td class="wrap">Name struck through, stays on the plan</td><td class="wrap">0 eaten. The meal counts.</td></tr>
+  </table></div>
+  <p>⋮ menu: change quantity, skip, remove from your day. "Put it back on the list" undoes a skip. A coach's food is never deleted.</p>
+</section>
+
+<section id="s8">
+  <h2><span class="n">08</span>Logging the plan on the card</h2>
+  <ol>
+    <li>Tick a plan food. It lifts off the row into a floating bar at the bottom.</li>
+    <li>Tick more, from any meal. The bar shows the foods, "Edit quantity &amp; time", Log, and X.</li>
+    <li>Each food has its own time. Default: now if its meal window is open, else the middle of the window.</li>
+    <li>While a meal has foods in the bar, its other options are locked. One option per meal.</li>
+    <li>Tap Log. Win moment plays, then the day returns with the foods ticked and the score stepping up.</li>
+  </ol>
+  <h3>Edge cases</h3>
+  <ul>
+    <li><b>Time still to come</b> (dinner ticked at 1 PM): Log opens the review sheet. Late times turn amber, "Set them to now" is one tap, Log waits until every time has passed.</li>
+    <li><b>Time wheel:</b> future times greyed, Done waits.</li>
+    <li><b>X on the bar:</b> slides aside to reveal Remove. Clears the bar.</li>
+    <li>A tick is never a silent log. Quantity and time are always visible before Log.</li>
+  </ul>
+</section>
+
+<section id="s9">
+  <h2><span class="n">09</span>The logging screen</h2>
+  <p class="sub">For everything outside the plan. One screen, opened from several doors.</p>
+  <div class="tbl"><table>
+    <tr><th>Door</th><th>Where</th><th>Opens with</th></tr>
+    <tr><td>Meal +</td><td class="wrap">+ on a meal card</td><td class="wrap">That meal, empty tray, Recent first</td></tr>
+    <tr><td>Snap</td><td class="wrap">KAIRA card, meal menu</td><td class="wrap">Camera, on the frame step</td></tr>
+    <tr><td>Voice</td><td class="wrap">KAIRA card, meal menu</td><td class="wrap">Microphone, listening</td></tr>
+    <tr><td>Past day</td><td class="wrap">"Log for that day"</td><td class="wrap">Day named in the header, time set to that day</td></tr>
+  </table></div>
+  <div class="tbl"><table>
+    <tr><th>Group</th><th>States</th><th>Rule</th></tr>
+    <tr><td>Finding food</td><td class="wrap"><code>ftux</code> <code>ftuxfav</code> <code>search</code> <code>typing</code> <code>noresults</code> <code>noplan</code></td><td class="wrap">Search on top, then Recent and Favourites. Unknown food goes to KAIRA, who looks it up and saves it.</td></tr>
+    <tr><td>Confirming</td><td class="wrap"><code>quantity</code> <code>custom</code> <code>multi</code> <code>time</code></td><td class="wrap">Quantity and time set before saving. The tray holds many foods; one save writes all.</td></tr>
+    <tr><td>Photo</td><td class="wrap"><code>snap</code> <code>snapreading</code> <code>snapresult</code> <code>snapnone</code> <code>snapdenied</code></td><td class="wrap">Frame, read, result. The result lands in the tray to be checked.</td></tr>
+    <tr><td>Voice</td><td class="wrap"><code>voice</code> <code>voiceheard</code> <code>voiceresult</code> <code>voicenone</code> <code>voicedenied</code></td><td class="wrap">Same three beats, with what was heard shown as words first.</td></tr>
+    <tr><td>Saving</td><td class="wrap"><code>saving</code> <code>offline</code> <code>failed</code> <code>duplicate</code></td><td class="wrap">The tray is kept. Offline queues, failed retries, duplicate asks first.</td></tr>
+  </table></div>
+  <ul>
+    <li>Denied camera or mic: says what to do next, other ways to log stay in reach.</li>
+    <li>No food found in a photo or voice note: one line, with a way forward.</li>
+  </ul>
+</section>
+
+<section id="s10">
+  <h2><span class="n">10</span>Win moment</h2>
+  <p class="sub">Plays after every log, then hands back to the day view.</p>
+  <ol>
+    <li>The Log button sweeps primary green across the screen, bottom right to top left.</li>
+    <li>Three things only: the "Breakfast logged" pill, the big gain "+n%", and "added to your sufficiency score".</li>
+    <li>Clears itself. The day view shows the score stepping up and the commentary line.</li>
+  </ol>
+  <ul>
+    <li>No plan or free user: the gain is replaced by what went in (calories).</li>
+    <li>Past day: the pill names the day.</li>
+    <li>Gain of 0 or less: the pill and "Logged". The commentary line explains.</li>
+    <li>Motion: smooth ease, no bounce. Haptic on the sweep.</li>
+  </ul>
+</section>
+
+<section id="s11">
+  <h2><span class="n">11</span>Sufficiency sheet</h2>
+  <p class="sub">Opens from the info icon and from tapping the score.</p>
+  <ul>
+    <li><b>Hero:</b> the day's number on a tinted band. Padlock before a plan.</li>
+    <li><b>Your intake:</b> protein, carbs, fats, calories. Values only.</li>
+    <li><b>Sections:</b> What is nutrition sufficiency? · How your score works · How does it help? · Where do your targets come from? (with the coach card and Message).</li>
+    <li><b>Disclaimer:</b> based on protein, carbs and fats only.</li>
+    <li><b>Footer:</b> "Ask KAIRA more about this".</li>
+    <li>States: scored day, before plan, past day, nothing logged.</li>
+  </ul>
+</section>
+
+<section id="s12">
+  <h2><span class="n">12</span>Date sheet and chip</h2>
+  <div class="tbl"><table>
+    <tr><th>Group</th><th>Rules</th></tr>
+    <tr><td>The sheet</td><td class="wrap">One month at a time, a ring per day at that day's score. Legend: "The ring is your nutrition sufficiency out of 100". Tap a day to load it. Closes on X, outside tap, Escape.</td></tr>
+    <tr><td>Per day</td><td class="wrap">Scored: ring filled. Today: marked, live score. Selected: marked. Nothing logged: dashed ring, tappable. Before the plan: dot, tappable. Before joining and future: greyed, not tappable. Perfect: full ring with a centre dot.</td></tr>
+    <tr><td>Months</td><td class="wrap">Opens on the viewed day's month. Back stops at the joining month. Forward stops at this month. Loading: rings shimmer. Failed: one line and Retry.</td></tr>
+    <tr><td>The chip</td><td class="wrap">"Today" or the date. Left steps back a day. Right is disabled on today.</td></tr>
+  </table></div>
+</section>
+
+<section id="s13">
+  <h2><span class="n">13</span>Trend</h2>
+  <p class="sub">The week, in three cards.</p>
+  <div class="tbl"><table>
+    <tr><th>Card</th><th>What it holds</th></tr>
+    <tr><td>KAIRA's insight</td><td class="wrap">While the week fills: days left to her insight. When done: a gift peeks, "Unlock my insight" opens it in a gold burst. Holds what went well, the one gap, how to close it. "Show less" folds it.</td></tr>
+    <tr><td>Your week so far</td><td class="wrap">Week score (mean of days logged) and tag. Each day as a small gauge.</td></tr>
+    <tr><td>Your macros this week</td><td class="wrap">Protein, carbs, fats: daily average against target, an arc each.</td></tr>
+  </table></div>
+  <div class="tbl"><table>
+    <tr><th>State</th><th>What shows</th></tr>
+    <tr><td>Not started</td><td class="wrap">"Insight unlocks in 7 days"</td></tr>
+    <tr><td>Week filling</td><td class="wrap">Score so far with its tag. Insight waits.</td></tr>
+    <tr><td>Week done</td><td class="wrap">Gift ready to unlock</td></tr>
+    <tr><td>Insight open</td><td class="wrap">Full insight, change against last week</td></tr>
+    <tr><td>Earlier week</td><td class="wrap">Comes back folded</td></tr>
+    <tr><td>Same gap three weeks</td><td class="wrap">KAIRA suggests talking it through with the coach</td></tr>
+  </table></div>
+  <p>Tags: 70+ solid · 50 to 69 room to grow · under 50 needs attention. Week picker: month pad, one row per week.</p>
+</section>
+
+<section id="s14">
+  <h2><span class="n">14</span>Learn</h2>
+  <ul>
+    <li>Header: category name "Nutrition &amp; Metabolic Health", serif, pale blue wash.</li>
+    <li>One list. Row: 88 × 88 thumbnail, title (two lines max), meta "4 min read · 18 Sep 26".</li>
+    <li>Types: article, podcast, infographic, PDF. Article and PDF read "min read", others "min".</li>
+    <li>Tap a row to open it.</li>
+  </ul>
+</section>
+
+<section id="s15">
+  <h2><span class="n">15</span>Coach portal: plan checks</h2>
+  <ol>
+    <li>Coach picks a template.</li>
+    <li>Portal sets each meal's target (middle option totals).</li>
+    <li>Every option is scored against its meal target with the same points rule.</li>
+    <li><b>Red dot</b> on an option if any macro, eaten exactly, scores under 60. Shown on the meal tab, the option tab and the number.</li>
+    <li>Assign is blocked until every red option is fixed with food or disabled.</li>
+    <li>On assign, the patient gets meal targets, day goals (meals added up) and meal shares.</li>
+  </ol>
+  <p>Live: <a href="coach-plan-builder.html">coach-plan-builder.html</a></p>
+</section>
+
+<section id="s16">
+  <h2><span class="n">16</span>Backend</h2>
+  <h3>To build</h3>
+  <div class="tbl"><table>
+    <tr><th>#</th><th>Need</th><th>For</th></tr>
+    <tr><td>1</td><td class="wrap">Meal targets and shares stored on plan assign</td><td class="wrap">Scoring every log</td></tr>
+    <tr><td>2</td><td class="wrap">Score computed after every log, stored per day</td><td class="wrap">Day view, commentary, date sheet rings, Trend</td></tr>
+    <tr><td>3</td><td class="wrap">Score before and after each log</td><td class="wrap">Commentary and win moment gain</td></tr>
+    <tr><td>4</td><td class="wrap">Plan history when a plan or goal changes</td><td class="wrap">Past days read against their own plan</td></tr>
+    <tr><td>5</td><td class="wrap">A decided day boundary (user's local day)</td><td class="wrap">"Today" is correct</td></tr>
+    <tr><td>6</td><td class="wrap">Skip state per plan food</td><td class="wrap">Three food states</td></tr>
+  </table></div>
+  <h3>Already there</h3>
+  <ul>
+    <li>Photo and voice as log sources. KAIRA logging endpoints, including unknown food lookup.</li>
+    <li>Meal time windows as plan data. Logging onto an earlier day. 7D to 1Y adherence ranges.</li>
+  </ul>
+  <div class="note gold">Watch: a manual food that matches the meal's plan is silently relinked to the plan by the backend.</div>
+  <p>API walkthrough: <a href="api-flow.html">api-flow.html</a></p>
+</section>
+
+<section id="s17">
+  <h2><span class="n">17</span>Rules everywhere</h2>
+  <h3>Bottom sheets</h3>
+  <ul>
+    <li>Title top left. Filled circle X top right, 44px target. No drag handle.</li>
+    <li>Max 90% height. Header stays, body scrolls. Backdrop 50% black, slide up 300ms.</li>
+  </ul>
+  <h3>Visual</h3>
+  <ul>
+    <li>Page background pure white. Cards: subtle border, soft shadow.</li>
+    <li>Green is the score and the primary action. Indigo is KAIRA. Gold is insight and reward. Teal is a calm accent.</li>
+    <li>Macros are one green, told apart by their own icons.</li>
+    <li>Motion: smooth eases, no bounce. Respect reduced motion.</li>
+  </ul>
+  <h3>Copy</h3>
+  <ul>
+    <li>Plain, friendly, second person. British spelling. No em dashes.</li>
+    <li>KAIRA in capitals. She gives insight, never a recap. Two short sentences max.</li>
+    <li>No meal counts ("2 of 6"). Point to the next log instead.</li>
+    <li>Text 12px and up. Tap targets 44px and up.</li>
+  </ul>
+</section>
+
+<section id="s18">
+  <h2><span class="n">18</span>Open questions</h2>
+  <ul>
+    <li>Junk can score well when its macros happen to fit a meal (<a href="junk-score-answers.html">junk-score-answers.html</a>). Add a food quality check?</li>
+    <li>Water in a food meal: picking jeera water over haldi milk scores 0 for that meal.</li>
+    <li>Meal targets can add up to more than the calorie goal (1,466 vs 1,200 on GLP).</li>
+    <li>Small targets are touchy: a 1.2 g gap can cost half the protein points.</li>
+    <li>How far back a person may log.</li>
+    <li>Swipe down to dismiss a sheet.</li>
+  </ul>
+</section>
+
+<footer>Eat PRD · Draft 3 · 12 Oct 2026 · Supersedes v7/PRD.md (Draft 2, 22 Sep)</footer>
+</div>
+</body>
+</html>

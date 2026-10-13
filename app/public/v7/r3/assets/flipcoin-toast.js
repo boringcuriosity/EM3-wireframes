@@ -65,7 +65,14 @@
     }));
   }
   var data = null;
-  function loadData() { return data ? Promise.resolve(data) : fetch(BASE + "flipcoin.json").then(function (r) { return r.json(); }).then(function (d) { return (data = d); }); }
+  /* a script, not fetch(), so the toast plays when the prototype is opened straight off disk */
+  function loadData() {
+    if (window.GF_FLIPCOIN) return Promise.resolve(data = window.GF_FLIPCOIN);
+    return new Promise(function (ok, no) {
+      var sc = document.createElement("script"); sc.src = BASE + "flipcoin-data.js";
+      sc.onload = function () { ok(data = window.GF_FLIPCOIN); }; sc.onerror = no; document.head.appendChild(sc);
+    });
+  }
   /* warm both up so the toast never waits on the network when it fires */
   loadLottie().catch(function () {}); loadData().catch(function () {});
 

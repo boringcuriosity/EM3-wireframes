@@ -6,8 +6,8 @@
    space. It runs in a frame of its own so its WebGL lives and dies with the
    hero, which the page mounts only while the phone is on screen.
 
-   A day with no score (locked, nothing yet) has no number to pour, so it falls
-   back to the plate and its padlock. */
+   A day with no score has no number to pour: no plan shows the padlock, and a
+   missed or loading day shows the empty orbs with a tag that says why. */
 (function () {
   window.HEROES = window.HEROES || {};
   var BASE = (document.currentScript && document.currentScript.src || "").replace(/[^/]*$/, "");
@@ -15,11 +15,11 @@
   window.HEROES.cloud = function (el, opts) {
     /* No plan yet: no score, so the liquid score shows itself locked, with the
        padlock where the number goes. Lit on the day nothing has happened, quiet
-       once food is going in, as the Plate had it. Other days without a score
-       (a missed day in history, loading) keep the Plate for now. */
+       once food is going in. Other days without a score (a missed day in
+       history, loading) are blank: empty orbs, no number, a tag that says why. */
     var LOCKS = { noplanempty: "lit", noplan: "quiet" };
     var lock = opts.score == null ? LOCKS[opts.state] : null;
-    if (opts.score == null && !lock) return window.HEROES.plate(el, opts);
+    var blank = opts.score == null && !lock;
 
 
     /* the plate lives in a 342 x 320 box scaled to .65; the liquid score draws
@@ -48,9 +48,9 @@
        score's own tag (Solid Day, Room To Grow, Needs Attention). Gathering
        data is not a general-purpose tag, so it is not used here. */
     /* nothing logged on a planned day is an invitation, not missing data */
-    var tag = lock ? "" : opts.mealsIn === 0 ? "log" : "";
-    fr.src = BASE + "cloud/index.html?build=25&embed=1&k=.88&er=.102&ey=-.095&y=.03&v=Cloud%20Drop&intro=murmuration" + (lock ? "&lock=" + lock : "&score=" + Math.round(opts.score)) + (tag ? "&tag=" + tag : "") +
-      (opts.from != null && !lock ? "&from=" + Math.round(opts.from) : "");
+    var tag = lock ? "" : blank ? (opts.state === "loading" ? "gathering" : "none") : opts.mealsIn === 0 ? "log" : "";
+    fr.src = BASE + "cloud/index.html?build=27&embed=1&k=.88&er=.102&ey=-.095&y=.03&v=Cloud%20Drop&intro=murmuration" + (lock ? "&lock=" + lock : blank ? "&blank=1" : "&score=" + Math.round(opts.score)) + (tag ? "&tag=" + tag : "") +
+      (opts.from != null && !lock && !blank ? "&from=" + Math.round(opts.from) : "");
     fr.title = ""; fr.tabIndex = -1; fr.setAttribute("aria-hidden", "true");
     /* taps go to the hero wrap underneath, which opens the sufficiency sheet */
     fr.style.cssText = "display:block;width:100%;height:100%;border:0;background:transparent;pointer-events:none";

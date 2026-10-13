@@ -56,8 +56,8 @@
     ".pt .trow{display:flex;gap:8px}",
     ".pt .timebtn{display:flex;align-items:center;gap:8px;height:52px;flex-shrink:0;padding:0 16px;border-radius:12px;background:#fff;border:1px solid #299D6B;color:#299D6B;cursor:pointer;transition:transform .2s ease-out}",
     ".pt .timebtn:active{transform:scale(.96)}.pt .timebtn b{font:700 14px/18px Roboto,sans-serif;color:#299D6B}",
-    ".pt .go{flex:1;min-width:0;height:52px;border:0;border-radius:12px;background:#299D6B;color:#fff;font:700 15px/1 Roboto,sans-serif;cursor:pointer;box-shadow:0 4px 0 #2A805A;transition:transform .2s ease-out,box-shadow .2s ease-out}",
-    ".pt .go:active{transform:translateY(4px);box-shadow:none}",
+    ".pt .go{flex:1;min-width:0;height:52px;border:0;border-radius:12px;background:#299D6B;color:#fff;font:700 15px/1 Roboto,sans-serif;cursor:pointer;box-shadow:0 7px 0 #2A805A;transition:transform .2s ease-out,box-shadow .2s ease-out}",
+    ".pt .go:active{transform:translateY(7px);box-shadow:none}",
     /* the screen around it: the tab bar and KAIRA's button give way, and the
        ticked foods are marked as in the bar */
     "body.pt-on .nav{transform:translate(-50%,110%);transition:transform .34s cubic-bezier(.2,0,0,1)}",
@@ -105,21 +105,30 @@
     ".pts .st button{width:34px;height:36px;border:0;background:none;color:#299D6B;display:grid;place-items:center;cursor:pointer}.pts .st b{min-width:18px;text-align:center;font:600 15px/1 Roboto,sans-serif;font-variant-numeric:tabular-nums}",
     ".pts .ft{position:sticky;bottom:0;display:flex;align-items:center;gap:16px;margin:4px -16px 0;padding:14px 16px calc(14px + var(--gf-home-h,20px));background:#fff;border-top:1px solid #F2F4F7}",
     ".pts .ft .tot span{display:block}.pts .ft .tot b{display:block;font:700 18px/24px Roboto,sans-serif;color:#101828;font-variant-numeric:tabular-nums}.pts .ft .tot span{font:400 12px/16px Roboto,sans-serif;color:#667085}",
-    ".pts .ft .done{flex:1;width:auto;margin-bottom:4px}",
+    ".pts .ft .done{flex:1;width:auto;margin-bottom:7px}",
     ".pts .sh>.done{margin-bottom:20px}",
     ".pts .note{margin:8px 2px 16px;font:400 13px/18px Roboto,sans-serif;color:#667085}",
     /* a time that has not happened yet: the chip goes warm, the sheet asks once, Log waits */
-    ".pts .tc.fut{border-color:#FEDF89;background:#FFFAEB;color:#B54708}.pts .tc.fut svg{color:#DC6803}",
-    ".pts .fbn{display:flex;gap:12px;align-items:flex-start;margin:0 0 6px;padding:12px;border-radius:14px;background:#FFFAEB;border:1px solid #FEF0C7;animation:ptIn .4s cubic-bezier(.2,0,0,1) both}",
-    ".pts .fbn .fi{flex:none;width:32px;height:32px;border-radius:50%;background:#FEF0C7;color:#DC6803;display:grid;place-items:center}.pts .fbn .fi svg{width:18px;height:18px}",
-    ".pts .fbn b{display:block;font:600 14px/20px Roboto,sans-serif;color:#101828}.pts .fbn p{margin:2px 0 10px;font:400 13px/18px Roboto,sans-serif;color:#475467}",
-    ".pts .fbn button{height:32px;padding:0 12px;border-radius:10px;border:1px solid #FEDF89;background:#fff;color:#B54708;font:600 13px/1 Roboto,sans-serif;cursor:pointer}",
+    /* a future time: the chip stays as it is, only its outline (dashed) and its clock turn gold, the ribbon's colour */
+    ".pts .tc.fut{border-style:dashed;border-color:#CDA935}.pts .tc.fut svg{color:#A68A2D}",
+    /* the ring's warning message: a striped gold ribbon names it, the card says it plainly, GoodFlip's secondary button fixes it */
+    ".pts .fbn{margin:0 0 8px;border-radius:16px;overflow:hidden;background:#FFFDF5;border:1px solid #FEF1C7;animation:ptIn .4s cubic-bezier(.2,0,0,1) both}",
+    ".pts .fbn .rib{display:flex;align-items:center;gap:6px;height:30px;padding:0 14px;font:600 13px/1 Roboto,sans-serif;color:#826E2D;background:repeating-linear-gradient(-45deg,#FFF8E0 0 10px,#FFFBEE 10px 20px);border-bottom:1px solid #FEF1C7}",
+    ".pts .fbn .rib svg{width:16px;height:16px;color:#A68A2D}.pts .fbn .in{padding:12px 14px 14px}",
+    ".pts .fbn b{display:block;font:600 15px/22px Roboto,sans-serif;color:#101828}.pts .fbn p{margin:2px 0 12px;font:400 13px/19px Roboto,sans-serif;color:#475467}",
+    ".pts .fbn button{position:relative;isolation:isolate;margin-bottom:7px;height:40px;padding:0 16px;border-radius:8px;border:1px solid transparent;background:none;color:#299D6B;font:600 14px/1 Roboto,sans-serif;cursor:pointer;transition:transform .2s ease-out}",
+    /* GoodFlip's secondary, drawn in two layers: the white face on top, and under it a #CBF0E0 slab 7px lower, both outlined in green */
+    ".pts .fbn button::before{content:\"\";position:absolute;inset:-1px;z-index:-1;border:1px solid #299D6B;border-radius:8px;background:#fff}",
+    ".pts .fbn button::after{content:\"\";position:absolute;inset:6px -1px -8px;z-index:-2;border:1px solid #299D6B;border-radius:8px;background:#CBF0E0;transition:inset .2s ease-out}",
+    ".pts .fbn button:active{transform:translateY(7px)}.pts .fbn button:active::after{inset:-1px}",
     "@keyframes ptIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}",
-    ".pts .done[disabled]{opacity:.4;pointer-events:none}",
+    /* disabled, as the system draws it: a pale face on a paler ledge, not a faded button */
+    ".pts .done[disabled]{background:#CBF0E0;box-shadow:0 7px 0 #E6FAF1;pointer-events:none}",
     /* the wheel greys out the times still to come, and says so when one is picked */
     ".pts .wc div.fut{color:#D0D5DD}.pts .wc div.fut.on{color:#B54708}",
     ".pts .whint{min-height:18px;margin:-12px 0 12px;text-align:center;font:500 13px/18px Roboto,sans-serif;color:#B54708}",
-    ".pts .done{width:100%;height:52px;border:0;border-radius:12px;background:#299D6B;color:#fff;font:700 15px/1 Roboto,sans-serif;box-shadow:0 4px 0 #2A805A;cursor:pointer}",
+    ".pts .done{width:100%;height:52px;border:0;border-radius:12px;background:#299D6B;color:#fff;font:700 15px/1 Roboto,sans-serif;box-shadow:0 7px 0 #2A805A;cursor:pointer;transition:transform .2s ease-out,box-shadow .2s ease-out}",
+    ".pts .done:active{transform:translateY(7px);box-shadow:none}",
     /* the floating bar, after Zomato's cart bar, with our 20px card corners rather than its pill; the Log button keeps our squared corners and depth bar. */
     ".pt.fm{background:none;box-shadow:none;border-radius:0;padding:0 12px calc(12px + var(--gf-home-h,20px) + env(safe-area-inset-bottom,0px))}",
     ".pt .flw{position:relative;border-radius:20px}",
@@ -199,6 +208,8 @@
   function isToday() { return !window.S || !window.S.day || window.S.day === "Today"; }
   function future(x) { return isToday() && x.time > nowMin(); }
   function anyFuture() { return T && T.items.some(future); }
+  /* GoodFlip's warning glyph, from the design system Figma (icons/gf/warning.svg) */
+  var WARN = "<svg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'><path d='M10.0297 3.65893C10.8859 2.1111 13.1111 2.11108 13.9673 3.65888L21.7131 17.6603C22.5427 19.16 21.4581 20.9995 19.7443 20.9995H4.25323C2.53945 20.9995 1.45483 19.16 2.28438 17.6604L10.0297 3.65893ZM12.9973 17.0009C12.9973 16.4494 12.5502 16.0022 11.9987 16.0022C11.4471 16.0022 11 16.4494 11 17.0009C11 17.5524 11.4471 17.9996 11.9987 17.9996C12.5502 17.9996 12.9973 17.5524 12.9973 17.0009ZM12.7381 9.14764C12.6882 8.7816 12.3742 8.4997 11.9945 8.5C11.5802 8.50033 11.2447 8.83639 11.2451 9.2506L11.2487 13.7522L11.2556 13.854C11.3055 14.22 11.6196 14.5019 11.9993 14.5016C12.4135 14.5013 12.749 14.1652 12.7487 13.751L12.7451 9.2494L12.7381 9.14764Z' fill='currentColor'/></svg>";
   var CLOCKI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
   function fmt(min) {
     var h = Math.floor(min / 60) % 24, mm = min % 60, ap = h < 12 ? "AM" : "PM";
@@ -378,11 +389,12 @@
   }
   function review() {
     var n = count(), late = T.items.filter(future).length;
-    /* Asked once, kindly, at the top: some of these are set for later today.
+    /* Said once, plainly, at the top: some items have a time later than now.
+       Generic on purpose, so it reads right for any meal at any hour.
        Log stays greyed until every time is one that has already happened. */
-    var ask = late ? '<div class="fbn"><span class="fi">' + CLOCKI + "</span><div>" +
-      "<b>" + (late === 1 ? "One time is still to come" : late + " times are still to come") + "</b>" +
-      "<p>You can log what you have already eaten. When did you have " + (late === 1 ? "it" : "them") + "?</p>" +
+    var ask = late ? '<div class="fbn" role="status"><div class="rib">' + WARN + "Future time</div><div class=\"in\">" +
+      "<b>" + late + (late === 1 ? " item is" : " items are") + " set for later</b>" +
+      "<p>You can only log food you have already eaten. Had " + (late === 1 ? "it" : "them") + "? Set " + (late === 1 ? "it" : "them") + " to now.</p>" +
       '<button data-pt="setnow">Set ' + (late === 1 ? "it" : "them") + " to now, " + fmt(Math.floor(nowMin() / 5) * 5) + "</button></div></div>" : "";
     openSheet(head("Food items to log") + ask +
       T.items.map(function (x, i) {
@@ -447,7 +459,7 @@
     [].forEach.call(mc.children, function (d, j) { d.classList.toggle("fut", today && at(hSel, j, pm) > now); });
     [].forEach.call(ac.children, function (d, j) { d.classList.toggle("fut", today && at(12, 0, j === 1) > now); });
     var late = today && at(hSel, k(mc), pm) > now;
-    sheet2.querySelector(".whint").textContent = late ? "That time has not come yet today" : "";
+    sheet2.querySelector(".whint").textContent = late ? "You can only log a time that has passed" : "";
     var done = sheet2.querySelector('[data-pt="setwheel"]');
     if (late) done.setAttribute("disabled", ""); else done.removeAttribute("disabled");
   }

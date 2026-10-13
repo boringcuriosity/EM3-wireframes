@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Times still to come</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<style>
+  /* The review sheet when some foods are set for later today (dinner ticked at
+     1 PM). Six ways to say so, a strip of time-chip treatments, and the copy.
+     Every colour is a GoodFlip token; every icon is exported from the GoodFlip
+     Figma. Standalone: nothing here is shared with r3/, and it opens off disk. */
+  :root {
+    --brand-25:#FAFFFD; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0; --brand-300:#ABE6CC; --brand-400:#79CCA8; --brand-600:#299D6B; --brand-700:#2A805A; --brand-900:#1D4D38;
+    --gold-25:#FFFDF5; --gold-50:#FFFBEE; --gold-100:#FFF8E0; --gold-200:#FEF1C7; --gold-300:#FDE8A4; --gold-600:#E7C144; --gold-700:#CDA935; --gold-800:#A68A2D; --gold-900:#826E2D;
+    --indigo-25:#F5F8FF; --indigo-50:#EEF4FF; --indigo-100:#E0EAFF; --indigo-200:#C7D7FE; --indigo-600:#444CE7; --indigo-800:#2D31A6; --indigo-900:#2D3282;
+    --gray-25:#FCFCFD; --gray-50:#F9FAFB; --gray-100:#F2F4F7; --gray-200:#E4E7EC; --gray-300:#D0D5DD; --gray-400:#98A2B3; --gray-500:#667085; --gray-600:#475467; --gray-700:#344054; --gray-900:#101828;
+    --shadow: 2px 3px 0 0 rgba(152,162,179,.35);
+    --ease: cubic-bezier(.2,0,0,1);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--gray-900); font-family: Roboto, Arial, sans-serif; letter-spacing: .25px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 56px 24px 80px; }
+  h1 { font-weight: 600; font-size: 40px; line-height: 48px; margin: 0 0 12px; }
+  .lede { max-width: 760px; margin: 0 0 12px; font-size: 16px; line-height: 26px; color: var(--gray-600); }
+  .lede b { color: var(--gray-900); font-weight: 600; }
+  h2.sec { margin: 56px 0 6px; font-size: 24px; line-height: 32px; font-weight: 600; }
+  .secp { margin: 0 0 24px; max-width: 760px; font-size: 15px; line-height: 24px; color: var(--gray-600); }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 28px; }
+  .card { display: flex; flex-direction: column; border: 1px solid var(--gray-200); border-radius: 16px; box-shadow: var(--shadow); background: #fff; overflow: hidden; }
+  .card.rec { border-color: var(--brand-400); box-shadow: 2px 3px 0 0 var(--brand-200); }
+  .phone { position: relative; width: 304px; height: 640px; margin: 20px auto 0; border-radius: 30px; overflow: hidden;
+    box-shadow: 0 0 0 1px var(--gray-200), 0 12px 32px -16px rgba(16,24,40,.25); }
+  .screen { position: absolute; left: 0; top: 0; width: 390px; height: 821px; transform: scale(.78); transform-origin: 0 0; background: #9AA1AD; overflow: hidden; }
+  .reset { align-self: center; margin-top: 10px; border: 0; background: none; font: 500 13px/18px Roboto, sans-serif; color: var(--gray-500); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .meta { display: flex; flex-direction: column; gap: 6px; padding: 16px 20px 20px; border-top: 1px solid var(--gray-200); margin-top: 12px; flex: 1; }
+  .meta h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
+  .tag { font-size: 12px; font-weight: 500; border-radius: 8px; padding: 2px 8px; }
+  .tag.rec { color: var(--brand-700); background: var(--brand-50); }
+  .tag.k { color: var(--gray-600); background: var(--gray-100); }
+  .meta p { margin: 0; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+  .meta .fit { font-size: 13px; line-height: 19px; color: var(--gray-500); }
+  .meta .fit b { font-weight: 600; color: var(--gray-700); }
+
+  /* ---------- the phone: status bar, the day under a scrim, the sheet ---------- */
+  .sb { height: 54px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; background: #fff; font: 600 16px/1 Roboto, sans-serif; }
+  .day { height: 96px; background: #fff; position: relative; }
+  .day::after { content: ''; position: absolute; inset: -54px 0 0; background: rgba(16,24,40,.4); }
+  .sh { position: absolute; left: 0; right: 0; bottom: 0; top: 118px; background: #fff; border-radius: 20px 20px 0 0; display: flex; flex-direction: column; }
+  .sbody { flex: 1; overflow-y: auto; scrollbar-width: none; padding: 20px 16px 0; }
+  .hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .hd h4 { margin: 0; font: 800 20px/28px Roboto, sans-serif; color: var(--gray-900); }
+  .x { width: 32px; height: 32px; border-radius: 50%; border: 0; background: var(--gray-100); color: var(--gray-700); display: grid; place-items: center; flex-shrink: 0; }
+  .x svg { width: 16px; height: 16px; }
+  .pi { display: flex; align-items: center; gap: 12px; padding: 14px 0; transition: opacity .35s var(--ease); }
+  .pi + .pi { border-top: 1px solid var(--gray-100); }
+  .pi .t { flex: 1; min-width: 0; transition: opacity .35s var(--ease); }
+  .nm { font: 600 15px/22px Roboto, sans-serif; }
+  .mt { font: 400 13px/18px Roboto, sans-serif; color: var(--gray-500); font-variant-numeric: tabular-nums; }
+  .ctl { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+  .st { display: flex; align-items: center; height: 36px; border: 1px solid var(--gray-200); border-radius: 10px; }
+  .st span { width: 34px; height: 36px; display: grid; place-items: center; color: var(--brand-600); }
+  .st span svg { width: 16px; height: 16px; }
+  .st b { min-width: 18px; text-align: center; font: 600 15px/1 Roboto, sans-serif; }
+  .ft { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px 34px; border-top: 1px solid var(--gray-100); background: #fff; }
+  .ftr { display: flex; align-items: center; gap: 16px; }
+  .tot span { display: block; font: 400 12px/16px Roboto, sans-serif; color: var(--gray-500); }
+  .tot b { display: block; font: 700 18px/24px Roboto, sans-serif; font-variant-numeric: tabular-nums; }
+  .log { flex: 1; height: 52px; border: 0; border-radius: 12px; background: var(--brand-600); color: #fff; font: 700 15px/1 Roboto, sans-serif; box-shadow: 0 7px 0 var(--brand-700); margin-bottom: 7px; transition: transform .2s ease-out, box-shadow .2s ease-out, background .3s var(--ease); }
+  .log:active { transform: translateY(7px); box-shadow: none; }
+  /* disabled, as the system draws it: a pale face on a paler ledge */
+  .log[disabled] { background: var(--brand-200); box-shadow: 0 7px 0 var(--brand-100); }
+
+  /* ---------- the time chip: past (the shipped look) ---------- */
+  .tc { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 106px; height: 36px; padding: 0 8px; border-radius: 10px;
+    border: 1px solid var(--gray-200); background: #fff; color: var(--gray-900); font: 600 13px/1 Roboto, sans-serif; font-variant-numeric: tabular-nums;
+    transition: border-color .3s var(--ease), color .3s var(--ease), background .3s var(--ease); }
+  .tc i { display: grid; width: 16px; height: 16px; color: var(--brand-600); }
+  .tc i svg { width: 16px; height: 16px; }
+
+  /* ---------- GoodFlip's secondary CTA (Molecules > Button, Type=Secondary):
+     white, Flip green outline and label, a green lip underneath ---------- */
+  .cta2 { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 40px; padding: 0 16px; border-radius: 8px;
+    border: 1px solid transparent; background: none; color: var(--brand-600); font: 600 14px/1 Roboto, sans-serif; white-space: nowrap;
+    position: relative; isolation: isolate; margin-bottom: 7px; cursor: pointer; transition: transform .2s ease-out; }
+  /* the ledge: a #CBF0E0 slab 7px under the face, outlined in the same green */
+  .cta2::before { content: ''; position: absolute; inset: -1px; z-index: -1; border: 1px solid var(--brand-600); border-radius: 8px; background: #fff; }
+  .cta2::after { content: ''; position: absolute; inset: 6px -1px -8px; z-index: -2; border: 1px solid var(--brand-600); border-radius: 8px; background: var(--brand-200); transition: inset .2s ease-out; }
+  .cta2:active { transform: translateY(7px); }
+  .cta2:active::after { inset: -1px; }
+  .cta2 svg { width: 16px; height: 16px; }
+  .cta2.full { width: 100%; height: 48px; font-size: 15px; }
+
+  /* the note collapses once the times are fixed */
+  .note { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .4s var(--ease), opacity .3s var(--ease), margin .4s var(--ease); }
+  .note > div { overflow: hidden; min-height: 0; }
+  .fixed .note { grid-template-rows: 0fr; opacity: 0; margin: 0 !important; }
+
+  /* A: gold note, by the book */
+  .vA .note { margin-bottom: 6px; }
+  /* GoodFlip's messages card (Kickstarter): soft gradient, radius 16, a 24px filled circle with a white glyph */
+  .vA .card2 { display: flex; gap: 12px; padding: 12px 16px 14px; border-radius: 16px; background: linear-gradient(112deg, var(--gold-100) 3%, var(--gold-50) 22%, var(--gold-50) 80%, var(--gold-100) 95%); border: 1px solid var(--gold-200); }
+  .vA .ic { flex: none; width: 24px; height: 24px; margin-top: 1px; border-radius: 50%; background: var(--gold-600); color: #fff; display: grid; place-items: center; }
+  .vA .ic svg { width: 16px; height: 16px; }
+  .ttl { margin: 0; font: 600 15px/22px Roboto, sans-serif; color: var(--gray-900); }
+  .bd { margin: 2px 0 12px; font: 400 13px/19px Roboto, sans-serif; color: var(--gray-600); }
+  .vA .fut .tc { border-style: dashed; border-color: var(--gray-300); color: var(--gray-500); }
+  .vA .fut .tc i { color: var(--gray-400); }
+
+  /* B: the ring's warning message, a striped ribbon over the card */
+  .vB .note { margin-bottom: 8px; }
+  .vB .card2 { border-radius: 16px; overflow: hidden; background: var(--gold-25); border: 1px solid var(--gold-200); }
+  .vB .rib { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 14px; font: 600 13px/1 Roboto, sans-serif; color: var(--gold-900);
+    background: repeating-linear-gradient(-45deg, var(--gold-100) 0 10px, var(--gold-50) 10px 20px); border-bottom: 1px solid var(--gold-200); }
+  .vB .rib svg { width: 16px; height: 16px; color: var(--gold-800); }
+  .vB .in { padding: 12px 14px 14px; }
+  .vB .fut .tc { border-style: dashed; border-color: var(--gold-700); }
+  .vB .fut .tc i { color: var(--gold-800); }
+
+  /* C: calm indigo, a note rather than a warning */
+  .vC .note { margin-bottom: 6px; }
+  /* the messages card's info variant: indigo to teal wash, a 24px indigo circle */
+  .vC .card2 { display: flex; gap: 12px; padding: 12px 16px 14px; border-radius: 16px; background: linear-gradient(120deg, var(--indigo-100), #E0FFFF); }
+  .vC .ic { flex: none; width: 24px; height: 24px; margin-top: 1px; border-radius: 50%; background: var(--indigo-600); color: #fff; display: grid; place-items: center; }
+  .vC .ic svg { width: 16px; height: 16px; }
+  .vC .fut .tc { background: var(--indigo-25); border-color: var(--indigo-100); color: var(--indigo-900); }
+  .vC .fut .tc i { color: var(--indigo-600); }
+
+  /* D: a now line. Everything under it is later today */
+  .vD .now { display: flex; align-items: center; gap: 8px; margin: 2px 0 0; }
+  .vD .now .pill { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px; border-radius: 999px; background: var(--brand-50); border: 1px solid var(--brand-200);
+    font: 600 12px/1 Roboto, sans-serif; color: var(--brand-700); font-variant-numeric: tabular-nums; }
+  .vD .now .pill i { width: 6px; height: 6px; border-radius: 50%; background: var(--brand-600); box-shadow: 0 0 0 3px var(--brand-200); }
+  .vD .now hr { flex: 1; border: 0; border-top: 1.5px solid var(--brand-200); margin: 0; }
+  .vD .note > div > div { display: flex; align-items: center; gap: 12px; padding: 12px 0 6px; }
+  .vD .note .bd { flex: 1; margin: 0; }
+  .vD .note .bd b { color: var(--gray-900); font-weight: 600; }
+  .vD .cta2 { height: 36px; padding: 0 12px; font-size: 13px; }
+  .vD .fut .t { opacity: .55; }
+  .vD .fut .tc { border-style: dashed; border-color: var(--gray-300); color: var(--gray-500); }
+  .vD .fut .tc i { color: var(--gray-400); }
+  .vD .later { display: flex; align-items: center; gap: 8px; margin-top: 10px; font: 600 12px/16px Roboto, sans-serif; letter-spacing: .6px; text-transform: uppercase; color: var(--gray-400); transition: opacity .3s var(--ease); }
+  .vD .later hr { flex: 1; border: 0; border-top: 1.5px dashed var(--gray-200); margin: 0; }
+  .vD.fixed .later { opacity: 0; height: 0; margin: 0; overflow: hidden; }
+
+  /* E: the ask sits in the footer, where the thumb already is */
+  .vE .strip { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 12px; background: var(--gold-25); border: 1px solid var(--gold-200);
+    font: 400 13px/18px Roboto, sans-serif; color: var(--gray-700); }
+  .vE .strip svg { flex: none; width: 18px; height: 18px; color: var(--gold-800); }
+  .vE .strip b { font-weight: 600; color: var(--gray-900); }
+  .vE .note > div { display: flex; flex-direction: column; gap: 12px; }
+  .vE .fut .tc { border-style: dashed; border-color: var(--gold-300); background: var(--gold-25); color: var(--gray-700); }
+  .vE .fut .tc i { color: var(--gold-800); }
+
+  /* F: dusk. The card is the evening, so later reads as a time of day, not a fault */
+  .vF .note { margin-bottom: 8px; }
+  .vF .card2 { position: relative; overflow: hidden; padding: 16px; border-radius: 20px; background: linear-gradient(135deg, var(--indigo-50) 0%, #F7F3FF 45%, var(--gold-50) 100%); border: 1px solid var(--indigo-100); }
+  .vF .mo { position: absolute; right: 14px; top: 12px; width: 44px; height: 44px; }
+  .vF .mo svg { width: 44px; height: 44px; filter: drop-shadow(0 4px 10px rgba(68,76,231,.25)); }
+  .vF .star { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: var(--gold-600); opacity: .7; }
+  .vF .ttl { padding-right: 56px; font-size: 16px; }
+  .vF .bd { padding-right: 40px; }
+  .vF .fut .tc { border: 0; background: var(--indigo-50); color: var(--indigo-900); }
+  .vF .fut .tc i svg { width: 15px; height: 15px; }
+
+  /* ---------- chip strip ---------- */
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: -8px 0 28px; }
+  .bar .lab { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); margin-right: 4px; }
+  .pill { display: inline-flex; align-items: center; min-height: 44px; padding: 0 16px; font: 600 14px/20px Roboto, sans-serif; border: 1px solid var(--gray-200); background: #fff; color: var(--gray-600); border-radius: 9999px; cursor: pointer; }
+  .pill.on { border-color: var(--indigo-600); background: var(--indigo-25); color: var(--indigo-900); }
+  .wait { font: 400 12px/16px Roboto, sans-serif; color: var(--gray-500); text-align: center; margin-top: -4px; }
+  .chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+  .chip { border: 1px solid var(--gray-200); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+  .chip.rec { border-color: var(--brand-400); box-shadow: 2px 3px 0 0 var(--brand-200); }
+  .chip .row { display: flex; align-items: center; justify-content: space-between; font: 400 13px/18px Roboto, sans-serif; color: var(--gray-500); }
+  .chip h3 { display: flex; align-items: center; gap: 8px; margin: 4px 0 0; font-size: 15px; line-height: 22px; font-weight: 600; }
+  .chip p { margin: 0; font-size: 13px; line-height: 19px; color: var(--gray-600); }
+
+  /* ---------- copy table + sources ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 21px; }
+  th, td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--gray-200); }
+  th { font-size: 12px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--gray-400); }
+  td.was { color: var(--gray-500); }
+  .src { columns: 2 320px; column-gap: 32px; padding: 0; margin: 0; list-style: none; }
+  .src li { break-inside: avoid; margin: 0 0 12px; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+  .src b { color: var(--gray-900); font-weight: 600; }
+  .src a { color: var(--indigo-600); }
+  @media (max-width: 520px) { .wrap { padding: 32px 16px 64px; } h1 { font-size: 30px; line-height: 38px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Times still to come</h1>
+  <p class="lede">At 1 PM someone ticks dinner and bedtime foods and taps Log. The sheet has to say, kindly, that those times haven't happened yet, offer <b>Set them to now</b> as GoodFlip's secondary button, and keep Log waiting. Six ways to do it. Tap <b>Set them to now</b> in any phone to see the sheet settle.</p>
+  <p class="lede">Every colour is a GoodFlip token and every icon comes from the GoodFlip Figma. No orange anywhere: later is a time of day, not an error.</p>
+
+  <h2 class="sec">The sheet, six ways</h2>
+  <p class="secp">Same foods, same moment (now 1:00 PM). What changes is the note, where it sits, and how a later time looks on its chip. Switch to a mixed day to see each one when lunch is eaten and dinner is still ahead.</p>
+  <div class="bar"><span class="lab">Scenario</span><button class="pill on" data-sc="all">All later tonight</button><button class="pill" data-sc="mix">Lunch eaten, dinner later</button></div>
+  <div class="grid" id="grid"></div>
+
+  <h2 class="sec">How a later time looks</h2>
+  <p class="secp">The shipped chip is filled amber, which reads as a problem on every row. Each of these keeps the chip a value you can tap, and lets the difference be shape or tone instead of alarm. Left is a time that has passed, right is one still to come.</p>
+  <div class="chips" id="chips"></div>
+
+  <h2 class="sec">The words</h2>
+  <p class="secp">Generic, so the same words work for any meal at any hour. It counts items, not times: four foods at two times read as "4 times".</p>
+  <table>
+    <thead><tr><th>Where</th><th>Today</th><th>Proposed</th></tr></thead>
+    <tbody>
+      <tr><td>Ribbon</td><td class="was">(none)</td><td>Future time</td></tr>
+      <tr><td>Title</td><td class="was">4 times are still to come</td><td>4 items are set for later</td></tr>
+      <tr><td>Body</td><td class="was">You can log what you have already eaten. When did you have them?</td><td>You can only log food you have already eaten. Had them? Set them to now.</td></tr>
+      <tr><td>Button</td><td class="was">Set them to now, 1:00 PM (amber outline)</td><td>Set them to now, 1:00 PM (GoodFlip secondary)</td></tr>
+      <tr><td>One item</td><td class="was">One time is still to come</td><td>1 item is set for later. You can only log food you have already eaten. Had it? Set it to now.</td></tr>
+      <tr><td>Time wheel</td><td class="was">That time has not come yet today</td><td>You can only log a time that has passed</td></tr>
+    </tbody>
+  </table>
+
+  <h2 class="sec">What this draws on</h2>
+  <ul class="src" id="src"></ul>
+</div>
+
+<script>
+const IC = {"clock": "<svg viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M15.25 13.5H11.25C10.836 13.5 10.5 13.164 10.5 12.75V6.75C10.5 6.336 10.836 6 11.25 6C11.664 6 12 6.336 12 6.75V12H15.25C15.664 12 16 12.336 16 12.75C16 13.164 15.664 13.5 15.25 13.5ZM12 2C6.478 2 2 6.478 2 12C2 17.522 6.478 22 12 22C17.522 22 22 17.522 22 12C22 6.478 17.522 2 12 2Z\" fill=\"currentColor\"/></svg>", "timer": "<svg viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M12 5C16.6944 5 20.5 8.80558 20.5 13.5C20.5 18.1944 16.6944 22 12 22C7.30558 22 3.5 18.1944 3.5 13.5C3.5 8.80558 7.30558 5 12 5ZM12 8C11.6203 8 11.3065 8.28215 11.2568 8.64823L11.25 8.75V13.25L11.2568 13.3518C11.3065 13.7178 11.6203 14 12 14C12.3797 14 12.6935 13.7178 12.7432 13.3518L12.75 13.25V8.75L12.7432 8.64823C12.6935 8.28215 12.3797 8 12 8ZM19.1704 5.1226L19.2517 5.18424L20.4008 6.18424C20.7132 6.45617 20.7461 6.9299 20.4742 7.24236C20.2249 7.52878 19.8061 7.58026 19.4973 7.3774L19.416 7.31576L18.267 6.31576C17.9545 6.04383 17.9217 5.5701 18.1936 5.25764C18.4428 4.97122 18.8617 4.91974 19.1704 5.1226ZM14.25 2.5C14.6642 2.5 15 2.83579 15 3.25C15 3.6297 14.7178 3.94349 14.3518 3.99315L14.25 4H9.75C9.33579 4 9 3.66421 9 3.25C9 2.8703 9.28215 2.55651 9.64823 2.50685L9.75 2.5H14.25Z\" fill=\"url(#paint0_linear_9294_70956)\"/><defs><linearGradient id=\"paint0_linear_9294_70956\" x1=\"12.0792\" y1=\"2.5\" x2=\"12.0792\" y2=\"22\" gradientUnits=\"userSpaceOnUse\"><stop stop-color=\"#E7C144\"/><stop offset=\"1\" stop-color=\"#A68A2D\"/></linearGradient></defs></svg>", "moon": "<svg viewBox=\"0 0 20 20\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M16.6882 14.1678C14.3866 18.1541 9.28924 19.52 5.30285 17.2184C4.21725 16.5917 3.30335 15.7438 2.60729 14.733C2.37457 14.395 2.5251 13.9283 2.91143 13.7901C6.05095 12.6664 7.73246 11.3642 8.7082 9.50164C9.73542 7.54082 10.0009 5.39293 9.28228 2.44877C9.18291 2.04165 9.50447 1.65402 9.92294 1.67647C11.2204 1.74608 12.488 2.11878 13.6375 2.78244C17.6239 5.08399 18.9897 10.1814 16.6882 14.1678Z\" fill=\"url(#gfMoon)\"/><defs><linearGradient id=\"gfMoon\" x1=\"8.50003\" y1=\"2.50005\" x2=\"10.0209\" y2=\"18.363\" gradientUnits=\"userSpaceOnUse\"><stop stop-color=\"#E7C144\"/><stop offset=\"1\" stop-color=\"#A68A2D\"/></linearGradient></defs></svg>", "warning": "<svg viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M10.0297 3.65893C10.8859 2.1111 13.1111 2.11108 13.9673 3.65888L21.7131 17.6603C22.5427 19.16 21.4581 20.9995 19.7443 20.9995H4.25323C2.53945 20.9995 1.45483 19.16 2.28438 17.6604L10.0297 3.65893ZM12.9973 17.0009C12.9973 16.4494 12.5502 16.0022 11.9987 16.0022C11.4471 16.0022 11 16.4494 11 17.0009C11 17.5524 11.4471 17.9996 11.9987 17.9996C12.5502 17.9996 12.9973 17.5524 12.9973 17.0009ZM12.7381 9.14764C12.6882 8.7816 12.3742 8.4997 11.9945 8.5C11.5802 8.50033 11.2447 8.83639 11.2451 9.2506L11.2487 13.7522L11.2556 13.854C11.3055 14.22 11.6196 14.5019 11.9993 14.5016C12.4135 14.5013 12.749 14.1652 12.7487 13.751L12.7451 9.2494L12.7381 9.14764Z\" fill=\"currentColor\"/></svg>", "info": "<svg viewBox=\"0 0 16 16\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M8.00065 1.33334C4.32732 1.33334 1.33398 4.32668 1.33398 8.00001C1.33398 11.6733 4.32732 14.6667 8.00065 14.6667C11.674 14.6667 14.6673 11.6733 14.6673 8.00001C14.6673 4.32668 11.674 1.33334 8.00065 1.33334ZM7.50065 5.33334C7.50065 5.06001 7.72732 4.83334 8.00065 4.83334C8.27398 4.83334 8.50065 5.06001 8.50065 5.33334V8.66668C8.50065 8.94001 8.27398 9.16668 8.00065 9.16668C7.72732 9.16668 7.50065 8.94001 7.50065 8.66668V5.33334ZM8.61398 10.92C8.58065 11.0067 8.53398 11.0733 8.47398 11.14C8.40732 11.2 8.33398 11.2467 8.25398 11.28C8.17398 11.3133 8.08732 11.3333 8.00065 11.3333C7.91398 11.3333 7.82732 11.3133 7.74732 11.28C7.66732 11.2467 7.59398 11.2 7.52732 11.14C7.46732 11.0733 7.42065 11.0067 7.38732 10.92C7.35398 10.84 7.33398 10.7533 7.33398 10.6667C7.33398 10.58 7.35398 10.4933 7.38732 10.4133C7.42065 10.3333 7.46732 10.26 7.52732 10.1933C7.59398 10.1333 7.66732 10.0867 7.74732 10.0533C7.90732 9.98668 8.09398 9.98668 8.25398 10.0533C8.33398 10.0867 8.40732 10.1333 8.47398 10.1933C8.53398 10.26 8.58065 10.3333 8.61398 10.4133C8.64732 10.4933 8.66732 10.58 8.66732 10.6667C8.66732 10.7533 8.64732 10.84 8.61398 10.92Z\" fill=\"currentColor\"/></svg>", "history": "<svg viewBox=\"0 0 14 14\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M11.2291 6.99996C11.2291 4.66426 9.33566 2.77079 6.99996 2.77079C6.0304 2.77079 5.13704 3.09706 4.42368 3.64579H4.81246C5.13463 3.64579 5.39579 3.90696 5.39579 4.22913C5.39579 4.55129 5.13463 4.81246 4.81246 4.81246H3.06246C2.74029 4.81246 2.47913 4.55129 2.47913 4.22913V4.08329H2.45957L2.47913 4.05313V2.47913C2.47913 2.15696 2.74029 1.89579 3.06246 1.89579C3.38463 1.89579 3.64579 2.15696 3.64579 2.47913V2.77304C4.56673 2.04127 5.7323 1.60413 6.99996 1.60413C9.98 1.60413 12.3958 4.01992 12.3958 6.99996C12.3958 9.98 9.98 12.3958 6.99996 12.3958C4.01992 12.3958 1.60413 9.98 1.60413 6.99996C1.60413 6.77679 1.61767 6.55679 1.64399 6.34073C1.68036 6.04216 1.94478 5.83329 2.24556 5.83329C2.59036 5.83329 2.83889 6.16492 2.79917 6.50742C2.78043 6.669 2.77079 6.83335 2.77079 6.99996C2.77079 9.33566 4.66426 11.2291 6.99996 11.2291C9.33566 11.2291 11.2291 9.33566 11.2291 6.99996ZM7.58329 4.66663C7.58329 4.34446 7.32213 4.08329 6.99996 4.08329C6.67779 4.08329 6.41663 4.34446 6.41663 4.66663V7.58329C6.41663 7.90546 6.67779 8.16663 6.99996 8.16663H8.74996C9.07213 8.16663 9.33329 7.90546 9.33329 7.58329C9.33329 7.26113 9.07213 6.99996 8.74996 6.99996H7.58329V4.66663Z\" fill=\"currentColor\"/></svg>", "sunny": "<svg viewBox=\"0 0 16 16\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M8.00002 1.33331C8.27616 1.33331 8.50002 1.55717 8.50002 1.83331V2.16665C8.50002 2.44279 8.27616 2.66665 8.00002 2.66665C7.72388 2.66665 7.50002 2.44279 7.50002 2.16665V1.83331C7.50002 1.55717 7.72388 1.33331 8.00002 1.33331ZM5.33335 5.99998C5.33335 4.52722 6.52726 3.33331 8.00002 3.33331C9.47278 3.33331 10.6667 4.52722 10.6667 5.99998C10.6667 7.47274 9.47278 8.66665 8.00002 8.66665C6.52726 8.66665 5.33335 7.47274 5.33335 5.99998ZM8.50002 9.83331C8.50002 9.55717 8.27616 9.33331 8.00002 9.33331C7.72388 9.33331 7.50002 9.55717 7.50002 9.83331V10.1666C7.50002 10.4428 7.72388 10.6666 8.00002 10.6666C8.27616 10.6666 8.50002 10.4428 8.50002 10.1666V9.83331ZM3.83335 5.33331C3.55721 5.33331 3.33335 5.55717 3.33335 5.83331C3.33335 6.10946 3.55721 6.33331 3.83335 6.33331H4.16669C4.44283 6.33331 4.66669 6.10946 4.66669 5.83331C4.66669 5.55717 4.44283 5.33331 4.16669 5.33331H3.83335ZM11.3334 5.83331C11.3334 5.55717 11.5572 5.33331 11.8334 5.33331H12.1667C12.4428 5.33331 12.6667 5.55717 12.6667 5.83331C12.6667 6.10946 12.4428 6.33331 12.1667 6.33331H11.8334C11.5572 6.33331 11.3334 6.10946 11.3334 5.83331ZM4.4798 3.85354C4.67506 4.0488 4.99164 4.0488 5.18691 3.85354C5.38217 3.65828 5.38217 3.34169 5.18691 3.14643L4.85357 2.8131C4.65831 2.61784 4.34173 2.61784 4.14647 2.8131C3.9512 3.00836 3.9512 3.32494 4.14647 3.52021L4.4798 3.85354ZM5.18691 8.14642C4.99164 7.95116 4.67506 7.95116 4.4798 8.14642L4.14647 8.47975C3.9512 8.67502 3.9512 8.9916 4.14647 9.18686C4.34173 9.38212 4.65831 9.38212 4.85357 9.18686L5.18691 8.85353C5.38217 8.65827 5.38217 8.34168 5.18691 8.14642ZM11.5202 3.85354C11.325 4.0488 11.0084 4.0488 10.8131 3.85354C10.6179 3.65828 10.6179 3.34169 10.8131 3.14643L11.1465 2.8131C11.3417 2.61784 11.6583 2.61784 11.8536 2.8131C12.0488 3.00836 12.0488 3.32494 11.8536 3.52021L11.5202 3.85354ZM10.8131 8.14642C11.0084 7.95116 11.325 7.95116 11.5202 8.14642L11.8536 8.47975C12.0488 8.67502 12.0488 8.9916 11.8536 9.18686C11.6583 9.38212 11.3417 9.38212 11.1465 9.18686L10.8131 8.85353C10.6179 8.65827 10.6179 8.34168 10.8131 8.14642ZM2.14552 14.5573C1.92989 14.7296 1.61542 14.6945 1.44298 14.479C1.17084 14.1389 1.52173 13.7757 1.52173 13.7757L1.52262 13.775L1.53281 13.7669C1.53917 13.762 1.54797 13.7552 1.55916 13.7466C1.58154 13.7296 1.61351 13.7056 1.65474 13.6757C1.73719 13.616 1.85679 13.5327 2.01095 13.4336C2.31906 13.2355 2.76647 12.9738 3.33222 12.7127C4.46224 12.1911 6.07605 11.6666 8.00008 11.6666C9.92411 11.6666 11.5379 12.1911 12.6679 12.7127C13.2337 12.9738 13.6811 13.2355 13.9892 13.4336C14.1434 13.5327 14.263 13.616 14.3454 13.6757C14.3867 13.7056 14.4186 13.7296 14.441 13.7466C14.4522 13.7552 14.461 13.762 14.4673 13.7669L14.4751 13.773L14.4775 13.775L14.4791 13.7762C14.6947 13.9487 14.7297 14.2634 14.5572 14.479C14.3847 14.6945 14.07 14.7294 13.8544 14.5571L13.8516 14.5549L13.8345 14.5417C13.8185 14.5295 13.7932 14.5105 13.7589 14.4857C13.6903 14.436 13.586 14.3631 13.4485 14.2747C13.1732 14.0978 12.7665 13.8595 12.2489 13.6206C11.2122 13.1422 9.74271 12.6666 8.00008 12.6666C6.25745 12.6666 4.78792 13.1422 3.75128 13.6206C3.23369 13.8595 2.82694 14.0978 2.55171 14.2747C2.4142 14.3631 2.30985 14.436 2.24125 14.4857C2.20696 14.5105 2.18164 14.5295 2.16561 14.5417L2.14858 14.5549L2.14552 14.5573Z\" fill=\"#1D4D38\"/></svg>", "timerMono": "<svg viewBox=\"0 0 24 24\" fill=\"none\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M12 5C16.6944 5 20.5 8.80558 20.5 13.5C20.5 18.1944 16.6944 22 12 22C7.30558 22 3.5 18.1944 3.5 13.5C3.5 8.80558 7.30558 5 12 5ZM12 8C11.6203 8 11.3065 8.28215 11.2568 8.64823L11.25 8.75V13.25L11.2568 13.3518C11.3065 13.7178 11.6203 14 12 14C12.3797 14 12.6935 13.7178 12.7432 13.3518L12.75 13.25V8.75L12.7432 8.64823C12.6935 8.28215 12.3797 8 12 8ZM19.1704 5.1226L19.2517 5.18424L20.4008 6.18424C20.7132 6.45617 20.7461 6.9299 20.4742 7.24236C20.2249 7.52878 19.8061 7.58026 19.4973 7.3774L19.416 7.31576L18.267 6.31576C17.9545 6.04383 17.9217 5.5701 18.1936 5.25764C18.4428 4.97122 18.8617 4.91974 19.1704 5.1226ZM14.25 2.5C14.6642 2.5 15 2.83579 15 3.25C15 3.6297 14.7178 3.94349 14.3518 3.99315L14.25 4H9.75C9.33579 4 9 3.66421 9 3.25C9 2.8703 9.28215 2.55651 9.64823 2.50685L9.75 2.5H14.25Z\" fill=\"currentColor\"/></svg>"};
+const X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const MINUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"/></svg>';
+const PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+
+/* the app's own chip clock (r3/assets/plan-tray.js), so a passed time looks exactly as it ships */
+const CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+const NOW = "1:00 PM";
+const LATER = [
+  { nm: "Multigrain roti", mt: "2 x 1 piece · 160 kcal", t: "8:45 PM", n: 2, k: 160 },
+  { nm: "Mixed veg sabzi", mt: "1 katori · 114 kcal", t: "8:45 PM", n: 1, k: 114 },
+  { nm: "Walnut", mt: "2 x 1 piece · 56 kcal", t: "10:30 PM", n: 2, k: 56 },
+  { nm: "Chamomile tea", mt: "1 cup · 2 kcal", t: "10:30 PM", n: 1, k: 2 },
+];
+const EATEN = [
+  { nm: "Dal tadka", mt: "1 katori · 150 kcal", t: "12:30 PM", n: 1, k: 150, past: 1 },
+  { nm: "Jeera rice", mt: "1 bowl · 180 kcal", t: "12:30 PM", n: 1, k: 180, past: 1 },
+];
+let SC = "all";
+const sum = l => l.reduce((a, f) => a + f.k, 0);
+
+/* the words, per scenario: count foods, name the meals, say what happens next */
+function words(c) {
+  /* generic on purpose: the same words for any meal at any hour */
+  return { ttl: "4 items are set for later", bd: "You can only log food you have already eaten. Had them? Set them to now.", short: "4 items are set for later." };
+}
+
+/* the chip: clock for a time that has passed; a later time gets each variant's own mark */
+function chip(f, c, v) {
+  const later = !f.past && !c.fx, t = !f.past && c.fx ? NOW : f.t;
+  const icon = !later ? CLOCK : v === "F" ? IC.moon : v === "B" ? CLOCK : IC.timerMono;
+  return '<span class="tc"><i>' + icon + "</i>" + t + "" + "</span>";
+}
+function row(f, c, v) {
+  return '<div class="pi' + (!f.past && !c.fx ? " fut" : "") + '"><div class="t"><div class="nm">' + f.nm + '</div><div class="mt">' + f.mt + "</div></div>" +
+    '<div class="ctl">' + chip(f, c, v) + '<div class="st"><span>' + MINUS + "</span><b>" + f.n + "</b><span>" + PLUS + "</span></div></div></div>";
+}
+const rows = (c, v) => (c.sc === "mix" ? EATEN : []).concat(LATER).map(f => row(f, c, v)).join("");
+const SET = '<button class="cta2" data-fix>Set them to now, ' + NOW + "</button>";
+const head = '<div class="hd"><h4>Food items to log</h4><span class="x">' + X + "</span></div>";
+
+/* Log: everything once fixed; on a mixed day, the eaten foods go now and the later ones wait in the bar */
+function foot(c, extra) {
+  const eaten = c.sc === "mix" ? EATEN : [], all = eaten.concat(LATER);
+  const list = c.fx ? all : eaten, n = c.fx ? all.length : eaten.length, on = n > 0;
+  const label = "Log " + (on ? n : LATER.length) + " item" + ((on ? n : LATER.length) === 1 ? "" : "s");
+  return '<div class="ft">' + (extra || "") + '<div class="ftr"><div class="tot"><span>Total</span><b>' + sum(on ? list : LATER) + ' kcal</b></div><button class="log"' + (on ? "" : " disabled") + ">" + label + "</button></div>" +
+    (c.sc === "mix" && !c.fx ? '<div class="wait">Items set for later stay in your bar</div>' : "") + "</div>";
+}
+
+const V = {
+  A: {
+    name: "Gold note", tags: ["By the book"],
+    why: "GoodFlip's warning card (gold, never orange), its timer icon, one warm title, and the secondary button inside the card. Later chips go dashed and grey.",
+    fit: "<b>Best when</b> you want the least change from today: same place, calmer colour, kinder words.",
+    body: c => { const w = words(c); return head + '<div class="note"><div><div class="card2"><span class="ic">' + IC.timerMono + '</span><div><p class="ttl">' + w.ttl + '</p><p class="bd">' + w.bd + "</p>" + SET + "</div></div></div></div>" + rows(c, "A"); },
+  },
+  B: {
+    name: "Ribbon", tags: ["Chosen"], rec: true,
+    why: "The ring's warning message: a striped gold ribbon names it, the card says it plainly, GoodFlip's secondary button fixes it. A later time keeps its normal chip; only the outline (dashed) and the clock turn gold, matching the ribbon.",
+    fit: "<b>Best when</b> you want this to read as one of GoodFlip's existing notices, consistent with Ring vitals.",
+    body: c => { const w = words(c); return head + '<div class="note"><div><div class="card2"><div class="rib">' + IC.warning + 'Future time</div><div class="in"><p class="ttl">' + w.ttl + '</p><p class="bd">' + w.bd + "</p>" + SET + "</div></div></div></div>" + rows(c, "B"); },
+  },
+  C: {
+    name: "Calm indigo", tags: ["A note, not a warning"],
+    why: "Nothing is wrong, so the note uses indigo, the colour GoodFlip gives KAIRA and information. Later chips take a light indigo tint, which ties them to the note above.",
+    fit: "<b>Best when</b> you want the sheet to feel helpful rather than corrective.",
+    body: c => { const w = words(c); return head + '<div class="note"><div><div class="card2"><span class="ic">' + IC.timerMono + '</span><div><p class="ttl">' + w.ttl + '</p><p class="bd">' + w.bd + "</p>" + SET + "</div></div></div></div>" + rows(c, "C"); },
+  },
+  D: {
+    name: "Now line", tags: ["Idea"],
+    why: "A line marks now, the way a calendar does. Foods above it have been eaten; foods below it are later today, with softer names and dashed chips. The secondary button sits on the line, next to the reason.",
+    fit: "<b>Best when</b> a day mixes eaten and later foods, which is most days. The picture explains itself, so the words stay short, and Log never goes dead.",
+    body: c => {
+      const w = words(c), eaten = c.sc === "mix" ? EATEN.map(f => row(f, c, "D")).join("") : "";
+      return head + eaten +
+        '<div class="now"' + (eaten ? ' style="margin-top:6px"' : "") + '><span class="pill"><i></i>Now · ' + NOW + "</span><hr></div>" +
+        '<div class="note"><div><div><p class="bd"><b>' + w.short + "</b> Already had them?</p>" + SET.replace(", " + NOW, "") + "</div></div></div>" +
+        LATER.map(f => row(f, c, "D")).join("");
+    },
+  },
+  E: {
+    name: "In the footer", tags: ["Thumb reach"],
+    why: "No card at the top. A one-line note and a full-width secondary button sit right above Log, where the thumb already is, so the fix is one move from the action it unblocks.",
+    fit: "<b>Best when</b> the list is long and a note at the top would scroll away from the Log button it explains.",
+    body: c => head + rows(c, "E"),
+    foot: c => foot(c, '<div class="note"><div><div class="strip">' + IC.timer + "<span><b>" + words(c).short + "</b> Already had them?</span></div>" + SET.replace('class="cta2"', 'class="cta2 full"') + "</div></div>"),
+  },
+  F: {
+    name: "Dusk", tags: ["Delight"],
+    why: "The note is the evening: an indigo to gold wash with GoodFlip's moon. Later chips carry the moon too, so a later time reads as a time of day, not a fault.",
+    fit: "<b>Best when</b> you want a moment of warmth. The mark follows the time: sun before 6 PM, moon after.",
+    body: c => head + '<div class="note"><div><div class="card2"><span class="mo">' + IC.moon + '</span><span class="star" style="right:70px;top:18px"></span><span class="star" style="right:62px;top:40px;width:3px;height:3px"></span><span class="star" style="right:18px;top:62px;width:3px;height:3px"></span>' +
+      '<p class="ttl">' + words(c).ttl + '</p><p class="bd">' + words(c).bd + "</p>" + SET + "</div></div></div>" + rows(c, "F"),
+  },
+};
+
+function paint(id, fx) {
+  const v = V[id], el = document.querySelector('[data-v="' + id + '"]'), c = { fx: fx, sc: SC };
+  el.className = "screen v" + id + (fx ? " fixed" : "");
+  el.innerHTML = '<div class="sb"><span>9:41</span><span></span></div><div class="day"></div>' +
+    '<div class="sh"><div class="sbody">' + v.body(c) + "</div>" + (v.foot ? v.foot(c) : foot(c)) + "</div>";
+}
+/* fixing: the note folds away on its own transition, then the rows and Log settle */
+function fix(id) {
+  const el = document.querySelector('[data-v="' + id + '"]');
+  el.classList.add("fixed");
+  setTimeout(() => paint(id, true), 380);
+}
+
+document.getElementById("grid").innerHTML = Object.keys(V).map(id => {
+  const v = V[id];
+  return '<div class="card' + (v.rec ? " rec" : "") + '"><div class="phone"><div class="screen" data-v="' + id + '"></div></div>' +
+    '<button class="reset" data-reset="' + id + '">Reset</button>' +
+    '<div class="meta"><h3>' + id + " · " + v.name + v.tags.map(t => ' <span class="tag ' + (t === "Recommended" || t === "Chosen" ? "rec" : "k") + '">' + t + "</span>").join("") + "</h3>" +
+    "<p>" + v.why + '</p><p class="fit">' + v.fit + "</p></div></div>";
+}).join("");
+const paintAll = () => Object.keys(V).forEach(id => paint(id, false));
+paintAll();
+document.addEventListener("click", e => {
+  const f = e.target.closest("[data-fix]"); if (f) fix(f.closest("[data-v]").dataset.v);
+  const r = e.target.closest("[data-reset]"); if (r) paint(r.dataset.reset, false);
+  const s = e.target.closest("[data-sc]");
+  if (s) { SC = s.dataset.sc; document.querySelectorAll("[data-sc]").forEach(x => x.classList.toggle("on", x === s)); paintAll(); }
+});
+
+/* the chip strip */
+const PAST = '<span class="tc"><i>' + CLOCK + "</i>12:30 PM</span>";
+const CH = [
+  { name: "Gold outline", rec: true, css: "border-style:dashed;border-color:var(--gold-700)", ic: CLOCK, icc: "var(--gold-800)",
+    why: "Chosen. The chip is the normal one: same ink, same white. Only the dashed outline and the clock turn gold, the ribbon's colour, so a later time stands out without a filled block on every row." },
+  { name: "Dashed", css: "border-style:dashed;border-color:var(--gray-300);color:var(--gray-500)", ic: IC.timerMono, icc: "var(--gray-400)",
+    why: "Dashed means not yet, the way a planned route or a draft does. Grey keeps it quiet; the timer icon says it is waiting." },
+  { name: "Soft outline", css: "border-color:var(--brand-300);border-width:1.5px", ic: CLOCK, icc: "var(--brand-600)", sub: "TONIGHT",
+    why: "Stays green and calm, and a tiny word under the time says when. Clear, but the chip is taller than its neighbours." },
+  { name: "Indigo tint", css: "background:var(--indigo-25);border-color:var(--indigo-100);color:var(--indigo-900)", ic: IC.timerMono, icc: "var(--indigo-600)",
+    why: "A light tint ties the chip to an indigo note. Readable at a glance, still clearly tappable." },
+  { name: "Moon and sun", css: "border:0;background:var(--indigo-50);color:var(--indigo-900)", ic: IC.moon,
+    why: "The icon is the time of day: moon after 6 PM, sun before. Warm and instantly read, but needs both icons to be honest." },
+  { name: "Ghost row", css: "border-style:dashed;border-color:var(--gray-300);color:var(--gray-500)", ic: IC.timerMono, icc: "var(--gray-400)", ghost: true,
+    why: "The whole row softens, not just the chip. Strong grouping, but a soft row can look disabled, so the stepper stays full strength." },
+];
+document.getElementById("chips").innerHTML = CH.map(c =>
+  '<div class="chip' + (c.rec ? " rec" : "") + '"><div class="row">' + PAST +
+  '<span class="tc" style="' + c.css + (c.sub ? ';flex-direction:column;gap:2px' : "") + '"><i style="' + (c.icc ? "color:" + c.icc : "") + (c.sub ? ";display:none" : "") + '">' + c.ic + "</i>8:45 PM" +
+  (c.sub ? '<small style="font:500 10px/1 Roboto,sans-serif;color:var(--gold-800)">' + c.sub + "</small>" : "") + "</span></div>" +
+  (c.ghost ? '<div class="row" style="opacity:.55">Mixed veg sabzi</div>' : "") +
+  "<h3>" + c.name + (c.rec ? ' <span class="tag rec">Chosen</span>' : "") + "</h3><p>" + c.why + "</p></div>").join("");
+
+/* sources */
+const SRC = [["GoodFlip Figma, Molecules > sButton, type=secondary", "White face, 1px Flip green stroke, a #CBF0E0 ledge underneath, radius 8. Set them to now in every option."], ["GoodFlip Figma, Ring Integration > warning message", "The striped gold ribbon, a bold title and a grey body. Variant B is built from it."], ["GoodFlip Figma, Kaira's Metabolic Kickstarter > messages", "Radius 16, a soft two-tone gradient, a 24px filled circle with a white glyph, title 16 semibold. A uses its gold tip colours, C its indigo info wash."], ["GoodFlip Figma, ring actionable errors", "A short status, one plain sentence, one action. The ask always comes with its fix."], ["GoodFlip Figma, bottom sheet header", "Title top left, grey circle X top right, no drag handle."], ["GoodFlip Figma, Food Logging with Kaira > suggestion chip and time suggestions", "GoodFlip's own time chip: 36 high, grey when idle, Flip green when chosen. The later-time chips here stay inside that family: grey, never a new colour."], ["GoodFlip Figma, icons", "clock, timer, moon and warning are exported from the file, not drawn."], ["<a href=\"https://mobbin.com/screens/19cc770b-a386-48a5-9d6b-7a46a8c98685\">Apple Health, Medications</a>", "Upcoming doses sit in a soft tint, logged ones in their own group. No red or orange for later."], ["<a href=\"https://mobbin.com/screens/bacda7ff-814b-4309-9f7c-a3418bc0097f\">Structured, timeline</a>", "Past is solid, future is a pale ghost, and a now marker sits on the rail."], ["<a href=\"https://mobbin.com/screens/d47e73a3-2711-4811-b66f-616f1c905bf3\">Todoist, calendar</a>", "One thin now line with a time pill, the only accent on the screen. Variant D."], ["<a href=\"https://mobbin.com/screens/8a6a1881-0e17-4cfa-9aa4-114d0b90aeec\">Tiimo, Today</a>", "Parts of the day with sun and moon icons, and dashed outlines for what is still open. Variant F and the dashed chip."], ["<a href=\"https://mobbin.com/screens/1ae63b10-6840-42ec-838a-0117cb219e99\">Todoist, Upcoming</a>", "A quiet Reschedule action beside the section it fixes. Why the button sits on the now line."], ["<a href=\"https://mobbin.com/screens/4d1b09c5-6ff5-4577-bbff-de5b9524c0fc\">MacroFactor, log to a time</a>", "Secondary stacked above primary at the bottom. Variant E."], ["<a href=\"https://mobbin.com/screens/ea60efeb-75ac-4a84-991e-edf6a6a81c7d\">Monzo</a> and <a href=\"https://mobbin.com/screens/86ff0770-ca78-49ce-b9f0-1445741ef172\">Affirm</a>", "One calm sentence above the button, no alarm. The tone for every note here."], ["<a href=\"https://mobbin.com/screens/9e18154a-a111-4372-ab48-923f073d28f5\">Insight Timer</a>, what not to do", "A red line saying a time must be in the future. It scolds. None of these do."]];
+document.getElementById("src").innerHTML = SRC.map(s => "<li><b>" + s[0] + ".</b> " + s[1] + "</li>").join("");
+</script>
+</body>
+</html>

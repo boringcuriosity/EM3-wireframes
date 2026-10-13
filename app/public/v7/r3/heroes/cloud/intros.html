@@ -415,7 +415,7 @@ void main(){
   vec3 rgb = min(mix(c.rgb, vec3(dot(c.rgb, vec3(.299, .587, .114))*1.35), e), vec3(c.a));
   vec4 orb = vec4(rgb, c.a)*(.5 + .5*vF);
   float sh = texture2D(uT, vUV + vec2(0., -.03), 1.8).a*.22*vF;         // soft green drop shadow under filled orbs, well inside the tile
-  gl_FragColor = (orb + vec4(vec3(.02, .376, .227)*sh, sh)*(1. - orb.a))*uMix;
+  gl_FragColor = (orb + vec4(vec3(.141, .4, .286)*sh, sh)*(1. - orb.a))*uMix;
 }`));
 ['aP', 'aUV', 'aF'].forEach((n, i) => gl.bindAttribLocation(pr2, i, n));
 gl.linkProgram(pr2);
@@ -434,7 +434,8 @@ let orbTex = null;
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   };
-  im.src = 'orb.svg';
+  /* orb.svg, inlined: a file read straight off disk taints the canvas and WebGL draws the orbs black */
+  im.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDE0IDE0Ij4KICA8ZyBmaWx0ZXI9InVybCgjYSkiPgogICAgPGcgY2xpcC1wYXRoPSJ1cmwoI2IpIj4KICAgICAgPHJlY3Qgd2lkdGg9IjE0IiBoZWlnaHQ9IjE0IiBmaWxsPSIjMjQ2NjQ5IiByeD0iNyIvPgogICAgICA8ZyBmaWx0ZXI9InVybCgjYykiPgogICAgICAgIDxlbGxpcHNlIGN4PSI2LjMxNiIgY3k9IjQuNzkyIiBmaWxsPSIjNzlDQ0E4IiByeD0iNy42ODMiIHJ5PSI3LjU0MiIvPgogICAgICA8L2c+CiAgICAgIDxnIGZpbHRlcj0idXJsKCNkKSIgb3BhY2l0eT0iLjUiPgogICAgICAgIDxlbGxpcHNlIGN4PSI1LjI5MiIgY3k9IjMuNzUiIGZpbGw9IiNBQkU2Q0MiIHJ4PSI0LjY5NSIgcnk9IjQuNTgzIi8+CiAgICAgIDwvZz4KICAgICAgPGcgZmlsdGVyPSJ1cmwoI2UpIiBvcGFjaXR5PSIuNiI+CiAgICAgICAgPGVsbGlwc2UgY3g9IjEuOTg5IiBjeT0iMS4xOSIgZmlsbD0iIzU5QjM4QyIgcng9IjEuOTg5IiByeT0iMS4xOSIgdHJhbnNmb3JtPSJtYXRyaXgoLjk4MiAtLjE4ODkxIC4xOTYyNiAuOTgwNTUgNi40MDIgMTIuMDAyKSIvPgogICAgICA8L2c+CiAgICA8L2c+CiAgPC9nPgogIDxkZWZzPgogICAgPGZpbHRlciBpZD0iYSIgd2lkdGg9IjE0IiBoZWlnaHQ9IjE0IiB4PSIwIiB5PSIwIiBjb2xvci1pbnRlcnBvbGF0aW9uLWZpbHRlcnM9InNSR0IiIGZpbHRlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CiAgICAgIDxmZUZsb29kIGZsb29kLW9wYWNpdHk9IjAiIHJlc3VsdD0iQmFja2dyb3VuZEltYWdlRml4Ii8+CiAgICAgIDxmZUJsZW5kIGluPSJTb3VyY2VHcmFwaGljIiBpbjI9IkJhY2tncm91bmRJbWFnZUZpeCIgcmVzdWx0PSJzaGFwZSIvPgogICAgICA8ZmVDb2xvck1hdHJpeCBpbj0iU291cmNlQWxwaGEiIHJlc3VsdD0iaGFyZEFscGhhIiB2YWx1ZXM9IjAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDEyNyAwIi8+CiAgICAgIDxmZU1vcnBob2xvZ3kgaW49IlNvdXJjZUFscGhhIiByYWRpdXM9Ii40MDYiIHJlc3VsdD0iZWZmZWN0MV9pbm5lclNoYWRvd184MTg4XzE0MjIiLz4KICAgICAgPGZlT2Zmc2V0Lz4KICAgICAgPGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iMS42MjUiLz4KICAgICAgPGZlQ29tcG9zaXRlIGluMj0iaGFyZEFscGhhIiBrMj0iLTEiIGszPSIxIiBvcGVyYXRvcj0iYXJpdGhtZXRpYyIvPgogICAgICA8ZmVDb2xvck1hdHJpeCB2YWx1ZXM9IjAgMCAwIDAgMC4xNjA3ODQgMCAwIDAgMCAwLjYxNTY4NiAwIDAgMCAwIDAuNDE5NjA4IDAgMCAwIDEgMCIvPgogICAgICA8ZmVCbGVuZCBpbjI9InNoYXBlIiByZXN1bHQ9ImVmZmVjdDFfaW5uZXJTaGFkb3dfODE4OF8xNDIyIi8+CiAgICA8L2ZpbHRlcj4KICAgIDxmaWx0ZXIgaWQ9ImMiIHdpZHRoPSIyNS41MjUiIGhlaWdodD0iMjUuMjQyIiB4PSItNi40NDYiIHk9Ii03LjgyOSIgY29sb3ItaW50ZXJwb2xhdGlvbi1maWx0ZXJzPSJzUkdCIiBmaWx0ZXJVbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8ZmVGbG9vZCBmbG9vZC1vcGFjaXR5PSIwIiByZXN1bHQ9IkJhY2tncm91bmRJbWFnZUZpeCIvPgogICAgICA8ZmVCbGVuZCBpbj0iU291cmNlR3JhcGhpYyIgaW4yPSJCYWNrZ3JvdW5kSW1hZ2VGaXgiIHJlc3VsdD0ic2hhcGUiLz4KICAgICAgPGZlR2F1c3NpYW5CbHVyIHJlc3VsdD0iZWZmZWN0MV9mb3JlZ3JvdW5kQmx1cl84MTg4XzE0MjIiIHN0ZERldmlhdGlvbj0iMi41NCIvPgogICAgPC9maWx0ZXI+CiAgICA8ZmlsdGVyIGlkPSJkIiB3aWR0aD0iMTkuNTQ5IiBoZWlnaHQ9IjE5LjMyNiIgeD0iLTQuNDgzIiB5PSItNS45MTMiIGNvbG9yLWludGVycG9sYXRpb24tZmlsdGVycz0ic1JHQiIgZmlsdGVyVW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KICAgICAgPGZlRmxvb2QgZmxvb2Qtb3BhY2l0eT0iMCIgcmVzdWx0PSJCYWNrZ3JvdW5kSW1hZ2VGaXgiLz4KICAgICAgPGZlQmxlbmQgaW49IlNvdXJjZUdyYXBoaWMiIGluMj0iQmFja2dyb3VuZEltYWdlRml4IiByZXN1bHQ9InNoYXBlIi8+CiAgICAgIDxmZUdhdXNzaWFuQmx1ciByZXN1bHQ9ImVmZmVjdDFfZm9yZWdyb3VuZEJsdXJfODE4OF8xNDIyIiBzdGREZXZpYXRpb249IjIuNTQiLz4KICAgIDwvZmlsdGVyPgogICAgPGZpbHRlciBpZD0iZSIgd2lkdGg9IjguODEiIGhlaWdodD0iNy4zMjkiIHg9IjQuMTgzIiB5PSI5LjEyOCIgY29sb3ItaW50ZXJwb2xhdGlvbi1maWx0ZXJzPSJzUkdCIiBmaWx0ZXJVbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8ZmVGbG9vZCBmbG9vZC1vcGFjaXR5PSIwIiByZXN1bHQ9IkJhY2tncm91bmRJbWFnZUZpeCIvPgogICAgICA8ZmVCbGVuZCBpbj0iU291cmNlR3JhcGhpYyIgaW4yPSJCYWNrZ3JvdW5kSW1hZ2VGaXgiIHJlc3VsdD0ic2hhcGUiLz4KICAgICAgPGZlR2F1c3NpYW5CbHVyIHJlc3VsdD0iZWZmZWN0MV9mb3JlZ3JvdW5kQmx1cl84MTg4XzE0MjIiIHN0ZERldmlhdGlvbj0iMS4yMTkiLz4KICAgIDwvZmlsdGVyPgogICAgPGNsaXBQYXRoIGlkPSJiIj4KICAgICAgPHJlY3Qgd2lkdGg9IjE0IiBoZWlnaHQ9IjE0IiBmaWxsPSIjZmZmIiByeD0iNyIvPgogICAgPC9jbGlwUGF0aD4KICA8L2RlZnM+Cjwvc3ZnPgo=';
 }
 function drawOrbs(n, mixv) {
   gl.useProgram(pr2); gl.uniform1f(uOrbMix, mixv);
@@ -460,9 +461,9 @@ const SKY = {
   sage:     [.12,.28,.20, .25,.52,.35, .48,.70,.42, .80,.84,.50, .96,.90,.66, .99,.98,.93],
   lagoon:   [.05,.20,.35, .10,.50,.55, .30,.75,.72, .60,.90,.78, .90,.97,.80, .98,1,.97],
   aqualime: [.06,.28,.30, .12,.52,.50, .35,.75,.65, .62,.88,.70, .88,.95,.72, .99,.99,.95],
-  // the orb's own greens: #05603A, #039855, #12B76A, #32D583, #6CE9A6, #D1FADF
-  orb:      [.02,.376,.227, .012,.596,.333, .07,.718,.416, .196,.835,.514, .424,.914,.651, .82,.98,.875],
-  orbsoft:  [.03,.30,.20, .05,.50,.30, .20,.72,.48, .42,.88,.62, .70,.95,.80, .96,.99,.97],
+  // the orb's own greens, Flip green from the design system: brand 800, 600, 500, 400, 300, 100
+  orb:      [.141,.4,.286, .161,.616,.42, .349,.702,.549, .475,.8,.659, .671,.902,.8, .902,.98,.945],
+  orbsoft:  [.114,.302,.22, .141,.45,.32, .30,.66,.50, .52,.82,.70, .78,.93,.86, .96,.99,.975],
   // pearl: cool, near-neutral liquid, so green is left to the orbs and the gauge
   pearl:    [.46,.53,.62, .62,.69,.77, .76,.83,.87, .86,.91,.92, .93,.96,.96, .99,1,1],
   // cloud: milky white with a breath of mint, soft on the eye
@@ -478,8 +479,8 @@ const WHITE_TEXT = { ink: '#fff', inkShadow: '0 2px 22px rgba(30, 10, 80, .35)' 
 const DARK_TEXT = { ink: '#1d4d38', inkShadow: '0 1px 12px rgba(255, 255, 255, .6)' };
 const ORB_INK = { ink: '#054f31', inkShadow: '0 1px 12px rgba(255, 255, 255, .6)' };
 const ORB_WHITE = { ink: '#fff', inkShadow: '0 1px 14px rgba(5, 60, 35, .45)' };
-// the bubble dressed as a giant orb: its greens, and its dark inner shadow (#039855) as the rim
-const ORB = { sky: ['orb', 'orbsoft'], gauge: [[.196, .835, .514], [.012, .596, .333]], edge: [.012, .596, .333], rim: .8, glow: [.82, .98, .875], glowS: .7 };
+// the bubble dressed as a giant orb: its greens, and its dark inner shadow (brand 600) as the rim
+const ORB = { sky: ['orb', 'orbsoft'], gauge: [B400, B600], edge: B600, rim: .8, glow: B200, glowS: .7 };
 // lift: how far the settled bubble pales toward white; edge: rim tint that keeps a pale bubble's shape on white
 const VARIANTS = [
   { name: 'Orbs',     ...ORB, lift: .88, edgeAmt: .3, orbs: true, ...ORB_INK },

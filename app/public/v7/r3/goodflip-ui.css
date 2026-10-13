@@ -272,9 +272,17 @@
 .gf-btn.flat { margin-bottom:0; box-shadow:none; }
 .gf-btn.flat:active { transform:none; box-shadow:none; background:var(--brand-700); }
 .gf-btn.secondary.flat:active { background:var(--brand-50); }
-.gf-btn.secondary { background:#fff; color:var(--brand-600);
-  border:1px solid var(--brand-600); box-shadow:0 7px 0 0 var(--brand-200); }
-.gf-btn.secondary:active { box-shadow:0 0 0 0 var(--brand-200); }
+/* the secondary's ledge is a #CBF0E0 slab outlined in the same green, as Figma draws it,
+   so it is a pseudo element rather than a shadow (a shadow cannot carry a stroke) */
+.gf-btn.secondary { background:none; color:var(--brand-600); isolation:isolate;
+  border:1px solid transparent; box-shadow:none; }
+.gf-btn.secondary::before { content:''; position:absolute; inset:-1px; z-index:-1; border:1px solid var(--brand-600); border-radius:inherit; background:#fff; }
+.gf-btn.secondary.flat { background:#fff; border-color:var(--brand-600); }
+.gf-btn.secondary.flat::before { display:none; }
+.gf-btn.secondary::after { content:''; position:absolute; inset:6px -1px -8px; z-index:-2; border:1px solid var(--brand-600); border-radius:inherit; background:var(--brand-200); transition:inset .2s ease-out; }
+.gf-btn.secondary:active { box-shadow:none; }
+.gf-btn.secondary:active::after { inset:-1px; }
+.gf-btn.secondary.flat::after { display:none; }
 /* The tertiary action. Bold and underlined so it reads as a control without a
    fill, centred like the buttons above it. Back, Skip, Not now, Edit. */
 .gf-link { display:flex; align-items:center; justify-content:center; gap:8px;

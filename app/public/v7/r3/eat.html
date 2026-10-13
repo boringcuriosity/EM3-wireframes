@@ -942,8 +942,8 @@
   .ecal { display: flex; align-items: center; gap: 8px; margin: 12px 0 4px; padding: 12px 2px 0; border-top: 1px solid var(--g-200); font-size: 13.5px; color: var(--g-700); }
   .ecal b { margin-left: auto; font-weight: 600; }
   .sfoot { flex-shrink: 0; padding: 12px var(--gut) calc(16px + env(safe-area-inset-bottom, 0px)); background: #fff; border-top: 1px solid var(--g-100); }
-  .ecta { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; margin-bottom: 4px; border: 0; border-radius: 12px;
-    background: var(--brand-600); color: #fff; font: 700 15px/1 Roboto, sans-serif; box-shadow: 0 4px 0 var(--brand-700); cursor: pointer; }
+  .ecta { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 52px; margin-bottom: 7px; border: 0; border-radius: 12px;
+    background: var(--brand-600); color: #fff; font: 700 15px/1 Roboto, sans-serif; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; }
   .ecta .arr { width: 18px; height: 18px; flex-shrink: 0; transform: scaleX(-1); }
 
   /* ---- Kaira's chat sheet ----
@@ -1223,9 +1223,8 @@
   document.getElementById("kairaFab").innerHTML = GFKaira.fab("Ask KAIRA");
   document.getElementById("kairaMark").innerHTML = GFKaira.mark(30, { halo: false });
 </script>
-<script src="heroes/plate.js"></script>
-<script src="assets/flipcoin-toast.js?v=1"></script>
-<script src="assets/plan-tray.js?v=38"></script>
+<script src="assets/flipcoin-toast.js?v=2"></script>
+<script src="assets/plan-tray.js?v=42"></script>
 <script src="assets/flipcoin-earn.js?v=6"></script>
 <script>
 /* ============================================================
@@ -1405,9 +1404,9 @@ S.id = STATES[NAME] ? NAME : "mid";
    stat rail. Anything else falls back to icons. On the one state with nothing
    to measure at all, noplanempty, there are no macros to show, so that state
    keeps the cards whichever way the flag is set. */
-var RAILMODE = Q.get("rail") === "cards" ? "cards" : "icons";
+var RAILMODE = "icons";   /* settled: the macros sit on one card */
 /* meal card art: both (default), ?art=pic for the pictogram only, ?art=scene for the scene only */
-document.documentElement.dataset.art = Q.get("art") || "scene";   /* scenes only by default; ?art=both or ?art=pic bring the pictogram back */
+document.documentElement.dataset.art = "scene";   /* settled: meal cards carry the scene only */
 /* How the meal card offers "log the rest of this plan". cta is the full width
    secondary button we shipped; tick is a parent control row that commands the
    food rows below it; text is GoodFlip's own quiet action. */
@@ -1686,9 +1685,9 @@ document.getElementById("dayLabel").textContent = S.day;
 })();
 
 /* ---------- scripts fetched only when a flag asks for them ---------- */
-/* plate.js is the hero, so it ships in the page. Everything else, including
-   three.js and the alternate calorie strips, is a ?hero= or ?cal= experiment
-   and is pulled in only when one of those flags names it. */
+/* Cloud Drop is the score and is fetched as the page starts. Everything else,
+   including three.js and the alternate calorie strips, is a ?hero= or ?cal=
+   experiment and is pulled in only when one of those flags names it. */
 var LAZY = { three: "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js", shaders: "vendor/paper-shaders.js" };
 var HERO_DIR = {
   cloud: "", orb: "", portal: "", smoke: "", metal: "", sunrise: "", metalhex: "", chrome: "", vortex: "",
@@ -1713,7 +1712,8 @@ function loadScripts(list, done) {
 (function () {
   /* a free user has no score, so the stage stands down and the day starts at the macros */
   if (S.free) { document.getElementById("stage").hidden = true; return; }
-  var name = Q.get("hero") || "cloud";   /* Cloud Drop is the score; ?hero=plate brings back the old one */
+  var name = Q.get("hero") || "cloud";   /* Cloud Drop is the score everywhere; the Plate is retired */
+  if (name === "plate") name = "cloud";
   var el = document.getElementById("hero");
   var shown = S.hero.score == null ? "" : S.hero.score + "%";
 
@@ -1721,7 +1721,7 @@ function loadScripts(list, done) {
      flag is there and costs nothing when it is not */
   if (!(window.HEROES && window.HEROES[name]) && HERO_DIR[name] != null) {
     /* the liquid score brings its own renderer, so it skips three.js */
-    loadScripts((name === "cloud" ? [] : [LAZY.three, LAZY.shaders]).concat("heroes/" + HERO_DIR[name] + name + ".js" + (name === "cloud" ? "?v=18" : "")), start);   /* ?v busts the cache when the liquid score is updated */
+    loadScripts((name === "cloud" ? [] : [LAZY.three, LAZY.shaders]).concat("heroes/" + HERO_DIR[name] + name + ".js" + (name === "cloud" ? "?v=20" : "")), start);   /* ?v busts the cache when the liquid score is updated */
     return;
   }
   start();
@@ -2490,14 +2490,8 @@ var GOAL = S.cal.goal || 0;
 var LIVE = { cal: S.cal.eaten || 0 };
 MK.forEach(function (k, i) { LIVE[k] = ((S.macros.v || [])[i] || [0])[0] || 0; });
 
-/* How a coach's plan food gets logged: "card" (the default) logs it on this
-   screen from a bar at the bottom; "logger" sends the tick to the logging
-   screen as before. ?plog= picks, and the choice is remembered. */
-var PLOG = (function () {
-  var v = Q.get("plog");
-  try { if (v) localStorage.setItem("gfPlog", v); else v = localStorage.getItem("gfPlog"); } catch (e) {}
-  return v === "logger" ? "logger" : "card";
-})();
+/* How a coach's plan food gets logged: on this screen, from a bar at the bottom. */
+var PLOG = "card";   /* settled: plan foods are logged on the meal card */
 /* a log made from the bar comes back here as the page reloads under the win
    moment: those foods are ticked and counted, once, and only on the same day */
 (function inlineLogs() {

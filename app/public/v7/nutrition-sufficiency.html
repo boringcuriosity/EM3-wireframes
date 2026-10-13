@@ -84,7 +84,6 @@
   /* the variant switch sits above the size control and wears the same clothes,
      because both do the same kind of job: they change how the page is read
      without changing what it says */
-  .vsw button, .hsw button, .psw button, .asw button, .bsw button { flex: 1; min-width: 0; padding: 0 10px; }
   .zoom .zlab { width: 100%; font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); }
   .zoom button { min-width: 44px; min-height: 44px; padding: 0 12px; font: 600 14px/20px Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .25px; border: 1px solid var(--gray-200); background: #fff; color: var(--gray-600); border-radius: 9999px; cursor: pointer; }
   .zoom button:hover { border-color: var(--gray-300); color: var(--gray-900); }
@@ -264,45 +263,9 @@
   <nav class="rail" id="rail">
     <div class="railhead">Contents</div>
     <ol id="raillist"></ol>
-    <div class="railhead" style="margin-top:16px">Elsewhere</div>
-    <ol><li><a href="#home" data-to="home" id="homeLink">Home, the way in</a></li></ol>
-    <!-- Two ways of answering "what shaped your score", switched across every
-         phone at once so the whole story can be read either way. -->
-    <div class="zoom vsw">
-      <span class="zlab">Macros</span>
-      <button data-rail="icons" class="on">One card</button><button data-rail="cards">A card each</button>
-    </div>
-
-    <!-- Which score sits at the top of every day view: the liquid Cloud Drop, or
-         the Plate it replaced, kept one tap away so the two can be compared. -->
-    <!-- How a coach's plan food gets logged. On the card (default): ticks drop
-         into a bar on the Eat screen from any meal, each food with its own time. In the
-         logger: a tick opens the logging screen, as before. -->
-    <div class="zoom psw">
-      <span class="zlab">Plan logging</span>
-      <button data-plog="card" class="on">On the card</button><button data-plog="logger">In the logger</button>
-    </div>
-
-    <!-- The logger's bottom bar: the tray as it shipped (default), or the floating
-         bar. The Eat screen always uses the floating bar, where each food takes
-         its own time. -->
-    <div class="zoom bsw">
-      <span class="zlab">Logger bar</span>
-      <button data-bar="tray" class="on">Tray</button><button data-bar="float">Floating</button>
-    </div>
-
-    <!-- What sits on each meal card in Your meals: the pictogram, the scene behind
-         the header (default), or both. -->
-    <div class="zoom asw">
-      <span class="zlab">Meal cards</span>
-      <button data-art="both">Both</button><button data-art="pic">Pictogram</button><button data-art="scene" class="on">Scene</button>
-    </div>
-
-    <div class="zoom hsw">
-      <span class="zlab">Score</span>
-      <button data-hero="cloud" class="on">Cloud Drop</button><button data-hero="plate">Plate</button>
-    </div>
-
+    <!-- Home is hidden for now: its section and cases stay, nothing links to them -->
+    <div class="railhead" style="margin-top:16px" hidden>Elsewhere</div>
+    <ol hidden><li><a href="#home" data-to="home" id="homeLink">Home, the way in</a></li></ol>
     <div class="zoom">
       <span class="zlab">Phone size</span>
       <button data-z=".6">S</button><button data-z=".78" class="on">M</button><button data-z="1">L</button>
@@ -330,7 +293,7 @@
         <tbody>
           <tr><td>1</td><td>Date chip</td><td>The day being viewed, with a step back arrow and a step forward arrow. Opens the date sheet.</td></tr>
           <tr><td>2</td><td>Eat line</td><td>"Eat · Fuel your body right", with an info icon that opens the sufficiency sheet and the Earn chip that opens the FlipCoins sheet.</td></tr>
-          <tr><td>3</td><td>Score</td><td>Nutrition sufficiency as the Plate: a ring of dots with a fork and knife either side. The number and the word SUFFICIENT, nothing else.</td></tr>
+          <tr><td>3</td><td>Score</td><td>Nutrition sufficiency as Cloud Drop: a liquid drop with Flip green orbs filling along an arc, the number and a status tag.</td></tr>
           <tr><td>4</td><td>What you have eaten</td><td>Protein, carbs and fats, each as its icon filling to its level, with "43/95g" and the name.</td></tr>
           <tr><td>5</td><td>Calorie strip</td><td>Ember fuse: "942 of 1,900 kcal" and "958 left for today".</td></tr>
           <tr><td>6</td><td>Kaira card</td><td>One or two sentences of insight, then "Log your meal" with Snap and Voice.</td></tr>
@@ -378,23 +341,11 @@
           <span class="pc-line">Three columns: log the food, how it is calculated, the score.</span>
           <span class="pc-go">Open the sandbox</span>
         </a>
-        <a class="protocard" href="sufficiency-sandbox-options.html" target="_blank">
-          <span class="pc-eyebrow">When a meal has options</span>
-          <span class="pc-title">sufficiency-sandbox-options.html</span>
-          <span class="pc-line">Real coach templates, food by food. Tick anything from any option and see the plate and the score.</span>
-          <span class="pc-go">Open the options sandbox</span>
-        </a>
         <a class="protocard" href="coach-plan-builder.html" target="_blank">
           <span class="pc-eyebrow">For the coach</span>
           <span class="pc-title">coach-plan-builder.html</span>
           <span class="pc-line">The coach portal's plan flow, with meal targets pre-filled and Assign blocked until every option fits.</span>
           <span class="pc-go">Open the plan builder</span>
-        </a>
-        <a class="protocard" href="api-flow.html" target="_blank">
-          <span class="pc-eyebrow">For dev</span>
-          <span class="pc-title">api-flow.html</span>
-          <span class="pc-line">Log on the Eat screen and watch every API call, server step and screen change on the right.</span>
-          <span class="pc-go">Open the API flow</span>
         </a>
         <div class="legend">
           <h3 style="margin-top:0">What it shows</h3>
@@ -488,7 +439,7 @@
         <li>Body: "YOUR COACH'S PLAN", option chips with a check on the chosen one, then food rows with a tick circle, name, quantity, calories and a ⋮ menu. A logged food's tick opens the same menu (change the quantity, take it off your day).</li>
         <li>Food logged outside the plan sits above the plan with a "Manual" tag.</li>
         <li>Ticking a coach's food drops it into a floating bar at the bottom: the foods, "Edit quantity &amp; time", Log, and an X. Foods from several meals can go in together, each with its own time. While a meal's foods are in the bar, its other options are locked: one option per meal.</li>
-        <li>A time still to come cannot be logged. If any food in the bar is set later than now (dinner ticked at 1 PM), Log opens the review sheet instead: the late times turn amber, a note asks when they were eaten with a one-tap "Set them to now", and Log waits until every time has passed. On the time wheel, times still to come are greyed and Done waits.</li>
+        <li>A time still to come cannot be logged. If any food in the bar is set later than now (dinner ticked at 1 PM), Log opens the review sheet instead: a Future time note says the items are set for later and only food already eaten can be logged, with a one-tap "Set them to now"; each later time keeps its chip with a dashed gold outline and clock, and Log waits until every time has passed. On the time wheel, times still to come are greyed and Done waits.</li>
         <li>"TIPS FROM YOUR COACH" holds the parts of a plan that are not food, each with a tick and a one line tip.</li>
         <li>A coach's food has three states: logged, not yet, or skipped. Skip lives in the ⋮ menu on each food: the name is struck through, the food stays on the plan and counts for nothing, and a tick or "Put it back on the list" brings it back. A coach's food is never deleted.</li>
       </ul>
@@ -818,7 +769,7 @@ const CASES = {
   /* the doors that open onto food and the tray. Snap and Voice open the same
      screen on the camera or the microphone, and are not documented here. */
   waysin: [
-    ["state=mid&now=13:00&pt=future", "Logging a time still to come", "now=13:00", "At 1 PM, dinner and bedtime foods are ticked and Log is tapped. The sheet asks when they were eaten, offers Set them to now, and Log waits."],
+    ["state=mid&now=13:00&pt=future", "Logging a time still to come", "now=13:00", "At 1 PM, dinner and bedtime foods are ticked and Log is tapped. The sheet says they are set for later, offers Set them to now, and Log waits."],
     ["r3/log.html?entry=plus", "Meal +", "entry=plus", "Opened from a meal’s + button. Empty tray, the plan first."],
     ["r3/log.html?entry=tick", "Ticking a coach's food", "entry=tick", "In the tray, not yet logged."],
     ["r3/log.html?entry=logall", "Log all", "entry=logall", "Every remaining food at its planned quantity."],
@@ -920,26 +871,17 @@ document.getElementById("raillist").innerHTML = SHOWN
 
 /* the phones. loading="lazy" keeps the browser from opening fifty pages at
    once: it only fetches the ones near the viewport. */
-/* Which of the two macro treatments every eat.html phone is showing. It rides
-   in the document's own query string, so a link to this page carries the
-   variant with it and two people reading it see the same thing. */
-let RAIL = new URLSearchParams(location.search).get("rail") === "cards" ? "cards" : "icons";
-/* Which score every day view carries. Cloud Drop is the default; the Plate stays one tap away. */
-let HERO = new URLSearchParams(location.search).get("hero") === "plate" ? "plate" : "cloud";
-/* How plan foods get logged on every day view: on the card (default), or in the logger. */
-let PLOG = new URLSearchParams(location.search).get("plog") === "logger" ? "logger" : "card";
-/* What each meal card carries: the scene only (default), both, or the pictogram only. */
-let ART = new URLSearchParams(location.search).get("art") || "scene";
-/* Which bottom bar the logger phones show: the tray (default) or the floating bar.
-   The Eat phones always show the floating bar. */
-let BAR = new URLSearchParams(location.search).get("bar") === "float" ? "float" : "tray";
+/* The variants are settled, so every phone shows the same one: macros on one
+   card, plan foods logged on the meal card, the tray in the logger, the scene on
+   each meal card. */
+const RAIL = "icons", PLOG = "card", ART = "scene", BAR = "tray";
 
 const fig = ([q, name, id, line]) => {
   /* a case is either a flag on the day view, or a whole path to another screen */
   let href = q.includes(".html") ? q : `r3/eat.html?${q}`;
   /* only the day view has the two variants; the log, trend and learn phones
      are the same screen either way and are left alone */
-  if (href.startsWith("r3/eat.html")) href += `&rail=${RAIL}&plog=${PLOG}&bar=float` + (HERO === "plate" ? "&hero=plate" : "") + "&art=" + ART;
+  if (href.startsWith("r3/eat.html")) href += `&rail=${RAIL}&plog=${PLOG}&bar=float&art=${ART}`;
   /* the logger follows the same switch: no Your plan tab when the plan is logged on the card */
   else if (href.startsWith("r3/log.html"))
     /* a tick or Log all only reaches the logger in the "In the logger" variant, so those two always show it */
@@ -969,77 +911,7 @@ function paintCases() {
 }
 paintCases();
 
-/* Switching redraws the phones in place rather than reloading the page: this
-   document is forty phones long and losing your scroll position to change a
-   view would make the switch not worth using. */
-document.querySelectorAll(".vsw button").forEach((b) => {
-  b.addEventListener("click", () => {
-    RAIL = b.dataset.rail;
-    document.querySelectorAll(".vsw button").forEach((x) => x.classList.toggle("on", x === b));
-    const q = new URLSearchParams(location.search);
-    RAIL === "cards" ? q.set("rail", "cards") : q.delete("rail");
-    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
-    paintCases();
-  });
-});
-document.querySelectorAll(".hsw button").forEach((b) => {
-  b.addEventListener("click", () => {
-    HERO = b.dataset.hero;
-    document.querySelectorAll(".hsw button").forEach((x) => x.classList.toggle("on", x === b));
-    const q = new URLSearchParams(location.search);
-    HERO === "plate" ? q.set("hero", "plate") : q.delete("hero");
-    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
-    paintCases();
-    setTimeout(check, 60);
-  });
-});
-document.querySelectorAll(".psw button").forEach((b) => {
-  b.addEventListener("click", () => {
-    PLOG = b.dataset.plog;
-    document.querySelectorAll(".psw button").forEach((x) => x.classList.toggle("on", x === b));
-    const q = new URLSearchParams(location.search);
-    PLOG === "logger" ? q.set("plog", "logger") : q.delete("plog");
-    document.body.classList.toggle("plog-card", PLOG === "card");
-    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
-    paintCases();
-    setTimeout(check, 60);
-  });
-});
-document.querySelectorAll(".bsw button").forEach((b) => {
-  b.classList.toggle("on", b.dataset.bar === BAR);
-  b.addEventListener("click", () => {
-    BAR = b.dataset.bar;
-    document.querySelectorAll(".bsw button").forEach((x) => x.classList.toggle("on", x === b));
-    const q = new URLSearchParams(location.search);
-    BAR === "float" ? q.set("bar", "float") : q.delete("bar");
-    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
-    paintCases();
-    setTimeout(check, 60);
-  });
-});
-document.querySelectorAll(".asw button").forEach((b) => {
-  b.classList.toggle("on", b.dataset.art === ART);
-  b.addEventListener("click", () => {
-    ART = b.dataset.art;
-    document.querySelectorAll(".asw button").forEach((x) => x.classList.toggle("on", x === b));
-    const q = new URLSearchParams(location.search);
-    ART === "scene" ? q.delete("art") : q.set("art", ART);
-    history.replaceState(null, "", location.pathname + (q.toString() ? "?" + q : "") + location.hash);
-    paintCases();
-    setTimeout(check, 60);
-  });
-});
-document.body.classList.toggle("plog-card", PLOG === "card");
-if (PLOG === "logger") {
-  document.querySelectorAll(".psw button").forEach((x) => x.classList.toggle("on", x.dataset.plog === "logger"));
-}
-if (HERO === "plate") {
-  document.querySelectorAll(".hsw button").forEach((x) => x.classList.toggle("on", x.dataset.hero === "plate"));
-}
-if (RAIL === "cards") {
-  document.querySelectorAll(".vsw button").forEach((x) =>
-    x.classList.toggle("on", x.dataset.rail === "cards"));
-}
+document.body.classList.add("plog-card");
 
 /* every group head counts its own cases, so removing one never leaves a
    stale "4 states" behind */
@@ -1092,7 +964,6 @@ function openHome() {
   h.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 document.getElementById("homeLink").addEventListener("click", (e) => { e.preventDefault(); openHome(); history.replaceState(null, "", "#home"); });
-if (location.hash === "#home") setTimeout(openHome, 0);
 
 /* which section the reader is in */
 const links = [...document.querySelectorAll("nav.rail a")];
@@ -1105,13 +976,10 @@ function spy() {
   links.forEach((a) => a.classList.toggle("on", a.dataset.to === cur));
 }
 
-/* :not(.vsw) matters. The macro switch wears the same clothes as the size
-   control, so without it a click on "A card each" also ran this handler, set
-   --z to undefined and left every phone unsized. */
-document.querySelectorAll(".zoom:not(.vsw):not(.hsw):not(.psw):not(.asw):not(.bsw) button").forEach((b) => {
+document.querySelectorAll(".zoom button").forEach((b) => {
   b.onclick = () => {
     document.documentElement.style.setProperty("--z", b.dataset.z);
-    document.querySelectorAll(".zoom:not(.vsw):not(.hsw):not(.psw):not(.asw):not(.bsw) button").forEach((x) => x.classList.toggle("on", x === b));
+    document.querySelectorAll(".zoom button").forEach((x) => x.classList.toggle("on", x === b));
     setTimeout(check, 60);
   };
 });

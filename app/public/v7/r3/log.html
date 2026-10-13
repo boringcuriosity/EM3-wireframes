@@ -466,8 +466,8 @@
   .empty .cta { display: inline-flex; align-items: center; justify-content: center; gap: 8px;
     height: 52px; margin-top: 22px; padding: 0 26px; border-radius: 12px; border: 0;
     background: #299D6B; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
-    box-shadow: 0 4px 0 #2A805A; transition: transform .15s cubic-bezier(.4,0,.2,1), box-shadow .15s cubic-bezier(.4,0,.2,1); }
-  .empty .cta:active { transform: translateY(4px); box-shadow: none; }
+    box-shadow: 0 7px 0 #2A805A; transition: transform .15s cubic-bezier(.4,0,.2,1), box-shadow .15s cubic-bezier(.4,0,.2,1); }
+  .empty .cta:active { transform: translateY(7px); box-shadow: none; }
   .empty .cta .ico { width: 18px; height: 18px; }
 
   /* the meal being built */
@@ -636,12 +636,12 @@
   .lands { font-size: 12.5px; line-height: 18px; color: #667085; margin-bottom: 10px; }
   .lands b { color: #101828; }
   /* the one primary on this screen */
-  .primary { width: 100%; height: 52px; min-height: 52px; border: 0; border-radius: 12px; background: #299D6B; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 0 #2A805A;
+  .primary { width: 100%; height: 52px; min-height: 52px; border: 0; border-radius: 12px; background: #299D6B; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 7px 0 #2A805A;
     transition: transform .2s ease-out, box-shadow .2s ease-out; }
-  .primary:active { transform: translateY(4px); box-shadow: none; }
+  .primary:active { transform: translateY(7px); box-shadow: none; }
   /* keeps its lip while disabled, in grey. Dropping the shadow made the
-     button 4px shorter than itself and unbalanced the row against the time. */
-  .primary[disabled] { background: #F2F4F7; color: #98A2B3; box-shadow: 0 4px 0 #E4E7EC;
+     button 7px shorter than itself and unbalanced the row against the time. */
+  .primary[disabled] { background: #F2F4F7; color: #98A2B3; box-shadow: 0 7px 0 #E4E7EC;
     cursor: default; transform: none; }
 
   /* the one reward moment on this screen, and the only gold */
@@ -672,8 +672,8 @@
   .sbody { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
   .sbody p { margin: 0 0 12px; font-size: 14px; line-height: 21px; color: #475467; }
   /* while a sheet is up it owns the screen, so this is that screen's one primary */
-  .sok { width: 100%; min-height: 52px; margin-top: 16px; border: 0; border-radius: 12px; background: #299D6B; color: #fff; font-size: 15px; font-weight: 600; box-shadow: 0 4px 0 #2A805A; cursor: pointer; }
-  .sok:active { transform: translateY(4px); box-shadow: none; }
+  .sok { width: 100%; min-height: 52px; margin-top: 16px; border: 0; border-radius: 12px; background: #299D6B; color: #fff; font-size: 15px; font-weight: 600; box-shadow: 0 7px 0 #2A805A; cursor: pointer; }
+  .sok:active { transform: translateY(7px); box-shadow: none; }
   .sghost { width: 100%; min-height: 48px; margin-top: 12px; border: 1px solid #E4E7EC; border-radius: 12px; background: #fff; color: #344054; font-size: 14.5px; font-weight: 600; cursor: pointer; }
 
   /* quantity */
@@ -731,7 +731,7 @@
      just did, so the eye never has to find a new target. */
   .qstep { display: flex; align-items: center; justify-content: space-between;
     height: 52px; margin-top: 22px; padding: 0 6px; border-radius: 12px;
-    background: #299D6B; box-shadow: 0 4px 0 #2A805A; }
+    background: #299D6B; box-shadow: 0 7px 0 #2A805A; }
   /* No plate behind the glyphs. Two lighter squares on a solid green bar read
      as two more buttons sitting on a button, and the bar is already the
      control: the minus and the plus are the only things in it you can press,
@@ -1347,15 +1347,9 @@ var PRESET = {
 };
 var p = PRESET[STATE] || {};
 for (var k in p) { if (k !== "saving") S[k] = p[k]; }
-/* "On the card" (the default plan-logging variant) logs the coach's plan on the
-   Eat screen itself, so this screen drops Your plan and is for everything else:
-   Recent, Favourites and search. "In the logger" keeps the tab. ?plog= picks,
-   otherwise the choice the Eat screen remembered. */
-var PLOG = (function () {
-  var v = Q.get("plog");
-  try { if (!v) v = localStorage.getItem("gfPlog"); } catch (e) {}
-  return v === "logger" ? "logger" : "card";
-})();
+/* The coach's plan is logged on the Eat screen itself, so this screen drops
+   Your plan and is for everything else: Recent, Favourites and search. */
+var PLOG = "card";   /* settled: plan foods are logged on the meal card, never in the logger */
 var PLANTAB = S.hasPlan && PLOG === "logger";
 if (!PLANTAB && S.tab === "plan") S.tab = "recent";
 
@@ -1363,12 +1357,7 @@ if (!PLANTAB && S.tab === "plan") S.tab = "recent";
 /* Every food starts at the screen's one time (S.time) and follows it until the
    person gives that food a time of its own in the review sheet. */
 function itemTime(it) { return it.t != null ? it.t : S.time; }
-/* which bottom: the tray (default) or the floating bar (?logbar=float), remembered */
-var LOGBAR = (function () {
-  var v = new URLSearchParams(location.search).get("logbar");
-  try { if (v) localStorage.setItem("gfLogBar", v); else v = localStorage.getItem("gfLogBar"); } catch (e) {}
-  return v === "float";
-})();
+var LOGBAR = false;   /* settled: the logger always has the tray; the floating bar is retired */
 if (LOGBAR) { document.body.classList.add("lb-float"); document.querySelector(".tray").classList.add("fmode"); }
 function saveEl() { return el(LOGBAR ? "saveBtnF" : "saveBtn"); }
 var el = function (id) { return document.getElementById(id); };

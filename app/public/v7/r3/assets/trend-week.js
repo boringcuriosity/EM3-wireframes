@@ -69,7 +69,7 @@
       var a = 1.25 * Math.PI - i / 29 * 1.5 * Math.PI, odd = i % 2;
       var r = odd ? 19 : 15.6, rr = odd ? 1.25 : 1.85;
       dots += '<circle cx="' + (22 + Math.cos(a) * r).toFixed(2) + '" cy="' + (22 - Math.sin(a) * r).toFixed(2) + '" r="' + rr +
-        '" fill="' + (i < n ? "#12B76A" : "#D3D9E2") + '"/>';
+        '" fill="' + (i < n ? "#299D6B" : "#D3D9E2") + '"/>';
     }
     return '<svg width="64" height="58" viewBox="0 0 44 40" aria-hidden="true">' + dots +
       '<text x="22" y="26.5" text-anchor="middle" font-family="Roboto, sans-serif" font-size="13" font-weight="600" fill="' +
@@ -116,7 +116,7 @@
     var n = m.days.slice(0, m.mode === "filling" ? m.filled : 7).filter(function (s) { return s !== null; }).length;
     /* the week's average drawn by the score itself, Cloud Drop, exactly as the
        Eat screen shows a day: the same pearls, 0 and 100, Sufficient with its info */
-    var hero = BASE + "../heroes/cloud/index.html?build=25&embed=1&bare=1&still=1&k=.42&er=.102&ey=-.095&y=.03&v=Cloud%20Drop" +
+    var hero = BASE + "../heroes/cloud/index.html?build=27&embed=1&bare=1&still=1&k=.42&er=.102&ey=-.095&y=.03&v=Cloud%20Drop" +
       (score === null ? "&lock=quiet" : "&score=" + score);
     /* After the ring's weekly vitals page: the title and the verdict, the
        number (here Cloud Drop, small) with one line saying what it means,
@@ -290,9 +290,10 @@
     if (giftData) return cb(giftData);
     giftWait.push(cb);
     if (giftWait.length > 1) return;
-    fetch(BASE + "gift.json").then(function (r) { return r.json(); }).then(function (d) {
-      giftData = d; giftWait.splice(0).forEach(function (f) { f(d); });
-    });
+    /* a script, not fetch(), so the gift opens when the prototype is opened straight off disk */
+    var sc = document.createElement("script"); sc.src = BASE + "gift-data.js";
+    sc.onload = function () { giftData = window.GF_GIFT; giftWait.splice(0).forEach(function (f) { f(giftData); }); };
+    document.head.appendChild(sc);
   }
   /* 100 frames at 60fps: 15 to 60 the lid hops and the ribbons wiggle, 18 to
      100 the gold stars bloom. Resting, it plays the hop alone now and then. */
