@@ -102,6 +102,12 @@
   section { scroll-margin-top: 80px; padding-bottom: 64px; }
   section + section { border-top: 1px solid var(--gray-200); padding-top: 48px; }
   .snum { display: inline-flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); }
+  /* out of scope: kept for reference, visibly parked */
+  section.oos .snum { color: #B54708; }
+  .oosnote { margin: 4px 0 20px; padding: 12px 16px; border-radius: 12px; background: #FFFAEB; border: 1px solid #FEDF89; color: #93370D; font-size: 14px; line-height: 21px; max-width: 760px; }
+  .oosnote b { font-weight: 600; }
+  section.oos .cases { opacity: .55; filter: grayscale(.35); transition: opacity .2s, filter .2s; }
+  section.oos .cases:hover { opacity: 1; filter: none; }
   .snum::after { content: ""; width: 28px; height: 1px; background: var(--gray-200); }
   h2 { font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: 0; margin: 12px 0 12px; }
   h3 { font-size: 16px; line-height: 24px; font-weight: 600; margin: 32px 0 12px; }
@@ -598,9 +604,12 @@
       <div class="cases" data-cases="learn"></div>
     </section>
 
-    <section id="trend">
-      <div class="snum">Section</div>
+    <!-- Out of scope for this release. Kept for reference, not deleted: the
+         phones still run, they just read as parked. -->
+    <section id="trend" class="oos">
+      <div class="snum">Out of scope</div>
       <h2>The Trend tab</h2>
+      <div class="oosnote"><b>Out of scope for this release.</b> The Trend tab isn't being built now. It stays here for reference only, so nothing below is part of the current spec.</div>
       <p>The week, in three cards. KAIRA's card leads: while the week fills it counts the days to her insight; when the week is done a gift box peeks from its corner and Unlock my insight opens it in a burst of gold into her analysis (what went well, the one gap and how to close it), which folds away with Show less. Under it, Your week so far: the week's score and tag, then each day as a small version of the day view's gauge. Then Your macros this week, four quiet tiles with an arc each.</p>
 
       <div class="grouphead"><b>The week</b></div>
@@ -849,7 +858,7 @@ const SECTIONS = [
   ["sheet", "The sufficiency sheet"],
   ["date", "The date sheet"],
   ["learn", "The Learn tab"],
-  ["trend", "The Trend tab"],
+  ["trend", "The Trend tab (out of scope)"],
   ["decisions", "Decisions settled"],
   ["backend", "What the backend needs"],
   ["rules", "Rules everywhere"],
@@ -862,7 +871,8 @@ const SHOWN = SECTIONS.filter(([id]) => {
   const el = document.getElementById(id);
   return el && getComputedStyle(el).display !== "none";
 });
-SHOWN.forEach(([id], i) => {
+/* an out-of-scope section keeps its own label and takes no number */
+SHOWN.filter(([id]) => !document.getElementById(id).classList.contains("oos")).forEach(([id], i) => {
   const n = document.querySelector(`#${id} .snum`);
   if (n) n.textContent = `Section ${i + 1}`;
 });
