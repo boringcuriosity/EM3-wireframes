@@ -172,6 +172,21 @@
   .note.gold .dot { background: var(--gold-800); }
 
   /* ---------- phones, the subject of the page ---------- */
+  /* the date sheet's key, beside its phones: every mark, drawn as the sheet draws it */
+  [data-cases="date"] { align-items: flex-start; }
+  .dkey { width: 300px; margin-top: 0; padding: 20px 20px 8px; border-radius: 16px; box-shadow: inset 0 0 0 1px var(--g-200); }
+  .dkey h4 { margin: 0 0 12px; font: 600 13px/18px Roboto, sans-serif; letter-spacing: .4px; text-transform: uppercase; color: var(--g-500); }
+  .dkey .r { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-top: 1px solid var(--g-100); }
+  .dkey .r:first-of-type { border-top: 0; }
+  .dkey .m { flex: none; width: 46px; height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 12px; }
+  .dkey .m b { font: 600 12px/16px Roboto, sans-serif; color: #344054; }
+  .dkey .m.sel { background: #F3FCF8; box-shadow: inset 0 0 0 1.5px #299D6B; }
+  .dkey .m.today b { color: #101828; font-weight: 700; }
+  .dkey .m.off b { color: #D0D5DD; }
+  .dkey .m i { width: 8px; height: 8px; border-radius: 9999px; background: #8098F9; margin: 12px 0; }
+  .dkey .m img { width: 28px; height: 32px; object-fit: contain; }
+  .dkey .t { font: 400 14px/20px Roboto, sans-serif; color: var(--g-600); }
+  .dkey .t strong { display: block; color: var(--g-900); font-weight: 600; }
   .cases { display: flex; flex-wrap: wrap; gap: 36px 28px; margin-top: 24px; }
   figure { margin: 0; width: calc(390px * var(--z)); display: flex; flex-direction: column; }
   /* captions sit at the bottom of their slot, so the phones in a row line up */
@@ -339,7 +354,7 @@
     <section id="sandbox">
       <div class="snum">Section</div>
       <h2>Score sandbox</h2>
-      <p>The score's logic, live: <a href="sufficiency-sandbox.html" target="_blank">sufficiency-sandbox.html</a>. Log food meal by meal, see every step of the calculation, and watch the nutrition sufficiency score move.</p>
+      <p>The score's logic, live: <a href="sufficiency-sandbox.html" target="_blank">sufficiency-sandbox.html</a>. Log food meal by meal, see every step of the calculation, and watch the nutrition sufficiency score move. What the screen says about each move is in <a href="score-commentary.html" target="_blank">score-commentary.html</a>.</p>
       <div class="protorow">
         <a class="protocard" href="sufficiency-sandbox.html" target="_blank">
           <span class="pc-eyebrow">The sandbox</span>
@@ -352,6 +367,12 @@
           <span class="pc-title">coach-plan-builder.html</span>
           <span class="pc-line">The coach portal's plan flow, with meal targets pre-filled and Assign blocked until every option fits.</span>
           <span class="pc-go">Open the plan builder</span>
+        </a>
+        <a class="protocard" href="score-commentary.html" target="_blank">
+          <span class="pc-eyebrow">The commentary</span>
+          <span class="pc-title">score-commentary.html</span>
+          <span class="pc-line">The line under the score after each log: every case, and how it reads on the screen.</span>
+          <span class="pc-go">Open the commentary</span>
         </a>
         <div class="legend">
           <h3 style="margin-top:0">What it shows</h3>
@@ -572,15 +593,15 @@
     <section id="badge">
       <div class="snum">Section</div>
       <h2>The badge moment</h2>
-      <p>When the day's nutrition sufficiency reaches 80% or more, the day earns a badge, and a celebration sheet rises once. The version chosen is <b>Spotlight</b>: a deep green sheet, one cone of warm light, and the badge resolving at the foot of the beam.</p>
+      <p>When the day\'s nutrition sufficiency reaches 80% or more, the day earns a medal, and a celebration sheet rises once. The version chosen is <b>Sunrise</b>: a soft sky of mint, cream and indigo above a curved white horizon, slow rays behind the medal, and the words on white below.</p>
       <ul class="plain">
-        <li><b>The badge:</b> one badge, always the same: a sprout from a mound of soil, in a gold rosette. No name and no levels. It only counts how many times it has been earned.</li>
+        <li><b>The badge:</b> one medal, always the same: a green heart shaped like an apple, with a stem and a leaf, in a gold rosette. No name and no levels. It only counts how many times it has been earned.</li>
         <li><b>Title:</b> "Yay! You earned a medal". On a repeat: "Yay! Another medal".</li>
-        <li><b>Line:</b> "We've rewarded you with a medal because you gave your body what it needed today. Protein, carbs and fats all landed close to your coach's targets."</li>
-        <li><b>Coins:</b> a thin divider, then "+45 FlipCoins earned today", counting up from 0. The number is what the day's logging earned.</li>
-        <li><b>One button:</b> "Share your achievement". The circle X closes the sheet. No date, no second button.</li>
-        <li><b>Motion:</b> the sheet rises (0.1s), the cone widens (0.35s), the badge resolves (0.75s) with a pool of light under it, confetti in GoodFlip's colours rains from the top of the sheet for about 2s (0.9s), then the words and the coins. Everything eases; nothing bounces. With reduced motion on, there is no confetti and the coins show their final number.</li>
-        <li><b>Size:</b> 600 px tall. This celebration sheet is the one place the sheet rules bend: a dark full colour background and a centred layout.</li>
+        <li><b>Line:</b> "Congratulations, you received a medal for giving your body what it needed today. Protein, carbs and fats all landed close to your coach's targets."</li>
+        <li><b>Coins:</b> a thin divider that fades at both ends, then the coin beside a gold "+45" (26 px, counting up from 0), with "FlipCoins earned today" under it. The number is what the day's logging earned.</li>
+        <li><b>One button:</b> "Awesome! Keep Going". The circle X closes the sheet. No date, no second button.</li>
+        <li><b>Motion:</b> the sheet rises (0.1s), the medal resolves from a blur (0.45s), the rays fade in and turn slowly, one turn a minute (0.5s), confetti in GoodFlip's colours bursts once from the medal (0.9s), a shimmer crosses the medal and the coins count up (1.3s). Everything eases; nothing bounces. With reduced motion on, there is no confetti and the coins show their final number.</li>
+        <li><b>Size:</b> 540 px tall. The horizon arc runs off both sides and the sky fades to white before it, so there are no hard corners. This celebration sheet is the one place the sheet rules bend: a coloured sky and a centred layout.</li>
       </ul>
       <div class="cases" data-cases="badge"></div>
 
@@ -590,7 +611,7 @@
         <li><b>What it is:</b> the same gold rosette, 40 px, on a short ribbon in gold and Flip green that tucks behind it.</li>
         <li><b>When it shows:</b> only on a day whose nutrition sufficiency is 80% or more, on that day's view. A day below 80% shows nothing.</li>
         <li><b>Motion:</b> on arrival the ribbon drops in from above and the medal swings once, settling still in about 1.4s. It never moves again while the screen is open. With reduced motion it simply appears.</li>
-        <li><b>Tap, to decide:</b> the natural answer is to play the celebration sheet again. The prototype doesn't do this yet.</li>
+        <li><b>Tap:</b> the celebration sheet opens again over the Eat screen. Its X, its button or a tap outside closes it.</li>
       </ul>
       <div class="cases" data-cases="medal"></div>
     </section>
@@ -663,14 +684,13 @@
     <section id="trendsoon">
       <div class="snum">Section</div>
       <h2>The Trend tab, coming soon</h2>
-      <p>Trend isn't in this release, so its tab opens a coming soon screen. It says what's on the way, that logging now counts, and offers one button to hear when it lands. Version chosen: <b>A hand of cards</b>.</p>
+      <p>Trend isn't in this release, so its tab opens a coming soon screen. It says what's on the way and that logging now counts. Nothing to tap: the bottom nav takes people back. Version chosen: <b>A hand of cards</b>.</p>
       <ul class="plain">
-        <li><b>Layout:</b> no header, the Trend tab's bottom nav. Top to bottom: the cards, a "Coming soon" chip, the heading, two lines of copy, then Notify Me at the foot.</li>
+        <li><b>Layout:</b> no header, the Trend tab's bottom nav. Top to bottom: the cards, a "Coming soon" chip, the heading and two lines of copy. No button.</li>
         <li><b>The cards:</b> four small cards fanned like a hand, a glimpse of what Trend will hold: What you ate (three macro lines over time), How you did (a sufficiency bar per day, today dashed in gold), Where you stand (the weekly average as a ring) and KAIRA insights (the KAIRA mark, placeholder lines). Shapes only: no numbers, no made-up data. Neutral labels and icons.</li>
         <li><b>Chip:</b> the score's verdict chip in its gold state, with a clock: "Coming soon".</li>
         <li><b>Heading:</b> "Trends are on the way", Playfair, neutral.</li>
         <li><b>Copy:</b> "Soon you'll see the bigger picture of how your nutrition sufficiency is going, week after week, with insights from KAIRA." Then on its own line: "Keep logging, and your trends will be ready soon."</li>
-        <li><b>Notify Me:</b> the primary button. Tapped, it gives way to a quiet line, "✓ We'll let you know", and the system toast drops in at the top: "You're on the list for Trends". It can't be tapped twice.</li>
         <li><b>Motion:</b> the cards are dealt in one by one, left to right, about 0.15s apart, then the chip and the words rise in. It plays once and ends still; a tap on the cards plays it again. Reduced motion shows the end state.</li>
       </ul>
       <div class="cases" data-cases="trendsoon"></div>
@@ -848,15 +868,14 @@ const CASES = {
     ["state=daydone&meal=dinner", "Nothing logged yet", "meal=dinner", "Dinner with nothing ticked: every value is 0, under its range, so every value is red."],
   ],
   medal: [
-    ["state=perfect&badge=medal", "A 100% day", "badge=medal", "The medal hangs below the Earn chip, beside the date and the score."],
+    ["state=perfect&badge=medal", "A 100% day", "badge=medal", "The medal hangs below the Earn chip, beside the date and the score. Tap it: the Sunrise sheet opens again."],
     ["state=mid&badge=medal", "Below 80%", "state=mid", "A 49% day: no medal."],
   ],
   trendsoon: [
     ["r3/trend-soon.html?v=fan", "On arrival", "v=fan", "The cards dealt in, then the words. Tap the cards to play it again."],
-    ["r3/trend-soon.html?v=fan&told=1", "After Notify Me", "told=1", "The button gives way to a quiet line, and the toast confirms it at the top for 3 seconds."],
   ],
   badge: [
-    ["badge-celebration-options.html?only=3&v=3", "Spotlight", "only=3", "The chosen version, playing once. Tap the dimmed day behind the sheet to play it again."],
+    ["badge-celebration-options.html?only=1&v=4", "Sunrise", "only=1", "The chosen version, playing once. Tap the dimmed day behind the sheet to play it again."],
   ],
   date: [
     ["sheet=1", "Open on today", "sheet=1", "September. Dots before the plan existed, dashes where nothing was logged."],
@@ -1006,7 +1025,7 @@ const LOGGER_ONLY = ["entry=tick", "entry=logall", "state=plan"];
 const CARD_LINE = {
   "entry=plus": "Opened from a meal’s + button. Empty tray, Recent first: the plan is logged on its card.",
   "state=search": "The empty field, with Recent underneath.",
-  "state=noplan": "No plan yet, so Recent offers common meals to start with.",
+  "state=noplan": "No plan yet, but they have logged before, so Recent shows what they logged lately. Someone who has logged nothing gets the first-open state instead.",
 };
 function paintCases() {
   document.querySelectorAll("[data-cases]").forEach((host) => {
@@ -1017,6 +1036,30 @@ function paintCases() {
   });
 }
 paintCases();
+
+/* the date sheet's key sits beside its two phones */
+(function () {
+  const host = document.querySelector('[data-cases="date"]');
+  if (!host) return;
+  const C = 2 * Math.PI * 13;
+  const ring = (pct, o = {}) => '<svg width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="none" stroke="' + (o.faint ? "#F2F4F7" : "#EAECF0") + '" stroke-width="3"' + (o.open ? ' stroke-dasharray="3 4" stroke-linecap="round"' : "") + '/>' +
+    (pct ? '<circle cx="16" cy="16" r="13" fill="none" stroke="#299D6B" stroke-width="3" stroke-linecap="round" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct)).toFixed(1) + '" transform="rotate(-90 16 16)"/>' : "") + '</svg>';
+  const MED = '<img src="icons/badge/simple/heart-apple.svg" alt="">';
+  const ROWS = [
+    ["", "9", ring(.62), "A ring is that day's score", "The green arc is the day's nutrition sufficiency out of 100, filling clockwise from the top. 62% here."],
+    ["", "7", MED, "A medal is a day at 80% or more", "The medal, small and without its ribbon, replaces the ring. A perfect day shows the medal too."],
+    ["", "13", ring(0, { open: true }), "Dashed: nothing logged", "A day after the plan began with no food logged. Still tappable, so the person can go back and log it."],
+    ["", "1", "<i></i>", "Dot: logged before the plan", "Food was logged before the coach set targets, so there is no score to show."],
+    ["off", "20", ring(0, { faint: true }), "Faded: can't be opened", "A day still to come, or before the person joined. Not tappable."],
+    ["today", "15", ring(.45), "Bold date: today", "Today's number is darker and heavier, whatever its mark."],
+    ["sel today", "15", ring(.45), "Green box: the day on screen", "The day the Eat screen is showing. Here it's today; opened from 8 Sep, the box sits on the 8th."],
+  ];
+  const key = document.createElement("div");
+  key.className = "dkey";
+  key.innerHTML = "<h4>What each mark means</h4>" + ROWS.map(([c, d, mk, t, l]) =>
+    '<div class="r"><div class="m ' + c + '"><b>' + d + "</b>" + mk + '</div><div class="t"><strong>' + t + "</strong>" + l + "</div></div>").join("");
+  host.appendChild(key);
+})();
 
 document.body.classList.add("plog-card");
 

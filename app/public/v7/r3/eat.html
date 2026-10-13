@@ -815,7 +815,7 @@
   /* the date sheet: one month of days, each carrying its own sufficiency ring.
      The month sits on a bound paper pad, so the calendar reads as its own
      object rather than as more sheet. */
-  .dspad { position: relative; margin: 16px 0 0; padding: 36px 0 6px; border-radius: var(--r-md) var(--r-md) 0 0;
+  .dspad { position: relative; margin: 4px 0 0; padding: 36px 0 6px; border-radius: var(--r-md) var(--r-md) 0 0;
     background: linear-gradient(180deg, var(--in-25) 0%, #FFFFFF 92%); border-top: 2px solid var(--in-400); border-bottom: 1px solid var(--g-100); }
   /* Shaheer's artwork, tiled along the pad's top edge: bead below the line, wire
      crossing it, tail above. Decoration only. */
@@ -1606,7 +1606,7 @@ document.getElementById("dayLabel").textContent = S.day;
       : off ? ring(0, { faint: true })
       : k === "missed" ? ring(0, { open: true })
       /* a day at 80% or more earned the medal, so the calendar shows it, small and without its ribbon */
-      : sc >= 80 ? '<img class="dsmed" src="../icons/badge/simple/sprout-b-gold-rosette.svg" alt="">'
+      : sc >= 80 ? '<img class="dsmed" src="../icons/badge/simple/heart-apple.svg" alt="">'
       : ring(sc / 100, { full: sc >= 100 });
     var says = k === "future" ? "not yet" : k === "before" ? "before you joined"
       : k === "preplan" ? "logged, before your plan" : k === "missed" ? "nothing logged"
@@ -3588,7 +3588,7 @@ function mealsIn() {
 (function () {
   var where = Q.get("badge");
   if (!where) return;
-  var SRC = "../icons/badge/simple/sprout-b-gold-rosette.svg";
+  var SRC = "../icons/badge/simple/heart-apple.svg";
   var css = document.createElement("style");
   css.textContent =
     ".bdg-date{position:absolute;right:16px;top:calc(50% + 2px);transform:translateY(-50%);display:flex;align-items:center;gap:4px;font:600 13px Roboto,sans-serif;color:#826E2D}" +
@@ -3597,7 +3597,7 @@ function mealsIn() {
     ".bdg-head{flex-shrink:0;display:inline-flex;align-items:center;gap:3px;height:28px;margin-left:auto;padding:0 9px 0 3px;border-radius:9999px;background:#FFF8E0;box-shadow:inset 0 0 0 1px #F3D161;font:700 13px Roboto,sans-serif;color:#826E2D;border:0}" +
     ".bdg-head img{width:24px;height:auto}.bdg-head + .earnchip{margin-left:8px}" +
     "#cm img.bdg-q{width:40px;height:auto;filter:drop-shadow(0 3px 5px rgba(29,77,56,.25))}" +
-    ".bdg-medal{position:absolute;z-index:5;right:28px;top:106px;display:flex;flex-direction:column;align-items:center;transform-origin:50% 0;animation:bdgSwing 1.4s cubic-bezier(.4,0,.2,1) .4s both}" +
+    ".bdg-medal{cursor:pointer;position:absolute;z-index:5;right:28px;top:106px;display:flex;flex-direction:column;align-items:center;transform-origin:50% 0;animation:bdgSwing 1.4s cubic-bezier(.4,0,.2,1) .4s both}" +
     ".bdg-medal .rb{width:18px;height:40px;margin-bottom:-16px;background:linear-gradient(90deg,#CDA935 0 33%,#299D6B 33% 67%,#CDA935 67%)}.bdg-medal img{position:relative}" +
     ".bdg-medal img{width:40px;height:auto;filter:drop-shadow(0 6px 8px rgba(29,77,56,.3))}" +
     "@keyframes bdgSwing{0%{opacity:0;transform:translateY(-24px) rotate(10deg)}45%{opacity:1;transform:rotate(-4deg)}75%{transform:rotate(1.5deg)}to{transform:none}}" +
@@ -3616,7 +3616,22 @@ function mealsIn() {
     /* in KAIRA's line, the badge takes the quote mark's place */
     if (where === "quote") { var q = document.querySelector("#cm .q"); if (!q) return; el = Object.assign(document.createElement("img"), { src: SRC, alt: "Medal earned today", className: "q bdg-q" }); el.setAttribute("data-bdg", where); q.replaceWith(el); }
     /* a medal on a short gold ribbon, hanging from under the header, swinging in once */
-    else if (where === "medal") { el.className = "bdg-medal"; el.innerHTML = '<span class="rb"></span>' + img; document.getElementById("col").appendChild(el); }
+    else if (where === "medal") {
+      el.className = "bdg-medal"; el.innerHTML = '<span class="rb"></span>' + img; el.setAttribute("role", "button"); el.tabIndex = 0;
+      el.setAttribute("aria-label", "Medal earned today. See it again");
+      document.getElementById("col").appendChild(el);
+      /* a tap plays the celebration again: the Sunrise sheet, over this screen */
+      var openMedal = function () {
+        if (document.getElementById("medalSheet")) return;
+        var f = document.createElement("iframe");
+        f.id = "medalSheet"; f.title = "Medal earned today"; f.src = "../badge-celebration-options.html?only=1&embed=1";
+        f.style.cssText = "position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;height:100%;border:0;background:transparent;z-index:200";
+        document.body.appendChild(f);
+      };
+      el.addEventListener("click", openMedal);
+      el.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openMedal(); } });
+      window.addEventListener("message", function (e) { if (e.data === "medal:close") { var f = document.getElementById("medalSheet"); if (f) f.remove(); el.focus(); } });
+    }
     /* a sticker slapped on the corner of the Today pill */
     else if (where === "sticker") { el.className = "bdg-sticker"; el.innerHTML = img; document.querySelector(".dateline .pill").appendChild(el); }
     /* a seal on the corner of the macros card: the day's numbers, certified */

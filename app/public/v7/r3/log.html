@@ -1746,7 +1746,8 @@ function render() {
       "Find your food");
   } else {
     var recent = FOODS.filter(function (x) { return x.tags.indexOf("freq") > -1 || x.tags.indexOf("fav") > -1; });
-    html = '<div class="glab">' + (S.hasPlan ? "What you logged lately" : "Common meals to start with") + "</div>" + recent.map(foodRow).join("");
+    /* Recent only ever holds what this person logged. Someone who has logged nothing sees the first-open state above (S.fresh), never a list of suggestions */
+    html = '<div class="glab">What you logged lately</div>' + recent.map(foodRow).join("");
   }
   el("list").innerHTML = html;
 
