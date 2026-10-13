@@ -364,6 +364,9 @@
   .calc .cb { position: relative; display: block; height: 6px; margin-top: 8px; border-radius: var(--r-pill); background: var(--in-100); overflow: hidden; }
   .calc .cb i { display: block; height: 100%; border-radius: var(--r-pill); background: var(--in-600); transition: width .6s var(--ease); }
   .calc.over .cb i { background: var(--amber-600); }
+  /* Past the target, the number turns red: GoodFlip's error 600, numbers only.
+     Macro tiles, the glyph cells, the calorie line, and the sufficiency sheet. */
+  .calc.over .cv b, .m.over .mval strong, .macros.tiles .m.over .mval, .echips b.over, .ecal b.over { color: #D92D20; }
 
   /* kaira */
   /* Figma draws this as the Kaira insights nudge, 4719:3057: a 3px stroke in
@@ -556,9 +559,9 @@
   /* The mark is 24 and the target is 44, held by an overlay that costs no
      layout, which is what .chip and .askk already do. Five different negative
      margins used to hold the same 44 open. */
-  .tickbtn, .dots { position: relative; width: 24px; height: 24px; border: 0; background: none;
+  .tickbtn { position: relative; width: 24px; height: 24px; border: 0; background: none;
     padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
-  .tickbtn::after, .dots::after { content: ""; position: absolute; left: 50%; top: 50%;
+  .tickbtn::after { content: ""; position: absolute; left: 50%; top: 50%;
     width: 44px; height: 44px; transform: translate(-50%, -50%); }
   .tickbtn[disabled] { cursor: default; }
   .tick { width: 24px; height: 24px; border-radius: 9999px; border: 1.5px solid var(--g-300); background: #fff; display: grid; place-items: center; flex-shrink: 0; }
@@ -571,30 +574,6 @@
   .item.done .nm { color: var(--g-700); }
   .manual { font-size: 12px; font-weight: 600; color: var(--g-500); background: var(--g-50); border: 1px solid var(--g-200); border-radius: 9999px; padding: 2px 8px; flex-shrink: 0; }
   .kc { font-size: 12px; color: var(--g-500); white-space: nowrap; }
-  .dots { color: var(--g-400); }
-  /* A food the day skipped: still on the plan, out of the count. The name is
-     its own inline box so the strike can be drawn across the words alone,
-     wrapping with them, and never through the helping underneath. */
-  .item .nt { font-style: normal; }
-  .item.skipped .nt { color: var(--g-400); background: linear-gradient(var(--g-400), var(--g-400)) no-repeat 0 56% / 100% 1.5px; }
-  .item.skipped .nm span { color: var(--g-400); }
-  .item.skipped .tick { border-style: dashed; border-color: var(--g-300); color: var(--g-400); }
-  .skiptag { font-size: 12px; font-weight: 600; color: var(--g-500); background: var(--g-50); border: 1px solid var(--g-200);
-    border-radius: 9999px; padding: 2px 8px; flex-shrink: 0; }
-  /* The moment of skipping, played once. The line is drawn left to right on a
-     slow-in, slow-out curve, like a pen, while the words cool from ink to grey
-     under it; the tick's ring goes dashed after the line has passed; the tag
-     settles in last. Nothing bounces. */
-  .item.skipped.fresh .nt { animation: ntStrike .6s cubic-bezier(.65,0,.35,1) both, ntCool .6s cubic-bezier(.4,0,.2,1) both; }
-  .item.skipped.fresh .tick { animation: ntRing .5s cubic-bezier(.2,0,0,1) .25s both; }
-  .item.skipped.fresh .skiptag { animation: ntTag .4s cubic-bezier(.2,0,0,1) .4s both; }
-  @keyframes ntStrike { from { background-size: 0% 1.5px; } to { background-size: 100% 1.5px; } }
-  @keyframes ntCool { from { color: var(--g-900); } to { color: var(--g-400); } }
-  @keyframes ntRing { from { border-style: solid; border-color: var(--g-300); opacity: .4; } to { opacity: 1; } }
-  @keyframes ntTag { from { opacity: 0; transform: translateX(6px); } to { opacity: 1; transform: none; } }
-  @media (prefers-reduced-motion: reduce) {
-    .item.skipped.fresh .nt, .item.skipped.fresh .tick, .item.skipped.fresh .skiptag { animation: none; }
-  }
   .note { font-size: 12px; color: var(--g-500); line-height: 18px; margin: 0 0 8px; }
   /* 12 above the rule; the label below it brings its own 12, so the dashed
      rule sits centred in 24 the same way every other divider here does */
@@ -902,6 +881,39 @@
   .esec p:last-child { margin-bottom: 0; }
   .edash { border: 0; border-top: 1px dashed var(--g-200); margin: 16px 0 0; }
   .esheet.on { transform: translate(-50%, 0); }
+  /* the meal's info door: a small frosted neutral disc on the scene, top right of the card header */
+  .minfo { position: relative; width: 24px; height: 24px; margin: 0; flex-shrink: 0; border: 0; padding: 0; border-radius: 9999px; cursor: pointer;
+    background: rgb(255 255 255 / .72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: 0 0 0 1px rgb(228 231 236 / .9);
+    color: var(--g-500); display: grid; place-items: center; }
+  .minfo::after { content: ""; position: absolute; inset: -10px; }   /* the disc is small, the target stays 44px */
+  .minfo svg { width: 16px; height: 16px; }
+  /* the meal sheet: each number against the meal's ideal range (meal-card-macro-options.html S2).
+     One indigo for every fill; icons and numbers neutral; red only on a value out of range. */
+  #es-meal .sbody { padding-bottom: 28px; }
+  .msub { margin: -4px 0 8px; font-size: 12px; line-height: 18px; color: var(--g-500); }
+  .ir { padding: 14px 0 18px; }
+  .ir .top { display: flex; align-items: center; gap: 6px; font-size: 14px; line-height: 20px; color: var(--g-600); font-variant-numeric: tabular-nums; }
+  .ir .top .gl, .ir .top .flm { width: 16px; height: 16px; flex: none; background: var(--g-500); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+  .ir .top .flm { -webkit-mask-image: url(../icons/flame-filled.svg); mask-image: url(../icons/flame-filled.svg); }
+  .ir .top b { font-weight: 400; color: var(--g-700); }
+  .ir .top b.off { color: #D92D20; }
+  .ir .top .ideal { margin-left: auto; color: var(--g-500); }
+  .ir .track { position: relative; height: 16px; margin-top: 10px; border-radius: 5px; background: var(--in-50); }
+  .ir .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--in-600); }
+  .ir .val { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; padding-left: 8px; font-size: 11px; font-weight: 500; color: var(--g-800); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .ir .val.in { padding: 0 8px 0 0; transform: translateX(-100%); color: #fff; }
+  /* the line sits exactly on the range's edge; the glass reaches inward, into the range */
+  .ir .hd2 { position: absolute; top: -4px; bottom: -4px; width: 10px; border-radius: 3px;
+    background: linear-gradient(180deg, rgb(52 64 84 / .22), rgb(255 255 255 / .55) 22%, rgb(255 255 255 / .55) 82%, rgb(52 64 84 / .22)); }
+  .ir .hd2.lo { margin-left: -1px; } .ir .hd2.hi { margin-left: -9px; }
+  .ir .hd2::after { content: ""; position: absolute; top: 0; bottom: 0; width: 2px; border-radius: 1px; background: linear-gradient(180deg, #98A2B3, #667085 20%, #667085 85%, #98A2B3); }
+  .ir .hd2.lo::after { left: 0; } .ir .hd2.hi::after { right: 0; }
+  .irleg { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin: 6px 0 4px; font-size: 13px; font-weight: 600; color: var(--g-900); }
+  .irleg svg { width: 24px; height: 24px; }
+  .irex h5 { margin: 18px 0 6px; font-size: 15px; line-height: 22px; font-weight: 700; color: var(--g-900); }
+  .irex p { margin: 0 0 8px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .irex ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .irex li + li { margin-top: 6px; }
   /* the sufficiency sheet, as suff-sheet-variants.html C: a still bubble, three tiles, calories as a line, Ask KAIRA pinned */
   #es-suff h4 { font-size: 20px; line-height: 28px; font-weight: 800; }
   #es-suff .sbody { flex: 1 1 auto; padding-bottom: 28px; }
@@ -1255,7 +1267,8 @@ var KAIRA = {
   /* A day past its targets is still a day that got read, so this neither
      congratulates nor scolds. It names the one thing that is actually
      actionable tomorrow and leaves the rest alone. */
-  over: "<strong>Carbs went to 310g of 238g</strong>, mostly after 8 pm. Protein is still a little short."
+  over: "<strong>Carbs went to 310g of 238g</strong>, mostly after 8 pm. Protein is still a little short.",
+  overone: "<strong>Fats reached 70g of 63g</strong>, most of it from the aloo paratha. A dry roti at dinner keeps tomorrow in range."
 };
 
 /* eaten / target per macro, in the order protein, carbs, fats. (The tables
@@ -1309,6 +1322,15 @@ var STATES = {
      met, and carbs and fats both were, so the score stays high while the
      calories run over: the two numbers answer different questions and this is
      the day that proves it. */
+  /* one number past its target and the rest still short: only that number turns red */
+  overone: {
+    day: "Today", next: false,
+    hero: { score: 61, mealsIn: 3, mealSlots: 6 },
+    macros: { mode: "targets", title: "What you have eaten", v: [[52, 95], [148, 238], [70, 63], [24, 30]] },
+    cal: { mode: "fuse", eaten: 1420, goal: 1900 },
+    kaira: { say: KAIRA.overone, act: "log" },
+    diary: { mode: "plan", title: "Your meals", count: "", logged: "mid" }
+  },
   over: {
     day: "Today", next: false,
     hero: { score: 92, mealsIn: 6, mealSlots: 6 },
@@ -1970,6 +1992,7 @@ function loadScripts(list, done) {
          silhouette, goals mode has nothing in it yet so it stays empty */
       var fillCls = M.mode === "grams" ? " flat" : M.mode === "goals" || M.mode === "blank" ? " empty" : "";
       var done = pct >= 1 ? " done" : "";
+      if (M.mode === "targets" && target && eaten > target) done += " over";   /* past its target: the number turns red */
       return '<div class="m' + done + '">' +
         '<span class="gwrap"><span class="gfill ' + g.cls + fillCls + '"' +
         (fillCls ? "" : ' style="--f:' + (pct * 100).toFixed(1) + '%"') + '></span></span>' +
@@ -1988,7 +2011,9 @@ function loadScripts(list, done) {
         : M.mode === "goals" ? "<strong data-n=\"0\">0</strong><small>g</small>"
         : "<strong data-n=\"" + eaten + "\">" + fmt(eaten) + "</strong><small>g</small>";
       var of = M.mode === "grams" || M.mode === "blank" || !target ? "" : '<span class="mof">of ' + fmt(target) + "g</span>";
-      return '<div class="m' + (pct >= 1 ? " done" : pct <= 0 ? " still" : "") + '"><span class="tpool"><span class="gfill" style="--f:' + (pct * 100).toFixed(1) + '%"></span></span>' +
+      /* past its target, the number turns red (GoodFlip error 600); the tile and its fill stay as they are */
+      var over = M.mode === "targets" && target && eaten > target;
+      return '<div class="m' + (pct >= 1 ? " done" : pct <= 0 ? " still" : "") + (over ? " over" : "") + '"><span class="tpool"><span class="gfill" style="--f:' + (pct * 100).toFixed(1) + '%"></span></span>' +
         '<span class="ttop"><span class="tgl ' + g.cls + '"></span>' + g.name + '</span>' +
         '<span class="mval">' + val + '</span>' + of + '</div>';
     }).join("");
@@ -2197,7 +2222,7 @@ function loadScripts(list, done) {
   }
 
   /* the intake, as in suff-sheet-variants.html (C): three small tiles that echo the day view's, calories as one line under them */
-  var num = function (a, b, unit) { return "<b>" + fmt(a) + "<small>" + (b ? " of " + fmt(b) : "") + unit + "</small></b>"; };
+  var num = function (a, b, unit) { return "<b" + (b && a > b ? ' class="over"' : "") + ">" + fmt(a) + "<small>" + (b ? " of " + fmt(b) : "") + unit + "</small></b>"; };
   var chips = NUTS.map(function (n, i) {
     var v = val(i);
     return '<div><span class="top"><span class="' + n.cls + ' eglyph"></span>' + n.name + "</span>" +
@@ -2320,7 +2345,6 @@ var I = {
   check: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M20 6L9 17l-5-5"/></svg>',
   checkG: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
   plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
-  dots: '<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>',
   /* a plus in a square, so it is visibly not the round tick a planned food
      carries: this adds something the plan never listed */
   plusSq: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>',
@@ -2458,7 +2482,6 @@ var LOGS = {
     m.opts.forEach(function (items, oi) {
       items.forEach(function (it, ii) {
         it.done = !!(l && oi === l.opt && (l.done === "all" || (l.done || []).indexOf(ii) > -1));
-        it.skip = false;
       });
     });
     /* anything logged outside the plan sits in one list above it, whether it
@@ -2509,7 +2532,7 @@ var PLOG = "card";   /* settled: plan foods are logged on the meal card */
     if (!m) return;
     e.refs.forEach(function (ref) {
       var p = ref.split("|"), it = (m.opts[+p[1]] || [])[+p[2]];
-      if (it && !it.done) { it.done = true; it.skip = false; apply(it, 1); }
+      if (it && !it.done) { it.done = true; apply(it, 1); }
     });
     if (m.chosen < 0) m.chosen = e.opt;
     m.show = e.opt;
@@ -2615,18 +2638,15 @@ function refresh() {
 function itemRow(it, opts) {
   opts = opts || {};
   var dis = RO;
-  var lab = it.skip ? it.name + " was skipped, tap to log it" : it.done ? it.name + " is logged, tap for options" : "Log " + it.name;
-  /* "fresh" plays the strike once, on the repaint that follows a Skip */
-  var fresh = it.skip && it.justSkipped;
-  it.justSkipped = false;
-  return '<div class="item' + (it.done ? " done" : "") + (it.skip ? " skipped" : "") + (fresh ? " fresh" : "") + '" data-ref="' + opts.ref + '">' +
+  var lab = it.done ? it.name + " is logged, tap for options" : "Log " + it.name;
+  return '<div class="item' + (it.done ? " done" : "") + '" data-ref="' + opts.ref + '">' +
     '<button class="tickbtn"' + (dis ? " disabled" : "") + ' aria-label="' + lab + '" aria-pressed="' + (it.done ? "true" : "false") + '">' +
       '<span class="tick' + (it.done ? " on" : "") + '">' + (it.done ? I.check : "") + '</span></button>' +
-    '<span class="nm"><em class="nt">' + it.name + '</em><span>' + it.qty + '</span></span>' +
+    '<span class="nm">' + it.name + '<span>' + it.qty + '</span></span>' +
     /* a free user logs everything by hand, so "Manual" would say nothing there */
-    (it.skip ? '<span class="skiptag">Skipped</span>' : it.moved ? '<span class="manual">Moved here</span>' : opts.manual && S.diary.mode !== "free" ? '<span class="manual">Manual</span>' : "") +
-    (it.skip ? "" : '<span class="kc">' + it.cal + ' cal</span>') +
-    (RO ? "" : '<button class="dots" aria-label="Options for ' + it.name + '">' + I.dots + '</button>') + '</div>';
+    (it.moved ? '<span class="manual">Moved here</span>' : opts.manual && S.diary.mode !== "free" ? '<span class="manual">Manual</span>' : "") +
+    '<span class="kc">' + it.cal + ' cal</span>' +
+    '</div>';   /* no row menu: a logged food's tick opens its sheet, a waiting food's tick logs it */
 }
 
 function body(m) {
@@ -2697,6 +2717,11 @@ function mealCal(m) {
   }, sum(m.manual));
 }
 
+/* the info door on every planned meal card, in neutral grey, opening the meal sheet. Only a planned
+   card has one: without a plan there is no target to measure the meal against. */
+var INFOI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg>';
+function infoBtn(m) { return '<button class="minfo" data-minfo="' + m.id + '" data-stop="1" aria-label="' + m.name + ', nutrition breakdown">' + INFOI + '</button>'; }
+
 function card(m) {
   var logged = mealCal(m);
   var target = sum(m.opts[m.show]);
@@ -2709,6 +2734,7 @@ function card(m) {
       '<div class="s">Suggested ' + m.time.replace(" - ", "\u2013") + ' · ' + line + '</div></div>' +
       /* no plus here: a planned meal carries "I have eaten something else" at
          the foot of its own list, which says what the button was for */
+      infoBtn(m) +
     '</div>' +
     '<div class="mb"><div><div class="mbi">' + body(m) + '</div></div></div></section>';
 }
@@ -2736,6 +2762,7 @@ function freeCard(m) {
   return '<section class="meal' + (m.manual.length ? ' scene" style="--scene:url(../icons/meals/bg/' + m.id + '.webp?v=2)' : '') + '" id="meal-' + m.id + '"><div class="mh">' + '<img class="mpic" src="../icons/meals/gemini/' + m.id + '.png?v=2" alt="" aria-hidden="true">' +
     '<div class="t"><div class="n">' + m.name + '</div>' +
     '<div class="s">' + m.time.replace(" - ", "\u2013") + (logged ? ' · ' + logged + ' kcal logged' : '') + '</div></div>' +
+    /* no info door here: without a plan there is no target to show a meal against */
     '<button class="plus sq" aria-label="Log something for ' + m.name + '" data-meal="' + m.id + '" data-stop="1"><i>' + I.plusSq + '</i></button></div>' +
     (m.manual.length ? '<div class="mb"><div><div class="mbi"><div class="extras">' +
       m.manual.map(function (it, i) { return itemRow(it, { manual: true, ref: m.id + "|m|" + i }); }).join("") + '</div></div></div></div>' : "") +
@@ -3184,7 +3211,7 @@ function mealsIn() {
        card again for something you only looked at. */
     var items = m.opts[m.show];
     var full = m.chosen === m.show && items.length > 0 &&
-      items.every(function (x) { return x.done || x.skip; });
+      items.every(function (x) { return x.done; });
     var key = m.id + "|" + m.show;
     if (full && pop && !CELEBRATED[key]) {
       CELEBRATED[key] = 1;
@@ -3203,21 +3230,10 @@ function mealsIn() {
 
   function setDone(m, it, on) {
     if (it.done === on) return;
-    if (on) it.skip = false;
     it.done = on;
     apply(it, on ? 1 : -1);
     if (on && m.chosen < 0) m.chosen = m.show;
     if (!on && m.chosen >= 0 && !m.opts[m.chosen].some(function (x) { return x.done; }) && !m.manual.length) m.chosen = -1;
-  }
-
-  /* A plan food has three answers, not two: eaten, not answered yet, or skipped.
-     A skipped food stays on the plan so the day still reads as the coach wrote
-     it, but it counts for nothing and it cannot be logged by accident. */
-  function setSkip(m, it, on) {
-    if (!!it.skip === on) return;
-    if (on) setDone(m, it, false);
-    it.skip = on;
-    it.justSkipped = on;
   }
 
   /* Logging happens on its own screen, so Snap, Voice and + leave this one */
@@ -3265,9 +3281,48 @@ function mealsIn() {
     "Banana": "banana"
   };
 
-  /* ---------- the ⋮ menu on a food row (a logged food's tick opens it too) ---------- */
+  /* ---------- the meal sheet: what went in, against the meal's ideal range ---------- */
+  /* Intake is every ticked plan food plus anything added by hand. The target is
+     the coach's option the card is on (the one it counts "of N kcal" against).
+     The range is the score's own: the target give or take 20%, or 3 g for a
+     macro, whichever is more. A meal with no plan has no target, so it shows
+     what went in and says so. */
+  var IRLEG = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path fill="#fff" d="M0 0h24v24H0z"/><path fill="#E4E7EC" d="M1 9.333c0-1.196.97-2.166 2.167-2.166H20.5c1.197 0 2.167.97 2.167 2.166v4.875c0 1.197-.97 2.167-2.167 2.167H3.167A2.167 2.167 0 0 1 1 14.208z"/><path fill="url(#ira)" d="M16.9 5h2a.5.5 0 0 1 .5.5v12a.5.5 0 0 1-.5.5h-2z" opacity=".2"/><path fill="url(#irb)" d="M4.25 5.5a.5.5 0 0 1 .5-.5h2v13h-2a.5.5 0 0 1-.5-.5z" opacity=".2"/><path fill="url(#irc)" d="M18.333 5.542a.542.542 0 1 1 1.084 0v11.916a.542.542 0 1 1-1.084 0z"/><path fill="url(#ird)" d="M4.25 5.542a.542.542 0 1 1 1.083 0v11.916a.542.542 0 1 1-1.083 0z"/><defs><linearGradient id="ira" x1="18.15" x2="18.15" y1="5" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#344054"/><stop offset=".19" stop-color="#fff"/><stop offset=".85" stop-color="#fff"/><stop offset="1" stop-color="#344054"/></linearGradient><linearGradient id="irb" x1="5.5" x2="5.5" y1="5" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#344054"/><stop offset=".19" stop-color="#fff"/><stop offset=".85" stop-color="#fff"/><stop offset="1" stop-color="#344054"/></linearGradient><linearGradient id="irc" x1="18.875" x2="18.875" y1="5" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#98A2B3"/><stop offset=".2" stop-color="#667085"/><stop offset=".85" stop-color="#667085"/><stop offset="1" stop-color="#98A2B3"/></linearGradient><linearGradient id="ird" x1="4.792" x2="4.792" y1="5" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#98A2B3"/><stop offset=".2" stop-color="#667085"/><stop offset=".85" stop-color="#667085"/><stop offset="1" stop-color="#98A2B3"/></linearGradient></defs></svg>';
+  function mealSheet(m) {
+    /* a free card (no plan yet, or a free user) has no target, whatever the meal carries underneath */
+    var free = S.diary.mode === "free";
+    var plan = !free && m.opts && m.opts.length ? (m.opts[m.chosen < 0 ? m.show : m.chosen] || []) : [];
+    var got = { p: 0, c: 0, fa: 0, cal: 0 }, tg = { p: 0, c: 0, fa: 0, cal: 0 };
+    var eaten = (free ? [] : m.opts || []).reduce(function (a, o) { return a.concat(o.filter(function (x) { return x.done; })); }, []).concat(m.manual || []);
+    eaten.forEach(function (x) { got.p += x.p * x.n; got.c += x.c * x.n; got.fa += x.fa * x.n; got.cal += x.cal; });
+    plan.forEach(function (x) { tg.p += x.p * x.n; tg.c += x.c * x.n; tg.fa += x.fa * x.n; tg.cal += x.cal; });
+    var has = tg.cal > 0;
+    var g1 = function (n) { return n < 10 && n % 1 ? n.toFixed(1) : String(Math.round(n)); };
+    var ROWS = [["p", "Protein", "glyph-protein", " g"], ["c", "Carbs", "glyph-carbs", " g"], ["fa", "Fats", "glyph-fats", " g"], ["cal", "Calories", "", " kcal"]];
+    var html = '<div class="msub">Suggested ' + m.time.replace(" - ", "–") + (has ? " · what went in, against this meal’s target" : " · what went in") + '</div>' +
+      ROWS.map(function (r) {
+        var k = r[0], v = got[k], t = tg[k], ic = r[2] ? '<i class="gl ' + r[2] + '"></i>' : '<i class="flm"></i>';
+        if (!has) return '<div class="ir"><div class="top">' + ic + r[1] + ' : <b>' + g1(v) + r[3] + '</b></div></div>';
+        var b = k === "cal" ? t * 0.2 : Math.max(t * 0.2, 3), lo = Math.max(0, t - b), hi = t + b, off = v < lo || v > hi;
+        var mx = Math.max(hi * 1.25, v * 1.08, 1), pc = function (x) { return Math.min(x / mx * 100, 100); };
+        var rng = (k === "cal" ? Math.round(lo) + "–" + Math.round(hi) : g1(lo) + "–" + g1(hi)) + r[3];
+        return '<div class="ir"><div class="top">' + ic + r[1] + ' : <b class="' + (off ? "off" : "") + '">' + g1(v) + r[3] + '</b><span class="ideal">Ideal: ' + rng + '</span></div>' +
+          '<div class="track"><span class="fill" style="width:' + pc(v) + '%"></span>' +
+          '<span class="hd2 lo" style="left:' + pc(lo) + '%"></span><span class="hd2 hi" style="left:' + pc(hi) + '%"></span>' +
+          '<span class="val' + (pc(v) > 62 ? " in" : "") + '" style="left:' + pc(v) + '%">' + g1(v) + r[3] + '</span></div></div>';
+      }).join("") +
+      (has ? '<div class="irleg">' + IRLEG + 'Ideal range</div>' +
+        '<div class="irex"><h5>What the ideal range means</h5><p>Your coach sets a target for every meal. Anywhere inside the range counts as on target.</p>' +
+        '<ul><li>For protein, carbs and fats, the range is your target give or take 20%, or 3 g, whichever is more.</li><li>For calories, it is your target give or take 20%.</li><li>Outside the range, the number turns red. It is a nudge for next time, not a mark against you.</li></ul></div>'
+        : '<div class="irex"><p style="margin-top:16px">There’s no target for ' + m.name.toLowerCase() + ' yet. Once your coach shares your plan, you’ll see each number against its range here.</p></div>');
+    openSheet("es-meal", m.name, html);
+  }
+
+  /* ?meal=<id> opens that meal's sheet on arrival, for the doc */
+  if (Q.get("meal")) setTimeout(function () { var mm = byId(Q.get("meal")); if (mm) mealSheet(mm); }, 500);
+
+  /* ---------- the sheet a logged food's tick opens ---------- */
   var MI = {
-    skip: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>',
     back: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4M3 3v5h5"/></svg>',
     bin: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'
   };
@@ -3275,39 +3330,21 @@ function mealsIn() {
     return '<button class="menurow' + (warn ? " warn" : "") + '" data-act="' + act + '"><span class="mi">' + ico + '</span>' + text + '</button>';
   };
 
-  /* A coach's food cannot be deleted, the way it cannot on the live app. What
-     the day can say is that it was not eaten, and that is the skip. */
+  /* Only a logged food has a sheet, opened from its tick: change the quantity,
+     or take it off the day (a hand-added food is removed instead). A food not
+     eaten has no menu and no Skip, it simply stays unticked; a coach's food is
+     never deleted, the way it cannot be on the live app. */
   function itemMenu(ref) {
     var t = find(ref), it = t.list[t.i], m = t.m;
-    /* The menu answers the state the row is actually in. A logged food is
-       edited or taken back. A coach's food still waiting is skipped, and a
-       skipped one is put back. A food added by hand can be removed. */
     var html = "";
-    if (it.done) {
-      html += mrow("qty", I.pen, "Change the quantity");
-      if (!t.manual) html += mrow("untick", MI.back, "Take it off your day");
-    } else if (!t.manual) {
-      html += it.skip ? mrow("unskip", MI.back, "Put it back on the list")
-                      : mrow("skip", MI.skip, "Skip this today");
-    }
+    html += mrow("qty", I.pen, "Change the quantity");
+    if (!t.manual) html += mrow("untick", MI.back, "Take it off your day");
     html += (t.manual ? mrow("del", MI.bin, "Remove this", true) : "");
     var el = openSheet("it-sheet", it.name, html);
     el.querySelector(".sbody").addEventListener("click", function (e) {
       var b = e.target.closest("[data-act]");
       if (!b) return;
       if (b.dataset.act === "qty") return qty(m, it, ref);
-      if (b.dataset.act === "skip" || b.dataset.act === "unskip") {
-        var on = b.dataset.act === "skip";
-        /* a food waiting in the bottom bar leaves it when it is skipped */
-        var row = document.querySelector('.item[data-ref="' + ref + '"]');
-        if (on && row && row.classList.contains("pt-sel") && window.GFPlanTray) window.GFPlanTray.toggle({ ref: ref, m: m, it: it });
-        setSkip(m, it, on);
-        window.closeSheets();
-        repaint(m);   /* no pop: a skip is not a log, so the card never celebrates it */
-        refresh();
-        if (on) toast(it.name + " skipped for today");
-        return;
-      }
       /* Taking a log back does not ask again, the sheet was the asking. The
          way back is the tick, which logs it again. */
       if (b.dataset.act === "untick") {
@@ -3431,11 +3468,10 @@ function mealsIn() {
       return;
     }
 
-    var dots = e.target.closest(".dots");
-    if (dots) return itemMenu(dots.closest(".item").dataset.ref);
-
     var plus = e.target.closest(".plus");
     if (plus) return goLog("plus", plus.dataset.meal);
+    var inf = e.target.closest(".minfo");
+    if (inf) return mealSheet(byId(inf.dataset.minfo));
 
     /* "I have eaten something else": the one way into logging a planned meal
        leaves from, now that Log all is gone. It opens the tray empty, because
@@ -3492,9 +3528,6 @@ function mealsIn() {
        read about the food, and the toast was the only thing standing behind
        it. The menu names what it is about to do first, and still holds Change
        the quantity, which is what most of those taps actually wanted. */
-    /* ticking a skipped food means it was eaten after all: it comes back
-       onto the list first, then logs the way any waiting food does */
-    if (item.skip) { setSkip(tgt.m, item, false); repaint(tgt.m); refresh(); }
     if (!item.done) {
       if (tgt.manual) return confirmLog(tgt.m, item, row.dataset.ref);
       /* the "On the card" variant (the default): the plan is logged right here,

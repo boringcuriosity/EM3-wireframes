@@ -59,12 +59,12 @@ Rule: where there is no data, say what to do or show the target. Never print zer
 
 - Always open. No expand, no collapse, no chevron.
 - Header: meal name, "Suggested 8:00 - 10:00 AM · 486 of 382 cal", and a + button.
-- Body: "YOUR COACH'S PLAN", option chips with a check on the chosen one, then food rows with a tick circle, name, quantity, calories and a ⋮ menu.
+- Body: "YOUR COACH'S PLAN", option chips with a check on the chosen one, then food rows with a tick circle, name, quantity and calories. No row menu: a logged food's tick opens its sheet (change the quantity, take it off your day).
 - Food logged outside the plan sits above the plan with a "Manual" tag.
 - "Log all 3" or "Log the other 2" appears when two or more items are left.
 - "TIPS FROM YOUR COACH" holds the parts of a plan that are not food, each with a tick and a one line tip.
 - A coach's food has three states: logged, abstained, untouched. The action is called Skip, and the food stays on the plan. It is never deleted.
-- Skip lives in one place: the meal card's ⋮ menu on this screen. The logging screen has no Skip, because that screen adds food to a tray, while saying "not today" to a coach's food is a decision about the plan. A plan food there is untouched until it is ticked.
+- There is no Skip, on this screen or the logging screen. A food not eaten simply stays unticked; a plan food is untouched until it is ticked.
 
 ## 6. The ways in
 
@@ -188,7 +188,7 @@ Four questions came out of reading the live app and the backend. They are answer
 |---|---|---|
 | Fibre has no target and no column in the backend. Keep it? | **No.** The score is protein, carbs and fats, the three the plan already sets. | None. |
 | The API allows a future date. Allow it? | **No.** The chip's forward arrow stops on today and the date sheet greys the rest of the month. | A client rule. The API is unchanged. |
-| A coach's food that was not eaten: delete it? | **No. Abstain.** One word for it, Skip, in one place: the meal card's ⋮ menu. A coach's food is never deleted. | Three states per plan food, not two. |
+| A coach's food that was not eaten: delete it? | **No. Leave it unticked.** No Skip, no row menu. A coach's food is never deleted. | Two states per plan food: logged, or not yet. |
 | Should ticking a plan food log it straight away? | **No.** Every tick confirms quantity and time, and the time decides the meal. | One extra step, in exchange for a day that is true. |
 
 Sources: `research/web-flows.md` (the live webview) and `research/backend-rules.md` (production backend), read September 2026.

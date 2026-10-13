@@ -113,13 +113,19 @@
   .dr .gl, .dr .flame { color: var(--in-500); }
 
   /* the info door: a small frosted disc on the scene, so the scene still shows round it */
-  .info { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
-    background: rgb(255 255 255 / .72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: 0 0 0 1px rgb(224 234 255 / .9); color: var(--in-600); display: grid; place-items: center; }
-  .info::after { content: ""; position: absolute; inset: -6px; }
-  .info svg { width: 18px; height: 18px; }
+  .info { position: absolute; top: 16px; right: 16px; width: 24px; height: 24px; border-radius: 50%; border: 0; padding: 0; cursor: pointer;
+    background: rgb(255 255 255 / .72); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: 0 0 0 1px rgb(228 231 236 / .9); color: var(--g-500); display: grid; place-items: center; }
+  .info::after { content: ""; position: absolute; inset: -10px; }
+  .info svg { width: 16px; height: 16px; }
+
+  /* the chip door: a small neutral chip under the time, in place of the corner icon */
+  .bdchip { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; height: 24px; padding: 0 10px 0 6px; border-radius: 9999px;
+    border: 1px solid var(--g-200); background: rgb(255 255 255 / .85); font: 500 12px Roboto, sans-serif; color: var(--g-600); cursor: pointer; }
+  .bdchip svg { width: 14px; height: 14px; color: var(--g-500); }
+  .bdchip:hover { background: var(--g-50); }
 
   /* ---------- the bottom sheet (GoodFlip rules: title top left, circle X top right, no handle) ---------- */
-  .phone { position: relative; width: 358px; height: 600px; margin: 0 auto 12px; border-radius: 28px; overflow: hidden; background: rgba(16,24,40,.42); box-shadow: 0 0 0 1px var(--g-200); }
+  .phone { position: relative; width: 358px; height: 740px; margin: 0 auto 12px; border-radius: 28px; overflow: hidden; background: rgba(16,24,40,.42); box-shadow: 0 0 0 1px var(--g-200); }
   .bs { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; overflow: auto; scrollbar-width: none; background: #fff; border-radius: 24px 24px 0 0; padding: 20px 16px 28px; }
   .bs .hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 4px; }
   .bs h4 { margin: 0; font: 700 18px/24px Roboto, sans-serif; }
@@ -146,18 +152,36 @@
   .nf-f { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--g-100); font-size: 13px; }
   .nf-f b { font-weight: 600; } .nf-f span { color: var(--g-500); font-size: 12px; } .nf-f .kk { color: var(--g-700); font-variant-numeric: tabular-nums; }
 
-  /* S2 · against the target: one bar per number, the full-marks band drawn on it */
-  .tb { padding: 12px 0; border-bottom: 1px solid var(--g-100); }
-  .tb .top { display: flex; align-items: center; gap: 8px; }
-  .tb .top .gl, .tb .top .flame { width: 18px; height: 18px; color: var(--in-500); }
-  .tb .nm { flex: 1; font-size: 14px; font-weight: 600; }
-  .tb .vl { font-size: 13px; color: var(--g-600); font-variant-numeric: tabular-nums; }
-  .tb .vl b { font-size: 15px; color: var(--g-900); }
-  .tb .track { position: relative; height: 8px; margin: 10px 0 6px; border-radius: 9999px; background: var(--g-100); }
-  .tb .band { position: absolute; top: 0; bottom: 0; border-radius: 9999px; background: var(--in-100); }
-  .tb .fill { position: absolute; left: 0; top: 2px; height: 4px; border-radius: 9999px; background: var(--in-500); }
-  .tb .tick2 { position: absolute; top: -3px; width: 2px; height: 14px; border-radius: 1px; background: var(--g-900); }
-  .tb .ws { font-size: 12px; font-weight: 600; }
+  /* S2 · ideal range, in the ring's "Your sleep stages" structure: name and value
+     left, the ideal right, a thick bar with the value inside, the ideal range
+     bracketed on the track. One indigo for every fill; icons and numbers
+     neutral; red only on a value that is out of its range. */
+  .ir { padding: 14px 0 18px; }
+  .ir .top { display: flex; align-items: center; gap: 6px; font-size: 14px; line-height: 20px; color: var(--g-600); font-variant-numeric: tabular-nums; }
+  .ir .top .gl, .ir .top .flame { width: 16px; height: 16px; color: var(--g-500); }
+  .ir .top b { font-weight: 400; color: var(--g-700); }
+  .ir .top b.off { color: #D92D20; }
+  .ir .top .ideal { margin-left: auto; color: var(--g-500); }
+  .ir .track { position: relative; height: 16px; margin-top: 10px; border-radius: 5px; background: var(--in-50); }
+  .ir .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--in-600); }
+  .ir .val { position: absolute; top: 0; bottom: 0; display: flex; align-items: center; padding-left: 8px; font-size: 11px; font-weight: 500; color: var(--g-800); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .ir .val.in { padding: 0 8px 0 0; transform: translateX(-100%); color: #fff; }
+  /* the range's two handles, drawn like the legend: a soft glass column with a slate line through it */
+  /* the line sits exactly on the range's edge; the glass reaches inward, into the range */
+  .ir .hd2 { position: absolute; top: -4px; bottom: -4px; width: 10px; border-radius: 3px;
+    background: linear-gradient(180deg, rgb(52 64 84 / .22), rgb(255 255 255 / .55) 22%, rgb(255 255 255 / .55) 82%, rgb(52 64 84 / .22)); }
+  .ir .hd2.lo { margin-left: -1px; }
+  .ir .hd2.hi { margin-left: -9px; }
+  .ir .hd2::after { content: ""; position: absolute; top: 0; bottom: 0; width: 2px; border-radius: 1px;
+    background: linear-gradient(180deg, #98A2B3, #667085 20%, #667085 85%, #98A2B3); }
+  .ir .hd2.lo::after { left: 0; }
+  .ir .hd2.hi::after { right: 0; }
+  .irleg { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin: 6px 0 4px; font-size: 13px; font-weight: 600; color: var(--g-900); }
+  .irleg svg { width: 24px; height: 24px; }
+  .irex h5 { margin: 18px 0 6px; font-size: 15px; line-height: 22px; font-weight: 700; color: var(--g-900); }
+  .irex p { margin: 0 0 8px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .irex ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .irex li + li { margin-top: 6px; }
 
   /* S3 · big vessels: the day card's glyphs, with room to fill */
   .vrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 8px 0 4px; }
@@ -241,6 +265,10 @@
   <p class="shp">Every card here carries option A, the quiet line, plus a small frosted ⓘ in its top right corner, sitting on the scene without hiding it. Tap it and a sheet opens with the meal against its target. Six ways to draw that sheet, all with GoodFlip's sheet rules: title top left, circle X top right, no drag handle, never past 90% of the screen.</p>
   <div class="grid" id="sheets"></div>
 
+  <h2 class="sh">Or a chip, not a corner icon</h2>
+  <p class="shp">The same sheet, opened from a small neutral chip under the meal's time instead of the ⓘ in the corner. The card shows no numbers; the sheet holds them all. The scene's corner stays empty, and the chip says what it opens.</p>
+  <div class="grid" id="chipdoor"></div>
+
   <h2 class="sh">What this draws on</h2>
   <ul class="src" id="src"></ul>
 </div>
@@ -313,18 +341,23 @@ function read() {
     (w[1] === "st-hi" ? "Half a portion next time keeps it in range." : "A katori of dal or a boiled egg closes the gap.");
 }
 const SHEETS = [
-  { id: "S1", name: "Nutritional Facts, for the meal", tags: ["From GoodFlip's Food Logging"], rec: true,
+  { id: "S1", name: "Nutritional Facts, for the meal", tags: ["From GoodFlip's Food Logging"],
     why: "GoodFlip's own Nutritional Facts sheet, made for a whole meal: the indigo calorie block with its flame and the big number, the macro columns under it, each with its target and a word. Then the foods, each with its kcal.",
     fit: "<b>Best when</b> you want the sheet to feel like GoodFlip already: same blocks, same icons, same order.",
     body: () => { const s = tot(), w = word("k", s.k); return '<div class="nf-k"><span class="l"><i class="flame"></i>Calories</span><b>' + s.k + ' kcal <small>of ' + T.k + ' · <span class="' + w[1] + '">' + w[0].toLowerCase() + '</span></small></b></div>' + nfCols() +
       '<div class="ssec">What went in</div>' + foods().map(x => '<div class="nf-f"><div><b>' + x.n + '</b> <span>' + x.q + '</span></div><span class="kk">' + x.k + ' kcal</span></div>').join(""); } },
-  { id: "S2", name: "Against the target", tags: ["Clearest answer"],
-    why: "One row per number, kcal last: what went in, the target, and a thin bar with the full-marks band shaded on it and a tick at the target. A plain word says where it landed. The score's own ±20%, made visible.",
-    fit: "<b>Best when</b> 'how did this meal do' is the question. It teaches the band without a word of explanation (Noom's target zone, Lifesum's words).",
-    body: () => four(k => { const v = tot()[k], [lo, hi] = band(k), mx = Math.max(T[k] * 1.6, v, 1), w = word(k, v);
-      return '<div class="tb"><div class="top">' + gl(k) + '<span class="nm">' + NM[k] + '</span><span class="vl"><b>' + g(v) + '</b> of ' + T[k] + unit(k) + '</span></div>' +
-        '<div class="track"><span class="band" style="left:' + lo / mx * 100 + '%;width:' + (hi - lo) / mx * 100 + '%"></span><span class="fill" style="width:' + Math.min(v / mx * 100, 100) + '%"></span><span class="tick2" style="left:calc(' + T[k] / mx * 100 + '% - 1px)"></span></div>' +
-        '<span class="ws ' + w[1] + '">' + w[0] + '</span></div>'; }) + '<div class="note">The shaded band is full marks: within 20% of the target, or 3 g for a macro.</div>' },
+  { id: "S2", name: "Ideal range", tags: ["From GoodFlip's ring"], rec: true,
+    why: "The structure of the ring's sleep stages sheet: each number's name and value on the left, its ideal on the right, then a thick bar with the value written in it and the ideal range bracketed on the track. Kcal comes fourth. Under it, what the range means.",
+    fit: "<b>Best when</b> 'how did this meal do' is the question. One indigo for every bar, neutral icons and neutral numbers; only a value outside its range turns red.",
+    body: () => four(k => { const v = tot()[k], [lo, hi] = band(k), mx = Math.max(hi * 1.25, v * 1.08, 1), pc = x => Math.min(x / mx * 100, 100), off = v < lo || v > hi, wide = pc(v) > 62;
+      const rng = (k === "k" ? Math.round(lo) + "–" + Math.round(hi) : g(lo) + "–" + g(hi)) + unit(k);
+      return '<div class="ir"><div class="top">' + gl(k) + NM[k] + ' : <b class="' + (off ? 'off' : '') + '">' + g(v) + unit(k) + '</b><span class="ideal">Ideal: ' + rng + '</span></div>' +
+        '<div class="track"><span class="fill" style="width:' + pc(v) + '%"></span>' +
+        '<span class="hd2 lo" style="left:' + pc(lo) + '%"></span><span class="hd2 hi" style="left:' + pc(hi) + '%"></span>' +
+        '<span class="val' + (wide ? ' in' : '') + '" style="left:' + pc(v) + '%">' + g(v) + unit(k) + '</span></div></div>'; }) +
+      '<div class="irleg"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path fill="#fff" d="M0 0h24v24H0z"/><path fill="#E4E7EC" d="M1 9.333c0-1.196.97-2.166 2.167-2.166H20.5c1.197 0 2.167.97 2.167 2.166v4.875c0 1.197-.97 2.167-2.167 2.167H3.167A2.167 2.167 0 0 1 1 14.208z"/><path fill="url(#ira)" d="M16.9 5h2a.5.5 0 0 1 .5.5v12a.5.5 0 0 1-.5.5h-2z" opacity=".2"/><path fill="url(#irb)" d="M4.25 5.5a.5.5 0 0 1 .5-.5h2v13h-2a.5.5 0 0 1-.5-.5z" opacity=".2"/><path fill="url(#irc)" d="M18.333 5.542a.542.542 0 1 1 1.084 0v11.916a.542.542 0 1 1-1.084 0z"/><path fill="url(#ird)" d="M4.25 5.542a.542.542 0 1 1 1.083 0v11.916a.542.542 0 1 1-1.083 0z"/><defs><linearGradient id="ira" x1="18.15" x2="18.15" y1="5" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#344054"/><stop offset=".19" stop-color="#fff"/><stop offset=".85" stop-color="#fff"/><stop offset="1" stop-color="#344054"/></linearGradient><linearGradient id="irb" x1="5.5" x2="5.5" y1="5" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#344054"/><stop offset=".19" stop-color="#fff"/><stop offset=".85" stop-color="#fff"/><stop offset="1" stop-color="#344054"/></linearGradient><linearGradient id="irc" x1="18.875" x2="18.875" y1="5" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#98A2B3"/><stop offset=".2" stop-color="#667085"/><stop offset=".85" stop-color="#667085"/><stop offset="1" stop-color="#98A2B3"/></linearGradient><linearGradient id="ird" x1="4.792" x2="4.792" y1="5" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#98A2B3"/><stop offset=".2" stop-color="#667085"/><stop offset=".85" stop-color="#667085"/><stop offset="1" stop-color="#98A2B3"/></linearGradient></defs></svg>Ideal range</div>' +
+      '<div class="irex"><h5>What the ideal range means</h5><p>Your coach sets a target for every meal. Anywhere inside the range counts as on target.</p>' +
+      '<ul><li>For protein, carbs and fats, the range is your target give or take 20%, or 3 g, whichever is more.</li><li>For calories, it is your target give or take 20%.</li><li>Outside the range, the number turns red. It is a nudge for next time, not a mark against you.</li></ul></div>' },
   { id: "S3", name: "Big vessels", tags: ["Echoes the day card"],
     why: "The vessels you cut from the card, at a size where the fill can be seen: three 64px glyphs filling indigo to this meal's target, grams and target under each. Kcal sits under them as one quiet line.",
     fit: "<b>Best when</b> you want the meal and the day to speak one language. A full vessel is the whole message.",
@@ -356,6 +389,13 @@ function paint() {
   document.getElementById("cards").innerHTML = CARDS.map(v =>
     '<div class="opt' + (v.rec ? " rec" : "") + '"><div class="stage">' + v.html() + '</div><div class="meta"><h3>' + v.id + ' · ' + v.name +
     v.tags.map(t => ' <span class="tag' + (t === "Recommended" ? " rec" : v.q ? " q" : "") + '">' + t + '</span>').join("") + '</h3><p>' + v.why + '</p><p class="fit">' + v.fit + '</p></div></div>').join("");
+  const s2 = SHEETS.find(v => v.id === "S2");
+  document.getElementById("chipdoor").innerHTML =
+    '<div class="opt rec"><div class="stage">' + card('<div class="mh"><div class="t"><div class="n">Breakfast</div><div class="s">Suggested 8:00–10:00 AM</div>' +
+      '<button class="bdchip" aria-label="Breakfast, nutrition breakdown">' + INFO + 'Nutrition breakdown</button></div></div>' + list()) + phone(s2.body()) +
+    '</div><div class="meta"><h3>Door B · Nutrition breakdown chip <span class="tag">Says what it opens</span> <span class="tag rec">New</span></h3>' +
+    '<p>A small chip right under "Suggested 8:00–10:00 AM": a grey ⓘ and "Nutrition breakdown", on a white pill with a light grey border. Nothing else in the header: the numbers live in the sheet the chip opens.</p>' +
+    '<p class="fit"><b>Best when</b> you want the way in to be readable, not an icon to discover. The card carries no numbers at all, so the header stays as short as today, with one chip in place of a line.</p></div></div>';
   document.getElementById("sheets").innerHTML = SHEETS.map(v =>
     '<div class="opt' + (v.rec ? " rec" : "") + '"><div class="stage">' + card(head(qline(), true) + list()) + phone(v.body()) + '</div><div class="meta"><h3>' + v.id + ' · ' + v.name +
     v.tags.map(t => ' <span class="tag">' + t + '</span>').join("") + (v.rec ? ' <span class="tag rec">Recommended</span>' : '') + '</h3><p>' + v.why + '</p><p class="fit">' + v.fit + '</p></div></div>').join("");

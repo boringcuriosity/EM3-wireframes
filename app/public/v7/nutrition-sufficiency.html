@@ -442,12 +442,12 @@
       <ul class="plain">
         <li>Always open, with no expand, no collapse and no chevron.</li>
         <li>Header: meal name, "Suggested 8:00 - 10:00 AM · 486 of 382 cal", and a + button.</li>
-        <li>Body: "YOUR COACH'S PLAN", option chips with a check on the chosen one, then food rows with a tick circle, name, quantity, calories and a ⋮ menu. A logged food's tick opens the same menu (change the quantity, take it off your day).</li>
+        <li>Body: "YOUR COACH'S PLAN", option chips with a check on the chosen one, then food rows with a tick circle, name, quantity and calories. No menu on the row. A logged food's tick opens its sheet: change the quantity, or take it off your day (a food added by hand is removed instead).</li>
         <li>Food logged outside the plan sits above the plan with a "Manual" tag.</li>
         <li>Ticking a coach's food drops it into a floating bar at the bottom: the foods, "Edit quantity &amp; time", Log, and an X. Foods from several meals can go in together, each with its own time. While a meal's foods are in the bar, its other options are locked: one option per meal.</li>
         <li>A time still to come cannot be logged. If any food in the bar is set later than now (dinner ticked at 1 PM), Log opens the review sheet instead: a Future time note says the items are set for later and only food already eaten can be logged, with a one-tap "Set them to now"; each later time keeps its chip with a dashed gold outline and clock, and Log waits until every time has passed. On the time wheel, times still to come are greyed and Done waits.</li>
         <li>"TIPS FROM YOUR COACH" holds the parts of a plan that are not food, each with a tick and a one line tip.</li>
-        <li>A coach's food has three states: logged, not yet, or skipped. Skip lives in the ⋮ menu on each food: the name is struck through, the food stays on the plan and counts for nothing, and a tick or "Put it back on the list" brings it back. A coach's food is never deleted.</li>
+        <li>A coach's food has two states: logged, or not yet. There is no Skip: a food not eaten simply stays unticked. A coach's food is never deleted.</li>
       </ul>
     </section>
 
@@ -541,6 +541,19 @@
       <div class="cases" data-cases="sheet"></div>
     </section>
 
+    <section id="over">
+      <div class="snum">Section</div>
+      <h2>Past the target</h2>
+      <p>When a number goes past its target, it turns red: GoodFlip's error red, #D92D20, on the number only. Bars, fills and icons keep their colours, so the red is the one thing that changes.</p>
+      <ul class="plain">
+        <li><b>What shaped your score?</b> A macro tile's grams turn red once they pass that macro's target for the day (88g of 95g stays as it is; 310g of 238g turns red). The calorie line does the same once it passes the day's goal.</li>
+        <li><b>The sufficiency sheet:</b> the same rule on its three tiles and its calorie line.</li>
+        <li><b>A meal's sheet</b> (the info icon on a planned meal card): a number turns red when it falls outside its ideal range, the meal's target give or take 20%, or 3 g for a macro. Under the range is red too, because the range is drawn right there on the bar.</li>
+        <li>Nothing else turns red: the score, the tag and KAIRA's line say what the day means. Red here only marks which number went past.</li>
+      </ul>
+      <div class="cases" data-cases="over"></div>
+    </section>
+
     <section id="date">
       <div class="snum">Section 10</div>
       <h2>The date sheet</h2>
@@ -626,7 +639,7 @@
         <tbody>
           <tr><td>Fibre has no target and no column in the backend. Keep it in the score?</td><td><b>No.</b> The score is protein, carbs and fats, the three the plan already sets. Fibre is off the screen and out of the score.</td><td>None. The score can be computed from today's plan and logs.</td></tr>
           <tr><td>The API allows a future date. Allow it?</td><td><b>No.</b> Future days stay unreachable: the chip's forward arrow stops on today, and the date sheet greys the rest of the month.</td><td>A client side rule only. The API stays as it is.</td></tr>
-          <tr><td>A coach's food that was not eaten: delete it?</td><td><b>No. Skip it.</b> It stays on the plan, struck through, from the ⋮ menu on the food. A coach's food is never deleted.</td><td>The meal card carries three states per plan food: logged, not yet, or skipped.</td></tr>
+          <tr><td>A coach's food that was not eaten: delete it?</td><td><b>No. Leave it unticked.</b> It stays on the plan as the coach wrote it. There is no Skip and no row menu. A coach's food is never deleted.</td><td>Two states per plan food: logged, or not yet. A logged food's tick opens its sheet.</td></tr>
           <tr><td>Should ticking a plan food log it straight away?</td><td><b>No.</b> Every tick opens a confirm step for quantity and time, and the time decides which meal the food lands in.</td><td>One extra step on the quickest path, in exchange for a day that is actually true.</td></tr>
         </tbody>
       </table></div>
@@ -765,6 +778,12 @@ const CASES = {
     ["state=past&sheet=suff", "An earlier day", "state=past", "Monday, read back."],
     ["state=missed&sheet=suff", "A day with nothing", "state=missed", "No score, and the rows say so once."],
   ],
+  over: [
+    ["state=over", "Past three targets", "state=over", "Carbs at 310g of 238g, fats at 78g of 63g and 2,340 of 1,900 kcal turn red. Protein, still short, stays as it is."],
+    ["state=overone", "Past one, short on the rest", "state=overone", "Only fats went past, 70g of 63g, so only fats turn red."],
+    ["state=over&sheet=suff", "The sufficiency sheet, past its targets", "sheet=suff", "The same three numbers turn red on its tiles and its calorie line."],
+    ["state=mid&meal=bf", "A meal's sheet, outside its range", "meal=bf", "Breakfast from its info icon: carbs and calories sit outside their ideal range, so they turn red. Protein and fats are inside, so they don't."],
+  ],
   date: [
     ["sheet=1", "Open on today", "sheet=1", "September. Dots before the plan existed, dashes where nothing was logged."],
     ["state=past&date=2026-9-8&sheet=1", "Opened from an earlier day", "date=2026-9-8", "Opened on 8 September, with today still marked."],
@@ -856,6 +875,7 @@ const SECTIONS = [
   ["logging", "The logging screen"],
   ["success", "The success screen"],
   ["sheet", "The sufficiency sheet"],
+  ["over", "Past the target"],
   ["date", "The date sheet"],
   ["learn", "The Learn tab"],
   ["trend", "The Trend tab (out of scope)"],
