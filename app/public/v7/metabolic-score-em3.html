@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Metabolic score</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* GoodFlip tokens. Pillar colours: Eat Flip green, Move indigo, Mind teal, Measure gold */
+  :root {
+    --g-900: #101828; --g-700: #344054; --g-600: #475467; --g-500: #667085; --g-300: #D0D5DD; --g-200: #E4E7EC; --g-100: #F2F4F7;
+    --brand-600: #299D6B; --brand-700: #2A805A;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font: 400 15px/22px Roboto, system-ui, sans-serif; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 40px 16px 64px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+  h1 { margin: 0; font: 700 28px/36px Roboto, sans-serif; text-align: center; }
+  .lede { margin: 4px 0 0; color: var(--g-600); text-align: center; max-width: 560px; }
+
+  /* the stage keeps the video's 714 x 658 frame; overlay type scales with it */
+  .stage { position: relative; width: min(100%, 714px); aspect-ratio: 714 / 658; container-type: inline-size; }
+  .stage svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .ov { position: absolute; transform: translate(-50%, -50%); white-space: nowrap; will-change: opacity, transform; }
+
+  /* odometer: each digit is a strip 0 to 9 then 0, so 9 rolls into 0 */
+  .count { left: 50%; top: calc(300 / 658 * 100%); display: flex; font: 500 11.8cqw/1 Roboto, sans-serif; color: var(--g-900);
+    letter-spacing: .01em; font-variant-numeric: tabular-nums; }
+  .col { height: 1em; overflow: hidden; -webkit-mask: linear-gradient(transparent, #000 22%, #000 78%, transparent);
+    mask: linear-gradient(transparent, #000 22%, #000 78%, transparent); }
+  .strip { display: flex; flex-direction: column; will-change: transform; }
+  .strip span { height: 1em; display: block; text-align: center; width: .6em; }
+  .pill { left: 50%; top: calc(376 / 658 * 100%); padding: .45em 1.1em; border-radius: 999px; background: #fff;
+    font: 500 2.6cqw/1.2 Roboto, sans-serif; color: var(--brand-700); box-shadow: 0 2px 10px rgba(16,24,40,.08), 0 0 0 1px rgba(16,24,40,.03); }
+  .lab { top: calc(540 / 658 * 100%); font: 400 3.1cqw/1 Roboto, sans-serif; color: var(--g-500); }
+
+  .controls { display: flex; align-items: center; gap: 12px; width: min(100%, 520px); }
+  .btn { flex: none; height: 40px; padding: 0 16px; border-radius: 10px; border: 1.5px solid var(--g-200); background: #fff;
+    font: 500 14px Roboto, sans-serif; color: var(--g-700); cursor: pointer; }
+  .btn.pri { background: var(--brand-600); border-color: var(--brand-600); color: #fff; }
+  input[type=range] { flex: 1; accent-color: var(--brand-600); }
+  .t { flex: none; width: 48px; text-align: right; font: 500 13px Roboto; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .key { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 16px; color: var(--g-600); font-size: 14px; }
+  .key span { display: inline-flex; align-items: center; gap: 6px; }
+  .key i { width: 10px; height: 10px; border-radius: 50%; }
+  .key b { color: var(--g-900); font-weight: 600; }
+  .note { margin: 0; max-width: 560px; text-align: center; color: var(--g-500); font-size: 13px; line-height: 20px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>Metabolic score</h1>
+    <p class="lede">Built from Eat, Move, Mind and Measure. The four pillar scores gather into one, and the arc fills pillar by pillar.</p>
+  </div>
+
+  <div class="stage" id="stage" role="img" aria-label="Metabolic score 650 of 800, Good. Eat 86, Move 72, Mind 78, Measure 64.">
+    <svg viewBox="0 0 714 658" aria-hidden="true">
+      <defs>
+        <filter id="blurWash" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="12"/></filter>
+        <filter id="blurBlob" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="34"/></filter>
+        <filter id="blurGrey" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.6"/></filter>
+        <filter id="discShadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="6" stdDeviation="14" flood-color="#101828" flood-opacity=".06"/>
+        </filter>
+        <filter id="orbShadow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#101828" flood-opacity=".12"/>
+        </filter>
+        <clipPath id="discClip"><circle cx="357" cy="318" r="176"/></clipPath>
+      </defs>
+      <g id="wash" filter="url(#blurWash)" opacity=".16"></g>
+      <g id="ring"></g>
+      <g id="dots"></g>
+      <g id="disc">
+        <circle cx="357" cy="318" r="176" fill="#fff" filter="url(#discShadow)"/>
+        <g clip-path="url(#discClip)"><g id="blob" filter="url(#blurBlob)"></g></g>
+        <circle cx="357" cy="318" r="168" fill="none" stroke="#F2F4F7" stroke-width="1"/>
+      </g>
+      <g id="halo" filter="url(#blurBlob)"></g>
+      <g id="orbs"></g>
+    </svg>
+    <div class="ov count" id="count"></div>
+    <div class="ov pill" id="pill">Good</div>
+    <div class="ov lab" id="lab0" style="left: calc(133 / 714 * 100%)">200</div>
+    <div class="ov lab" id="lab1" style="left: calc(581 / 714 * 100%)">800</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn pri" id="replay">Replay</button>
+    <button class="btn" id="pause">Pause</button>
+    <input type="range" id="scrub" min="0" max="13" step="0.01" value="0" aria-label="Timeline">
+    <span class="t" id="tt">0.0s</span>
+  </div>
+
+  <div class="key" id="key"></div>
+  <p class="note">Each pillar scores out of 100. Metabolic score = 200 + 1.5 × the four added together, so it runs from 200 to 800. Here 86 + 72 + 78 + 64 = 300, and 200 + 450 = 650.</p>
+</div>
+
+<script>
+(() => {
+  const NS = "http://www.w3.org/2000/svg";
+  const CX = 357, CY = 318;
+  const RING = 192, RB = 243, RS = 261;          // ring, big dots, small dots (read off the video)
+  const START = 215, SWEEP = 290;                // clockwise from 12 o'clock, 70 degree gap at the bottom
+  const NDOT = 31, MIN = 200, MAX = 800;
+
+  /* arc order follows Eat, Move, Mind, Measure; each orb sits in the quadrant its segment starts from */
+  const P = [
+    { k: "eat",     name: "Eat",     v: 86, c: "#299D6B", hi: "#79CCA8", lo: "#246649", ink: "#1D4D38", halo: "#ABE6CC", q: [-1,  1] },
+    { k: "move",    name: "Move",    v: 72, c: "#6172F3", hi: "#A4BCFD", lo: "#444CE7", ink: "#2D3282", halo: "#C7D7FE", q: [-1, -1] },
+    { k: "mind",    name: "Mind",    v: 78, c: "#44E7E7", hi: "#A4FDFD", lo: "#2DA6A6", ink: "#2D8282", halo: "#C7FEFE", q: [ 1, -1] },
+    { k: "measure", name: "Measure", v: 64, c: "#E7C144", hi: "#FDE8A4", lo: "#CDA935", ink: "#826E2D", halo: "#FEF1C7", q: [ 1,  1] },
+  ];
+  const SCORE = MIN + 1.5 * P.reduce((a, p) => a + p.v, 0);           // 650
+  const FILL = (SCORE - MIN) / (MAX - MIN) * SWEEP;                    // degrees of coloured arc
+  let acc = 0;
+  P.forEach(p => { p.len = 1.5 * p.v / (MAX - MIN) * SWEEP; p.a0 = acc; acc += p.len; p.a1 = acc; });
+
+  /* timeline, seconds */
+  const T = { out: 1.0, orbsIn: 1.45, drift: 3.2, fly: 3.85, flyEnd: 4.75, fill: 4.85, gap: .14, loop: 13 };
+  let t0 = T.fill;
+  P.forEach(p => { p.t0 = t0; p.dur = .38 + 3.1 * p.len / FILL; t0 += p.dur + T.gap; });
+  T.grey = t0 + .05; T.greyEnd = T.grey + .6; T.pill = T.greyEnd - .05; T.pillEnd = T.pill + .5;
+
+  /* easing: smooth, no overshoot */
+  const cl = x => Math.max(0, Math.min(1, x));
+  const io = x => (x = cl(x), x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+  const out = x => 1 - Math.pow(1 - cl(x), 3);
+  const seg = (t, a, b) => cl((t - a) / (b - a));
+  const lerp = (a, b, k) => a + (b - a) * k;
+
+  const pt = (deg, r) => { const a = (START + deg) * Math.PI / 180; return [CX + r * Math.sin(a), CY - r * Math.cos(a)]; };
+  const hex = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const mix = (a, b, k) => { const x = hex(a), y = hex(b); return "rgb(" + x.map((v, i) => Math.round(lerp(v, y[i], k))).join(",") + ")"; };
+  const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; };
+  const pOf = deg => P.find(p => deg < p.a1) || P[P.length - 1];
+
+  /* colour along the arc: solid inside a pillar, blended over 10 degrees at each join */
+  function colourAt(deg) {
+    if (deg >= FILL) return "#98A2B3";
+    const i = P.indexOf(pOf(deg)), p = P[i], B = 5;
+    if (i > 0 && deg - p.a0 < B) return mix(P[i - 1].c, p.c, .5 + (deg - p.a0) / (2 * B));
+    if (i < P.length - 1 && p.a1 - deg < B) return mix(p.c, P[i + 1].c, .5 - (p.a1 - deg) / (2 * B));
+    return p.c;
+  }
+
+  /* gradients: glossy balls, lit from the top left */
+  const defs = document.querySelector("defs");
+  function ball(id, hi, c, lo) {
+    const g = el("radialGradient", { id, cx: ".38", cy: ".32", r: ".78", fx: ".32", fy: ".26" }, defs);
+    [[0, hi], [.55, c], [1, lo]].forEach(([o, col]) => el("stop", { offset: o, "stop-color": col }, g));
+  }
+  P.forEach(p => ball("b-" + p.k, p.hi, p.c, p.lo));
+  ball("b-grey", "#F2F4F7", "#D0D5DD", "#98A2B3");
+
+  /* ring and wash: one-degree pieces so the colour can blend and the arc can draw on */
+  const ring = document.getElementById("ring"), wash = document.getElementById("wash");
+  const pieces = [];
+  for (let d = 0; d < SWEEP; d += 1) {
+    const a = pt(d, RING), b = pt(Math.min(d + 1.2, SWEEP), RING), col = colourAt(d + .5), grey = d >= FILL;
+    const path = "M" + a.join(" ") + "A" + RING + " " + RING + " 0 0 1 " + b.join(" ");
+    const r = el("path", { d: path, stroke: col, "stroke-width": 4.5, fill: "none", "stroke-linecap": "round", opacity: 0 }, ring);
+    let w = null;
+    if (!grey) {
+      const wa = pt(d, 236), wb = pt(Math.min(d + 1.2, SWEEP), 236);
+      w = el("path", { d: "M" + wa.join(" ") + "A236 236 0 0 1 " + wb.join(" "), stroke: col, "stroke-width": 78, fill: "none", opacity: 0 }, wash);
+    }
+    pieces.push({ d, r, w, grey });
+  }
+
+  /* dots: two staggered rows, big on the inner row, small on the outer */
+  const dotsG = document.getElementById("dots"), dots = [];
+  for (let i = 0; i < NDOT; i++) {
+    const d = i * SWEEP / (NDOT - 1), big = i % 2 === 0, grey = d > FILL + .01;
+    if (grey && !big) continue;                       // the video's grey run is the big row only
+    const [x, y] = pt(d, big ? RB : RS), r = big ? 13 : 7.5, p = pOf(d);
+    const g = el("g", { transform: `translate(${x} ${y})`, opacity: 0 }, dotsG);
+    el("circle", { r, fill: `url(#b-${grey ? "grey" : p.k})`, filter: grey ? "url(#blurGrey)" : "" }, g);
+    dots.push({ d, x, y, r, g, grey, p });
+  }
+  /* each orb lands on the first big dot of its own segment */
+  P.forEach(p => { p.land = dots.find(o => !o.grey && o.r > 10 && o.d >= p.a0 - .01); });
+
+  /* soft colour inside the disc, and the halo behind the orbs that shrinks into it */
+  const blob = document.getElementById("blob"), halo = document.getElementById("halo");
+  const BLOB = [[300, 296, 70, 50, "#FEF1C7"], [418, 290, 78, 56, "#C7D7FE"], [356, 392, 84, 50, "#C7FEFE"], [350, 236, 66, 40, "#CBF0E0"]];
+  const blobs = BLOB.map(([x, y, rx, ry, c]) => el("ellipse", { cx: x, cy: y, rx, ry, fill: c }, blob));
+  const halos = P.map(p => el("circle", { r: 150, fill: p.halo, opacity: 0 }, halo));
+
+  /* orbs */
+  const orbsG = document.getElementById("orbs"), OR = 112;
+  P.forEach(p => {
+    p.home = [CX + p.q[0] * OR, CY + p.q[1] * OR];
+    p.g = el("g", { opacity: 0 }, orbsG);
+    p.circle = el("circle", { r: OR, fill: `url(#b-${p.k})`, filter: "url(#orbShadow)" }, p.g);
+    p.txt = el("g", { "text-anchor": "middle", fill: p.ink }, p.g);
+    el("text", { y: 6, "font-family": "Roboto", "font-weight": 600, "font-size": 54 }, p.txt).textContent = p.v;
+    el("text", { y: 36, "font-family": "Roboto", "font-weight": 500, "font-size": 18, opacity: .85 }, p.txt).textContent = p.name;
+  });
+
+  /* odometer */
+  const countEl = document.getElementById("count"), cols = [];
+  for (let i = 0; i < 3; i++) {
+    const c = document.createElement("div"); c.className = "col";
+    const s = document.createElement("div"); s.className = "strip";
+    s.innerHTML = "0123456789" .split("").concat("0").map(n => "<span>" + n + "</span>").join("");
+    c.appendChild(s); countEl.appendChild(c); cols.push(s);
+  }
+  let lastV = MIN, lastT = 0;
+  function setCount(v, t) {
+    const speed = Math.abs(v - lastV) / Math.max(t - lastT, 1 / 120); lastV = v; lastT = t;
+    const ones = v % 10, tens = Math.floor(v / 10) % 10 + Math.max(0, v % 10 - 9), hund = Math.floor(v / 100) % 10 + Math.max(0, v % 100 - 99);
+    [hund, tens, ones].forEach((pos, i) => {
+      cols[i].style.transform = `translateY(${-pos}em)`;
+      /* a touch of motion blur on the fast columns, as the video has it */
+      const blur = i === 2 ? Math.min(speed / 120, 2.2) : i === 1 ? Math.min(speed / 900, 1.4) : 0;
+      cols[i].style.filter = blur > .15 ? `blur(${blur.toFixed(2)}px)` : "";
+    });
+  }
+
+  const pill = document.getElementById("pill"), labs = [document.getElementById("lab0"), document.getElementById("lab1")];
+  const disc = document.getElementById("disc");
+  const fade = (node, o, dy) => { node.style.opacity = o; node.style.transform = `translate(-50%, calc(-50% + ${dy || 0}px))`; };
+
+  /* coloured degrees reached at time t */
+  function filled(t) {
+    let deg = 0;
+    for (const p of P) { if (t <= p.t0) break; deg = p.a0 + p.len * io(seg(t, p.t0, p.t0 + p.dur)); }
+    return t >= T.grey ? FILL : deg;
+  }
+
+  function render(t) {
+    const rest = t < T.orbsIn ? 1 - io(seg(t, T.out, T.orbsIn)) : 0;   // the finished gauge at the start of the loop
+    const building = t >= T.fly;
+    const F = building ? filled(t) : 0, G = building ? io(seg(t, T.grey, T.greyEnd)) : 0;
+
+    /* ring and wash */
+    for (const pc of pieces) {
+      let o;
+      if (rest) o = rest;
+      else if (!pc.grey) o = cl((F - pc.d) / 1.5);
+      else o = cl((FILL + G * (SWEEP - FILL) - pc.d) / 6);
+      pc.r.setAttribute("opacity", o.toFixed(3));
+      if (pc.w) pc.w.setAttribute("opacity", o.toFixed(3));
+    }
+
+    /* dots: pop in as the arc passes them, no overshoot */
+    for (const o of dots) {
+      let s, a;
+      if (rest) { s = 1; a = rest; }
+      else if (o.grey) { const k = out(cl((FILL + G * (SWEEP - FILL) - o.d) / 14)); s = .6 + .4 * k; a = k; }
+      else {
+        const landed = P.some(p => p.land === o) && t >= T.flyEnd;
+        const k = landed ? 1 : out(cl((F - o.d) / 9));
+        s = .3 + .7 * k; a = k;
+      }
+      o.g.setAttribute("opacity", a.toFixed(3));
+      o.g.setAttribute("transform", `translate(${o.x} ${o.y}) scale(${s.toFixed(3)})`);
+    }
+
+    /* disc and counter */
+    const discIn = rest || io(seg(t, T.fly + .35, T.flyEnd + .1));
+    disc.setAttribute("opacity", discIn.toFixed(3));
+    disc.setAttribute("transform", `translate(${CX} ${CY}) scale(${(.94 + .06 * discIn).toFixed(4)}) translate(${-CX} ${-CY})`);
+    blobs.forEach((b, i) => {
+      const w = Math.sin(t * .9 + i * 1.7);
+      b.setAttribute("transform", `translate(${(w * 10).toFixed(2)} ${(Math.cos(t * .7 + i) * 8).toFixed(2)})`);
+      b.setAttribute("opacity", (.55 + .12 * w).toFixed(3));
+    });
+    const v = rest ? SCORE : MIN + F / SWEEP * (MAX - MIN);
+    setCount(Math.min(v, SCORE), t);
+    countEl.style.opacity = discIn;
+
+    /* the label and the scale ends come last */
+    const pk = rest || out(seg(t, T.pill, T.pillEnd));
+    fade(pill, pk, (1 - pk) * 8);
+    labs.forEach(l => fade(l, pk, (1 - pk) * 6));
+
+    /* orbs: in, breathe, drift apart, then shrink into their dots */
+    const inK = io(seg(t, T.out, T.orbsIn));
+    P.forEach((p, i) => {
+      const drift = io(seg(t, T.drift, T.fly)), d = 26 * drift;
+      const fs = T.fly + i * .06, fk = io(seg(t, fs, fs + (T.flyEnd - T.fly) - .18));
+      const breathe = 1 + .012 * Math.sin((t - T.orbsIn) * 2.4 + i);
+      let [x, y] = [p.home[0] + p.q[0] * d, p.home[1] + p.q[1] * d];
+      x = lerp(x, p.land.x, fk); y = lerp(y, p.land.y, fk);
+      const r = lerp(OR * (t < T.fly ? breathe : 1) * (.92 + .08 * inK), p.land.r, fk);
+      const show = t >= T.out && t < T.flyEnd;
+      p.g.setAttribute("opacity", show ? inK.toFixed(3) : 0);
+      p.g.setAttribute("transform", `translate(${x.toFixed(2)} ${y.toFixed(2)})`);
+      p.circle.setAttribute("r", r.toFixed(2));
+      p.txt.setAttribute("opacity", (1 - io(seg(t, T.drift + .25, T.fly))).toFixed(3));
+      /* the glow behind the orbs gathers into the disc */
+      const hk = inK * (1 - io(seg(t, T.fly, T.flyEnd + .2)));
+      halos[i].setAttribute("opacity", (hk * .9).toFixed(3));
+      halos[i].setAttribute("cx", lerp(p.home[0] + p.q[0] * d * 1.4, CX + p.q[0] * 40, fk).toFixed(1));
+      halos[i].setAttribute("cy", lerp(p.home[1] + p.q[1] * d * 1.4, CY + p.q[1] * 40, fk).toFixed(1));
+    });
+  }
+
+  /* playback */
+  const scrub = document.getElementById("scrub"), tt = document.getElementById("tt"), pauseB = document.getElementById("pause");
+  scrub.max = T.loop;
+  let playing = true, t = 0, prev = null;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce) { playing = false; t = T.pillEnd + .5; pauseB.textContent = "Play"; }
+  function frame(now) {
+    if (playing) { if (prev != null) t += (now - prev) / 1000; if (t >= T.loop) t -= T.loop; }
+    prev = now;
+    render(t); scrub.value = t; tt.textContent = t.toFixed(1) + "s";
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  document.getElementById("replay").onclick = () => { t = 0; playing = true; pauseB.textContent = "Pause"; };
+  pauseB.onclick = () => { playing = !playing; pauseB.textContent = playing ? "Pause" : "Play"; };
+  scrub.oninput = () => { t = +scrub.value; playing = false; pauseB.textContent = "Play"; };
+
+  document.getElementById("key").innerHTML = P.map(p => `<span><i style="background:${p.c}"></i>${p.name} <b>${p.v}</b></span>`).join("") +
+    `<span>Metabolic score <b>${SCORE}</b></span>`;
+})();
+</script>
+</body>
+</html>

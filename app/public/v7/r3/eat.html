@@ -1394,6 +1394,18 @@ var STATES = {
     kaira: { say: KAIRA.free, act: "log" },
     diary: { mode: "free", title: "Your meals", count: "", logged: true }
   },
+  /* A free user who has logged nothing today. Nothing has been eaten that the
+     app knows of, so there is nothing for "What you have eaten" to say: the
+     section and the calorie total stand down, and KAIRA's card and the meals
+     carry the screen. Both come back with the first log. */
+  freeempty: {
+    day: "Today", next: false, free: true,
+    hero: { score: null, mealsIn: 0, mealSlots: 4 },
+    macros: { mode: "hide" },
+    cal: { mode: "hide" },
+    kaira: { say: KAIRA.free, act: "log" },
+    diary: { mode: "free", title: "Your meals", count: "", logged: false }
+  },
   past: {
     day: "Mon, 14 Sep", next: true,
     hero: { score: 61, mealsIn: 6, mealSlots: 6, dateLabel: "Monday, 14 Sep" },
@@ -1898,6 +1910,9 @@ function loadScripts(list, done) {
          decided whether to hide itself, so asking now picks the section that
          is about to disappear and the gap stays exactly as it was. */
       requestAnimationFrame(function () {
+        /* a free user has no plate at all, so there is no light to close up to:
+           pulling the next block up would land it on the date chip */
+        if (stage.hidden) return;
         var next = stage.nextElementSibling;
         while (next && (next.hidden || next.offsetParent === null)) next = next.nextElementSibling;
         if (next) next.classList.add("tight");
@@ -2776,7 +2791,7 @@ function elseRow(m) {
 }
 
 function freeCard(m) {
-  var seed = S.free ? FREE_FOODS : S.diary.logged ? NOPLAN_FOODS : null;
+  var seed = S.diary.logged ? (S.free ? FREE_FOODS : NOPLAN_FOODS) : null;
   if (seed && !m.freeSeeded) {
     m.freeSeeded = true;
     m.manual = (seed[m.id] || []).map(function (x) { var y = Object.assign({}, x); y.done = true; return y; });
