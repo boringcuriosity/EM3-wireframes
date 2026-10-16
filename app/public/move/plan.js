@@ -24,11 +24,15 @@
   };
   var ORDER = ["box", "plank", "spot", "coastal", "sideleg"];
   var RT = [
-    { name: "Routine 1", part: "Morning", win: "6 AM to 12 PM", ic: "sunny-outline", tone: "gold",
+    { name: "Morning", part: "Morning", win: "6 AM to 12 PM", ic: "sunny-outline", tone: "gold",
       tips: [{ t: "Have a glass of water before you start", d: "It keeps you from feeling light-headed in the breathing moves." },
              { t: "Breathe out as you push up", d: "Holding your breath while you strain raises your blood pressure." }] },
-    { name: "Routine 2", part: "Evening", win: "4 PM to 8 PM", ic: "cloudy-night-outline", tone: "ok",
-      tips: [{ t: "Wait two hours after a big meal", d: "Moving on a full stomach can bring on cramps." }] }
+    { name: "Afternoon", part: "Afternoon", win: "12 PM to 4 PM", ic: "partly-sunny-outline", tone: "teal",
+      tips: [{ t: "Keep a bottle of water close", d: "Afternoons run warm, and a few sips between sets keep you going." }] },
+    { name: "Evening", part: "Evening", win: "4 PM to 8 PM", ic: "cloudy-night-outline", tone: "ok",
+      tips: [{ t: "Wait two hours after a big meal", d: "Moving on a full stomach can bring on cramps." }] },
+    { name: "Night", part: "Night", win: "8 PM to 11 PM", ic: "moon-outline", tone: "in",
+      tips: [{ t: "Keep it gentle before bed", d: "Slow moves help you wind down. Hard ones can keep you up." }] }
   ];
   var PARTS = [{ n: "Morning", h: 6, tone: "var(--gold-300)" }, { n: "Afternoon", h: 4, tone: "var(--teal-200)" },
     { n: "Evening", h: 4, tone: "var(--ok-100)" }, { n: "Night", h: 3, tone: "var(--in-200)" }];
@@ -36,9 +40,9 @@
   var GOAL = (window.MOVEPART && window.MOVEPART[2].T) || 10000;
 
   var S = {
-    done: [{ box: "Easy", plank: "Difficult" }, {}],
-    at: [{ box: "07:10", plank: "07:30" }, {}],
-    tips: [[true], []],
+    done: [{ box: "Easy", plank: "Difficult" }, {}, {}, {}],
+    at: [{ box: "07:10", plank: "07:30" }, {}, {}, {}],
+    tips: [[true], [], [], []],
     steps: { 6: 180, 7: 920, 8: 1240, 9: 430, 10: 260, 11: 310, 12: 540, 13: 690, 14: 280, 15: 230 },
     sel: null
   };
@@ -53,9 +57,9 @@
     chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
     plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'
   };
+  function mins() { return ORDER.reduce(function (n, id) { return n + EX[id].min; }, 0); }
   function fmt(n) { return n.toLocaleString("en-IN"); }
   function hr(h) { return (h % 12 || 12) + (h < 12 || h === 24 ? " AM" : " PM"); }
-  function mins() { return ORDER.reduce(function (n, id) { return n + EX[id].min; }, 0); }
   function img(id) { return '<img src="' + IMG + EX[id].img + '.webp" alt="" loading="lazy" style="object-position:' + EX[id].fx + '% 30%">'; }
 
   /* ---------- the section ---------- */
@@ -67,9 +71,10 @@
 
   function card(rt, r) {
     var d = S.done[r], all = ORDER.every(function (id) { return d[id]; });
-    return '<section class="mv-card' + (all ? " settled" : "") + '">' +
+    /* a quiet Gemini scene behind the header, one per part of the day, the way Eat's meal cards carry theirs */
+    return '<section class="mv-card scene' + (all ? " settled" : "") + '" style="--scene:url(/v7/icons/move/bg/' + rt.part.toLowerCase() + '.webp?v=16)">' +
       '<div class="mv-mh">' +
-        '<div class="t"><div class="n">' + rt.name + '</div><div class="s">' + rt.part + ', ' + rt.win + ' · ' + mins() + ' min</div></div>' +
+        '<div class="t"><div class="n">' + rt.name + '</div><div class="s">' + rt.win + ' · ' + mins() + ' min</div></div>' +
         (all ? '<span class="mv-ok-badge">' + IC.checkG + 'Done</span>' : "") + '</div>' +
       '<div class="mv-mbi"><div class="lab">Your coach\'s plan</div><div class="mv-items">' + ORDER.map(function (id) {
         var e = EX[id], f = d[id];
@@ -80,7 +85,7 @@
           '</div>';   /* ponytail: how it felt is kept in S.done; how to show it on the row comes later */
       }).join("") + '</div>' +
       '<div class="mv-else"><div class="lab">Did another workout?</div><div class="mv-acts"><button>' + IC.plusSq + 'Search and log exercise</button></div></div>' +
-      '<div class="mv-tips"><div class="lab">Tips from your coach</div><div class="mv-tiplist">' + rt.tips.map(function (t, i) {
+      '<div class="mv-tips"><div class="lab">Small moves</div><div class="mv-tiplist">' + rt.tips.map(function (t, i) {
         var on = !!S.tips[r][i];
         /* Eat's tip anatomy (.tip, .tmark), so ticking it plays Eat's pop, ring, check draw, burst and wash */
         return '<div class="mv-tip tip' + (on ? " done" : "") + '" data-tiprow="' + r + '|' + i + '"><button class="mv-tb tickbtn" data-tip="' + r + '|' + i + '" aria-pressed="' + on + '" aria-label="' + (on ? "Mark as not done: " : "Mark as done: ") + t.t + '"><span class="tmark' + (on ? " on" : "") + '">' + (on ? IC.checkD : "") + '</span></button>' +
@@ -113,8 +118,7 @@
   }
 
   function render() {
-    root.innerHTML = '<div class="sec"><h2>Your plan</h2></div>' +
-      '<div class="mv-plan"><div class="pn">Others plan</div><div class="pd">Valid from 14 Oct 2026 to 27 Oct 2026</div></div>' +
+    root.innerHTML = '<div class="sec"><h2>Your move plan</h2></div>' +
       RT.map(card).join("") + stepsHTML();
   }
 

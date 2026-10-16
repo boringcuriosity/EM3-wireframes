@@ -23,7 +23,7 @@ window.MV = function (i, eaten, target) {
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="../icons/glyph-masks.css">
 <link rel="stylesheet" href="goodflip-ui.css">
-<link rel="stylesheet" href="/move/plan.css">
+<link rel="stylesheet" href="/move/plan.css?v=13">
 <link rel="stylesheet" href="/move/player.css">
 <style>
   * { box-sizing: border-box; }
@@ -1180,12 +1180,26 @@ window.MV = function (i, eaten, target) {
   /* Move: workout, small moves and steps, each with its own icon in the macros' ink */
   .macros.tiles .ttop .tgl { flex-shrink: 0; width: 16px; height: 16px; }
   .ttop { gap: 4px; letter-spacing: 0; }
-  .glyph-workout { -webkit-mask-image: url(/v7/icons/move/barbell.svg); mask-image: url(/v7/icons/move/barbell.svg); }
+  .glyph-workout { -webkit-mask-image: url(/v7/icons/move/activity-filled.svg); mask-image: url(/v7/icons/move/activity-filled.svg); }
   .glyph-moves { -webkit-mask-image: url(/v7/icons/move/stretch.svg); mask-image: url(/v7/icons/move/stretch.svg); }
-  .glyph-steps { -webkit-mask-image: url(/v7/icons/move/footsteps.svg); mask-image: url(/v7/icons/move/footsteps.svg); }
+  .glyph-steps { -webkit-mask-image: url(/v7/icons/move/steps-filled.svg); mask-image: url(/v7/icons/move/steps-filled.svg); }
   #calstrip { display: none !important; }
   .macros.tiles .ttop, .macros.tiles .mof { white-space: nowrap; }
   .macros.tiles .mof { letter-spacing: 0; }
+  /* Move: the log card is a design-system action card, not Kaira's: white surface, 1px indigo-200 border,
+     12px radius and the hard 2px indigo offset shadow, with the Movement pictogram in the media slot */
+  .kaira { padding: 14px 16px 16px; border: 1px solid var(--in-200); border-radius: 12px; background: #fff; box-shadow: 2px 2px 0 var(--in-200); }
+  /* pictogram and text centred on one axis; the pictogram is trimmed to its flame so its edge sits on the padding */
+  .kaira .say { align-items: center; gap: 12px; }
+  .kaira .kmark { width: 34px; height: 44px; border-radius: 0; background: none; }
+  .kaira .kmark img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  /* a heading over one muted line, not one run-on paragraph */
+  .kaira:not(.edu) p { font-size: 13px; line-height: 18px; color: var(--g-500); }
+  .kaira:not(.edu) p strong { display: block; margin-bottom: 2px; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--g-900); }
+  /* the button starts under the text (34px pictogram + 12px gap), so it reads as the text's action, not a bar across the card */
+  .kaira:not(.edu) .kact { margin-top: 12px; padding-left: 46px; }
+  .kaira:not(.edu) .kact .btns { margin-top: 0; }
+  .kaira:not(.edu) .kact .kbtn > span { padding: 8px 16px; }
 </style>
 </head>
 <body>
@@ -1280,7 +1294,8 @@ window.MV = function (i, eaten, target) {
 <script src="assets/kaira.js"></script>
 <script>
   /* Both are the product's components, so the screen only says where they go */
-  document.getElementById("kairaMark").innerHTML = GFKaira.mark(30, { halo: false });
+  /* Move: the design system's Movement pictogram (the calorie-burn flame) in place of Kaira's mark */
+  document.getElementById("kairaMark").innerHTML = '<img src="/move/movement.png" alt="">';
 </script>
 <script src="assets/flipcoin-toast.js?v=2"></script>
 <script src="assets/plan-tray.js?v=42"></script>
@@ -3689,7 +3704,7 @@ function mealsIn() {
 </script>
 <script src="assets/score-say.js?v=2"></script>
 <script src="chrome.js"></script>
-<script src="/move/plan.js"></script>
+<script src="/move/plan.js?v=16"></script>
 <script src="/move/player.js"></script>
 </body>
 </html>
