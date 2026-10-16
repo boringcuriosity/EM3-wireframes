@@ -1,0 +1,1173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Logging a workout</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<script src="https://unpkg.com/lucide@0.454.0/dist/umd/lucide.min.js"></script>
+<style>
+  /* How a GoodFlip user logs a workout they already did. Mobbin research (56 searches,
+     about 20 apps), a lab of every duration control, and five working flows with a tap
+     counter, judged on Nielsen's heuristics and Gestalt. Standalone, GoodFlip tokens. */
+  :root {
+    --brand-25:#FAFFFD; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0; --brand-300:#ABE6CC; --brand-400:#79CCA8; --brand-600:#299D6B; --brand-700:#2A805A; --brand-900:#1D4D38;
+    --indigo-25:#F5F8FF; --indigo-50:#EEF4FF; --indigo-100:#E0EAFF; --indigo-200:#C7D7FE; --indigo-600:#444CE7; --indigo-700:#3538CD; --indigo-900:#2D3282;
+    --gold-50:#FFFBEE; --gold-200:#FEF1C7; --gold-800:#A68A2D; --gold-900:#826E2D;
+    --red-50:#FEF3F2; --red-200:#FECDCA; --red-700:#B42318;
+    --gray-25:#FCFCFD; --gray-50:#F9FAFB; --gray-100:#F2F4F7; --gray-200:#E4E7EC; --gray-300:#D0D5DD; --gray-400:#98A2B3; --gray-500:#667085; --gray-600:#475467; --gray-700:#344054; --gray-900:#101828;
+    --shadow: 2px 3px 0 0 rgba(152,162,179,.35);
+    --ease: cubic-bezier(.2,0,0,1);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { margin: 0; background: #fff; color: var(--gray-900); font-family: Roboto, Arial, sans-serif; letter-spacing: .25px; -webkit-font-smoothing: antialiased; }
+  button { font-family: inherit; letter-spacing: inherit; cursor: pointer; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 56px 24px 96px; }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--brand-700); margin: 0 0 10px; }
+  h1 { font-weight: 700; font-size: 44px; line-height: 52px; margin: 0 0 14px; }
+  .lede { max-width: 780px; margin: 0 0 12px; font-size: 17px; line-height: 27px; color: var(--gray-600); }
+  .lede b { color: var(--gray-900); font-weight: 600; }
+  h2.sec { margin: 72px 0 6px; font-size: 28px; line-height: 36px; font-weight: 700; scroll-margin-top: 70px; }
+  h2.sec .n { color: var(--brand-600); margin-right: 8px; }
+  .secp { margin: 0 0 24px; max-width: 780px; font-size: 15px; line-height: 24px; color: var(--gray-600); }
+  .secp b { color: var(--gray-900); font-weight: 600; }
+  h3.sub { margin: 40px 0 6px; font-size: 19px; line-height: 26px; font-weight: 700; }
+  a { color: var(--brand-700); text-underline-offset: 2px; }
+
+  nav.toc { position: sticky; top: 0; z-index: 30; background: rgba(255,255,255,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--gray-200); }
+  nav.toc .in { max-width: 1240px; margin: 0 auto; padding: 10px 24px; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+  nav.toc a { flex: none; text-decoration: none; font-size: 13px; font-weight: 600; color: var(--gray-600); padding: 7px 12px; border-radius: 999px; }
+  nav.toc a:hover { background: var(--gray-100); color: var(--gray-900); }
+  nav.toc .picks { margin-left: auto; color: var(--brand-700); background: var(--brand-50); }
+
+  /* findings */
+  .finds { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-top: 28px; }
+  .find { border: 1px solid var(--gray-200); border-radius: 16px; padding: 20px; box-shadow: var(--shadow); }
+  .find .k { font-size: 32px; line-height: 38px; font-weight: 800; color: var(--brand-600); }
+  .find b { display: block; font-size: 16px; line-height: 22px; margin: 6px 0 6px; }
+  .find p { margin: 0; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+  .src { font-size: 12.5px; line-height: 19px; color: var(--gray-500); margin-top: 10px; }
+  .src a { color: var(--gray-600); }
+
+  /* lab */
+  .lab { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+  .lc { border: 1px solid var(--gray-200); border-radius: 16px; background: #fff; box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden; }
+  .lc.rec { border-color: var(--brand-400); box-shadow: 2px 3px 0 0 var(--brand-200); }
+  .lc.bad { background: var(--gray-25); }
+  .lc .stage { padding: 16px 16px 18px; min-height: 270px; display: flex; flex-direction: column; justify-content: center; gap: 12px; background: var(--gray-50); border-bottom: 1px solid var(--gray-200); position: relative; user-select: none; -webkit-user-select: none; }
+  .lc .stage > .task { position: absolute; top: 14px; left: 16px; right: 16px; }
+  .lc .stage .ctl { margin-top: 22px; display: flex; flex-direction: column; gap: 12px; }
+  .lc .chips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .task { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12.5px; color: var(--gray-500); }
+  .task b { color: var(--gray-700); }
+  .task .done { color: var(--brand-700); font-weight: 700; }
+  .task button { border: 0; background: none; color: var(--gray-500); text-decoration: underline; font-size: 12.5px; padding: 0; }
+  .lc .meta { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .lc h4 { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 16px; line-height: 22px; }
+  .lc p { margin: 0; font-size: 13.5px; line-height: 20px; color: var(--gray-600); }
+  .tag { font-size: 11.5px; font-weight: 600; border-radius: 6px; padding: 2px 8px; white-space: nowrap; }
+  .tag.rec { color: var(--brand-700); background: var(--brand-100); }
+  .tag.ok { color: var(--gray-700); background: var(--gray-100); }
+  .tag.no { color: var(--red-700); background: var(--red-50); }
+  .bars { display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; align-items: center; font-size: 12px; color: var(--gray-600); margin-top: 2px; }
+  .bar { display: flex; gap: 3px; }
+  .bar i { width: 18px; height: 6px; border-radius: 3px; background: var(--gray-200); }
+  .bar i.on { background: var(--brand-600); }
+  .pickbtn { align-self: flex-start; margin-top: 6px; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--gray-300); background: #fff; color: var(--gray-700); font-size: 13px; font-weight: 600; transition: background .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease); }
+  .pickbtn svg { width: 15px; height: 15px; }
+  .pickbtn.on { border-color: var(--brand-600); background: var(--brand-600); color: #fff; }
+
+  /* mini controls in the lab */
+  .big { text-align: center; font-size: 44px; line-height: 48px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--gray-900); }
+  .big small { font-size: 16px; font-weight: 500; color: var(--gray-500); margin-left: 4px; }
+  .stp { display: flex; align-items: center; justify-content: center; gap: 18px; }
+  .rb { width: 52px; height: 52px; border-radius: 50%; border: 1.5px solid var(--gray-300); background: #fff; color: var(--gray-900); display: grid; place-items: center; flex: none; touch-action: manipulation; transition: background .15s var(--ease), transform .15s var(--ease); }
+  .rb:active { background: var(--gray-100); transform: scale(.96); }
+  .rb svg { width: 22px; height: 22px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .chip { height: 40px; min-width: 52px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--gray-200); background: #fff; color: var(--gray-700); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; transition: background .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease); }
+  .chip.on { border-color: var(--brand-600); background: var(--brand-50); color: var(--brand-700); }
+  .wheelbox { position: relative; height: 200px; width: 140px; margin: 0 auto; }
+  .wheel { height: 200px; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; -webkit-mask-image: linear-gradient(transparent, #000 35%, #000 65%, transparent); mask-image: linear-gradient(transparent, #000 35%, #000 65%, transparent); }
+  .wheel::-webkit-scrollbar { display: none; }
+  .wheel div { height: 40px; display: grid; place-items: center; scroll-snap-align: center; font-size: 22px; font-weight: 600; color: var(--gray-700); font-variant-numeric: tabular-nums; }
+  .wheel .pad { scroll-snap-align: none; }
+  .wheelbox::before { content: ''; position: absolute; left: 0; right: 0; top: 80px; height: 40px; border-radius: 10px; background: var(--gray-200); opacity: .55; pointer-events: none; }
+  .wheelbox .u { position: absolute; right: 8px; top: 80px; line-height: 40px; font-size: 14px; color: var(--gray-500); pointer-events: none; }
+  .ruler { position: relative; height: 70px; }
+  .ruler .tr { height: 70px; overflow-x: scroll; scrollbar-width: none; display: flex; align-items: flex-end; scroll-snap-type: x mandatory; }
+  .ruler .tr::-webkit-scrollbar { display: none; }
+  .ruler .tk { flex: none; width: 10px; height: 100%; position: relative; scroll-snap-align: center; }
+  .ruler .tk::after { content: ''; position: absolute; left: 4px; bottom: 0; width: 2px; height: 14px; background: var(--gray-300); border-radius: 1px; }
+  .ruler .tk.m5::after { height: 22px; background: var(--gray-400); }
+  .ruler .tk.m10::after { height: 32px; background: var(--gray-500); }
+  .ruler .tk span { position: absolute; bottom: 38px; left: 5px; transform: translateX(-50%); font-size: 11px; color: var(--gray-500); }
+  .ruler .needle { position: absolute; left: 50%; bottom: 0; width: 3px; height: 46px; margin-left: -1.5px; background: var(--brand-600); border-radius: 2px; pointer-events: none; }
+  .ruler .padx { flex: none; }
+  input[type=range].sl { width: 100%; accent-color: var(--brand-600); height: 28px; }
+  .dial { display: block; margin: 0 auto; touch-action: none; cursor: grab; }
+  .kp { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .kp button { height: 38px; border-radius: 10px; border: 1px solid var(--gray-200); background: #fff; font-size: 16px; font-weight: 600; color: var(--gray-900); }
+  .kp button.ok { background: var(--brand-600); color: #fff; border-color: var(--brand-600); }
+  .field { height: 48px; border-radius: 12px; border: 1.5px solid var(--gray-300); background: #fff; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .field.f { border-color: var(--brand-600); box-shadow: 0 0 0 3px var(--brand-100); }
+  .field small { font-size: 14px; font-weight: 500; color: var(--gray-500); }
+
+  /* effort / when */
+  .eff { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .ec { border: 1.5px solid var(--gray-200); background: #fff; border-radius: 14px; padding: 10px 8px; text-align: left; display: flex; flex-direction: column; gap: 6px; min-height: 92px; transition: background .2s var(--ease), border-color .2s var(--ease); }
+  .ec .em { display: flex; gap: 2px; align-items: flex-end; height: 16px; }
+  .ec .em i { width: 5px; border-radius: 2px; background: var(--gray-300); }
+  .ec b { font-size: 14px; line-height: 18px; color: var(--gray-900); }
+  .ec span { font-size: 12px; line-height: 16px; color: var(--gray-500); }
+  .ec.on { border-color: var(--brand-600); background: var(--brand-50); }
+  .ec.on .em i { background: var(--brand-600); }
+  .faces { display: flex; justify-content: center; gap: 10px; font-size: 30px; }
+  .faces button { border: 1.5px solid var(--gray-200); background: #fff; border-radius: 14px; width: 52px; height: 52px; font-size: 26px; }
+  .faces button.on { border-color: var(--brand-600); background: var(--brand-50); }
+  .slw { text-align: center; font-size: 15px; font-weight: 600; color: var(--gray-900); }
+  .slw span { display: block; font-size: 12.5px; font-weight: 400; color: var(--gray-500); }
+
+  /* ---------- flows ---------- */
+  .flows { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 28px; }
+  .fc { display: flex; flex-direction: column; border: 1px solid var(--gray-200); border-radius: 18px; background: #fff; box-shadow: var(--shadow); overflow: hidden; }
+  .fc.rec { border-color: var(--brand-400); box-shadow: 2px 3px 0 0 var(--brand-200); }
+  .fc .top { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 14px 18px 0; }
+  .fc .top b { font-size: 13px; color: var(--gray-500); font-weight: 600; }
+  .taps { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; border-radius: 999px; background: var(--gray-100); font-size: 12.5px; font-weight: 600; color: var(--gray-700); font-variant-numeric: tabular-nums; transition: background .3s var(--ease), color .3s var(--ease); }
+  .taps.hit { background: var(--brand-100); color: var(--brand-700); }
+  .phone { position: relative; width: 304px; height: 658px; margin: 14px auto 0; border-radius: 34px; overflow: hidden; box-shadow: 0 0 0 1px var(--gray-200), 0 14px 34px -16px rgba(16,24,40,.28); background: #fff; }
+  .screen { position: absolute; left: 0; top: 0; width: 390px; height: 844px; transform: scale(.7795); transform-origin: 0 0; overflow: hidden; background: #fff; }
+  .reset { align-self: center; margin-top: 10px; border: 0; background: none; font: 500 13px/18px Roboto, sans-serif; color: var(--gray-500); text-decoration: underline; text-underline-offset: 2px; }
+  .fc .meta { display: flex; flex-direction: column; gap: 8px; padding: 16px 20px 20px; border-top: 1px solid var(--gray-200); margin-top: 12px; flex: 1; }
+  .fc h4 { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0; font-size: 17px; line-height: 24px; }
+  .fc p { margin: 0; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+  .fc ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 20px; color: var(--gray-600); display: grid; gap: 4px; }
+  .fc ul b { color: var(--gray-900); font-weight: 600; }
+  .tryit { font-size: 12.5px; line-height: 18px; color: var(--indigo-700); background: var(--indigo-25); border: 1px solid var(--indigo-100); border-radius: 10px; padding: 8px 10px; }
+
+  /* the phone itself: GoodFlip Move screen, sheet, toast */
+  .S { font-family: Roboto, Arial, sans-serif; color: var(--gray-900); }
+  .S button { touch-action: manipulation; }
+  .sb { height: 50px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; font: 600 16px/1 Roboto, sans-serif; }
+  .sb .r { display: flex; gap: 5px; align-items: center; }
+  .sb .r i { display: block; width: 18px; height: 10px; border-radius: 3px; border: 1.5px solid var(--gray-900); }
+  .hdr { display: flex; align-items: center; gap: 12px; padding: 4px 20px 14px; }
+  .bk { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--gray-200); background: var(--gray-50); display: grid; place-items: center; flex: none; color: var(--gray-900); }
+  .bk svg { width: 20px; height: 20px; }
+  .hdr .t { flex: 1; }
+  .hdr .t b { display: block; font-size: 20px; line-height: 26px; font-weight: 700; }
+  .hdr .t span { font-size: 13px; color: var(--gray-500); }
+  .pg { padding: 0 20px; display: flex; flex-direction: column; gap: 14px; }
+  .sum { border-radius: 18px; background: var(--indigo-25); border: 1px solid var(--indigo-100); padding: 16px 18px; display: flex; gap: 18px; }
+  .sum div { flex: 1; }
+  .sum b { display: block; font-size: 28px; line-height: 32px; font-weight: 700; color: var(--indigo-900); font-variant-numeric: tabular-nums; transition: color .4s var(--ease); }
+  .sum span { font-size: 13px; color: var(--indigo-700); }
+  .card { border: 1px solid var(--gray-200); border-radius: 16px; padding: 14px 16px; background: #fff; }
+  .lbl { font-size: 12px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-500); margin: 2px 0 -4px; }
+  .row { display: flex; align-items: center; gap: 12px; }
+  .ico { width: 44px; height: 44px; border-radius: 14px; background: var(--indigo-50); color: var(--indigo-700); display: grid; place-items: center; flex: none; }
+  .ico svg { width: 22px; height: 22px; }
+  .ico.c { background: var(--gold-50); color: var(--gold-900); }
+  .ico.g { background: var(--brand-50); color: var(--brand-700); }
+  .row .t { flex: 1; min-width: 0; }
+  .row .t b { display: block; font-size: 16px; line-height: 22px; font-weight: 600; }
+  .row .t span { display: block; font-size: 13px; line-height: 18px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
+  .row .kc { text-align: right; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .row .kc span { display: block; font-size: 11px; font-weight: 400; color: var(--gray-500); }
+  .btn { height: 52px; border-radius: 14px; border: 0; background: var(--brand-600); color: #fff; font-size: 16px; font-weight: 700; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background .2s var(--ease), transform .15s var(--ease); }
+  .btn:active { transform: scale(.985); }
+  .btn svg { width: 20px; height: 20px; }
+  .btn.ghost { background: #fff; color: var(--brand-700); border: 1.5px solid var(--brand-600); }
+  .btn.sm { height: 40px; width: auto; padding: 0 14px; font-size: 14px; border-radius: 12px; }
+  .foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 30px; background: linear-gradient(rgba(255,255,255,0), #fff 22%); }
+  .empty { font-size: 14px; color: var(--gray-500); padding: 6px 0 0; }
+  .done { color: var(--brand-700); font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 4px; }
+  .done svg { width: 15px; height: 15px; }
+  .prompt { border-radius: 18px; background: var(--brand-50); border: 1px solid var(--brand-200); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .prompt b { font-size: 17px; line-height: 22px; }
+  .prompt .chips { justify-content: flex-start; }
+  .prompt .chip { height: 44px; min-width: 64px; }
+  .lnk { border: 0; background: none; color: var(--brand-700); font-size: 14px; font-weight: 600; padding: 4px 0; text-align: left; }
+
+  .scrim { position: absolute; inset: 0; background: rgba(16,24,40,.42); opacity: 0; transition: opacity .32s var(--ease); }
+  .scrim.on { opacity: 1; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; background: #fff; border-radius: 22px 22px 0 0; display: flex; flex-direction: column; transform: translateY(0); transition: transform .34s var(--ease); }
+  .sheet.enter { animation: up .36s var(--ease); }
+  .sheet.leave { transform: translateY(105%); }
+  .scrim.leave { opacity: 0; }
+  @keyframes up { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .sh-h { display: flex; align-items: flex-start; gap: 10px; padding: 20px 20px 10px; }
+  .sh-h .t { flex: 1; min-width: 0; }
+  .sh-h h5 { margin: 0; font-size: 21px; line-height: 28px; font-weight: 800; }
+  .sh-h .s { font-size: 13px; color: var(--gray-500); margin-top: 2px; }
+  .x { width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--gray-100); color: var(--gray-700); display: grid; place-items: center; flex: none; }
+  .x svg { width: 18px; height: 18px; }
+  .sh-b { flex: 1; overflow-y: auto; scrollbar-width: none; padding: 4px 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+  .sh-b::-webkit-scrollbar { display: none; }
+  .sh-b.fade > * { animation: fadein .28s var(--ease) both; }
+  .sh-f { padding: 10px 20px 28px; border-top: 1px solid var(--gray-100); display: flex; flex-direction: column; gap: 8px; }
+  .kcal { text-align: center; font-size: 14px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
+  .kcal b { color: var(--gray-900); }
+  .search { height: 48px; border-radius: 14px; background: var(--gray-50); border: 1px solid var(--gray-200); display: flex; align-items: center; gap: 10px; padding: 0 14px; color: var(--gray-400); font-size: 15px; }
+  .search svg { width: 19px; height: 19px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .tile { border: 1px solid var(--gray-200); background: #fff; border-radius: 16px; padding: 12px 4px 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--gray-900); transition: background .2s var(--ease), border-color .2s var(--ease); }
+  .tile .ico { width: 42px; height: 42px; }
+  .tile span { font-size: 12.5px; line-height: 15px; font-weight: 500; text-align: center; }
+  .tile:active { background: var(--gray-50); }
+  .plus { width: 40px; height: 40px; border-radius: 50%; border: 1.5px solid var(--brand-600); background: #fff; color: var(--brand-700); display: grid; place-items: center; flex: none; }
+  .plus svg { width: 20px; height: 20px; }
+  .coach { border-radius: 16px; background: var(--gold-50); border: 1px solid var(--gold-200); padding: 14px 16px; }
+  .coach .row .t span { color: var(--gold-900); }
+  .grp { display: flex; flex-direction: column; gap: 10px; }
+  .grp > .h { display: flex; align-items: baseline; justify-content: space-between; }
+  .grp > .h b { font-size: 15px; font-weight: 700; }
+  .grp > .h span { font-size: 13px; color: var(--gray-500); }
+  .S .chips { justify-content: flex-start; }
+  .S .chip { height: 44px; min-width: 56px; font-size: 15px; }
+  .S .chips.d6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+  .S .chips.d6 .chip { min-width: 0; padding: 0; }
+  .S .chips.w2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .durv { display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--gray-200); border-radius: 18px; padding: 10px 12px; background: var(--gray-25); }
+  .durv .v { text-align: center; font-size: 40px; line-height: 44px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .durv .v small { font-size: 16px; font-weight: 500; color: var(--gray-500); margin-left: 4px; }
+  .when-note { font-size: 13px; color: var(--gray-500); font-variant-numeric: tabular-nums; }
+  .tstep { display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--gray-200); border-radius: 14px; padding: 6px 8px; }
+  .tstep b { font-size: 18px; font-variant-numeric: tabular-nums; }
+  .tstep .rb { width: 44px; height: 44px; }
+  .toast { position: absolute; left: 16px; right: 16px; bottom: 104px; background: var(--gray-900); color: #fff; border-radius: 14px; padding: 12px 12px 12px 16px; display: flex; align-items: center; gap: 10px; font-size: 14.5px; line-height: 20px; animation: fadein .3s var(--ease); z-index: 5; }
+  .toast svg { width: 20px; height: 20px; color: var(--brand-300); flex: none; }
+  .toast span { flex: 1; }
+  .toast button { border: 0; background: none; color: var(--brand-300); font-weight: 700; font-size: 14.5px; padding: 6px 8px; }
+  .new { animation: fadein .45s var(--ease); background: var(--brand-25); }
+  .frow { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--gray-100); width: 100%; border-left: 0; border-right: 0; border-top: 0; background: none; text-align: left; font-size: 16px; color: var(--gray-900); }
+  .frow .k { flex: 1; color: var(--gray-500); }
+  .frow b { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .frow svg { width: 18px; height: 18px; color: var(--gray-400); transition: transform .25s var(--ease); }
+  .frow.open svg { transform: rotate(90deg); }
+  .opts { display: flex; flex-direction: column; }
+  .opt { display: flex; align-items: center; gap: 10px; padding: 12px 4px; border: 0; border-bottom: 1px solid var(--gray-100); background: none; text-align: left; font-size: 15.5px; color: var(--gray-900); }
+  .opt span { flex: 1; }
+  .opt small { display: block; font-size: 12.5px; color: var(--gray-500); }
+  .opt svg { width: 18px; height: 18px; color: var(--brand-600); }
+  .sent { font-size: 26px; line-height: 44px; font-weight: 500; color: var(--gray-700); }
+  .tok { display: inline-flex; align-items: center; gap: 2px; border: 0; background: var(--brand-50); color: var(--brand-900); font-size: 26px; line-height: 36px; font-weight: 700; padding: 0 8px; border-radius: 10px; border-bottom: 2px dashed var(--brand-400); margin: 0 1px; }
+  .tok svg { width: 18px; height: 18px; color: var(--brand-600); }
+  .tok.on { background: var(--brand-600); color: #fff; border-bottom-color: var(--brand-600); }
+  .tok.on svg { color: #fff; }
+  .panel { border: 1px solid var(--gray-200); border-radius: 16px; padding: 14px; background: var(--gray-25); display: flex; flex-direction: column; gap: 12px; animation: fadein .25s var(--ease); }
+  .panel .h { font-size: 13px; font-weight: 700; color: var(--gray-500); text-transform: uppercase; letter-spacing: .8px; }
+  .listrow { display: flex; align-items: center; gap: 12px; padding: 10px 0; border: 0; border-bottom: 1px solid var(--gray-100); background: none; width: 100%; text-align: left; color: var(--gray-900); }
+  .listrow .ico { width: 40px; height: 40px; }
+  .listrow b { flex: 1; font-size: 16px; font-weight: 500; }
+  .listrow svg.chev { width: 18px; height: 18px; color: var(--gray-400); }
+
+  /* matrix */
+  .tw { overflow-x: auto; border: 1px solid var(--gray-200); border-radius: 16px; box-shadow: var(--shadow); }
+  table { border-collapse: collapse; width: 100%; min-width: 860px; font-size: 14px; }
+  th, td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--gray-100); vertical-align: top; }
+  thead th { background: var(--gray-50); font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--gray-500); }
+  td.n { font-variant-numeric: tabular-nums; font-weight: 700; text-align: center; }
+  td.best { color: var(--brand-700); background: var(--brand-25); }
+  td.worst { color: var(--red-700); }
+  tr.rec td:first-child { box-shadow: inset 3px 0 0 var(--brand-600); }
+  .heur { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 14px; }
+  .hc { border: 1px solid var(--gray-200); border-radius: 14px; padding: 14px 16px; }
+  .hc b { display: block; font-size: 14.5px; margin-bottom: 4px; }
+  .hc b em { font-style: normal; color: var(--brand-700); margin-right: 6px; }
+  .hc p { margin: 0; font-size: 13.5px; line-height: 20px; color: var(--gray-600); }
+  .picks { border: 1px solid var(--brand-300); background: var(--brand-25); border-radius: 18px; padding: 20px 22px; }
+  .picks ul { margin: 8px 0 0; padding-left: 18px; font-size: 15px; line-height: 24px; }
+  .picks .none { color: var(--gray-500); font-size: 14px; }
+  .picks textarea { width: 100%; min-height: 80px; margin-top: 12px; border: 1.5px solid var(--gray-300); border-radius: 12px; padding: 10px 12px; font: 400 14px/20px Roboto, sans-serif; resize: vertical; }
+  .picks .actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  .refs { columns: 2 320px; font-size: 13.5px; line-height: 22px; color: var(--gray-600); }
+  .refs div { break-inside: avoid; }
+  /* 08 wheel-first screen */
+  .wl { display: grid; grid-template-columns: 340px 1fr; gap: 40px; align-items: start; }
+  .wl .side { display: flex; flex-direction: column; gap: 12px; padding-top: 14px; }
+  .wl .side h4 { margin: 0; display: flex; gap: 8px; align-items: center; font-size: 17px; line-height: 24px; }
+  .wl .side p { margin: 0; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+  .wl .side ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 20px; color: var(--gray-600); display: grid; gap: 6px; }
+  .wl .side ul b { color: var(--gray-900); font-weight: 600; }
+  .wl .col { display: flex; flex-direction: column; }
+  @media (max-width: 760px) { .wl { grid-template-columns: 1fr; gap: 20px; } }
+  .W { position: absolute; inset: 0; display: flex; flex-direction: column; font-family: Roboto, Arial, sans-serif; color: var(--gray-900); background: #fff; }
+  .W button { touch-action: manipulation; font-family: inherit; }
+  .W .hd { height: 56px; display: flex; align-items: center; gap: 12px; padding: 0 16px; }
+  .W .ib { width: 40px; height: 40px; border-radius: 50%; border: 0; background: none; display: grid; place-items: center; color: var(--gray-900); }
+  .W .ib svg { width: 24px; height: 24px; }
+  .W .hd b { font-size: 20px; line-height: 28px; font-weight: 700; }
+  .W .ask { text-align: center; font-size: 16px; line-height: 24px; color: var(--gray-500); margin-top: 24px; }
+  .W .wh { position: relative; flex: 1; min-height: 0; margin: 4px 0; outline: none; }
+  .W .wh::before { content: ''; position: absolute; left: 72px; right: 72px; top: 50%; height: 72px; margin-top: -36px; border-radius: 20px; background: var(--brand-50); border: 1px solid var(--brand-100); pointer-events: none; }
+  .W .wh:focus-visible::before { border-color: var(--brand-600); }
+  .W .ws { position: absolute; inset: 0; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; -webkit-mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); }
+  .W .ws::-webkit-scrollbar { display: none; }
+  .W .it { height: 72px; display: flex; align-items: baseline; justify-content: center; gap: 8px; scroll-snap-align: center; font-variant-numeric: tabular-nums; cursor: pointer; will-change: transform, opacity; }
+  .W .it b { font-size: 52px; line-height: 72px; font-weight: 600; color: var(--gray-900); }
+  .W .it span { font-size: 22px; font-weight: 500; color: var(--gray-500); opacity: 0; transition: opacity .2s var(--ease); width: 0; overflow: visible; white-space: nowrap; }
+  .W .it.on span { opacity: 1; }
+  .W .it.on b { color: var(--brand-900); }
+  .W .kc { text-align: center; font-size: 15px; line-height: 22px; color: var(--gray-600); margin-bottom: 20px; font-variant-numeric: tabular-nums; }
+  .W .kc b { color: var(--gray-900); font-weight: 600; }
+  .W .cards { display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 8px; padding: 0 16px; }
+  .W .cd { min-height: 76px; border-radius: 16px; border: 1px solid var(--gray-200); background: var(--gray-50); box-shadow: var(--shadow); padding: 12px; display: flex; flex-direction: column; justify-content: center; gap: 4px; text-align: left; transition: background .2s var(--ease), border-color .2s var(--ease); }
+  .W .cd:active { background: var(--gray-100); }
+  .W .cd small { font-size: 13px; line-height: 18px; color: var(--gray-500); }
+  .W .cd span { display: flex; align-items: center; gap: 6px; font-size: 16px; line-height: 22px; font-weight: 600; color: var(--gray-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .W .cd span svg { flex: none; width: 18px; height: 18px; color: var(--brand-600); }
+  .W .ft { padding: 16px 16px 34px; }
+  .W .cta { width: 100%; height: 56px; border: 0; border-radius: 16px; background: var(--brand-600); color: #fff; font-size: 17px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background .25s var(--ease); }
+  .W .cta svg { width: 20px; height: 20px; }
+  .W .cta.done { background: var(--brand-700); }
+  .W .undo { display: block; margin: 10px auto 0; height: 20px; border: 0; background: none; color: var(--gray-600); font-size: 14px; text-decoration: underline; text-underline-offset: 2px; visibility: hidden; }
+  .W .undo.on { visibility: visible; }
+  .W .scrim { position: absolute; inset: 0; background: rgba(16,24,40,.4); opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .W .sh { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; background: #fff; border-radius: 24px 24px 0 0; transform: translateY(100%); transition: transform .32s var(--ease); display: flex; flex-direction: column; }
+  .W.open .scrim { opacity: 1; pointer-events: auto; }
+  .W.open .sh { transform: none; }
+  .W .sh .top { display: flex; align-items: center; justify-content: space-between; padding: 20px 16px 12px 20px; }
+  .W .sh .top b { font-size: 20px; line-height: 28px; }
+  .W .x { width: 36px; height: 36px; border-radius: 50%; border: 0; background: var(--gray-100); display: grid; place-items: center; color: var(--gray-700); }
+  .W .x svg { width: 20px; height: 20px; }
+  .W .body { overflow-y: auto; padding: 4px 16px 34px; display: flex; flex-direction: column; gap: 8px; }
+  .W .row { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 14px; border-radius: 14px; border: 1.5px solid var(--gray-200); background: #fff; font-size: 16px; font-weight: 500; text-align: left; color: var(--gray-900); }
+  .W .row .ic { width: 36px; height: 36px; border-radius: 10px; background: var(--brand-50); color: var(--brand-700); display: grid; place-items: center; flex: none; }
+  .W .row .ic svg { width: 20px; height: 20px; }
+  .W .row small { display: block; font-size: 13px; line-height: 18px; color: var(--gray-500); font-weight: 400; }
+  .W .row .ck { margin-left: auto; color: var(--brand-600); width: 22px; height: 22px; }
+  .W .row.on { border-color: var(--brand-600); background: var(--brand-50); }
+  .W .lb { font-size: 13px; font-weight: 600; color: var(--gray-500); margin: 8px 4px 0; }
+  @media (max-width: 640px) { h1 { font-size: 32px; line-height: 40px; } .wrap { padding: 32px 16px 64px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+</style>
+</head>
+<body>
+<nav class="toc"><div class="in">
+  <a href="#find">What the market does</a><a href="#dur">How long: 7 controls</a><a href="#effort">How hard</a><a href="#when">When</a><a href="#flows">Six flows</a><a href="#matrix">Scorecard</a><a href="#rules">Why it works</a><a href="#wheel">Wheel first</a><a class="picks" href="#picks">Your picks</a>
+</div></nav>
+
+<div class="wrap">
+  <p class="eyebrow">Move · logging a workout</p>
+  <h1>Logging a workout in as few taps as a thought</h1>
+  <p class="lede">Someone walked after lunch. How do they tell GoodFlip in the <b>fewest taps, with no doubt about what happens</b>, when many are 35 to 60, live with diabetes or PCOS, and are not fitness people? We searched Mobbin 56 times across about 20 apps, then built every serious option so you can try it here, with a tap counter on each phone.</p>
+  <p class="lede">Today's flow is the baseline: a search list, then a "How long?" screen with a minus and plus stepper, and Effort and When rows that each open another sheet.</p>
+
+  <!-- ===================== findings ===================== -->
+  <h2 class="sec" id="find"><span class="n">01</span>What the market does</h2>
+  <p class="secp">Three things almost every good app agrees on, and one thing nobody does yet.</p>
+  <div class="finds">
+    <div class="find"><div class="k">30 min</div><b>The form arrives already filled in</b><p>Oura opens on now, 30 min and Moderate. Fitbit also starts at 30. The common case becomes one tap on Save, and the user only edits what is different.</p><div class="src"><a href="https://mobbin.com/screens/a63df5a1-be58-4ef3-92fb-aac2078d0e2d" target="_blank" rel="noopener">Oura, Add an activity</a> · <a href="https://mobbin.com/screens/0c201391-dc7e-4ee8-922b-5f2120ccce5f" target="_blank" rel="noopener">Fitbit, Add exercise</a></div></div>
+    <div class="find"><div class="k">Chips</div><b>Presets beat wheels for duration</b><p>Cal AI uses 15 / 30 / 60 / 90 chips, Apple Fitness 5 to 45, Finch eight large tiles. Hour, minute and second wheels (Nike Run Club, Garmin) ask for a precision nobody remembers.</p><div class="src"><a href="https://mobbin.com/screens/10eb0280-cef4-4100-8ae1-aa35d2498bbf" target="_blank" rel="noopener">Cal AI</a> · <a href="https://mobbin.com/screens/49167da9-2259-42b2-9592-344c58a60154" target="_blank" rel="noopener">Apple Fitness</a> · <a href="https://mobbin.com/screens/46e6ec27-2caf-43c9-81cf-faed899b5312" target="_blank" rel="noopener">Finch</a></div></div>
+    <div class="find"><div class="k">3 words</div><b>Effort in body words, not numbers</b><p>Cal AI says "Breaking a sweat", Bevel "heavy breathing, hard to talk". Apps with a 1 to 10 scale still need a sentence to explain it, so the sentence is the real control.</p><div class="src"><a href="https://mobbin.com/screens/10eb0280-cef4-4100-8ae1-aa35d2498bbf" target="_blank" rel="noopener">Cal AI</a> · <a href="https://mobbin.com/screens/fbee77e2-e74b-49f0-8dd4-a42dd63adec7" target="_blank" rel="noopener">Bevel</a> · <a href="https://mobbin.com/screens/2a20f5f2-0c82-4ebf-a2e8-dd5c927b8d0b" target="_blank" rel="noopener">Gentler Streak</a></div></div>
+    <div class="find"><div class="k">2 taps</div><b>Nobody makes the repeat fast and the first log short</b><p>Lifesum repeats in 2 taps from recents, and Runna ticks a planned workout in 1. No app we saw also keeps a first-time log to 3. That gap is the opportunity.</p><div class="src"><a href="https://mobbin.com/screens/7e5f557c-3c87-4848-a759-00f6dc1b7bef" target="_blank" rel="noopener">Lifesum</a> · <a href="https://mobbin.com/screens/20751c4f-c638-4561-8220-00beafe536e7" target="_blank" rel="noopener">Runna</a></div></div>
+  </div>
+
+  <!-- ===================== duration lab ===================== -->
+  <h2 class="sec" id="dur"><span class="n">02</span>How long: seven controls, one task</h2>
+  <p class="secp">Each control starts at 30 min. <b>Try to set 45 minutes</b> and watch the move count. The bars rate speed, precision, comfort for older or shaky thumbs, and how well a screen reader can work it.</p>
+  <div class="lab" id="lab"></div>
+
+  <!-- ===================== effort ===================== -->
+  <h2 class="sec" id="effort"><span class="n">03</span>How hard was it</h2>
+  <p class="secp">Effort changes the calories by up to a quarter, so it matters, but it is a feeling, not a number. The talk test (could you chat, talk, or only get a few words out?) is how clinicians check intensity and needs no explaining.</p>
+  <div class="lab" id="efflab"></div>
+
+  <!-- ===================== when ===================== -->
+  <h2 class="sec" id="when"><span class="n">04</span>When did it happen</h2>
+  <p class="secp">Most logs happen right after the walk, so "Just now" should already be chosen. People remember the part of the day, not the minute, so the other choices are parts of the day, with an exact time one tap further for those who care.</p>
+  <div class="lab" id="whenlab"></div>
+
+  <!-- ===================== flows ===================== -->
+  <h2 class="sec" id="flows"><span class="n">05</span>Six flows you can use</h2>
+  <p class="secp">Every phone works. The counter shows taps until the workout is logged. Try the same four jobs on each: <b>a 30 min walk</b>, <b>yesterday's walk again</b>, <b>the coach's plan</b>, and <b>45 min of easy yoga this morning</b>.</p>
+  <div class="flows" id="flowgrid"></div>
+
+  <!-- ===================== matrix ===================== -->
+  <h2 class="sec" id="matrix"><span class="n">06</span>Scorecard</h2>
+  <p class="secp">Taps counted on the phones above, from the Move screen to logged. Fewer is better, but only if nothing is hidden: the heuristics columns say what each flow costs in clarity. Yoga is in the recents as easy, so flows that remember it skip the effort tap; Today does not remember. In Today, the coach plan is logged from its own plan tab, so it is not counted here.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Flow</th><th>Walk 30 min</th><th>Yesterday's walk</th><th>Coach plan</th><th>Yoga 45 min, easy, morning</th><th>Clarity</th><th>Risk</th></tr></thead>
+    <tbody>
+      <tr><td><b>Today</b><br><span style="color:var(--gray-500)">two screens, sub-sheets</span></td><td class="n">3</td><td class="n">3</td><td class="n" style="font-weight:500;font-size:12.5px">Plan tab</td><td class="n worst">10</td><td>Clear, but effort and time hide behind rows</td><td>Two layers of sheets, no repeat path</td></tr>
+      <tr class="rec"><td><b>A · One sheet, memory first</b><br><span style="color:var(--brand-700)">recommended</span></td><td class="n">3</td><td class="n best">2</td><td class="n best">2</td><td class="n best">5</td><td>Everything visible at once, defaults chosen</td><td>Longer sheet; needs the details to fit without scrolling</td></tr>
+      <tr><td><b>B · Today, fixed</b><br><span style="color:var(--gray-500)">cheapest change</span></td><td class="n">3</td><td class="n">3</td><td class="n">3</td><td class="n best">5</td><td>Same as A, across two screens</td><td>Full-screen jump loses the Move page behind</td></tr>
+      <tr><td><b>C · The sentence</b></td><td class="n best">2</td><td class="n best">2</td><td class="n">4</td><td class="n">8</td><td>Reads like speech; tokens must look tappable</td><td>Every change is two taps; hard for screen readers</td></tr>
+      <tr><td><b>D · Ask on the Move screen</b></td><td class="n best">1</td><td class="n best">1</td><td class="n best">1</td><td class="n best">5</td><td>Fastest; only for the usual activity</td><td>Logs instantly, so Undo must be visible</td></tr>
+      <tr><td><b>E · Filled-in form</b><br><span style="color:var(--gray-500)">what Oura and Fitbit do</span></td><td class="n">4</td><td class="n">4</td><td class="n">4</td><td class="n worst">10<br><span style="font-weight:400;font-size:11.5px">with a wheel spin</span></td><td>Familiar list of rows</td><td>Values hide in rows; wheels for everything</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- ===================== rules ===================== -->
+  <h2 class="sec" id="rules"><span class="n">07</span>Why flow A works, heuristic by heuristic</h2>
+  <p class="secp">Nielsen's ten heuristics, Gestalt, and Hick's and Fitts's laws, applied to the recommended flow. The same lens produced the scores above.</p>
+  <div class="heur">
+    <div class="hc"><b><em>H1</em>Visibility of status</b><p>The calorie line updates as the duration changes, the button names what it will log ("Log walk"), and the Move totals rise the moment it lands.</p></div>
+    <div class="hc"><b><em>H2</em>Match the real world</b><p>"Just now", "This morning", "Could talk, not sing". The words people use when they tell a friend, not MET, RPE or hh:mm:ss.</p></div>
+    <div class="hc"><b><em>H3</em>Control and freedom</b><p>One-tap logs from recents show Undo for five seconds. "Change" in the sheet header goes back to the activity list without losing anything.</p></div>
+    <div class="hc"><b><em>H4</em>Consistency</b><p>One sheet pattern for the whole job, the same as Eat's: circle X top right, title top left, no handle, at most 90% of the screen.</p></div>
+    <div class="hc"><b><em>H5</em>Error prevention</b><p>No free typing for the common case, a range of 5 to 240 min, and no future times. The value is always a sensible one.</p></div>
+    <div class="hc"><b><em>H6</em>Recognition over recall</b><p>Recents remember duration and effort, the coach's plan is pinned on top, and eight pictured activities replace an A to Z list.</p></div>
+    <div class="hc"><b><em>H7</em>Flexibility</b><p>Chips for the usual, the stepper for in-between values, hold to move faster, and search for the forty other activities.</p></div>
+    <div class="hc"><b><em>H8</em>Minimal design</b><p>Three groups, each with one job. No kcal field, no end time, no notes. Calories are a result, never an input.</p></div>
+    <div class="hc"><b><em>H9</em>Recover from errors</b><p>A wrong log is undone from the toast, or opened again from the list, where the same sheet comes back filled in.</p></div>
+    <div class="hc"><b><em>Gestalt</em>Proximity and common region</b><p>The duration value, its chips and the calorie line sit in one region; effort in another; time in a third. The eye reads three questions, not twelve controls.</p></div>
+    <div class="hc"><b><em>Gestalt</em>Similarity and continuity</b><p>Every choice looks the same (a pill or card that fills green when chosen). The order runs what, how long, how hard, when: the order people recall it in.</p></div>
+    <div class="hc"><b><em>Gestalt</em>Figure and ground</b><p>A sheet over the dimmed Move screen keeps the user where they were. Logging is a moment on top of their day, not a trip to another place.</p></div>
+    <div class="hc"><b><em>Hick</em>Fewer choices, faster picks</b><p>Six duration chips, three efforts, four times of day, eight tiles. Each group is small enough to take in at a glance.</p></div>
+    <div class="hc"><b><em>Fitts</em>Big targets near the thumb</b><p>Every target is at least 44 pt, chips are 44 tall, and the main button is full width at the bottom of the sheet.</p></div>
+  </div>
+
+  <!-- ===================== wheel-first ===================== -->
+  <h2 class="sec" id="wheel"><span class="n">08</span>Wheel first, one screen</h2>
+  <p class="secp">How long goes in the middle of the screen as a big wheel, the way calm timer apps do it. Exercise, effort and when sit below as three cards, each opening a small sheet. <b>Your last workout is already filled in</b>, so a repeat takes one tap.</p>
+  <div class="wl">
+    <div class="col">
+      <div class="phone"><div class="screen" id="wlscr"></div></div>
+      <button class="reset" id="wlreset">Start again</button>
+    </div>
+    <div class="side">
+      <h4>Wheel first <span class="tag ok">Variation</span></h4>
+      <p>The wheel is fine here because it is the only thing on screen and the numbers are big. A long scroll is the cost: 5 to 180 min in 5 min steps.</p>
+      <ul>
+        <li><b>Repeat yesterday's 30 min walk:</b> 1 tap, Log walk.</li>
+        <li><b>45 min of easy yoga this morning:</b> spin to 45, then Exercise, Yoga, When, This morning, Log. 5 taps and a spin, since yoga starts on Easy.</li>
+        <li><b>Calories update as you spin</b>, so the number feels earned.</li>
+        <li><b>Keyboard and screen readers:</b> the wheel is a slider, arrow keys move 5 min.</li>
+        <li><b>Effort is Easy, Moderate, Hard</b> with the talk test, not today's per-exercise list.</li>
+      </ul>
+      <div class="tryit">Try: spin to 45, change the exercise to Yoga, then log it. Tap a number to jump to it.</div>
+      <button class="pickbtn" data-pick="flow-wheel" data-label="Wheel first, one screen"><i data-lucide="check"></i><span>Pick this</span></button>
+    </div>
+  </div>
+
+  <!-- ===================== picks ===================== -->
+  <h2 class="sec" id="picks"><span class="n">09</span>Your picks</h2>
+  <p class="secp">Use "Pick this" on any control or flow. Picks and notes stay in this browser so you can come back to them.</p>
+  <div class="picks" id="pickbox"></div>
+
+  <h3 class="sub">Mobbin references</h3>
+  <div class="refs">
+    <div><a href="https://mobbin.com/flows/81e557b5-ffcb-429f-8f1d-f939cb44d8f6" target="_blank" rel="noopener">Oura, logging an activity</a>: recents first, filled-in form, confirms detected walks</div>
+    <div><a href="https://mobbin.com/flows/7b3d84e6-e62e-47e5-bb2c-56a05764bf09" target="_blank" rel="noopener">Cal AI, logging an exercise</a>: duration chips, effort in words, calories as a reveal</div>
+    <div><a href="https://mobbin.com/flows/30abfa6c-40b1-4333-80b0-85a4b26017f2" target="_blank" rel="noopener">Gentler Streak, adding a workout</a>: "As usual" effort against your own range</div>
+    <div><a href="https://mobbin.com/flows/f8520290-05c8-41dd-af2e-74ee8983acab" target="_blank" rel="noopener">Withings, log a completed activity</a>: "Heart pumping" intensity</div>
+    <div><a href="https://mobbin.com/flows/0700f780-8ffc-4d3d-ab8b-d12e170f3022" target="_blank" rel="noopener">Fitbit, logging an exercise</a>: recent activities, three intensity cards</div>
+    <div><a href="https://mobbin.com/flows/cb3e39a8-43e0-4b3a-adf0-8ffc618319d4" target="_blank" rel="noopener">Noom, logging an exercise</a>: calories worked out, nudged on a ruler</div>
+    <div><a href="https://mobbin.com/flows/b0d7bf80-c407-466e-a2a2-afd02c7138c1" target="_blank" rel="noopener">Bevel, logging an activity</a>: talk-test effort line</div>
+    <div><a href="https://mobbin.com/flows/77b96b0d-6b91-4584-be8a-59cf5d64f42c" target="_blank" rel="noopener">Lifesum, logging an exercise</a>: calories on every row, one-tap add</div>
+    <div><a href="https://mobbin.com/flows/aaee80e9-e7f3-47e3-840a-c9af949ea5fa" target="_blank" rel="noopener">Yazio, logging an activity</a>: live calorie preview</div>
+    <div><a href="https://mobbin.com/flows/271bbb54-9faf-413f-875f-68cf3b957f89" target="_blank" rel="noopener">Strava, adding a manual activity</a>: long settings table (avoid)</div>
+    <div><a href="https://mobbin.com/flows/6ed834e4-f889-44e8-9f9a-7e12fddf8dec" target="_blank" rel="noopener">Garmin Connect, manual activity</a>: hh:mm:ss wheels (avoid)</div>
+    <div><a href="https://mobbin.com/screens/54517329-2f04-43c9-a769-583c407939a0" target="_blank" rel="noopener">Forest, timer dial</a>: needs a coach mark to explain the dial</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  /* ---------------- data ---------------- */
+  var KG = 74.2;
+  var ACT = {
+    walk:   { n: "Walking", v: "walked", met: 4.3, ic: "footprints", cta: "Log walk" },
+    brisk:  { n: "Brisk walk", v: "walked briskly", met: 5.0, ic: "footprints", cta: "Log brisk walk" },
+    yoga:   { n: "Yoga", v: "did yoga", met: 3.0, ic: "flower-2", cta: "Log yoga" },
+    cycle:  { n: "Cycling", v: "cycled", met: 7.5, ic: "bike", cta: "Log cycling" },
+    strength: { n: "Strength", v: "did strength training", met: 5.0, ic: "dumbbell", cta: "Log strength" },
+    dance:  { n: "Dancing", v: "danced", met: 5.0, ic: "music", cta: "Log dancing" },
+    swim:   { n: "Swimming", v: "swam", met: 7.0, ic: "waves", cta: "Log swim" },
+    stairs: { n: "Stairs", v: "climbed stairs", met: 8.0, ic: "trending-up", cta: "Log stairs" },
+    surya:  { n: "Surya namaskar", v: "did surya namaskar", met: 4.5, ic: "sun", cta: "Log surya namaskar" },
+    house:  { n: "Housework", v: "did housework", met: 3.5, ic: "house", cta: "Log housework" },
+    routine: { n: "Starter mobility plan", v: "did my coach's plan", met: 2.8, ic: "clipboard-check", cta: "Log plan", coach: true }
+  };
+  var GRID = ["walk", "brisk", "yoga", "cycle", "strength", "dance", "swim", "stairs"];
+  var MORE = ["surya", "house"];
+  var EFF = [
+    { id: "easy", l: "Easy", h: "Could chat or sing", f: 0.8, b: [6, 0, 0] },
+    { id: "mod", l: "Moderate", h: "Could talk, not sing", f: 1.0, b: [6, 10, 0] },
+    { id: "hard", l: "Hard", h: "Only a few words", f: 1.25, b: [6, 10, 15] }
+  ];
+  var WHEN = [
+    { id: "now", l: "Just now" }, { id: "morn", l: "This morning" }, { id: "yday", l: "Yesterday" }, { id: "pick", l: "Other time" }
+  ];
+  var DCH = [10, 15, 20, 30, 45, 60];
+  var RECENT = [{ a: "walk", m: 30, e: "mod", d: "Yesterday" }, { a: "yoga", m: 20, e: "easy", d: "Monday" }];
+  var COACH = { a: "routine", m: 20, e: "easy" };
+  var NOWM = 13 * 60 + 30; // 1:30 PM
+
+  function kcal(a, m, e) { var f = EFF.filter(function (x) { return x.id === e; })[0].f; return Math.round(ACT[a].met * f * 3.5 * KG / 200 * m); }
+  function effOf(id) { return EFF.filter(function (x) { return x.id === id; })[0]; }
+  function hm(mins) { mins = ((mins % 1440) + 1440) % 1440; var h = Math.floor(mins / 60), m = mins % 60, ap = h >= 12 ? "PM" : "AM"; h = h % 12 || 12; return h + ":" + (m < 10 ? "0" : "") + m + " " + ap; }
+  function whenText(s) {
+    if (s.when === "now") return hm(NOWM - s.min) + " to " + hm(NOWM);
+    if (s.when === "morn") return "Morning, around " + hm(7 * 60);
+    if (s.when === "yday") return "Yesterday, around " + hm(18 * 60);
+    return "Today, " + hm(s.at) + " to " + hm(s.at + s.min);
+  }
+  function whenShort(s) { return s.when === "now" ? "just now" : s.when === "morn" ? "this morning" : s.when === "yday" ? "yesterday" : "at " + hm(s.at); }
+  function icon(n) { return '<i data-lucide="' + n + '"></i>'; }
+  function paint() { if (window.lucide) lucide.createIcons(); }
+  function clampMin(v) { return Math.max(5, Math.min(240, v)); }
+
+  /* ---------------- picks (per viewer, browser only) ---------------- */
+  var PK = "gf-move-log-picks";
+  var picks = {};
+  try { picks = JSON.parse(localStorage.getItem(PK) || "{}") || {}; } catch (e) { picks = {}; }
+  function savePicks() { try { localStorage.setItem(PK, JSON.stringify(picks)); } catch (e) {} renderPicks(); syncPickBtns(); }
+  function pickBtn(id, label) { return '<button class="pickbtn" data-pick="' + id + '" data-label="' + label.replace(/"/g, "&quot;") + '">' + icon("check") + "<span>Pick this</span></button>"; }
+  function syncPickBtns() {
+    document.querySelectorAll("[data-pick]").forEach(function (b) {
+      var on = !!picks[b.dataset.pick]; b.classList.toggle("on", on); b.querySelector("span").textContent = on ? "Picked" : "Pick this";
+    });
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-pick]"); if (!b) return;
+    if (picks[b.dataset.pick]) delete picks[b.dataset.pick]; else picks[b.dataset.pick] = b.dataset.label;
+    savePicks();
+  });
+  function renderPicks() {
+    var box = document.getElementById("pickbox"), keys = Object.keys(picks).filter(function (k) { return k !== "_notes"; });
+    var notes = picks._notes || "";
+    box.innerHTML = (keys.length ? "<b>You picked</b><ul>" + keys.map(function (k) { return "<li>" + picks[k] + "</li>"; }).join("") + "</ul>" : '<div class="none">Nothing picked yet. Use "Pick this" on a control or a flow.</div>') +
+      '<textarea id="pnotes" placeholder="Notes for the team, for example: flow A, but with D\'s card on Home">' + notes.replace(/</g, "&lt;") + "</textarea>" +
+      '<div class="actions"><button class="pickbtn" id="pcopy">' + icon("clipboard-check") + "<span>Copy picks and notes</span></button>" + (keys.length ? '<button class="pickbtn" id="pclear"><span>Clear picks</span></button>' : "") + "</div>";
+    paint();
+    document.getElementById("pnotes").addEventListener("input", function (e) { picks._notes = e.target.value; try { localStorage.setItem(PK, JSON.stringify(picks)); } catch (x) {} });
+    document.getElementById("pcopy").addEventListener("click", function () {
+      var t = "Workout logging picks\n" + keys.map(function (k) { return "- " + picks[k]; }).join("\n") + (picks._notes ? "\n\nNotes: " + picks._notes : "");
+      if (navigator.clipboard) navigator.clipboard.writeText(t).then(function () { var s = document.querySelector("#pcopy span"); s.textContent = "Copied"; setTimeout(function () { s.textContent = "Copy picks and notes"; }, 1600); });
+    });
+    var c = document.getElementById("pclear"); if (c) c.addEventListener("click", function () { var n = picks._notes; picks = {}; if (n) picks._notes = n; savePicks(); });
+  }
+
+  /* ---------------- hold-to-repeat for steppers ---------------- */
+  function holdable(root, onStep) {
+    var t1 = null, t2 = null, held = false, n = 0;
+    function stop() { clearTimeout(t1); clearInterval(t2); t1 = t2 = null; }
+    root.addEventListener("pointerdown", function (e) {
+      var b = e.target.closest("[data-hold]"); if (!b) return;
+      held = false; n = 0; var d = +b.dataset.hold;
+      t1 = setTimeout(function () { held = true; t2 = setInterval(function () { n++; onStep(d * (n > 6 ? 3 : 1), true); }, 140); }, 420);
+    });
+    ["pointerup", "pointerleave", "pointercancel"].forEach(function (ev) { root.addEventListener(ev, stop); });
+    root.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-hold]"); if (!b) return;
+      if (held) { held = false; return; }
+      onStep(+b.dataset.hold, false);
+    });
+  }
+
+  /* ==================== 02 the duration lab ==================== */
+  var LAB = [
+    { id: "chips", t: "Chips with a fine-tune stepper", tag: "rec", tl: "Recommended", r: [5, 4, 5, 5],
+      p: "Six common lengths as big chips, and minus or plus 5 min for anything between. 45 is one tap; 40 is two. Hold the plus to move faster.", src: "Cal AI, Apple Fitness, Finch" },
+    { id: "stepper", t: "Stepper only, 5 min steps", tag: "ok", tl: "Today", r: [2, 5, 4, 5],
+      p: "Clear and safe, but 30 to 60 is six taps, and the default decides everything. Good as the fine-tune half of the chips.", src: "Today's design, Apple Fitness goal" },
+    { id: "wheel", t: "Scroll wheel", tag: "ok", tl: "Common", r: [3, 4, 2, 3],
+      p: "One flick, but small, fast-moving targets are hard for shaky hands, and it looks foreign on Android. Hour, minute, second wheels are worse.", src: "Oura, Strava, Nike Run Club, Garmin" },
+    { id: "ruler", t: "Ruler you drag", tag: "ok", tl: "Playful", r: [3, 3, 2, 2],
+      p: "Feels tactile and shows the range, but the value moves away from the finger and overshooting is easy. Better for weight than for time.", src: "Noom (calories)" },
+    { id: "slider", t: "Slider", tag: "no", tl: "Avoid", r: [4, 1, 2, 3],
+      p: "Fast to reach a rough value, but landing exactly on 45 out of 120 takes several tries. Each pixel is about half a minute.", src: "Some meditation apps" },
+    { id: "dial", t: "Clock dial", tag: "no", tl: "Avoid", r: [3, 2, 1, 1],
+      p: "Pretty, but nobody knows what it does until they try, and it is close to unusable with a screen reader. Forest needs a hint to explain it.", src: "Forest" },
+    { id: "keypad", t: "Type a number", tag: "ok", tl: "Fallback", r: [2, 5, 3, 5],
+      p: "Exact and accessible, but four taps and a keyboard covering half the screen. Keep it as the hidden path: tap the number to type.", src: "MyFitnessPal, Cal AI custom" }
+  ];
+  function barsHTML(r) {
+    var L = ["Speed", "Precision", "Older thumbs", "Screen reader"];
+    return '<div class="bars">' + r.map(function (v, i) { var s = ""; for (var k = 1; k <= 5; k++) s += '<i class="' + (k <= v ? "on" : "") + '"></i>'; return "<span>" + L[i] + '</span><span class="bar">' + s + "</span>"; }).join("") + "</div>";
+  }
+  function labCard(c, host) {
+    var el = document.createElement("div");
+    el.className = "lc" + (c.tag === "rec" ? " rec" : c.tag === "no" ? " bad" : "");
+    el.innerHTML = '<div class="stage"><div class="task"><span>Set <b>45 min</b> · <span class="mv">0 moves</span></span><button class="rs">Reset</button></div><div class="ctl"></div></div>' +
+      '<div class="meta"><h4>' + c.t + ' <span class="tag ' + c.tag + '">' + c.tl + "</span></h4><p>" + c.p + "</p>" + barsHTML(c.r) + '<p style="font-size:12.5px;color:var(--gray-500)">Seen in: ' + c.src + "</p>" + pickBtn("dur-" + c.id, "How long: " + c.t) + "</div>";
+    host.appendChild(el);
+    var ctl = el.querySelector(".ctl"), mv = el.querySelector(".mv"), moves = 0, val = 30;
+    function mark(v) {
+      val = v;
+      mv.innerHTML = val === 45 ? '<span class="done">Done in ' + moves + (moves === 1 ? " move" : " moves") + "</span>" : moves + (moves === 1 ? " move" : " moves") + " · now " + val;
+    }
+    function move() { moves++; }
+    var mk = BUILD[c.id];
+    function reset() { moves = 0; ctl.innerHTML = ""; mk(ctl, mark, move); mark(30); paint(); }
+    el.querySelector(".rs").addEventListener("click", reset);
+    reset();
+  }
+  var BUILD = {
+    chips: function (ctl, mark, move) {
+      var v = 30;
+      function draw() {
+        ctl.innerHTML = '<div class="stp"><button class="rb" data-hold="-5" aria-label="5 minutes less">' + icon("minus") + '</button><div class="big">' + v + '<small>min</small></div><button class="rb" data-hold="5" aria-label="5 minutes more">' + icon("plus") + '</button></div><div class="chips">' +
+          DCH.map(function (d) { return '<button class="chip' + (d === v ? " on" : "") + '" data-v="' + d + '">' + d + "</button>"; }).join("") + "</div>";
+        paint(); mark(v);
+      }
+      holdable(ctl, function (d, rep) { if (!rep) move(); v = clampMin(v + d); draw(); });
+      ctl.addEventListener("click", function (e) { var b = e.target.closest("[data-v]"); if (!b) return; move(); v = +b.dataset.v; draw(); });
+      draw();
+    },
+    stepper: function (ctl, mark, move) {
+      var v = 30;
+      function draw() { ctl.innerHTML = '<div class="stp"><button class="rb" data-hold="-5" aria-label="5 minutes less">' + icon("minus") + '</button><div class="big">' + v + '<small>min</small></div><button class="rb" data-hold="5" aria-label="5 minutes more">' + icon("plus") + "</button></div>"; paint(); mark(v); }
+      holdable(ctl, function (d, rep) { if (!rep) move(); v = clampMin(v + d); draw(); });
+      draw();
+    },
+    wheel: function (ctl, mark, move) {
+      var vals = []; for (var i = 5; i <= 240; i += 5) vals.push(i);
+      ctl.innerHTML = '<div class="wheelbox"><div class="wheel"><div class="pad"></div><div class="pad"></div>' + vals.map(function (x) { return "<div>" + x + "</div>"; }).join("") + '<div class="pad"></div><div class="pad"></div></div><span class="u">min</span></div>';
+      var w = ctl.querySelector(".wheel"), to = null;
+      requestAnimationFrame(function () { w.scrollTop = vals.indexOf(30) * 40; });
+      w.addEventListener("pointerdown", move);
+      w.addEventListener("wheel", function () { if (!to) move(); }, { passive: true });
+      w.addEventListener("scroll", function () { clearTimeout(to); to = setTimeout(function () { to = null; mark(vals[Math.round(w.scrollTop / 40)] || 5); }, 90); });
+    },
+    ruler: function (ctl, mark, move) {
+      var max = 120, h = '<div class="ruler"><div class="tr"><div class="padx"></div>';
+      for (var i = 0; i <= max; i++) h += '<div class="tk' + (i % 10 === 0 ? " m10" : i % 5 === 0 ? " m5" : "") + '">' + (i % 10 === 0 ? "<span>" + i + "</span>" : "") + "</div>";
+      h += '<div class="padx"></div></div><div class="needle"></div></div><div class="big rv">30<small>min</small></div>';
+      ctl.innerHTML = h;
+      var tr = ctl.querySelector(".tr"), pads = ctl.querySelectorAll(".padx"), rv = ctl.querySelector(".rv"), to = null;
+      requestAnimationFrame(function () {
+        var half = tr.clientWidth / 2 - 5; pads.forEach(function (p) { p.style.width = half + "px"; });
+        tr.scrollLeft = 30 * 10;
+      });
+      tr.addEventListener("pointerdown", move);
+      tr.addEventListener("wheel", function () { if (!to) move(); }, { passive: true });
+      tr.addEventListener("scroll", function () {
+        var v = Math.max(1, Math.round(tr.scrollLeft / 10)); rv.innerHTML = v + "<small>min</small>";
+        clearTimeout(to); to = setTimeout(function () { to = null; mark(v); }, 90);
+      });
+      // drag with a mouse too
+      var dx = null, sl = 0;
+      tr.addEventListener("mousedown", function (e) { dx = e.clientX; sl = tr.scrollLeft; tr.style.scrollSnapType = "none"; });
+      window.addEventListener("mousemove", function (e) { if (dx !== null) tr.scrollLeft = sl - (e.clientX - dx); });
+      window.addEventListener("mouseup", function () { if (dx !== null) { dx = null; tr.style.scrollSnapType = ""; tr.scrollTo({ left: Math.round(tr.scrollLeft / 10) * 10, behavior: "smooth" }); } });
+    },
+    slider: function (ctl, mark, move) {
+      ctl.innerHTML = '<div class="big sv">30<small>min</small></div><input class="sl" type="range" min="0" max="120" step="1" value="30" aria-label="Minutes"><div class="task"><span>0</span><span>120 min</span></div>';
+      var s = ctl.querySelector("input"), sv = ctl.querySelector(".sv");
+      s.addEventListener("pointerdown", move);
+      s.addEventListener("keydown", move);
+      s.addEventListener("input", function () { sv.innerHTML = s.value + "<small>min</small>"; mark(+s.value); });
+    },
+    dial: function (ctl, mark, move) {
+      var R = 70, C = 90, v = 30;
+      function arc(m) { var a = (m % 60) / 60 * Math.PI * 2, x = C + R * Math.sin(a), y = C - R * Math.cos(a); return { x: x, y: y, large: (m % 60) > 30 ? 1 : 0 }; }
+      function draw() {
+        var p = arc(v), full = v >= 60, d = full ? "" : "M" + C + " " + (C - R) + " A" + R + " " + R + " 0 " + p.large + " 1 " + p.x + " " + p.y;
+        ctl.innerHTML = '<svg class="dial" width="180" height="180" viewBox="0 0 180 180"><circle cx="90" cy="90" r="70" fill="none" stroke="#E4E7EC" stroke-width="14"/>' +
+          (full ? '<circle cx="90" cy="90" r="70" fill="none" stroke="#299D6B" stroke-width="14"/>' : '<path d="' + d + '" fill="none" stroke="#299D6B" stroke-width="14" stroke-linecap="round"/>') +
+          '<circle cx="' + p.x + '" cy="' + p.y + '" r="13" fill="#fff" stroke="#299D6B" stroke-width="3"/><text x="90" y="98" text-anchor="middle" font-size="28" font-weight="700" fill="#101828" font-family="Roboto">' + v + '</text><text x="90" y="118" text-anchor="middle" font-size="12" fill="#667085" font-family="Roboto">min</text></svg>';
+        mark(v);
+      }
+      var drag = false, last = v;
+      ctl.addEventListener("pointerdown", function (e) { if (!e.target.closest("svg")) return; drag = true; move(); e.target.closest("svg").setPointerCapture(e.pointerId); set(e); });
+      ctl.addEventListener("pointermove", function (e) { if (drag) set(e); });
+      ctl.addEventListener("pointerup", function () { drag = false; });
+      function set(e) {
+        var r = ctl.querySelector("svg").getBoundingClientRect(), x = e.clientX - r.left - r.width / 2, y = e.clientY - r.top - r.height / 2;
+        var a = Math.atan2(x, -y); if (a < 0) a += Math.PI * 2; var m = Math.round(a / (Math.PI * 2) * 60);
+        var base = Math.floor(last / 60) * 60; var nv = base + m;
+        if (last % 60 > 45 && m < 15) nv = base + 60 + m; else if (last % 60 < 15 && m > 45 && base >= 60) nv = base - 60 + m;
+        v = Math.max(1, Math.min(120, nv || 60)); last = v; draw();
+      }
+      draw();
+    },
+    keypad: function (ctl, mark, move) {
+      var v = 30, typing = null;
+      function draw() {
+        var shown = typing !== null ? (typing || "0") : String(v);
+        ctl.innerHTML = '<div class="field' + (typing !== null ? " f" : "") + '" data-k="open">' + shown + "<small>min</small></div>" +
+          (typing !== null ? '<div class="kp">' + ["1", "2", "3", "4", "5", "6", "7", "8", "9", "del", "0", "ok"].map(function (k) { return '<button data-k="' + k + '" class="' + (k === "ok" ? "ok" : "") + '">' + (k === "del" ? "⌫" : k === "ok" ? "Done" : k) + "</button>"; }).join("") + "</div>" : '<p style="text-align:center;font-size:12.5px;color:var(--gray-500);margin:0">Tap the number to type</p>');
+        mark(v);
+      }
+      ctl.addEventListener("click", function (e) {
+        var b = e.target.closest("[data-k]"); if (!b) return; move();
+        var k = b.dataset.k;
+        if (k === "open") typing = ""; else if (k === "del") typing = (typing || "").slice(0, -1); else if (k === "ok") { v = clampMin(+typing || v); typing = null; } else if ((typing || "").length < 3) typing = (typing || "") + k;
+        draw();
+      });
+      draw();
+    }
+  };
+  var lab = document.getElementById("lab");
+  LAB.forEach(function (c) { labCard(c, lab); });
+
+  /* ==================== 03 effort lab ==================== */
+  function effCards(sel) {
+    return '<div class="eff">' + EFF.map(function (e) {
+      return '<button class="ec' + (e.id === sel ? " on" : "") + '" data-e="' + e.id + '"><span class="em">' + e.b.map(function (h) { return h ? '<i style="height:' + h + 'px"></i>' : '<i style="height:4px;opacity:.5"></i>'; }).join("") + "</span><b>" + e.l + "</b><span>" + e.h + "</span></button>";
+    }).join("") + "</div>";
+  }
+  var EFFLAB = [
+    { id: "talk", t: "Three cards, the talk test", tag: "rec", tl: "Recommended", p: "Easy, Moderate, Hard, each with how breathing felt. Moderate is chosen already. Rising bars give a second, wordless cue.", src: "Cal AI, Bevel, Fitbit",
+      build: function (s) { var v = "mod"; function d() { s.innerHTML = effCards(v); } s.addEventListener("click", function (e) { var b = e.target.closest("[data-e]"); if (b) { v = b.dataset.e; d(); } }); d(); } },
+    { id: "slide3", t: "Three-stop slider with words", tag: "ok", tl: "Good", p: "Cal AI's approach. Calm and compact, but a slider hides the other two answers until you drag, and three stops do not need a slider.", src: "Cal AI, Gentler Streak",
+      build: function (s) { s.innerHTML = '<div class="slw">Moderate<span>Breathing harder, could still talk</span></div><input class="sl" type="range" min="0" max="2" value="1" aria-label="Effort">'; var w = ["Easy<span>Could chat or sing</span>", "Moderate<span>Breathing harder, could still talk</span>", "Hard<span>Breaking a sweat, only a few words</span>"]; s.querySelector("input").addEventListener("input", function (e) { s.querySelector(".slw").innerHTML = w[+e.target.value]; }); } },
+    { id: "rpe", t: "Exertion 1 to 10", tag: "no", tl: "Avoid", p: "Athlete language. People without training cannot tell a 6 from a 7, so apps that use it add a sentence anyway.", src: "Nike, Bevel, The Outsiders",
+      build: function (s) { s.innerHTML = '<div class="big rpe">5<small>/ 10</small></div><input class="sl" type="range" min="1" max="10" value="5" aria-label="Exertion">'; s.querySelector("input").addEventListener("input", function (e) { s.querySelector(".rpe").innerHTML = e.target.value + "<small>/ 10</small>"; }); } },
+    { id: "faces", t: "Faces", tag: "no", tl: "Avoid", p: "Faces read as mood, not effort. Was a hard walk a sad face or a proud one? Garmin pairs faces with a separate effort slider for that reason.", src: "Garmin",
+      build: function (s) { var v = 2, f = ["😌", "🙂", "😮‍💨", "😣", "🥵"]; function d() { s.innerHTML = '<div class="faces">' + f.map(function (x, i) { return '<button class="' + (i === v ? "on" : "") + '" data-f="' + i + '">' + x + "</button>"; }).join("") + '</div><p style="text-align:center;font-size:13px;color:var(--gray-500);margin:0">How did it feel?</p>'; } s.addEventListener("click", function (e) { var b = e.target.closest("[data-f]"); if (b) { v = +b.dataset.f; d(); } }); d(); } }
+  ];
+  function simpleCard(c, host, prefix, what) {
+    var el = document.createElement("div");
+    el.className = "lc" + (c.tag === "rec" ? " rec" : c.tag === "no" ? " bad" : "");
+    el.innerHTML = '<div class="stage"></div><div class="meta"><h4>' + c.t + ' <span class="tag ' + c.tag + '">' + c.tl + "</span></h4><p>" + c.p + '</p><p style="font-size:12.5px;color:var(--gray-500)">Seen in: ' + c.src + "</p>" + pickBtn(prefix + c.id, what + c.t) + "</div>";
+    host.appendChild(el); c.build(el.querySelector(".stage"));
+  }
+  var efflab = document.getElementById("efflab");
+  EFFLAB.forEach(function (c) { simpleCard(c, efflab, "eff-", "How hard: "); });
+
+  /* ==================== 04 when lab ==================== */
+  var WHENLAB = [
+    { id: "chips", t: "Parts of the day", tag: "rec", tl: "Recommended", p: "Just now is chosen. Morning and Yesterday cover most late logs. Other time opens an exact time, in 15 min steps, only for those who want it.", src: "Gentler Streak and Strava defaults, our own chips",
+      build: function (s) {
+        var st = { when: "now", min: 30, at: 12 * 60 };
+        function d() {
+          s.innerHTML = '<div class="chips">' + WHEN.map(function (w) { return '<button class="chip' + (w.id === st.when ? " on" : "") + '" data-w="' + w.id + '">' + w.l + "</button>"; }).join("") + "</div>" +
+            (st.when === "pick" ? '<div class="tstep" style="background:#fff"><button class="rb" data-t="-15" aria-label="Earlier">' + icon("minus") + "</button><b>" + hm(st.at) + '</b><button class="rb" data-t="15" aria-label="Later">' + icon("plus") + "</button></div>" : "") +
+            '<p class="when-note" style="text-align:center;margin:0">' + whenText(st) + "</p>";
+          paint();
+        }
+        s.addEventListener("click", function (e) { var b = e.target.closest("[data-w]"), t = e.target.closest("[data-t]"); if (b) st.when = b.dataset.w; if (t) st.at = Math.min(NOWM - st.min, Math.max(5 * 60, st.at + +t.dataset.t)); if (b || t) d(); });
+        d();
+      } },
+    { id: "wheel", t: "Start time wheel", tag: "ok", tl: "Common", p: "Oura, Strava and Yazio ask for a start time on a wheel. Precise, but it asks for a minute nobody remembers, and it needs a separate Today or Yesterday choice.", src: "Oura, Strava, Yazio",
+      build: function (s) {
+        var hrs = [], ms = []; for (var i = 1; i <= 12; i++) hrs.push(i); for (var j = 0; j < 60; j += 5) ms.push(j < 10 ? "0" + j : "" + j);
+        function col(a, w) { return '<div class="wheelbox" style="width:' + w + 'px;margin:0"><div class="wheel"><div class="pad"></div><div class="pad"></div>' + a.map(function (x) { return "<div>" + x + "</div>"; }).join("") + '<div class="pad"></div><div class="pad"></div></div></div>'; }
+        s.innerHTML = '<div style="display:flex;justify-content:center;gap:4px">' + col(["Yesterday", "Today"], 120) + col(hrs, 52) + col(ms, 52) + col(["AM", "PM"], 56) + "</div>";
+        var ws = s.querySelectorAll(".wheel");
+        requestAnimationFrame(function () { ws[0].scrollTop = 40; ws[1].scrollTop = 0; ws[2].scrollTop = 0; ws[3].scrollTop = 40; });
+        s.querySelectorAll(".wheel div").forEach(function (d) { d.style.fontSize = "17px"; });
+      } }
+  ];
+  var whenlab = document.getElementById("whenlab");
+  WHENLAB.forEach(function (c) { simpleCard(c, whenlab, "when-", "When: "); });
+
+  /* ==================== 05 flows ==================== */
+  function sb() { return '<div class="sb"><span>9:41</span><span class="r"><svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="#101828"/><rect x="5" y="5" width="3" height="7" rx="1" fill="#101828"/><rect x="10" y="2" width="3" height="10" rx="1" fill="#101828"/><rect x="15" y="0" width="3" height="12" rx="1" fill="#101828"/></svg><i></i></span></div>'; }
+  function totals(logs) { var m = 0, k = 0; logs.forEach(function (l) { m += l.m; k += kcal(l.a, l.m, l.e); }); return { m: m, k: k }; }
+  function logRow(l, fresh) {
+    var a = ACT[l.a];
+    return '<div class="row' + (fresh ? " new" : "") + '" style="padding:10px 0;border-top:1px solid var(--gray-100)"><span class="ico' + (a.coach ? " c" : "") + '">' + icon(a.ic) + '</span><span class="t"><b>' + a.n + "</b><span>" + l.m + " min · " + effOf(l.e).l + " · " + l.w + '</span></span><span class="kc">' + kcal(l.a, l.m, l.e) + "<span>kcal</span></span></div>";
+  }
+  /* The Move screen behind every flow. opts.prompt adds flow D's card. */
+  function moveHome(s, opts) {
+    opts = opts || {};
+    var t = totals(s.logs), coachDone = s.logs.some(function (l) { return l.a === "routine"; });
+    var h = sb() + '<div class="hdr"><button class="bk" aria-label="Back">' + icon("chevron-left") + '</button><div class="t"><b>Move</b><span>Today, Wed 15 Oct</span></div></div><div class="pg">' +
+      '<div class="sum"><div><b>' + t.m + '</b><span>minutes today</span></div><div><b>' + t.k + "</b><span>kcal burnt</span></div></div>";
+    if (opts.prompt && !s.promptGone) {
+      h += '<div class="prompt"><div class="row"><span class="ico g">' + icon("footprints") + '</span><span class="t"><b>Walked today?</b><span style="color:var(--brand-700)">Tap how long, it logs straight away</span></span></div><div class="chips">' +
+        [15, 30, 45].map(function (m) { return '<button class="chip" data-act="quick" data-m="' + m + '">' + m + " min</button>"; }).join("") + '</div><button class="lnk" data-act="open">Something else</button></div>';
+    }
+    h += '<div class="coach"><div class="row"><span class="ico c">' + icon("clipboard-check") + '</span><span class="t"><b>Starter mobility plan</b><span>From your coach · 20 min · Easy</span></span>' +
+      (coachDone ? '<span class="done">' + icon("check") + "Done</span>" : opts.coachTick ? '<button class="btn sm ghost" data-act="coachquick">Done</button>' : "") + "</div></div>";
+    h += '<div class="lbl">Logged today</div><div>' + (s.logs.length ? s.logs.slice().reverse().map(function (l, i) { return logRow(l, i === 0 && s.fresh); }).join("") : '<div class="empty">Nothing logged yet today.</div>') + "</div></div>";
+    if (!opts.noFoot) h += '<div class="foot"><button class="btn" data-act="open">' + icon("plus") + "Log activity</button></div>";
+    return h;
+  }
+  function sheet(s, title, sub, body, foot, opts) {
+    opts = opts || {};
+    return '<div class="scrim on' + (s.leaving ? " leave" : "") + '" data-act="close"></div><div class="sheet' + (s.enter ? " enter" : "") + (s.leaving ? " leave" : "") + '"' + (opts.h ? ' style="height:' + opts.h + '"' : "") + '>' +
+      '<div class="sh-h">' + (opts.back ? '<button class="bk" data-act="' + opts.back + '" aria-label="Change activity" style="width:34px;height:34px">' + icon("chevron-left") + "</button>" : "") + '<div class="t"><h5>' + title + "</h5>" + (sub ? '<div class="s">' + sub + "</div>" : "") + '</div><button class="x" data-act="close" aria-label="Close">' + icon("x") + "</button></div>" +
+      '<div class="sh-b' + (s.fade ? " fade" : "") + '">' + body + "</div>" + (foot ? '<div class="sh-f">' + foot + "</div>" : "") + "</div>";
+  }
+  function durHTML(s) {
+    return '<div class="grp"><div class="h"><b>How long?</b></div><div class="durv"><button class="rb" data-hold="-5" aria-label="5 minutes less">' + icon("minus") + '</button><div class="v" data-bind="min">' + s.min + '<small>min</small></div><button class="rb" data-hold="5" aria-label="5 minutes more">' + icon("plus") + '</button></div><div class="chips d6">' +
+      DCH.map(function (d) { return '<button class="chip' + (d === s.min ? " on" : "") + '" data-act="dur" data-v="' + d + '">' + d + "</button>"; }).join("") + "</div></div>";
+  }
+  function effHTML(s) { return '<div class="grp"><div class="h"><b>How hard was it?</b></div>' + effCards(s.eff).replace(/data-e=/g, 'data-act="eff" data-e=') + "</div>"; }
+  function whenHTML(s) {
+    return '<div class="grp"><div class="h"><b>When?</b><span>' + whenText(s) + '</span></div><div class="chips w2">' + WHEN.map(function (w) { return '<button class="chip' + (w.id === s.when ? " on" : "") + '" data-act="when" data-w="' + w.id + '">' + w.l + "</button>"; }).join("") + "</div>" +
+      (s.when === "pick" ? '<div class="tstep"><button class="rb" data-act="at" data-t="-15" aria-label="Earlier">' + icon("minus") + "</button><b>Today, " + hm(s.at) + '</b><button class="rb" data-act="at" data-t="15" aria-label="Later">' + icon("plus") + "</button></div>" : "") + "</div>";
+  }
+  function kcalHTML(s) { return '<div class="kcal">About <b>' + kcal(s.a, s.min, s.eff) + " kcal</b> burnt</div>"; }
+  function toastHTML(s) { return s.toast ? '<div class="toast">' + icon("circle-check") + "<span>" + s.toast + '</span><button data-act="undo">Undo</button></div>' : ""; }
+
+  /* A flow = state + render + act. The shell handles taps, hold, toasts, reset. */
+  function makeFlow(def) {
+    var card = document.createElement("div");
+    card.className = "fc" + (def.rec ? " rec" : "");
+    card.innerHTML = '<div class="top"><b>' + def.code + '</b><span class="taps">' + icon("pointer") + '<span class="tn">0 taps</span></span></div><div class="phone"><div class="screen S"></div></div><button class="reset">Start again</button>' +
+      '<div class="meta"><h4>' + def.title + (def.tag ? ' <span class="tag ' + def.tagc + '">' + def.tag + "</span>" : "") + "</h4><p>" + def.desc + "</p><ul>" + def.points.map(function (p) { return "<li>" + p + "</li>"; }).join("") + '</ul><div class="tryit">' + def.tryit + "</div>" + pickBtn("flow-" + def.id, "Flow " + def.code.replace("Flow ", "") + ": " + def.title) + "</div>";
+    document.getElementById("flowgrid").appendChild(card);
+    var scr = card.querySelector(".screen"), tn = card.querySelector(".tn"), tp = card.querySelector(".taps");
+    var F = { s: null, taps: 0, timer: null };
+    F.set = function (patch) { Object.keys(patch).forEach(function (k) { F.s[k] = patch[k]; }); F.render(); };
+    F.render = function () { scr.innerHTML = def.render(F.s, F); paint(); F.s.enter = false; F.s.fade = false; F.s.fresh = false; };
+    F.reset = function () { clearTimeout(F.timer); F.taps = 0; tn.textContent = "0 taps"; tp.classList.remove("hit"); F.s = def.init(); F.render(); };
+    F.logged = function (entry, msg) {
+      F.s.logs = F.s.logs.concat([entry]); F.s.lastLog = entry; F.s.fresh = true;
+      F.s.toast = msg; tp.classList.add("hit"); tn.textContent = F.taps + (F.taps === 1 ? " tap" : " taps") + " to log";
+      clearTimeout(F.timer); F.timer = setTimeout(function () { F.s.toast = null; F.render(); }, 5000);
+    };
+    F.closeSheet = function (after) {
+      var sh = scr.querySelector(".sheet"), sc = scr.querySelector(".scrim");
+      if (sh) { sh.classList.remove("enter"); sh.classList.add("leave"); }
+      if (sc) sc.classList.add("leave");
+      setTimeout(function () { if (after) after(); F.render(); }, 300);
+    };
+    F.entry = function (s) { return { a: s.a, m: s.min, e: s.eff, w: whenShort(s) }; };
+    scr.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-act]"); if (!b || !scr.contains(b)) return;
+      var act = b.dataset.act;
+      if (act !== "close" || b.classList.contains("x")) { F.taps++; if (!tp.classList.contains("hit")) tn.textContent = F.taps + (F.taps === 1 ? " tap" : " taps"); }
+      if (act === "undo") {
+        clearTimeout(F.timer); var l = F.s.lastLog; F.s.logs = F.s.logs.filter(function (x) { return x !== l; }); F.s.toast = null; F.render(); return;
+      }
+      def.act(act, b, F.s, F);
+    });
+    holdable(scr, function (d, rep) {
+      if (!rep) { F.taps++; tn.textContent = F.taps + (F.taps === 1 ? " tap" : " taps"); }
+      F.s.min = clampMin(F.s.min + d);
+      if (F.s.when === "pick") F.s.at = Math.min(F.s.at, NOWM - F.s.min);
+      F.render();
+    });
+    card.querySelector(".reset").addEventListener("click", F.reset);
+    F.reset();
+    return F;
+  }
+  function base() { return { logs: [], sheet: null, a: "walk", min: 30, eff: "mod", when: "now", at: 12 * 60, toast: null }; }
+  function choose(s, id) { s.a = id; var r = RECENT.filter(function (x) { return x.a === id; })[0]; s.min = r ? r.m : 30; s.eff = r ? r.e : (id === "yoga" ? "easy" : "mod"); s.when = "now"; }
+  function sharedAct(act, b, s) {
+    if (act === "dur") { s.min = +b.dataset.v; return true; }
+    if (act === "eff") { s.eff = b.dataset.e; return true; }
+    if (act === "when") { s.when = b.dataset.w; if (s.when === "pick") s.at = Math.min(12 * 60, NOWM - s.min); return true; }
+    if (act === "at") { s.at = Math.min(NOWM - s.min, Math.max(5 * 60, s.at + +b.dataset.t)); return true; }
+    return false;
+  }
+  function recentRows(plus) {
+    return RECENT.map(function (r) {
+      var a = ACT[r.a];
+      return '<div class="row"><span class="ico">' + icon(a.ic) + '</span><span class="t"><b>' + a.n + "</b><span>" + r.m + " min · " + effOf(r.e).l + " · " + r.d + "</span></span>" +
+        (plus ? '<button class="plus" data-act="again" data-a="' + r.a + '" aria-label="Log ' + a.n + ' again">' + icon("plus") + "</button>" : "") + "</div>";
+    }).join("");
+  }
+  function tiles() { return '<div class="grid4">' + GRID.map(function (id) { return '<button class="tile" data-act="pick" data-a="' + id + '"><span class="ico">' + icon(ACT[id].ic) + "</span><span>" + ACT[id].n + "</span></button>"; }).join("") + "</div>"; }
+
+  /* ---------- Today (baseline) ---------- */
+  makeFlow({
+    id: "today", code: "Today", title: "Today's flow", tag: "Baseline", tagc: "ok",
+    desc: "A full-screen list, then a full-screen How long with a stepper. Effort and When each open one more sheet on top.",
+    points: ["<b>Good:</b> one decision per screen, calm layout.", "<b>Costs:</b> effort and time are hidden behind rows (recall over recognition), a sheet on a sheet, no recents, 30 to 45 min is three taps."],
+    tryit: "Try: yoga, 45 min, easy, this morning. Count the taps.",
+    init: function () { var s = base(); s.view = "home"; return s; },
+    render: function (s) {
+      if (s.view === "home") return moveHome(s) + toastHTML(s);
+      if (s.view === "list") {
+        return sb() + '<div class="hdr"><button class="bk" data-act="home" aria-label="Back">' + icon("chevron-left") + '</button><div class="t" style="text-align:center"><b style="font-size:17px">What did you do?</b></div><span style="width:40px"></span></div><div class="pg"><div class="search">' + icon("search") + "Search activities</div>" +
+          '<div class="lbl">Common</div><div>' + ["walk", "brisk", "yoga", "cycle", "strength", "dance", "swim"].map(function (id) { return '<button class="listrow" data-act="pick" data-a="' + id + '"><span class="ico">' + icon(ACT[id].ic) + "</span><b>" + ACT[id].n + '</b><i data-lucide="chevron-right" class="chev"></i></button>'; }).join("") + "</div></div>";
+      }
+      var sub = "";
+      if (s.sub === "eff") sub = sheet(s, "How hard was it?", "", '<div class="opts">' + EFF.map(function (e) { return '<button class="opt" data-act="effpick" data-e="' + e.id + '"><span>' + e.l + "<small>" + e.h + "</small></span>" + (e.id === s.eff ? icon("check") : "") + "</button>"; }).join("") + "</div>", "");
+      if (s.sub === "time") sub = sheet(s, "When did you do it?", "", '<div class="opts">' + [["now", "Just now"], ["morn", "This morning, 7:00 AM"], ["yday", "Yesterday, 6:00 PM"]].map(function (w) { return '<button class="opt" data-act="timepick" data-w="' + w[0] + '"><span>' + w[1] + "</span>" + (w[0] === s.when ? icon("check") : "") + "</button>"; }).join("") + "</div>", "");
+      return sb() + '<div class="hdr"><button class="bk" data-act="list" aria-label="Back">' + icon("chevron-left") + '</button><div class="t" style="text-align:center"><b style="font-size:17px">How long?</b></div><span style="width:40px"></span></div><div class="pg">' +
+        '<div class="card" style="background:var(--gray-50);text-align:center;padding:20px 16px"><b style="font-size:18px">' + ACT[s.a].n + '</b><div class="stp" style="margin:12px 0 8px"><button class="rb" data-hold="-5" aria-label="5 minutes less">' + icon("minus") + '</button><div class="big">' + s.min + '<small>min</small></div><button class="rb" data-hold="5" aria-label="5 minutes more">' + icon("plus") + "</button></div>" + kcalHTML(s) + "</div>" +
+        '<button class="card frow" data-act="effrow" style="border:1px solid var(--gray-200);padding:16px"><span class="k">Effort</span><b>' + effOf(s.eff).l + "</b>" + icon("chevron-right") + "</button>" +
+        '<button class="card frow" data-act="timerow" style="border:1px solid var(--gray-200);padding:16px"><span class="k">When</span><b>' + (s.when === "now" ? "1:30 PM" : s.when === "morn" ? "7:00 AM" : "Yesterday") + "</b>" + icon("chevron-right") + "</button>" +
+        '<button class="lnk" data-act="list" style="text-align:center;color:var(--gray-500)">Pick a different activity</button></div><div class="foot"><button class="btn" data-act="log">Log workout</button></div>' + sub;
+    },
+    act: function (act, b, s, F) {
+      if (act === "open") return F.set({ view: "list" });
+      if (act === "home") return F.set({ view: "home" });
+      if (act === "list") return F.set({ view: "list", sub: null });
+      if (act === "pick") { s.a = b.dataset.a; s.min = 30; s.eff = "mod"; s.when = "now"; return F.set({ view: "detail" }); }
+      if (act === "effrow") return F.set({ sub: "eff", enter: true });
+      if (act === "timerow") return F.set({ sub: "time", enter: true });
+      if (act === "effpick") { s.eff = b.dataset.e; return F.closeSheet(function () { s.sub = null; }); }
+      if (act === "timepick") { s.when = b.dataset.w; return F.closeSheet(function () { s.sub = null; }); }
+      if (act === "close") return F.closeSheet(function () { s.sub = null; });
+      if (act === "log") { F.logged(F.entry(s), ACT[s.a].n + " logged · " + s.min + " min"); return F.set({ view: "home" }); }
+    }
+  });
+
+  /* ---------- A: one sheet, memory first (recommended) ---------- */
+  makeFlow({
+    id: "a", code: "Flow A", title: "One sheet, memory first", tag: "Recommended", tagc: "rec", rec: true,
+    desc: "One sheet over the Move screen. It opens on what you are most likely to log: the coach's plan, your recent activities, eight common ones. Picking one turns the same sheet into its details, all visible and already filled in.",
+    points: ["<b>Walk 30 min:</b> Log activity, Walking, Log walk. 3 taps.", "<b>Repeat:</b> the plus on a recent row logs it with its own duration and effort, with Undo. 2 taps.", "<b>Details on one surface:</b> chips and stepper, three effort cards, parts of the day. No sheet on a sheet.", "The button says what it logs, and the calories move as you change things."],
+    tryit: "Try the plus beside Walking, then Undo. Then Yoga, 45, Easy, This morning.",
+    init: function () { var s = base(); s.sheet = null; return s; },
+    render: function (s) {
+      var h = moveHome(s);
+      if (s.sheet === "pick") {
+        h += sheet(s, "Log an activity", "", '<div class="coach"><div class="row"><span class="ico c">' + icon("clipboard-check") + '</span><span class="t"><b>Starter mobility plan</b><span>From your coach · 20 min · Easy</span></span><button class="btn sm" data-act="coach">I did this</button></div></div>' +
+          '<div class="grp"><div class="h"><b>Do it again</b><span>Same time and effort</span></div>' + recentRows(true) + "</div>" +
+          '<div class="grp"><div class="h"><b>Or pick one</b></div><div class="search">' + icon("search") + "Search 40+ activities</div>" + tiles() + "</div>", "");
+      } else if (s.sheet === "detail") {
+        h += sheet(s, ACT[s.a].n, '<button class="lnk" data-act="change" style="padding:0;font-size:13px">Change activity</button>', durHTML(s) + effHTML(s) + whenHTML(s), kcalHTML(s) + '<button class="btn" data-act="log">' + ACT[s.a].cta + "</button>");
+      }
+      return h + toastHTML(s);
+    },
+    act: function (act, b, s, F) {
+      if (act === "open") return F.set({ sheet: "pick", enter: true });
+      if (act === "close") return F.closeSheet(function () { s.sheet = null; });
+      if (act === "pick") { choose(s, b.dataset.a); return F.set({ sheet: "detail", fade: true }); }
+      if (act === "change") return F.set({ sheet: "pick", fade: true });
+      if (act === "again") { var r = RECENT.filter(function (x) { return x.a === b.dataset.a; })[0]; F.logged({ a: r.a, m: r.m, e: r.e, w: "just now" }, ACT[r.a].n + " logged · " + r.m + " min"); return F.closeSheet(function () { s.sheet = null; }); }
+      if (act === "coach") { F.logged({ a: "routine", m: 20, e: "easy", w: "just now" }, "Coach plan logged · 20 min"); return F.closeSheet(function () { s.sheet = null; }); }
+      if (act === "log") { F.logged(F.entry(s), ACT[s.a].n + " logged · " + s.min + " min"); return F.closeSheet(function () { s.sheet = null; }); }
+      if (sharedAct(act, b, s)) F.render();
+    }
+  });
+
+  /* ---------- B: today's two screens, fixed ---------- */
+  makeFlow({
+    id: "b", code: "Flow B", title: "Today's two screens, fixed", tag: "Cheapest", tagc: "ok",
+    desc: "Keep today's structure, fix what costs taps. The list gains the coach's plan and recents. How long gains chips, and effort and time come out from behind their rows.",
+    points: ["<b>Walk 30 min:</b> 3 taps, same as today.", "<b>Yoga 45, easy, morning:</b> 5 taps instead of 10.", "<b>Gives up:</b> the Move screen behind (full-screen jump), and one-tap repeat."],
+    tryit: "Try: a recent row fills its own duration and effort.",
+    init: function () { var s = base(); s.view = "home"; return s; },
+    render: function (s) {
+      if (s.view === "home") return moveHome(s) + toastHTML(s);
+      if (s.view === "list") {
+        return sb() + '<div class="hdr"><button class="bk" data-act="home" aria-label="Back">' + icon("chevron-left") + '</button><div class="t" style="text-align:center"><b style="font-size:17px">What did you do?</b></div><span style="width:40px"></span></div><div class="pg" style="gap:12px"><div class="search">' + icon("search") + "Search 40+ activities</div>" +
+          '<button class="listrow coach" data-act="coachpick" style="border:1px solid var(--gold-200);padding:12px 14px"><span class="ico c">' + icon("clipboard-check") + '</span><b>Your coach\'s plan<br><span style="font-size:13px;font-weight:400;color:var(--gold-900)">Starter mobility plan · 20 min</span></b><i data-lucide="chevron-right" class="chev"></i></button>' +
+          '<div class="lbl">Recent</div><div>' + RECENT.map(function (r) { return '<button class="listrow" data-act="recent" data-a="' + r.a + '"><span class="ico">' + icon(ACT[r.a].ic) + "</span><b>" + ACT[r.a].n + '<br><span style="font-size:13px;font-weight:400;color:var(--gray-500)">' + r.m + " min · " + effOf(r.e).l + " · " + r.d + '</span></b><i data-lucide="chevron-right" class="chev"></i></button>'; }).join("") + "</div>" +
+          '<div class="lbl">Common</div><div>' + ["walk", "yoga", "cycle", "strength", "dance"].map(function (id) { return '<button class="listrow" data-act="pick" data-a="' + id + '"><span class="ico">' + icon(ACT[id].ic) + "</span><b>" + ACT[id].n + '</b><i data-lucide="chevron-right" class="chev"></i></button>'; }).join("") + "</div></div>";
+      }
+      return sb() + '<div class="hdr"><button class="bk" data-act="list" aria-label="Back">' + icon("chevron-left") + '</button><div class="t" style="text-align:center"><b style="font-size:17px">' + ACT[s.a].n + '</b></div><span style="width:40px"></span></div><div class="pg" style="gap:18px;padding-bottom:140px;height:700px;overflow:auto;scrollbar-width:none">' +
+        durHTML(s) + effHTML(s) + whenHTML(s) + '</div><div class="foot" style="padding-top:6px">' + kcalHTML(s) + '<button class="btn" data-act="log" style="margin-top:8px">' + ACT[s.a].cta + "</button></div>";
+    },
+    act: function (act, b, s, F) {
+      if (act === "open") return F.set({ view: "list" });
+      if (act === "home") return F.set({ view: "home" });
+      if (act === "list") return F.set({ view: "list" });
+      if (act === "pick" || act === "recent") { choose(s, b.dataset.a); return F.set({ view: "detail" }); }
+      if (act === "coachpick") { s.a = "routine"; s.min = 20; s.eff = "easy"; s.when = "now"; return F.set({ view: "detail" }); }
+      if (act === "log") { F.logged(F.entry(s), ACT[s.a].n + " logged · " + s.min + " min"); return F.set({ view: "home" }); }
+      if (sharedAct(act, b, s)) F.render();
+    }
+  });
+
+  /* ---------- C: the sentence ---------- */
+  makeFlow({
+    id: "c", code: "Flow C", title: "Say it as a sentence", tag: "Creative", tagc: "ok",
+    desc: "The sheet opens on a sentence already filled with your usual: \"I walked for 30 min, moderately, just now.\" Each underlined part is a choice that opens right below it.",
+    points: ["<b>Walk 30 min:</b> Log activity, Log walk. 2 taps.", "<b>Reads like speech</b> (match with the real world), and later works for voice and Hindi.", "<b>Costs:</b> each change is two taps, the parts must look clearly tappable, and screen readers read it as broken text."],
+    tryit: "Tap \"walked\" and pick Yoga, then tap \"30 min\".",
+    init: function () { var s = base(); s.sheet = null; s.open = null; return s; },
+    render: function (s) {
+      var h = moveHome(s);
+      if (s.sheet) {
+        var tok = function (k, label) { return '<button class="tok' + (s.open === k ? " on" : "") + '" data-act="tok" data-k="' + k + '">' + label + icon("chevron-down") + "</button>"; };
+        var effw = { easy: "gently", mod: "moderately", hard: "hard" }[s.eff];
+        var body = '<div class="sent">I ' + tok("a", ACT[s.a].v) + " for " + tok("min", s.min + " min") + ", " + tok("eff", effw) + ", " + tok("when", whenShort(s)) + ".</div>";
+        if (s.open === "a") body += '<div class="panel"><div class="h">What did you do?</div><div class="coach" style="padding:10px 12px"><div class="row"><span class="ico c" style="width:38px;height:38px">' + icon("clipboard-check") + '</span><span class="t"><b style="font-size:15px">Coach\'s plan</b><span>20 min · Easy</span></span><button class="btn sm" data-act="cpick">Choose</button></div></div>' + tiles() + "</div>";
+        if (s.open === "min") body += '<div class="panel">' + durHTML(s).replace('<div class="h"><b>How long?</b></div>', "") + "</div>";
+        if (s.open === "eff") body += '<div class="panel">' + effHTML(s).replace('<div class="h"><b>How hard was it?</b></div>', "") + "</div>";
+        if (s.open === "when") body += '<div class="panel">' + whenHTML(s) + "</div>";
+        h += sheet(s, "Log an activity", "Tap any underlined part to change it", body, kcalHTML(s) + '<button class="btn" data-act="log">' + ACT[s.a].cta + "</button>");
+      }
+      return h + toastHTML(s);
+    },
+    act: function (act, b, s, F) {
+      if (act === "open") { var r = s.lastLog || { a: "walk", m: 30, e: "mod" }; s.a = r.a; s.min = r.m; s.eff = r.e; s.when = "now"; return F.set({ sheet: true, open: null, enter: true }); }
+      if (act === "close") return F.closeSheet(function () { s.sheet = null; });
+      if (act === "tok") { s.open = s.open === b.dataset.k ? null : b.dataset.k; return F.render(); }
+      if (act === "pick") { choose(s, b.dataset.a); s.open = null; return F.render(); }
+      if (act === "cpick") { s.a = "routine"; s.min = 20; s.eff = "easy"; s.open = null; return F.render(); }
+      if (act === "log") { F.logged(F.entry(s), ACT[s.a].n + " logged · " + s.min + " min"); return F.closeSheet(function () { s.sheet = null; }); }
+      if (sharedAct(act, b, s)) { if (act === "dur" || act === "eff") s.open = null; F.render(); }
+    }
+  });
+
+  /* ---------- D: ask on the Move screen ---------- */
+  makeFlow({
+    id: "d", code: "Flow D", title: "Ask on the Move screen", tag: "Fastest", tagc: "ok",
+    desc: "A card asks about the activity this person logs most: \"Walked today?\" with 15, 30 and 45 min. One tap logs it, with Undo and a way to change the details. Anything else opens flow A.",
+    points: ["<b>Walk 30 min, repeat, coach plan:</b> 1 tap each.", "<b>Best as an add-on</b> to A, not instead of it: it only knows the usual activity.", "<b>Must:</b> show Undo every time, and stop asking once today's walk is logged."],
+    tryit: "Tap 30 min on the card, then Undo. Try Done on the coach card.",
+    init: function () { var s = base(); s.sheet = null; return s; },
+    render: function (s) {
+      var h = moveHome(s, { prompt: true, coachTick: true });
+      if (s.sheet === "pick") h += sheet(s, "Log an activity", "", '<div class="grp"><div class="h"><b>Do it again</b><span>Same time and effort</span></div>' + recentRows(true) + '</div><div class="grp"><div class="h"><b>Or pick one</b></div><div class="search">' + icon("search") + "Search 40+ activities</div>" + tiles() + "</div>", "");
+      else if (s.sheet === "detail") h += sheet(s, ACT[s.a].n, '<button class="lnk" data-act="change" style="padding:0;font-size:13px">Change activity</button>', durHTML(s) + effHTML(s) + whenHTML(s), kcalHTML(s) + '<button class="btn" data-act="log">' + ACT[s.a].cta + "</button>");
+      return h + toastHTML(s);
+    },
+    act: function (act, b, s, F) {
+      if (act === "quick") { F.logged({ a: "walk", m: +b.dataset.m, e: "mod", w: "just now" }, "Walk logged · " + b.dataset.m + " min"); s.promptGone = true; return F.render(); }
+      if (act === "coachquick") { F.logged({ a: "routine", m: 20, e: "easy", w: "just now" }, "Coach plan logged · 20 min"); return F.render(); }
+      if (act === "open") return F.set({ sheet: "pick", enter: true });
+      if (act === "close") return F.closeSheet(function () { s.sheet = null; });
+      if (act === "pick") { choose(s, b.dataset.a); return F.set({ sheet: "detail", fade: true }); }
+      if (act === "change") return F.set({ sheet: "pick", fade: true });
+      if (act === "again") { var r = RECENT.filter(function (x) { return x.a === b.dataset.a; })[0]; F.logged({ a: r.a, m: r.m, e: r.e, w: "just now" }, ACT[r.a].n + " logged · " + r.m + " min"); return F.closeSheet(function () { s.sheet = null; }); }
+      if (act === "log") { F.logged(F.entry(s), ACT[s.a].n + " logged · " + s.min + " min"); return F.closeSheet(function () { s.sheet = null; }); }
+      if (sharedAct(act, b, s)) F.render();
+    }
+  });
+
+  /* ---------- E: filled-in form (market standard) ---------- */
+  makeFlow({
+    id: "e", code: "Flow E", title: "Filled-in form, like Oura", tag: "Market standard", tagc: "ok",
+    desc: "A sheet with four rows: activity to choose, then start, duration and effort already filled. Each row opens a wheel or list under it. Familiar from Oura and Fitbit.",
+    points: ["<b>Walk 30 min:</b> Log activity, Activity, Walking, Save. 4 taps.", "<b>Costs:</b> every value hides in a row until opened (recognition suffers), and wheels everywhere are hard for older hands.", "Worth knowing because many users will have seen it."],
+    tryit: "Try changing the duration on the wheel.",
+    init: function () { var s = base(); s.sheet = null; s.row = null; s.a = null; return s; },
+    render: function (s) {
+      var h = moveHome(s);
+      if (s.sheet) {
+        var r = function (k, label, val) { return '<button class="frow' + (s.row === k ? " open" : "") + '" data-act="row" data-k="' + k + '"><span class="k">' + label + "</span><b>" + val + "</b>" + icon("chevron-right") + "</button>"; };
+        var body = '<div style="display:flex;flex-direction:column">' + r("a", "Activity", s.a ? ACT[s.a].n : '<span style="color:var(--brand-700)">Choose</span>');
+        if (s.row === "a") body += '<div class="opts">' + RECENT.map(function (x) { return x.a; }).concat(["cycle", "strength"]).map(function (id) { return '<button class="opt" data-act="epick" data-a="' + id + '"><span>' + ACT[id].n + "</span>" + (s.a === id ? icon("check") : "") + "</button>"; }).join("") + "</div>";
+        body += r("start", "Started", s.when === "now" ? "Today, " + hm(NOWM - s.min) : s.when === "morn" ? "Today, 7:00 AM" : "Yesterday, 6:00 PM");
+        if (s.row === "start") body += '<div class="opts">' + [["now", "Today, " + hm(NOWM - s.min)], ["morn", "Today, 7:00 AM"], ["yday", "Yesterday, 6:00 PM"]].map(function (w) { return '<button class="opt" data-act="ewhen" data-w="' + w[0] + '"><span>' + w[1] + "</span>" + (s.when === w[0] ? icon("check") : "") + "</button>"; }).join("") + "</div>";
+        body += r("min", "Duration", '<span data-bind="min2">' + s.min + " min</span>");
+        if (s.row === "min") { var vals = []; for (var i = 5; i <= 240; i += 5) vals.push(i); body += '<div class="wheelbox" style="width:100%;margin:6px 0"><div class="wheel ewheel"><div class="pad"></div><div class="pad"></div>' + vals.map(function (x) { return "<div>" + x + "</div>"; }).join("") + '<div class="pad"></div><div class="pad"></div></div><span class="u" style="right:30%">min</span></div>'; }
+        body += r("eff", "Effort", effOf(s.eff).l);
+        if (s.row === "eff") body += '<div class="opts">' + EFF.map(function (e) { return '<button class="opt" data-act="eeff" data-e="' + e.id + '"><span>' + e.l + "<small>" + e.h + "</small></span>" + (s.eff === e.id ? icon("check") : "") + "</button>"; }).join("") + "</div>";
+        body += "</div>";
+        h += sheet(s, "Add an activity", "", body, (s.a ? '<div class="kcal" data-bind="k">About <b>' + kcal(s.a, s.min, s.eff) + " kcal</b> burnt</div>" : "") + '<button class="btn" data-act="save"' + (s.a ? "" : ' disabled style="opacity:.45"') + ">Save</button>", { h: "82%" });
+      }
+      return h + toastHTML(s);
+    },
+    act: function (act, b, s, F) {
+      if (act === "open") { s.a = null; s.min = 30; s.eff = "mod"; s.when = "now"; return F.set({ sheet: true, row: null, enter: true }); }
+      if (act === "close") return F.closeSheet(function () { s.sheet = null; });
+      if (act === "row") { s.row = s.row === b.dataset.k ? null : b.dataset.k; F.render(); if (s.row === "min") wireWheel(); return; }
+      if (act === "epick") { s.a = b.dataset.a; s.row = null; return F.render(); }
+      if (act === "ewhen") { s.when = b.dataset.w; s.row = null; return F.render(); }
+      if (act === "eeff") { s.eff = b.dataset.e; s.row = null; return F.render(); }
+      if (act === "save") { if (!s.a) return; F.logged(F.entry(s), ACT[s.a].n + " logged · " + s.min + " min"); return F.closeSheet(function () { s.sheet = null; }); }
+      function wireWheel() {
+        var w = document.querySelector("#flowgrid .fc:last-child .ewheel"); if (!w) return;
+        w.scrollTop = (s.min / 5 - 1) * 40;
+        var to = null;
+        w.addEventListener("scroll", function () { clearTimeout(to); to = setTimeout(function () {
+          s.min = clampMin((Math.round(w.scrollTop / 40) + 1) * 5);
+          var m = w.closest(".sheet").querySelector('[data-bind="min2"]'); if (m) m.textContent = s.min + " min";
+          var k = w.closest(".sheet").querySelector('[data-bind="k"]'); if (k && s.a) k.innerHTML = "About <b>" + kcal(s.a, s.min, s.eff) + " kcal</b> burnt";
+        }, 90); });
+      }
+    }
+  });
+
+  renderPicks(); syncPickBtns(); paint();
+})();
+</script>
+<script>
+/* 08 wheel-first screen: self-contained */
+(function () {
+  "use strict";
+  var ACTS = [
+    { id: "walk", n: "Walking", s: "walk", met: 4.3, ic: "footprints" },
+    { id: "brisk", n: "Brisk walk", s: "brisk walk", met: 5.0, ic: "footprints" },
+    { id: "yoga", n: "Yoga", s: "yoga", met: 3.0, ic: "flower-2" },
+    { id: "cycle", n: "Cycling", s: "cycling", met: 7.5, ic: "bike" },
+    { id: "strength", n: "Strength", s: "strength", met: 5.0, ic: "dumbbell" },
+    { id: "dance", n: "Dancing", s: "dancing", met: 5.0, ic: "music" },
+    { id: "swim", n: "Swimming", s: "swim", met: 7.0, ic: "waves" },
+    { id: "surya", n: "Surya namaskar", s: "surya namaskar", met: 4.5, ic: "sun" }
+  ];
+  var EFF = [
+    { id: "easy", n: "Easy", h: "Could chat or sing", f: 0.8 },
+    { id: "mod", n: "Moderate", h: "Could talk, not sing", f: 1.0 },
+    { id: "hard", n: "Hard", h: "Only a few words", f: 1.25 }
+  ];
+  var WHEN = [{ id: "now", n: "Just now" }, { id: "morn", n: "This morning" }, { id: "yday", n: "Yesterday" }];
+  var MINS = []; for (var i = 5; i <= 180; i += 5) MINS.push(i);
+  var H = 72, scr = document.getElementById("wlscr"), st;
+  function by(a, id) { return a.filter(function (x) { return x.id === id; })[0]; }
+  function ic(n) { return '<i data-lucide="' + n + '"></i>'; }
+  function kcal() { return Math.round(by(ACTS, st.a).met * by(EFF, st.e).f * 3.5 * 74.2 / 200 * st.m); }
+
+  function build() {
+    st = { a: "walk", m: 30, e: "mod", w: "now", logged: false };
+    scr.innerHTML =
+      '<div class="W">' +
+        '<div class="sb"><span>9:41</span><span class="r"><i></i></span></div>' +
+        '<div class="hd"><button class="ib" aria-label="Back">' + ic("arrow-left") + '</button><b>Log exercise</b></div>' +
+        '<div class="ask">How long?</div>' +
+        '<div class="wh" tabindex="0" role="slider" aria-label="Duration in minutes" aria-valuemin="5" aria-valuemax="180"><div class="ws">' +
+          '<div style="height:calc(50% - 36px)"></div>' +
+          MINS.map(function (m) { return '<div class="it" data-m="' + m + '"><b>' + m + "</b><span>min</span></div>"; }).join("") +
+          '<div style="height:calc(50% - 36px)"></div>' +
+        "</div></div>" +
+        '<div class="kc" aria-live="polite"></div>' +
+        '<div class="cards">' +
+          '<button class="cd" data-open="a"><small>Exercise</small><span data-v="a"></span></button>' +
+          '<button class="cd" data-open="e"><small>Effort</small><span data-v="e"></span></button>' +
+          '<button class="cd" data-open="w"><small>When</small><span data-v="w"></span></button>' +
+        "</div>" +
+        '<div class="ft"><button class="cta"></button><button class="undo">Undo</button></div>' +
+        '<div class="scrim"></div><div class="sh" role="dialog" aria-modal="true"><div class="top"><b></b><button class="x" aria-label="Close">' + ic("x") + '</button></div><div class="body"></div></div>' +
+      "</div>";
+    var W = scr.firstChild, ws = W.querySelector(".ws"), wh = W.querySelector(".wh"), its = [].slice.call(W.querySelectorAll(".it")), raf = 0;
+
+    function draw() {
+      var a = by(ACTS, st.a);
+      W.querySelector('[data-v="a"]').innerHTML = ic(a.ic) + a.n;
+      W.querySelector('[data-v="e"]').textContent = by(EFF, st.e).n;
+      W.querySelector('[data-v="w"]').textContent = by(WHEN, st.w).n;
+      W.querySelector(".kc").innerHTML = "About <b>" + kcal() + " kcal</b> burnt";
+      var c = W.querySelector(".cta");
+      c.className = "cta" + (st.logged ? " done" : "");
+      c.innerHTML = st.logged ? ic("circle-check") + st.m + " min " + a.s + " logged" : "Log " + a.s;
+      W.querySelector(".undo").classList.toggle("on", st.logged);
+      wh.setAttribute("aria-valuenow", st.m); wh.setAttribute("aria-valuetext", st.m + " minutes");
+      if (window.lucide) lucide.createIcons();
+    }
+    // ponytail: transforms per item on every scroll frame; 36 items, cheap enough
+    function shade() {
+      raf = 0;
+      var mid = ws.scrollTop + ws.clientHeight / 2, idx = Math.max(0, Math.min(MINS.length - 1, Math.round((ws.scrollTop) / H)));
+      its.forEach(function (el, k) {
+        var d = Math.abs(el.offsetTop + H / 2 - mid) / H;
+        el.style.transform = "scale(" + Math.max(.55, 1 - d * .16) + ")";
+        el.style.opacity = Math.max(.12, 1 - d * .3);
+        el.classList.toggle("on", k === idx);
+      });
+      if (MINS[idx] !== st.m) { st.m = MINS[idx]; if (st.logged) st.logged = false; draw(); }
+    }
+    ws.addEventListener("scroll", function () { if (!raf) raf = requestAnimationFrame(shade); }, { passive: true });
+    function go(m, smooth) { ws.scrollTo({ top: MINS.indexOf(m) * H, behavior: smooth ? "smooth" : "auto" }); }
+    ws.addEventListener("click", function (e) { var it = e.target.closest(".it"); if (it) go(+it.dataset.m, true); });
+    wh.addEventListener("keydown", function (e) {
+      var k = MINS.indexOf(st.m), n = e.key === "ArrowUp" || e.key === "ArrowLeft" ? k - 1 : e.key === "ArrowDown" || e.key === "ArrowRight" ? k + 1 : null;
+      if (n === null) return; e.preventDefault(); go(MINS[Math.max(0, Math.min(MINS.length - 1, n))], true);
+    });
+
+    var sheets = {
+      a: { t: "Exercise", list: function () { return '<div class="lb">Recent</div>' + row("a", ACTS[0], "30 min yesterday") + row("a", ACTS[2], "20 min on Monday") + '<div class="lb">All</div>' + ACTS.slice(1).filter(function (x) { return x.id !== "yoga"; }).map(function (x) { return row("a", x); }).join(""); } },
+      e: { t: "How hard was it?", list: function () { return EFF.map(function (x) { return row("e", x, x.h); }).join(""); } },
+      w: { t: "When?", list: function () { return WHEN.map(function (x) { return row("w", x); }).join(""); } }
+    };
+    function row(k, x, sub) {
+      return '<button class="row' + (st[k] === x.id ? " on" : "") + '" data-k="' + k + '" data-id="' + x.id + '">' + (x.ic ? '<span class="ic">' + ic(x.ic) + "</span>" : "") +
+        "<span>" + x.n + (sub ? "<small>" + sub + "</small>" : "") + "</span>" + (st[k] === x.id ? ic("check") .replace("<i ", '<i class="ck" ') : "") + "</button>";
+    }
+    function open(k) {
+      W.querySelector(".sh .top b").textContent = sheets[k].t;
+      W.querySelector(".sh .body").innerHTML = sheets[k].list();
+      if (window.lucide) lucide.createIcons();
+      W.classList.add("open"); W.querySelector(".x").focus({ preventScroll: true });
+    }
+    function close() { W.classList.remove("open"); }
+    W.addEventListener("click", function (e) {
+      var t = e.target;
+      if (t.closest("[data-open]")) return open(t.closest("[data-open]").dataset.open);
+      if (t.closest(".x") || t.closest(".scrim")) return close();
+      var r = t.closest(".row");
+      if (r) { st[r.dataset.k] = r.dataset.id; if (r.dataset.k === "a") st.e = r.dataset.id === "yoga" ? "easy" : st.e; st.logged = false; draw(); setTimeout(close, 120); return; }
+      if (t.closest(".cta") && !st.logged) { st.logged = true; draw(); return; }
+      if (t.closest(".undo")) { st.logged = false; draw(); }
+    });
+    W.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+    draw();
+    requestAnimationFrame(function () { go(st.m); shade(); });
+  }
+  document.getElementById("wlreset").addEventListener("click", build);
+  build();
+})();
+</script>
+</body>
+</html>

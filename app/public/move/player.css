@@ -1,0 +1,97 @@
+/* Move: the routine player. Ported from /v7/move-plan-options.html ("Playing the routine", dock A).
+   It sits under the status bar and above the page; the house sheets open over it. */
+.mvp { position: fixed; top: 54px; bottom: 0; left: 50%; width: 100%; max-width: 390px; z-index: 39; display: flex; flex-direction: column;
+  background: #fff; transform: translate(-50%, 100%); transition: transform .32s cubic-bezier(.4,0,.2,1); user-select: none; }
+.mvp.on { transform: translate(-50%, 0); }
+.mvp-top { flex: none; display: flex; align-items: center; gap: 8px; height: 52px; padding: 0 var(--gut); }
+.mvp-top .ttl { flex: 1; text-align: center; font-size: 15px; line-height: 20px; font-weight: 600; color: var(--g-900); }
+.mvp-top .sp { width: 36px; }
+.mvp-x { position: relative; width: 36px; height: 36px; border: 0; border-radius: 9999px; background: var(--g-100); color: var(--g-700); display: grid; place-items: center; cursor: pointer; }
+.mvp-x::after { content: ""; position: absolute; inset: -4px; }
+.mvp-x svg { width: 14px; height: 14px; }
+
+/* the video, 16:9, every control on it */
+.mvp-vid { position: relative; flex: none; aspect-ratio: 16 / 9; background: #0b0d12; overflow: hidden; }
+.mvp-vid video, .mvp-vid img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: filter .4s var(--ease); }
+.mvp-vid img.still { object-fit: contain; }
+.mvp-novid { position: absolute; left: 12px; bottom: 10px; z-index: 2; font-size: 11px; font-weight: 600; color: #fff; background: rgba(255,255,255,.16); border-radius: 9999px; padding: 3px 9px; }
+.mvp-tap { position: absolute; inset: 0; border: 0; background: none; cursor: pointer; z-index: 1; }
+.mvp-ctl { position: absolute; inset: 0; z-index: 3; opacity: 0; pointer-events: none; transition: opacity .25s var(--ease); background: rgba(0,0,0,.38); }
+.mvp.ctl .mvp-ctl, .mvp.paused .mvp-ctl, .mvp.ended .mvp-ctl { opacity: 1; pointer-events: auto; }
+.mvp-row { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); display: flex; align-items: center; justify-content: center; gap: 40px; }
+.mvp-row button { position: relative; border: 0; background: none; color: #fff; display: grid; place-items: center; cursor: pointer; }
+.mvp-row .s { width: 44px; height: 44px; }
+.mvp-row .s svg { width: 26px; height: 26px; }
+.mvp-row .s[disabled] { opacity: .35; cursor: default; }
+.mvp-row .m { width: 60px; height: 60px; border-radius: 9999px; background: rgba(255,255,255,.18); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.mvp-row .m svg { width: 26px; height: 26px; }
+.mvp-again { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 4; display: none; align-items: center; gap: 8px; height: 44px; padding: 0 18px;
+  border: 0; border-radius: 9999px; background: #fff; color: var(--brand-700); font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 8px 24px -8px rgba(0,0,0,.5); }
+.mvp-again svg { width: 16px; height: 16px; }
+.mvp.ended .mvp-again { display: inline-flex; }
+.mvp.ended .mvp-row { display: none; }
+.mvp.ended .mvp-vid video, .mvp.paused .mvp-vid video { filter: brightness(.55); }
+.mvp-bar { position: absolute; left: 12px; right: 6px; bottom: 4px; display: flex; align-items: center; gap: 8px; color: #fff; font-size: 11px; font-variant-numeric: tabular-nums; }
+.mvp-bar .fs { position: relative; width: 32px; height: 32px; border: 0; background: none; color: #fff; display: grid; place-items: center; cursor: pointer; }
+.mvp-bar .fs svg { width: 18px; height: 18px; }
+.mvp-scrub { position: relative; flex: 1; height: 28px; display: flex; align-items: center; cursor: pointer; touch-action: none; outline: none; }
+.mvp-scrub .tr { flex: 1; height: 4px; border-radius: 9999px; background: rgba(255,255,255,.3); overflow: hidden; transition: height .15s var(--ease); }
+.mvp-scrub .tr i { display: block; height: 100%; width: 0; background: var(--brand-400); border-radius: inherit; }
+.mvp-scrub .kn { position: absolute; top: 50%; left: 0; width: 14px; height: 14px; border-radius: 9999px; background: #fff; transform: translate(-50%, -50%);
+  box-shadow: 0 1px 4px rgba(0,0,0,.4); transition: width .15s var(--ease), height .15s var(--ease); }
+.mvp-scrub.on .tr, .mvp-scrub:hover .tr { height: 6px; }
+.mvp-scrub.on .kn { width: 20px; height: 20px; }
+.mvp-scrub:focus-visible .kn { box-shadow: 0 0 0 3px var(--brand-300); }
+.mvp-thin { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(255,255,255,.18); z-index: 2; transition: opacity .2s var(--ease); }
+.mvp-thin i { display: block; height: 100%; width: 0; background: var(--brand-400); }
+.mvp.ctl .mvp-thin, .mvp.paused .mvp-thin, .mvp.ended .mvp-thin { opacity: 0; }
+
+/* under the video: where you are, what to do, what's next */
+.mvp-body { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 16px var(--gut) 0; }
+.mvp-seg { flex: none; display: flex; gap: 4px; margin-bottom: 16px; }
+.mvp-seg i { flex: 1; height: 4px; border-radius: 9999px; background: var(--g-200); transition: background .3s var(--ease); }
+.mvp-seg i.ok { background: var(--ok-600); }
+.mvp-seg i.now { background: var(--brand-200); }
+.mvp-scroll { flex: 1; min-height: 0; overflow-y: auto; margin: 0 calc(var(--gut) * -1); padding: 0 var(--gut) 16px; scrollbar-width: none; }
+.mvp-scroll::-webkit-scrollbar { display: none; }
+.mvp-scroll h5 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: .1px; text-wrap: balance; }
+.mvp-done { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--ok-600); }
+.mvp-done svg { width: 12px; height: 12px; }
+.mvp-facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; }
+.mvp-facts span { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 10px; font-size: 13px; font-weight: 600; color: var(--g-800);
+  background: var(--g-50); border: 1px solid var(--g-200); border-radius: 9999px; font-variant-numeric: tabular-nums; }
+.mvp-facts i { font-style: normal; font-weight: 400; color: var(--g-500); }
+.mvp-desc { margin-top: 16px; font-size: 14px; line-height: 22px; color: var(--g-700); }
+.mvp-desc p { margin: 0; }
+.mvp-desc h6 { margin: 16px 0 6px; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--g-900); }
+.mvp-desc ol, .mvp-desc ul { margin: 0; padding-left: 20px; }
+.mvp-desc li { margin: 0 0 4px; }
+.mvp-desc li::marker { color: var(--g-400); }
+
+/* the sticky foot: Up next on a pale green band, the one button on white under it */
+.mvp-dock { flex: none; margin: 0 calc(var(--gut) * -1); overflow: hidden; border-radius: 20px 20px 0 0; box-shadow: 0 -10px 24px -16px rgba(16,24,40,.18); }
+.mvp-band { display: flex; align-items: center; gap: 12px; padding: 12px var(--gut); background: var(--brand-50); border-top: 1px solid var(--brand-100); border-bottom: 1px solid var(--brand-100); }
+.mvp-band .th { position: relative; flex-shrink: 0; width: 64px; height: 40px; border-radius: 8px; overflow: hidden; background: var(--g-100); }
+.mvp-band .th img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.mvp-band .b { flex: 1; min-width: 0; }
+.mvp-band .l { display: block; font-size: 12px; line-height: 16px; color: var(--g-500); }
+.mvp-band .n { display: block; font-size: 15px; line-height: 20px; font-weight: 600; color: var(--g-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mvp-all { position: relative; flex-shrink: 0; height: 32px; padding: 0 2px; border: 0; background: none; color: var(--brand-600); font-size: 14px; font-weight: 600; cursor: pointer; }
+.mvp-all::after { content: ""; position: absolute; inset: -6px -8px; }
+.mvp-foot { padding: 12px var(--gut) 32px; background: #fff; }
+.mvp-go { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; height: 52px; margin-bottom: 7px; border: 0; border-radius: 12px; cursor: pointer;
+  background: var(--brand-600); color: #fff; font: 700 15px/1 Roboto, sans-serif; letter-spacing: .25px; box-shadow: 0 7px 0 var(--brand-700); }
+.mvp-go:active { transform: translateY(4px); box-shadow: 0 3px 0 var(--brand-700); }
+.mvp-go svg { width: 18px; height: 18px; }
+
+/* See all, in the house sheet */
+.mvp-q { display: flex; align-items: center; gap: 12px; width: calc(100% + 16px); padding: 8px; margin: 0 -8px; border: 0; border-radius: var(--r-md); background: none; text-align: left; cursor: pointer; }
+.mvp-q:hover { background: var(--g-50); }
+.mvp-q.now { background: var(--brand-25); }
+.mvp-q .th { flex-shrink: 0; width: 64px; height: 48px; border-radius: 10px; overflow: hidden; background: var(--g-100); }
+.mvp-q .th img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.mvp-q .b { flex: 1; min-width: 0; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--g-900); }
+.mvp-q .b span { display: block; font-size: 12px; line-height: 18px; font-weight: 400; color: var(--g-500); }
+.mvp-q .st { font-size: 12px; font-weight: 600; white-space: nowrap; }
+.mvp-q .st.is-done { color: var(--ok-600); }
+.mvp-q .st.is-now { color: var(--brand-600); }

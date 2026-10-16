@@ -203,6 +203,8 @@
 // ?embed=1 runs as a hero inside another screen: ?score= sets the number, ?v= the variant
 const QS = new URLSearchParams(location.search), EMBED = QS.has('embed');
 if (EMBED) document.documentElement.classList.add('embed');
+// a pillar copy (Move) names its own score; Eat sets nothing and keeps "Sufficient"
+try { var HW = parent !== window && parent.HERO_WORD; if (HW) document.querySelector(".word").firstChild.nodeValue = HW; } catch (e) {}
 // ?still=1 is the copy inside the sufficiency sheet: already the explanation, so no info mark.
 // ?info=1 keeps the mark on a settled score that is not inside the sheet (the docs, Trend).
 if (QS.has('still') && !QS.has('info')) document.documentElement.classList.add('still');
@@ -424,18 +426,21 @@ const pr2 = gl.createProgram();
 gl.attachShader(pr2, shader(gl.VERTEX_SHADER, `attribute vec2 aP, aUV; attribute float aF; varying vec2 vUV; varying float vF;
 void main(){ vUV = aUV; vF = aF; gl_Position = vec4(aP, 0, 1); }`));
 gl.attachShader(pr2, shader(gl.FRAGMENT_SHADER, `precision mediump float;
-uniform sampler2D uT; uniform float uMix; varying vec2 vUV; varying float vF;
+uniform sampler2D uT; uniform float uMix; uniform vec3 uShadow; varying vec2 vUV; varying float vF;
 void main(){
   float e = 1. - vF;
   vec4 c = texture2D(uT, vUV);                                          // premultiplied; empty orbs stay crisp, only greyed
   vec3 rgb = min(mix(c.rgb, vec3(dot(c.rgb, vec3(.299, .587, .114))*1.35), e), vec3(c.a));
   vec4 orb = vec4(rgb, c.a)*(.5 + .5*vF);
   float sh = texture2D(uT, vUV + vec2(0., -.03), 1.8).a*.22*vF;         // soft green drop shadow under filled orbs, well inside the tile
-  gl_FragColor = (orb + vec4(vec3(.141, .4, .286)*sh, sh)*(1. - orb.a))*uMix;
+  gl_FragColor = (orb + vec4(uShadow*sh, sh)*(1. - orb.a))*uMix;
 }`));
 ['aP', 'aUV', 'aF'].forEach((n, i) => gl.bindAttribLocation(pr2, i, n));
 gl.linkProgram(pr2);
 const uOrbMix = gl.getUniformLocation(pr2, 'uMix');
+// a pillar copy (Move) brings its own orb and shadow tint from the parent page; Eat keeps the inlined green orb
+let PILLAR_ORB = null; try { PILLAR_ORB = parent !== window && parent.HERO_ORB; } catch (e) {}
+gl.useProgram(pr2); gl.uniform3fv(gl.getUniformLocation(pr2, 'uShadow'), PILLAR_ORB ? PILLAR_ORB.shadow : [.141, .4, .286]); gl.useProgram(pr);
 const triBuf = gl.getParameter(gl.ARRAY_BUFFER_BINDING), orbBuf = gl.createBuffer(), orbV = new Float32Array((30 + NS) * 6 * 5);
 let orbTex = null;
 {
@@ -451,7 +456,10 @@ let orbTex = null;
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
   };
   /* orb.svg, inlined: a file read straight off disk taints the canvas and WebGL draws the orbs black */
-  im.src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDE0IDE0Ij4KICA8ZyBmaWx0ZXI9InVybCgjYSkiPgogICAgPGcgY2xpcC1wYXRoPSJ1cmwoI2IpIj4KICAgICAgPHJlY3Qgd2lkdGg9IjE0IiBoZWlnaHQ9IjE0IiBmaWxsPSIjMjQ2NjQ5IiByeD0iNyIvPgogICAgICA8ZyBmaWx0ZXI9InVybCgjYykiPgogICAgICAgIDxlbGxpcHNlIGN4PSI2LjMxNiIgY3k9IjQuNzkyIiBmaWxsPSIjNzlDQ0E4IiByeD0iNy42ODMiIHJ5PSI3LjU0MiIvPgogICAgICA8L2c+CiAgICAgIDxnIGZpbHRlcj0idXJsKCNkKSIgb3BhY2l0eT0iLjUiPgogICAgICAgIDxlbGxpcHNlIGN4PSI1LjI5MiIgY3k9IjMuNzUiIGZpbGw9IiNBQkU2Q0MiIHJ4PSI0LjY5NSIgcnk9IjQuNTgzIi8+CiAgICAgIDwvZz4KICAgICAgPGcgZmlsdGVyPSJ1cmwoI2UpIiBvcGFjaXR5PSIuNiI+CiAgICAgICAgPGVsbGlwc2UgY3g9IjEuOTg5IiBjeT0iMS4xOSIgZmlsbD0iIzU5QjM4QyIgcng9IjEuOTg5IiByeT0iMS4xOSIgdHJhbnNmb3JtPSJtYXRyaXgoLjk4MiAtLjE4ODkxIC4xOTYyNiAuOTgwNTUgNi40MDIgMTIuMDAyKSIvPgogICAgICA8L2c+CiAgICA8L2c+CiAgPC9nPgogIDxkZWZzPgogICAgPGZpbHRlciBpZD0iYSIgd2lkdGg9IjE0IiBoZWlnaHQ9IjE0IiB4PSIwIiB5PSIwIiBjb2xvci1pbnRlcnBvbGF0aW9uLWZpbHRlcnM9InNSR0IiIGZpbHRlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CiAgICAgIDxmZUZsb29kIGZsb29kLW9wYWNpdHk9IjAiIHJlc3VsdD0iQmFja2dyb3VuZEltYWdlRml4Ii8+CiAgICAgIDxmZUJsZW5kIGluPSJTb3VyY2VHcmFwaGljIiBpbjI9IkJhY2tncm91bmRJbWFnZUZpeCIgcmVzdWx0PSJzaGFwZSIvPgogICAgICA8ZmVDb2xvck1hdHJpeCBpbj0iU291cmNlQWxwaGEiIHJlc3VsdD0iaGFyZEFscGhhIiB2YWx1ZXM9IjAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDEyNyAwIi8+CiAgICAgIDxmZU1vcnBob2xvZ3kgaW49IlNvdXJjZUFscGhhIiByYWRpdXM9Ii40MDYiIHJlc3VsdD0iZWZmZWN0MV9pbm5lclNoYWRvd184MTg4XzE0MjIiLz4KICAgICAgPGZlT2Zmc2V0Lz4KICAgICAgPGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iMS42MjUiLz4KICAgICAgPGZlQ29tcG9zaXRlIGluMj0iaGFyZEFscGhhIiBrMj0iLTEiIGszPSIxIiBvcGVyYXRvcj0iYXJpdGhtZXRpYyIvPgogICAgICA8ZmVDb2xvck1hdHJpeCB2YWx1ZXM9IjAgMCAwIDAgMC4xNjA3ODQgMCAwIDAgMCAwLjYxNTY4NiAwIDAgMCAwIDAuNDE5NjA4IDAgMCAwIDEgMCIvPgogICAgICA8ZmVCbGVuZCBpbjI9InNoYXBlIiByZXN1bHQ9ImVmZmVjdDFfaW5uZXJTaGFkb3dfODE4OF8xNDIyIi8+CiAgICA8L2ZpbHRlcj4KICAgIDxmaWx0ZXIgaWQ9ImMiIHdpZHRoPSIyNS41MjUiIGhlaWdodD0iMjUuMjQyIiB4PSItNi40NDYiIHk9Ii03LjgyOSIgY29sb3ItaW50ZXJwb2xhdGlvbi1maWx0ZXJzPSJzUkdCIiBmaWx0ZXJVbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8ZmVGbG9vZCBmbG9vZC1vcGFjaXR5PSIwIiByZXN1bHQ9IkJhY2tncm91bmRJbWFnZUZpeCIvPgogICAgICA8ZmVCbGVuZCBpbj0iU291cmNlR3JhcGhpYyIgaW4yPSJCYWNrZ3JvdW5kSW1hZ2VGaXgiIHJlc3VsdD0ic2hhcGUiLz4KICAgICAgPGZlR2F1c3NpYW5CbHVyIHJlc3VsdD0iZWZmZWN0MV9mb3JlZ3JvdW5kQmx1cl84MTg4XzE0MjIiIHN0ZERldmlhdGlvbj0iMi41NCIvPgogICAgPC9maWx0ZXI+CiAgICA8ZmlsdGVyIGlkPSJkIiB3aWR0aD0iMTkuNTQ5IiBoZWlnaHQ9IjE5LjMyNiIgeD0iLTQuNDgzIiB5PSItNS45MTMiIGNvbG9yLWludGVycG9sYXRpb24tZmlsdGVycz0ic1JHQiIgZmlsdGVyVW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KICAgICAgPGZlRmxvb2QgZmxvb2Qtb3BhY2l0eT0iMCIgcmVzdWx0PSJCYWNrZ3JvdW5kSW1hZ2VGaXgiLz4KICAgICAgPGZlQmxlbmQgaW49IlNvdXJjZUdyYXBoaWMiIGluMj0iQmFja2dyb3VuZEltYWdlRml4IiByZXN1bHQ9InNoYXBlIi8+CiAgICAgIDxmZUdhdXNzaWFuQmx1ciByZXN1bHQ9ImVmZmVjdDFfZm9yZWdyb3VuZEJsdXJfODE4OF8xNDIyIiBzdGREZXZpYXRpb249IjIuNTQiLz4KICAgIDwvZmlsdGVyPgogICAgPGZpbHRlciBpZD0iZSIgd2lkdGg9IjguODEiIGhlaWdodD0iNy4zMjkiIHg9IjQuMTgzIiB5PSI5LjEyOCIgY29sb3ItaW50ZXJwb2xhdGlvbi1maWx0ZXJzPSJzUkdCIiBmaWx0ZXJVbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8ZmVGbG9vZCBmbG9vZC1vcGFjaXR5PSIwIiByZXN1bHQ9IkJhY2tncm91bmRJbWFnZUZpeCIvPgogICAgICA8ZmVCbGVuZCBpbj0iU291cmNlR3JhcGhpYyIgaW4yPSJCYWNrZ3JvdW5kSW1hZ2VGaXgiIHJlc3VsdD0ic2hhcGUiLz4KICAgICAgPGZlR2F1c3NpYW5CbHVyIHJlc3VsdD0iZWZmZWN0MV9mb3JlZ3JvdW5kQmx1cl84MTg4XzE0MjIiIHN0ZERldmlhdGlvbj0iMS4yMTkiLz4KICAgIDwvZmlsdGVyPgogICAgPGNsaXBQYXRoIGlkPSJiIj4KICAgICAgPHJlY3Qgd2lkdGg9IjE0IiBoZWlnaHQ9IjE0IiBmaWxsPSIjZmZmIiByeD0iNyIvPgogICAgPC9jbGlwUGF0aD4KICA8L2RlZnM+Cjwvc3ZnPgo=';
+  const ORB_SVG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNCIgaGVpZ2h0PSIxNCIgZmlsbD0ibm9uZSIgdmlld0JveD0iMCAwIDE0IDE0Ij4KICA8ZyBmaWx0ZXI9InVybCgjYSkiPgogICAgPGcgY2xpcC1wYXRoPSJ1cmwoI2IpIj4KICAgICAgPHJlY3Qgd2lkdGg9IjE0IiBoZWlnaHQ9IjE0IiBmaWxsPSIjMjQ2NjQ5IiByeD0iNyIvPgogICAgICA8ZyBmaWx0ZXI9InVybCgjYykiPgogICAgICAgIDxlbGxpcHNlIGN4PSI2LjMxNiIgY3k9IjQuNzkyIiBmaWxsPSIjNzlDQ0E4IiByeD0iNy42ODMiIHJ5PSI3LjU0MiIvPgogICAgICA8L2c+CiAgICAgIDxnIGZpbHRlcj0idXJsKCNkKSIgb3BhY2l0eT0iLjUiPgogICAgICAgIDxlbGxpcHNlIGN4PSI1LjI5MiIgY3k9IjMuNzUiIGZpbGw9IiNBQkU2Q0MiIHJ4PSI0LjY5NSIgcnk9IjQuNTgzIi8+CiAgICAgIDwvZz4KICAgICAgPGcgZmlsdGVyPSJ1cmwoI2UpIiBvcGFjaXR5PSIuNiI+CiAgICAgICAgPGVsbGlwc2UgY3g9IjEuOTg5IiBjeT0iMS4xOSIgZmlsbD0iIzU5QjM4QyIgcng9IjEuOTg5IiByeT0iMS4xOSIgdHJhbnNmb3JtPSJtYXRyaXgoLjk4MiAtLjE4ODkxIC4xOTYyNiAuOTgwNTUgNi40MDIgMTIuMDAyKSIvPgogICAgICA8L2c+CiAgICA8L2c+CiAgPC9nPgogIDxkZWZzPgogICAgPGZpbHRlciBpZD0iYSIgd2lkdGg9IjE0IiBoZWlnaHQ9IjE0IiB4PSIwIiB5PSIwIiBjb2xvci1pbnRlcnBvbGF0aW9uLWZpbHRlcnM9InNSR0IiIGZpbHRlclVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CiAgICAgIDxmZUZsb29kIGZsb29kLW9wYWNpdHk9IjAiIHJlc3VsdD0iQmFja2dyb3VuZEltYWdlRml4Ii8+CiAgICAgIDxmZUJsZW5kIGluPSJTb3VyY2VHcmFwaGljIiBpbjI9IkJhY2tncm91bmRJbWFnZUZpeCIgcmVzdWx0PSJzaGFwZSIvPgogICAgICA8ZmVDb2xvck1hdHJpeCBpbj0iU291cmNlQWxwaGEiIHJlc3VsdD0iaGFyZEFscGhhIiB2YWx1ZXM9IjAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDAgMCAwIDEyNyAwIi8+CiAgICAgIDxmZU1vcnBob2xvZ3kgaW49IlNvdXJjZUFscGhhIiByYWRpdXM9Ii40MDYiIHJlc3VsdD0iZWZmZWN0MV9pbm5lclNoYWRvd184MTg4XzE0MjIiLz4KICAgICAgPGZlT2Zmc2V0Lz4KICAgICAgPGZlR2F1c3NpYW5CbHVyIHN0ZERldmlhdGlvbj0iMS42MjUiLz4KICAgICAgPGZlQ29tcG9zaXRlIGluMj0iaGFyZEFscGhhIiBrMj0iLTEiIGszPSIxIiBvcGVyYXRvcj0iYXJpdGhtZXRpYyIvPgogICAgICA8ZmVDb2xvck1hdHJpeCB2YWx1ZXM9IjAgMCAwIDAgMC4xNjA3ODQgMCAwIDAgMCAwLjYxNTY4NiAwIDAgMCAwIDAuNDE5NjA4IDAgMCAwIDEgMCIvPgogICAgICA8ZmVCbGVuZCBpbjI9InNoYXBlIiByZXN1bHQ9ImVmZmVjdDFfaW5uZXJTaGFkb3dfODE4OF8xNDIyIi8+CiAgICA8L2ZpbHRlcj4KICAgIDxmaWx0ZXIgaWQ9ImMiIHdpZHRoPSIyNS41MjUiIGhlaWdodD0iMjUuMjQyIiB4PSItNi40NDYiIHk9Ii03LjgyOSIgY29sb3ItaW50ZXJwb2xhdGlvbi1maWx0ZXJzPSJzUkdCIiBmaWx0ZXJVbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8ZmVGbG9vZCBmbG9vZC1vcGFjaXR5PSIwIiByZXN1bHQ9IkJhY2tncm91bmRJbWFnZUZpeCIvPgogICAgICA8ZmVCbGVuZCBpbj0iU291cmNlR3JhcGhpYyIgaW4yPSJCYWNrZ3JvdW5kSW1hZ2VGaXgiIHJlc3VsdD0ic2hhcGUiLz4KICAgICAgPGZlR2F1c3NpYW5CbHVyIHJlc3VsdD0iZWZmZWN0MV9mb3JlZ3JvdW5kQmx1cl84MTg4XzE0MjIiIHN0ZERldmlhdGlvbj0iMi41NCIvPgogICAgPC9maWx0ZXI+CiAgICA8ZmlsdGVyIGlkPSJkIiB3aWR0aD0iMTkuNTQ5IiBoZWlnaHQ9IjE5LjMyNiIgeD0iLTQuNDgzIiB5PSItNS45MTMiIGNvbG9yLWludGVycG9sYXRpb24tZmlsdGVycz0ic1JHQiIgZmlsdGVyVW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KICAgICAgPGZlRmxvb2QgZmxvb2Qtb3BhY2l0eT0iMCIgcmVzdWx0PSJCYWNrZ3JvdW5kSW1hZ2VGaXgiLz4KICAgICAgPGZlQmxlbmQgaW49IlNvdXJjZUdyYXBoaWMiIGluMj0iQmFja2dyb3VuZEltYWdlRml4IiByZXN1bHQ9InNoYXBlIi8+CiAgICAgIDxmZUdhdXNzaWFuQmx1ciByZXN1bHQ9ImVmZmVjdDFfZm9yZWdyb3VuZEJsdXJfODE4OF8xNDIyIiBzdGREZXZpYXRpb249IjIuNTQiLz4KICAgIDwvZmlsdGVyPgogICAgPGZpbHRlciBpZD0iZSIgd2lkdGg9IjguODEiIGhlaWdodD0iNy4zMjkiIHg9IjQuMTgzIiB5PSI5LjEyOCIgY29sb3ItaW50ZXJwb2xhdGlvbi1maWx0ZXJzPSJzUkdCIiBmaWx0ZXJVbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8ZmVGbG9vZCBmbG9vZC1vcGFjaXR5PSIwIiByZXN1bHQ9IkJhY2tncm91bmRJbWFnZUZpeCIvPgogICAgICA8ZmVCbGVuZCBpbj0iU291cmNlR3JhcGhpYyIgaW4yPSJCYWNrZ3JvdW5kSW1hZ2VGaXgiIHJlc3VsdD0ic2hhcGUiLz4KICAgICAgPGZlR2F1c3NpYW5CbHVyIHJlc3VsdD0iZWZmZWN0MV9mb3JlZ3JvdW5kQmx1cl84MTg4XzE0MjIiIHN0ZERldmlhdGlvbj0iMS4yMTkiLz4KICAgIDwvZmlsdGVyPgogICAgPGNsaXBQYXRoIGlkPSJiIj4KICAgICAgPHJlY3Qgd2lkdGg9IjE0IiBoZWlnaHQ9IjE0IiBmaWxsPSIjZmZmIiByeD0iNyIvPgogICAgPC9jbGlwUGF0aD4KICA8L2RlZnM+Cjwvc3ZnPgo=';
+  // a pillar recolours the same orb (same size and blur, so it stays as crisp as Eat's): { from: to } colour swaps
+  im.src = PILLAR_ORB && PILLAR_ORB.colors ? 'data:image/svg+xml;base64,' + btoa(Object.entries(PILLAR_ORB.colors)
+    .reduce((svg, [a, b]) => svg.split(a).join(b), atob(ORB_SVG.split(',')[1]))) : ORB_SVG;
 }
 function drawOrbs(n, mixv) {
   gl.useProgram(pr2); gl.uniform1f(uOrbMix, mixv);
@@ -480,6 +488,9 @@ const SKY = {
   // the orb's own greens, Flip green from the design system: brand 800, 600, 500, 400, 300, 100
   orb:      [.141,.4,.286, .161,.616,.42, .349,.702,.549, .475,.8,.659, .671,.902,.8, .902,.98,.945],
   orbsoft:  [.114,.302,.22, .141,.45,.32, .30,.66,.50, .52,.82,.70, .78,.93,.86, .96,.99,.975],
+  // Move indigo, the same six steps as orb: 800, 600, 500, 400, 300, 100
+  indigo:     [.176,.196,.51, .267,.298,.906, .38,.447,.953, .502,.596,.976, .643,.737,.992, .878,.918,1],
+  indigosoft: [.15,.17,.42, .24,.27,.72, .40,.46,.90, .58,.66,.97, .80,.86,1, .96,.97,1],
   // pearl: cool, near-neutral liquid, so green is left to the orbs and the gauge
   pearl:    [.46,.53,.62, .62,.69,.77, .76,.83,.87, .86,.91,.92, .93,.96,.96, .99,1,1],
   // cloud: milky white with a breath of mint, soft on the eye
@@ -536,6 +547,11 @@ VARIANTS.forEach((v, i) => {
   b.addEventListener('click', () => setVariant(i));
   variantsEl.append(b);
 });
+// Move pours in indigo: the intro liquid, its streaks, and the gauge the drops and ring are drawn in (indigo 400 to 600)
+if (PILLAR_ORB && PILLAR_ORB.introSky) {
+  SKY.green = SKY[PILLAR_ORB.introSky[0]];
+  Object.assign(VARIANTS.find(v => v.name === 'Cloud Drop'), { introSky: PILLAR_ORB.introSky, gauge: [[.502, .596, .976], [.267, .298, .906]] });
+}
 // ?lock=lit|quiet (embedded): no plan yet, so no score. The same pour in mist, empty orbs, and the padlock
 // (Lock.json) where the number would be. Lit keeps a mint halo, the day nothing has happened; quiet does not.
 const LOCK = EMBED ? QS.get('lock') : null;

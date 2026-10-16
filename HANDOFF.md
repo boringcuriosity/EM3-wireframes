@@ -64,7 +64,7 @@ list, so if you add a state, add it to the panel and smoke covers it for free.
 | `/users` | the five user archetypes, built on one rule: the unit of the ask grows with the gap, from a row to a day to a week to the program. Each archetype is read as intent, behaviour, emotion and what we do. Holds the merged evening bubble, the progress gap sheet, the welcome back sheet and KAIRA's chat message in English and Hinglish. Static HTML in `app/public/users/index.html`. Nothing on it is built yet. |
 | `/know` | the Home deck: why the four bubbles exist, what the rule is, and an interactive board. Static HTML in `app/public/know/index.html`, with the ranking code copied across from the sandbox. **Not yet updated to the current rule**, see section 9. |
 | `/play` | the bubble sandbox: drag tasks between parts of the day, add them, throw them away, slide the clock, and watch the ranking answer. A real Vite entry, `app/src/play/`, so it shares the tokens and the fonts and stays out of the product's bundle. |
-| `/move` | the Move deck: the Momentum concept, its sources and its maths. Static HTML in `app/public/move/index.html`. |
+| `/move` | Move screen, a copy of `v7/r3/eat.html` being turned into Momentum. The Momentum deck moved to `/move/deck.html`. |
 | `/mind` | the Mind deck: the Rhythm concept, what builds it, the maths in one line and a sandbox to test it. Static HTML in `app/public/mind/index.html`, copied from `rhythm-mind-deck.html` at the root the way the Move deck is. |
 
 The snapshots are in age order: `/v0` groups the day by pillar, `/v1` turns it into a diary,
