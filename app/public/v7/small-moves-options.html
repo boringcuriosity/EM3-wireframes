@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Small moves options</title>
+<style>
+  :root { --ink: #101828; --ink2: #475467; --ink3: #667085; --bd: #e4e7ec; --brand: #299D6B; --brand-l: #E6F3EC; --in: #444CE7; --in-l: #EEF4FF; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--ink); font: 14px/20px Roboto, system-ui, sans-serif; }
+  .wrap { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 32px; max-width: 1240px; margin: 0 auto; padding: 32px 24px; }
+  h1 { margin: 0 0 4px; font-size: 24px; line-height: 32px; }
+  .lead { margin: 0 0 28px; color: var(--ink2); }
+  h2 { margin: 0 0 4px; font-size: 16px; line-height: 24px; }
+  .sub { margin: 0 0 14px; color: var(--ink3); font-size: 13px; }
+  section + section { margin-top: 32px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .opt { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px; border: 1px solid var(--bd); border-radius: 12px; background: #fff; text-align: left; cursor: pointer; font: inherit; color: inherit; transition: border-color .15s, background .15s; }
+  .opt:hover { border-color: #9fd5bd; }
+  .opt[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-l); }
+  .ic { width: 32px; height: 32px; background: var(--in); -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat; }
+  .opt b { font-size: 13px; line-height: 18px; }
+  .opt small { display: block; margin-top: 2px; font-size: 12px; line-height: 16px; color: var(--ink3); }
+  .tag { display: inline-block; margin-left: 4px; padding: 1px 6px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .3px; vertical-align: 1px; }
+  .words { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+  .words .opt b { font-size: 16px; line-height: 22px; }
+  .preview { position: sticky; top: 24px; align-self: start; }
+  .preview p { margin: 0 0 10px; color: var(--ink3); font-size: 13px; }
+  .phone { width: 390px; height: 760px; border: 1px solid var(--bd); border-radius: 28px; overflow: hidden; box-shadow: 0 12px 32px -12px rgba(16,24,40,.2); }
+  .phone iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .pick { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: #f9fafb; font-size: 13px; color: var(--ink2); }
+  .pick b { color: var(--ink); }
+  @media (max-width: 960px) { .wrap { grid-template-columns: 1fr; } .preview { position: static; } .phone { width: 100%; max-width: 390px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <main>
+    <h1>Small moves: icon and name</h1>
+    <p class="lead">Pick one icon and one word. Each choice drops straight into the real Move screen on the right, in the "What shaped your score?" tile.</p>
+
+    <section>
+      <h2>Icons</h2>
+      <p class="sub">All filled, to sit with the filled Activity and Steps icons beside it.</p>
+      <div class="grid" id="icons"></div>
+    </section>
+
+    <section>
+      <h2>One word for NEAT</h2>
+      <p class="sub">NEAT is the everyday movement that isn't a workout: stairs, standing, walking to a meeting. The tile reads "[word] · 2 of 4".</p>
+      <div class="words" id="words"></div>
+    </section>
+  </main>
+
+  <aside class="preview">
+    <p>Live preview, the real Move screen</p>
+    <div class="phone"><iframe id="pv" src="/move/index.html" title="Move screen preview"></iframe></div>
+    <div class="pick" id="pick"></div>
+  </aside>
+</div>
+<script>
+  var ICONS = [
+    { f: "ion-body.svg", n: "Body (current)", s: "Ionicons" },
+    { f: "ds-exercise.svg", n: "Exercise", s: "GoodFlip design system", rec: true },
+    { f: "ms-directions_walk.svg", n: "Walking", s: "Material Symbols" },
+    { f: "ph-person-simple-walk.svg", n: "Walking, simple", s: "Phosphor" },
+    { f: "ms-stairs.svg", n: "Stairs", s: "Material Symbols" },
+    { f: "ph-stairs.svg", n: "Stairs, outline", s: "Phosphor" },
+    { f: "ms-accessibility_new.svg", n: "Standing tall", s: "Material Symbols" },
+    { f: "ms-emoji_people.svg", n: "Arm raised", s: "Material Symbols" },
+    { f: "ph-person-arms-spread.svg", n: "Arms spread", s: "Phosphor" },
+    { f: "ms-self_improvement.svg", n: "Stretch, seated", s: "Material Symbols" },
+    { f: "ph-person-simple-tai-chi.svg", n: "Stretch, tai chi", s: "Phosphor" },
+    { f: "ms-nordic_walking.svg", n: "Brisk walk", s: "Material Symbols" },
+    { f: "ph-sneaker-move.svg", n: "Shoe in motion", s: "Phosphor" }
+  ];
+  var WORDS = [
+    { w: "Small moves", d: "Current. Clear, but two words." },
+    { w: "Motion", d: "Moving through the day, not a session. Short, sits well beside Workout and Steps.", rec: true },
+    { w: "Movement", d: "The literal M in NEAT. Very clear, but echoes the Move pillar name." },
+    { w: "Moments", d: "Small moments to move. Warm, and it counts well: 2 of 4 moments." },
+    { w: "Nudges", d: "Little pushes through the day, like the coach's prompts. Playful." },
+    { w: "Everyday", d: "Says exactly what NEAT is: activity woven into your day." },
+    { w: "Active", d: "Plain and positive. Reads as a state rather than a count." },
+    { w: "Fidgets", d: "The science word for part of NEAT. Memorable, but can sound restless." },
+    { w: "Bustle", d: "Busy everyday movement. Friendly, slightly unusual." }
+  ];
+  var sel = { i: 0, w: 0 };
+  function esc(t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+  document.getElementById("icons").innerHTML = ICONS.map(function (o, k) {
+    return '<button class="opt" data-i="' + k + '" aria-pressed="' + (k === sel.i) + '"><span class="ic" style="--src:url(/v7/icons/move/sm/' + o.f + ')"></span><span><b>' + esc(o.n) + (o.rec ? '<span class="tag">PICK</span>' : "") + '</b><small>' + esc(o.s) + '</small></span></button>';
+  }).join("");
+  document.getElementById("words").innerHTML = WORDS.map(function (o, k) {
+    return '<button class="opt" data-w="' + k + '" aria-pressed="' + (k === sel.w) + '"><span><b>' + esc(o.w) + (o.rec ? '<span class="tag">PICK</span>' : "") + '</b><small>' + esc(o.d) + '</small></span></button>';
+  }).join("");
+  /* write the choice into the real tile inside the preview */
+  function apply() {
+    var d = document.getElementById("pv").contentDocument, g = d && d.querySelector(".glyph-moves");
+    if (!g) return;
+    var url = "url(/v7/icons/move/sm/" + ICONS[sel.i].f + ")";
+    g.style.webkitMaskImage = url; g.style.maskImage = url;
+    var host = g.parentElement, word = WORDS[sel.w].w;
+    [].slice.call(host.childNodes).forEach(function (n) { if (n.nodeType === 3 && n.textContent.trim()) n.textContent = word; else if (n !== g && n.nodeType === 1 && !n.children.length && n.textContent.trim()) n.textContent = word; });
+    document.getElementById("pick").innerHTML = "Showing <b>" + esc(ICONS[sel.i].n) + "</b> (" + esc(ICONS[sel.i].s) + ") with <b>" + esc(word) + "</b>";
+  }
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest(".opt"); if (!b) return;
+    if (b.dataset.i != null) sel.i = +b.dataset.i; else sel.w = +b.dataset.w;
+    document.querySelectorAll(".opt").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.i != null ? +x.dataset.i === sel.i : +x.dataset.w === sel.w)); });
+    apply();
+  });
+  /* the Move screen draws its tiles after load, so wait for the tile before the first write */
+  document.getElementById("pv").addEventListener("load", function () {
+    var tries = 0, t = setInterval(function () {
+      var d = document.getElementById("pv").contentDocument;
+      if ((d && d.querySelector(".glyph-moves")) || ++tries > 40) { clearInterval(t); apply(); var tile = d && d.querySelector(".glyph-moves"); if (tile) tile.scrollIntoView({ block: "center" }); }
+    }, 150);
+  });
+</script>
+</body>
+</html>
