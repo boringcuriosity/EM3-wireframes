@@ -19,6 +19,8 @@ SC.first = { state: "first", score: 12, delta: "+12%", tone: "up", lead: "Your s
 SC.mid = { state: "mid", score: 54, delta: "+20%", tone: "up", lead: "Your score went up by 20%,", rest: "keep logging your meals.", cta: "Learn more by asking KAIRA" };
 /* a pillar that copies this screen names what to keep logging (Move sets "keep logging your movement.") */
 if (window.SAY_REST) Object.keys(SC).forEach(function (k) { if (SC[k].rest === "keep logging your meals.") SC[k].rest = window.SAY_REST; });
+/* a host page can swap the KAIRA link for its own words and its own sheet (move/index.html) */
+if (window.SAY_CTA) Object.keys(SC).forEach(function (k) { if (SC[k].cta) SC[k].cta = window.SAY_CTA; });
 SC.full = { state: "full", score: 88, delta: "+4%", tone: "up", lead: "Your score went up by 4%,", rest: "your day is all logged.", cta: "Learn more by asking KAIRA" };
 SC.perfect = { state: "perfect", score: 100, delta: "+4%", tone: "up", lead: "Your score went up by 4%,", rest: "every target met today.", cta: "Learn more by asking KAIRA" };
 SC.over = { state: "over", score: 92, delta: "+9%", tone: "down", lead: "Your score went up by only 9%,", rest: "you could have gained 18% more.", cta: "Find out why from KAIRA" };
@@ -246,7 +248,8 @@ function mount() {
   var st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
   cm = document.createElement("div"); cm.id = "cm"; cm.innerHTML = html(s);
   cm.addEventListener("click", function (e) {
-    if (e.target.closest(".cta") && s.ask && window.kairaAsk) window.kairaAsk(s.ask.q, s.ask.a);
+    if (!e.target.closest(".cta")) return;
+    if (window.SAY_OPEN) window.SAY_OPEN(); else if (s.ask && window.kairaAsk) window.kairaAsk(s.ask.q, s.ask.a);
   });
   stage.parentNode.insertBefore(cm, stage.nextSibling);
   var b = Q.get("say") && BELOW[KEY];

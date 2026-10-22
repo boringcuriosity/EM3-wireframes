@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Move medal</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="r3/goodflip-ui.css">
+<style>
+  /* The Move medal: a day at 80% Momentum or more earns one. Ten medals, all built as Eat's medal is
+     (the gold rosette edge, gold rim and Flip green enamel of icons/badge/simple/heart-apple.svg), each with
+     its own Move emblem in the centre. Each is shown large, hanging on the Move screen, small in the calendar,
+     and in the celebration sheet (Eat's Sunrise, in Move's words). The artwork is drawn here as SVG and also
+     saved to icons/badge/move/. Standalone. */
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, Arial, sans-serif; letter-spacing: .25px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 56px 24px 80px; }
+  h1 { font-weight: 600; font-size: 40px; line-height: 48px; margin: 0 0 12px; }
+  .lede { max-width: 800px; margin: 0 0 12px; font-size: 16px; line-height: 26px; color: var(--g-600); }
+  .lede b, .shp b { color: var(--g-900); font-weight: 600; }
+  .callout { max-width: 800px; margin: 20px 0 0; padding: 14px 18px; border-radius: 12px; background: var(--g-100); font-size: 15px; line-height: 23px; color: var(--g-700); }
+  .callout b { color: var(--g-900); }
+  h2.sh { margin: 56px 0 6px; font-size: 24px; line-height: 32px; font-weight: 600; }
+  .shp { margin: 0 0 24px; max-width: 800px; font-size: 15px; line-height: 24px; color: var(--g-600); }
+
+  /* ---------- all ten at a glance ---------- */
+  .strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; }
+  .strip a { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 8px 14px; border: 1px solid var(--g-200); border-radius: 16px; text-decoration: none; color: var(--g-900); font: 600 14px/20px Roboto, sans-serif; text-align: center; }
+  .strip a.rec { border-color: var(--brand-300); box-shadow: 2px 3px 0 0 var(--brand-100); }
+  .strip a small { font-weight: 500; font-size: 12px; color: var(--brand-700); }
+  .strip .pair { display: flex; align-items: flex-end; gap: 10px; }
+  .strip svg { width: 89px; height: 104px; filter: drop-shadow(0 8px 10px rgba(24,64,47,.22)); }
+  .strip img { width: 28px; height: 32px; filter: drop-shadow(0 2px 3px rgba(24,64,47,.22)); }
+  .recwhy { max-width: 800px; margin: 16px 0 0; font-size: 15px; line-height: 23px; color: var(--brand-800); }
+  .recwhy b { font-weight: 600; }
+  .eatref { display: flex; align-items: center; gap: 14px; max-width: 800px; margin: 20px 0 0; padding: 12px 16px; border: 1px solid var(--g-200); border-radius: 12px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .eatref img { flex: none; width: 46px; height: 54px; filter: drop-shadow(0 4px 6px rgba(24,64,47,.22)); }
+  .eatref b { color: var(--g-900); font-weight: 600; }
+
+  /* ---------- one medal ---------- */
+  .opt { margin-top: 32px; border: 1px solid var(--g-200); border-radius: 20px; box-shadow: 2px 3px 0 0 rgba(152,162,179,.35); overflow: hidden; scroll-margin-top: 16px; }
+  .opt.rec { border-color: var(--brand-300); box-shadow: 2px 3px 0 0 var(--brand-100); }
+  .meta { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 24px; padding: 20px 24px; border-bottom: 1px solid var(--g-200); }
+  .meta .txt { flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .meta h3 { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; font-size: 18px; line-height: 26px; font-weight: 600; }
+  .tag { font-size: 12px; font-weight: 500; border-radius: 8px; padding: 2px 8px; color: var(--g-600); background: var(--g-100); }
+  .tag.rec { color: var(--brand-800); background: var(--brand-50); }
+  .meta p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .meta p b { color: var(--g-800); font-weight: 600; }
+  .meta p.why { color: var(--brand-800); }
+  .replay { flex: none; border: 1px solid var(--g-200); background: #fff; border-radius: 9999px; height: 36px; padding: 0 14px; font: 600 13px Roboto, sans-serif; color: var(--g-700); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .replay svg { width: 14px; height: 14px; }
+  .panels { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px 20px; padding: 24px 16px; background: var(--g-50); }
+  .panel { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .panel > span { font: 600 12px/16px Roboto, sans-serif; letter-spacing: .6px; text-transform: uppercase; color: var(--g-500); }
+
+  /* (1) large */
+  .big { width: 248px; height: 468px; border-radius: 20px; background: #fff; box-shadow: 0 0 0 1px var(--g-200); display: grid; place-items: center; position: relative; overflow: hidden; }
+  .big::before { content: ""; position: absolute; left: 50%; top: 50%; width: 300px; height: 300px; margin: -150px 0 0 -150px; border-radius: 50%; background: radial-gradient(circle, var(--brand-50), rgb(243 252 248 / 0) 65%); }
+  .big svg { position: relative; width: 202px; height: 236px; filter: drop-shadow(0 16px 20px rgba(24,64,47,.24)); --md: .15s; }
+
+  /* (2) and (4): a phone, 390 by 780, scaled */
+  .phone { --z: .6; position: relative; width: calc(390px * var(--z)); height: calc(780px * var(--z)); border-radius: 24px; overflow: hidden; background: #fff; box-shadow: 0 0 0 1px var(--g-200), 0 18px 40px -20px rgba(16,24,40,.35); isolation: isolate; }
+  .phone .in { position: absolute; left: 0; top: 0; width: 390px; height: 780px; transform: scale(var(--z)); transform-origin: 0 0; overflow: hidden; }
+  .phone iframe { width: 390px; height: 780px; border: 0; display: block; pointer-events: none; }
+  /* Eat's ribbon: gold, Flip green, gold */
+  .hang { position: absolute; z-index: 5; right: 28px; top: 106px; display: flex; flex-direction: column; align-items: center; transform-origin: 50% 0; --md: 1.5s; }
+  .hang .rb { width: 18px; height: 40px; margin-bottom: -14px; background: linear-gradient(90deg, rgb(0 0 0 / .14), rgb(0 0 0 / 0) 28%, rgb(255 255 255 / .12) 50%, rgb(0 0 0 / 0) 72%, rgb(0 0 0 / .14)), linear-gradient(90deg, #CDA935 0 33%, #299D6B 33% 67%, #CDA935 67%); }
+  .hang svg { position: relative; width: 40px; height: 47px; filter: drop-shadow(0 6px 8px rgba(24,64,47,.32)); }
+  .go .hang { animation: hang 1.3s cubic-bezier(.22,.61,.36,1) .5s both; }
+  /* one smooth glide down from under the header, settling straight: no pendulum, no overshoot */
+  @keyframes hang { from { opacity: 0; transform: translateY(-30px) rotate(7deg); } 35% { opacity: 1; } to { opacity: 1; transform: none; } }
+
+  /* (3) calendar: the Momentum rings stay indigo */
+  .cal { width: 268px; border-radius: 20px; background: #fff; box-shadow: 0 0 0 1px var(--g-200); padding: 16px 12px 14px; }
+  .cal h4 { margin: 0 4px 10px; font: 600 15px/22px Roboto, sans-serif; }
+  .cal .wk, .cal .row { display: grid; grid-template-columns: repeat(7, 1fr); }
+  .cal .wk span { text-align: center; font: 500 11px/16px Roboto, sans-serif; color: var(--g-500); padding-bottom: 4px; }
+  .cal .d { min-height: 60px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0; border-radius: 10px; }
+  .cal .d b { font: 600 12px/16px Roboto, sans-serif; color: var(--g-700); }
+  .cal .d.today { background: var(--in-50); box-shadow: inset 0 0 0 1.5px var(--in-600); }
+  .cal .d.today b { color: var(--g-900); font-weight: 700; }
+  .cal .d img { display: block; width: 28px; height: 32px; object-fit: contain; filter: drop-shadow(0 2px 3px rgba(24,64,47,.22)); }
+  .cal .d svg.r { width: 32px; height: 32px; }
+  .cal .d.off b { color: var(--g-300); }
+  .cal p { margin: 10px 4px 0; font-size: 12px; line-height: 17px; color: var(--g-500); }
+  .cal .zoom { display: flex; align-items: center; gap: 14px; justify-content: center; margin: 12px 4px 0; padding-top: 12px; border-top: 1px solid var(--g-100); font-size: 12px; color: var(--g-500); }
+  .cal .zoom img { width: 28px; height: 32px; } .cal .zoom img.x2 { width: 56px; height: 64px; }
+
+  /* (4) the celebration sheet: Eat's Sunrise, in Move's words */
+  .day { position: absolute; inset: 0; padding: 70px 22px; background: linear-gradient(180deg, var(--in-25), #fff 40%); filter: blur(2px); }
+  .day i { display: block; height: 16px; border-radius: 8px; background: var(--g-100); margin-bottom: 14px; }
+  .day i.orb { width: 170px; height: 170px; border-radius: 50%; margin: 34px auto; background: radial-gradient(circle at 38% 34%, #EEF4FF, #A4BCFD 30%, #6172F3 62%, #444CE7); opacity: .85; }
+  .scrim { position: absolute; inset: 0; background: rgba(16,24,40,.45); }
+  .go .scrim { animation: fade .35s ease-out both; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; height: 572px; max-height: 90%; border-radius: 28px 28px 0 0; background: #fff; overflow: hidden; }
+  .go .sheet { animation: rise .6s cubic-bezier(.2,0,0,1) .1s both; }
+  @keyframes rise { from { transform: translateY(100%); } to { transform: none; } }
+  .sky { position: absolute; left: 0; right: 0; top: 0; height: 280px; background: radial-gradient(150% 95% at 50% 100%, #fff 0 42%, transparent 43%), linear-gradient(160deg, #CBF0E0, #FFF8E0 60%, #E6FAF1);
+    -webkit-mask: linear-gradient(#000 55%, transparent 96%); mask: linear-gradient(#000 55%, transparent 96%); }
+  .rays { position: absolute; left: 50%; top: 150px; width: 520px; height: 520px; margin: -260px 0 0 -260px; border-radius: 50%;
+    background: repeating-conic-gradient(from 0deg, rgb(255 255 255 / .8) 0 6deg, transparent 6deg 18deg);
+    -webkit-mask: radial-gradient(circle, #000 0 22%, transparent 62%); mask: radial-gradient(circle, #000 0 22%, transparent 62%); }
+  .go .rays { animation: fade .8s ease-out .5s both, spin 60s linear .5s infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .x { position: absolute; top: 12px; right: 12px; z-index: 5; width: 44px; height: 44px; display: grid; place-items: center; }
+  .x svg { width: 32px; height: 32px; }
+  .smed { position: absolute; left: 50%; top: 58px; width: 146px; height: 171px; margin-left: -73px; --md: .9s; }
+  .smed svg { width: 100%; height: 100%; filter: drop-shadow(0 14px 18px rgba(24,64,47,.26)); }
+  .go .smed { animation: resolve .8s cubic-bezier(.2,0,0,1) .45s both; }
+  @keyframes resolve { from { transform: scale(.7); opacity: 0; filter: blur(8px); } to { transform: none; opacity: 1; filter: none; } }
+  .body { position: absolute; left: 0; right: 0; top: 250px; bottom: 0; padding: 0 24px 28px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .title { margin: 0; font: 800 26px/32px Roboto, sans-serif; color: var(--g-900); letter-spacing: -.2px; }
+  .line { margin: 8px 0 0; font: 400 15px/22px Roboto, sans-serif; color: var(--g-600); text-wrap: pretty; }
+  .rule { width: 160px; height: 1px; margin: 16px 0 0; background: linear-gradient(90deg, rgb(208 213 221 / 0), #D0D5DD 50%, rgb(208 213 221 / 0)); }
+  .mom { margin-top: 14px; font: 800 34px/1 Roboto, sans-serif; color: var(--in-600); font-variant-numeric: tabular-nums; }
+  .mom sup { font-size: 18px; vertical-align: 12px; margin-left: 1px; }
+  .moml { margin-top: 6px; font: 500 13px/18px Roboto, sans-serif; color: var(--g-500); }
+  /* the coins, as Eat's medal sheet shows them: the coin beside a gold +45 */
+  .mom.coin { display: inline-flex; align-items: center; gap: 10px; font-size: 30px; color: #A68A2D; }
+  .mom.coin img { width: 34px; height: 34px; }
+  .mom.coin span::before { content: "+"; }
+  .foot { margin-top: auto; width: 100%; }
+  .btn { display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; margin-bottom: 7px; border: 0; border-radius: 12px; background: var(--brand-600); color: #fff; font: 700 16px Roboto, sans-serif; box-shadow: 0 7px 0 var(--brand-700); }
+  .up { opacity: 1; }
+  .go .up { animation: up .5s cubic-bezier(.2,0,0,1) var(--d, 1s) both; }
+  @keyframes up { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  canvas.fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 4; }
+
+  /* ---------- motion inside the medal (the files in icons/badge/move/ rest at the end state) ----------
+     The shell never moves. The emblem resolves into the enamel, lines draw, gold stops light in turn,
+     then one sheen crosses the medal. Smooth eases only: no springs, no overshoot. */
+  svg .m-em, svg .m-q, svg .m-dot, svg .m-ln, svg .m-hand { transform-box: view-box; }
+  .go svg .m-em { transform-origin: 77px 90px; animation: mem .8s cubic-bezier(.2,0,0,1) calc(var(--md, 0s) + var(--i, 0) * .2s) both; }
+  @keyframes mem { from { opacity: 0; transform: scale(.82); } to { opacity: 1; transform: none; } }
+  .go svg .m-q { animation: mq .7s cubic-bezier(.4,0,.2,1) calc(var(--md, 0s) + var(--i, 0) * .22s) both; }
+  @keyframes mq { from { opacity: .12; } to { opacity: 1; } }
+  .go svg .m-dot { animation: mq .5s cubic-bezier(.4,0,.2,1) calc(var(--md, 0s) + .5s + var(--i, 0) * .22s) both; }
+  .go svg .m-ln { animation: mln .7s cubic-bezier(.2,0,0,1) calc(var(--md, 0s) + .3s + var(--i, 0) * .12s) both; }
+  @keyframes mln { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+  .go svg .m-draw { animation: mdraw 1.2s cubic-bezier(.45,0,.25,1) var(--md, 0s) both; }
+  @keyframes mdraw { from { stroke-dashoffset: 100; } to { stroke-dashoffset: 0; } }
+  .go svg .m-hand { transform-origin: 77px 95px; animation: mhand 1.6s cubic-bezier(.45,0,.25,1) var(--md, 0s) both; }
+  @keyframes mhand { from { transform: rotate(-360deg); } to { transform: none; } }
+  .go svg .m-sh { animation: msh 1.3s cubic-bezier(.4,0,.2,1) calc(var(--md, 0s) + 1.4s) both; }
+  @keyframes msh { from { transform: translateX(40px) skewX(-18deg); } to { transform: translateX(440px) skewX(-18deg); } }
+
+  /* ---------- when ---------- */
+  .words { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .wcard { border: 1px solid var(--g-200); border-radius: 16px; padding: 18px 20px; }
+  .wcard h4 { margin: 0 0 8px; font-size: 15px; }
+  .wcard ol, .wcard ul { margin: 0; padding-left: 20px; font-size: 14px; line-height: 22px; color: var(--g-600); }
+  .wcard li + li { margin-top: 6px; }
+  .wcard li b { color: var(--g-900); font-weight: 600; }
+
+  @media (prefers-reduced-motion: reduce) { .go *, .go svg * { animation-duration: .01s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; } }
+  @media (max-width: 520px) { .wrap { padding: 32px 16px 64px; } h1 { font-size: 30px; line-height: 38px; } .meta { padding: 16px; } .panels { padding: 20px 8px; } .strip { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>The Move medal</h1>
+  <p class="lede">Momentum is Move's score for the day: a workout is worth 40, steps 10, small moves 10, and moving in each part of the day 10 more, four times over. When today reaches <b>80% or more</b>, the day earns a medal.</p>
+  <p class="lede">Every Move medal is built exactly like Eat's: the same gold rosette edge, the same gold rim and the same Flip green centre. Only the emblem in the centre changes, so the two read as one set. Ten emblems follow, each shown four ways: large, hanging on the Move screen, small in the calendar, and in the celebration sheet. Press Replay to play one again.</p>
+  <div class="eatref"><img src="icons/badge/simple/heart-apple.svg" alt="Eat's medal"><span><b>The shell comes from Eat's medal.</b> Rosette, rim, enamel, bevel, shadows and the raised glyph with its mint fill and white line are copied part for part. Move only draws a new centre.</span></div>
+  <p class="callout"><b>The idea to carry:</b> moving once is a start, moving often is the goal. The best emblem says "you kept moving" at a glance, at 28 pixels as well as at 200.</p>
+
+  <h2 class="sh">All ten at a glance</h2>
+  <p class="shp">Each medal at full size, with its real calendar size beside it.</p>
+  <div class="strip" id="strip"></div>
+  <p class="recwhy" id="recwhy"></p>
+
+  <h2 class="sh">Each one, four ways</h2>
+  <p class="shp">Left to right: the medal large; hanging on today's Move screen from Eat's gold and green ribbon, gliding down once from under the header; small in the calendar beside the indigo Momentum rings; and the celebration sheet, Eat's Sunrise in Move's words. Every motion eases in and out, with no bounce. The Move screen behind is a live 90% day, with the medal laid over it to judge the placement.</p>
+  <div id="opts"></div>
+
+  <h2 class="sh">When the medal is earned and shown</h2>
+  <div class="words">
+    <div class="wcard"><h4>The rule</h4><ol>
+      <li><b>80% or more.</b> A day earns the medal when its Momentum reaches 80% or more.</li>
+      <li><b>One a day.</b> A day has one medal at most. It stays the same medal every time, with no levels.</li>
+      <li><b>It stays.</b> Once earned, the day keeps its medal, even if a log is later edited.</li></ol></div>
+    <div class="wcard"><h4>What happens</h4><ol>
+      <li><b>The first time today crosses 80%</b>, the celebration sheet plays once.</li>
+      <li><b>After it closes</b>, the medal hangs on Eat's gold and green ribbon under the header for the rest of the day. A tap on it opens the sheet again.</li>
+      <li><b>Past days</b> show the medal in the calendar, in place of that day's ring.</li></ol></div>
+    <div class="wcard"><h4>The words</h4><ul>
+      <li><b>Title:</b> Yay! You earned a medal</li>
+      <li><b>Line:</b> Congratulations, you received a medal for keeping your body moving through the day. Your workout, steps and small moves all added up.</li>
+      <li><b>Coins:</b> +45 FlipCoins earned today, as on Eat's medal sheet.</li>
+      <li><b>Button:</b> Awesome! Keep Going. The X closes it.</li></ul></div>
+  </div>
+</div>
+
+<script id="medal-art">
+/*ART-START*/
+/* Ten Move medals as SVG strings. MEDAL[key](u) returns the artwork; u keeps ids unique per copy.
+   Every medal is Eat's medal: the same gold rosette edge, gold rim and Flip green enamel, built exactly as
+   icons/badge/simple/heart-apple.svg is. Only the emblem in the centre changes. Every part rests at its
+   end state, so the same markup works as a still file. viewBox 154 by 180, centre 77, 89.83. */
+var MEDAL = (function () {
+  var ROSE = "M77 12.83L78.34 12.93L79.68 13.21L80.99 13.67L82.28 14.29L83.54 15.04L84.77 15.9L85.96 16.83L87.12 17.79L88.26 18.76L89.37 19.69L90.47 20.55L91.56 21.33L92.66 21.98L93.79 22.51L94.94 22.89L96.12 23.13L97.36 23.24L98.64 23.22L99.98 23.1L101.36 22.9L102.79 22.65L104.25 22.38L105.74 22.12L107.24 21.92L108.73 21.79L110.2 21.77L111.62 21.88L112.99 22.14L114.29 22.56L115.5 23.15L116.61 23.9L117.63 24.81L118.54 25.87L119.35 27.05L120.06 28.33L120.7 29.69L121.26 31.09L121.79 32.5L122.29 33.91L122.78 35.27L123.3 36.57L123.86 37.78L124.49 38.9L125.2 39.92L126 40.83L126.91 41.63L127.93 42.34L129.05 42.97L130.26 43.53L131.56 44.05L132.92 44.54L134.33 45.04L135.74 45.57L137.14 46.13L138.5 46.77L139.78 47.48L140.96 48.29L142.02 49.2L142.93 50.22L143.68 51.33L144.27 52.54L144.69 53.84L144.95 55.21L145.06 56.63L145.04 58.1L144.91 59.59L144.71 61.09L144.45 62.58L144.18 64.04L143.93 65.47L143.73 66.85L143.61 68.19L143.59 69.47L143.7 70.71L143.94 71.89L144.32 73.04L144.85 74.17L145.5 75.27L146.28 76.36L147.14 77.46L148.07 78.57L149.04 79.71L150 80.87L150.93 82.06L151.79 83.29L152.54 84.55L153.16 85.84L153.62 87.15L153.9 88.49L154 89.83L153.9 91.17L153.62 92.51L153.16 93.82L152.54 95.11L151.79 96.37L150.93 97.6L150 98.79L149.04 99.95L148.07 101.09L147.14 102.2L146.28 103.3L145.5 104.39L144.85 105.49L144.32 106.62L143.94 107.77L143.7 108.95L143.59 110.19L143.61 111.47L143.73 112.81L143.93 114.19L144.18 115.62L144.45 117.08L144.71 118.57L144.91 120.07L145.04 121.56L145.06 123.03L144.95 124.45L144.69 125.82L144.27 127.12L143.68 128.33L142.93 129.44L142.02 130.46L140.96 131.37L139.78 132.18L138.5 132.89L137.14 133.53L135.74 134.09L134.33 134.62L132.92 135.12L131.56 135.61L130.26 136.13L129.05 136.69L127.93 137.32L126.91 138.03L126 138.83L125.2 139.74L124.49 140.76L123.86 141.88L123.3 143.09L122.78 144.39L122.29 145.75L121.79 147.16L121.26 148.57L120.7 149.97L120.06 151.33L119.35 152.61L118.54 153.79L117.63 154.85L116.61 155.76L115.5 156.51L114.29 157.1L112.99 157.52L111.62 157.78L110.2 157.89L108.73 157.87L107.24 157.74L105.74 157.54L104.25 157.28L102.79 157.01L101.36 156.76L99.98 156.56L98.64 156.44L97.36 156.42L96.12 156.53L94.94 156.77L93.79 157.15L92.66 157.68L91.56 158.33L90.47 159.11L89.37 159.97L88.26 160.9L87.12 161.87L85.96 162.83L84.77 163.76L83.54 164.62L82.28 165.37L80.99 165.99L79.68 166.45L78.34 166.73L77 166.83L75.66 166.73L74.32 166.45L73.01 165.99L71.72 165.37L70.46 164.62L69.23 163.76L68.04 162.83L66.88 161.87L65.74 160.9L64.63 159.97L63.53 159.11L62.44 158.33L61.34 157.68L60.21 157.15L59.06 156.77L57.88 156.53L56.64 156.42L55.36 156.44L54.02 156.56L52.64 156.76L51.21 157.01L49.75 157.28L48.26 157.54L46.76 157.74L45.27 157.87L43.8 157.89L42.38 157.78L41.01 157.52L39.71 157.1L38.5 156.51L37.39 155.76L36.37 154.85L35.46 153.79L34.65 152.61L33.94 151.33L33.3 149.97L32.74 148.57L32.21 147.16L31.71 145.75L31.22 144.39L30.7 143.09L30.14 141.88L29.51 140.76L28.8 139.74L28 138.83L27.09 138.03L26.07 137.32L24.95 136.69L23.74 136.13L22.44 135.61L21.08 135.12L19.67 134.62L18.26 134.09L16.86 133.53L15.5 132.89L14.22 132.18L13.04 131.37L11.98 130.46L11.07 129.44L10.32 128.33L9.73 127.12L9.31 125.82L9.05 124.45L8.94 123.03L8.96 121.56L9.09 120.07L9.29 118.57L9.55 117.08L9.82 115.62L10.07 114.19L10.27 112.81L10.39 111.47L10.41 110.19L10.3 108.95L10.06 107.77L9.68 106.62L9.15 105.49L8.5 104.39L7.72 103.3L6.86 102.2L5.93 101.09L4.96 99.95L4 98.79L3.07 97.6L2.21 96.37L1.46 95.11L0.84 93.82L0.38 92.51L0.1 91.17L0 89.83L0.1 88.49L0.38 87.15L0.84 85.84L1.46 84.55L2.21 83.29L3.07 82.06L4 80.87L4.96 79.71L5.93 78.57L6.86 77.46L7.72 76.36L8.5 75.27L9.15 74.17L9.68 73.04L10.06 71.89L10.3 70.71L10.41 69.47L10.39 68.19L10.27 66.85L10.07 65.47L9.82 64.04L9.55 62.58L9.29 61.09L9.09 59.59L8.96 58.1L8.94 56.63L9.05 55.21L9.31 53.84L9.73 52.54L10.32 51.33L11.07 50.22L11.98 49.2L13.04 48.29L14.22 47.48L15.5 46.77L16.86 46.13L18.26 45.57L19.67 45.04L21.08 44.54L22.44 44.05L23.74 43.53L24.95 42.97L26.07 42.34L27.09 41.63L28 40.83L28.8 39.92L29.51 38.9L30.14 37.78L30.7 36.57L31.22 35.27L31.71 33.91L32.21 32.5L32.74 31.09L33.3 29.69L33.94 28.33L34.65 27.05L35.46 25.87L36.37 24.81L37.39 23.9L38.5 23.15L39.71 22.56L41.01 22.14L42.38 21.88L43.8 21.77L45.27 21.79L46.76 21.92L48.26 22.12L49.75 22.38L51.21 22.65L52.64 22.9L54.02 23.1L55.36 23.22L56.64 23.24L57.88 23.13L59.06 22.89L60.21 22.51L61.34 21.98L62.44 21.33L63.53 20.55L64.63 19.69L65.74 18.76L66.88 17.79L68.04 16.83L69.23 15.9L70.46 15.04L71.72 14.29L73.01 13.67L74.32 13.21L75.66 12.93Z";
+  var DISC = "M26.7 89.83A50.3 50.3 0 1 1 127.3 89.83A50.3 50.3 0 1 1 26.7 89.83Z";
+  /* GoodFlip glyphs, as drawn in icons/move and icons/flame-filled.svg */
+  var FLAME = "m6.156 9.323-.002.002-.004.003-.01.008a2 2 0 0 0-.126.104 5 5 0 0 0-.302.291c-.24.253-.548.629-.837 1.132-.582 1.015-1.071 2.528-.796 4.551.271 1.997 1.11 3.666 2.528 4.83C8.021 21.404 9.935 22 12.25 22c2.387 0 4.293-.895 5.554-2.43 1.25-1.521 1.808-3.596 1.675-5.864-.128-2.176-1.313-3.827-2.36-5.285l-.299-.417c-1.142-1.612-2.043-3.097-1.824-5.175A.75.75 0 0 0 14.25 2c-.382 0-.82.118-1.242.296a6.5 6.5 0 0 0-1.373.8c-.925.698-1.85 1.75-2.343 3.156C8.8 7.654 9.05 8.99 9.41 9.963c.237.639-.02 1.27-.407 1.454a.706.706 0 0 1-.927-.31L7.27 9.576a.75.75 0 0 0-1.113-.252";
+  var STEPS = "M13.5038 12V12.75C13.5038 13.3472 13.2666 13.92 12.8442 14.3423C12.4219 14.7646 11.8492 15.0019 11.2519 15.0019C10.6547 15.0019 10.0819 14.7646 9.65961 14.3423C9.2373 13.92 9.00005 13.3472 9.00005 12.75V12C9.00005 11.8674 9.05273 11.7402 9.1465 11.6464C9.24027 11.5527 9.36745 11.5 9.50005 11.5H13.0001C13.066 11.4995 13.1315 11.5121 13.1925 11.537C13.2536 11.5619 13.3092 11.5986 13.356 11.6451C13.4029 11.6916 13.44 11.7469 13.4654 11.8078C13.4907 11.8687 13.5038 11.934 13.5038 12ZM6.50005 10H3.00005C2.86745 10 2.74027 10.0527 2.6465 10.1464C2.55273 10.2402 2.50005 10.3674 2.50005 10.5V11.25C2.50005 11.8467 2.73711 12.419 3.15906 12.841C3.58102 13.2629 4.15332 13.5 4.75005 13.5C5.34679 13.5 5.91909 13.2629 6.34104 12.841C6.763 12.419 7.00005 11.8467 7.00005 11.25V10.5C7.00005 10.3674 6.94738 10.2402 6.85361 10.1464C6.75984 10.0527 6.63266 10 6.50005 10ZM4.75005 1C4.02255 1 3.31693 1.64437 2.76255 2.8125C1.89193 4.64875 1.60255 7.375 2.78068 8.8125C2.82766 8.86984 2.88679 8.91602 2.95381 8.94769C3.02083 8.97936 3.09405 8.99573 3.16818 8.99562H6.32755C6.40168 8.99573 6.4749 8.97936 6.54192 8.94769C6.60894 8.91602 6.66808 8.86984 6.71505 8.8125C7.89318 7.375 7.6038 4.64688 6.73318 2.8125C6.17818 1.64437 5.47318 1 4.75005 1ZM9.67505 10.5H12.8344C12.9086 10.5001 12.9818 10.4837 13.0488 10.4521C13.1158 10.4204 13.175 10.3742 13.2219 10.3169C14.4001 8.87938 14.1107 6.15125 13.2401 4.31687C12.6832 3.14437 11.9776 2.5 11.2501 2.5C10.5226 2.5 9.81943 3.14437 9.26443 4.3125C8.3938 6.14875 8.10443 8.875 9.28255 10.3125C9.32937 10.371 9.38872 10.4182 9.45622 10.4506C9.52372 10.4831 9.59765 10.5 9.67255 10.5H9.67505Z";
+  var DUMBBELL = "M12.5001 4V12C12.5001 12.2652 12.3948 12.5196 12.2072 12.7071C12.0197 12.8946 11.7653 13 11.5001 13H10.5001C10.2349 13 9.98055 12.8946 9.79302 12.7071C9.60548 12.5196 9.50012 12.2652 9.50012 12V8.5H6.50012V12C6.50012 12.2652 6.39477 12.5196 6.20723 12.7071C6.01969 12.8946 5.76534 13 5.50012 13H4.50012C4.23491 13 3.98055 12.8946 3.79302 12.7071C3.60548 12.5196 3.50012 12.2652 3.50012 12V4C3.50012 3.73478 3.60548 3.48043 3.79302 3.29289C3.98055 3.10536 4.23491 3 4.50012 3H5.50012C5.76534 3 6.01969 3.10536 6.20723 3.29289C6.39477 3.48043 6.50012 3.73478 6.50012 4V7.5H9.50012V4C9.50012 3.73478 9.60548 3.48043 9.79302 3.29289C9.98055 3.10536 10.2349 3 10.5001 3H11.5001C11.7653 3 12.0197 3.10536 12.2072 3.29289C12.3948 3.48043 12.5001 3.73478 12.5001 4ZM2.25012 4.5H2.00012C1.73491 4.5 1.48055 4.60536 1.29302 4.79289C1.10548 4.98043 1.00012 5.23478 1.00012 5.5V7.5H0.516997C0.387788 7.49809 0.26265 7.54518 0.166755 7.6318C0.0708607 7.71842 0.0113241 7.83814 0.000122029 7.96688C-0.00441917 8.03527 0.00515043 8.10387 0.0282364 8.1684C0.0513225 8.23294 0.0874318 8.29205 0.134322 8.34204C0.181211 8.39204 0.23788 8.43186 0.300808 8.45903C0.363736 8.48621 0.431578 8.50015 0.500122 8.5H1.00012V10.5C1.00012 10.7652 1.10548 11.0196 1.29302 11.2071C1.48055 11.3946 1.73491 11.5 2.00012 11.5H2.25012C2.31643 11.5 2.38001 11.4737 2.4269 11.4268C2.47378 11.3799 2.50012 11.3163 2.50012 11.25V4.75C2.50012 4.6837 2.47378 4.62011 2.4269 4.57322C2.38001 4.52634 2.31643 4.5 2.25012 4.5ZM16.0001 7.96688C15.9889 7.83836 15.9296 7.71882 15.8339 7.63223C15.7383 7.54564 15.6135 7.49841 15.4845 7.5H15.0001V5.5C15.0001 5.23478 14.8948 4.98043 14.7072 4.79289C14.5197 4.60536 14.2653 4.5 14.0001 4.5H13.7501C13.6838 4.5 13.6202 4.52634 13.5733 4.57322C13.5265 4.62011 13.5001 4.6837 13.5001 4.75V11.25C13.5001 11.3163 13.5265 11.3799 13.5733 11.4268C13.6202 11.4737 13.6838 11.5 13.7501 11.5H14.0001C14.2653 11.5 14.5197 11.3946 14.7072 11.2071C14.8948 11.0196 15.0001 10.7652 15.0001 10.5V8.5H15.5001C15.5687 8.50015 15.6365 8.48621 15.6994 8.45903C15.7624 8.43186 15.819 8.39204 15.8659 8.34204C15.9128 8.29205 15.9489 8.23294 15.972 8.1684C15.9951 8.10387 16.0047 8.03527 16.0001 7.96688Z";
+  var WALK = "M419-378 345-63q-2 11-10.33 17t-19.19 6Q301-40 291.5-51T285-76l109-550-101 43v103q0 12.75-8.68 21.37-8.67 8.63-21.5 8.63-12.82 0-21.82-8.91-9-8.92-9-22.09v-122q0-9.33 4.88-16.72 4.87-7.39 13.12-11.28l174.29-73.22Q438-710 453.5-711.5T484-710q17 3 29.5 10.87Q526-691.25 534-679l42 66q16 24 35.5 43t42.5 33q17 10 34.5 16t36.5 9q12.11 2.25 20.05 10.87 7.95 8.63 7.95 21.38 0 12.75-8.78 21.25T723-452q-59-7-105.5-35.5T533-568l-38 152 82 74q5 4.55 7.5 10.24T587-320v250q0 12.75-8.68 21.37-8.67 8.63-21.5 8.63-12.82 0-21.32-8.63Q527-57.25 527-70v-210l-108-98Zm69.5-397.42q-21.5-21.42-21.5-51.5t21.42-51.58q21.42-21.5 51.5-21.5t51.58 21.42q21.5 21.42 21.5 51.5t-21.42 51.58q-21.42 21.5-51.5 21.5t-51.58-21.42Z";
+  /* the sneaker-move glyph split in two: its speed lines, then the shoe */
+  var SNEAKER_LINES = "M70.8,184H32a8,8,0,0,1,0-16H70.8a8,8,0,1,1,0,16ZM102.8,200H48a8,8,0,0,0,0,16h54.8a8,8,0,1,0,0-16Z";
+  var SNEAKER = "M231.16,166.63l-28.63-14.31A47.74,47.74,0,0,1,176,109.39V80a8,8,0,0,0-7.93-8A48.05,48.05,0,0,1,120,24.07a8,8,0,0,0-12.83-6.44L45.11,64.68a4,4,0,0,0-.41,6l51.44,51.44a8.19,8.19,0,0,1,.6,11.09,8,8,0,0,1-11.71.43l-53-53a4,4,0,0,0-6.44,1.09,16,16,0,0,0,3.12,18.22L142.4,213.66a8,8,0,0,0,5.66,2.34H224a16,16,0,0,0,16-16V180.94A15.92,15.92,0,0,0,231.16,166.63Z";
+  var f = function (n) { return Math.round(n * 100) / 100; };
+  var CX = 77, CY = 89.83;
+  /* Eat's glyph line: pale mint white, round ends */
+  var LN = 'stroke="#F3FCF8" stroke-opacity="0.92" stroke-linecap="round" stroke-linejoin="round"';
+
+  /* Eat's medal, part for part: gradients, the enamel's inner shadow, and the raised glyph's drop and inner shadow */
+  function eatDefs(u) {
+    return '<filter id="f0' + u + '" x="18.18" y="23.31" width="117.64" height="133.05" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/><feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/><feOffset/><feGaussianBlur stdDeviation="16"/><feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/><feColorMatrix type="matrix" values="0 0 0 0 0.07 0 0 0 0 0.2 0 0 0 0 0.16 0 0 0 0.45 0"/><feBlend mode="normal" in2="shape"/></filter>' +
+      '<filter id="f1' + u + '" x="20" y="35" width="114" height="114" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feFlood flood-opacity="0" result="BackgroundImageFix"/><feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/><feOffset dy="4"/><feGaussianBlur stdDeviation="2.2"/><feComposite in2="hardAlpha" operator="out"/><feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.32 0"/><feBlend mode="normal" in2="BackgroundImageFix" result="ds"/><feBlend mode="normal" in="SourceGraphic" in2="ds" result="shape"/><feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/><feOffset dx="1" dy="2"/><feGaussianBlur stdDeviation="5.5"/><feComposite in2="hardAlpha" operator="arithmetic" k2="-1" k3="1"/><feColorMatrix type="matrix" values="0 0 0 0 0.09 0 0 0 0 0.3 0 0 0 0 0.21 0 0 0 0.6 0"/><feBlend mode="normal" in2="shape"/></filter>' +
+      '<linearGradient id="p0' + u + '" x1="29.41" y1="12.3" x2="98.92" y2="170.58" gradientUnits="userSpaceOnUse"><stop stop-color="#FDE8A4"/><stop offset="1" stop-color="#CDA935"/></linearGradient>' +
+      '<radialGradient id="p1' + u + '" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(77 92.436) rotate(90) scale(95.6767 82.7275)"><stop stop-color="#2A805A"/><stop offset="1" stop-color="#18402F"/></radialGradient>' +
+      '<radialGradient id="p2' + u + '" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(39.3211 -44.2948 20.3283 24.1372 53.5094 69.9933)"><stop stop-color="white"/><stop offset="1" stop-color="white" stop-opacity="0"/></radialGradient>' +
+      '<linearGradient id="p3' + u + '" x1="77" y1="31.01" x2="77" y2="153.86" gradientUnits="userSpaceOnUse"><stop stop-color="#12332A" stop-opacity="0"/><stop offset="1" stop-color="#12332A"/></linearGradient>' +
+      '<linearGradient id="p4' + u + '" x1="77" y1="31.01" x2="77" y2="153.86" gradientUnits="userSpaceOnUse"><stop stop-color="#E7C144"/><stop offset="1" stop-color="#FFF1C2"/></linearGradient>' +
+      '<linearGradient id="p5' + u + '" x1="65.24" y1="21.39" x2="88.76" y2="160.95" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF8E0"/><stop offset="1" stop-color="#CDA935"/></linearGradient>' +
+      /* the glyph fills: Eat's mint (as its paint6, lit from the top right), a gold to match the rim, and a pale white */
+      '<radialGradient id="mn' + u + '" cx=".72" cy=".08" r="1.05"><stop stop-color="#ABE6CC"/><stop offset="1" stop-color="#3FA878"/></radialGradient>' +
+      '<linearGradient id="gd' + u + '" x1=".2" y1="0" x2=".8" y2="1"><stop stop-color="#FFF1C2"/><stop offset=".45" stop-color="#F3D161"/><stop offset="1" stop-color="#CDA935"/></linearGradient>' +
+      '<linearGradient id="wt' + u + '" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#DDF3E8"/></linearGradient>' +
+      '<linearGradient id="sg' + u + '" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>' +
+      '<clipPath id="cl' + u + '"><path d="' + ROSE + '"/></clipPath>' +
+      '<mask id="mk' + u + '" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="154" height="180"><path d="' + DISC + '" fill="#D9D9D9"/></mask>';
+  }
+  /* the shared shell: rosette, enamel, rim, fine outer line; the emblem is raised and kept inside the enamel; one sheen passes after */
+  function shell(u, emblem, extra) {
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 154 180" fill="none" aria-hidden="true"><defs>' + eatDefs(u) + (extra || "") + '</defs>' +
+      '<path d="' + ROSE + '" fill="url(#p0' + u + ')"/>' +
+      '<g filter="url(#f0' + u + ')"><path d="' + DISC + '" fill="url(#p1' + u + ')"/><path d="' + DISC + '" fill="url(#p2' + u + ')" fill-opacity="0.29"/><path d="' + DISC + '" fill="url(#p3' + u + ')" fill-opacity="0.2" style="mix-blend-mode:multiply"/></g>' +
+      '<path d="M22.5 89.83A54.5 54.5 0 1 1 131.5 89.83A54.5 54.5 0 1 1 22.5 89.83Z" stroke="url(#p4' + u + ')" stroke-width="8.55556"/>' +
+      '<path opacity="0.42" d="M17.6 89.83A59.4 59.4 0 1 1 136.4 89.83A59.4 59.4 0 1 1 17.6 89.83Z" stroke="url(#p5' + u + ')" stroke-width="1.06944"/>' +
+      '<g mask="url(#mk' + u + ')"><g filter="url(#f1' + u + ')">' + emblem + '</g></g>' +
+      '<g clip-path="url(#cl' + u + ')"><rect class="m-sh" x="-200" y="-10" width="56" height="200" fill="url(#sg' + u + ')"/></g></svg>';
+  }
+  /* a GoodFlip glyph placed at x, y: its own box w by h, scaled by s, turned by r degrees */
+  function glyph(d, w, h, x, y, s, r, fill, ox, oy) {
+    return '<g transform="translate(' + x + ' ' + y + ')' + (r ? ' rotate(' + r + ')' : "") + ' scale(' + s + ') translate(' + f(-(ox == null ? w / 2 : ox)) + ' ' + f(-(oy == null ? h / 2 : oy)) + ')"><path d="' + d + '" ' + fill + '/></g>';
+  }
+  var pt = function (cx, cy, r, deg) { var a = deg * Math.PI / 180; return [f(cx + r * Math.cos(a)), f(cy - r * Math.sin(a))]; };
+  var em = function (inner, i) { return '<g class="m-em" style="--i:' + (i || 0) + '">' + inner + '</g>'; };
+  var dot = function (p, u, i, r) { return '<circle class="m-dot" style="--i:' + i + '" cx="' + p[0] + '" cy="' + p[1] + '" r="' + (r || 5.4) + '" fill="url(#gd' + u + ')" stroke="#F3FCF8" stroke-opacity="0.92" stroke-width="2"/>'; };
+
+  /* 1. Flame: Move's own tab icon, in Eat's mint with Eat's white line, a pale core inside */
+  function flame(u) {
+    return shell(u, em(
+      glyph(FLAME, 24, 24, 77.5, 89, 3.1, 0, 'fill="url(#mn' + u + ')" stroke="#F3FCF8" stroke-opacity="0.92" stroke-width="1.75" stroke-linejoin="round"', 11.85, 12) +
+      '<path d="M78 117C71.5 117 67.6 112.6 68.1 106.8C68.6 101.4 72.4 98.4 75.4 93.6C78 99.2 87.3 101.2 87.9 107.4C88.4 113 84.4 117 78 117Z" fill="#F3FCF8" fill-opacity="0.92"/>'));
+  }
+  /* 2. Day arc: the sun's path over the horizon with four gold stops on it, one for each part of the day */
+  function arc(u) {
+    var C = [77, 104], R = 31;
+    var stops = [162, 118, 62, 18].map(function (t, i) { return dot(pt(C[0], C[1], R, t), u, i + 1); }).join("");
+    return shell(u,
+      '<path d="M41 104H113" stroke-width="5" ' + LN + '/><path d="M55 114H69M85 114H99" stroke-width="3.5" stroke="#F3FCF8" stroke-opacity=".46" stroke-linecap="round"/>' +
+      '<path class="m-draw" pathLength="100" stroke-dasharray="100" d="M' + (C[0] - R) + ' ' + C[1] + 'A' + R + ' ' + R + ' 0 0 1 ' + (C[0] + R) + ' ' + C[1] + '" stroke-width="4.5" ' + LN + '/>' + stops);
+  }
+  /* 3. Four parts: the enamel quartered by a gold cross, sunrise, sun, sunset and moon, clockwise from morning */
+  function four(u) {
+    var st = 'stroke-width="3.4" ' + LN;
+    var rise = '<path d="M-10 5H10M-6 5A6 6 0 0 1 6 5M0 -2V-10M-3.6 -6.4L0 -10L3.6 -6.4" ' + st + '/>';
+    var sun = '<circle r="5" fill="url(#gd' + u + ')"/>' + [0, 45, 90, 135, 180, 225, 270, 315].map(function (a) { var p = pt(0, 0, 8.4, a), q = pt(0, 0, 11, a); return '<path d="M' + p[0] + ' ' + p[1] + 'L' + q[0] + ' ' + q[1] + '" stroke-width="2.6" ' + LN + '/>'; }).join("");
+    var set = '<path d="M-10 5H10M-6 5A6 6 0 0 1 6 5M0 -10V-2M-3.6 -5.6L0 -2L3.6 -5.6" ' + st + '/>';
+    var moon = '<path d="M2 -9A9 9 0 1 0 9 3A7 7 0 0 1 2 -9Z" fill="#F3FCF8" fill-opacity="0.92"/>';
+    var at = function (x, y, g, i) { return '<g class="m-q" style="--i:' + i + '"><g transform="translate(' + x + ' ' + y + ')">' + g + '</g></g>'; };
+    return shell(u,
+      '<path d="M77 50V130M37 89.83H117" stroke="url(#gd' + u + ')" stroke-width="2.6"/>' +
+      at(58, 72, rise, 0) + at(96, 72, sun, 1) + at(96, 109, set, 2) + at(58, 109, moon, 3));
+  }
+  /* 4. Footsteps: GoodFlip's footsteps glyph, pale white, stepping up to the right */
+  function steps(u) {
+    return shell(u, em(glyph(STEPS, 16, 16, 78, 91, 3.7, 20, 'fill="url(#wt' + u + ')"')));
+  }
+  /* 5. Dumbbell: GoodFlip's workout glyph in gold, set at an angle */
+  function dumbbell(u) {
+    return shell(u, em(glyph(DUMBBELL, 16, 16, 77, 90, 3.6, -34, 'fill="url(#gd' + u + ')"')));
+  }
+  /* 6. On the move: the walking figure from the small moves set, with three gold motion lines behind */
+  function walker(u) {
+    return shell(u,
+      '<path class="m-ln" style="--i:0" d="M44 78H56" stroke="#F3D161" stroke-width="4" stroke-linecap="round"/>' +
+      '<path class="m-ln" style="--i:1" d="M38 90H54" stroke="#F3D161" stroke-width="4" stroke-linecap="round"/>' +
+      '<path class="m-ln" style="--i:2" d="M44 102H56" stroke="#F3D161" stroke-width="4" stroke-linecap="round"/>' +
+      em(glyph(WALK, 478, 840, 85, 91, .07, 0, 'fill="url(#wt' + u + ')"', 524, -460)));
+  }
+  /* 7. Swoosh: one rising stroke of momentum in Eat's mint and white line, with gold speed lines trailing */
+  function swoosh(u) {
+    return shell(u,
+      '<path class="m-ln" style="--i:0" d="M44 84H58" stroke="#F3D161" stroke-width="4" stroke-linecap="round"/>' +
+      '<path class="m-ln" style="--i:1" d="M50 73H64" stroke="#F3D161" stroke-width="4" stroke-linecap="round"/>' +
+      '<path class="m-ln" style="--i:2" d="M60 62H72" stroke="#F3D161" stroke-width="4" stroke-linecap="round"/>' +
+      em('<path d="M45 117C70 119 96 105 111 64C99 86 76 100 46 103.5C41 104.2 40 116.6 45 117Z" fill="url(#mn' + u + ')" stroke="#F3FCF8" stroke-opacity="0.92" stroke-width="4.6" stroke-linejoin="round"/>', 1));
+  }
+  /* 8. Stopwatch: a mint face in Eat's white line, the four quarters marked, a gold centre */
+  function watch(u) {
+    var C = [77, 95], R = 24;
+    var ticks = [0, 90, 180, 270].map(function (a) { var p = pt(C[0], C[1], R - 7, a), q = pt(C[0], C[1], R - 11.5, a); return '<path d="M' + p[0] + ' ' + p[1] + 'L' + q[0] + ' ' + q[1] + '" stroke-width="3.2" ' + LN + '/>'; }).join("");
+    var b1 = pt(C[0], C[1], R + 4, 45), b2 = pt(C[0], C[1], R + 9, 45), h = pt(C[0], C[1], 15, 60);
+    return shell(u, em(
+      '<path d="M77 66V60M70 58H84" stroke-width="5" ' + LN + '/><path d="M' + b1[0] + ' ' + b1[1] + 'L' + b2[0] + ' ' + b2[1] + '" stroke-width="5" ' + LN + '/>' +
+      '<circle cx="' + C[0] + '" cy="' + C[1] + '" r="' + R + '" fill="url(#mn' + u + ')" stroke="#F3FCF8" stroke-opacity="0.92" stroke-width="5"/>' + ticks) +
+      '<g class="m-hand"><path d="M' + C[0] + ' ' + C[1] + 'L' + h[0] + ' ' + h[1] + '" stroke-width="4" ' + LN + '/><circle cx="' + C[0] + '" cy="' + C[1] + '" r="4.2" fill="url(#gd' + u + ')"/></g>');
+  }
+  /* 9. Rising line: a line that dips and keeps climbing, gold stops where it turned */
+  function trend(u) {
+    var P = [[44, 112], [61, 95], [73, 104], [104, 69]];
+    var d = P.map(function (p, i) { return (i ? "L" : "M") + p[0] + " " + p[1]; }).join("");
+    var t = P[3], dx = t[0] - P[2][0], dy = t[1] - P[2][1], L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+    var wing = function (s) { var a = s * 2.5, c = Math.cos(a), n = Math.sin(a); return [f(t[0] + 13 * (ux * c - uy * n)), f(t[1] + 13 * (ux * n + uy * c))]; };
+    var w1 = wing(1), w2 = wing(-1);
+    return shell(u,
+      '<path class="m-draw" pathLength="100" stroke-dasharray="100" d="' + d + '" stroke-width="5.5" ' + LN + '/>' +
+      '<path class="m-dot" style="--i:3" d="M' + w1[0] + ' ' + w1[1] + 'L' + t[0] + ' ' + t[1] + 'L' + w2[0] + ' ' + w2[1] + '" stroke-width="5.5" ' + LN + '/>' +
+      dot(P[0], u, 0, 5) + dot(P[1], u, 1, 5) + dot(P[2], u, 2, 5));
+  }
+  /* 10. Sneaker: the moving sneaker from the small moves set, in Eat's mint with Eat's white line, pale speed lines behind */
+  function sneaker(u) {
+    return shell(u, em(
+      glyph(SNEAKER_LINES, 216, 199, 78, 92, .27, 0, 'fill="#F3FCF8" fill-opacity="0.92"', 132, 116.5) +
+      glyph(SNEAKER, 216, 199, 78, 92, .27, 0, 'fill="url(#mn' + u + ')" stroke="#F3FCF8" stroke-opacity="0.92" stroke-width="20" stroke-linejoin="round"', 132, 116.5)));
+  }
+
+  return { flame: flame, arc: arc, four: four, steps: steps, dumbbell: dumbbell, walker: walker, swoosh: swoosh, watch: watch, trend: trend, sneaker: sneaker };
+})();
+/*ART-END*/
+</script>
+
+<script>
+const C = [
+  { k: "flame", n: "Flame",
+    idea: "Move's own tab icon, the flame, drawn in Eat's mint with Eat's white line and a pale core inside. It is to Move what the heart is to Eat.",
+    off: "A flame can also suggest a streak or calories burned. The tab icon beside it in the nav is what ties it to Move.",
+    why: "It is the only emblem that already means Move in the app, it is drawn in exactly Eat's glyph style so the pair reads as one set, and its single shape holds at 28 pixels.",
+    motion: "The flame resolves into the enamel, then one sheen crosses the medal." },
+  { k: "arc", n: "Day arc",
+    idea: "The sun's path over the horizon with four gold stops along it, one for each part of the day.",
+    off: "Tells the moving often story best, but the thin arc and four small stops thin out at 28 pixels.",
+    motion: "The arc draws from morning to night, then the four stops light one by one." },
+  { k: "four", n: "Four parts",
+    idea: "The enamel quartered by a gold cross: sunrise, sun, sunset and moon, clockwise from morning.",
+    off: "The most literal about the four parts, and the four small signs blur into one texture in the calendar.",
+    motion: "The quarters light one after another, clockwise from morning." },
+  { k: "steps", n: "Footsteps",
+    idea: "GoodFlip's footsteps glyph in pale white, stepping up to the right.",
+    off: "Clear at any size, but it reads as a steps medal when steps are only 10 of the 100.",
+    motion: "The footsteps resolve into the enamel." },
+  { k: "dumbbell", n: "Dumbbell",
+    idea: "GoodFlip's workout glyph in gold, set at an angle across the enamel.",
+    off: "Bold and instantly a prize, but it puts the workout first when the medal is about moving all day.",
+    motion: "The dumbbell resolves into the enamel." },
+  { k: "walker", n: "On the move",
+    idea: "The walking figure from the small moves set, with three gold motion lines behind it.",
+    off: "Friendly and human, but a figure at 28 pixels is a small blur and walking undersells a workout.",
+    motion: "The motion lines slide in from the right, then the figure resolves." },
+  { k: "swoosh", n: "Swoosh",
+    idea: "One rising stroke of momentum in Eat's mint and white line, with gold speed lines trailing.",
+    off: "Says momentum directly, but an abstract swoosh can drift toward a sports brand mark.",
+    motion: "The speed lines slide in, then the swoosh resolves." },
+  { k: "watch", n: "Stopwatch",
+    idea: "A mint stopwatch face in Eat's white line, the four quarters marked, a gold centre.",
+    off: "Clear shape, but a stopwatch says speed and racing, a different feeling from moving often.",
+    motion: "The face resolves and the hand sweeps one full turn." },
+  { k: "trend", n: "Rising line",
+    idea: "A line that dips and keeps climbing, with gold stops where it turned.",
+    off: "Reads as progress, but it looks like a chart and could sit on any GoodFlip score.",
+    motion: "The line draws upward, then the stops and the arrowhead light." },
+  { k: "sneaker", n: "Sneaker", rec: true,
+    why: "Chosen for Move: a shoe in motion says moving at a glance, drawn in Eat's mint and white line so it pairs with Eat's medal, and its silhouette holds at 28 pixels.",
+    idea: "The moving sneaker from the small moves set, in Eat's mint with Eat's white line, pale speed lines behind.",
+    off: "Strong silhouette, but it says running more than moving through the day.",
+    motion: "The sneaker resolves into the enamel." },
+];
+
+const RE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4M3 3v5h5"/></svg>';
+const X = '<span class="x" role="img" aria-label="Close"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="13" fill="#98A2B3"/><path d="M11.5 11.5l9 9M20.5 11.5l-9 9" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg></span>';
+let uid = 0;
+const art = k => MEDAL[k]("_" + k + (uid++));
+
+/* the calendar: two weeks, Momentum rings in indigo, a medal on every day at 80% or more */
+const DAYS = [[12, 64], [13, 82], [14, 91], [15, 47], [16, 86], [17, 73], [18, 100], [19, 88], [20, 55], [21, 86, "today"], [22, null], [23, null], [24, null], [25, null]];
+function ring(p, faint) {
+  const Cc = 2 * Math.PI * 13;
+  return '<svg class="r" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="13" fill="none" stroke="' + (faint ? "#F2F4F7" : "#E4E7EC") + '" stroke-width="3"/>' +
+    (p > 0 ? '<circle cx="16" cy="16" r="13" fill="none" stroke="#444CE7" stroke-width="3" stroke-linecap="round" stroke-dasharray="' + Cc.toFixed(1) + '" stroke-dashoffset="' + (Cc * (1 - p)).toFixed(1) + '" transform="rotate(-90 16 16)"/>' : "") + "</svg>";
+}
+function cal(k) {
+  const cells = DAYS.map(([d, s, t]) => '<div class="d' + (t ? " today" : "") + (s == null ? " off" : "") + '" aria-label="' + d + ' October' + (s == null ? "" : ", " + s + " out of 100" + (s >= 80 ? ", medal earned" : "")) + '"><b>' + d + "</b>" +
+    (s == null ? ring(0, true) : s >= 80 ? '<img src="icons/badge/move/' + k + '.svg" alt="">' : ring(s / 100)) + "</div>").join("");
+  return '<div class="cal"><h4>October 2026</h4><div class="wk">' + ["M", "T", "W", "T", "F", "S", "S"].map(x => "<span>" + x + "</span>").join("") + '</div>' +
+    '<div class="row">' + cells + '</div><p>The ring is your Momentum out of 100. A medal is a day at 80% or more.</p>' +
+    '<div class="zoom">Actual size <img src="icons/badge/move/' + k + '.svg" alt=""> At 2x <img class="x2" src="icons/badge/move/' + k + '.svg" alt=""></div></div>';
+}
+function sheet(k) {
+  return '<div class="phone"><div class="in"><div class="day"><i style="width:40%"></i><i class="orb"></i><i></i><i style="width:70%"></i><i></i><i style="width:55%"></i></div><div class="scrim"></div>' +
+    '<div class="sheet"><div class="sky"></div><div class="rays"></div>' + X + '<div class="smed">' + art(k) + '</div>' +
+    '<div class="body"><h3 class="title up" style="--d:1s">Yay! You earned a medal</h3>' +
+    '<p class="line up" style="--d:1.1s">Congratulations, you received a medal for keeping your body moving through the day. Your workout, steps and small moves all added up.</p>' +
+    '<span class="rule up" style="--d:1.15s"></span><div class="mom coin up" style="--d:1.3s"><img src="r3/assets/flipcoin-icon.webp" alt=""><span data-count="45">0</span></div><div class="moml up" style="--d:1.35s">FlipCoins earned today</div>' +
+    '<div class="foot up" style="--d:1.5s"><button class="btn" tabindex="-1">Awesome! Keep Going</button></div></div></div><canvas class="fx"></canvas></div></div>';
+}
+function hanging(k) {
+  return '<div class="phone"><div class="in"><iframe src="/move/index.html?day=plan&now=22" title="Move screen" loading="lazy" tabindex="-1" onload="try{this.contentDocument.head.insertAdjacentHTML(\'beforeend\',\'<style>.bdg-medal{display:none!important}</style>\')}catch(e){}"></iframe>' +
+    '<div class="hang"><span class="rb"></span>' + art(k) + '</div></div></div>';
+}
+
+document.getElementById("strip").innerHTML = C.map(c => '<a href="#' + c.k + '"' + (c.rec ? ' class="rec"' : "") + '><span class="pair">' + art(c.k) + '<img src="icons/badge/move/' + c.k + '.svg" alt=""></span>' + c.n + (c.rec ? "<small>Chosen</small>" : "") + "</a>").join("");
+const R = C.find(c => c.rec);
+document.getElementById("recwhy").innerHTML = "<b>Chosen: " + R.n + ".</b> " + R.why;
+document.getElementById("opts").innerHTML = C.map((c, i) =>
+  '<section class="opt' + (c.rec ? " rec" : "") + '" id="' + c.k + '"><div class="meta"><div class="txt"><h3>' + String.fromCharCode(65 + i) + " · " + c.n + (c.rec ? ' <span class="tag rec">Chosen</span>' : "") + '</h3>' +
+  '<p><b>Idea.</b> ' + c.idea + '</p><p><b>Trade-off.</b> ' + c.off + '</p>' + (c.why ? '<p class="why"><b>Why this one.</b> ' + c.why + '</p>' : "") + '<p><b>Motion.</b> ' + c.motion + '</p></div>' +
+  '<button class="replay" data-play="' + c.k + '">' + RE + 'Replay</button></div>' +
+  '<div class="panels"><div class="panel"><span>Large</span><div class="big">' + art(c.k) + '</div></div>' +
+  '<div class="panel"><span>On the Move screen</span>' + hanging(c.k) + '</div>' +
+  '<div class="panel"><span>In the calendar</span>' + cal(c.k) + '</div>' +
+  '<div class="panel"><span>The celebration</span>' + sheet(c.k) + '</div></div></section>').join("");
+
+/* the Move screens behind wait for a host before they start the score */
+addEventListener("message", e => { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+/* confetti, once, from the medal in the sheet: Flip green, gold and white, as on Eat, falling under gravity, no bounce */
+const PAL = ["#299D6B", "#79CCA8", "#ABE6CC", "#E7C144", "#F3D161", "#FFFFFF"];
+function burst(cv, ox, oy) {
+  const ctx = cv.getContext("2d"), dpr = devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+  if (!W) return;
+  cv.width = W * dpr; cv.height = H * dpr; ctx.scale(dpr, dpr);
+  const s = W / 390, ps = [];
+  for (let i = 0; i < 60; i++) { const a = -Math.PI / 2 + (Math.random() - .5) * 2.4, v = (4 + Math.random() * 6) * s; ps.push({ x: ox, y: oy, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r: Math.random() * 6.3, vr: (Math.random() - .5) * .3, w: (5 + Math.random() * 5) * s, h: (3 + Math.random() * 4) * s, c: PAL[i % PAL.length], life: 110 + Math.random() * 60, age: 0 }); }
+  (function frame() {
+    ctx.clearRect(0, 0, W, H);
+    ps.forEach(p => { p.age++; p.vy += .16 * s; p.vx *= .985; p.vy *= .985; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      ctx.globalAlpha = Math.max(0, 1 - p.age / p.life); ctx.fillStyle = p.c; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h); ctx.restore(); });
+    for (let i = ps.length - 1; i >= 0; i--) if (ps[i].age > ps[i].life) ps.splice(i, 1);
+    if (ps.length) requestAnimationFrame(frame); else ctx.clearRect(0, 0, W, H);
+  })();
+}
+function count(el, ms) {
+  const to = +el.dataset.count, t0 = performance.now();
+  (function tick() { const k = Math.max(0, Math.min(1, (performance.now() - t0) / ms)); el.textContent = Math.round(to * (1 - Math.pow(1 - k, 3))); if (k < 1) requestAnimationFrame(tick); })();
+}
+function play(sec) {
+  sec.classList.remove("go"); void sec.offsetWidth; sec.classList.add("go");
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  sec.querySelectorAll("[data-count]").forEach(el => { el.textContent = reduced ? el.dataset.count : "0"; });
+  if (reduced) return;
+  /* the number and the confetti wait for the medal to land in the sheet, so they never run ahead of it */
+  const sm = sec.querySelector(".smed");
+  sm.onanimationend = e => { if (e.target !== sm) return;
+    sec.querySelectorAll("[data-count]").forEach(el => setTimeout(() => count(el, 700), 450));
+    const ph = sec.querySelectorAll(".phone")[1], cv = ph.querySelector("canvas.fx"), pr = ph.getBoundingClientRect(), mr = ph.querySelector(".smed").getBoundingClientRect(), z = pr.width / 390;
+    /* the canvas lives inside the scaled 390 by 780 screen, so screen pixels are divided back out */
+    burst(cv, (mr.left + mr.width / 2 - pr.left) / z, (mr.top + mr.height * .35 - pr.top) / z);
+  };
+}
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); play(e.target); } }), { threshold: .25 });
+document.querySelectorAll(".opt").forEach(s => io.observe(s));
+document.addEventListener("click", e => { const r = e.target.closest("[data-play]"); if (r) play(document.getElementById(r.dataset.play)); });
+</script>
+</body>
+</html>

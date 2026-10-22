@@ -1,0 +1,137 @@
+/* Move: Log your exercise, the first screen after "Log workout". Figma: GoodFlip ring designs, 11664:12610.
+   Sits under the status bar like the player; a mint glow behind the title, the search bar, then every workout. */
+.mvl { position: fixed; top: 0; bottom: 0; padding-top: 54px; left: 50%; width: 100%; max-width: 390px; z-index: 39; display: flex; flex-direction: column;
+  background: #fff; transform: translate(-50%, 100%); transition: transform .38s cubic-bezier(.32,.72,0,1); overflow: hidden; }
+.mvl.on { transform: translate(-50%, 0); }
+/* its own status bar, so nothing of the page behind ever shows above Back */
+.mvl > .gf-status { position: absolute; top: 0; left: 0; right: 0; z-index: 3; }
+html.mvl-lock, html.mvl-lock body { overflow: hidden; }
+.mvl-glow { position: absolute; left: 50%; top: 32px; width: 279px; height: 279px; margin-left: -140px; pointer-events: none; opacity: 0; transform: scale(.85);
+  background: url(/v7/icons/move/log/glow.svg) center / contain no-repeat; transition: opacity .7s .12s ease-out, transform 1.2s .12s cubic-bezier(.22,1,.36,1); }
+.mvl.on .mvl-glow { opacity: 1; transform: none; animation: mvlBreathe 6s 1.4s ease-in-out infinite; }
+@keyframes mvlBreathe { 50% { transform: scale(1.06); opacity: .85; } }
+
+.mvl-top { position: relative; flex: none; display: flex; align-items: center; padding: 8px 16px; height: 38px; }
+.mvl-back { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; padding: 0; cursor: pointer; font: 400 16px/1.2 Roboto, sans-serif; letter-spacing: .25px; color: var(--g-700); }
+.mvl-back img { width: 22px; height: 22px; display: block; }
+.mvl-back::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 96px; }
+
+.mvl-scroll { position: relative; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 24px 16px 40px; scrollbar-width: none; }
+.mvl-scroll::-webkit-scrollbar { display: none; }
+.mvl h3 { margin: 0 0 16px; text-align: center; font: 600 20px/26px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-900); }
+
+.mvl-search { position: sticky; top: -24px; z-index: 2; display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 16px; border: 1px solid var(--g-200); border-radius: 12px; background: #fff;
+  transition: border-color .2s ease-out, box-shadow .2s ease-out; }
+.mvl-search:focus-within { border-color: var(--brand-500, #299D6B); box-shadow: 0 0 0 4px var(--brand-50); }
+.mvl-search img { width: 24px; height: 24px; flex: none; }
+.mvl-search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none; font: 400 14px/1.2 Roboto, sans-serif; letter-spacing: .25px; color: var(--g-900); }
+.mvl-search input::placeholder { color: var(--g-400); }
+.mvl-clr { flex: none; width: 24px; height: 24px; border: 0; border-radius: 50%; background: var(--g-100); color: var(--g-500); display: none; place-items: center; cursor: pointer; }
+.mvl-clr svg { width: 10px; height: 10px; }
+.mvl-search.has .mvl-clr { display: grid; }
+
+.mvl-lab { margin: 24px 0 12px; font: 400 12px/1.2 Roboto, sans-serif; letter-spacing: .25px; color: var(--g-500); }
+.mvl-list { display: flex; flex-direction: column; }
+.mvl-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 0; border: 0; border-bottom: 1px solid var(--g-100); background: none; text-align: left; cursor: pointer;
+  font: 400 16px/1.2 Roboto, sans-serif; letter-spacing: .25px; color: var(--g-900); transition: background-color .15s ease-out; }
+.mvl-row:active { background: var(--g-50); }
+.mvl-row .ic { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: var(--brand-50); }
+.mvl-row .ic i { width: 18px; height: 18px; background: var(--brand-600); -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat; }
+.mvl-row .nm { flex: 1; min-width: 0; }
+.mvl-row mark { background: none; color: inherit; font-weight: 600; }
+.mvl-row > img { width: 20px; height: 20px; flex: none; transition: transform .2s ease-out; }
+.mvl-row:hover > img { transform: translateX(2px); }
+/* the rows arrive one after another, a short rise, no bounce */
+.mvl.on .mvl-row { animation: mvlRise .42s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--i) * 28ms + 160ms); }
+@keyframes mvlRise { from { opacity: 0; transform: translateY(8px); } }
+.mvl-none { padding: 32px 8px; text-align: center; font: 400 14px/21px Roboto, sans-serif; color: var(--g-500); }
+.mvl-none b { display: block; margin-bottom: 4px; font-size: 16px; font-weight: 600; color: var(--g-900); }
+@media (prefers-reduced-motion: reduce) { .mvl, .mvl-glow { transition: none; } .mvl.on .mvl-glow, .mvl.on .mvl-row { animation: none; } }
+
+/* ---------- the workout's own screen (log.js detail): pushed in from the right over the list ---------- */
+.mvd { position: fixed; top: 0; bottom: 0; left: 50%; width: 100%; max-width: 390px; z-index: 41; display: flex; flex-direction: column; padding-top: 54px;
+  background: #fff; transform: translate(calc(-50% + 100%), 0); transition: transform .38s cubic-bezier(.32,.72,0,1); overflow: hidden; }
+.mvd.on { transform: translate(-50%, 0); }
+.mvd > .gf-status { position: absolute; top: 0; left: 0; right: 0; z-index: 3; }
+.mvd-scroll { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 8px 16px 24px; scrollbar-width: none; }
+.mvd-scroll::-webkit-scrollbar { display: none; }
+
+.mvd-hd { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 4px; }
+.mvd-ic { width: 56px; height: 56px; border-radius: 18px; background: var(--brand-50); display: grid; place-items: center; }
+.mvd-ic i { width: 30px; height: 30px; background: var(--brand-600); -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat; }
+.mvd-hd h3 { margin: 0; font: 600 22px/28px Roboto, sans-serif; letter-spacing: .1px; color: var(--g-900); }
+.mvd-q { margin: 24px 0 10px; text-align: center; font: 400 17px/22px Roboto, sans-serif; letter-spacing: .1px; color: var(--g-900); }
+
+/* the duration wheel: one snapping column in 5 minute steps, read through a soft band, "min" beside it */
+.mvd-wheel { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; height: 220px;
+  -webkit-mask: linear-gradient(transparent, #000 32%, #000 68%, transparent); mask: linear-gradient(transparent, #000 32%, #000 68%, transparent); }
+.mvd-wheel .band { position: absolute; left: 0; right: 0; top: 88px; height: 44px; border-radius: 12px; background: var(--brand-50); pointer-events: none; }
+.mvd-wheel .wc { position: relative; width: 88px; height: 220px; overflow-y: auto; scroll-snap-type: y mandatory; scrollbar-width: none; overscroll-behavior: contain; padding: 88px 0; outline: none; }
+.mvd-wheel .wc::-webkit-scrollbar { display: none; }
+.mvd-wheel .wc > div { height: 44px; display: grid; place-items: center; scroll-snap-align: center; font: 500 22px/1 Roboto, sans-serif; color: var(--g-300);
+  font-variant-numeric: tabular-nums; cursor: pointer; transition: color .15s ease-out, font-size .15s ease-out; }
+.mvd-wheel .wc > div.on { color: var(--g-900); font-weight: 700; font-size: 30px; }
+.mvd-wheel .u { position: absolute; left: calc(50% + 50px); font: 600 15px/1 Roboto, sans-serif; color: var(--brand-700); }
+
+/* intensity, time and date: GoodFlip's settings card (Figma ring designs, Settings 3900:7479): white, 12px corners, an indigo
+   hairline and a 2px offset shadow; each row a 20px line icon, a 16px label, the value in grey and a chevron, hairlines between */
+.mvd-rows { display: flex; flex-direction: column; gap: 16px; margin-top: 28px; padding: 16px 12px; border: 1px solid var(--in-100, #E0EAFF); border-radius: 12px;
+  background: #fff; box-shadow: 2px 2px 0 var(--in-200, #C7D7FE); }
+.mvd-rows .hr { display: block; height: 1px; background: var(--g-100); }
+.mvd-row { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 24px; padding: 0; border: 0; background: none; text-align: left; cursor: pointer;
+  font: 400 16px/1.2 Roboto, sans-serif; letter-spacing: .25px; color: var(--g-900); }
+.mvd-row .ic { width: 20px; height: 20px; flex: none; background: var(--g-600); -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat; }
+.mvd-row > span { flex: 1; }
+.mvd-row b { font-weight: 400; color: var(--g-500); font-variant-numeric: tabular-nums; }
+.mvd-row b.opt { color: var(--g-400); }
+.mvd-row b.late { color: #B54708; }
+.mvd-row .cv { width: 24px; height: 24px; flex: none; margin-left: -4px; }
+.mvd-note { margin: 12px 2px 0; font-size: 12.5px; line-height: 18px; color: #B54708; }
+
+/* its sheets (log.js, in plan-tray.js's .pts look): effort as radio rows, the date as a calendar */
+.pts.mvs .sh { padding-bottom: calc(16px + var(--gf-home-h, 20px)); }   /* beats plan-tray.js, which loads its styles later */
+.mvs-opts { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.mvs-opt { display: flex; align-items: flex-start; gap: 12px; padding: 14px; border: 1px solid var(--g-200); border-radius: 12px; background: #fff; text-align: left; cursor: pointer; transition: border-color .15s, background .15s; }
+.mvs-opt .rd { width: 20px; height: 20px; flex: none; margin-top: 1px; border-radius: 50%; border: 1.5px solid var(--g-300); transition: border .15s; }
+.mvs-opt[aria-checked="true"] { border-color: var(--brand-600); background: var(--brand-50); }
+.mvs-opt[aria-checked="true"] .rd { border: 6px solid var(--brand-600); }
+.mvs-opt b { display: block; font: 600 15px/20px Roboto, sans-serif; color: var(--g-900); }
+.mvs-opt small { display: block; margin-top: 2px; font-size: 13px; line-height: 18px; color: var(--g-500); }
+/* the date: Eat's calendar pad, its days without rings, so a little shorter */
+.mvs-cal .dsd { min-height: 44px; justify-content: center; }
+.mvs-cal .dsn { font-size: 15px; font-weight: 500; }
+.mvs-cal .dsd.today .dsn { color: var(--brand-700); }
+.mvs-cal .dsblank { min-height: 44px; }
+.mvs-cal .dsg { row-gap: 6px; }
+
+/* the one action, held at the foot */
+.mvd-foot { flex: none; padding: 12px 16px calc(20px + var(--gf-home-h, 20px)); background: #fff; box-shadow: 0 -10px 24px -18px rgba(16,24,40,.25); }
+.mvd-go { width: 100%; height: 52px; margin-bottom: 7px; border: 0; border-radius: 12px; background: var(--brand-600); color: #fff; font: 700 15px/1 Roboto, sans-serif; letter-spacing: .25px;
+  box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; transition: transform .15s, box-shadow .15s; }
+.mvd-go:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--brand-700); }
+.mvd-go:disabled { background: #CBF0E0; box-shadow: 0 7px 0 #E6FAF1; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .mvd { transition: none; } }
+
+/* a dial: the wheel framed, with a green pointer on each side at the picked row (the live app's wheels have them) */
+.dial { position: relative; border: 1px solid var(--in-100, #E0EAFF); border-radius: 12px; background: #fff; overflow: hidden; box-shadow: 2px 2px 0 var(--in-200, #C7D7FE); }   /* the settings card's edge, so the two read as one family */
+/* the pointers: soft diamonds, rounded and half tucked under the edge, with a faint green shadow (v7/move-pointer-options.html, 2) */
+.dial::before, .dial::after { content: ""; position: absolute; top: 50%; z-index: 2; width: 12px; height: 12px; margin-top: -6px; border-radius: 3px;
+  background: var(--brand-600); box-shadow: 0 2px 6px -1px rgba(41,157,107,.45); transform: rotate(45deg); pointer-events: none; }
+.dial::before { left: -6px; }
+.dial::after { right: -6px; }
+.dial .mvd-wheel { height: 200px; }
+.dial .mvd-wheel .band { top: 78px; left: 18px; right: 18px; border: 0; border-radius: 10px; background: linear-gradient(90deg, rgba(243,252,248,0), var(--brand-50) 22%, var(--brand-50) 78%, rgba(243,252,248,0)); }   /* no hairlines: a soft green wash marks the pick */
+.dial .mvd-wheel .wc { height: 200px; padding: 78px 0; }
+/* the intensity wheel: one wide column of words, the picked one between two hairlines */
+/* the intensity wheel, dressed as the duration wheel: the same dial, the same soft green wash on the pick, no hairlines */
+.pts.mvs .mvs-int { margin: 0; height: 200px; -webkit-mask: linear-gradient(transparent, #000 32%, #000 68%, transparent); mask: linear-gradient(transparent, #000 32%, #000 68%, transparent); }
+.pts.mvs .mvs-int .wband { top: 78px; left: 18px; right: 18px; height: 44px; border: 0; border-radius: 10px;
+  background: linear-gradient(90deg, rgba(243,252,248,0), var(--brand-50) 22%, var(--brand-50) 78%, rgba(243,252,248,0)); }
+.pts.mvs .mvs-int .wc { height: 200px; padding: 78px 0; }
+.pts.mvs .mvs-int .wc div { display: block; height: 44px; padding: 0 28px; line-height: 44px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font: 500 17px/44px Roboto, sans-serif; color: var(--g-300); transition: color .15s ease-out, font-size .15s ease-out; }
+.pts.mvs .mvs-int .wc div.on { font: 700 20px/44px Roboto, sans-serif; color: var(--g-900); }
+.pts .mvs-sub { margin: -4px 0 14px; font-size: 14px; line-height: 20px; color: var(--g-600); }
+.pts.mvs .dial + .done { margin-top: 20px; }
+/* "Select", the empty choice, stays quiet even when it is the pick */
+.pts.mvs .mvs-int .wc div.none.on { font-weight: 500; color: var(--g-400); }

@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Duration Picker Options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&family=Playfair+Display:wght@600&display=swap">
+<style>
+  /* Move: how long did you do it? Five live ways to pick 5 to 120 minutes in 5 minute steps, for the workout screen
+     (move/log.js detail). Researched on Mobbin: Me+, TIDE (ruler), Apple Fitness, Cal AI (chips), Tiimo (dial),
+     Any Distance (big number), Nike Run Club (fill bar). Each one is real: drag, tap, scroll. */
+  :root { --brand: #299D6B; --brand-700: #2A805A; --brand-50: #F3FCF8; --brand-100: #E6FAF1; --brand-200: #CBF0E0; --brand-400: #59B38C;
+    --ink: #101828; --g-700: #344054; --g-600: #475467; --g-500: #667085; --g-400: #98A2B3; --g-300: #D0D5DD; --g-200: #E4E7EC; --g-100: #F2F4F7; --g-50: #F9FAFB;
+    --ease: cubic-bezier(.22,1,.36,1); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #F6F7F9; color: var(--ink); font: 14px/20px Roboto, system-ui, sans-serif; letter-spacing: .2px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 40px 32px 64px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--brand); }
+  h1 { margin: 8px 0 6px; font: 600 36px/1.15 "Playfair Display", serif; }
+  .lead { margin: 0; max-width: 760px; color: var(--g-500); font-size: 15px; line-height: 23px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 24px; margin-top: 32px; }
+  .opt { display: flex; flex-direction: column; }
+  .tag { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .tag b { font-size: 15px; }
+  .tag .n { width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font: 700 12px/1 Roboto, sans-serif; }
+  .tag .rec { margin-left: auto; padding: 2px 10px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .4px; }
+  /* the phone slice: the screen's top, the picker, the first row of the settings card */
+  .ph { position: relative; height: 540px; border-radius: 28px; background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.06), 0 20px 40px -24px rgba(16,24,40,.25); overflow: hidden; padding: 20px 20px 0; user-select: none; }
+  .ph .hd { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .ph .ic { width: 44px; height: 44px; border-radius: 14px; background: var(--brand-50); display: grid; place-items: center; }
+  .ph .ic i { width: 24px; height: 24px; background: var(--brand); -webkit-mask: url(/v7/icons/move/log/directions_run.svg) center/contain no-repeat; mask: url(/v7/icons/move/log/directions_run.svg) center/contain no-repeat; }
+  .ph .hd b { font-size: 18px; }
+  .ph .q { margin: 14px 0 0; text-align: center; color: var(--g-500); font-size: 13px; }
+  .ph .row { position: absolute; left: 20px; right: 20px; bottom: 18px; display: flex; align-items: center; gap: 8px; padding: 14px 12px; border: 1px solid #E0EAFF; border-radius: 12px; box-shadow: 2px 2px 0 #C7D7FE; font-size: 15px; }
+  .ph .row span { flex: 1; } .ph .row em { font-style: normal; color: var(--g-400); }
+  .notes { margin-top: 14px; font-size: 13px; line-height: 19px; color: var(--g-600); }
+  .notes p { margin: 0 0 6px; } .notes b { color: var(--ink); }
+  .ref { display: block; margin-top: 6px; font-size: 12px; color: var(--g-400); }
+
+  /* the big number every variant shares, so they compare on the picker alone */
+  .big { display: flex; align-items: baseline; justify-content: center; gap: 6px; margin-top: 10px; font-variant-numeric: tabular-nums; }
+  .big b { font: 700 56px/1 Roboto, sans-serif; letter-spacing: -1px; color: var(--ink); transition: color .2s; }
+  .big span { font: 600 18px/1 Roboto, sans-serif; color: var(--brand-700); }
+  .bump b { animation: bump .22s var(--ease); }
+  @keyframes bump { 40% { transform: translateY(-2px); } }
+
+  /* A: ruler */
+  .ruler { position: relative; margin-top: 18px; height: 64px; }
+  .ruler .sc { height: 64px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-mask: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent); mask: linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent); }
+  .ruler .sc::-webkit-scrollbar { display: none; }
+  .ruler .tk { display: flex; align-items: flex-start; height: 64px; }
+  .ruler .t { flex: none; width: 14px; height: 100%; position: relative; scroll-snap-align: center; cursor: pointer; }
+  .ruler .t::before { content: ""; position: absolute; left: 50%; top: 10px; width: 2px; height: 14px; margin-left: -1px; border-radius: 1px; background: var(--g-300); }
+  .ruler .t.m::before { height: 24px; background: var(--g-400); }
+  .ruler .t em { position: absolute; left: 50%; top: 40px; transform: translateX(-50%); font-style: normal; font-size: 11px; color: var(--g-400); font-variant-numeric: tabular-nums; }
+  .ruler .needle { position: absolute; left: 50%; top: 2px; width: 3px; height: 32px; margin-left: -1.5px; border-radius: 2px; background: var(--brand); pointer-events: none; box-shadow: 0 0 0 4px rgba(41,157,107,.12); }
+  .ruler .needle::before { content: ""; position: absolute; left: 50%; top: -8px; transform: translateX(-50%); border: 5px solid transparent; border-top-color: var(--brand); }
+  .chips { display: flex; justify-content: center; gap: 8px; margin-top: 16px; }
+  .chips button { height: 32px; padding: 0 14px; border: 1px solid var(--g-200); border-radius: 999px; background: #fff; font: 500 13px/1 Roboto, sans-serif; color: var(--g-700); cursor: pointer; transition: all .2s var(--ease); }
+  .chips button.on { border-color: var(--brand); background: var(--brand-50); color: var(--brand-700); font-weight: 600; }
+
+  /* B: chips first */
+  .cg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 22px; }
+  .cg button { height: 64px; border: 1px solid var(--g-200); border-radius: 16px; background: #fff; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; transition: all .2s var(--ease); }
+  .cg button b { font: 700 20px/1 Roboto, sans-serif; color: var(--ink); } .cg button small { font-size: 11px; color: var(--g-500); }
+  .cg button.on { border-color: var(--brand); background: var(--brand-50); box-shadow: inset 0 0 0 1px var(--brand); }
+  .cg button.on b { color: var(--brand-700); }
+  .oth { overflow: hidden; max-height: 0; transition: max-height .35s var(--ease); } .oth.open { max-height: 120px; }
+
+  /* C: dial */
+  .dial { position: relative; width: 236px; height: 236px; margin: 28px auto 0; touch-action: none; cursor: grab; }
+  .dial svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .dial .val { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
+  .dial .val b { font: 700 52px/1 Roboto, sans-serif; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+  .dial .val span { margin-top: 4px; font: 600 15px/1 Roboto, sans-serif; color: var(--brand-700); }
+  .dial .lb { position: absolute; font-size: 11px; color: var(--g-400); transform: translate(-50%, -50%); pointer-events: none; }
+
+  /* D: big number you drag */
+  .drag { position: relative; margin: 26px auto 0; width: 230px; height: 150px; border-radius: 28px; background: var(--brand-50); display: flex; align-items: center; justify-content: center; touch-action: none; cursor: ns-resize; overflow: hidden; }
+  .drag .stack { display: flex; flex-direction: column; align-items: center; transition: transform .25s var(--ease); }
+  .drag .stack i { font-style: normal; font: 600 20px/34px Roboto, sans-serif; color: var(--brand-400); opacity: .45; font-variant-numeric: tabular-nums; }
+  .drag .stack b { font: 800 64px/72px Roboto, sans-serif; letter-spacing: -2px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .drag .u { position: absolute; right: 22px; bottom: 18px; font: 600 14px/1 Roboto, sans-serif; color: var(--brand-700); }
+  .steps { display: flex; justify-content: center; gap: 16px; margin-top: 16px; }
+  .steps button { width: 52px; height: 52px; border-radius: 50%; border: 1px solid var(--g-200); background: #fff; font: 400 26px/1 Roboto, sans-serif; color: var(--brand-700); cursor: pointer; }
+  .hint { margin-top: 10px; text-align: center; font-size: 12px; color: var(--g-400); }
+
+  /* E: fill bar */
+  .fb { position: relative; margin: 26px 0 0; height: 64px; border-radius: 18px; background: var(--g-100); overflow: hidden; touch-action: none; cursor: pointer; }
+  .fb .f { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--brand-400), var(--brand)); border-radius: 18px; transition: width .18s var(--ease); }
+  .fb .seg { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(24, 1fr); pointer-events: none; }
+  .fb .seg i { border-right: 1px solid rgba(255,255,255,.5); }
+  .fb .knob { position: absolute; top: 50%; width: 6px; height: 36px; margin: -18px 0 0 -14px; border-radius: 3px; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25); pointer-events: none; transition: left .18s var(--ease); }
+  .fbl { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: var(--g-400); font-variant-numeric: tabular-nums; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="eyebrow">Move · Log exercise</div>
+  <h1>How long did you do it?</h1>
+  <p class="lead">Five live ways to pick a duration from 5 to 120 minutes in 5 minute steps. Each card is the top of the workout screen; drag, scroll and tap to feel it. All start at 5 min, as the screen does.</p>
+
+  <div class="grid">
+    <section class="opt">
+      <div class="tag"><span class="n">A</span><b>Ruler with quick picks</b><span class="rec">RECOMMENDED</span></div>
+      <div class="ph" id="A"></div>
+      <div class="notes"><p>A big green number over a thin ruler that snaps every 5 minutes; longer ticks at every 15. Four chips jump to the usual answers.</p>
+        <p><b>Why:</b> calm, one hand, the number leads. Chips make the common case one tap and save an overshot flick.</p>
+        <p><b>Watch:</b> needs a slider role for VoiceOver (5 min per swipe).</p><span class="ref">Seen in Me+, TIDE, Brink</span></div>
+    </section>
+    <section class="opt">
+      <div class="tag"><span class="n">B</span><b>Quick picks first</b></div>
+      <div class="ph" id="B"></div>
+      <div class="notes"><p>Six large tiles for the usual answers; Other opens the ruler in place for anything else.</p>
+        <p><b>Why:</b> the fastest for most logs and the most accessible, they are plain buttons.</p>
+        <p><b>Watch:</b> 75 or 105 minutes takes a second step.</p><span class="ref">Seen in Apple Fitness, Cal AI, BitePal</span></div>
+    </section>
+    <section class="opt">
+      <div class="tag"><span class="n">C</span><b>Dial that fills</b></div>
+      <div class="ph" id="C"></div>
+      <div class="notes"><p>Drag round the ring and it fills green, like a clock face; the full ring is 2 hours.</p>
+        <p><b>Why:</b> the most memorable, reads as time with no words.</p>
+        <p><b>Watch:</b> a circle is awkward one handed and fiddly on small phones; the hardest to make accessible.</p><span class="ref">Seen in Tiimo, Airbnb</span></div>
+    </section>
+    <section class="opt">
+      <div class="tag"><span class="n">D</span><b>Big number, drag or tap</b></div>
+      <div class="ph" id="D"></div>
+      <div class="notes"><p>The number is the control: drag it up or down, or tap minus and plus. The values either side peek in faintly.</p>
+        <p><b>Why:</b> playful and very clear; the buttons give an exact, accessible fallback.</p>
+        <p><b>Watch:</b> dragging is not obvious without the hint; 24 steps is a lot of tapping.</p><span class="ref">Seen in Any Distance, Opal</span></div>
+    </section>
+    <section class="opt">
+      <div class="tag"><span class="n">E</span><b>Fill bar</b></div>
+      <div class="ph" id="E"></div>
+      <div class="notes"><p>One wide bar in 24 segments that fills green as you drag or tap along it.</p>
+        <p><b>Why:</b> shows how much of 2 hours you did at a glance; easy to hit with a thumb.</p>
+        <p><b>Watch:</b> each 5 minute step is a narrow target on small phones.</p><span class="ref">Seen in Nike Run Club (effort)</span></div>
+    </section>
+  </div>
+</main>
+<script>
+(function () {
+  var VALS = []; for (var v = 5; v <= 120; v += 5) VALS.push(v);
+  var shell = function (inner) {
+    return '<div class="hd"><span class="ic"><i></i></span><b>Running</b></div><p class="q">How long did you do it?</p>' + inner +
+      '<div class="row"><span>Intensity</span><em>Select</em></div>';
+  };
+  var big = function (id) { return '<div class="big" id="' + id + '"><b>5</b><span>min</span></div>'; };
+  function setBig(el, v) { var b = el.querySelector("b"); if (b.textContent == v) return; b.textContent = v; el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); }
+
+  /* a snapping ruler: one tick per 5 minutes, labels every 15 */
+  function ruler(host, onChange) {
+    host.innerHTML = '<div class="ruler"><div class="sc"><div class="tk">' + VALS.map(function (v) {
+      return '<span class="t' + (v % 15 === 0 ? " m" : "") + '" data-v="' + v + '">' + (v % 15 === 0 ? "<em>" + v + "</em>" : "") + '</span>';
+    }).join("") + '</div></div><span class="needle"></span></div>';
+    var sc = host.querySelector(".sc"), tk = host.querySelector(".tk");
+    var pad = function () { var p = sc.clientWidth / 2 - 7; tk.style.padding = "0 " + p + "px"; };
+    pad();
+    var at = function () { return VALS[Math.max(0, Math.min(VALS.length - 1, Math.round(sc.scrollLeft / 14)))]; };
+    sc.addEventListener("scroll", function () { onChange(at()); }, { passive: true });
+    tk.addEventListener("click", function (e) { var t = e.target.closest(".t"); if (t) go(+t.dataset.v); });
+    function go(v, instant) { sc.scrollTo({ left: VALS.indexOf(v) * 14, behavior: instant ? "auto" : "smooth" }); }
+    return { go: go };
+  }
+
+  /* A */
+  (function () {
+    var el = document.getElementById("A");
+    el.innerHTML = shell(big("Ab") + '<div id="Ar"></div><div class="chips">' + [15, 30, 45, 60].map(function (v) { return '<button data-v="' + v + '">' + v + ' min</button>'; }).join("") + '</div>');
+    var bigEl = el.querySelector("#Ab"), chips = el.querySelectorAll(".chips button");
+    var r = ruler(el.querySelector("#Ar"), function (v) { setBig(bigEl, v); chips.forEach(function (c) { c.classList.toggle("on", +c.dataset.v === v); }); });
+    el.querySelector(".chips").addEventListener("click", function (e) { var c = e.target.closest("button"); if (c) r.go(+c.dataset.v); });
+    r.go(5, true);
+  })();
+
+  /* B */
+  (function () {
+    var el = document.getElementById("B");
+    el.innerHTML = shell(big("Bb") + '<div class="cg">' + [[15, "Quick"], [30, "Typical"], [45, ""], [60, "An hour"], [90, ""], [0, "Other"]].map(function (x) {
+      return '<button data-v="' + x[0] + '"><b>' + (x[0] ? x[0] : "···") + '</b><small>' + (x[0] ? (x[1] || "min") : x[1]) + '</small></button>';
+    }).join("") + '</div><div class="oth" id="Bo"></div>');
+    var bigEl = el.querySelector("#Bb"), tiles = el.querySelectorAll(".cg button"), oth = el.querySelector("#Bo"), r = null;
+    el.querySelector(".cg").addEventListener("click", function (e) {
+      var t = e.target.closest("button"); if (!t) return;
+      tiles.forEach(function (x) { x.classList.toggle("on", x === t); });
+      if (+t.dataset.v) { oth.classList.remove("open"); setBig(bigEl, t.dataset.v); return; }
+      oth.classList.add("open");
+      if (!r) r = ruler(oth, function (v) { setBig(bigEl, v); });
+      setTimeout(function () { r.go(+bigEl.querySelector("b").textContent, true); }, 0);
+    });
+  })();
+
+  /* C */
+  (function () {
+    var el = document.getElementById("C"), R = 100, L = 2 * Math.PI * R;
+    var lbs = [[30, "30"], [60, "60"], [90, "90"], [120, "120"]].map(function (x) {
+      var a = x[0] / 120 * 2 * Math.PI - Math.PI / 2, rr = 128;
+      return '<span class="lb" style="left:' + (118 + Math.cos(a) * rr) + 'px;top:' + (118 + Math.sin(a) * rr) + 'px">' + x[1] + '</span>';
+    }).join("");
+    el.innerHTML = shell('<div class="dial" id="Cd"><svg viewBox="0 0 236 236"><circle cx="118" cy="118" r="' + R + '" fill="none" stroke="#F2F4F7" stroke-width="22"/>' +
+      '<circle id="Ca" cx="118" cy="118" r="' + R + '" fill="none" stroke="#299D6B" stroke-width="22" stroke-linecap="round" stroke-dasharray="' + L + '" stroke-dashoffset="' + L + '" style="transition:stroke-dashoffset .15s"/>' +
+      '<circle id="Ck" cx="218" cy="118" r="14" fill="#fff" stroke="#299D6B" stroke-width="3"/></svg>' + lbs +
+      '<div class="val"><b id="Cv">5</b><span>min</span></div></div>');
+    var d = el.querySelector("#Cd"), arc = el.querySelector("#Ca"), knob = el.querySelector("#Ck"), val = el.querySelector("#Cv"), dragging = false;
+    function set(v) {
+      val.textContent = v; arc.setAttribute("stroke-dashoffset", L * (1 - v / 120));
+      var a = v / 120 * 2 * Math.PI; knob.setAttribute("cx", 118 + Math.cos(a) * R); knob.setAttribute("cy", 118 + Math.sin(a) * R);
+    }
+    function at(e) {
+      var b = d.getBoundingClientRect(), x = e.clientX - b.left - b.width / 2, y = e.clientY - b.top - b.height / 2;
+      var a = Math.atan2(x, -y); if (a < 0) a += 2 * Math.PI;
+      set(Math.max(5, Math.min(120, Math.round(a / (2 * Math.PI) * 24) * 5 || 120)));
+    }
+    d.addEventListener("pointerdown", function (e) { dragging = true; d.setPointerCapture(e.pointerId); at(e); });
+    d.addEventListener("pointermove", function (e) { if (dragging) at(e); });
+    d.addEventListener("pointerup", function () { dragging = false; });
+    set(5);
+  })();
+
+  /* D */
+  (function () {
+    var el = document.getElementById("D"), v = 5;
+    el.innerHTML = shell('<div class="drag" id="Dd"><div class="stack" id="Ds"></div><span class="u">min</span></div>' +
+      '<div class="steps"><button data-s="-5" aria-label="5 minutes less">−</button><button data-s="5" aria-label="5 minutes more">+</button></div><p class="hint">Drag the number up or down</p>');
+    var st = el.querySelector("#Ds"), d = el.querySelector("#Dd"), y0 = null, v0 = 5;
+    function draw() { st.innerHTML = '<i>' + (v < 120 ? v + 5 : "") + '</i><b>' + v + '</b><i>' + (v > 5 ? v - 5 : "") + '</i>'; }
+    function set(n) { n = Math.max(5, Math.min(120, n)); if (n !== v) { v = n; draw(); st.animate([{ transform: "scale(.96)" }, { transform: "scale(1)" }], { duration: 160 }); } }
+    d.addEventListener("pointerdown", function (e) { y0 = e.clientY; v0 = v; d.setPointerCapture(e.pointerId); });
+    d.addEventListener("pointermove", function (e) { if (y0 !== null) set(v0 + Math.round((y0 - e.clientY) / 14) * 5); });
+    d.addEventListener("pointerup", function () { y0 = null; });
+    el.querySelector(".steps").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) set(v + +b.dataset.s); });
+    draw();
+  })();
+
+  /* E */
+  (function () {
+    var el = document.getElementById("E");
+    el.innerHTML = shell(big("Eb") + '<div class="fb" id="Ef"><span class="f"></span><span class="seg">' + VALS.map(function () { return "<i></i>"; }).join("") + '</span><span class="knob"></span></div>' +
+      '<div class="fbl"><span>5</span><span>30</span><span>60</span><span>90</span><span>120</span></div>');
+    var bar = el.querySelector("#Ef"), f = bar.querySelector(".f"), k = bar.querySelector(".knob"), bigEl = el.querySelector("#Eb"), on = false;
+    function set(v) { var p = v / 120 * 100; f.style.width = p + "%"; k.style.left = p + "%"; setBig(bigEl, v); }
+    function at(e) { var b = bar.getBoundingClientRect(); set(Math.max(5, Math.min(120, Math.ceil((e.clientX - b.left) / b.width * 24) * 5))); }
+    bar.addEventListener("pointerdown", function (e) { on = true; bar.setPointerCapture(e.pointerId); at(e); });
+    bar.addEventListener("pointermove", function (e) { if (on) at(e); });
+    bar.addEventListener("pointerup", function () { on = false; });
+    set(5);
+  })();
+})();
+</script>
+</body>
+</html>

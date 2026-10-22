@@ -121,6 +121,9 @@
     width: var(--frame-w); height: var(--frame-h);
   }
 
+  .status { transition: opacity .25s ease-out; }
+  .status.off { opacity: 0; }
+
   .miss { position: absolute; inset: 0; display: grid; place-items: center; text-align: center;
     padding: 24px; font-size: 13px; line-height: 20px; color: #667085; }
 
@@ -248,6 +251,8 @@
   window.addEventListener("message", function (e) {
     if (e.source !== fr.contentWindow) return;
     var d = e.data;
+    /* a screen playing video full screen hides the status bar, as the phone does (move/player.js) */
+    if (d && typeof d === "object" && "statusBar" in d) { document.querySelector(".status").classList.toggle("off", !d.statusBar); return; }
     if (d === "hero:ready") {
       fr.contentWindow.postMessage("hero:mount", "*");
       return;

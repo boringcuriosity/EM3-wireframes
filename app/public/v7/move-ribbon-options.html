@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Medal ribbon</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* Move: the ribbon the Sneaker medal hangs from. Each phone is the live Move screen on a 90% day with ?ribbon=,
+     cropped to the header where the medal hangs. */
+  :root { --g-200: #E4E7EC; --g-500: #667085; --g-600: #475467; --g-900: #101828; --brand-50: #F3FCF8; --brand-200: #CBF0E0; --brand-700: #2A805A; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .2px; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 56px 32px 80px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--g-500); }
+  h1 { margin: 12px 0 10px; font-size: 40px; line-height: 48px; font-weight: 600; }
+  .lede { max-width: 720px; margin: 0; font-size: 17px; line-height: 27px; color: var(--g-600); }
+  .grid { display: flex; flex-wrap: wrap; gap: 36px 28px; margin-top: 40px; }
+  figure { margin: 0; width: 300px; }
+  figcaption { min-height: 112px; margin-bottom: 12px; }
+  figcaption b { display: flex; align-items: center; gap: 8px; font-size: 18px; line-height: 26px; }
+  figcaption .rec { font-size: 12px; font-weight: 600; color: var(--brand-700); background: var(--brand-50); border: 1px solid var(--brand-200); border-radius: 999px; padding: 1px 8px; }
+  figcaption p { margin: 6px 0 0; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  /* the top of the phone, at full size: header, date and the hanging medal */
+  .crop { position: relative; width: 300px; height: 360px; overflow: hidden; border-radius: 20px; border: 1px solid var(--g-200); box-shadow: 3px 4px 0 rgba(152,162,179,.3); }
+  .crop iframe { position: absolute; left: -90px; top: 0; width: 390px; height: 780px; border: 0; pointer-events: none; }
+  .sw { display: flex; gap: 10px; align-items: center; margin-top: 14px; font-size: 13px; color: var(--g-500); }
+  .sw i { width: 18px; height: 56px; border-radius: 2px; }
+  @media (max-width: 720px) { .wrap { padding: 32px 16px 56px; } h1 { font-size: 30px; line-height: 38px; } figure, .crop { width: 100%; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="eyebrow">Move · Medal</span>
+  <h1>The ribbon</h1>
+  <p class="lede">The Sneaker medal hangs from the header on a ribbon. Eat's is gold, green, gold. Indigo is Momentum's own colour, the score's orbs and rings, so these bring it in. Each phone is the live Move screen on a 90% day.</p>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+const R = [
+  ["indigo", "Gold, indigo, gold", "Eat's pattern, with Momentum's indigo in the middle. The gold edges match the medal's rim, so ribbon and medal read as one piece.", "linear-gradient(90deg,#CDA935 0 30%,#444CE7 30% 70%,#CDA935 70%)", true],
+  ["edges", "Indigo, gold, indigo", "The other way round: indigo frames a gold centre. Louder indigo, and the gold stripe leads the eye down to the medal.", "linear-gradient(90deg,#3538CD 0 30%,#E2C15A 30% 70%,#3538CD 70%)"],
+  ["pin", "Indigo with gold pinstripes", "An indigo ribbon with two thin gold lines, like a sports medal. The most premium, a touch busier at 18 pixels.", "linear-gradient(90deg,#3538CD 0 22%,#E2C15A 22% 30%,#444CE7 30% 70%,#E2C15A 70% 78%,#3538CD 78%)"],
+  ["satin", "Indigo satin", "All indigo, with a soft sheen down the middle like satin. Calm and single coloured; the gold lives only on the medal.", "linear-gradient(90deg,#2D3282,#444CE7 35%,#8098F9 50%,#444CE7 65%,#2D3282)"],
+  ["eat", "Gold, green, gold (now)", "Eat's ribbon, as Move has it today. The two medals match exactly, but nothing says Momentum.", "linear-gradient(90deg,#CDA935 0 33%,#299D6B 33% 67%,#CDA935 67%)"],
+];
+document.getElementById("grid").innerHTML = R.map(([k, n, line, g, rec]) =>
+  '<figure><figcaption><b>' + n + (rec ? ' <span class="rec">Recommended</span>' : "") + '</b><p>' + line + '</p></figcaption>' +
+  '<div class="crop"><iframe src="/move/index.html?day=plan&now=22&ribbon=' + k + '" title="' + n + '" tabindex="-1"></iframe></div>' +
+  '<div class="sw"><i style="background:' + g + '"></i>The ribbon, close up</div></figure>').join("");
+</script>
+</body>
+</html>

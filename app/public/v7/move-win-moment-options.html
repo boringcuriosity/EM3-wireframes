@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Win Moment Options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap">
+<style>
+  /* Move: the full-screen moment after logging a workout. Today it is Rise, green water filling up from the tray.
+     Eight other ways for the green to arrive. Every one lands on the same end screen: the "Running logged" pill,
+     the big gain, one line. Only the arrival changes. Smooth eases, no bounce. */
+  :root { --brand: #299D6B; --brand-700: #2A805A; --brand-50: #F3FCF8; --brand-200: #CBF0E0;
+    --ink: #101828; --g-600: #475467; --g-500: #667085; --g-200: #EAECF0; --g-100: #F2F4F7; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #F6F7F9; color: var(--ink); font: 14px/20px Roboto, system-ui, sans-serif; letter-spacing: .2px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1640px; margin: 0 auto; padding: 40px 32px 64px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--brand); }
+  h1 { margin: 8px 0 6px; font: 600 34px/1.15 "Playfair Display", serif; }
+  .lead { margin: 0; max-width: 760px; color: var(--g-500); font-size: 15px; line-height: 23px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(392px, 1fr)); gap: 24px; margin-top: 32px; }
+  .card { background: #fff; border-radius: 20px; padding: 16px; box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 16px 32px -24px rgba(16,24,40,.25); }
+  .tag { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .tag .n { width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font: 700 12px/1 Roboto, sans-serif; }
+  .tag b { font-size: 15px; }
+  .tag .rec { padding: 2px 10px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .4px; }
+  .tag .rp { margin-left: auto; height: 30px; padding: 0 12px; border: 1px solid var(--g-200); border-radius: 8px; background: #fff; font: 600 13px/1 Roboto, sans-serif; color: var(--g-600); cursor: pointer; }
+  .tag .rp:hover { background: var(--g-100); }
+  .note { margin: 12px 2px 0; font-size: 13px; line-height: 19px; color: var(--g-600); }
+
+  /* the phone */
+  .ph { position: relative; width: 360px; height: 740px; margin: 0 auto; border-radius: 36px; overflow: hidden; background: #fff; box-shadow: 0 0 0 8px #101828, 0 20px 40px -20px rgba(16,24,40,.5); }
+  /* the Move screen under the moment, roughed in */
+  .mk { position: absolute; inset: 0; padding: 54px 16px 0; }
+  .mk .hd { display: flex; align-items: center; gap: 8px; font: 600 18px/24px Roboto, sans-serif; }
+  .mk .hd i { width: 22px; height: 22px; border-radius: 6px; background: var(--brand-200); }
+  .mk .sc { width: 150px; height: 150px; margin: 22px auto 18px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #EEF4FF, #C7D7FE); }
+  .mk .bx { height: 18px; border-radius: 6px; background: var(--g-100); margin-bottom: 10px; }
+  .mk .cd { height: 110px; border-radius: 16px; border: 1px solid var(--g-200); margin: 14px 0; padding: 14px; }
+  .mk .cd .bx:first-child { width: 40%; background: var(--g-200); }
+  .mk .tray { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 16px 30px; background: #fff; box-shadow: 0 -10px 24px -16px rgba(16,24,40,.3); display: flex; align-items: center; gap: 10px; }
+  .mk .chip { flex: 1; display: flex; align-items: center; gap: 8px; font: 500 14px/1 Roboto, sans-serif; color: var(--g-600); }
+  .mk .chip i { width: 28px; height: 28px; border-radius: 8px; background: var(--brand-50); }
+  .mk .go { height: 44px; padding: 0 18px; border-radius: 10px; background: var(--brand); color: #fff; display: grid; place-items: center; font: 700 14px/1 Roboto, sans-serif; box-shadow: 0 4px 0 var(--brand-700); }
+
+  /* the moment */
+  .wm { position: absolute; inset: 0; pointer-events: none; }
+  .wm canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .wm .c { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; color: #fff; }
+  .wm [data-in] { opacity: 0; }   /* the frame loop brings each line in on its own beat */
+  .logged { display: inline-flex; align-items: center; gap: 10px; padding: 6px 16px 6px 6px; border-radius: 999px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.26); font: 600 16px/20px Roboto, sans-serif; }
+  .logged span { width: 30px; height: 30px; border-radius: 50%; background: #fff; display: grid; place-items: center; }
+  .logged path { fill: none; stroke: var(--brand); stroke-width: 3.4; stroke-linecap: round; stroke-linejoin: round; }
+  .gain { display: block; margin-top: 28px; font: 700 96px/.9 Roboto, sans-serif; letter-spacing: -3px; font-variant-numeric: tabular-nums; }
+  .gain sup { font-size: .4em; vertical-align: top; letter-spacing: 0; opacity: .85; margin-left: 2px; }
+  .say { margin: 18px 0 0; font: 400 17px/25px Roboto, sans-serif; color: rgba(255,255,255,.9); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Move · Win moment</div>
+  <h1>How the green arrives</h1>
+  <p class="lead">What plays after you log a workout from the tray. Today it is Rise, green water filling up from the button. Here are eight other ways in. They all end on the same screen: the pill, the gain, one line. Each phone loops, and Replay starts it again.</p>
+  <div class="grid" id="g"></div>
+</div>
+<script>
+(function () {
+  var G = "#299D6B", G7 = "#2A805A", MINT = "#6CE9A6", PALE = "#A6F4C5";
+  var RED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var cl = function (x) { return Math.max(0, Math.min(1, x)); };
+  var seg = function (p, a, b) { return cl((p - a) / (b - a)); };
+  var eIO = function (x) { return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+  var eOut = function (x) { return 1 - Math.pow(1 - x, 3); };
+  var rnd = function (s) { return function () { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; }; };
+  var W = 360, H = 740, CTA = { x: 300, y: 690 };
+
+  /* each draws the arrival for p in 0..1 (it must cover the screen by p = 1), t is seconds for idle motion */
+  var V = [
+    { id: "wind", name: "Wind", rec: true, dur: 1.5,
+      note: "A gust crosses left to right. Light streaks run ahead and the green follows them in. Fast and fresh, and it feels like movement.",
+      make: function () { var r = rnd(7), L = []; for (var i = 0; i < 46; i++) L.push({ y: r() * H, o: r() * 220, len: 60 + r() * 160, w: .8 + r() * 2.4, a: .35 + r() * .5, f: r() * 6 });
+        return function (x, p, t) {
+          var e = eIO(p), front = -160 + e * (W + 320);
+          x.fillStyle = G; x.beginPath(); x.moveTo(-10, -10);
+          for (var y = -10; y <= H + 10; y += 10) x.lineTo(front + 26 * Math.sin(y / 95 + t * 4) + 10 * Math.sin(y / 36 - t * 6), y);
+          x.lineTo(-10, H + 10); x.closePath(); x.fill();
+          /* the streaks ahead of the front, and a few faster ones inside the green */
+          L.forEach(function (s, i) {
+            var sx = front + s.o - 40 + (1 - e) * 60, yy = s.y + 6 * Math.sin(t * 3 + s.f);
+            var inside = i % 3 === 0, a = s.a * (1 - seg(p, .75, 1));
+            if (inside) { sx = front - s.o * 1.2 + t * 40 % 40; x.strokeStyle = "rgba(255,255,255," + (a * .35) + ")"; }
+            else { var gr = x.createLinearGradient(sx - s.len, 0, sx, 0); gr.addColorStop(0, "rgba(108,233,166,0)"); gr.addColorStop(1, "rgba(41,157,107," + a + ")"); x.strokeStyle = gr; }
+            x.lineWidth = s.w; x.lineCap = "round"; x.beginPath(); x.moveTo(sx - s.len, yy); x.quadraticCurveTo(sx - s.len / 2, yy - 6, sx, yy); x.stroke();
+          });
+        }; }, idle: "wind" },
+
+    { id: "aurora", name: "Aurora", dur: 1.9,
+      note: "Ribbons of green drift in from the left, widen, and melt into one. The most atmospheric; slower and calmer than Wind.",
+      make: function () { var R = [0, 1, 2, 3, 4].map(function (i) { return { y: 80 + i * 150, a: 40 + i * 9, k: 120 + i * 30, ph: i * 1.3, c: [MINT, "#32B27A", G, PALE, "#3CCB8C"][i] }; });
+        return function (x, p, t) {
+          var e = eIO(p), reach = e * (W + 200);
+          R.forEach(function (b, i) {
+            var th = 14 + eIO(seg(p, i * .06, .85)) * 260;
+            var gr = x.createLinearGradient(0, 0, reach, 0); gr.addColorStop(0, b.c); gr.addColorStop(Math.max(.01, 1 - 120 / Math.max(reach, 121)), b.c); gr.addColorStop(1, "rgba(108,233,166,0)");
+            x.globalAlpha = .75; x.fillStyle = gr; x.beginPath();
+            for (var X = 0; X <= reach; X += 8) x.lineTo(X, b.y + b.a * Math.sin(X / b.k + t * 1.6 + b.ph) - th / 2);
+            for (X = reach; X >= 0; X -= 8) x.lineTo(X, b.y + b.a * Math.sin(X / b.k + t * 1.6 + b.ph + .6) + th / 2);
+            x.closePath(); x.fill();
+          });
+          x.globalAlpha = eIO(seg(p, .55, 1)); x.fillStyle = G; x.fillRect(0, 0, W, H); x.globalAlpha = 1;
+        }; }, idle: "aurora" },
+
+    { id: "sun", name: "Sunrise", dur: 1.6,
+      note: "Green rises from the tray like a dawn, a pale glow on its edge and a hint of gold. Close to today's Rise, but light, not water.",
+      make: function () { return function (x, p, t) {
+          var e = eIO(p), y = H + 120 - e * (H + 260);
+          var gl = x.createLinearGradient(0, y - 220, 0, y + 60); gl.addColorStop(0, "rgba(245,215,54,0)"); gl.addColorStop(.55, "rgba(245,215,54," + (.16 * (1 - p)) + ")"); gl.addColorStop(.8, "rgba(166,244,197,.85)"); gl.addColorStop(1, G);
+          x.fillStyle = gl; x.fillRect(0, y - 220, W, 280);
+          x.fillStyle = G; x.beginPath(); x.moveTo(0, H + 10);
+          for (var X = 0; X <= W; X += 10) x.lineTo(X, y + 50 + 40 * Math.pow((X - W / 2) / (W / 2), 2));
+          x.lineTo(W, H + 10); x.closePath(); x.fill();
+          var sg = x.createRadialGradient(W / 2, y + 40, 0, W / 2, y + 40, 260); sg.addColorStop(0, "rgba(255,255,255," + (.45 * (1 - p)) + ")"); sg.addColorStop(1, "rgba(255,255,255,0)");
+          x.fillStyle = sg; x.fillRect(0, 0, W, H);
+        }; }, idle: "glow" },
+
+    { id: "ink", name: "Ink bloom", dur: 1.4,
+      note: "Green spreads out from the button you tapped like ink in water, its edge soft and alive, a few drops running ahead.",
+      make: function () { var r = rnd(19), D = []; for (var i = 0; i < 9; i++) D.push({ a: Math.PI + r() * Math.PI * .55 - .1, d: .25 + r() * .5, s: 10 + r() * 22 });
+        var far = Math.hypot(CTA.x, CTA.y) * 1.2 + 60;
+        return function (x, p, t) {
+          var R = eIO(p) * far;
+          var rim = x.createRadialGradient(CTA.x, CTA.y, 0, CTA.x, CTA.y, Math.max(1, R * 1.1)); rim.addColorStop(0, G); rim.addColorStop(.82, G); rim.addColorStop(1, "#3CCB8C");
+          x.fillStyle = rim; x.beginPath();
+          for (var k = 0; k <= 120; k++) { var a = k / 120 * Math.PI * 2, n = 1 + .07 * Math.sin(a * 5 + t * 2) + .045 * Math.sin(a * 11 - t * 3) + .03 * Math.sin(a * 17 + t);
+            x.lineTo(CTA.x + Math.cos(a) * R * n, CTA.y + Math.sin(a) * R * n); }
+          x.fill();
+          D.forEach(function (d) { var dr = R + 30 + d.d * 120 * (1 - p); var s = d.s * (1 - seg(p, .5, .9));
+            x.fillStyle = G; x.beginPath(); x.arc(CTA.x + Math.cos(d.a) * dr, CTA.y + Math.sin(d.a) * dr, Math.max(0, s), 0, 7); x.fill(); });
+        }; }, idle: "glow" },
+
+    { id: "silk", name: "Silk", dur: 1.3,
+      note: "A sheet of green silk is drawn up from the button to the top left, a soft sheen running along its curved edge.",
+      make: function () { var diag = Math.hypot(W, H); return function (x, p, t) {
+          var d = eIO(p) * (diag + 260), ang = Math.atan2(H, W);
+          x.save(); x.translate(W, H); x.rotate(ang);
+          /* in this frame the sheet grows toward -x, edge bowed */
+          x.fillStyle = G; x.beginPath(); x.moveTo(40, -diag); x.lineTo(-d + 60, -diag);
+          x.quadraticCurveTo(-d - 70, 0, -d + 60, diag); x.lineTo(40, diag); x.closePath(); x.fill();
+          var sh = x.createLinearGradient(-d - 20, 0, -d + 70, 0); sh.addColorStop(0, "rgba(255,255,255,0)"); sh.addColorStop(.35, "rgba(255,255,255," + (.32 * (1 - seg(p, .7, 1))) + ")"); sh.addColorStop(1, "rgba(255,255,255,0)");
+          x.fillStyle = sh; x.beginPath(); x.moveTo(-d + 120, -diag); x.lineTo(-d + 60, -diag); x.quadraticCurveTo(-d - 70, 0, -d + 60, diag); x.lineTo(-d + 120, diag); x.closePath(); x.fill();
+          x.restore();
+        }; }, idle: "glow" },
+
+    { id: "gather", name: "Gather", dur: 1.9,
+      note: "Specks of green drift in from all over the screen, gather where the gain will sit, then open out into the green. The colour arrives at the reward.",
+      make: function () { var r = rnd(31), P = []; for (var i = 0; i < 160; i++) P.push({ x: r() * W, y: r() * H, s: 1.2 + r() * 2.8, d: r() * .25, c: r() < .5 ? G : r() < .5 ? MINT : "#32B27A" });
+        var cx = W / 2, cy = H / 2 - 10, far = Math.hypot(W, H) / 2 / .86 + 20;
+        return function (x, p, t) {
+          var g = seg(p, 0, .6);
+          P.forEach(function (q, i) { var k = eIO(seg(g, q.d, 1)), sw = (1 - k) * 18;
+            var px = q.x + (cx - q.x) * k + sw * Math.sin(t * 2 + i), py = q.y + (cy - q.y) * k + sw * Math.cos(t * 1.7 + i);
+            x.globalAlpha = (.35 + .65 * k) * (1 - seg(p, .6, .7)); x.fillStyle = q.c; x.beginPath(); x.arc(px, py, q.s * (1 - .4 * k), 0, 7); x.fill(); });
+          x.globalAlpha = 1;
+          var R = eIO(seg(p, .55, 1)) * far;
+          if (R > 0) { var gr = x.createRadialGradient(cx, cy, 0, cx, cy, R); gr.addColorStop(0, G); gr.addColorStop(.86, G); gr.addColorStop(1, "rgba(41,157,107,0)");
+            x.fillStyle = gr; x.fillRect(0, 0, W, H); if (p >= 1) { x.fillStyle = G; x.fillRect(0, 0, W, H); } }
+          var core = seg(p, .4, .62) * (1 - seg(p, .62, .8));
+          if (core) { var cg = x.createRadialGradient(cx, cy, 0, cx, cy, 70); cg.addColorStop(0, "rgba(166,244,197," + core + ")"); cg.addColorStop(1, "rgba(166,244,197,0)"); x.fillStyle = cg; x.fillRect(0, 0, W, H); }
+        }; }, idle: "glow" },
+
+    { id: "lift", name: "Updraft", dur: 1.5,
+      note: "Slim columns of green shoot up from the tray, the ones near your button first, each leaving a light streak at its tip. Energetic, like a burst of effort.",
+      make: function () { var N = 18, r = rnd(43), C = []; for (var i = 0; i < N; i++) C.push({ dl: Math.abs((i + .5) / N * W - CTA.x) / W * .35 + r() * .08 });
+        return function (x, p, t) {
+          var cw = W / N;
+          C.forEach(function (c, i) { var k = eIO(seg(p, c.dl, c.dl + .62)), top = H - k * (H + 40);
+            var s = x.createLinearGradient(0, top - 100, 0, top); s.addColorStop(0, "rgba(108,233,166,0)"); s.addColorStop(1, "rgba(108,233,166," + (.8 * (1 - k * k)) + ")");
+            x.fillStyle = s; x.fillRect(i * cw + cw * .35, top - 100, cw * .3, 100 - cw / 2);
+            x.fillStyle = G; x.fillRect(i * cw - .5, top + cw / 2, cw + 1, H - top); x.beginPath(); x.arc(i * cw + cw / 2, top + cw / 2, cw / 2 + .5, Math.PI, 0); x.fill(); });
+        }; }, idle: "glow" },
+
+    { id: "brush", name: "Brush stroke", dur: 1.6,
+      note: "One broad stroke of green paint sweeps back and forth up the screen from your button, as if the day were being painted in. The most handmade.",
+      make: function () { var pts = [[CTA.x, CTA.y]], y = H + 20, dir = -1; while (y > -120) { y -= 110; pts.push([dir < 0 ? -60 : W + 60, y]); dir *= -1; }
+        var len = 0, seglen = []; for (var i = 1; i < pts.length; i++) { var l = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); seglen.push(l); len += l; }
+        return function (x, p, t) {
+          var want = eIO(p) * len, got = 0;
+          x.strokeStyle = G; x.lineWidth = 190; x.lineCap = "round"; x.lineJoin = "round"; x.beginPath(); x.moveTo(pts[0][0], pts[0][1]);
+          for (var i = 1; i < pts.length && got < want; i++) { var k = Math.min(1, (want - got) / seglen[i - 1]);
+            x.lineTo(pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * k, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * k); got += seglen[i - 1]; }
+          x.stroke();
+          if (p >= 1) { x.fillStyle = G; x.fillRect(0, 0, W, H); }
+        }; }, idle: "glow" }
+  ];
+
+  /* the end screen, the same for all */
+  var END = '<div class="c"><span class="logged" data-in="1"><span><svg width="16" height="16" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>Running logged</span>' +
+    '<span class="gain" data-in="2">+<b class="ct">0</b><sup>%</sup></span><p class="say" data-in="3">added to your Momentum score</p></div>';
+  var MOCK = '<div class="mk"><div class="hd"><i></i>Move</div><div class="sc"></div><div class="bx" style="width:60%;margin:0 auto 18px"></div>' +
+    '<div class="cd"><div class="bx"></div><div class="bx"></div><div class="bx" style="width:70%"></div></div><div class="cd"><div class="bx"></div><div class="bx"></div></div>' +
+    '<div class="tray"><span class="chip"><i></i>Running · 30 min</span><span class="go">Log 1</span></div></div>';
+
+  document.getElementById("g").innerHTML = V.map(function (v, i) {
+    return '<section class="card"><div class="tag"><span class="n">' + (i + 1) + '</span><b>' + v.name + '</b>' + (v.rec ? '<span class="rec">RECOMMENDED</span>' : "") +
+      '<button class="rp" data-i="' + i + '">Replay</button></div><div class="ph">' + MOCK + '<div class="wm"><canvas width="' + W * 2 + '" height="' + H * 2 + '"></canvas>' + END + '</div></div>' +
+      '<p class="note">' + v.note + '</p></section>';
+  }).join("");
+
+  /* ?p=0.5 holds every phone at that point of its arrival, to compare stills */
+  var FREEZE = parseFloat(new URLSearchParams(location.search).get("p"));
+  var HOLD = 2.8, FADE = .5, GAP = .9;
+  var runs = V.map(function (v, i) {
+    var card = document.querySelectorAll(".card")[i], wm = card.querySelector(".wm"), cv = wm.querySelector("canvas"), x = cv.getContext("2d"), ct = wm.querySelector(".ct");
+    x.scale(2, 2);
+    return { v: v, draw: v.make(), wm: wm, x: x, ct: ct, ins: wm.querySelectorAll("[data-in]"), t0: performance.now() + i * 180 };
+  });
+  document.getElementById("g").addEventListener("click", function (e) { var b = e.target.closest(".rp"); if (b) { runs[+b.dataset.i].t0 = performance.now(); } });
+
+  function idle(r, x, t) {
+    /* after the cover: flat green, a breath of the arrival's own motion so the screen is not dead */
+    x.fillStyle = G; x.fillRect(0, 0, W, H);
+    var g = x.createRadialGradient(W / 2, H / 2 - 20, 0, W / 2, H / 2 - 20, 260 + 10 * Math.sin(t * 1.4));
+    g.addColorStop(0, "rgba(108,233,166,.22)"); g.addColorStop(1, "rgba(108,233,166,0)"); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    if (r.v.idle === "wind") for (var i = 0; i < 9; i++) { var y = 80 + i * 72, sx = ((t * 90 + i * 137) % (W + 200)) - 100;
+      x.strokeStyle = "rgba(255,255,255,.10)"; x.lineWidth = 1.5; x.beginPath(); x.moveTo(sx - 90, y); x.quadraticCurveTo(sx - 45, y - 5, sx, y); x.stroke(); }
+  }
+
+  function frame(now) {
+    runs.forEach(function (r) {
+      var d = RED ? .2 : r.v.dur, s = FREEZE >= 0 ? FREEZE * d : (now - r.t0) / 1000, x = r.x;
+      x.clearRect(0, 0, W, H);
+      if (s < 0) return;
+      var cyc = d + HOLD + FADE + GAP;
+      if (s > cyc) { r.t0 = now; return; }
+      r.wm.style.opacity = s > d + HOLD ? 1 - eOut(cl((s - d - HOLD) / FADE)) : 1;
+      if (s < d) { if (RED) { x.globalAlpha = s / d; x.fillStyle = G; x.fillRect(0, 0, W, H); x.globalAlpha = 1; } else r.draw(x, s / d, s); }
+      else idle(r, x, s);
+      /* pill, gain, line: each rises 10px into place, .14s apart */
+      [0, .14, .3].forEach(function (dl, j) { var k = eOut(cl((s - d + .05 - dl) / .6)); r.ins[j].style.opacity = k; r.ins[j].style.transform = "translateY(" + (10 * (1 - k)) + "px)"; });
+      /* the gain counts up as it lands */
+      r.ct.textContent = Math.round(8 * eOut(cl((s - d - .1) / .7)));
+    });
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

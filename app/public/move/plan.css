@@ -13,13 +13,14 @@
   border-radius: inherit; opacity: .55; background: var(--scene) right top / auto 100% no-repeat;
   -webkit-mask: linear-gradient(90deg, transparent 18%, #000 62%), linear-gradient(180deg, #000 45%, transparent);
   -webkit-mask-composite: source-in; mask-composite: intersect; }
-.mv-card.settled { border-color: var(--ok-300); box-shadow: 0 0 0 3px rgba(18,183,106,.08), 2px 2px 0 var(--g-200); }
 .mv-mh { display: flex; align-items: center; gap: 12px; padding: 16px; }
 .mv-mh .t { flex: 1; min-width: 0; }
 .mv-mh .n { font-size: 16px; line-height: 22px; font-weight: 600; }
 .mv-mh .s { font-size: 12px; line-height: 18px; color: var(--g-500); margin-top: 2px; }
-.mv-ok-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; color: var(--ok-600); }
-.mv-ok-badge svg { width: 12px; height: 12px; }
+.mv-add { flex: none; display: grid; place-items: center; width: 40px; height: 40px; margin: -8px -8px -8px 0; border: 0; border-radius: var(--r-md); background: none; color: var(--brand-600); cursor: pointer; }
+.mv-add svg { width: 24px; height: 24px; }
+.mv-card.scene .mv-add { position: relative; align-self: flex-start; }   /* top right, above the scene, on a card with a breakdown line under its title */
+.mv-add:active { background: var(--g-50); }
 .mv-mbi { margin: 0 16px; padding: 12px 0 16px; border-top: 1px solid var(--g-100); }
 .mv-mbi .lab:first-child { margin-top: 0; }
 
@@ -38,12 +39,13 @@
 .mv-th span { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(16,24,40,.18); }
 .mv-th svg { width: 20px; height: 20px; color: #fff; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
 .mv-item.done .mv-th img { filter: saturate(.55) brightness(1.04); }
-.mv-nm { flex: 1; min-width: 0; font-size: 14px; line-height: 20px; font-weight: 600; }
+.mv-nm { flex: 1; min-width: 0; align-self: stretch; display: flex; flex-direction: column; justify-content: center; padding: 0; border: 0; background: none; text-align: left; cursor: pointer; font: 600 14px/20px Roboto, sans-serif; letter-spacing: .25px; color: inherit; }
 .mv-nm span { display: block; margin-top: 2px; font-size: 12px; line-height: 18px; font-weight: 400; color: var(--g-500); }
 .mv-item.done .mv-nm { color: var(--g-700); }
 
 .mv-else { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--g-200); }
 .mv-else .lab { margin-top: 0; }
+.mv-mbi > .mv-else:first-child, .mv-mbi > .mv-tips:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
 .mv-acts { display: flex; border: 1px solid var(--g-200); border-radius: var(--r-md); background: #fff; overflow: hidden; }
 .mv-acts button { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 48px; border: 0; background: #fff;
   color: var(--brand-700); font-size: 14px; font-weight: 600; cursor: pointer; }
@@ -64,12 +66,14 @@
 .mv-sh .t { flex: 1; min-width: 0; }
 .mv-big { font-size: 28px; line-height: 34px; font-weight: 700; color: var(--in-700); font-variant-numeric: tabular-nums; letter-spacing: 0; }
 .mv-big span { font-size: 14px; font-weight: 400; color: var(--g-500); letter-spacing: .25px; }
-.mv-sub { font-size: 12px; line-height: 18px; color: var(--g-600); margin-top: 2px; }
-.mv-logbtn { position: relative; flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 12px 0 8px; margin-top: 2px;
-  border-radius: 9999px; border: 1px solid var(--brand-600); background: #fff; color: var(--brand-700); font-size: 13px; font-weight: 600; cursor: pointer; }
-.mv-logbtn::after { content: ""; position: absolute; inset: -6px -2px; }
-.mv-logbtn svg { width: 16px; height: 16px; }
-.mv-logbtn:active { background: var(--brand-50); }
+.mv-sub { font-size: 13px; line-height: 18px; color: var(--g-600); margin-top: 4px; }
+.mv-sub b { font-weight: 600; color: var(--g-900); font-variant-numeric: tabular-nums; }
+/* a quiet text action: the square plus and its words in green, no outline, as "Search and log exercise" on the cards */
+.mv-logbtn { position: relative; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0; margin-top: 4px;
+  border: 0; background: none; color: var(--brand-600); font: 600 14px/1 Roboto, sans-serif; letter-spacing: .25px; cursor: pointer; }
+.mv-logbtn::after { content: ""; position: absolute; inset: -6px -8px; }
+.mv-logbtn svg { width: 20px; height: 20px; }
+.mv-logbtn:active { opacity: .7; }
 .mv-prog { height: 6px; border-radius: 9999px; background: var(--in-50); margin: 12px 0 20px; overflow: hidden; }
 .mv-prog i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--in-400), var(--in-600)); transition: width .6s var(--ease); }
 .mv-chart { display: flex; align-items: flex-end; gap: 3px; height: 96px; }
@@ -77,17 +81,22 @@
 .mv-b i { display: block; width: 100%; height: var(--h); min-height: 3px; border-radius: 4px 4px 2px 2px; background: var(--in-300);
   transition: height .6s var(--ease), background .2s var(--ease); }
 .mv-b.peak i, .mv-b.sel i { background: var(--in-600); }
-.mv-b.now i { background: repeating-linear-gradient(135deg, var(--in-300) 0 4px, var(--in-200) 4px 8px); }
 .mv-b.now.sel i { background: var(--in-600); }
 .mv-b.fut { cursor: default; }
 .mv-b.fut i { height: 3px; background: var(--g-100); }
-.mv-bands, .mv-bl { display: flex; gap: 3px; margin-top: 6px; }
-.mv-bands span { flex: var(--n); height: 4px; border-radius: 9999px; background: var(--tone); }
-.mv-bl { margin-top: 4px; }
-.mv-bl span { flex: var(--n); font-size: 11px; line-height: 14px; color: var(--g-500); white-space: nowrap; overflow: hidden; }
-.mv-cap { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--g-100); font-size: 12px; line-height: 18px; color: var(--g-600); }
-.mv-cap b { color: var(--g-900); font-weight: 600; }
-.mv-cap::before { content: ""; width: 8px; height: 8px; border-radius: 2px; background: var(--in-600); flex-shrink: 0; }
+/* four six-hour quarters, each label at the start of its quarter, under the bars' own 3px gaps */
+.mv-bl { display: flex; gap: 3px; margin-top: 6px; }
+.mv-bl span { flex: 1; font-size: 11px; line-height: 14px; letter-spacing: 0; color: var(--g-500); white-space: nowrap; }
+/* the tapped hour's count: a small white tip over its bar, pointing down at it */
+.mv-htip { position: absolute; bottom: calc(var(--h) + 10px); left: 50%; z-index: 3; transform: translateX(-50%); padding: 6px 10px; border-radius: 8px; background: #fff;
+  box-shadow: 0 0 0 1px rgba(16,24,40,.06), 0 6px 16px -4px rgba(16,24,40,.18); font-size: 11px; line-height: 14px; color: var(--g-500); white-space: nowrap; text-align: left; pointer-events: none;
+  animation: mvTip .22s cubic-bezier(.22,1,.36,1) both; }
+.mv-htip b { display: block; margin-bottom: 1px; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--g-900); font-variant-numeric: tabular-nums; }
+.mv-htip::after { content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px; border: 5px solid transparent; border-top-color: #fff; filter: drop-shadow(0 1px 0 rgba(16,24,40,.06)); }
+.mv-htip.l { left: -2px; transform: none; } .mv-htip.l::after { left: 12px; margin-left: -5px; }
+.mv-htip.r { left: auto; right: -2px; transform: none; } .mv-htip.r::after { left: auto; right: 7px; margin-left: 0; }
+@keyframes mvTip { from { opacity: 0; translate: 0 4px; } }
+@media (prefers-reduced-motion: reduce) { .mv-htip { animation: none; } }
 
 /* the sheets, inside the house sheet (title top left, close circle top right) */
 .mv-meta { margin: -4px 0 20px; font-size: 13px; line-height: 18px; color: var(--g-500); }
@@ -135,3 +144,135 @@
 .mv-facts i { font-style: normal; font-weight: 400; color: var(--g-500); }
 .mv-desc h6 { margin: 16px 0 6px; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--g-900); }
 .mv-desc ol, .mv-desc ul { margin: 0; padding-left: 20px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+
+/* the commentary explainer (say-sheet.js), set like the Momentum sheet: plain sections, the line as seen, then what it means */
+#es-say h4 { font-size: 20px; line-height: 28px; font-weight: 800; }
+#es-say .sbody { padding-bottom: 28px; }
+#es-say .esec h5 { font-size: 15px; line-height: 22px; font-weight: 700; margin-bottom: 8px; }
+#es-say .sxlead { margin: 0 0 12px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+#es-say .sxlegend { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 12px; background: var(--g-50); font-size: 13px; line-height: 20px; color: var(--g-700); }
+#es-say .sxlegend .dc { min-width: 44px; justify-content: center; margin-right: 8px; }
+#es-say .sxsay { margin: 0 0 8px !important; padding: 8px 12px; border-radius: 10px; border: 1px solid var(--g-200); font-size: 13px !important; line-height: 20px !important; color: var(--g-700) !important; }
+#es-say .elist2 { margin: 4px 0 0; padding-left: 20px; }
+#es-say .dc { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; margin: 0 1px; border-radius: 6px; vertical-align: 1px; font: 600 12px/1 Roboto, sans-serif; font-variant-numeric: tabular-nums; }
+#es-say .dc.up { background: #ECFDF3; color: #067647; box-shadow: inset 0 0 0 1px #ABEFC6; }
+#es-say .dc.down { background: #FFFAEB; color: #B54708; box-shadow: inset 0 0 0 1px #FEDF89; }
+#es-say .dc.calm { background: #F2F4F7; color: #475467; box-shadow: inset 0 0 0 1px #E4E7EC; }
+
+/* waiting in the bar (tray.js): a green outline and a green check, Eat's chosen tick */
+.mv-item.pt-sel .mv-tk { background: var(--ok-50, #E6FAF1); border-color: var(--ok-600); }
+.mv-item.pt-sel .mv-tk svg { opacity: 1; transform: scale(1); }
+.mv-item.pt-sel .mv-tk path { stroke: var(--ok-600); }
+/* remove, in the tray's sheet: the same grey shell as the time, the glyph in red */
+.pts .mvt-rm { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border: 1px solid var(--g-200); border-radius: 10px; background: #fff; color: #D92D20; cursor: pointer; transition: background .15s ease-out; }
+.pts .mvt-rm:active { background: #FEF3F2; }
+/* a done workout's two ways on: plain rows, an icon tile, a chevron */
+.pts .mvt-opt { display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px 0; border: 0; background: none; text-align: left; cursor: pointer;
+  font: 500 16px/22px Roboto, sans-serif; color: var(--g-900); transition: background-color .15s ease-out; }
+.pts .mvt-opt + .mvt-opt { border-top: 1px solid var(--g-100); }
+.pts .mvt-opt:last-child { margin-bottom: calc(16px + var(--gf-home-h, 20px)); }
+.pts .mvt-opt .ic { display: grid; place-items: center; flex-shrink: 0; color: var(--g-600); }
+.pts .mvt-opt .ic svg { width: 24px; height: 24px; }
+.pts .mvt-opt > svg { margin-left: auto; color: var(--g-400); }
+.pts .mvt-say { margin: 0 0 20px; font: 400 15px/22px Roboto, sans-serif; color: var(--g-600); }
+/* GoodFlip's secondary: a white face over a pale green ledge, both outlined */
+.pts .mvt-keep { position: relative; isolation: isolate; display: block; width: 100%; height: 52px; margin: 0 0 calc(20px + var(--gf-home-h, 20px)); border: 0; border-radius: 12px; background: none;
+  font: 700 15px/1 Roboto, sans-serif; color: var(--brand-600); cursor: pointer; transition: transform .2s ease-out; }
+.pts .mvt-keep::before { content: ""; position: absolute; inset: 0; z-index: -1; border: 1px solid var(--brand-600); border-radius: 12px; background: #fff; }
+.pts .mvt-keep::after { content: ""; position: absolute; inset: 7px 0 -7px; z-index: -2; border: 1px solid var(--brand-600); border-radius: 12px; background: #CBF0E0; transition: inset .2s ease-out; }
+.pts .mvt-keep:active { transform: translateY(7px); }
+.pts .mvt-keep:active::after { inset: 0; }
+/* the pair: 12px of air between the primary's ledge and the secondary (Eat's sheet gives a lone primary 20px under it) */
+.pts .sh > .done.mvt-pri { margin-bottom: 19px; }
+/* the action, drawn: an undo arrow, or a bin for a remove */
+.pts .mvt-pri svg { width: 20px; height: 20px; margin-right: 8px; vertical-align: -4px; }
+
+/* the burn breakdown chip sits under the time window, as Eat's sits under the meal's */
+.mv-mh .minfo { margin-top: 8px; }
+.ir .top .gl.mv-clk { -webkit-mask-image: url(/v7/icons/feed-meta-clock.svg); mask-image: url(/v7/icons/feed-meta-clock.svg); }
+/* the plan's workouts in the burn sheet: name, then minutes and kcal, a green check once done */
+.mv-bw { margin-top: 8px; }
+.mv-bw h5 { margin: 18px 0 4px; font-size: 15px; line-height: 22px; font-weight: 700; color: var(--g-900); }
+.mv-br { display: flex; align-items: center; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--g-100); font-size: 14px; line-height: 20px; }
+.mv-br .nm { flex: 1; min-width: 0; color: var(--g-900); }
+.mv-br .mt { color: var(--g-500); font-variant-numeric: tabular-nums; }
+.mv-br svg { width: 16px; height: 16px; color: var(--ok-600); flex: none; }
+
+/* searched and logged workouts on a card (log.js): the log screen's icon tile, name, minutes and kcal, a quiet remove */
+.mv-xtra { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--g-200); }
+.mv-mbi > .mv-xtra:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+.mv-xtra .lab { margin-top: 0; }
+.mv-xr { display: flex; align-items: center; gap: 12px; padding: 6px 0; }
+.mv-xr .ic { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--brand-50); }
+.mv-xr .ic i { width: 22px; height: 22px; background: var(--brand-600); -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat; }
+.mv-xr .nm { flex: 1; min-width: 0; font-size: 14px; line-height: 20px; font-weight: 600; }
+.mv-xr .nm span { display: block; margin-top: 2px; font-size: 12px; line-height: 18px; font-weight: 400; color: var(--g-500); }
+.mv-xrm { position: relative; flex: none; width: 20px; height: 20px; padding: 0; border: 0; background: none; color: var(--g-400); cursor: pointer; }
+.mv-xrm::after { content: ""; position: absolute; inset: -12px; }
+.mv-xrm svg { width: 18px; height: 18px; }
+/* how long (log.js): one big stepper, the kcal it burns under it */
+#mvDur .mv-dq { margin: 0 0 16px; font-size: 15px; line-height: 22px; color: var(--g-600); }
+.mv-dst { display: flex; align-items: center; justify-content: space-between; height: 64px; padding: 0 8px; border: 1px solid var(--g-200); border-radius: 16px; }
+.mv-dst button { width: 48px; height: 48px; border: 0; border-radius: 12px; background: var(--brand-50); color: var(--brand-600); font: 500 24px/1 Roboto, sans-serif; cursor: pointer; transition: transform .15s ease-out; }
+.mv-dst button:active { transform: scale(.92); }
+.mv-dst button[disabled] { background: var(--g-50); color: var(--g-300); cursor: default; }
+.mv-dst b { font: 600 16px/1 Roboto, sans-serif; color: var(--g-600); font-variant-numeric: tabular-nums; }
+.mv-dst b span { font-size: 28px; font-weight: 700; color: var(--g-900); }
+.mv-dk { margin: 12px 0 24px; text-align: center; font-size: 14px; line-height: 20px; color: var(--g-600); }
+.mv-dk b { color: var(--g-900); }
+
+/* the steps' source, a strip out of the card's foot */
+/* the card stays whole, round all round with a soft lift; the strip comes out from under its foot, full width */
+.mv-sc { position: relative; z-index: 1; box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 6px 16px -8px rgba(16,24,40,.12); }
+.mv-sync { position: relative; z-index: 0; display: flex; align-items: center; gap: 8px; margin-top: -16px; padding: 26px 16px 10px; border: 1px solid var(--in-100); border-top: 0;
+  border-radius: 0 0 var(--r-xl) var(--r-xl); background: var(--in-25); font-size: 12px; line-height: 16px; color: var(--g-600); }
+.mv-sync .src { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: var(--g-800); }
+/* the apps' own marks: Apple Health's heart on its white tile, Health Connect's icon whole (v7/icons/health) */
+.mv-sync .hk { width: 20px; height: 20px; border-radius: 6px; background: #fff url(/v7/icons/health/apple-health-heart.png) center / 13px no-repeat;
+  box-shadow: 0 0 0 1px var(--g-200); flex: none; }
+.mv-sync .hk.hc { background: url(/v7/icons/health/health-connect.png) center / cover no-repeat; }
+/* not connected: the strip is the way in */
+button.mv-sync { width: 100%; font-family: inherit; text-align: left; cursor: pointer; }
+.mv-sync .src, .mv-sync .at { white-space: nowrap; }
+.mv-sync.off { gap: 12px; padding-top: 28px; padding-bottom: 12px; }
+.mv-sync.off .hk { width: 32px; height: 32px; border-radius: 9px; background-size: 20px; }
+.mv-sync.off .hk.hc { background-size: cover; }
+.mv-sync.off .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mv-sync.off .tx b { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--brand-600); }
+.mv-sync.off .tx span { font-size: 12px; line-height: 16px; color: var(--g-500); }
+.mv-sync.off svg { width: 20px; height: 20px; flex: none; color: var(--brand-600); }
+.mv-sync.off:active .tx b { color: var(--brand-700); }
+.mv-sync .at { margin-left: auto; color: var(--g-500); font-variant-numeric: tabular-nums; }
+
+/* Log steps rises with the phone frame's keyboard (r3/chrome.js lifts [data-kb-lift] by its 291px); a sheet is centred
+   with translate(-50%), so its lift keeps that, and Save keeps clear of the home bar */
+#mvSteps.gf-kb-lift.on { transform: translate(-50%, -291px); }
+#mvSteps .ok { margin-bottom: 12px; }
+
+/* ---------- the Apple Health sheet (move/health.js): the screen that comes next (v7/move-health-sheet-options.html, A) ---------- */
+#mvHealth .hsub { margin: 0; font-size: 15px; line-height: 23px; color: var(--g-600); }
+#mvHealth .peek { position: relative; margin-top: 20px; height: 288px; overflow: hidden; border-radius: 28px 28px 0 0; background: var(--g-50); border: 1px solid var(--g-200); border-bottom: 0; padding: 20px 16px 0; }
+#mvHealth .peek::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 48px; background: linear-gradient(rgba(255,255,255,0), #fff); }
+#mvHealth .app { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+#mvHealth .app b { font-size: 15px; color: var(--g-900); }
+#mvHealth .tile { width: 52px; height: 52px; border-radius: 13px; display: grid; place-items: center; overflow: hidden; background: #fff; box-shadow: 0 0 0 1px rgba(16,24,40,.06), 0 2px 6px rgba(16,24,40,.08); }
+#mvHealth .tile img { width: 64%; height: 64%; object-fit: contain; }
+#mvHealth .tile.hc img { width: 100%; height: 100%; }
+#mvHealth .all { margin-top: 14px; padding: 11px 14px; border-radius: 12px; background: #fff; font-size: 14px; font-weight: 600; color: #007AFF; }
+#mvHealth .hc-ui .all { color: var(--brand-600); }
+#mvHealth .rows { margin-top: 10px; border-radius: 12px; background: #fff; padding: 0 14px; }
+#mvHealth .row { display: flex; align-items: center; justify-content: space-between; height: 40px; font-size: 14px; color: var(--g-900); border-bottom: 1px solid var(--g-100); }
+#mvHealth .row:last-child { border-bottom: 0; }
+#mvHealth .row.off { color: var(--g-400); }
+#mvHealth .tg { position: relative; width: 38px; height: 23px; border-radius: 999px; background: var(--g-200); transition: background .36s cubic-bezier(.2,0,0,1); }
+#mvHealth .tg::after { content: ""; position: absolute; left: 2px; top: 2px; width: 19px; height: 19px; border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.2); transition: transform .36s cubic-bezier(.2,0,0,1); }
+#mvHealth .tg.y { background: #34C759; }
+#mvHealth .hc-ui .tg.y { background: #1A73E8; }
+#mvHealth .tg.y::after { transform: translateX(15px); }
+#mvHealth .hft { display: flex; flex-direction: column; gap: 6px; margin-top: 16px; }
+/* the house primary (log.css .mvd-go, plan-tray .done): a 7px brand-700 base it presses into */
+#mvHealth .hgo { height: 52px; margin-bottom: 7px; border: 0; border-radius: 12px; background: var(--brand-600); color: #fff; font: 700 15px/1 Roboto, sans-serif; letter-spacing: .25px;
+  box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; transition: transform .2s ease-out, box-shadow .2s ease-out; }
+#mvHealth .hgo:active { transform: translateY(5px); box-shadow: 0 2px 0 var(--brand-700); }
+#mvHealth .hlater { min-height: 44px; border: 0; background: none; font: 600 15px Roboto, sans-serif; color: var(--g-600); cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { #mvHealth .tg, #mvHealth .tg::after { transition: none; } }

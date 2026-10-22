@@ -292,13 +292,17 @@
 </div>
 
 <script>
-const COIN = "r3/assets/flipcoin-icon.webp", HERO = "icons/badge/simple/heart-apple.svg";
+/* ?pillar=move: the same Sunrise for Move's medal (the Sneaker, v7/move-medal-options.html), in Move's words */
+const MOVE = new URLSearchParams(location.search).get("pillar") === "move";
+const COIN = "r3/assets/flipcoin-icon.webp", HERO = MOVE ? "icons/badge/move/sneaker.svg" : "icons/badge/simple/heart-apple.svg";
 const X = '<span class="x"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></span>';
 const RE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4M3 3v5h5"/></svg>';
 const STAR = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.8 6.2L20 10l-6.2 1.8L12 18l-1.8-6.2L4 10l6.2-1.8z"/></svg>';
 const badge = (sd) => '<div class="badge" style="--sd:' + (sd || "1.3s") + '"><img src="' + HERO + '" alt="Medal"><span class="sheen"></span></div>';
 const day = '<div class="day"><i style="width:40%"></i><i class="big"></i><i></i><i style="width:70%"></i><i></i><i style="width:55%"></i></div><div class="scrim"></div>';
-const TITLE = "Yay! You earned a medal", LINE = "Congratulations, you received a medal for giving your body what it needed today. Protein, carbs and fats all landed close to your coach's targets.";
+const TITLE = "Yay! You earned a medal", LINE = MOVE
+  ? "Congratulations, you received a medal for keeping your body moving through the day. Your workout, steps and small moves all added up."
+  : "Congratulations, you received a medal for giving your body what it needed today. Protein, carbs and fats all landed close to your coach's targets.";
 const coinsPill = d => '<span class="coins up" style="--d:' + d + '"><img src="' + COIN + '" alt=""><span><b data-count="45">+0</b> FlipCoins earned today</span></span>';
 
 /* Spotlight with its coins slot swapped, for the FlipCoins treatments */

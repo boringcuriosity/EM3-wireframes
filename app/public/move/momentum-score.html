@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Momentum Score</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand:#299D6B; --brand-700:#2A805A; --brand-800:#1F6446; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0;
+    --ink:#101828; --text:#344054; --muted:#667085; --faint:#98A2B3; --line:#E4E7EC; --line2:#F2F4F7; --bg:#F9FAFB;
+    --red:#D92D20; --red-50:#FEF3F2; --amber:#DC6803; --amber-50:#FFFAEB;
+  }
+  *{box-sizing:border-box}
+  html{scroll-snap-type:y mandatory;scroll-padding-top:46px;scroll-behavior:smooth}
+  body{margin:0;background:#fff;color:var(--text);font:400 16px/24px Roboto,system-ui,sans-serif;letter-spacing:.2px;-webkit-font-smoothing:antialiased}
+  a{color:inherit}
+
+  /* top bar */
+  .top{position:fixed;inset:0 0 auto 0;height:46px;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;color:var(--muted)}
+  .top b{font-family:'Playfair Display',Georgia,serif;font-size:16px;color:var(--ink);font-weight:700}
+  .top .on{color:var(--brand);font-weight:700}
+  .top i{font-style:normal;color:var(--faint)}
+  .prog{position:fixed;top:45px;left:0;height:2px;width:0;background:var(--brand);z-index:21}
+  .dots{position:fixed;right:18px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:10px;z-index:20}
+  .dots a{width:9px;height:9px;border-radius:999px;background:var(--line);display:block;transition:all .2s}
+  .dots a.on{background:var(--brand);height:22px}
+
+  /* folds */
+  section{min-height:100vh;scroll-snap-align:start;scroll-snap-stop:always;display:flex;align-items:center;padding:78px 24px 40px}
+  section:nth-of-type(even){background:var(--bg)}
+  .in{max-width:1080px;width:100%;margin:0 auto}
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--brand);margin:0 0 10px}
+  h2{margin:0 0 14px;font:600 40px/48px 'Playfair Display',Georgia,serif;color:var(--ink)}
+  .lede{margin:0 0 30px;font-size:18px;line-height:28px;color:var(--muted);max-width:720px}
+  .lede b{color:var(--text)}
+
+  /* fold 1 */
+  .hero{max-width:820px}
+  .hero h1{margin:0 0 20px;font:700 72px/80px 'Playfair Display',Georgia,serif;color:var(--ink)}
+  .hero h1 span{color:var(--brand)}
+  .hero .tag{font:italic 500 28px/38px Roboto,system-ui,sans-serif;color:var(--brand-700);margin:0 0 18px;letter-spacing:0}
+  .hero p.sub{font-size:18px;line-height:28px;color:var(--muted);margin:0 0 30px;max-width:520px}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:var(--brand-50);border:1px solid var(--brand-200);color:var(--brand-700);font-size:13px;font-weight:600}
+  .scroll{font-size:13px;color:var(--faint)}
+
+  /* 3D button */
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:14px 24px;border-radius:14px;background:var(--brand);color:#fff;font-weight:600;font-size:16px;text-decoration:none;box-shadow:0 4px 0 var(--brand-800);transition:transform .1s,box-shadow .1s}
+  .btn:hover{transform:translateY(1px);box-shadow:0 3px 0 var(--brand-800)}
+  .btn:active{transform:translateY(4px);box-shadow:0 0 0 var(--brand-800)}
+
+  /* fold 2 */
+  .goals{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .goal{background:#fff;border:1px solid var(--line);border-radius:20px;padding:28px 26px;display:flex;flex-direction:column;gap:18px;align-items:flex-start}
+  .goal .n{flex:0 0 auto;width:44px;height:44px;border-radius:14px;background:var(--brand-100);color:var(--brand-700);font:700 18px/44px Roboto,system-ui,sans-serif;text-align:center}
+  .goal p{margin:0;font-size:18px;line-height:28px;color:var(--ink);font-weight:500}
+
+  /* fold 3 */
+  .flow{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:34px;position:relative}
+  .step{background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:22px 20px;position:relative}
+  .step .n{width:30px;height:30px;border-radius:999px;background:var(--brand);color:#fff;font-weight:700;font-size:14px;display:grid;place-items:center;margin-bottom:14px}
+  .step b{display:block;color:var(--ink);font-size:17px;margin-bottom:6px}
+  .step p{margin:0;font-size:14px;line-height:21px;color:var(--muted)}
+  .step:not(:last-child)::after{content:"";position:absolute;right:-12px;top:36px;width:10px;height:10px;border-top:2px solid var(--brand-200);border-right:2px solid var(--brand-200);transform:rotate(45deg)}
+  .quote{background:var(--brand-50);border:1px solid var(--brand-200);border-radius:22px;padding:30px 34px;display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:start}
+  .quote .mark{font:700 80px/60px Georgia,serif;color:var(--brand)}
+  .quote .lab{font-size:12px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--brand-700);margin:0 0 10px}
+  .quote blockquote{margin:0 0 14px;font:italic 400 21px/33px Roboto,system-ui,sans-serif;color:var(--ink);letter-spacing:0}
+  .quote cite{font-style:normal;font-size:14px;color:var(--muted)}
+  .quote cite b{color:var(--text)}
+
+  /* fold 4 */
+  .ins{max-width:880px;border-top:1px solid var(--line)}
+  .insight{display:grid;grid-template-columns:52px 1fr;gap:18px;padding:18px 0;border-bottom:1px solid var(--line)}
+  .insight .n{font:700 15px/26px Roboto,sans-serif;color:var(--brand);letter-spacing:1px}
+  .insight b{display:block;font:600 18px/26px Roboto,sans-serif;color:var(--ink);margin-bottom:4px}
+  .insight p{margin:0;font-size:16px;line-height:25px;color:var(--text)}
+  .eg{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-size:13px}
+  .ok{padding:4px 10px;border-radius:999px;background:var(--brand-50);border:1px solid var(--brand-200);color:var(--brand-700);font-weight:600}
+  .no{padding:4px 10px;border-radius:999px;background:var(--red-50);border:1px solid #FECDCA;color:var(--red);font-weight:600}
+
+  /* fold 5 */
+  .sys{display:grid;grid-template-columns:repeat(4,1fr);gap:0;align-items:stretch;margin-bottom:28px}
+  .lvl{padding:24px 22px;background:#fff;border:1px solid var(--line);position:relative}
+  .lvl:first-child{border-radius:20px 0 0 20px}
+  .lvl:last-child{border-radius:0 20px 20px 0;background:var(--brand-50);border-color:var(--brand-200)}
+  .lvl+.lvl{border-left:none}
+  .lvl .n{font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--faint);margin-bottom:10px}
+  .lvl b{display:block;font:600 19px/26px Roboto,system-ui,sans-serif;color:var(--ink);margin-bottom:8px}
+  .lvl p{margin:0;font-size:14px;line-height:21px;color:var(--muted)}
+  .lvl .ex{margin-top:14px;font-size:13px;color:var(--text);background:var(--bg);border-radius:10px;padding:8px 10px}
+  .lvl:last-child .ex{background:#fff}
+  .note{display:flex;gap:14px;align-items:center;background:#fff;border:1px dashed var(--brand-200);border-radius:16px;padding:18px 22px;font-size:16px;color:var(--text)}
+  .note b{color:var(--ink)}
+  .note .ic{flex:0 0 auto;width:36px;height:36px;border-radius:999px;background:var(--brand);color:#fff;display:grid;place-items:center;font-weight:700}
+
+  /* fold 6 */
+  .score{display:grid;grid-template-columns:.9fr 1.1fr;gap:48px;align-items:center}
+  .q{font:italic 500 26px/36px Roboto,system-ui,sans-serif;color:var(--brand-700);margin:0 0 26px;letter-spacing:0}
+  .rules{display:flex;flex-direction:column;gap:12px}
+  .rule{display:flex;gap:16px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 20px}
+  .rule .pill{flex:0 0 auto;width:92px;text-align:center;padding:8px 0;border-radius:12px;font-weight:700;font-size:15px}
+  .rule.full .pill{background:var(--brand-100);color:var(--brand-700)}
+  .rule.part .pill{background:var(--amber-50);color:var(--amber)}
+  .rule.minus .pill{background:var(--red-50);color:var(--red)}
+  .rule b{display:block;color:var(--ink);font-size:17px}
+  .rule span{font-size:14px;color:var(--muted)}
+  .three{margin:18px 0 26px;font-size:15px;color:var(--muted)}
+
+  /* fold 7 */
+  .math{display:grid;grid-template-columns:1.25fr .75fr;gap:28px;align-items:start}
+  .steps{display:flex;flex-direction:column;gap:10px}
+  .ms{display:grid;grid-template-columns:34px 1fr;gap:14px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .ms .n{width:30px;height:30px;border-radius:999px;background:var(--brand);color:#fff;font-weight:700;font-size:14px;display:grid;place-items:center}
+  .ms b{display:block;color:var(--ink);font-size:16px;margin-bottom:2px}
+  .ms p{margin:0;font-size:14px;line-height:21px;color:var(--text)}
+  .ms ul{margin:6px 0 0;padding:0;list-style:none;display:grid;gap:5px}
+  .ms li{font-size:14px;line-height:20px;display:flex;gap:8px;align-items:baseline}
+  .ms li em{font-style:normal;flex:0 0 auto;font-size:12px;font-weight:600;padding:1px 8px;border-radius:999px}
+  .t-short{background:var(--amber-50);color:var(--amber)}
+  .t-in{background:var(--brand-100);color:var(--brand-700)}
+  .t-over{background:var(--red-50);color:var(--red)}
+  .side{display:flex;flex-direction:column;gap:16px}
+  .box{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px}
+  .box h3{margin:0 0 12px;font:600 17px/24px Roboto,system-ui,sans-serif;color:var(--ink)}
+  .box ul{margin:0;padding:0 0 0 18px;font-size:14px;line-height:21px;display:grid;gap:6px}
+  .bar{display:grid;grid-template-columns:1fr 40px;gap:4px 10px;align-items:center;font-size:14px;margin-bottom:10px}
+  .bar span{color:var(--text)}
+  .bar b{text-align:right;color:var(--ink)}
+  .bar i{grid-column:1/-1;height:6px;border-radius:999px;background:var(--line2);position:relative;overflow:hidden}
+  .bar i::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--w);background:var(--brand);border-radius:999px}
+
+  @media (max-width:900px){
+    html{scroll-snap-type:none}
+    section{min-height:auto;padding:80px 16px 48px}
+    h2{font-size:30px;line-height:38px}
+    .score,.math{grid-template-columns:1fr;gap:32px}
+    .hero h1{font-size:46px;line-height:52px}
+    .hero .tag{font-size:24px;line-height:32px}
+        .goals,.flow,.sys{grid-template-columns:1fr}
+    .step::after{display:none}
+    .insight{grid-template-columns:36px 1fr;gap:12px}
+    .lvl,.lvl:first-child,.lvl:last-child{border-radius:16px;border:1px solid var(--line)}
+    .lvl+.lvl{margin-top:10px}
+    .lvl:last-child{border-color:var(--brand-200)}
+    .quote{grid-template-columns:1fr;padding:24px}
+    .dots{display:none}
+    .top{font-size:12px;gap:6px}
+  }
+  /* Momentum additions */
+  .links{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 26px}
+  .lk{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:12px;background:#fff;border:1px solid var(--line);color:var(--ink);font-size:14px;font-weight:600;text-decoration:none}
+  .lk:hover{border-color:var(--brand-200);background:var(--brand-50)}
+  .lk span{color:var(--brand)}
+  .goals.four{grid-template-columns:repeat(4,1fr)}
+  .parts4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+  .parts4 div{border-radius:12px;padding:10px 12px;font-size:13px;line-height:18px;background:var(--bg);border:1px solid var(--line)}
+  .parts4 b{display:block;font-size:14px;color:var(--ink)}
+  .tw{overflow-x:auto;border:1px solid var(--line);border-radius:18px;background:#fff}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th,td{padding:11px 14px;text-align:left;border-bottom:1px solid var(--line2);vertical-align:top}
+  th{font-size:12px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);background:var(--bg);white-space:nowrap}
+  td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  td b{color:var(--ink);font-weight:600}
+  td small{display:block;color:var(--muted);font-size:13px;line-height:19px}
+  tr:last-child td{border-bottom:none}
+  .hi{color:var(--brand-700);font-weight:700}
+  .lo{color:var(--red);font-weight:700}
+  .mid{color:var(--amber);font-weight:700}
+  .cases{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .case{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .case b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+  .case p{margin:0;font-size:14px;line-height:21px;color:var(--text)}
+  .case .tagl{display:inline-block;margin-bottom:8px;font-size:12px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--brand-100);color:var(--brand-700)}
+  .case .tagl.a{background:var(--amber-50);color:var(--amber)}
+  .open{counter-reset:o;display:grid;gap:12px;max-width:900px}
+  .oq{display:grid;grid-template-columns:52px 1fr;gap:16px;background:#fff;border:1px solid var(--line);border-left:3px solid var(--amber);border-radius:14px;padding:16px 18px}
+  .oq .n{font:700 15px/26px Roboto,sans-serif;color:var(--amber);letter-spacing:1px}
+  .oq b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
+  .oq p{margin:0;font-size:14px;line-height:21px}
+  @media (max-width:900px){
+    .goals.four,.cases,.parts4{grid-template-columns:1fr}
+    .oq{grid-template-columns:36px 1fr;gap:10px}
+  }
+</style>
+</head>
+<body>
+
+<div class="top"><b>GoodFlip</b><i>·</i><span>Eat</span><i>·</i><span class="on">Move</span><i>·</i><span>Mind</span><i>·</i><span>Measure</span></div>
+<div class="prog" id="prog"></div>
+<nav class="dots" id="dots"></nav>
+
+<!-- FOLD 1 -->
+<section id="f1">
+  <div class="in"><div class="hero">
+      <p class="eyebrow">The Move pillar</p>
+      <h1><span>MOVE/</span><wbr>Momentum score</h1>
+      <p class="tag">Moving once isn't the answer.<br>Moving often is.</p>
+      <p class="sub">One daily number that shows how well you kept moving through your day, from morning to night.</p>
+      <div class="links">
+        <a class="lk" href="/move/sandbox.html" target="_blank" rel="noopener">Momentum sandbox <span>↗</span></a>
+        <a class="lk" href="/move/deck.html" target="_blank" rel="noopener">Move deck <span>↗</span></a>
+        <a class="lk" href="/v7/coach-exercise-template.html" target="_blank" rel="noopener">Coach exercise template <span>↗</span></a>
+        <a class="lk" href="/v7/frame.html?src=/move/index.html" target="_blank" rel="noopener">Move screen <span>↗</span></a>
+      </div>
+      <span class="scroll">Scroll to explore ↓</span>
+  </div></div>
+</section>
+
+<!-- FOLD 2 -->
+<section id="f2">
+  <div class="in">
+    <p class="eyebrow">Objective</p>
+    <h2>Why this score exists</h2>
+    <p class="lede">Three goals, one number.</p>
+    <div class="goals">
+      <div class="goal"><div class="n">1</div><p>Motivate our paid users to follow the move plan their coach created: the workout, the small moves and the steps.</p></div>
+      <div class="goal"><div class="n">2</div><p>Strengthen the conversation between coach and user, with one number they both understand.</p></div>
+      <div class="goal"><div class="n">3</div><p>Make moving through the whole day a habit, because the score grows most when movement is spread from morning to night.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOLD 3 -->
+<section id="f3">
+  <div class="in">
+    <p class="eyebrow">How it flows</p>
+    <h2>One story, from first hello to daily habit</h2>
+    <p class="lede">The same message carries through every touchpoint.</p>
+    <div class="flow">
+      <div class="step"><div class="n">1</div><b>Marketing and sales introduce it</b><p>New users hear about the Move pillar and the Momentum score before they join.</p></div>
+      <div class="step"><div class="n">2</div><b>The coach carries it forward</b><p>After the consultation, the coach sets the routines, small moves and steps goal, and explains the same story.</p></div>
+      <div class="step"><div class="n">3</div><b>The app makes it daily</b><p>The user does the workout, ticks small moves, walks, and sees the score grow through the day.</p></div>
+      <div class="step"><div class="n">4</div><b>The coach closes the loop</b><p>Each week the coach reviews the score and adjusts the plan.</p></div>
+    </div>
+    <div class="quote">
+      <div class="mark">“</div>
+      <div>
+        <p class="lab">The belief we need to break</p>
+        <blockquote>One good workout redeems the day. It doesn't. A workout followed by ten hours of sitting does less for your metabolism than the same movement spread out across the day.</blockquote>
+        <cite>From the <b>Move deck</b>, the idea the whole score is built on</cite>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOLD 4 -->
+<section id="f4">
+  <div class="in">
+    <p class="eyebrow">What the score stands on</p>
+    <h2>Five things every user should understand</h2>
+    <p class="lede">From the research in the Move deck and the way coaches build plans. <b>A coach's own words go here once the fitness team signs them off.</b></p>
+    <div class="ins">
+      <div class="insight"><div class="n">01</div><div><b>The day matters, not the hour</b><p>What shapes your metabolism is what you do across the whole day, not the one hour you train. The field calls this 24-hour movement, and how activity is spread across the day is measured in its own right.</p><div class="eg"><span class="ok">Four short moves across the day</span><span>beats</span><span class="no">One long session, then sitting</span></div></div></div>
+      <div class="insight"><div class="n">02</div><div><b>Every plan is personal</b><p>The coach sets the routines, which part of the day each one sits in, the small moves and the steps goal, from the user's goal, body and health.</p></div></div>
+      <div class="insight"><div class="n">03</div><div><b>Calories are the common unit</b><p>The coach's exercises and any workout the user logs are counted in the same unit, kcal burned. So a gym hour can stand in for a skipped routine, and nothing the user does goes uncounted.</p></div></div>
+      <div class="insight"><div class="n">04</div><div><b>The movement between counts (NEAT)</b><p>Taking the stairs, standing in a meeting, a walk after dinner. Coined at Mayo Clinic by Dr. James Levine, NEAT is one part of the picture, not the whole.</p></div></div>
+      <div class="insight"><div class="n">05</div><div><b>Doing more never counts against you</b><p>Going past a target never adds more and never takes points away. Extra effort is coached instead: move it to another part of the day and the score climbs.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOLD 5 -->
+<section id="f5">
+  <div class="in">
+    <p class="eyebrow">System insight</p>
+    <h2>Built on what the coach portal already knows</h2>
+    <p class="lede">When a coach creates an exercise plan in the coach portal, every target the score needs is set in three steps.</p>
+    <div class="sys">
+      <div class="lvl"><div class="n">Step 1</div><b>Exercise plan</b><p>Routines for each day, each set to a part of the day. A day needs at least 2 routines, or is marked as a rest day.</p><div class="ex">Routine 1: Morning · Routine 2: Evening</div></div>
+      <div class="lvl"><div class="n">Step 2</div><b>Exercises and kcal</b><p>Each exercise has reps, sets and rest, so its duration and kcal burned are worked out.</p><div class="ex">Lunges, 6 min: 4.5 × 3.5 × 65 ÷ 200 × 6 = 31 kcal</div></div>
+      <div class="lvl"><div class="n">Step 3</div><b>Small moves and steps</b><p>Small moves per part of the day, each with a headline and a line on why it helps, and a daily steps goal.</p><div class="ex">Evening: Walk for ten minutes after your tea · 8,000 steps</div></div>
+      <div class="lvl"><div class="n">Result</div><b>The day's targets</b><p>So every day already holds its planned kcal, small moves, steps goal and the parts of the day it covers.</p><div class="ex">219 kcal · 5 small moves · 8,000 steps</div></div>
+    </div>
+    <div class="parts4">
+      <div><b>Morning</b>6 AM to 12 PM</div>
+      <div><b>Afternoon</b>12 PM to 4 PM</div>
+      <div><b>Evening</b>4 PM to 8 PM</div>
+      <div><b>Night</b>8 PM to 11 PM</div>
+    </div>
+    <p style="margin:12px 0 22px;font-size:14px;color:var(--muted)">The parts of the day, as the coach portal sets them. A coach can change the times with "Edit times".</p>
+    <div class="note"><div class="ic">✓</div><div>The coach doesn't need to do anything extra. <b>Our job is to turn it into an experience the user can understand and follow.</b> <a href="/v7/coach-exercise-template.html" target="_blank" rel="noopener" style="color:var(--brand-700);font-weight:600">Open the coach exercise template ↗</a></div></div>
+  </div>
+</section>
+
+<!-- FOLD 6 -->
+<section id="f6">
+  <div class="in score">
+    <div>
+      <p class="eyebrow">The score</p>
+      <h2>The MOVE/Momentum score</h2>
+      <p class="lede" style="margin-bottom:10px">One number from 0 to 100 that answers one question:</p>
+      <p class="q">Did you keep moving from morning to night?</p>
+      <a class="btn" href="/move/sandbox.html" target="_blank" rel="noopener">Try the Momentum sandbox <span>↗</span></a>
+    </div>
+    <div>
+      <p class="three">Four things add to it, and the score starts at 0 each morning.</p>
+      <div class="rules">
+        <div class="rule full"><div class="pill">40</div><div><b>Your workout</b><span>Burn the calories your coach planned, by doing their workout or logging your own.</span></div></div>
+        <div class="rule full"><div class="pill">40</div><div><b>Moving all day</b><span>Each part of the day you move in adds 10.</span></div></div>
+        <div class="rule part"><div class="pill">10</div><div><b>Your steps</b><span>Reach your step target for the day.</span></div></div>
+        <div class="rule part"><div class="pill">10</div><div><b>Small moves</b><span>Tick off the small moves your coach set.</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOLD 7 -->
+<section id="f7">
+  <div class="in">
+    <p class="eyebrow">The maths, simply</p>
+    <h2>How the score is worked out</h2>
+    <div class="math">
+      <div class="steps">
+        <div class="ms"><div class="n">1</div><div><b>Workout: 40 × kcal burned ÷ kcal planned</b><p>kcal burned is the coach's exercises done plus any workout logged by search. Each is MET × 3.5 × weight (kg) ÷ 200 × minutes. It stops at 40.</p></div></div>
+        <div class="ms"><div class="n">2</div><div><b>Steps: 10 × steps ÷ steps goal</b><p>Every step counts, from Apple Health or Health Connect, or logged by hand. It stops at 10.</p></div></div>
+        <div class="ms"><div class="n">3</div><div><b>Small moves: 10 × ticked ÷ planned</b><p>Only the small moves the coach set. Users can't add their own.</p></div></div>
+        <div class="ms"><div class="n">4</div><div><b>Moving all day: 10 × parts of the day moved in</b>
+          <ul>
+            <li><em class="t-in">Counts</em><span>An exercise done, a workout logged, or a small move ticked in that part.</span></li>
+            <li><em class="t-short">Doesn't</em><span>Steps alone. They are one number for the whole day.</span></li>
+          </ul></div></div>
+        <div class="ms"><div class="n">5</div><div><b>Add the four, then round</b><p>40 + 10 + 10 + 40 = 100. Only the total is rounded, so the parts shown on their own may be off by one.</p></div></div>
+      </div>
+      <div class="side">
+        <div class="box">
+          <h3>What real days score</h3>
+          <p style="margin:-6px 0 12px;font-size:13px;color:var(--muted)">On the Morning &amp; Evening plan: 219 kcal, 5 small moves, 8,000 steps.</p>
+          <div class="bar"><span>Followed the plan, plus a walk after dinner</span><b>100</b><i style="--w:100%"></i></div>
+          <div class="bar"><span>Followed the plan</span><b>90</b><i style="--w:90%"></i></div>
+          <div class="bar"><span>Swapped a routine for a run</span><b>86</b><i style="--w:86%"></i></div>
+          <div class="bar"><span>Gym hour instead of the plan</span><b>56</b><i style="--w:56%"></i></div>
+          <div class="bar"><span>Skipped workouts, stayed active</span><b>50</b><i style="--w:50%"></i></div>
+          <div class="bar" style="margin-bottom:0"><span>Sick day</span><b>2</b><i style="--w:2%"></i></div>
+        </div>
+        <div class="box">
+          <h3>The principles behind it</h3>
+          <ul>
+            <li>Moving in all four parts of the day is the only way to 100.</li>
+            <li>Doing the workout then sitting all day lands around 52%.</li>
+            <li>Any workout counts, in kcal, against the coach's plan.</li>
+            <li>Going past a target never adds more, and never takes away.</li>
+            <li>Undoing a log takes back what it added.</li>
+            <li>Intensity and heart rate are not measured.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOLD 8 -->
+<section id="f8">
+  <div class="in">
+    <p class="eyebrow">Every case, on every plan</p>
+    <h2>Ten days, seven coach plans</h2>
+    <p class="lede">Each sample day is played on top of the coach plan, exactly as the <a href="/move/sandbox.html" target="_blank" rel="noopener">sandbox</a> does. Scores read from the sandbox.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Day</th><th class="n">M&amp;E</th><th class="n">Little &amp; often</th><th class="n">Shift</th><th class="n">Strength</th><th class="n">Gentle</th><th class="n">Active</th><th class="n">M&amp;N</th></tr></thead>
+      <tbody>
+        <tr><td><b>Not started</b><small>Nothing done yet.</small></td><td class="n lo">0</td><td class="n lo">0</td><td class="n lo">0</td><td class="n lo">0</td><td class="n lo">0</td><td class="n lo">0</td><td class="n lo">0</td></tr>
+        <tr><td><b>Followed the plan</b><small>Every exercise, every small move, steps on target.</small></td><td class="n hi">90</td><td class="n hi">90</td><td class="n hi">100</td><td class="n hi">90</td><td class="n hi">100</td><td class="n hi">100</td><td class="n hi">100</td></tr>
+        <tr><td><b>Half of each routine</b><small>Started every routine, stopped halfway.</small></td><td class="n mid">55</td><td class="n mid">65</td><td class="n mid">52</td><td class="n lo">49</td><td class="n mid">66</td><td class="n mid">67</td><td class="n mid">62</td></tr>
+        <tr><td><b>Only the first routine</b><small>The first routine in full, the rest skipped.</small></td><td class="n lo">41</td><td class="n lo">39</td><td class="n lo">47</td><td class="n mid">50</td><td class="n mid">53</td><td class="n lo">34</td><td class="n lo">45</td></tr>
+        <tr><td><b>Gym instead of the plan</b><small>An hour of strength training in the evening.</small></td><td class="n mid">56</td><td class="n mid">56</td><td class="n mid">56</td><td class="n mid">56</td><td class="n mid">56</td><td class="n mid">56</td><td class="n mid">56</td></tr>
+        <tr><td><b>Swapped a routine for a run</b><small>A 30 minute run in place of the first routine.</small></td><td class="n hi">86</td><td class="n hi">86</td><td class="n hi">98</td><td class="n hi">90</td><td class="n hi">96</td><td class="n hi">96</td><td class="n hi">98</td></tr>
+        <tr><td><b>Extra on top</b><small>Every routine, plus badminton at night.</small></td><td class="n hi">100</td><td class="n hi">100</td><td class="n hi">100</td><td class="n hi">100</td><td class="n hi">100</td><td class="n hi">100</td><td class="n hi">100</td></tr>
+        <tr><td><b>Skipped workouts, stayed active</b><small>No routine, every small move ticked.</small></td><td class="n mid">50</td><td class="n mid">50</td><td class="n mid">60</td><td class="n mid">50</td><td class="n mid">60</td><td class="n mid">60</td><td class="n mid">60</td></tr>
+        <tr><td><b>Walk after dinner</b><small>Every routine, and a 20 minute walk at night.</small></td><td class="n hi">100</td><td class="n hi">100</td><td class="n hi">100</td><td class="n hi">100</td><td class="n hi">100</td><td class="n hi">100</td><td class="n hi">100</td></tr>
+        <tr><td><b>Sick day</b><small>Stayed in bed, 1,400 steps.</small></td><td class="n lo">2</td><td class="n lo">2</td><td class="n lo">2</td><td class="n lo">2</td><td class="n lo">3</td><td class="n lo">1</td><td class="n lo">2</td></tr>
+      </tbody>
+    </table></div>
+    <p style="margin:14px 0 0;font-size:14px;color:var(--muted)">Green is 75 and above, amber 50 to 74, red below 50, as in the sandbox.</p>
+  </div>
+</section>
+
+<!-- FOLD 9 -->
+<section id="f9">
+  <div class="in">
+    <p class="eyebrow">Why each day lands where it does</p>
+    <h2>The cases, one by one</h2>
+    <p class="lede">On the Morning &amp; Evening plan. Workout + steps + small moves + moving all day.</p>
+    <div class="tw"><table>
+      <thead><tr><th>Day</th><th class="n">Workout</th><th class="n">Steps</th><th class="n">Small moves</th><th class="n">All day</th><th class="n">Score</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><b>Followed the plan</b></td><td class="n">40</td><td class="n">10</td><td class="n">10</td><td class="n">30</td><td class="n hi">90</td><td><small>The plan covers three parts of the day, so the night is open.</small></td></tr>
+        <tr><td><b>Walk after dinner</b></td><td class="n">40</td><td class="n">10</td><td class="n">10</td><td class="n">40</td><td class="n hi">100</td><td><small>A 20 minute walk at night fills the fourth part.</small></td></tr>
+        <tr><td><b>Swapped a routine for a run</b></td><td class="n">40</td><td class="n">10</td><td class="n">6</td><td class="n">30</td><td class="n hi">86</td><td><small>The run burns more than the routine, so the workout is full. Fewer small moves.</small></td></tr>
+        <tr><td><b>Half of each routine</b></td><td class="n">23</td><td class="n">8</td><td class="n">4</td><td class="n">20</td><td class="n mid">55</td><td><small>127 of 219 kcal, in the morning and evening.</small></td></tr>
+        <tr><td><b>Gym instead of the plan</b></td><td class="n">40</td><td class="n">6</td><td class="n">0</td><td class="n">10</td><td class="n mid">56</td><td><small>341 kcal fills the workout, but it is all in one part of the day.</small></td></tr>
+        <tr><td><b>Skipped workouts, stayed active</b></td><td class="n">0</td><td class="n">10</td><td class="n">10</td><td class="n">30</td><td class="n mid">50</td><td><small>No workout, but small moves in three parts keep half the score.</small></td></tr>
+        <tr><td><b>Only the first routine</b></td><td class="n">20</td><td class="n">7</td><td class="n">4</td><td class="n">10</td><td class="n lo">41</td><td><small>112 of 219 kcal, all in the morning.</small></td></tr>
+        <tr><td><b>Sick day</b></td><td class="n">0</td><td class="n">2</td><td class="n">0</td><td class="n">0</td><td class="n lo">2</td><td><small>Steps alone never count for moving all day.</small></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- FOLD 10 -->
+<section id="f10">
+  <div class="in">
+    <p class="eyebrow">Edge cases</p>
+    <h2>What happens when…</h2>
+    <p class="lede">How the score and the Move screen behave in the moments that are easy to get wrong.</p>
+    <div class="cases">
+      <div class="case"><span class="tagl">Logged</span><b>The user does a workout the coach didn't plan</b><p>They search and log it. Its kcal joins the coach's exercises against the day's plan, and the part of the day it was done in counts for moving all day.</p></div>
+      <div class="case"><span class="tagl">Logged</span><b>They move in a part with no routine</b><p>A logged workout or a ticked small move there still counts for moving all day. A plain card shows a + to log one.</p></div>
+      <div class="case"><span class="tagl">Capped</span><b>They burn more than planned</b><p>The workout stops at 40. It never goes into minus. The win still plays, with what the log actually added.</p></div>
+      <div class="case"><span class="tagl">Capped</span><b>They walk past their steps goal</b><p>Steps stop at 10. The steps card says "Goal reached. Every step from here is extra."</p></div>
+      <div class="case"><span class="tagl">Logged</span><b>They finish a routine in the player</b><p>Finish closes the player and drops the routine's exercises into the bar at the bottom, ticked, so they log together and the score steps up once.</p></div>
+      <div class="case"><span class="tagl">Logged</span><b>They log later in the day</b><p>Logging at night gives the same score as logging live, as long as the time is set to when it was done. Future times are blocked.</p></div>
+      <div class="case"><span class="tagl a">Undo</span><b>They untick an exercise or small move</b><p>It asks first, then takes back what it added. The score settles at its new number, with no minus and no line under it.</p></div>
+      <div class="case"><span class="tagl a">Undo</span><b>They remove a logged workout</b><p>"Remove this workout?" then its kcal leave the score, and the part may stop counting for moving all day.</p></div>
+      <div class="case"><span class="tagl">Shown</span><b>The score changes</b><p>The number steps up with its +N%, then the line under it says "Your score went up by N%, keep logging your movement." A workout log earns FlipCoins after that.</p></div>
+      <div class="case"><span class="tagl">Shown</span><b>Only workouts logged on the day keep the streak</b><p>FlipCoins come one a day for logging a workout, with +20 for a week and +50 for a month.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOLD 11 -->
+<section id="f11">
+  <div class="in">
+    <p class="eyebrow">Still to decide</p>
+    <h2>Open questions</h2>
+    <p class="lede">Found while playing every case in the sandbox. Each needs a call from product and the fitness team.</p>
+    <div class="open">
+      <div class="oq"><div class="n">01</div><div><b>Following the plan doesn't always score 100</b><p>On the Morning &amp; Evening plan, a perfect day scores 90, because nothing is planned at night. On Eat, following the plan always scores 100. Should moving all day count only the parts the coach planned, or should the coach always plan something in all four parts?</p></div></div>
+      <div class="oq"><div class="n">02</div><div><b>Rest days</b><p>The coach portal can mark a day as a rest day, but the score has no rule for it yet. Does a rest day score on small moves and steps alone, or show no score?</p></div></div>
+      <div class="oq"><div class="n">03</div><div><b>A log that adds nothing</b><p>When the workout is already full and the part of the day already counts, a new log adds +0%. Do we skip the win, or say what it did instead?</p></div></div>
+      <div class="oq"><div class="n">04</div><div><b>Weight and intensity</b><p>kcal uses a fixed 65 kg and one MET per exercise for now. Real data needs the user's weight and each exercise's MET.</p></div></div>
+      <div class="oq"><div class="n">05</div><div><b>Days without a plan</b><p>Before the first consultation there is no plan to score against. Eat locks its score until a diet plan is assigned. Move should do the same.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOLD 12 -->
+<section id="f12">
+  <div class="in">
+    <p class="eyebrow">See it for yourself</p>
+    <h2>Everything this doc is built on</h2>
+    <p class="lede">Each link opens the working version.</p>
+    <div class="goals four">
+      <a class="goal" href="/move/sandbox.html" target="_blank" rel="noopener" style="text-decoration:none"><div class="n">↗</div><p>Momentum sandbox<br><span style="font-size:15px;color:var(--muted);font-weight:400">Pick a coach plan, play a sample day, change anything.</span></p></a>
+      <a class="goal" href="/move/deck.html" target="_blank" rel="noopener" style="text-decoration:none"><div class="n">↗</div><p>Move deck<br><span style="font-size:15px;color:var(--muted);font-weight:400">The Momentum concept, the research and the formula.</span></p></a>
+      <a class="goal" href="/v7/coach-exercise-template.html" target="_blank" rel="noopener" style="text-decoration:none"><div class="n">↗</div><p>Coach exercise template<br><span style="font-size:15px;color:var(--muted);font-weight:400">Routines, small moves and steps goal, in Basic and Smart.</span></p></a>
+      <a class="goal" href="/v7/frame.html?src=/move/index.html" target="_blank" rel="noopener" style="text-decoration:none"><div class="n">↗</div><p>Move screen<br><span style="font-size:15px;color:var(--muted);font-weight:400">The score, the part-of-day cards, the player and logging.</span></p></a>
+    </div>
+    <p style="margin:22px 0 0;font-size:14px;color:var(--muted)">For comparison: <a href="/v7/eat-sufficiency-score.html" target="_blank" rel="noopener">the EAT/Sufficiency score</a>.</p>
+  </div>
+</section>
+<script>
+(function () {
+  var secs = Array.prototype.slice.call(document.querySelectorAll("section"));
+  var dots = document.getElementById("dots");
+  dots.innerHTML = secs.map(function (s) { return '<a href="#' + s.id + '" aria-label="Go to ' + s.id + '"></a>'; }).join("");
+  var links = dots.querySelectorAll("a");
+  function onScroll() {
+    var h = document.documentElement, max = h.scrollHeight - h.clientHeight;
+    document.getElementById("prog").style.width = (max > 0 ? h.scrollTop / max * 100 : 0) + "%";
+    var mid = window.innerHeight / 2, cur = 0;
+    secs.forEach(function (s, i) { if (s.getBoundingClientRect().top <= mid) cur = i; });
+    links.forEach(function (a, i) { a.classList.toggle("on", i === cur); });
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+</body>
+</html>

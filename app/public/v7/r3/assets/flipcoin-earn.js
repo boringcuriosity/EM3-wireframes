@@ -18,6 +18,9 @@
   var ICON = "../icons/flipcoins/";
   var COIN = '<img src="' + ICON + 'coin.webp" alt="" width="26" height="26">';
   var PER_DAY = 4, WEEK = 20, MONTH = 50, STREAK = 3;   /* the streak is the prototype's */
+  /* another screen (Move) sets window.EARN with its own words, icon, daily count and CTA; Eat uses these defaults */
+  var E = window.EARN || {};
+  if (E.perDay) PER_DAY = E.perDay;
 
   var css = document.createElement("style");
   css.textContent = [
@@ -31,7 +34,8 @@
     /* the sheet: StreakBottomSheet, measured */
     ".fc .hero{display:flex;align-items:flex-start;gap:8px;padding:16px;border-radius:16px 16px 0 0;background:linear-gradient(180deg,#FFFBEE,#fff);margin-bottom:20px}",
     ".fc .hero i{flex-shrink:0;width:28px;height:28px;display:grid;place-items:center;background:#fff;border-radius:6px}",
-    ".fc .hero i span{width:13px;height:16px;background:#CDA935;-webkit-mask:url(" + ICON + "food.svg) center/contain no-repeat;mask:url(" + ICON + "food.svg) center/contain no-repeat}",
+    ".fc .hero i span{width:13px;height:16px;background:#CDA935;-webkit-mask:url(" + (E.icon || ICON + "food.svg") + ") center/contain no-repeat;mask:url(" + (E.icon || ICON + "food.svg") + ") center/contain no-repeat}",
+    ".fc .hero .mk{flex-shrink:0;width:28px;height:28px}",
     ".fc .hero b{font:600 18px/24px Roboto,sans-serif;color:#CDA935}",
     ".fc .fclab{margin:0 0 8px;font:400 14px/20px Roboto,sans-serif;color:#667085}",
     ".fc .card{background:#F9FAFB;border:1px solid #EAECF0;border-radius:12px;padding:12px}",
@@ -51,6 +55,7 @@
 
   /* how many of today's four are in: one per meal with anything logged */
   function today() {
+    if (E.today) return Math.min(PER_DAY, E.today());
     var n = 0;
     (window.MEALS || []).forEach(function (m) {
       var any = (m.manual || []).some(function (x) { return x.done; }) ||
@@ -64,9 +69,10 @@
     var got = today();
     var dd = (STREAK < 10 ? "0" : "") + STREAK;
     return '<div class="fc">' +
-      '<div class="hero"><i><span></span></i><b>Log your meals daily to earn FlipCoins</b></div>' +
+      '<div class="hero">' + (E.mark ? '<img class="mk" src="' + E.mark + '" alt="" width="28" height="28">' : '<i><span></span></i>') + '<b>' + (E.hero || "Log your meals daily to earn FlipCoins") + '</b></div>' +
 
       '<div class="now">Your current streak:<span class="badge"><img src="' + ICON + 'blue_fire.svg" alt="">' + dd + " day streak</span></div>" +
+      (E.rule ? '<p class="fclab" style="margin-bottom:20px">' + E.rule + "</p>" : "") +
 
       '<p class="fclab">Keep the streak going to earn more</p>' +
       '<div class="two">' +
@@ -78,7 +84,7 @@
 
       '<div class="rule"></div>' +
       '<p class="so">Earned so far from this streak: <b>+' + ((STREAK - 1) * PER_DAY + got) + " FlipCoins</b></p>" +
-      '<button class="ok" data-fc="log">Log your meal<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>' +
+      '<button class="ok" data-fc="log">' + (E.cta || "Log your meal") + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>' +
       "</div>";
   }
 
@@ -98,6 +104,7 @@
   document.addEventListener("click", function (e) {
     if (!e.target.closest('[data-fc="log"]')) return;
     if (window.closeSheets) window.closeSheets();
+    if (E.go) return setTimeout(E.go, 250);
     var meals = document.querySelector("section.meal");
     if (meals) setTimeout(function () { meals.scrollIntoView({ behavior: "smooth", block: "start" }); }, 250);
   });

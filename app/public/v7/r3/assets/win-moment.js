@@ -11,6 +11,7 @@
    Variants, chosen by ?win= on log.html or the prototype panel (remembered):
      rise   green liquid wells up out of the button and floods the screen (default)
      nova   the button collapses into a star, the lights go down, it explodes
+     aurora green ribbons drift in from the left, widen and melt into one (Move)
      classic  the original green overlay (log.html draws it, this returns null)
 
    The day view then catches the moment: the gain is handed over in
@@ -21,6 +22,7 @@
   var pick = Q.get("win"), DEMO = Q.get("auto") === "1";   /* the options page's phones never overwrite your choice */
   try { if (pick) { if (!DEMO) localStorage.setItem("gfWin2", pick); } else pick = localStorage.getItem("gfWin2"); } catch (e) {}
   var MODE = pick === "classic" || pick === "nova" ? pick : "rise";   /* Rise is the default */
+  if (window.WIN_MODE) MODE = window.WIN_MODE;   /* a screen can ask for its own: Move asks for aurora */
   /* the final screen's design, A to E (see LAYOUTS); ?layout= or remembered */
   var LAYOUT = Q.get("layout");
   try { if (LAYOUT) { if (!DEMO) localStorage.setItem("gfWinLayout2", LAYOUT); } else LAYOUT = localStorage.getItem("gfWinLayout2"); } catch (e) {}
@@ -238,11 +240,37 @@
       if (w != null) { if (w > .5 && w < .52) buzz(18); content(w - .45); }
     }
 
+    // ---------------------------------------------------------------- aurora
+    // the ribbons, from v7/move-win-moment-options.html: one unbroken 1.9s arrival from the tap, as in the demo.
+    // The save does not steer it (a pause and restart reads as a stall); the end screen waits for both the cover and the save.
+    var RIB = [0, 1, 2, 3, 4].map(function (i) { return { y: H * (.1 + i * .19), a: 40 + i * 9, k: 120 + i * 30, ph: i * 1.3, c: ["#6CE9A6", "#32B27A", "#299D6B", "#A6F4C5", "#3CCB8C"][i] }; });
+    function aurora(t, w) {
+      var p = seg(t, 0, 1.9);
+      if (p < 1) {
+        var e = eIO(p), reach = e * (W + 200);
+        RIB.forEach(function (b, i) {
+          var th = 14 + eIO(seg(p, i * .06, .85)) * 260;
+          var gr = x.createLinearGradient(0, 0, reach, 0); gr.addColorStop(0, b.c); gr.addColorStop(Math.max(.01, 1 - 120 / Math.max(reach, 121)), b.c); gr.addColorStop(1, "rgba(108,233,166,0)");
+          x.globalAlpha = .75; x.fillStyle = gr; x.beginPath();
+          for (var X = 0; X <= reach; X += 8) x.lineTo(X, b.y + b.a * Math.sin(X / b.k + t * 1.6 + b.ph) - th / 2);
+          for (X = reach; X >= 0; X -= 8) x.lineTo(X, b.y + b.a * Math.sin(X / b.k + t * 1.6 + b.ph + .6) + th / 2);
+          x.closePath(); x.fill();
+        });
+        x.globalAlpha = eIO(seg(p, .55, 1)); x.fillStyle = "#299D6B"; x.fillRect(0, 0, W, H); x.globalAlpha = 1;
+      } else {
+        // covered: flat green with a slow breath of light, so the screen is not dead
+        x.fillStyle = "#299D6B"; x.fillRect(0, 0, W, H);
+        var g = x.createRadialGradient(W / 2, H / 2 - 20, 0, W / 2, H / 2 - 20, 260 + 10 * Math.sin(t * 1.4));
+        g.addColorStop(0, "rgba(108,233,166,.22)"); g.addColorStop(1, "rgba(108,233,166,0)"); x.fillStyle = g; x.fillRect(0, 0, W, H);
+      }
+      if (w != null) { var cw = Math.min(w, t - 1.9); if (cw > 0 && cw < .03) buzz(18); content(cw); }
+    }
+
     function frame(now) {
       if (!alive) return;
       var t = (now - t0) / 1000, w = winAt == null ? null : (now - winAt) / 1000;
       x.clearRect(0, 0, W, H);
-      (MODE === "rise" ? rise : nova)(t, w);
+      (MODE === "rise" ? rise : MODE === "aurora" ? aurora : nova)(t, w);
       /* leave into white, the day view's own ground, so the logger never shows through on the way out */
       if (exitAt) { x.globalAlpha = eIO(seg(ex(), .05, .55)); x.fillStyle = "#fff"; x.fillRect(0, 0, W, H); x.globalAlpha = 1; }
       if (exitAt && ex() > .7) { alive = false; done && done(); return; }
@@ -260,10 +288,11 @@
         '<div class="d" data-in=".1">+<b data-from="0" data-to="' + d.d + '">0</b><span class="pc">%</span></div><p data-in=".25">' + d.moved + '</p><span class="m" data-in=".35">' + d.sub + "</span>";
       /* B: as little as possible. The tick, the gain, and one plain line saying what earned it. */
       /* B: the tick names what was logged, the gain stands alone, one line says what it is */
-      if (LAYOUT === "B") return '<span class="logged"><span class="disc solid">' + TICK.replace(/34/g, "16") + '</span>Meal logged</span>' +
-        '<span class="n" data-in=".12">+<span data-from="0" data-to="' + d.d + '">0</span><span class="pc">%</span></span>' +
+      if (LAYOUT === "B") return '<span class="logged"><span class="disc solid">' + TICK.replace(/34/g, "16") + '</span>'+ (d.title || "Meal logged") + '</span>' +
+        /* no number when there is no score to move (Move before a plan) */
+        (d.d == null ? "" : '<span class="n" data-in=".12">+<span data-from="0" data-to="' + d.d + '">0</span><span class="pc">%</span></span>') +
         '<p class="say" data-in=".3">' + (d.queued ? "Saved on your phone. Your score updates when you're back online."
-          : "added to your sufficiency score") + "</p>";
+          : d.say || "added to your sufficiency score") + "</p>";
       if (LAYOUT === "C") {
         var r = 84, len = 2 * Math.PI * r;
         return '<div class="gauge"><svg viewBox="0 0 188 188"><circle cx="94" cy="94" r="' + r + '" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="8" stroke-dasharray="' + len * .75 + ' ' + len + '" stroke-linecap="round" transform="rotate(135 94 94)"/>' +
@@ -294,7 +323,7 @@
           c.classList.toggle("left", LAYOUT === "E"); c.classList.toggle("b", LAYOUT === "B");
           disc = c.querySelector(".disc"); tick = disc.querySelector("path");
           winAt = performance.now(); buzz(10);
-          if (!STAY) setTimeout(function () { exitAt = performance.now(); }, MODE === "rise" ? 2800 : 3000);
+          if (!STAY) setTimeout(function () { exitAt = performance.now(); }, MODE === "rise" ? 2800 : MODE === "aurora" ? 3500 : 3000);
         }, wait);
       },
       cancel: function () { alive = false; cancelAnimationFrame(raf); host.remove(); }

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wheel Pointer and Frame Options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap">
+<style>
+  /* Move: the duration wheel's pointers (move/log.css .dial). Seven ways to mark the picked row at the dial's ends.
+     The wheel inside is the same in each, 10 min picked, so they compare on the pointers alone. */
+  :root { --brand: #299D6B; --brand-700: #2A805A; --brand-50: #F3FCF8; --brand-200: #CBF0E0; --brand-400: #59B38C;
+    --ink: #101828; --g-600: #475467; --g-500: #667085; --g-300: #D0D5DD; --in-100: #E0EAFF; --in-200: #C7D7FE; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #F6F7F9; color: var(--ink); font: 14px/20px Roboto, system-ui, sans-serif; letter-spacing: .2px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 40px 32px 64px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--brand); }
+  h1 { margin: 8px 0 6px; font: 600 34px/1.15 "Playfair Display", serif; }
+  .lead { margin: 0; max-width: 720px; color: var(--g-500); font-size: 15px; line-height: 23px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; margin-top: 32px; }
+  .card { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 16px 32px -24px rgba(16,24,40,.25); }
+  .tag { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .tag .n { width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font: 700 12px/1 Roboto, sans-serif; }
+  .tag b { font-size: 15px; } .tag .rec { margin-left: auto; padding: 2px 10px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .4px; }
+  .note { margin: 14px 0 0; font-size: 13px; line-height: 19px; color: var(--g-600); }
+  .q { margin: 0 0 10px; text-align: center; font: 400 17px/22px Roboto, sans-serif; }
+
+  /* the dial, as on the screen: settings-card edge, a soft green wash on the pick, no hairlines */
+  .dial { position: relative; height: 168px; border: 1px solid var(--in-100); border-radius: 12px; background: #fff; box-shadow: 2px 2px 0 var(--in-200); overflow: hidden; }
+  .dial .band { position: absolute; left: 16px; right: 16px; top: 62px; height: 44px; border-radius: 10px; background: linear-gradient(90deg, rgba(243,252,248,0), var(--brand-50) 22%, var(--brand-50) 78%, rgba(243,252,248,0)); }
+  .dial .col { position: absolute; inset: 0; padding-top: 24px; display: flex; flex-direction: column; align-items: center; -webkit-mask: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask: linear-gradient(transparent, #000 30%, #000 70%, transparent); }
+  .dial .col span { height: 40px; display: grid; place-items: center; font: 500 20px/1 Roboto, sans-serif; color: var(--g-300); font-variant-numeric: tabular-nums; }
+  .dial .col span.on { height: 44px; font: 700 30px/1 Roboto, sans-serif; color: var(--ink); }
+  .dial .u { position: absolute; left: calc(50% + 34px); top: 50%; transform: translateY(-50%); font: 600 14px/1 Roboto, sans-serif; color: var(--brand-700); }
+  .dial i.p { position: absolute; top: 50%; z-index: 2; }
+
+  /* 1 today: solid triangles flush to the edge */
+  .v1 i.p { width: 0; height: 0; transform: translateY(-50%); border-top: 9px solid transparent; border-bottom: 9px solid transparent; }
+  .v1 i.l { left: 0; border-left: 10px solid var(--brand); } .v1 i.r { right: 0; border-right: 10px solid var(--brand); }
+  /* 2 soft rounded triangles, inset, a touch of depth */
+  .v2 i.p { width: 12px; height: 12px; margin-top: -6px; background: var(--brand); border-radius: 3px; box-shadow: 0 2px 6px -1px rgba(41,157,107,.45); }
+  .v2 i.l { left: -6px; transform: rotate(45deg); } .v2 i.r { right: -6px; transform: rotate(45deg); }
+  /* 3 capsules: short vertical pills at each end */
+  .v3 i.p { width: 4px; height: 22px; margin-top: -11px; border-radius: 4px; background: var(--brand); }
+  .v3 i.l { left: 8px; } .v3 i.r { right: 8px; }
+  /* 4 chevrons: thin line arrows pointing in */
+  .v4 i.p { width: 10px; height: 10px; margin-top: -5px; border-top: 2.5px solid var(--brand); border-right: 2.5px solid var(--brand); border-radius: 1px; }
+  .v4 i.l { left: 10px; transform: rotate(45deg); } .v4 i.r { right: 10px; transform: rotate(-135deg); }
+  /* 5 dots: a small filled dot with a soft halo */
+  .v5 i.p { width: 8px; height: 8px; margin-top: -4px; border-radius: 50%; background: var(--brand); box-shadow: 0 0 0 4px rgba(41,157,107,.16); }
+  .v5 i.l { left: 10px; } .v5 i.r { right: 10px; }
+  /* 6 notches: the card's edge dips in at the pick, like a ticket */
+  .v6 i.p { width: 14px; height: 28px; margin-top: -14px; background: var(--brand-50); border: 1px solid var(--brand-200); }
+  .v6 i.l { left: -8px; border-radius: 0 14px 14px 0; box-shadow: inset -3px 0 0 var(--brand); } .v6 i.r { right: -8px; border-radius: 14px 0 0 14px; box-shadow: inset 3px 0 0 var(--brand); }
+  .card .v6 { background: #fff; }
+  /* 7 the band carries it: a green bar runs the full pick, no pointers */
+  .v7 .band { left: 0; right: 0; border-radius: 0; background: linear-gradient(90deg, var(--brand-50), #fff 50%, var(--brand-50)); }
+  .v7 .band::before, .v7 .band::after { content: ""; position: absolute; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: var(--brand); }
+  .v7 .band::before { left: 10px; } .v7 .band::after { right: 10px; }
+  /* ---------- the frame: border, shadow and fill around the wheel (pointers fixed to 2, soft diamonds) ---------- */
+  h2 { margin: 48px 0 4px; font: 600 26px/1.2 "Playfair Display", serif; }
+  .f2 i.p { width: 12px; height: 12px; margin-top: -6px; background: var(--brand); border-radius: 3px; box-shadow: 0 2px 6px -1px rgba(41,157,107,.45); }
+  .f2 i.l { left: -6px; transform: rotate(45deg); } .f2 i.r { right: -6px; transform: rotate(45deg); }
+  /* A today: indigo hairline, lavender offset */
+  .fa { border: 1px solid var(--in-100); box-shadow: 2px 2px 0 var(--in-200); }
+  /* B soft lift: no line, a wide diffuse shadow */
+  .fb { border: 0; box-shadow: 0 1px 2px rgba(16,24,40,.06), 0 12px 28px -14px rgba(16,24,40,.22); }
+  /* C well: sunk into the page, a pale fill and an inner shadow */
+  .fc { border: 1px solid #EAECF0; background: #F9FAFB; box-shadow: inset 0 2px 6px rgba(16,24,40,.06); }
+  .fc .band { background: linear-gradient(90deg, rgba(255,255,255,0), #fff 22%, #fff 78%, rgba(255,255,255,0)); box-shadow: 0 1px 3px rgba(16,24,40,.06); }
+  /* D gradient edge: green into indigo, the hairline as colour */
+  .fd { border: 1.5px solid transparent; background: linear-gradient(#fff, #fff) padding-box, linear-gradient(135deg, var(--brand-400), #A4BCFD) border-box; box-shadow: 0 10px 24px -16px rgba(41,157,107,.4); }
+  /* E green offset: the settings card's offset, in the brand's pale green */
+  .fe { border: 1px solid var(--brand-200); box-shadow: 3px 3px 0 #E6FAF1, 3px 3px 0 1px var(--brand-200); }
+  /* F mint glass: a faint green tint top to bottom, a white highlight on the top edge */
+  .ff { border: 1px solid rgba(41,157,107,.18); background: linear-gradient(180deg, #F3FCF8, #fff 55%); box-shadow: inset 0 1px 0 #fff, 0 8px 20px -14px rgba(41,157,107,.45); }
+  /* G layered: a quiet outer ring around a hairline card */
+  .fg { border: 1px solid var(--in-100); box-shadow: 0 0 0 5px #F5F8FF, 0 0 0 6px var(--in-100); margin: 6px; }
+  /* H none: no frame at all, only the band and pointers on the page */
+  .fh { border: 0; box-shadow: none; background: none; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="eyebrow">Move · Log exercise</div>
+  <h1>The wheel's pointers</h1>
+  <p class="lead">Seven ways to mark the picked minutes at the ends of the duration wheel. The wheel is the same in each, 10 min picked.</p>
+  <div class="grid" id="g"></div>
+  <h2>The frame</h2>
+  <p class="lead">Eight frames for the same wheel, all with soft diamond pointers (2). The Intensity, Time and Date card under the wheel uses today's frame, so pick one that sits well beside it, or we change both.</p>
+  <div class="grid" id="f"></div>
+</main>
+<script>
+  var V = [
+    ["v1", "Today: solid triangles", "Flush to the edge, as in the live app's wheels. Clear, a little heavy against the card's soft edge."],
+    ["v2", "Soft diamonds", "Rounded, half tucked under the edge, with a faint green shadow. The same signal, gentler; feels made, not drawn.", true],
+    ["v3", "Capsules", "Two short green pills inside the edge. The quietest that still points; reads like a level."],
+    ["v4", "Chevrons", "Thin line arrows pointing in. Light and familiar, matches the chevrons on the rows below."],
+    ["v5", "Dots with a halo", "A small dot each side with a soft ring. Calm and modern; points less, marks more."],
+    ["v6", "Notches", "The card's edge dips in at the pick, like a ticket, with a green inner rim. The most distinctive; needs the page colour behind it."],
+    ["v7", "No pointers, a lit band", "The pick's wash runs edge to edge with a green bar at each end. Nothing pokes out; the band does the work."]
+  ];
+  document.getElementById("g").innerHTML = V.map(function (v, i) {
+    return '<section class="card"><div class="tag"><span class="n">' + (i + 1) + '</span><b>' + v[1] + '</b>' + (v[3] ? '<span class="rec">RECOMMENDED</span>' : "") + '</div>' +
+      '<p class="q">How long did you do it?</p><div class="dial ' + v[0] + '"><span class="band"></span><div class="col"><span>5</span><span class="on">10</span><span>15</span><span>20</span></div><span class="u">min</span>' +
+      '<i class="p l"></i><i class="p r"></i></div><p class="note">' + v[2] + '</p></section>';
+  }).join("");
+  var F = [
+    ["fa", "Today: hairline and offset", "The settings card's own edge, an indigo line and a lavender offset. The two blocks read as one family."],
+    ["fb", "Soft lift", "No line, a wide soft shadow. Floats a little above the page; the calmest and most premium.", true],
+    ["fc", "Well", "Sunk in: a pale grey fill and an inner shadow, the pick a raised white strip. Feels like a physical dial."],
+    ["fd", "Gradient edge", "A thin edge that moves from green into indigo, with a green glow below. The most expressive; one of a kind on the screen."],
+    ["fe", "Green offset", "The settings card's offset, in pale green with a green edge. Ties the wheel to the brand rather than the card."],
+    ["ff", "Mint glass", "A faint green tint fading to white, a white highlight on the top edge and a green glow. Fresh and light."],
+    ["fg", "Layered rings", "A hairline card inside a soft outer ring. Quietly special, without colour."],
+    ["fh", "No frame", "Just the wheel, band and pointers on the page. The most minimal; the rows below carry the structure."]
+  ];
+  document.getElementById("f").innerHTML = F.map(function (v, i) {
+    return '<section class="card"><div class="tag"><span class="n">' + String.fromCharCode(65 + i) + '</span><b>' + v[1] + '</b>' + (v[3] ? '<span class="rec">RECOMMENDED</span>' : "") + '</div>' +
+      '<p class="q">How long did you do it?</p><div class="dial f2 ' + v[0] + '"><span class="band"></span><div class="col"><span>5</span><span class="on">10</span><span>15</span><span>20</span></div><span class="u">min</span>' +
+      '<i class="p l"></i><i class="p r"></i></div><p class="note">' + v[2] + '</p></section>';
+  }).join("");
+</script>
+</body>
+</html>

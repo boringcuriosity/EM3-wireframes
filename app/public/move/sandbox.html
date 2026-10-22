@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Momentum Sandbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Momentum sandbox. Two halves, the way Move works:
+     1. the coach's plan: at least 2 routines, each in a part of the day with a kcal target; small moves per part; one steps target for the day
+     2. the day: Move's part-of-day cards, where the coach's routine is ticked, other workouts are logged by search, small moves ticked, steps walked
+     Momentum = Exercise (40, kcal burned of the plan's kcal) + Steps (10) + Small moves (10) + Spread (40, 10 for each part of the day moved in) */
+  :root{
+    --brand:#299D6B; --brand-700:#2A805A; --brand-100:#E6FAF1; --brand-50:#F3FCF8; --brand-200:#CBF0E0;
+    --text:#344054; --ink:#101828; --muted:#667085; --faint:#98A2B3;
+    --bg:#F9FAFB; --bg2:#F2F4F7; --border:#E4E7EC;
+    --red:#D92D20; --red-50:#FEF3F2; --red-200:#FECDCA;
+    --shadow:0 1px 3px rgba(16,24,40,.08),0 1px 2px -1px rgba(16,24,40,.08);
+    --ease:cubic-bezier(.22,1,.36,1);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Roboto',system-ui,sans-serif;color:var(--text);background:var(--bg);letter-spacing:.25px;-webkit-font-smoothing:antialiased}
+  h1,h2,.serif{font-family:'Playfair Display',Georgia,serif;color:var(--ink);font-weight:600;letter-spacing:0}
+  button{font:inherit;letter-spacing:inherit;color:inherit;cursor:pointer}
+  .topbar{position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:14px 40px;font-size:12px;font-weight:600;letter-spacing:1px;color:var(--muted)}
+  .topbar b{color:var(--brand)}
+  .topbar a{color:var(--muted);text-decoration:none}
+  .topbar a:hover{color:var(--brand)}
+  .wrap{max-width:1280px;margin:0 auto;padding:40px 40px 64px}
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--brand);margin-bottom:10px}
+  h1{font-size:40px;line-height:1.1}
+  .lead{margin-top:10px;max-width:760px;font-size:16px;line-height:1.6;color:var(--muted)}
+  .formula{display:inline-flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:16px;padding:10px 14px;border:1px solid var(--border);border-radius:12px;background:#fff;font-size:14px;font-weight:600;color:var(--ink)}
+  .formula i{font-style:normal;color:var(--faint)}
+  .formula .sp{color:var(--brand)}
+  .sh{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:32px 0 12px}
+  .sh h2{font-size:22px}
+  .sh p{font-size:13px;color:var(--muted)}
+  .num{display:inline-grid;place-items:center;width:22px;height:22px;margin-right:8px;border-radius:50%;background:var(--ink);color:#fff;font:700 12px/1 Roboto,sans-serif;vertical-align:3px}
+
+  /* samples: small chips at the foot, each with its score; the chosen one's story on one line under them */
+  .samples{display:flex;flex-wrap:wrap;gap:8px}
+  .smp{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 6px 0 14px;border:1px solid var(--border);border-radius:999px;background:#fff;font-size:13px;font-weight:600;color:var(--ink);transition:border-color .15s,background .15s}
+  .smp:hover{border-color:var(--brand-200)}
+  .smp[aria-pressed=true]{border-color:var(--brand);background:var(--brand-50);color:var(--brand-700)}
+  .smp .pill{min-width:32px;height:24px;padding:0 8px;border-radius:999px;display:grid;place-items:center;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums}
+  .sdesc{min-height:20px;margin-top:10px;font-size:13px;line-height:20px;color:var(--muted)}
+  .sdesc b{color:var(--ink)}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:24px;align-items:start}
+  @media(max-width:1020px){.grid{grid-template-columns:1fr}}
+  .card{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow)}
+
+  /* steppers: the one control for every number */
+  .stp{display:inline-flex;align-items:center;height:34px;border:1px solid var(--border);border-radius:10px;background:#fff}
+  .stp button{width:32px;height:32px;border:0;background:none;color:var(--brand);font-size:18px;line-height:1;display:grid;place-items:center}
+  .stp button:disabled{color:var(--border);cursor:default}
+  .stp b{min-width:52px;text-align:center;font-size:14px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .stp b small{font-size:11px;font-weight:500;color:var(--muted);margin-left:2px}
+
+  /* 1. the plan */
+  .plan{padding:4px 20px 16px}
+  .prow{display:grid;grid-template-columns:150px 1fr 1fr;gap:16px;align-items:center;padding:12px 0;border-bottom:1px solid var(--bg2)}
+  .prow.hd{padding:12px 0 8px;font-size:11.5px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
+  .prow .pn{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--ink)}
+  .prow .pn small{display:block;font-size:12px;font-weight:400;color:var(--muted)}
+  .rt{display:flex;align-items:center;gap:10px}
+  .sw{position:relative;width:38px;height:22px;flex:none;border:0;border-radius:999px;background:var(--border);transition:background .2s}
+  .sw::after{content:"";position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.2);transition:transform .2s var(--ease)}
+  .sw[aria-checked=true]{background:var(--brand)}
+  .sw[aria-checked=true]::after{transform:translateX(16px)}
+  .rt .off{font-size:13px;color:var(--faint)}
+  .pfoot{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding-top:14px}
+  .pfoot .lb{font-size:14px;font-weight:600;color:var(--ink)}
+  .pfoot .sum{margin-left:auto;font-size:13px;color:var(--muted)}
+  .pfoot .sum b{color:var(--ink)}
+  .perr{display:none;margin-top:12px;padding:10px 12px;border:1px solid var(--red-200);border-radius:10px;background:var(--red-50);font-size:13px;color:var(--red)}
+  .perr.on{display:block;animation:nudge .32s var(--ease)}
+  @keyframes nudge{30%{transform:translateX(-4px)}60%{transform:translateX(3px)}}
+
+  /* 2. the day, as Move's part-of-day cards */
+  .day{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+  @media(max-width:760px){.day{grid-template-columns:1fr}}
+  .pc{display:flex;flex-direction:column;border:1px solid var(--border);border-radius:16px;background:#fff;box-shadow:var(--shadow);transition:border-color .25s}
+  .pc.on{border-color:var(--brand-200)}
+  .pc .ph{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--bg2)}
+  .sc{width:36px;height:36px;flex:none;border-radius:10px;background:var(--bg2) center/cover no-repeat;box-shadow:inset 0 0 0 1px rgba(16,24,40,.06)}
+  .wg{display:inline-block;width:16px;height:16px;flex:none;background:var(--brand-700);-webkit-mask:var(--src) center/contain no-repeat;mask:var(--src) center/contain no-repeat}
+  .opts button .wg{width:14px;height:14px;margin-right:5px;vertical-align:-2px}
+  .pc .ph b{display:block;font-size:15px;color:var(--ink)}
+  .pc .ph small{font-size:12px;color:var(--muted)}
+  .chip{margin-left:auto;display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:11.5px;font-weight:600;background:var(--bg2);color:var(--muted);white-space:nowrap}
+  .chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+  .pc.on .chip{background:var(--brand-100);color:var(--brand-700)}
+  .pb{padding:4px 16px 16px}
+  .lab{margin:12px 0 8px;font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
+  .row{display:flex;align-items:center;gap:10px;min-height:40px}
+  .tk{width:24px;height:24px;flex:none;border-radius:50%;border:1.5px solid #D0D5DD;background:#fff;display:grid;place-items:center;transition:background .2s,border-color .2s,transform .15s}
+  .tk:active{transform:scale(.9)}
+  .tk svg{width:12px;height:12px;opacity:0;transform:scale(.6);transition:opacity .2s,transform .25s var(--ease)}
+  .tk[aria-pressed=true]{background:var(--brand);border-color:var(--brand)}
+  .tk[aria-pressed=true] svg{opacity:1;transform:none}
+  .row .t{flex:1;min-width:0;font-size:14px;font-weight:600;color:var(--ink)}
+  .row .t small{display:block;font-size:12px;font-weight:400;color:var(--muted)}
+  .row .k{font-size:13px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+  .row.done .k{color:var(--brand-700)}
+  .none{font-size:13px;color:var(--faint);line-height:24px}
+  .xr .xi{width:24px;height:24px;flex:none;border-radius:8px;background:var(--brand-50);display:grid;place-items:center}
+  .xr .rm{width:24px;height:24px;border:0;background:none;color:var(--faint);font-size:16px;line-height:1}
+  .xr .rm:hover{color:var(--red)}
+  .add{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border:1px dashed #D0D5DD;border-radius:10px;background:#fff;font-size:13px;font-weight:600;color:var(--brand)}
+  .add:hover{border-color:var(--brand)}
+  .pick{margin-top:8px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--bg)}
+  .opts{display:flex;flex-wrap:wrap;gap:6px}
+  .opts button{height:30px;padding:0 10px;border:1px solid var(--border);border-radius:999px;background:#fff;font-size:12.5px;color:var(--text)}
+  .opts button[aria-pressed=true]{border-color:var(--brand);background:var(--brand-100);color:var(--brand-700);font-weight:600}
+  .pick .go{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-size:13px;color:var(--muted)}
+  .pick .go b{color:var(--ink)}
+  .pick .go button{height:32px;padding:0 14px;border:0;border-radius:8px;background:var(--brand);color:#fff;font-size:13px;font-weight:600}
+  .ticks{display:flex;gap:8px}
+  /* the plan's routine: exercise chips, an add menu, its kcal */
+  .rt{align-items:flex-start}
+  .rt .sw{margin-top:3px}
+  .exs{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .exc{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 4px 0 10px;border:1px solid var(--border);border-radius:999px;background:var(--bg);font-size:12.5px;color:var(--text)}
+  .exc button{width:20px;height:20px;border:0;border-radius:50%;background:none;color:var(--faint);font-size:14px;line-height:1}
+  .exc button:hover{background:var(--bg2);color:var(--red)}
+  .exadd{width:auto;max-width:150px;height:28px;padding:0 8px;border:1px dashed #D0D5DD;border-radius:999px;background:#fff;font:600 12.5px Roboto,sans-serif;color:var(--brand);cursor:pointer;outline:none}
+  .rk{flex:none;line-height:28px;font-size:13px;font-weight:600;color:var(--ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .prow{grid-template-columns:150px minmax(0,1fr) 128px}
+  /* the day's steps, one number for the whole day */
+  .stepsc{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-bottom:16px;padding:16px 20px}
+  .stepsc .sl{display:flex;align-items:center;gap:12px;margin-right:auto}
+  .stepsc .sl .wg{width:22px;height:22px}
+  .stepsc b{display:block;font-size:15px;color:var(--ink)}
+  .stepsc small{font-size:12.5px;color:var(--muted)}
+  .stepsc .sbar{flex:1 1 100%;height:8px;border-radius:999px;background:var(--bg2);overflow:hidden}
+  .stepsc .sbar i{display:block;height:100%;background:var(--brand);border-radius:inherit;transition:width .5s var(--ease)}
+  .rhd{display:flex;justify-content:space-between;align-items:baseline}
+  .rhd em{font-style:normal;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:0;text-transform:none}
+
+  /* the score */
+  /* stays pinned; when the formula opens and the column outgrows the screen, it scrolls inside itself rather than jumping */
+  .side{position:sticky;top:64px;margin-top:72px;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 80px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;border-radius:16px}
+  .side > *{flex:none}
+  .score{padding:24px;display:flex;flex-direction:column;align-items:center}
+  .ring{position:relative;width:196px;height:196px}
+  .ring svg circle{transition:stroke-dashoffset .5s var(--ease),stroke .3s}
+  .ring .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .ring .n{font-family:'Playfair Display',serif;font-size:58px;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums}
+  .ring .l{margin-top:4px;font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+  .say{margin-top:14px;min-height:40px;text-align:center;font-size:14px;line-height:20px;color:var(--text)}
+  .brk{width:100%;margin-top:12px}
+  .br{padding:10px 0;border-bottom:1px dashed var(--border)}
+  .br:last-child{border-bottom:0}
+  .br .h{display:flex;justify-content:space-between;align-items:baseline;font-size:14px}
+  .br .h span{color:var(--ink);font-weight:600}
+  .br .h b{font-variant-numeric:tabular-nums;color:var(--ink)}
+  .br .h b i{font-style:normal;font-weight:500;color:var(--faint)}
+  .br small{display:block;margin-top:2px;font-size:12px;line-height:17px;color:var(--muted)}
+  .bar{height:6px;margin-top:8px;border-radius:999px;background:var(--bg2);overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:inherit;background:var(--brand);transition:width .5s var(--ease)}
+  .spread{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+  .spread i{height:28px;border-radius:8px;background:var(--bg2);font:600 11px/28px Roboto,sans-serif;font-style:normal;text-align:center;color:var(--faint);transition:.2s}
+  .spread i.on{background:var(--brand-100);color:var(--brand-700)}
+  .lr{padding:10px 0;border-bottom:1px dashed var(--border)}
+  .lr .h{display:flex;justify-content:space-between;align-items:baseline;font-size:14px}
+  .lr .h span{font-weight:600;color:var(--ink)}
+  .lr .h b{font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .lr .h b i{font-style:normal;font-weight:500;color:var(--faint)}
+  .lr code{display:block;margin-top:4px;font:500 12px/18px Roboto,sans-serif;color:var(--brand-700)}
+  .lr small{display:block;font-size:12px;line-height:18px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .lsum{display:flex;justify-content:flex-end;align-items:baseline;gap:6px;padding-top:12px;font-size:14px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .lsum b{font-size:18px;color:var(--ink)}
+  /* the standard formula, folded away under the score */
+  .fx{padding:0 20px}
+  .fx summary{display:flex;align-items:center;justify-content:space-between;padding:14px 0;font-size:14px;font-weight:600;color:var(--ink);cursor:pointer;list-style:none}
+  .fx summary::-webkit-details-marker{display:none}
+  .fx summary::after{content:"";width:8px;height:8px;margin-right:4px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg) translateY(-2px);transition:transform .2s var(--ease)}
+  .fx[open] summary::after{transform:rotate(-135deg) translateY(-2px)}
+  .fx[open]{padding-bottom:18px}
+  .fxm{padding:10px 12px;border-radius:10px;background:var(--brand-50);font-size:13px;font-weight:600;color:var(--brand-700)}
+  .fx dl{display:grid;grid-template-columns:auto 1fr;gap:8px 12px;margin-top:12px;font-size:12px;line-height:18px}
+  .fx dt{font-weight:600;color:var(--ink);white-space:nowrap}
+  .fx dd{margin:0;color:var(--text);font-variant-numeric:tabular-nums}
+  .fx ul{margin:14px 0 0;padding:12px 0 0 16px;border-top:1px dashed var(--border);display:flex;flex-direction:column;gap:6px;font-size:12px;line-height:18px;color:var(--muted)}
+  .fx ul b{color:var(--ink)}
+  .rule{margin-top:14px;padding:12px 14px;border-radius:12px;background:var(--bg2);font-size:12.5px;line-height:19px;color:var(--muted)}
+  .rule b{color:var(--ink)}
+  /* the plan as four part-of-day cards: icon, name, a routine switch, its exercises, its small moves */
+  .plan{padding:16px}
+  /* kinds of coach plan: one tap loads a whole plan; the one matching the plan now is lit */
+  .ptypes{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .ptype{display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;padding:7px 12px;border:1px solid var(--border);border-radius:12px;background:#fff;text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+  .ptype b{font-size:13px;line-height:18px;font-weight:600;color:var(--ink)}
+  .ptype small{font-size:11.5px;line-height:16px;color:var(--muted)}
+  .ptype:hover{border-color:var(--brand-200)}
+  .ptype[aria-pressed=true]{border-color:var(--brand);background:var(--brand-50)}
+  .ptype[aria-pressed=true] b{color:var(--brand-700)}
+  .pgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  @media(max-width:700px){.pgrid{grid-template-columns:1fr}}
+  .pp{display:flex;flex-direction:column;padding:14px;border:1px solid var(--border);border-radius:14px;background:#fff;transition:border-color .2s,background .2s}
+  .pp.on{border-color:var(--brand-200)}
+  .pp .phd{display:flex;align-items:center;gap:10px}
+  .pi{width:36px;height:36px;flex:none;border-radius:10px;display:grid;place-items:center;background:var(--tbg)}
+  .pi i{width:20px;height:20px;background:var(--tfg);-webkit-mask:var(--src) center/contain no-repeat;mask:var(--src) center/contain no-repeat}
+  .pp .phd b{display:block;font-size:15px;color:var(--ink)}
+  .pp .phd small{font-size:12px;color:var(--muted)}
+  .pp .phd .sw{margin-left:auto}
+  .pp .sec{margin-top:14px}
+  .pp .slab{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--faint)}
+  .pp .slab b{font-size:13px;letter-spacing:0;text-transform:none;color:var(--ink)}
+  .exl{display:flex;flex-direction:column;border:1px solid var(--bg2);border-radius:10px;overflow:hidden}
+  .exr{display:flex;align-items:center;gap:8px;padding:7px 6px 7px 10px;font-size:13px;color:var(--ink);border-bottom:1px solid var(--bg2)}
+  .exr:last-child{border-bottom:0}
+  .exr span{flex:1;min-width:0}
+  .exr em{font-style:normal;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .exr button{width:22px;height:22px;flex:none;border:0;border-radius:50%;background:none;color:var(--faint);font-size:15px;line-height:1}
+  .exr button:hover:not(:disabled){background:var(--red-50);color:var(--red)}
+  .exr button:disabled{visibility:hidden}
+  .exadd2{width:100%;height:34px;margin-top:8px;padding:0 10px;border:1px dashed #D0D5DD;border-radius:10px;background:#fff;font:600 13px Roboto,sans-serif;color:var(--brand);cursor:pointer;outline:none}
+  .exadd2:focus{border-color:var(--brand)}
+  .pp .empty{display:flex;align-items:center;gap:8px;padding:12px;border:1px dashed var(--border);border-radius:10px;font-size:13px;color:var(--faint)}
+  .pp .smr{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:14px}
+  .pp .smr > span{font-size:13px;font-weight:600;color:var(--ink)}
+  .pp .smr > span small{display:block;font-size:12px;font-weight:400;color:var(--muted)}
+  .pfoot2{display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px;margin-top:12px;padding:14px;border-radius:14px;background:var(--bg)}
+  .pfoot2 .lb{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--ink)}
+  .pfoot2 .sum{margin-left:auto;font-size:13px;color:var(--muted)}
+  .pfoot2 .sum b{color:var(--ink)}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="topbar"><span><b>GoodFlip</b> · Move · Momentum sandbox</span><a href="/move/deck.html">Back to the deck</a></div>
+<main class="wrap">
+  <div class="eyebrow">Play with it</div>
+  <h1>Set a plan, live a day, watch the score.</h1>
+  <p class="lead">First the coach's plan, then what the person actually did: each exercise in the coach's routines, any other workout they logged, small moves, and their steps for the day. Start from a sample, then change anything.</p>
+  <div class="formula">Momentum <i>=</i> Exercise (40) <i>+</i> Steps (10) <i>+</i> Small moves (10) <i>+</i> <span class="sp">Spread (40)</span></div>
+
+
+  <div class="grid">
+    <div>
+      <div class="sh"><h2><span class="num">1</span>The coach's plan</h2><p>At least 2 routines. The steps target is for the whole day.</p></div>
+      <div class="card plan" id="plan"></div>
+      <div class="sh"><h2><span class="num">2</span>The day</h2><p>Kcal counts the coach's routines and anything logged by search alike.</p></div>
+      <div class="card stepsc" id="steps"></div>
+      <div class="day" id="day"></div>
+    </div>
+    <div class="side">
+    <div class="card score">
+      <div class="ring">
+        <svg width="196" height="196" viewBox="0 0 196 196" aria-hidden="true">
+          <circle cx="98" cy="98" r="84" fill="none" stroke="#E4E7EC" stroke-width="14"/>
+          <circle id="ring" cx="98" cy="98" r="84" fill="none" stroke="#299D6B" stroke-width="14" stroke-linecap="round" stroke-dasharray="527.79" stroke-dashoffset="527.79" transform="rotate(-90 98 98)"/>
+        </svg>
+        <div class="val"><div class="n" id="score">0</div><div class="l">Momentum</div></div>
+      </div>
+      <div class="brk" id="brk"></div>
+    </div>
+    <details class="card fx">
+      <summary>The formula</summary>
+      <p class="fxm">Momentum = Exercise + Steps + Small moves + Spread</p>
+      <dl>
+        <dt>Exercise</dt><dd>40 × min(1, kcal burned ÷ kcal planned)</dd>
+        <dt>Steps</dt><dd>10 × min(1, steps walked ÷ steps target)</dd>
+        <dt>Small moves</dt><dd>10 × small moves ticked ÷ planned</dd>
+        <dt>Spread</dt><dd>10 × parts of the day moved in, up to 4</dd>
+      </dl>
+      <ul>
+        <li><b>kcal burned</b> = the coach's exercises done + any workout logged by search. Each is MET × 3.5 × weight (kg) ÷ 200 × minutes.</li>
+        <li><b>A part of the day counts</b> when an exercise was done, a workout was logged, or a small move was ticked in it.</li>
+        <li>Going past a target never adds more, and never counts against you.</li>
+      </ul>
+    </details>
+    </div>
+  </div>
+
+  <div class="sh"><h2>Sample days</h2><p>Each plays a day on the coach plan chosen above.</p></div>
+  <div class="samples" id="samples" role="group" aria-label="Sample days"></div>
+  <p class="sdesc" id="sdesc"></p>
+</main>
+<script>
+(function () {
+  /* each part of the day with the coach portal's own icon and tone (coach-exercise-template.html) */
+  var PARTS = [{ n: "Morning", w: "6 AM to 12 PM", ic: "sunny-outline", bg: "#FEF0C7", fg: "#DC6803" },
+    { n: "Afternoon", w: "12 PM to 4 PM", ic: "partly-sunny-outline", bg: "#E0F2FE", fg: "#0086C9" },
+    { n: "Evening", w: "4 PM to 8 PM", ic: "cloudy-night-outline", bg: "#FCE7F6", fg: "#C11574" },
+    { n: "Night", w: "8 PM to 11 PM", ic: "moon-outline", bg: "#EEF4FF", fg: "#444CE7" }];
+  var picon = function (P) { return '<span class="pi" style="--tbg:' + P.bg + ';--tfg:' + P.fg + '"><i style="--src:url(/v7/img/coach/icons/' + P.ic + '.svg)"></i></span>'; };
+  /* the coach's exercise library, from the coach template: name, minutes, type. kcal = MET x 3.5 x 65 kg / 200 x minutes,
+     MET 4.5 for an exercise and 1.5 for breathing, as the template's tooltip explains */
+  var LIB = { warm: ["Warm-up stretching", 9, "E"], jack: ["Jumping jack", 4, "E"], twist: ["Twister", 2, "E"], lunge: ["Lunges", 6, "E"],
+    squat: ["Wall squat", 3, "E"], plank: ["Plank", 3, "E"], side: ["Side plank", 3, "E"], quad: ["Quadriceps exercises", 4, "E"],
+    spot: ["Spot jump", 2, "E"], leg: ["Side leg raise", 2, "E"], box: ["Box breathing", 5, "B"], cool: ["Cool down stretching", 6, "E"] };
+  var exK = function (id) { var x = LIB[id]; return Math.round((x[2] === "B" ? 1.5 : 4.5) * 3.5 * 65 / 200 * x[1]); };
+  /* workouts a person can log by search, as on the Move screen (log.js) */
+  var W = { Walking: [3.5, "directions_walk"], Running: [9.8, "directions_run"], Cycling: [7.5, "directions_bike"], Yoga: [2.5, "self_improvement"],
+    "Strength training": [5, "fitness_center"], Dance: [5, "music_note"], Swimming: [7, "pool"], Badminton: [5.5, "sports_tennis"], Hiking: [6, "hiking"] };
+  var DURS = [15, 30, 45, 60, 90], MIN_ROUTINES = 2;
+  var kc = function (w, min) { return Math.round(W[w][0] * 3.5 * 65 / 200 * min); };
+  var scene = function (P) { return 'style="background-image:url(/v7/icons/move/bg/' + P.n.toLowerCase() + '.webp?v=16)"'; };
+  var wi = function (w) { return '<i class="wg" style="--src:url(/v7/icons/move/log/' + W[w][1] + '.svg)"></i>'; };
+
+  /* a plan: steps target for the day; per part: the routine's exercises ([] = none) and its small moves.
+     a day: steps walked; per part: which routine exercises were done, other workouts [name, minutes], small moves ticked */
+  var MORN = ["warm", "jack", "lunge", "plank"], EVE = ["warm", "squat", "side", "cool"], AFT = ["box", "twist", "leg"], NITE = ["box", "quad", "cool"];
+  var P = function (steps, r, m) { return { steps: steps, r: r, m: m }; };
+  var Dy = function (steps, parts) { return { steps: steps, p: parts.map(function (p) { return { done: p[0] || [], x: p[1] || [], t: p[2] || 0 }; }) }; };
+  var ME = P(8000, [MORN, [], EVE, []], [2, 1, 2, 0]), MAE = P(8000, [MORN, AFT, EVE, []], [2, 1, 2, 0]), AN = P(7000, [[], MORN, [], NITE], [1, 2, 1, 1]);
+  /* kinds of coach plan for the chips on the plan card: routines per part, small moves per part, steps */
+  var TYPES = [
+    { t: "Morning & Evening", s: "The usual: two routines", plan: ME },
+    { t: "Little and often", s: "Three short routines", plan: MAE },
+    { t: "Shift worker", s: "Afternoon & Night", plan: AN },
+    { t: "Strength focus", s: "Strength AM, mobility PM", plan: P(7000, [["warm", "squat", "lunge", "plank", "side", "cool"], [], ["box", "leg", "cool"], []], [1, 1, 1, 0]) },
+    { t: "Gentle start", s: "Short, easy, more small moves", plan: P(5000, [["warm", "twist", "cool"], [], ["box", "leg"], []], [2, 2, 2, 1]) },
+    { t: "Active", s: "Three full routines, 10,000 steps", plan: P(10000, [MORN, ["warm", "jack", "spot", "squat"], EVE, []], [2, 2, 2, 1]) },
+    { t: "Morning & Night", s: "Before work and before bed", plan: P(8000, [MORN, [], [], NITE], [1, 2, 1, 1]) }
+  ];
+  /* sample days, played on top of whichever coach plan is selected above: each builds its day from that plan.
+     ON = the parts with a routine; R(i) is that routine; steps are a share of the plan's target */
+  var ON = function (pl) { return [0, 1, 2, 3].filter(function (i) { return pl.r[i].length; }); };
+  var ALLT = function (pl) { return pl.m.slice(); };
+  var mk = function (pl, steps, f) { var d = Dy(Math.round(steps / 100) * 100, [[], [], [], []]); f(d.p, ON(pl)); return d; };
+  var SAMPLES = [
+    { t: "Not started", d: "Nothing done yet. Build the day from here.", day: function (pl) { return mk(pl, 0, function () {}); } },
+    { t: "Followed the plan", d: "Every exercise in every routine, every small move, steps on target.",
+      day: function (pl) { return mk(pl, pl.steps * 1.04, function (p, on) { on.forEach(function (i) { p[i].done = pl.r[i].slice(); }); ALLT(pl).forEach(function (n, i) { p[i].t = n; }); }); } },
+    { t: "Half of each routine", d: "Started every routine, stopped halfway through each.",
+      day: function (pl) { return mk(pl, pl.steps * .75, function (p, on) { on.forEach(function (i) { p[i].done = pl.r[i].slice(0, Math.ceil(pl.r[i].length / 2)); }); pl.m.forEach(function (n, i) { p[i].t = Math.floor(n / 2); }); }); } },
+    { t: "Only the first routine", d: "The first routine done in full, the rest skipped.",
+      day: function (pl) { return mk(pl, pl.steps * .7, function (p, on) { if (on.length) { p[on[0]].done = pl.r[on[0]].slice(); p[on[0]].t = pl.m[on[0]]; } }); } },
+    { t: "Gym instead of the plan", d: "Skipped every routine and did an hour of strength training in the evening.",
+      day: function (pl) { return mk(pl, pl.steps * .55, function (p) { p[2].x = [["Strength training", 60]]; }); } },
+    { t: "Swapped a routine for a run", d: "A 30 minute run in place of the first routine, the others as planned.",
+      day: function (pl) { return mk(pl, pl.steps * 1.1, function (p, on) { on.forEach(function (i, k) { if (k) p[i].done = pl.r[i].slice(); else p[i].x = [["Running", 30]]; }); pl.m.forEach(function (n, i) { p[i].t = Math.min(n, 1); }); }); } },
+    { t: "Extra on top", d: "Every routine, plus badminton at night with friends.",
+      day: function (pl) { return mk(pl, pl.steps * 1.2, function (p, on) { on.forEach(function (i) { p[i].done = pl.r[i].slice(); }); ALLT(pl).forEach(function (n, i) { p[i].t = n; }); p[3].x = [["Badminton", 45]]; }); } },
+    { t: "Skipped workouts, stayed active", d: "No routine, but took the stairs, stood in meetings and walked after tea.",
+      day: function (pl) { return mk(pl, pl.steps * .97, function (p) { ALLT(pl).forEach(function (n, i) { p[i].t = n; }); }); } },
+    { t: "Walk after dinner", d: "Every routine, and a 20 minute walk after dinner.",
+      day: function (pl) { return mk(pl, pl.steps * 1.08, function (p, on) { on.forEach(function (i) { p[i].done = pl.r[i].slice(); }); ALLT(pl).forEach(function (n, i) { p[i].t = n; }); p[3].x = p[3].x.concat([["Walking", 20]]); }); } },
+    { t: "Sick day", d: "Stayed in bed. A few steps to the kitchen and back.", day: function (pl) { return mk(pl, 1400, function () {}); } }
+  ];
+  var plan, day, cur = -1, OPEN = null, ERR = false;
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = function (n) { return Math.round(n).toLocaleString("en-IN"); };
+  var sum = function (a, f) { return a.reduce(function (n, x) { return n + f(x); }, 0); };
+  var CHK = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+  var stp = function (key, label, dis) {
+    return '<span class="stp"><button data-st="' + key + '|-1" aria-label="Less"' + (dis[0] ? " disabled" : "") + '>−</button><b>' + label + '</b>' +
+      '<button data-st="' + key + '|1" aria-label="More"' + (dis[1] ? " disabled" : "") + '>+</button></span>';
+  };
+
+  /* ---------- the score ---------- */
+  function routineKcal(pl, i) { return sum(pl.r[i], exK); }
+  function moved(pl, dy, i) { var p = dy.p[i]; return p.done.length > 0 || p.x.length > 0 || p.t > 0; }
+  function score(pl, dy) {
+    var K = 0, k = 0, kx = 0, M = 0, m = 0, on = 0;
+    dy.p.forEach(function (p, i) {
+      K += routineKcal(pl, i); k += sum(p.done, exK); kx += sum(p.x, function (x) { return kc(x[0], x[1]); });
+      M += pl.m[i]; m += Math.min(p.t, pl.m[i]); if (moved(pl, dy, i)) on++;
+    });
+    var e = Math.min(1, K ? (k + kx) / K : 0) * 40, s = Math.min(1, pl.steps ? dy.steps / pl.steps : 0) * 10, n = (M ? m / M : 0) * 10;
+    return { K: K, k: k, kx: kx, M: M, m: m, on: on, e: e, s: s, n: n, sp: on * 10, total: Math.round(e + s + n + on * 10) };
+  }
+  function tone(v) { return v >= 75 ? "#299D6B" : v >= 50 ? "#F79009" : "#F04438"; }
+
+  /* ---------- samples ---------- */
+  function drawSamples() {
+    $("samples").innerHTML = SAMPLES.map(function (x, i) {
+      var r = score(plan, x.day(plan)), c = tone(r.total);
+      return '<button class="smp" data-smp="' + i + '" aria-pressed="' + (i === cur) + '" title="' + x.d + '">' + x.t +
+        '<span class="pill" style="background:' + c + '1A;color:' + c + '">' + r.total + '</span></button>';
+    }).join("");
+    var x = SAMPLES[cur];
+    var T = TYPES.filter(function (T) { return JSON.stringify(T.plan) === JSON.stringify(plan); })[0];
+    $("sdesc").innerHTML = x ? '<b>On the ' + (T ? T.t : "edited") + ' plan.</b> ' + x.d : "Your own day. Pick a sample to start again from one.";
+  }
+
+  /* ---------- 1. the plan ---------- */
+  function drawPlan() {
+    var n = plan.r.filter(function (r) { return r.length; }).length, K = sum([0, 1, 2, 3], function (i) { return routineKcal(plan, i); }), M = sum(plan.m, function (x) { return x; });
+    var now = JSON.stringify(plan);
+    $("plan").innerHTML = '<div class="ptypes" role="group" aria-label="Kinds of coach plan">' + TYPES.map(function (T, k) {
+        return '<button class="ptype" data-pt="' + k + '" aria-pressed="' + (JSON.stringify(T.plan) === now) + '"><b>' + T.t + '</b><small>' + T.s + '</small></button>';
+      }).join("") + '</div>' +
+      '<div class="pgrid">' + PARTS.map(function (P, i) {
+        var r = plan.r[i], on = r.length > 0, left = Object.keys(LIB).filter(function (id) { return r.indexOf(id) < 0; });
+        return '<div class="pp' + (on ? " on" : "") + '"><div class="phd">' + picon(P) + '<span><b>' + P.n + '</b><small>' + P.w + '</small></span>' +
+            '<button class="sw" role="switch" aria-checked="' + on + '" data-sw="' + i + '" aria-label="' + P.n + ' workout routine"></button></div>' +
+          '<div class="sec"><div class="slab">Workout routine' + (on ? '<b>' + routineKcal(plan, i) + ' kcal</b>' : "") + '</div>' +
+          (on ? '<div class="exl">' + r.map(function (id, k) {
+                return '<div class="exr"><span>' + LIB[id][0] + '</span><em>' + LIB[id][1] + ' min · ' + exK(id) + ' kcal</em>' +
+                  '<button data-exrm="' + i + '|' + k + '" aria-label="Remove ' + LIB[id][0] + '"' + (r.length === 1 ? " disabled" : "") + '>×</button></div>';
+              }).join("") + '</div>' +
+              (left.length ? '<select class="exadd2" data-exadd="' + i + '" aria-label="Add an exercise to the ' + P.n.toLowerCase() + ' routine"><option value="">+ Add an exercise</option>' +
+                left.map(function (id) { return '<option value="' + id + '">' + LIB[id][0] + ' · ' + LIB[id][1] + ' min · ' + exK(id) + ' kcal</option>'; }).join("") + '</select>' : "")
+            : '<div class="empty">No routine. Switch it on to add exercises.</div>') + '</div>' +
+          '<div class="smr"><span>Small moves<small>' + (plan.m[i] ? "Everyday movement to tick" : "None planned") + '</small></span>' +
+            stp("m|" + i, plan.m[i] + "", [plan.m[i] <= 0, plan.m[i] >= 3]) + '</div></div>';
+      }).join("") + '</div>' +
+      '<div class="pfoot2"><span class="lb"><i class="wg" style="--src:url(/v7/icons/move/log/directions_walk.svg)"></i>Steps target for the day</span>' +
+        stp("target", fmt(plan.steps), [plan.steps <= 2000, plan.steps >= 15000]) +
+        '<span class="sum"><b>' + n + '</b> routines · <b>' + fmt(K) + '</b> kcal · <b>' + M + '</b> small moves</span></div>' +
+      '<div class="perr' + (ERR ? " on" : "") + '" role="alert">A plan needs at least ' + MIN_ROUTINES + ' routines, in two parts of the day, like morning and evening.</div>';
+  }
+
+  /* ---------- 2. the day ---------- */
+  function drawDay() {
+    $("day").innerHTML = PARTS.map(function (P, i) {
+      var d = day.p[i], r = plan.r[i], on = moved(plan, day, i), h = "";
+      h += '<div class="lab rhd">Coach\'s routine' + (r.length ? '<em>' + d.done.length + ' of ' + r.length + ' done</em>' : "") + '</div>' + (r.length
+        ? r.map(function (id) {
+            var ok = d.done.indexOf(id) > -1;
+            return '<div class="row' + (ok ? " done" : "") + '"><button class="tk" data-done="' + i + '|' + id + '" aria-pressed="' + ok + '" aria-label="' + LIB[id][0] + ' done">' + CHK + '</button>' +
+              '<span class="t">' + LIB[id][0] + '<small>' + LIB[id][1] + ' min</small></span><span class="k">' + exK(id) + ' kcal</span></div>';
+          }).join("")
+        : '<p class="none">None planned</p>');
+      h += '<div class="lab">Other workouts</div>' + d.x.map(function (x, k) {
+        return '<div class="row xr done"><span class="xi">' + wi(x[0]) + '</span><span class="t">' + x[0] + '<small>' + x[1] + ' min</small></span><span class="k">' + kc(x[0], x[1]) + ' kcal</span>' +
+          '<button class="rm" data-rm="' + i + '|' + k + '" aria-label="Remove ' + x[0] + '">×</button></div>';
+      }).join("") +
+        (OPEN && OPEN.i === i ? '<div class="pick"><div class="opts">' + Object.keys(W).map(function (w) { return '<button data-pw="' + w + '" aria-pressed="' + (OPEN.w === w) + '">' + wi(w) + w + '</button>'; }).join("") + '</div>' +
+            '<div class="opts" style="margin-top:8px">' + DURS.map(function (m) { return '<button data-pd="' + m + '" aria-pressed="' + (OPEN.d === m) + '">' + m + ' min</button>'; }).join("") + '</div>' +
+            '<div class="go"><span>About <b>' + kc(OPEN.w, OPEN.d) + ' kcal</b></span><span><button data-pick="cancel" style="background:none;color:var(--muted)">Cancel</button> <button data-pick="add">Log it</button></span></div></div>'
+          : '<button class="add" data-open="' + i + '">+ Log a workout</button>');
+      h += '<div class="lab">Small moves</div>' + (plan.m[i]
+        ? '<div class="ticks">' + Array.apply(null, Array(plan.m[i])).map(function (_, j) { return '<button class="tk" data-tick="' + i + '|' + j + '" aria-pressed="' + (j < d.t) + '" aria-label="' + P.n + ' small move ' + (j + 1) + '">' + CHK + '</button>'; }).join("") + '</div>'
+        : '<p class="none">None planned</p>');
+      return '<section class="pc' + (on ? " on" : "") + '"><div class="ph">' + picon(P) + '<span><b>' + P.n + '</b><small>' + P.w + '</small></span>' +
+        '<span class="chip">' + (on ? "Counts for spread" : "No movement yet") + '</span></div><div class="pb">' + h + '</div></section>';
+    }).join("");
+    $("steps").innerHTML = '<span class="sl"><i class="wg" style="--src:url(/v7/icons/move/log/directions_walk.svg)"></i><span><b>Steps walked today</b><small>' +
+      fmt(day.steps) + ' of ' + fmt(plan.steps) + ' · one number for the whole day</small></span></span>' +
+      stp("steps", fmt(day.steps), [day.steps <= 0, day.steps >= 30000]) +
+      '<span class="sbar"><i style="width:' + Math.min(100, plan.steps ? day.steps / plan.steps * 100 : 0) + '%"></i></span>';
+  }
+
+  /* ---------- the score panel ---------- */
+  function paint() {
+    var r = score(plan, day);
+    $("score").textContent = r.total;
+    $("ring").style.strokeDashoffset = 527.79 * (1 - r.total / 100);
+    $("ring").setAttribute("stroke", tone(r.total));
+    /* the logic, simply: each part as its rule, with this day's numbers in it, then the sum */
+    var row = function (name, got, max, rule, calc) {
+      return '<div class="lr"><div class="h"><span>' + name + '</span><b>' + Math.round(got) + ' <i>/ ' + max + '</i></b></div>' +
+        '<code>' + rule + '</code><small>' + calc + '</small></div>';
+    };
+    var burn = r.k + r.kx, cap = function (a, b) { return a > b ? " (capped)" : ""; };
+    $("brk").innerHTML =
+      row("Exercise", r.e, 40, "40 × kcal burned ÷ kcal planned", "40 × " + fmt(burn) + " ÷ " + fmt(r.K) + cap(burn, r.K)) +
+      row("Steps", r.s, 10, "10 × steps ÷ steps target", "10 × " + fmt(day.steps) + " ÷ " + fmt(plan.steps) + cap(day.steps, plan.steps)) +
+      row("Small moves", r.n, 10, "10 × ticked ÷ planned", "10 × " + r.m + " ÷ " + r.M) +
+      row("Spread", r.sp, 40, "10 × parts of the day moved in", "10 × " + r.on + " (" + (PARTS.filter(function (P, i) { return moved(plan, day, i); }).map(function (P) { return P.n; }).join(", ") || "none") + ")") +
+      '<div class="lsum">' + [r.e, r.s, r.n, r.sp].map(function (v) { return Math.round(v); }).join(" + ") + ' = <b>' + r.total + '</b></div>';
+  }
+  function draw() { drawPlan(); drawDay(); paint(); }
+  function load(i) {
+    cur = i; ERR = false; OPEN = null;
+    day = SAMPLES[i].day(plan);   /* the plan stays as chosen above; only the day changes */
+    drawSamples(); draw();
+  }
+  /* any change makes it the user's own day, so no sample stays selected */
+  function edited() { if (cur > -1) { cur = -1; drawSamples(); } draw(); }
+  /* a change to the plan replays the chosen sample on it; with no sample chosen the day keeps what still fits */
+  function planEdited() {
+    if (cur > -1) day = SAMPLES[cur].day(plan);
+    else day.p.forEach(function (p, j) { p.done = p.done.filter(function (id) { return plan.r[j].indexOf(id) > -1; }); p.t = Math.min(p.t, plan.m[j]); });
+    drawSamples(); draw();
+  }
+
+  document.addEventListener("change", function (e) {
+    var t = e.target; if (!t.dataset.exadd || !t.value) return;
+    plan.r[+t.dataset.exadd].push(t.value); planEdited();
+  });
+  document.addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    var a = b.dataset, q, i;
+    if (a.smp) return load(+a.smp);
+    if (a.pt) {
+      /* a new plan keeps what the day already holds where it still fits: done exercises still in the routine, ticks up to the new count */
+      plan = JSON.parse(JSON.stringify(TYPES[+a.pt].plan)); ERR = false;
+      return planEdited();
+    }
+    if (a.sw) {
+      i = +a.sw;
+      if (plan.r[i].length) {
+        if (plan.r.filter(function (r) { return r.length; }).length <= MIN_ROUTINES) { ERR = false; drawPlan(); ERR = true; return drawPlan(); }
+        plan.r[i] = []; day.p[i].done = [];
+      } else plan.r[i] = ["warm", "jack", "cool"];
+      ERR = false; return planEdited();
+    }
+    if (a.exrm) {
+      q = a.exrm.split("|"); i = +q[0];
+      if (plan.r[i].length === 1) return;   /* the switch turns a routine off; the last exercise stays */
+      plan.r[i].splice(+q[1], 1);
+      return planEdited();
+    }
+    if (a.st) {
+      q = a.st.split("|"); var dir = +q[q.length - 1];
+      if (q[0] === "m") { i = +q[1]; plan.m[i] = Math.max(0, Math.min(3, plan.m[i] + dir)); return planEdited(); }
+      else if (q[0] === "target") { plan.steps = Math.max(2000, Math.min(15000, plan.steps + dir * 500)); return planEdited(); }
+      else if (q[0] === "steps") day.steps = Math.max(0, Math.min(30000, day.steps + dir * 500));
+      return edited();
+    }
+    if (a.done) { q = a.done.split("|"); var dn = day.p[+q[0]].done, at = dn.indexOf(q[1]); if (at > -1) dn.splice(at, 1); else dn.push(q[1]); return edited(); }
+    if (a.tick) { q = a.tick.split("|"); var p = day.p[+q[0]], j = +q[1]; p.t = j < p.t ? j : j + 1; return edited(); }
+    if (a.open) { OPEN = { i: +a.open, w: "Walking", d: 30 }; return drawDay(); }
+    if (a.pw) { OPEN.w = a.pw; return drawDay(); }
+    if (a.pd) { OPEN.d = +a.pd; return drawDay(); }
+    if (a.pick === "cancel") { OPEN = null; return drawDay(); }
+    if (a.pick === "add") { day.p[OPEN.i].x.push([OPEN.w, OPEN.d]); OPEN = null; return edited(); }
+    if (a.rm) { q = a.rm.split("|"); day.p[+q[0]].x.splice(+q[1], 1); return edited(); }
+  });
+  plan = JSON.parse(JSON.stringify(TYPES[0].plan));
+  load(1);   /* opens on "Followed the plan"; Not started is the first chip */
+})();
+</script>
+</body>
+</html>

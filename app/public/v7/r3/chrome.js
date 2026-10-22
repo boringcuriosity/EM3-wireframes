@@ -49,6 +49,12 @@
     '.gf-kb .k.wide{min-width:44px;background:#ADB3BC;font-size:15px}',
     '.gf-kb .k.space{flex:1;max-width:180px;font-size:15px}',
     '.gf-kb .k.go{background:var(--brand-600,#299D6B);color:#fff;font-size:15px;font-weight:600}',
+    /* a number field gets the number pad: no suggestions, three wide keys a row, a letter line under each digit */
+    '.gf-kb .pad{display:none;grid-template-columns:repeat(3,1fr);gap:7px;padding:8px 6px}',
+    '.gf-kb.num .sug,.gf-kb.num .rows{display:none}.gf-kb.num .pad{display:grid}',
+    '.gf-kb .pad span{height:47px;border-radius:5px;background:#fff;box-shadow:0 1px 0 #898A8D;display:flex;flex-direction:column;align-items:center;justify-content:center;font:400 25px/1 "SF Pro Text",Roboto,sans-serif;color:#000}',
+    '.gf-kb .pad span small{font:600 9px/1 "SF Pro Text",Roboto,sans-serif;letter-spacing:2px;margin-top:2px}',
+    '.gf-kb .pad span.blank{background:none;box-shadow:none}',
     /* what the keyboard pushes up, so a sticky bar can be seen to clear it */
     '[data-kb-lift]{transition:transform .25s cubic-bezier(.4,0,.2,1)}',
     '.gf-kb-lift{transform:translateY(-291px)}'
@@ -121,6 +127,9 @@
     '<div class="gf-kb" id="gfKb" aria-hidden="true">' +
       '<div class="sug"><span>poha</span><span>paneer</span><span>paratha</span></div>' +
       '<div class="rows">' + keys + "</div>" +
+      '<div class="pad">' + ["1|", "2|ABC", "3|DEF", "4|GHI", "5|JKL", "6|MNO", "7|PQRS", "8|TUV", "9|WXYZ", "|", "0|", "⌫|"].map(function (k) {
+        var p = k.split("|"); return '<span' + (p[0] ? "" : ' class="blank"') + ">" + p[0] + (p[1] ? "<small>" + p[1] + "</small>" : "") + "</span>";
+      }).join("") + "</div>" +
     "</div>");
 
   var kb = document.getElementById("gfKb");
@@ -131,7 +140,10 @@
   }
   document.addEventListener("focusin", function (e) {
     var t = e.target;
-    if (t.matches && t.matches('input:not([type=checkbox]):not([type=radio]), textarea')) show(true);
+    if (t.matches && t.matches('input:not([type=checkbox]):not([type=radio]), textarea')) {
+      kb.classList.toggle("num", t.type === "number" || /numeric|decimal/.test(t.getAttribute("inputmode") || ""));
+      show(true);
+    }
   });
   document.addEventListener("focusout", function (e) {
     setTimeout(function () {

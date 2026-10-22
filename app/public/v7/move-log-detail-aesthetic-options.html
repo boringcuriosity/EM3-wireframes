@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log Exercise Looks</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap">
+<style>
+  /* Move: the workout's own log screen (move/log.js detail), restyled six ways from the GoodFlip Figma files.
+     Sources: Ring "Setup exercise" 6597:60297 and DS 7623:5452 (glow hero), Nutrition time sheet 84:344 (wheel and note card),
+     Ring settings card 3900:7479, Ring sticky CTA 6597:60329, Nutrition CTA with time chip 86:322, Log activities sheet 6597:60042 (pictogram card).
+     Static mocks, 10 min picked, Intensity unpicked, so they compare on looks alone. */
+  :root { --brand: #299D6B; --brand-700: #2A805A; --brand-50: #F3FCF8; --brand-100: #E6FAF1; --brand-200: #CBF0E0; --glow: #CFFFEA;
+    --ink: #101828; --g-700: #344054; --g-600: #475467; --g-500: #667085; --g-400: #98A2B3; --g-300: #D0D5DD; --g-200: #E4E7EC; --g-100: #F2F4F7; --g-50: #F9FAFB;
+    --in-100: #E0EAFF; --in-200: #C7D7FE; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #F6F7F9; color: var(--ink); font: 14px/20px Roboto, system-ui, sans-serif; letter-spacing: .2px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 40px 32px 64px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--brand); }
+  h1 { margin: 8px 0 6px; font: 600 34px/1.15 "Playfair Display", serif; }
+  .lead { margin: 0; max-width: 760px; color: var(--g-500); font-size: 15px; line-height: 23px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 24px; margin-top: 32px; }
+  .card { background: #fff; border-radius: 20px; padding: 20px 10px 20px; box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 16px 32px -24px rgba(16,24,40,.25); }
+  .tag { display: flex; align-items: center; gap: 8px; margin: 0 10px 14px; }
+  .tag .n { width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font: 700 12px/1 Roboto, sans-serif; }
+  .tag b { font-size: 15px; } .tag .rec { margin-left: auto; padding: 2px 10px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .4px; }
+  .note { margin: 14px 10px 0; font-size: 13px; line-height: 19px; color: var(--g-600); }
+  .note b { color: var(--ink); }
+  .src { margin: 6px 10px 0; font-size: 11.5px; color: var(--g-400); }
+
+  /* ---------- the phone ---------- */
+  .ph { position: relative; width: 360px; height: 740px; margin: 0 auto; border-radius: 36px; background: #fff; overflow: hidden; display: flex; flex-direction: column;
+    box-shadow: 0 0 0 8px #101828, 0 0 0 9px #344054, 0 24px 40px -20px rgba(16,24,40,.5); }
+  .sb { flex: none; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 26px 0 30px; font: 600 15px/1 Roboto, sans-serif; position: relative; z-index: 3; }
+  .sb i { display: inline-block; width: 46px; height: 11px; border-radius: 3px; background: linear-gradient(90deg, var(--ink) 0 14px, transparent 14px 18px, var(--ink) 18px 30px, transparent 30px 34px, var(--ink) 34px); }
+  .back { flex: none; display: flex; align-items: center; gap: 6px; padding: 8px 16px; font: 400 16px/1.2 Roboto, sans-serif; letter-spacing: .25px; color: var(--g-700); position: relative; z-index: 2; }
+  .back img { width: 22px; height: 22px; }
+  .body { flex: 1; min-height: 0; padding: 4px 16px 16px; position: relative; display: flex; flex-direction: column; }
+  .m { display: block; background: currentColor; -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat; }
+
+  /* hero: today's tile */
+  .hd { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 4px; }
+  .tile { width: 56px; height: 56px; border-radius: 18px; background: var(--brand-50); display: grid; place-items: center; color: var(--brand); }
+  .tile .m { width: 30px; height: 30px; }
+  .hd h3 { margin: 0; font: 600 22px/28px Roboto, sans-serif; }
+  /* hero: the Figma glow, a 279px mint circle melting into white, title at 40px (Satoshi Bold in Figma, Roboto 700 here) */
+  .glow { position: absolute; left: 50%; top: -86px; width: 279px; height: 279px; margin-left: -139.5px; border-radius: 50%; background: radial-gradient(closest-side, var(--glow), rgba(207,255,234,0)); pointer-events: none; z-index: 0; }
+  .gh { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 6px; }
+  .gh .m { width: 34px; height: 34px; color: var(--brand); }
+  .gh h3 { margin: 0; font: 700 40px/1.2 Roboto, sans-serif; letter-spacing: -.4px; }
+  .gh small { font: 400 14px/20px Roboto, sans-serif; color: var(--g-500); }
+
+  .q { margin: 22px 0 10px; text-align: center; font: 400 17px/22px Roboto, sans-serif; position: relative; z-index: 1; }
+  .lbl { margin: 22px 0 8px; font: 700 14px/1.2 Roboto, sans-serif; position: relative; z-index: 1; }
+
+  /* the wheel, as on the screen: settings-card edge, soft diamonds, a green wash on the pick */
+  .dial { position: relative; z-index: 1; flex: none; height: 168px; border: 1px solid var(--in-100); border-radius: 12px; background: #fff; box-shadow: 2px 2px 0 var(--in-200); }
+  .dial .clip { position: absolute; inset: 0; overflow: hidden; border-radius: inherit; }
+  .dial .band { position: absolute; left: 18px; right: 18px; top: 61px; height: 44px; border-radius: 10px; background: linear-gradient(90deg, rgba(243,252,248,0), var(--brand-50) 22%, var(--brand-50) 78%, rgba(243,252,248,0)); }
+  .dial .col { position: absolute; inset: 0; padding-top: 21px; display: flex; flex-direction: column; align-items: center; -webkit-mask: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask: linear-gradient(transparent, #000 30%, #000 70%, transparent); }
+  .dial .col span { height: 40px; flex: none; display: grid; place-items: center; font: 500 20px/1 Roboto, sans-serif; color: var(--g-300); font-variant-numeric: tabular-nums; }
+  .dial .col span.on { height: 44px; font: 700 30px/1 Roboto, sans-serif; color: var(--ink); }
+  .dial .u { position: absolute; left: calc(50% + 34px); top: 83px; transform: translateY(-50%); font: 600 14px/1 Roboto, sans-serif; color: var(--brand-700); }
+  .dial::before, .dial::after { content: ""; position: absolute; top: 83px; z-index: 2; width: 12px; height: 12px; margin-top: -6px; border-radius: 3px; background: var(--brand); box-shadow: 0 2px 6px -1px rgba(41,157,107,.45); transform: rotate(45deg); }
+  .dial::before { left: -6px; } .dial::after { right: -6px; }
+  /* Nutrition 84:344: grey edge, grey band, no pointers, quieter numbers */
+  .dial.nu { border: 1.667px solid var(--g-200); border-radius: 16px; box-shadow: none; }
+  .dial.nu::before, .dial.nu::after { display: none; }
+  .dial.nu .band { left: 6px; right: 6px; border-radius: 12px; background: var(--g-100); }
+  .dial.nu .col span { font: 400 16px/20px Roboto, sans-serif; color: var(--g-400); }
+  .dial.nu .col span.on { font: 700 22px/1 Roboto, sans-serif; color: var(--ink); }
+  .dial.nu .u { color: var(--ink); font-weight: 700; left: calc(50% + 24px); }
+  .dial.sm { height: 128px; } .dial.sm .band { top: 41px; } .dial.sm .col { padding-top: 1px; } .dial.sm .u, .dial.sm::before, .dial.sm::after { top: 63px; }
+
+  /* the settings card, Ring 3900:7479 */
+  .rows { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 16px; margin-top: 20px; padding: 16px 12px; border: 1px solid var(--in-100); border-radius: 12px; background: #fff; box-shadow: 2px 2px 0 var(--in-200); }
+  .rows hr { margin: 0; border: 0; height: 1px; background: var(--g-100); }
+  .row { display: flex; align-items: center; gap: 8px; font: 400 16px/1.2 Roboto, sans-serif; }
+  .row .ic { width: 20px; height: 20px; color: var(--g-600); flex: none; }
+  .row > span { flex: 1; }
+  .row b { font-weight: 400; color: var(--g-500); } .row b.opt { color: var(--g-400); }
+  .row .cv { width: 24px; height: 24px; margin-left: -4px; color: var(--g-400); }
+
+  /* the sticky bar: Ring 6597:60329, a 41px face on a 7px green lip */
+  .foot { flex: none; padding: 12px 16px 30px; background: #fff; box-shadow: 0 -2px 4px rgba(0,0,0,.04); position: relative; z-index: 2; }
+  .go { display: grid; place-items: center; height: 48px; padding-bottom: 7px; border-radius: 8px; background: linear-gradient(var(--brand) 0 41px, var(--brand-700) 41px); color: #fff; font: 700 14px/1 Roboto, sans-serif; letter-spacing: .25px; }
+  .go.today { height: 52px; border-radius: 12px; padding: 0; background: var(--brand); box-shadow: 0 7px 0 var(--brand-700); margin-bottom: 7px; font-size: 15px; }
+  .go.nu { height: 52px; padding: 0; border-radius: 12px; background: var(--brand); box-shadow: 0 4px 0 var(--brand-700); margin-bottom: 4px; font: 600 15px/1 Roboto, sans-serif; }
+  .home { position: absolute; bottom: 8px; left: 50%; width: 120px; height: 5px; margin-left: -60px; border-radius: 3px; background: var(--ink); }
+
+  /* 2: the plain-words line under the wheel, Nutrition's note card */
+  .say { position: relative; z-index: 1; margin-top: 12px; padding: 12px; border: 1.667px solid var(--g-200); border-radius: 12px; background: var(--g-50); font: 400 13.5px/20px Roboto, sans-serif; color: var(--g-700); }
+  .say b { color: var(--ink); font-weight: 600; }
+
+  /* 3: the number is the hero, chips pick the common ones, the wheel waits in a panel under "Other" */
+  .big { position: relative; z-index: 1; margin-top: 14px; text-align: center; font: 700 64px/1 Roboto, sans-serif; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; }
+  .big span { margin-left: 4px; font: 600 18px/1 Roboto, sans-serif; letter-spacing: 0; color: var(--brand-700); }
+  .chips { position: relative; z-index: 1; display: flex; gap: 8px; justify-content: center; margin-top: 18px; }
+  .chip { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--g-100); background: var(--g-50); font: 400 14px/1 Roboto, sans-serif; color: var(--g-500); }
+  .chip.on { background: #fff; border-color: var(--brand); color: var(--brand); font-weight: 700; }
+
+  /* 4: three tiles in a row, each a small settings card */
+  .tiles { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 20px; }
+  .tl { display: flex; flex-direction: column; gap: 10px; padding: 12px 10px; border: 1px solid var(--in-100); border-radius: 12px; background: #fff; box-shadow: 2px 2px 0 var(--in-200); }
+  .tl .ic { width: 20px; height: 20px; color: var(--brand); }
+  .tl small { font: 400 12px/16px Roboto, sans-serif; color: var(--g-500); }
+  .tl b { font: 700 15px/20px Roboto, sans-serif; } .tl b.opt { color: var(--g-400); font-weight: 500; }
+
+  /* 5: the time rides beside the button, Nutrition 86:322 */
+  .bar2 { display: flex; gap: 10px; }
+  .tchip { flex: none; display: flex; align-items: center; gap: 6px; height: 52px; padding: 0 14px; border: 1.667px solid var(--brand); border-radius: 12px; font: 700 14px/1 Roboto, sans-serif; color: var(--brand); }
+  .tchip .m { width: 18px; height: 18px; }
+  .bar2 .go { flex: 1; }
+  .fade { position: absolute; left: 0; right: 0; top: -40px; height: 40px; background: linear-gradient(rgba(255,255,255,0), #fff 72%); pointer-events: none; }
+
+  /* 6: the workout in an action card, the glow inside it and the pictogram bleeding off the corner (Log activities 6597:60042) */
+  .act { position: relative; z-index: 1; overflow: hidden; margin-top: 6px; height: 118px; padding: 18px 16px; border: 1px solid var(--in-200); border-radius: 12px; background: #fff; box-shadow: 2px 2px 0 var(--in-200); }
+  .act::before { content: ""; position: absolute; left: -127px; top: -76px; width: 279px; height: 279px; border-radius: 50%; background: radial-gradient(closest-side, var(--glow), #fff); }
+  .act > * { position: relative; }
+  .act small { display: block; font: 600 11px/16px Roboto, sans-serif; letter-spacing: 1.2px; text-transform: uppercase; color: var(--brand-700); }
+  .act h3 { margin: 4px 0 0; font: 700 30px/1.15 Roboto, sans-serif; letter-spacing: -.3px; }
+  .act img { position: absolute; right: -18px; bottom: -22px; width: 132px; transform: rotate(-12deg); filter: drop-shadow(0 10px 14px rgba(16,24,40,.18)); }
+
+  /* 7: one surface, a soft mint page wash, the wheel and rows as white cards on it */
+  .wash { position: absolute; inset: 0; background: linear-gradient(180deg, var(--brand-50), #fff 48%); }
+  .lift { border: 0 !important; box-shadow: 0 1px 2px rgba(16,24,40,.06), 0 12px 28px -14px rgba(16,24,40,.22) !important; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="eyebrow">Move · Log exercise</div>
+  <h1>Making the log screen lovelier</h1>
+  <p class="lead">The workout's own log screen, restyled from what GoodFlip's Figma files already do. The Ring file has this very screen ("Setup exercise", Running) with a mint glow behind a large title, the Nutrition file has the cleanest wheel and a plain-words note, and the Ring settings card and 3D button are already ours. Each mock has 10 min picked and Intensity not yet chosen. The 40px title is Satoshi Bold in Figma; it is Roboto 700 here since the app does not ship Satoshi.</p>
+  <div class="grid" id="g"></div>
+</main>
+<script>
+  var IC = { run: "/v7/icons/move/log/directions_run.svg", fire: "/v7/icons/move/log/row-fire.svg", time: "/v7/img/coach/icons/time-outline.svg",
+    date: "/v7/img/coach/icons/calendar-clear-outline.svg", back: "/v7/icons/move/log/back.svg", cv: "/v7/icons/move/log/row-chevron.svg", pict: "/v7/icons/pictograms/Movement.png" };
+  var m = function (k, c) { return '<i class="m ' + (c || "") + '" style="--src:url(' + IC[k] + ')"></i>'; };
+
+  var phone = function (inner, foot, pre) {
+    return '<div class="ph">' + (pre || "") + '<div class="sb">3:40<i></i></div><div class="back"><img src="' + IC.back + '" alt="">Back</div>' +
+      '<div class="body">' + inner + '</div>' + (foot || '<div class="foot"><div class="go">Log exercise</div></div>') + '<span class="home"></span></div>';
+  };
+  var dial = function (c) { return '<div class="dial ' + (c || "") + '"><div class="clip"><span class="band"></span><div class="col"><span>5</span><span class="on">10</span><span>15</span><span>20</span></div><span class="u">min</span></div></div>'; };
+  var row = function (ic, l, v, opt) { return '<div class="row">' + m(ic, "ic") + '<span>' + l + '</span><b' + (opt ? ' class="opt"' : "") + '>' + v + '</b>' + m("cv", "cv") + '</div>'; };
+  var rows = function (skip, c) { return '<div class="rows ' + (c || "") + '">' + row("fire", "Intensity", "Select", 1) + '<hr>' + (skip ? "" : row("time", "Time", "3:40 PM") + '<hr>') + row("date", "Date", "Today") + '</div>'; };
+  var glow = '<span class="glow"></span>';
+  var gh = function (sub) { return glow + '<div class="gh">' + m("run") + '<h3>Running</h3>' + (sub ? '<small>' + sub + '</small>' : "") + '</div>'; };
+  var q = '<p class="q">How long did you do it?</p>';
+
+  var V = [
+    { t: "Today", n: "0",
+      h: phone('<div class="hd"><span class="tile">' + m("run") + '</span><h3>Running</h3></div>' + q + dial() + rows(),
+        '<div class="foot"><div class="go today">Log exercise</div></div>'),
+      d: "For reference. Neat and on-system, but the top is small and plain, so the screen reads like a form rather than a moment." },
+
+    { t: "Glow hero", rec: 1,
+      h: phone(gh() + q + dial() + rows()),
+      d: "<b>The Figma Setup exercise hero:</b> the mint glow melting into white behind a big Running, the icon resting in it. The 3D button moves to the Ring bar. Same parts as today, the workout finally owns the screen. <b>Trade-off:</b> a long name like Stair climbing needs to step down to 32px.",
+      s: "Ring 6597:60297 and DS 7623:5452, settings card 3900:7479, sticky bar 6597:60329" },
+
+    { t: "Glow and a plain-words note",
+      h: phone(gh() + '<p class="lbl">How long did you do it?</p>' + dial("nu sm") + '<div class="say"><b>10 min</b> of running at <b>3:40 PM</b>, today.</div>' + rows(),
+        '<div class="foot"><div class="go nu">Log exercise</div></div>'),
+      d: "The Nutrition time sheet's wheel: grey edge, grey band, quiet numbers. Under it one sentence reads back what will be logged. <b>Trade-off:</b> calmer but less ownable than the green dial, and the note repeats the rows below it.",
+      s: "Nutrition 84:344 wheel and note card, CTA 86:319" },
+
+    { t: "Big number and quick picks",
+      h: phone(gh() + '<p class="q" style="margin-top:14px">How long did you do it?</p><div class="big">10<span>min</span></div>' +
+        '<div class="chips"><span class="chip on">10</span><span class="chip">20</span><span class="chip">30</span><span class="chip">45</span><span class="chip">60</span><span class="chip">Other</span></div>' + rows()),
+      d: "The minutes become the hero number; chips cover the common sessions in one tap and Other opens today's wheel in a sheet. <b>Trade-off:</b> two ways to set one value, and we pick which five chips are common.",
+      s: "Ring target chips 6597:60314" },
+
+    { t: "Three tiles",
+      h: phone(gh() + q + dial() + '<div class="tiles"><div class="tl">' + m("fire", "ic") + '<small>Intensity</small><b class="opt">Select</b></div>' +
+        '<div class="tl">' + m("time", "ic") + '<small>Time</small><b>3:40 PM</b></div><div class="tl">' + m("date", "ic") + '<small>Date</small><b>Today</b></div></div>'),
+      d: "The three rows split into three small cards in a row, each a tap target with a green icon. Feels lighter and more like a dashboard. <b>Trade-off:</b> long intensities like Uphill, fast get cut, so the tile shows a short name.",
+      s: "Settings card language 3900:7479, laid out as tiles" },
+
+    { t: "Time beside the button",
+      h: phone(gh() + q + dial() + rows(true),
+        '<div class="foot"><span class="fade"></span><div class="bar2"><span class="tchip">' + m("time") + '3:40 PM</span><div class="go nu">Log exercise</div></div></div>'),
+      d: "Like the Nutrition logger, the time sits as a green outlined chip next to Log exercise, so the card above holds only Intensity and Date. <b>Trade-off:</b> the bar gets busier, and time is easy to miss if you never look down.",
+      s: "Nutrition 86:322" },
+
+    { t: "Pictogram card",
+      h: phone('<div class="act"><small>Exercise</small><h3>Running</h3><img src="' + IC.pict + '" alt=""></div>' + q + dial() + rows()),
+      d: "The workout sits in the same action card as the Log activities sheet: lavender edge, the glow tucked in its corner and the Move pictogram tilting off the edge. <b>Trade-off:</b> the pictogram is the same for every workout, so the name carries it all.",
+      s: "Log activities sheet 6597:60042" },
+
+    { t: "Mint wash, floating cards",
+      h: phone(gh() + q + dial("lift") + rows(false, "lift"), null, '<span class="wash"></span>'),
+      d: "The page fades from pale mint to white and the wheel and rows float on it as white cards with a soft shadow, no lines. The softest and most premium. <b>Trade-off:</b> breaks from the white page rule and the lavender card edge used elsewhere on Move.",
+      s: "Glow 6597:60297, frame B from the pointer doc" }
+  ];
+  document.getElementById("g").innerHTML = V.map(function (v, i) {
+    return '<section class="card"><div class="tag"><span class="n">' + (v.n || i) + '</span><b>' + v.t + '</b>' + (v.rec ? '<span class="rec">RECOMMENDED</span>' : "") + '</div>' +
+      v.h + '<p class="note">' + v.d + '</p>' + (v.s ? '<p class="src">Figma: ' + v.s + '</p>' : "") + '</section>';
+  }).join("");
+</script>
+</body>
+</html>

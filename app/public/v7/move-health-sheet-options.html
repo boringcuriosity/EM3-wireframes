@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Apple Health sheet</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* Move: the sheet that asks to read steps from Apple Health (Health Connect on Android).
+     Three ways, each over the real Move screen. The sheet rules hold in all three: title top left,
+     a circle X top right, no drag handle, never past 90% of the screen, a white surface. */
+  :root {
+    --brand-50: #F3FCF8; --brand-100: #E6FAF1; --brand-200: #CBF0E0; --brand-600: #299D6B; --brand-700: #2A805A;
+    --in-25: #F5F8FF; --in-100: #E0EAFF; --in-200: #C7D7FE; --in-600: #444CE7;
+    --g-50: #F9FAFB; --g-100: #F2F4F7; --g-200: #E4E7EC; --g-300: #D0D5DD; --g-400: #98A2B3; --g-500: #667085; --g-600: #475467; --g-700: #344054; --g-900: #101828;
+    --pink: #FF2D55; --ease: cubic-bezier(.2, 0, 0, 1);
+    --z: .82;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .2px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 56px 32px 80px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--g-500); }
+  h1 { margin: 12px 0 10px; font-size: 40px; line-height: 48px; font-weight: 600; }
+  .lede { max-width: 720px; margin: 0; font-size: 17px; line-height: 27px; color: var(--g-600); }
+  .bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 28px 0 8px; }
+  .bar button { min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--g-200); background: #fff; font: 600 14px Roboto, sans-serif; color: var(--g-600); cursor: pointer; }
+  .bar button.on { border-color: var(--in-600); background: var(--in-25); color: #2D3282; }
+  .bar .sp { width: 12px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 40px 32px; margin-top: 28px; }
+  figure { margin: 0; width: calc(390px * var(--z)); }
+  figcaption { min-height: 150px; margin-bottom: 14px; }
+  figcaption b { display: flex; align-items: center; gap: 8px; font-size: 18px; line-height: 26px; }
+  figcaption .rec { font-size: 12px; font-weight: 600; color: var(--brand-700); background: var(--brand-50); border: 1px solid var(--brand-200); border-radius: 999px; padding: 1px 8px; }
+  figcaption p { margin: 6px 0 0; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .phone { position: relative; width: calc(390px * var(--z)); height: calc(780px * var(--z)); overflow: hidden; border-radius: calc(20px * var(--z)); border: 1px solid var(--g-200); box-shadow: 3px 4px 0 rgba(152,162,179,.3); background: #fff; }
+  .screen { position: absolute; left: 0; top: 0; width: 390px; height: 780px; transform: scale(var(--z)); transform-origin: 0 0; overflow: hidden; }
+  .screen iframe { position: absolute; inset: 0; width: 390px; height: 780px; border: 0; pointer-events: none; }
+  .scrim { position: absolute; inset: 0; background: rgba(16,24,40,.42); opacity: 0; transition: opacity .32s var(--ease); }
+  .on .scrim { opacity: 1; }
+
+  /* ---------- the sheet, shared ---------- */
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; display: flex; flex-direction: column; background: #fff; border-radius: 24px 24px 0 0;
+    transform: translateY(100%); transition: transform .44s var(--ease); box-shadow: 0 -8px 32px rgba(16,24,40,.08); }
+  .on .sheet { transform: none; }
+  .sh-h { display: flex; align-items: flex-start; gap: 12px; padding: 24px 20px 0 24px; }
+  .sh-h h3 { flex: 1; margin: 0; font-size: 22px; line-height: 30px; font-weight: 700; letter-spacing: 0; }
+  .x { flex: none; width: 32px; height: 32px; border-radius: 999px; border: 0; background: var(--g-100); color: var(--g-500); display: grid; place-items: center; }
+  .x svg { width: 16px; height: 16px; }
+  .sub { margin: 8px 24px 0; font-size: 15px; line-height: 23px; color: var(--g-600); }
+  .ft { padding: 16px 24px 30px; display: flex; flex-direction: column; gap: 6px; }
+  .go { height: 52px; margin-bottom: 7px; border: 0; border-radius: 12px; background: var(--brand-600); color: #fff; font: 700 15px/1 Roboto, sans-serif; letter-spacing: .25px; box-shadow: 0 7px 0 var(--brand-700); display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+  .go .hk { width: 24px; height: 24px; border-radius: 7px; }
+  .later { min-height: 44px; border: 0; background: none; font: 600 15px Roboto, sans-serif; color: var(--g-600); }
+  .note { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 12.5px; line-height: 18px; color: var(--g-500); }
+  .note svg { width: 14px; height: 14px; flex: none; }
+
+  /* the Health app's own mark: a white tile, a pink heart */
+  .hk { flex: none; display: grid; place-items: center; background: #fff; box-shadow: 0 0 0 1px rgba(16,24,40,.06), 0 2px 6px rgba(16,24,40,.08); }
+  .hk { overflow: hidden; }
+  .hk img { width: 64%; height: 64%; object-fit: contain; }
+  /* Health Connect's icon is a whole tile already, so it fills */
+  .hk.hc img { width: 100%; height: 100%; }
+  /* Android's permission screen is Material: its switches are blue, not iOS green */
+  .android .tg.y { background: #1A73E8; }
+
+  /* ---------- A: the screen that comes next ---------- */
+  .a .peek { position: relative; margin: 20px 24px 0; height: 300px; overflow: hidden; border-radius: 28px 28px 0 0; background: var(--g-50); border: 1px solid var(--g-200); border-bottom: 0; padding: 20px 16px 0; }
+  .a .peek::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 48px; background: linear-gradient(rgba(255,255,255,0), #fff); }
+  .a .app { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .a .app .hk { width: 52px; height: 52px; border-radius: 13px; }
+  .a .app b { font-size: 15px; }
+  .a .all { margin-top: 14px; padding: 11px 14px; border-radius: 12px; background: #fff; font-size: 14px; font-weight: 600; color: #007AFF; }
+  .a .rows { margin-top: 10px; border-radius: 12px; background: #fff; padding: 0 14px; }
+  .a .row { display: flex; align-items: center; justify-content: space-between; height: 40px; font-size: 14px; border-bottom: 1px solid var(--g-100); }
+  .a .row:last-child { border-bottom: 0; }
+  .a .row.off { color: var(--g-400); }
+  .tg { position: relative; width: 38px; height: 23px; border-radius: 999px; background: var(--g-200); transition: background .36s var(--ease); }
+  .tg::after { content: ""; position: absolute; left: 2px; top: 2px; width: 19px; height: 19px; border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.2); transition: transform .36s var(--ease); }
+  .tg.y { background: #34C759; }
+  .tg.y::after { transform: translateX(15px); }
+
+  /* ---------- B: what it reads, and nothing else ---------- */
+  .b .link { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 28px 0 4px; }
+  .b .link .hk, .b .link .gf { width: 60px; height: 60px; border-radius: 16px; }
+  .b .gf { display: grid; place-items: center; background: var(--brand-600); box-shadow: 0 2px 6px rgba(16,24,40,.08); }
+  .b .gf svg { width: 30px; height: 30px; }
+  .b .dots { display: flex; gap: 6px; }
+  .b .dots i { width: 6px; height: 6px; border-radius: 999px; background: var(--g-300); animation: flow 1.6s var(--ease) infinite; }
+  .b .dots i:nth-child(2) { animation-delay: .2s; } .b .dots i:nth-child(3) { animation-delay: .4s; }
+  @keyframes flow { 0%, 60%, 100% { background: var(--g-300); } 30% { background: var(--brand-600); } }
+  .b .sh-h { padding-top: 20px; }
+  .b .reads { margin: 18px 24px 0; padding: 4px 0; border-radius: 16px; border: 1px solid var(--g-200); }
+  .b .rd { display: flex; align-items: center; gap: 12px; padding: 12px 16px; }
+  .b .rd + .rd { border-top: 1px solid var(--g-100); }
+  .b .rd .ic { flex: none; width: 36px; height: 36px; border-radius: 10px; background: var(--in-25); display: grid; place-items: center; color: var(--in-600); }
+  .b .rd .ic i { width: 20px; height: 20px; background: currentColor; -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat; }
+  .b .rd b { display: block; font-size: 15px; line-height: 21px; }
+  .b .rd span { font-size: 13px; line-height: 18px; color: var(--g-500); }
+  .b .rd .ck { margin-left: auto; width: 20px; height: 20px; color: var(--brand-600); }
+  .b h3 { text-align: center; }
+
+  /* ---------- C: the steps card, filling ---------- */
+  .c .demo { margin: 20px 24px 0; padding: 16px; border-radius: 18px; background: linear-gradient(180deg, var(--in-25), #fff 70%); border: 1px solid var(--in-100); }
+  .c .top { display: flex; align-items: baseline; gap: 6px; }
+  .c .top b { font-size: 26px; line-height: 32px; color: #3538CD; font-variant-numeric: tabular-nums; }
+  .c .top span { font-size: 13px; color: var(--g-500); }
+  .c .chart { display: flex; align-items: flex-end; gap: 5px; height: 92px; margin-top: 12px; }
+  .c .chart i { flex: 1; height: 0; border-radius: 4px 4px 2px 2px; background: #A4BCFD; transition: height .7s var(--ease); }
+  .c .src { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--in-100); font-size: 12.5px; font-weight: 600; color: var(--g-700); }
+  .c .src .hk { width: 20px; height: 20px; border-radius: 6px; }
+  .c .src em { margin-left: auto; font-style: normal; font-weight: 400; color: var(--g-500); }
+  .c .pts { margin: 16px 24px 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+  .c .pts li { display: flex; gap: 10px; font-size: 14px; line-height: 21px; color: var(--g-700); }
+  .c .pts svg { flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--brand-600); }
+
+  .replay { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; margin-top: 10px; border: 0; background: none; font: 600 14px Roboto, sans-serif; color: var(--g-500); cursor: pointer; padding: 0; }
+  .note-page { margin-top: 56px; max-width: 760px; padding: 18px 20px; border-radius: 16px; background: var(--g-50); border: 1px solid var(--g-200); font-size: 15px; line-height: 24px; color: var(--g-600); }
+  .note-page b { color: var(--g-900); }
+  @media (max-width: 720px) { .wrap { padding: 32px 16px 56px; } h1 { font-size: 30px; line-height: 38px; } :root { --z: .86; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="eyebrow">Move · Steps</span>
+  <h1>The Apple Health sheet</h1>
+  <p class="lede">The sheet that asks to read steps from Apple Health, shown before the phone's own permission screen. Three ways, each over the Move screen. Tap a phone to play it again.</p>
+  <div class="bar" role="group" aria-label="Phone">
+    <button data-os="ios" class="on">iPhone · Apple Health</button>
+    <button data-os="android">Android · Health Connect</button>
+  </div>
+
+  <div class="grid">
+
+    <figure>
+      <figcaption><b>A · The screen that comes next <span class="rec">Recommended</span></b>
+        <p>A preview of the permission screen the phone shows next, with the three it reads switching on. No surprise when the real one opens, so more people say yes.</p></figcaption>
+      <div class="phone a" data-v="a"><div class="screen">
+        <iframe src="/move/index.html" title="Move" tabindex="-1"></iframe>
+        <div class="scrim"></div>
+        <div class="sheet" role="dialog" aria-labelledby="ta">
+          <div class="sh-h"><h3 id="ta">Let your phone count your steps</h3><button class="x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+          <p class="sub">It already keeps them. Connect it once, and every walk counts toward your Momentum without you logging it.</p>
+          <div class="peek">
+            <div class="app"><span class="hk" data-heart></span><b data-name>Apple Health</b></div>
+            <div class="all" data-all>Turn On All</div>
+            <div class="rows">
+              <div class="row">Steps<span class="tg"></span></div>
+              <div class="row">Workouts<span class="tg"></span></div>
+              <div class="row">Active energy<span class="tg"></span></div>
+              <div class="row off">Heart rate<span class="tg"></span></div>
+            </div>
+          </div>
+          <div class="ft">
+            <button class="go"><span data-cta>Connect Apple Health</span></button>
+            <button class="later">I will log steps manually</button>
+          </div>
+        </div>
+      </div></div>
+      <button class="replay" data-replay="a">↻ Play again</button>
+    </figure>
+
+    <figure>
+      <figcaption><b>B · What it reads, and nothing else</b>
+        <p>The two apps joined, and the three things it reads, each with why. A line on privacy at the foot. The calmest of the three.</p></figcaption>
+      <div class="phone b" data-v="b"><div class="screen">
+        <iframe src="/move/index.html" title="Move" tabindex="-1"></iframe>
+        <div class="scrim"></div>
+        <div class="sheet" role="dialog" aria-labelledby="tb">
+          <div class="sh-h"><span style="width:32px"></span><span style="flex:1"></span><button class="x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+          <div class="link" style="margin-top:0"><span class="hk" data-heart></span><span class="dots"><i></i><i></i><i></i></span><span class="gf"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 2.5c.9 2.7 4.8 5.6 4.8 10.2A4.8 4.8 0 0 1 12 17.5a4.8 4.8 0 0 1-4.8-4.8c0-2.2 1.2-3.7 2.3-4.9.3 1.6 1.1 2.6 2.1 3.1-.4-3.2.4-5.9.4-8.4zM8 19.5h8a1 1 0 0 1 0 2H8a1 1 0 0 1 0-2z"/></svg></span></div>
+          <div class="sh-h" style="padding-top:18px"><h3 id="tb">Count your steps without trying</h3></div>
+          <p class="sub" style="text-align:center">Connect <span data-name>Apple Health</span> once. We only read these three.</p>
+          <div class="reads">
+            <div class="rd"><span class="ic"><i style="--src:url(/v7/icons/move/steps-filled.svg)"></i></span><div><b>Steps</b><span>Every step adds to your steps goal</span></div><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div class="rd"><span class="ic"><i style="--src:url(/v7/icons/move/activity-filled.svg)"></i></span><div><b>Workouts</b><span>A walk or a run you did counts too</span></div><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+            <div class="rd"><span class="ic"><i style="--src:url(/v7/icons/move/sm/ds-exercise.svg)"></i></span><div><b>Active energy</b><span>So your coach sees how much you moved</span></div><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>
+          </div>
+          <div class="ft">
+            <button class="go"><span data-cta>Connect Apple Health</span></button>
+            <div class="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg><span>Read only. You can turn it off any time in <span data-name>Apple Health</span>.</span></div>
+          </div>
+        </div>
+      </div></div>
+      <button class="replay" data-replay="b">↻ Play again</button>
+    </figure>
+
+    <figure>
+      <figcaption><b>C · Your steps, filling in</b>
+        <p>The steps card as it will look once connected, its bars rising hour by hour. Sells the result, not the permission. Needs care: the numbers are an example, not theirs.</p></figcaption>
+      <div class="phone c" data-v="c"><div class="screen">
+        <iframe src="/move/index.html" title="Move" tabindex="-1"></iframe>
+        <div class="scrim"></div>
+        <div class="sheet" role="dialog" aria-labelledby="tc">
+          <div class="sh-h"><h3 id="tc">Your steps, counted for you</h3><button class="x" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
+          <p class="sub">Connect <span data-name>Apple Health</span> and your day fills in by itself, hour by hour.</p>
+          <div class="demo">
+            <div class="top"><b data-n>0</b><span>steps today, for example</span></div>
+            <div class="chart" aria-hidden="true"></div>
+            <div class="src"><span class="hk" data-heart></span><span>From <span data-name>Apple Health</span></span><em>Updated just now</em></div>
+          </div>
+          <ul class="pts">
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Every step counts toward your Momentum.</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Nothing to log, nothing to remember.</li>
+          </ul>
+          <div class="ft">
+            <button class="go"><span data-cta>Connect Apple Health</span></button>
+            <button class="later">Not now</button>
+          </div>
+        </div>
+      </div></div>
+      <button class="replay" data-replay="c">↻ Play again</button>
+    </figure>
+
+  </div>
+
+  <div class="note-page"><b>Where it opens.</b> From the steps card while Health is not connected, and once on the first visit to Move. After Connect, the phone's own permission screen follows. If they say no there, the steps card keeps Log steps and a quiet line to connect later.</div>
+</div>
+
+<script>
+(function () {
+  /* the apps' real marks: Apple Health's heart on its white tile, Health Connect's own icon (from its Google Play listing) */
+  var MARK = { ios: '<img src="/v7/icons/health/apple-health-heart.png" alt="">', android: '<img src="/v7/icons/health/health-connect.png" alt="">' };
+  /* the example day for C: hourly steps from 6 AM, the shape of the prototype's own day */
+  var STEPS = [180, 920, 1240, 430, 260, 310, 540, 690, 280, 230, 0, 0, 0, 0, 0, 0, 0];
+  var chart = document.querySelector(".c .chart");
+  chart.innerHTML = STEPS.map(function () { return "<i></i>"; }).join("");
+  var OS = "ios";
+  var NAMES = { ios: ["Apple Health", "Connect Apple Health", "Turn On All"], android: ["Health Connect", "Allow Health Connect", "Allow all"] };
+  function setOS(os) {
+    OS = os;
+    document.querySelectorAll("[data-name]").forEach(function (e) { e.textContent = NAMES[os][0]; });
+    document.querySelectorAll("[data-cta]").forEach(function (e) { e.textContent = NAMES[os][1]; });
+    document.querySelectorAll("[data-all]").forEach(function (e) { e.textContent = NAMES[os][2]; e.style.color = os === "ios" ? "#007AFF" : "#299D6B"; });
+    document.querySelectorAll(".bar [data-os]").forEach(function (b) { b.classList.toggle("on", b.dataset.os === os); });
+    document.querySelectorAll("[data-heart]").forEach(function (h) { h.innerHTML = MARK[os]; h.classList.toggle("hc", os === "android"); });
+    document.body.classList.toggle("android", os === "android");
+    /* the Move screens behind follow the phone */
+    document.querySelectorAll(".screen iframe").forEach(function (f) { f.src = "/move/index.html" + (os === "android" ? "?os=android" : ""); });
+    document.querySelectorAll(".phone").forEach(play);
+  }
+  var T = {};
+  function play(ph) {
+    var v = ph.dataset.v;
+    (T[v] || []).forEach(clearTimeout); T[v] = [];
+    var later = function (ms, f) { T[v].push(setTimeout(f, ms)); };
+    ph.classList.remove("on");
+    ph.querySelectorAll(".tg").forEach(function (t) { t.classList.remove("y"); });
+    ph.querySelectorAll(".chart i").forEach(function (i) { i.style.height = "0"; });
+    var n = ph.querySelector("[data-n]"); if (n) n.textContent = "0";
+    later(500, function () { ph.classList.add("on"); });
+    if (v === "a") ph.querySelectorAll(".row:not(.off) .tg").forEach(function (t, i) { later(1300 + i * 320, function () { t.classList.add("y"); }); });
+    if (v === "c") {
+      ph.querySelectorAll(".chart i").forEach(function (b, i) { later(1100 + i * 70, function () { b.style.height = Math.round(STEPS[i] / 1240 * 100) + "%"; }); });
+      later(1100, function () {
+        var t0 = performance.now(), to = STEPS.reduce(function (a, b) { return a + b; }, 0);
+        (function f(t) { var k = Math.min(1, (t - t0) / 1400), e = 1 - Math.pow(1 - k, 3); n.textContent = Math.round(to * e).toLocaleString("en-IN"); if (k < 1) requestAnimationFrame(f); })(t0);
+      });
+    }
+  }
+  document.querySelectorAll(".bar [data-os]").forEach(function (b) { b.onclick = function () { setOS(b.dataset.os); }; });
+  document.querySelectorAll("[data-replay]").forEach(function (b) { b.onclick = function () { play(document.querySelector('.phone[data-v="' + b.dataset.replay + '"]')); }; });
+  document.querySelectorAll(".phone").forEach(function (ph) { ph.addEventListener("click", function () { play(ph); }); });
+  setOS("ios");
+})();
+</script>
+</body>
+</html>

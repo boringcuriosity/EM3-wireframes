@@ -107,7 +107,7 @@
   .trash{width:32px;height:32px;border:0;background:none;display:grid;place-items:center;cursor:pointer;border-radius:50%}
   .trash img{width:20px;filter:invert(36%) sepia(76%) saturate(2381%) hue-rotate(330deg) brightness(93%) contrast(97%)}
   .trash:hover{background:rgba(235,68,90,.08)}
-  .cols,.row{display:grid;grid-template-columns:16.7% 11.7% 10.8% 10.8% 13.3% 13.3% 13.3% 8.3%;align-items:center}
+  .cols,.row{display:grid;grid-template-columns:16% 10.5% 9.5% 9.5% 12.5% 12.5% 12% 9.5% 8%;align-items:center}
   .cols{padding:10px 0 4px}
   .cols div{text-align:center;color:var(--muted);font-weight:700;font-size:16px;line-height:20px}
   .cols div:first-child{text-align:left;padding-left:6px}
@@ -160,6 +160,29 @@
   .alert .btns button:hover{background:rgba(41,157,107,.08)}
   /* an optional checkbox under the question, for choices that ride along with "Yes" */
   .alert.wide{width:400px}
+  .aopts{display:flex;flex-direction:column;gap:8px;margin:-6px 0 20px}
+  .aopt{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid #e4e7ec;border-radius:8px;cursor:pointer;transition:border-color .15s ease-out,background .15s ease-out}
+  .aopt:has(input:checked){border-color:var(--primary);background:var(--primary-l)}
+  .aopt input[type=checkbox]{width:18px;height:18px;margin:1px 0 0;accent-color:var(--primary);flex-shrink:0;cursor:pointer}
+  .aopt span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .aopt b{font-size:14px;font-weight:500;color:#101828}
+  .aopt small{font-size:12.5px;line-height:18px;color:#475467}
+  .aopt .acopy{display:none;margin-top:8px;height:36px;padding:0 10px;border:1px solid #d0d5dd;border-radius:6px;font:inherit;font-size:14px;outline:none}
+  .aopt .acopy:focus{border-color:var(--primary)}
+  .asave{margin:-6px 0 20px}
+  .asave .aopt{margin:0}
+  /* the two ways to save, as radio cards: a circle, the label, a line under it; the copy's name sits inside its own card */
+  .aseg{display:none;flex-direction:column;gap:8px;margin-top:10px}
+  .asave:has(#aSave:checked) .aseg{display:flex}
+  .arc{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid #d0d5dd;border-radius:8px;background:#fff;cursor:pointer;transition:border-color .15s ease-out,background .15s ease-out}
+  .arc:has(input[type=radio]:checked){border-color:var(--primary);background:var(--primary-l);box-shadow:inset 0 0 0 1px var(--primary)}
+  .arc input[type=radio]{width:18px;height:18px;margin:1px 0 0;accent-color:var(--primary);flex-shrink:0;cursor:pointer}
+  .arc span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .arc b{font-size:14px;font-weight:500;color:#101828}
+  .arc small{font-size:12.5px;line-height:18px;color:#475467}
+  .arc .acopy{display:none;width:100%;margin-top:8px;height:36px;padding:0 10px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;font:inherit;font-size:14px;outline:none;box-sizing:border-box}
+  .arc .acopy:focus{border-color:var(--primary)}
+  .arc:has(input[type=radio]:checked) .acopy{display:block}
   .achk{display:flex;gap:10px;align-items:flex-start;margin:-6px 0 20px;padding:12px;border-radius:6px;background:var(--primary-l);cursor:pointer}
   .achk input{width:18px;height:18px;margin:1px 0 0;accent-color:var(--primary);flex-shrink:0;cursor:pointer}
   .achk span{display:flex;flex-direction:column;gap:2px}
@@ -350,7 +373,24 @@
   .hmb:hover{background:#f2f4f7}
   .hmb img{width:14px;opacity:.6;transition:transform .25s ease}
   /* the table: more room for names, and units readable in full */
-  .cols,.row{grid-template-columns:22% 10% 10% 10% 13.5% 13.5% 13% 8%}
+  .cols,.row{grid-template-columns:20% 9.5% 9% 9% 12.5% 12.5% 11.5% 9% 7%}
+  /* kcal burned: what the exercise counts toward Momentum, the same unit a user's own logged workout counts in */
+  .kc{font-weight:700;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .kc small{margin-left:3px;font-size:12px;font-weight:500;color:#667085}
+  .ktip{position:relative;display:inline-flex;vertical-align:middle;margin-left:4px}
+  .ktip button{display:grid;place-items:center;width:18px;height:18px;padding:0;border:0;background:none;color:#667085;cursor:help}
+  .ktip button svg{width:16px;height:16px}
+  .ktip .tt{position:absolute;right:-8px;top:calc(100% + 8px);z-index:30;width:340px;padding:12px 14px;border-radius:8px;background:#101828;color:#fff;
+    font-size:12px;line-height:18px;font-weight:400;text-align:left;text-transform:none;letter-spacing:0;box-shadow:0 12px 24px -8px rgba(16,24,40,.3);
+    opacity:0;transform:translateY(-4px);pointer-events:none;transition:opacity .15s ease-out,transform .15s ease-out}
+  .ktip .tt b{display:block;margin-bottom:4px;font-size:13px;font-weight:600}
+  .ktip .tt code{display:block;margin:2px 0 10px;padding:6px 8px;border-radius:6px;background:rgba(255,255,255,.1);font:600 12.5px/18px Roboto,sans-serif;white-space:nowrap;color:#fff}
+  .ktip .tt dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 10px}
+  .ktip .tt dt{font-weight:600;color:#fff;white-space:nowrap}
+  .ktip .tt dd{margin:0;color:#D0D5DD}
+  .ktip .tt em{display:block;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.16);font-style:normal;color:#D0D5DD}
+  .ktip .tt em b{display:inline;margin:0;font-size:12px;color:#fff}
+  .ktip:hover .tt,.ktip:focus-within .tt{opacity:1;transform:none}
   .usel{width:auto;height:30px;padding:0 6px 0 8px;margin-left:4px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;font-size:13px;font-weight:600;gap:2px}
   .usel .v{max-width:none}
   .usel:hover{border-color:var(--primary)}
@@ -527,6 +567,23 @@
   .rest span{font-size:14px;color:var(--ink2)}
   .center{margin-top:20px}
   .banner{border-radius:var(--r-md)}
+  /* the routine rules (checkPlan): a red dot on each day and a count on each week that still needs fixing */
+  .days button.bad{position:relative;color:#B42318}
+  .days button.bad::after{content:"";position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:#F04438;box-shadow:0 0 0 2px #fff}
+  .wk.bad:not(.active){color:#B42318}
+  .wkbad{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#FEE4E2;color:#B42318;font-size:12px;font-weight:700;display:grid;place-items:center}
+  .wk.active .wkbad{background:#fff}
+  .wk:has(.wkbad) .rmw{margin-left:4px}
+  /* what a day still needs: an icon disc, a title, then the fixes as a short list, on the 4px grid */
+  .dgap{display:flex;gap:12px;align-items:flex-start;margin:16px 0 0;padding:16px;border:1px solid #FECDCA;border-radius:var(--r-lg);background:#FEF3F2}
+  .dgap .di{display:grid;place-items:center;width:32px;height:32px;flex-shrink:0;border-radius:50%;background:#FEE4E2;box-shadow:0 0 0 4px #FFF1F0}
+  .dgap .di .ic{width:18px;height:18px;background:#D92D20}
+  .dgap > div{flex:1;min-width:0;padding-top:5px}
+  .dgap b{display:block;font-size:14px;line-height:20px;font-weight:600;color:#B42318}
+  .dgap ul{margin:6px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px}
+  .dgap li{position:relative;padding-left:14px;font-size:13px;line-height:20px;color:#912018}
+  .dgap li::before{content:"";position:absolute;left:2px;top:8px;width:4px;height:4px;border-radius:50%;background:#F04438}
+  .drop.tod.miss{border-color:#F04438;border-style:solid;background:#FEF3F2;color:#B42318}
   .sbar .b{height:40px}
   .sn{width:28px;height:28px}
   .sitem{border-radius:var(--r-md);padding:6px 10px}
@@ -702,7 +759,7 @@
   <div id="cbody"></div>
   <div class="cfoot" id="cfoot"></div>
 </div></div>
-<div class="scrim" id="scrim"><div class="alert" role="alertdialog"><h2 id="aH"></h2><p id="aM"></p><label class="achk" id="aChk" hidden><input type="checkbox" id="aBox"><span><b id="aCL"></b><small id="aCN"></small></span></label><div class="btns"><button id="aNo">No</button><button id="aYes">Yes</button></div></div></div>
+<div class="scrim" id="scrim"><div class="alert" role="alertdialog"><h2 id="aH"></h2><p id="aM"></p><div id="aX" hidden></div><div class="btns"><button id="aNo">No</button><button id="aYes">Yes</button></div></div></div>
 
 <script>
 (function () {
@@ -951,14 +1008,22 @@ Yoga for Back Pain -2|P|27|min`;
     return { content_master_id: "", title: "", exerciseType: "", time_duration: "", duration_unit: "", reps: "", sets: "", rest_post_sets: "", rest_post_sets_unit: "min",
       rest_post_exercise: "", rest_post_exercise_unit: "min", duration: "0", duration_units: "min" };
   }
-  var PLAN = SHAPE.map(function (w, wi) {
+  /* Week 1 Day 1 stays one routine with no time, as the live template has it. Every other day shows the plan spread
+     through the day: Days 2, 4 and 6 in the morning and evening, Days 1, 3, 5 and 7 in the morning, afternoon and evening. */
+  function split(d, wi, di) {
+    if (!wi && !di) return [{ routine_no: 1, exercises: d.map(exFrom) }];
+    var at = di % 2 ? ["morning", "evening"] : ["morning", "afternoon", "evening"], n = Math.ceil(d.length / at.length);
+    return at.map(function (t, k) { return { routine_no: k + 1, time: t, exercises: d.slice(k * n, (k + 1) * n).map(exFrom) }; })
+      .filter(function (r) { return r.exercises.length; });
+  }
+  var PLAN = SHAPE.slice(0, 4).map(function (w, wi) {   /* ponytail: four weeks for now; drop the slice for the full 12 */
     return { week_no: wi + 1, days: w.map(function (d, di) {
-      return { day_no: di + 1, rest_day: d ? "N" : "Y", routines: d ? [{ routine_no: 1, exercises: d.map(exFrom) }] : [] };
+      return { day_no: di + 1, rest_day: d ? "N" : "Y", routines: d ? split(d, wi, di) : [] };
     }) };
   });
 
   /* ================= state ================= */
-  var S = { w: 0, d: 0, weeArry: [], routineArr: [], open: null, filter: "", copyDay: "", disease: "Diabetes", assessment: null,
+  var S = { tpl: { master: false, copy: "" }, w: 0, d: 0, weeArry: [], routineArr: [], open: null, filter: "", copyDay: "", disease: "Diabetes", assessment: null,
     step: 1, reached: 1, nw: 0, nd: 0, sw: 0, sd: 0, cm: "basic" };
   /* the parts of the day: one set of times for the whole plan, editable by the coach */
   var PARTS = [{ k: "morning", label: "Morning", from: "06:00", to: "12:00" }, { k: "afternoon", label: "Afternoon", from: "12:00", to: "16:00" },
@@ -977,6 +1042,22 @@ Yoga for Back Pain -2|P|27|min`;
   function neatN(L) { return L ? PARTS.reduce(function (n, p) { return n + L[p.k].length; }, 0) : 0; }
   /* minutes, the way the coach reads them: the Duration column, in minutes */
   function exMin(ex) { var v = +ex.duration || 0; return ex.duration_units === "sec" ? v / 60 : v; }
+  /* kcal burned = MET x 3.5 x kg / 200 per minute. Momentum counts the workout in kcal, so the coach's exercises and
+     anything the user logs from search add up in one unit.
+     ponytail: one MET per type (breathing 1.5, exercise 4.5) and 65 kg; per-exercise METs and the user's weight come with real data */
+  function exKcal(ex) { return Math.round((ex.exerciseType === "Breathing" ? 1.5 : ex.exerciseType ? 4.5 : 0) * 3.5 * 65 / 200 * exMin(ex)); }
+  function routineKcal(r) { return r.exercises.reduce(function (n, ex) { return n + exKcal(ex); }, 0); }
+  function dayKcal(D) { return D.rest_day === "Y" ? 0 : D.routines.reduce(function (n, r) { return n + routineKcal(r); }, 0); }
+  /* the formula, on hover or focus of a small info icon in the column head */
+  var KTIP = '<span class="ktip"><button type="button" aria-label="How kcal burned is worked out" aria-describedby="ktipT"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>' +
+    '<span class="tt" role="tooltip" id="ktipT"><b>How kcal burned is worked out</b>' +
+    '<code>kcal = MET × 3.5 × weight ÷ 200 × minutes</code>' +
+    '<dl><dt>MET</dt><dd>How hard the exercise is compared with sitting still. 1.5 for breathing exercises, 4.5 for other exercises.</dd>' +
+    '<dt>3.5 and 200</dt><dd>Fixed numbers that turn MET into calories per minute.</dd>' +
+    '<dt>Weight</dt><dd>The user\'s weight in kg. 65 kg for now.</dd>' +
+    '<dt>Minutes</dt><dd>The exercise\'s duration, from reps, sets and rest.</dd></dl>' +
+    '<em>Example: Lunges for 6 min<br>4.5 × 3.5 × 65 ÷ 200 × 6 = <b>31 kcal</b></em></span></span>';
+  function both(m, k) { return mins(m) + " · " + k + " kcal"; }
   function routineMin(r) { return r.exercises.reduce(function (n, ex) { return n + exMin(ex); }, 0); }
   function dayMin(D) { return D.rest_day === "Y" ? 0 : D.routines.reduce(function (n, r) { return n + routineMin(r); }, 0); }
   function mins(n) { return Math.round(n) + " min"; }
@@ -999,17 +1080,34 @@ Yoga for Back Pain -2|P|27|min`;
   /* ================= toast and alert ================= */
   var tt = 0;
   function toast(msg) { var t = $("toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(tt); tt = setTimeout(function () { t.classList.remove("on"); }, 3000); }
-  /* chk, optional: { label, note }. yes() gets whether it was ticked. */
-  function ask(h, m, yes, chk) {
+  /* x, optional: { html, read }. Its html sits between the message and the buttons; yes() gets read()'s answer. */
+  function ask(h, m, yes, x) {
     $("aH").textContent = h; $("aM").textContent = m; $("scrim").classList.add("on");
-    $("aChk").hidden = !chk; $("aBox").checked = false; $("scrim").firstChild.classList.toggle("wide", !!chk);
-    if (chk) { $("aCL").textContent = chk.label; $("aCN").textContent = chk.note; }
+    $("aX").hidden = !x; $("aX").innerHTML = x ? x.html : ""; $("scrim").firstChild.classList.toggle("wide", !!x);
     $("aNo").onclick = function () { $("scrim").classList.remove("on"); };
-    $("aYes").onclick = function () { $("scrim").classList.remove("on"); yes($("aBox").checked); };
+    $("aYes").onclick = function () { $("scrim").classList.remove("on"); yes(x && x.read()); };
+  }
+  /* one tick to save it as a template too, then a choice of two: a copy of the coach's own (the default, it changes nothing
+     shared) or the master every coach starts from. Not ticked: the plan goes to this user only. */
+  function saveOpts(name) {
+    return {
+      html: '<div class="asave"><label class="aopt"><input type="checkbox" id="aSave"><span><b>Save as a template too</b><small>Reuse this plan for other users.</small></span></label>' +
+        '<div class="aseg" role="radiogroup" aria-label="How to save it">' +
+          '<label class="arc"><input type="radio" name="tplmode" value="copy" checked><span><b>Save as a copy</b><small>A new template. The master stays as it is.</small>' +
+            '<input class="acopy" id="aCopy" value="' + esc(name) + ' (copy)" maxlength="60" aria-label="Copy template name"></span></label>' +
+          '<label class="arc"><input type="radio" name="tplmode" value="master"><span><b>Update master template</b><small>Changes "' + esc(name) + '" for every coach.</small></span></label></div></div>',
+      read: function () {
+        if (!$("aSave").checked) return { master: false, copy: "" };
+        var m = document.querySelector('input[name="tplmode"]:checked').value === "master";
+        return { master: m, copy: m ? "" : ($("aCopy").value.trim() || name + " (copy)") };
+      }
+    };
   }
 
+
+
   /* ================= the top fields and the two assessment dropdowns ================= */
-  $("pname").value = "120 days Plan";
+  $("pname").value = "28 days Plan";
   $("ind").value = "Others";
   var today = new Date(), iso = function (d) { return d.toISOString().slice(0, 10); };
   $("sdate").min = iso(today); $("sdate").max = "2070-12-31";
@@ -1038,7 +1136,9 @@ Yoga for Back Pain -2|P|27|min`;
   function drawWeeks() {
     $("weeks").innerHTML = '<div class="add"><button class="addwk" data-x="addweek">' + ico("add-circle-outline") + 'Add week</button></div>' +
       PLAN.map(function (w, i) {
-        return '<div class="wk' + (i === S.w ? " active" : "") + '" data-week="' + i + '" title="Week ' + w.week_no + '"><span>Week ' + w.week_no + '</span>' +
+        var nb = S.flag ? weekBad(w) : 0;
+        return '<div class="wk' + (i === S.w ? " active" : "") + (nb ? " bad" : "") + '" data-week="' + i + '" title="Week ' + w.week_no + '"><span>Week ' + w.week_no + '</span>' +
+          (nb ? '<span class="wkbad" aria-label="' + nb + (nb === 1 ? " day needs" : " days need") + ' fixing">' + nb + '</span>' : "") +
           '<button class="rmw" data-rmweek="' + i + '" aria-label="Remove week ' + w.week_no + '">' + ico("close-outline") + '</button></div>';
       }).join("");
   }
@@ -1055,10 +1155,12 @@ Yoga for Back Pain -2|P|27|min`;
     return '<div class="msel" data-msel="' + path + '"><div class="trig"' + (ex.title ? ' title="' + ex.title + '"' : "") + '>' + (ex.title ? '<span class="v">' + ex.title + '</span>' : '<span class="ph">Select Exercise</span>') + '<span class="car"></span></div></div>';
   }
   function drawDay() {
+    if (S.flag) drawWeeks();   /* the week counts follow each fix */
     var D = day(), rest = D.rest_day === "Y";
     var others = PLAN[S.w].days.map(function (_, i) { return i; }).filter(function (i) { return i !== S.d && i < 7; });
     var h = '<div class="dayrow"><div class="days">' + PLAN[S.w].days.map(function (d, i) {
-        return '<button class="' + (i === S.d ? "on" : "") + (d.rest_day === "Y" ? " isrest" : "") + '" data-day="' + i + '">Day ' + d.day_no + (d.rest_day === "Y" ? ico("bed-outline") : "") + '</button>';
+        var bad = S.flag && gaps(d).length;
+        return '<button class="' + (i === S.d ? "on" : "") + (d.rest_day === "Y" ? " isrest" : "") + (bad ? " bad" : "") + '" data-day="' + i + '"' + (bad ? ' aria-label="Day ' + d.day_no + ', needs fixing"' : "") + '>Day ' + d.day_no + (d.rest_day === "Y" ? ico("bed-outline") : "") + '</button>';
       }).join("") + '</div>' +
       '<div class="daytot" id="daytot">' + dayTotHTML(D) + '</div></div>' +
       '<div class="acts"><button class="b pr" data-x="addroutine">' + ico("add-circle-outline") + 'Add a Routine</button>' +
@@ -1067,10 +1169,15 @@ Yoga for Back Pain -2|P|27|min`;
         (S.cm === "smart" ? copyBtns("e", true) :
         '<div class="drop cdrop" data-drop="copyday">' + ico("copy-outline") + '<span class="v">' + (S.copyDay !== "" ? "Day " + (+S.copyDay + 1) : "Copy Day " + (S.d + 1) + " to") + '</span><span class="car"></span>' +
           '<div class="panel"><div class="opt" data-copyday=" ">Copy day ' + (S.d + 1) + ' to</div>' + others.map(function (i) { return '<div class="opt' + (String(i) === S.copyDay ? " sel" : "") + '" data-copyday="' + i + '">Day ' + (i + 1) + '</div>'; }).join("") + '</div></div>' + weekDrop("e", S.w)) + '</div>';
+    /* after a failed Next: what this day still needs, in plain words */
+    var g = S.flag ? gaps(D) : [];
+    if (g.length) h += '<div class="dgap" role="alert"><span class="di">' + ico("alert-circle-outline") + '</span><div><b>Day ' + D.day_no + ' needs fixing</b><ul>' +
+      (g.indexOf("min2") > -1 ? '<li>Add at least 2 routines, or mark it as a rest day.</li>' : "") +
+      (g.indexOf("time") > -1 ? '<li>Set a time of day for every routine.</li>' : "") + '</ul></div></div>';
     if (!rest) D.routines.forEach(function (r, ri) {
       var tp = r.time ? part(r.time) : null;
       h += '<div class="rt"><div class="rthd"><div class="n"><span class="rno">' + r.routine_no + '</span>Routine ' + r.routine_no + '<button class="trash" data-rmroutine="' + ri + '" aria-label="Delete routine"><img src="img/coach/icons/trash.svg" alt=""></button>' +
-          '<div class="drop tod' + (tp ? " set" : "") + '" data-drop="tod' + ri + '" title="Time of day"><span class="v">' + (tp ? '<span class="todi t-' + PS[r.time].tone + '">' + ico(PS[r.time].ic) + '</span>' + tp.label + ' <i>' + span(tp) + '</i>' : ico("time-outline") + "Set time of day") + '</span><span class="car"></span><div class="panel">' +
+          '<div class="drop tod' + (tp ? " set" : S.flag ? " miss" : "") + '" data-drop="tod' + ri + '" title="Time of day"><span class="v">' + (tp ? '<span class="todi t-' + PS[r.time].tone + '">' + ico(PS[r.time].ic) + '</span>' + tp.label + ' <i>' + span(tp) + '</i>' : ico("time-outline") + "Set time of day") + '</span><span class="car"></span><div class="panel">' +
             PARTS.map(function (p) { return '<div class="opt' + (r.time === p.k ? " sel" : "") + '" data-rtime="' + ri + '|' + p.k + '"><span class="todi t-' + PS[p.k].tone + '">' + ico(PS[p.k].ic) + '</span>' + p.label + ' <i>' + span(p) + '</i></div>'; }).join("") +
             '<div class="opt edit" data-x="ptimes">' + ico("time-outline") + 'Edit times</div></div></div></div>' +
         (S.cm === "smart" ? '<button class="cbtn" data-copy="e|r' + ri + '">' + ico("copy-outline") + 'Copy routine</button></div>' :
@@ -1078,7 +1185,7 @@ Yoga for Back Pain -2|P|27|min`;
           '<div class="opt" data-copyr="' + ri + '|">Copy Routine To</div><div class="opt" data-copyr="' + ri + '|all">All routine</div>' +
           D.routines.map(function (o, oi) { return oi === ri ? "" : '<div class="opt" data-copyr="' + ri + '|' + oi + '">Routine ' + o.routine_no + '</div>'; }).join("") +
         '</div></div></div>') +
-        '<div class="cols"><div>Exercise</div><div>Exercise<br>Type</div><div>Reps</div><div>Set</div><div>Rest Post Set </div><div>Rest Post<br>Exercise</div><div>Duration</div><div>Delete</div></div>' +
+        '<div class="cols"><div>Exercise</div><div>Exercise<br>Type</div><div>Reps</div><div>Set</div><div>Rest Post Set </div><div>Rest Post<br>Exercise</div><div>Duration</div><div>Kcal<br>burned' + KTIP + '</div><div>Delete</div></div>' +
         r.exercises.map(function (ex, ei) {
           var p = ri + "." + ei;
           return '<div class="row" id="r' + S.w + S.d + ri + ei + '">' +
@@ -1089,21 +1196,22 @@ Yoga for Back Pain -2|P|27|min`;
             '<div>' + numBox(ex.rest_post_sets, "rest_post_sets", p) + unitSel("rest_post_sets_unit", ex.rest_post_sets_unit, p) + '</div>' +
             '<div>' + numBox(ex.rest_post_exercise, "rest_post_exercise", p) + unitSel("rest_post_exercise_unit", ex.rest_post_exercise_unit, p) + '</div>' +
             '<div><span class="dur">' + ex.duration + '</span>' + unitSel("duration_units", ex.duration_units, p) + '</div>' +
+            '<div><span class="kc">' + exKcal(ex) + '<small>kcal</small></span></div>' +
             '<div><button class="trash" data-rmex="' + p + '" aria-label="Delete exercise"><img src="img/coach/icons/trash.svg" alt=""></button></div></div>';
         }).join("") +
         '<div class="rtfoot"><button class="b pr sm addex" data-addex="' + ri + '"><img src="img/coach/icons/add.svg" alt="">Add Exercise</button>' +
-        '<span class="rtot">Routine ' + r.routine_no + ' total <b id="rtot' + ri + '">' + mins(routineMin(r)) + '</b></span></div></div>';
+        '<span class="rtot">Routine ' + r.routine_no + ' total <b id="rtot' + ri + '">' + both(routineMin(r), routineKcal(r)) + '</b></span></div></div>';
     });
     if (rest) h += '<div class="rest">' + ico("bed-outline") + '<b>Day ' + D.day_no + ' is a rest day</b><span>No routines on this day. Unmark it to plan exercises.</span></div>';
     h += '<div class="center"><button class="b pr" data-x="savenext">Save &amp; Next' + ico("chevron-back-outline", "flip") + '</button></div>';
     $("right").innerHTML = h;
     drawBar();
   }
-  function dayTotHTML(D) { return D.rest_day === "Y" ? "Rest day" : "Day " + D.day_no + " total <b>" + mins(dayMin(D)) + "</b>"; }
+  function dayTotHTML(D) { return D.rest_day === "Y" ? "Rest day" : "Day " + D.day_no + " total <b>" + both(dayMin(D), dayKcal(D)) + "</b>"; }
   /* totals follow every edit without redrawing the rows */
   function totals() {
     var D = day(), dt = $("daytot"); if (dt) dt.innerHTML = dayTotHTML(D);
-    D.routines.forEach(function (r, ri) { var el = $("rtot" + ri); if (el) el.textContent = mins(routineMin(r)); });
+    D.routines.forEach(function (r, ri) { var el = $("rtot" + ri); if (el) el.textContent = both(routineMin(r), routineKcal(r)); });
     drawBar();
   }
   function draw() { drawWeeks(); drawDay(); drawBar(); }
@@ -1293,8 +1401,8 @@ Yoga for Back Pain -2|P|27|min`;
       if (!checkNeat()) { goStep(2); return; }
       if (!checkPlan()) { goStep(1); return; }
       ask("Preview and assign", "Are you sure you want to preview and assign this exercise plan?", function (tpl) {
-        S.master = tpl; setTimeout(showPreview, 1000);
-      }, { label: "Update master template", note: 'Your changes will also be saved to the master template "' + $("pname").value.trim() + '", for every coach.' });
+        S.tpl = tpl; setTimeout(showPreview, 1000);
+      }, saveOpts($("pname").value.trim()));
     } else if (x === "pclose") $("pscrim").classList.remove("on");
     else if (x === "psave") saveTimes();
     else if (x === "nex") { S.nEx = !S.nEx; drawNeat(); }
@@ -1317,7 +1425,7 @@ Yoga for Back Pain -2|P|27|min`;
     else if (x === "crumbcancel" || x === "home") toast("Outside this replica. The live portal opens " + (x === "home" ? "Home" : "Create New Exercise") + ".");
     else if (x === "logout") toast("Logout is not part of this replica.");
     else if (x === "menu") { var mini = $("app").classList.toggle("mini"); a.setAttribute("aria-expanded", String(!mini)); a.setAttribute("aria-label", mini ? "Show menu" : "Hide menu"); }
-    else if (x === "pvassign") { toast(S.master ? "Exercise plan and master template updated successfully" : "Exercise plan updated successfully"); setTimeout(function () { $("app").classList.remove("preview"); }, 800); }
+    else if (x === "pvassign") { toast("Exercise plan " + (S.tpl.master ? "and master template " : "") + "updated successfully" + (S.tpl.copy ? ', copy saved as "' + S.tpl.copy + '"' : "")); setTimeout(function () { $("app").classList.remove("preview"); }, 800); }
     else if (x === "pvcancel") ask("Exercise template!", "Are you sure you want to cancel exercise template?", function () { $("app").classList.remove("preview"); });
     else if (x === "pvback") $("app").classList.remove("preview");
   });
@@ -1334,7 +1442,9 @@ Yoga for Back Pain -2|P|27|min`;
     var p = e.target.dataset.num.split("|"), ex = get(p[0]); ex[p[1]] = e.target.value;
     e.target.classList.toggle("bad", e.target.value === "");
     calc(ex);
-    var dur = e.target.closest(".row").querySelector(".dur"); if (dur) dur.textContent = ex.duration;
+    var row = e.target.closest(".row"), dur = row.querySelector(".dur"), kc = row.querySelector(".kc");
+    if (dur) dur.textContent = ex.duration;
+    if (kc) kc.innerHTML = exKcal(ex) + "<small>kcal</small>";
     totals();
   });
   $("right").addEventListener("wheel", function (e) {
@@ -1396,7 +1506,7 @@ Yoga for Back Pain -2|P|27|min`;
     var left, right;
     if (S.step === 1) {
       var D = day();
-      left = "Week " + PLAN[S.w].week_no + " · " + (D.rest_day === "Y" ? "Day " + D.day_no + " is a rest day" : "Day " + D.day_no + " total " + mins(dayMin(D)));
+      left = "Week " + PLAN[S.w].week_no + " · " + (D.rest_day === "Y" ? "Day " + D.day_no + " is a rest day" : "Day " + D.day_no + " total " + both(dayMin(D), dayKcal(D)));
       right = '<button class="b ol" data-x="cancel">Cancel</button><button class="b pr" data-x="next">Next: NEAT (Small moves)</button>';
     } else if (S.step === 2) {
       left = "NEAT (Small moves): " + neatSummary();
@@ -1426,9 +1536,27 @@ Yoga for Back Pain -2|P|27|min`;
     var zero = null;
     PLAN.forEach(function (w, wi) { w.days.forEach(function (d, di) { if (d.rest_day === "Y") return; d.routines.forEach(function (r, ri) { r.exercises.forEach(function (ex, ei) { if (!zero && +ex.duration === 0) zero = { w: wi, d: di, r: ri, e: ei }; }); }); }); });
     if (zero) { toast("Exercise duration cannot be zero"); jumpTo(zero); return false; }
-    $("banner").classList.remove("on");
+    /* every day that is not a rest day needs at least two routines, each with its time of day */
+    var bad = [];
+    PLAN.forEach(function (w, wi) { w.days.forEach(function (d, di) { if (gaps(d).length) bad.push({ w: wi, d: di }); }); });
+    if (bad.length) {
+      S.flag = true; S.w = bad[0].w; S.d = bad[0].d; S.copyDay = ""; draw();
+      $("bannerT").textContent = bad.length + (bad.length === 1 ? " day needs" : " days need") + " at least 2 routines, each with a time of day, unless it is a rest day. They are marked in red.";
+      $("banner").classList.add("on");
+      return false;
+    }
+    S.flag = false; $("banner").classList.remove("on");
     return true;
   }
+  /* what a day is missing: "min2" (fewer than two routines) and "time" (a routine with no time of day); a rest day misses nothing */
+  function gaps(d) {
+    if (d.rest_day === "Y") return [];
+    var g = [];
+    if (d.routines.length < 2) g.push("min2");
+    if (d.routines.some(function (r) { return !r.time; })) g.push("time");
+    return g;
+  }
+  function weekBad(w) { return w.days.filter(function (d) { return gaps(d).length; }).length; }
 
   /* ================= step 2: small moves ================= */
   var EMPTY = emptyParts();
@@ -1495,7 +1623,7 @@ Yoga for Back Pain -2|P|27|min`;
   function drawNeat() {
     if (S.nw >= PLAN.length) S.nw = 0;
     var list = nList(false), n = neatN(NEAT[dkey(S.nw, S.nd)]);
-    var h = '<div class="s-head"><div><h2>NEAT (Small moves)</h2><p>Short bits of everyday movement, split across the parts of the day. Set a day, then copy it to ' + (S.cm === "smart" ? "as many days or weeks as you like." : "another day or week.") + '</p></div>' +
+    var h = '<div class="s-head"><div><h2>NEAT (Small moves)</h2><p>Short bits of everyday movement, split across the parts of the day. The user ticks the ones you set here; they cannot add their own. Set a day, then copy it to ' + (S.cm === "smart" ? "as many days or weeks as you like." : "another day or week.") + '</p></div>' +
         '<button class="linkb" data-x="ptimes">' + ico("time-outline") + 'Edit times</button></div>' +
       '<div class="exbox' + (S.nEx ? " open" : "") + '"><button class="linkb" data-x="nex" aria-expanded="' + !!S.nEx + '">' + ico("bulb-outline") + (S.nEx ? "Hide examples" : "See examples") + '</button>' +
         (S.nEx ? '<div class="exlist">' + NEX.map(function (e) { var k = e.part.toLowerCase(); return '<div class="exi t-' + PS[k].tone + '"><span class="exp">' + ico(PS[k].ic) + e.part + '</span><b>' + e.title + '</b><small>' + e.sub + '</small></div>'; }).join("") + '</div>' : "") + '</div>';
@@ -1511,7 +1639,7 @@ Yoga for Back Pain -2|P|27|min`;
   function drawSteps() {
     if (S.sw >= PLAN.length) S.sw = 0;
     var v = STEPS[dkey(S.sw, S.sd)] || "";
-    $("step3").innerHTML = '<div class="s-head"><div><h2>Steps goal</h2><p>The number of steps to walk each day. Set a day, then copy it ' + (S.cm === "smart" ? "across the plan." : "to another day or week.") + '</p></div></div>' +
+    $("step3").innerHTML = '<div class="s-head"><div><h2>Steps goal</h2><p>The daily steps target. Every step the user walks counts toward it, wherever it comes from. Set a day, then copy it ' + (S.cm === "smart" ? "across the plan." : "to another day or week.") + '</p></div></div>' +
       '<div class="box nbox">' + gridNav("s", S.sw, S.sd, function (wi, di) { var x = STEPS[dkey(wi, di)]; return x ? (+x).toLocaleString("en-IN") : ""; }) +
       '<div class="gbar"><div class="gwhere">' + ico("calendar-clear-outline") + '<b>Week ' + PLAN[S.sw].week_no + ', Day ' + (S.sd + 1) + '</b></div>' + copyBtns("s", !!v) + '</div>' +
       '<div class="goal"><div class="ghead"><span class="picon t-teal">' + ico("footsteps-outline") + '</span><label for="steps">Steps goal for this day</label></div><div class="gin">' +
@@ -1679,13 +1807,14 @@ Yoga for Back Pain -2|P|27|min`;
       return '<div class="pvex"><div class="t">' + ex.title + '<button>Done</button></div>' +
         '<div class="media"' + (img ? ' style="background-image:url(' + img + ')"' : "") + '></div>' +
         '<div class="facts"><span>Exercise type : <b>' + ex.exerciseType + '</b></span><span>Reps : <b>' + ex.reps + '</b></span><span>Sets : <b>' + ex.sets + '</b></span>' +
-        '<span class="w">Rest Post Sets : <b>' + ex.rest_post_sets + ' ' + ex.rest_post_sets_unit + '</b></span><span class="w">Rest Post Exercise : <b>' + ex.rest_post_exercise + ' ' + ex.rest_post_exercise_unit + '</b></span></div></div>';
+        '<span class="w">Rest Post Sets : <b>' + ex.rest_post_sets + ' ' + ex.rest_post_sets_unit + '</b></span><span class="w">Rest Post Exercise : <b>' + ex.rest_post_exercise + ' ' + ex.rest_post_exercise_unit + '</b></span><span class="w">Burns about : <b>' + exKcal(ex) + ' kcal</b></span></div></div>';
     }).join("");
     $("pv").innerHTML = '<div class="crumb"><span data-x="home">Home</span><span>&gt;&gt;</span><span data-x="pvback">Exercise-template</span><span>&gt;&gt;</span><b>Exercise-template-preview</b></div>' +
       '<div class="pvcard"><div class="pvhead"><h3>Preview and Assign Plan</h3>' +
         '<div class="pvrow"><b>Exercise Name</b><div>' + name + '</div></div><div class="pvrow"><b>Start Date</b><div>' + fmt(start) + '</div></div><div class="pvrow"><b>End Date</b><div>' + fmt(iso(end)) + '</div></div>' +
         '<div class="pvrow"><b>NEAT (Small moves)</b><div>' + neatSummary() + '</div></div><div class="pvrow"><b>Steps goal</b><div>' + stepsSummary() + '</div></div>' +
-        '<div class="pvrow"><b>Master template</b><div>' + (S.master ? "Will be updated with these changes" : "Not changed") + '</div></div></div>' +
+        '<div class="pvrow"><b>Master template</b><div>' + (S.tpl.master ? "Will be updated with these changes" : "Not changed") + '</div></div>' +
+        '<div class="pvrow"><b>Copy template</b><div>' + (S.tpl.copy ? 'Saved as "' + esc(S.tpl.copy) + '"' : "Not saved") + '</div></div></div>' +
         '<div class="phone"><h1>' + name + '</h1><p class="valid">Valid from ' + fmt(start) + ' to ' + fmt(iso(end)) + '</p>' +
           '<div class="seg"><button class="on">Routine1</button><button disabled>Routine2</button><button disabled>Routine3</button></div>' + list +
           '<div class="pvbtns"><button class="b pr" data-x="pvassign">Assign</button><button class="b ol" data-x="pvcancel">Cancel</button></div></div></div>';

@@ -10,7 +10,7 @@
 window.MINS = function (kcal) { return Math.round(kcal / 30); };
 /* ponytail: the states still carry Eat's macros; each part's progress is staged from them until Move has its own data */
 window.MOVEPART = [
-  { cls: "glyph-workout", name: "Workout", T: 30, unit: " min" },
+  { cls: "glyph-workout", name: "Workout", T: 118, unit: " kcal" },
   { cls: "glyph-moves", name: "Small moves", T: 4, unit: "" },
   { cls: "glyph-steps", name: "Steps", T: 10000, unit: " steps" }
 ];
@@ -18,13 +18,14 @@ window.MV = function (i, eaten, target) {
   var base = target || [95, 238, 63][i], v = Math.min(1, (eaten || 0) / base) * window.MOVEPART[i].T;
   return i === 2 ? Math.round(v / 10) * 10 : Math.round(v);
 };</script>
-<script>window.SAY_REST = "keep logging your movement."; window.HERO_WORD = "Momentum"; window.HERO_ORB = { colors: { "#246649": "#444CE7", "#79CCA8": "#8098F9", "#ABE6CC": "#A4BCFD", "#59B38C": "#6172F3",
+<script>window.SAY_REST = "keep logging your movement."; window.SAY_CTA = "Learn more"; window.SAY_OPEN = function () { window.openSayHelp && window.openSayHelp(); }; window.HERO_WORD = "Momentum"; window.HERO_ORB = { colors: { "#246649": "#444CE7", "#79CCA8": "#8098F9", "#ABE6CC": "#A4BCFD", "#59B38C": "#6172F3",
   "0.160784 0 0 0 0 0.615686 0 0 0 0 0.419608": "0.502 0 0 0 0 0.596 0 0 0 0 0.976" }, shadow: [.176, .196, .51], introSky: ["indigo", "indigosoft"] };</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="../icons/glyph-masks.css">
 <link rel="stylesheet" href="goodflip-ui.css">
-<link rel="stylesheet" href="/move/plan.css?v=13">
-<link rel="stylesheet" href="/move/player.css">
+<link rel="stylesheet" href="/move/plan.css?v=48">
+<link rel="stylesheet" href="/move/log.css?v=16">
+<link rel="stylesheet" href="/move/player.css?v=9">
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; }
@@ -837,7 +838,7 @@ window.MV = function (i, eaten, target) {
   .sheet .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
   .sheet .ok { width: 100%; height: 48px; margin-top: 12px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff; font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; }
 
-  /* the date sheet: one month of days, each carrying its own sufficiency ring.
+  /* the date sheet: one month of days, each carrying its own Momentum ring.
      The month sits on a bound paper pad, so the calendar reads as its own
      object rather than as more sheet. */
   .dspad { position: relative; margin: 4px 0 0; padding: 36px 0 6px; border-radius: var(--r-md) var(--r-md) 0 0;
@@ -1193,6 +1194,12 @@ window.MV = function (i, eaten, target) {
   .kaira .say { align-items: center; gap: 12px; }
   .kaira .kmark { width: 34px; height: 44px; border-radius: 0; background: none; }
   .kaira .kmark img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  /* the teaching card's mark sits beside one line of heading, so it is smaller than the card's usual one */
+  /* one 24px column down the card: the pictogram and each row's icon share its centre, and the heading and the rows
+     share one text edge 12px after it */
+  .kaira.edu .kmark { width: 24px; height: 30px; }
+  .kaira.edu .erow .ic { width: 24px; margin-top: 1px; }
+  .kaira.edu .erow .ic .ico { width: 20px !important; height: 20px !important; }
   /* a heading over one muted line, not one run-on paragraph */
   .kaira:not(.edu) p { font-size: 13px; line-height: 18px; color: var(--g-500); }
   .kaira:not(.edu) p strong { display: block; margin-bottom: 2px; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--g-900); }
@@ -1200,14 +1207,19 @@ window.MV = function (i, eaten, target) {
   .kaira:not(.edu) .kact { margin-top: 12px; padding-left: 46px; }
   .kaira:not(.edu) .kact .btns { margin-top: 0; }
   .kaira:not(.edu) .kact .kbtn > span { padding: 8px 16px; }
+  /* two buttons side by side (Log steps joins while Health is not connected): each label on one line, each face filling its button */
+  .kaira:not(.edu) .kact .kbtn { align-items: stretch; }
+  .kaira:not(.edu) .kact .kbtn > span { padding: 8px 12px; white-space: nowrap; }
+  /* Move has no KAIRA: the commentary links to the Momentum sheet in the primary green */
+  #cm .cta, #cm .cta .ask { color: var(--brand-600); font-weight: 600; }
 </style>
 </head>
 <body>
 <div class="col" id="col">
 
   <div class="eatline gut">
-    <svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px;color:var(--g-900)"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
-    <b>Eat</b><span class="tag">Fuel your body right</span>
+    <svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px;color:var(--g-900)"><path fill="currentColor" stroke="none" d="m6.156 9.323-.002.002-.004.003-.01.008a2 2 0 0 0-.126.104 5 5 0 0 0-.302.291c-.24.253-.548.629-.837 1.132-.582 1.015-1.071 2.528-.796 4.551.271 1.997 1.11 3.666 2.528 4.83C8.021 21.404 9.935 22 12.25 22c2.387 0 4.293-.895 5.554-2.43 1.25-1.521 1.808-3.596 1.675-5.864-.128-2.176-1.313-3.827-2.36-5.285l-.299-.417c-1.142-1.612-2.043-3.097-1.824-5.175A.75.75 0 0 0 14.25 2c-.382 0-.82.118-1.242.296a6.5 6.5 0 0 0-1.373.8c-.925.698-1.85 1.75-2.343 3.156C8.8 7.654 9.05 8.99 9.41 9.963c.237.639-.02 1.27-.407 1.454a.706.706 0 0 1-.927-.31L7.27 9.576a.75.75 0 0 0-1.113-.252"/></svg>
+    <b>Move</b><span class="tag">Keep your body moving</span>
   </div>
 
   <div class="dateline gut">
@@ -1221,7 +1233,7 @@ window.MV = function (i, eaten, target) {
 
   <div class="stage" id="stage">
     <div class="tint" aria-hidden="true"></div>
-    <div id="heroWrap" role="button" tabindex="0" aria-label="What is nutrition sufficiency?" style="cursor:pointer"><div id="hero"></div></div>
+    <div id="heroWrap" role="button" tabindex="0" aria-label="What is Momentum?" style="cursor:pointer"><div id="hero"></div></div>
     <div class="vwrap"><span class="gf-verdict flat" id="verdict"></span></div>
   </div>
 
@@ -1259,7 +1271,7 @@ window.MV = function (i, eaten, target) {
 
   <nav class="nav">
     <button><svg class="backico" viewBox="0 0 22 22" fill="none" aria-hidden="true"><path fill="currentColor" d="M9.409 3.444c-.015-.015-.473-.13-1.018-.255s-.997-.208-1.004-.185-.064.401-.125.84c-.124.882-.424 1.911-.744 2.555-1 2.006-2.791 3.334-4.964 3.68L1 10.165v1.773l.502.084c3.286.551 5.429 3.008 5.83 6.686.026.24.057.436.069.436.11 0 1.947-.443 1.982-.478.025-.025.006-.25-.042-.5-.531-2.765-2.053-5.015-4.027-5.955l-.474-.226 9.74-.018 6.16-.01v-1.794l-6.176-.011-9.717-.018.598-.303c1.552-.786 2.78-2.328 3.503-4.397.206-.59.517-1.934.46-1.99"/></svg>Back</button>
-    <button class="on"><svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:2.2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>Eat</button>
+    <button class="on"><svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:2.2"><path fill="currentColor" stroke="none" d="m6.156 9.323-.002.002-.004.003-.01.008a2 2 0 0 0-.126.104 5 5 0 0 0-.302.291c-.24.253-.548.629-.837 1.132-.582 1.015-1.071 2.528-.796 4.551.271 1.997 1.11 3.666 2.528 4.83C8.021 21.404 9.935 22 12.25 22c2.387 0 4.293-.895 5.554-2.43 1.25-1.521 1.808-3.596 1.675-5.864-.128-2.176-1.313-3.827-2.36-5.285l-.299-.417c-1.142-1.612-2.043-3.097-1.824-5.175A.75.75 0 0 0 14.25 2c-.382 0-.82.118-1.242.296a6.5 6.5 0 0 0-1.373.8c-.925.698-1.85 1.75-2.343 3.156C8.8 7.654 9.05 8.99 9.41 9.963c.237.639-.02 1.27-.407 1.454a.706.706 0 0 1-.927-.31L7.27 9.576a.75.75 0 0 0-1.113-.252"/></svg>Move</button>
     <button data-nav="trend"><svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:1.8"><path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></svg>Trend</button>
     <button data-nav="learn"><svg class="ico" viewBox="0 0 24 24" style="width:22px;height:22px;stroke-width:1.8"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2zM22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Learn</button>
   </nav>
@@ -1298,8 +1310,17 @@ window.MV = function (i, eaten, target) {
   document.getElementById("kairaMark").innerHTML = '<img src="/move/movement.png" alt="">';
 </script>
 <script src="assets/flipcoin-toast.js?v=2"></script>
-<script src="assets/plan-tray.js?v=42"></script>
-<script src="assets/flipcoin-earn.js?v=6"></script>
+<script src="assets/plan-tray.js?v=112"></script>
+<script>
+  /* the Earn sheet in Move's words: a workout logged today keeps the streak, one FlipCoin a day */
+  window.EARN = { perDay: 1, mark: "/v7/icons/move/log/earn-workout.svg",
+    hero: "Log your workout daily to earn FlipCoins",
+    rule: "Only workouts logged on the day count towards your streak.",
+    cta: "Log your workout",
+    today: function () { var P = window.MVPLAN; return P ? P.RT.some(function (rt, r) { return P.burned(r) > 0; }) ? 1 : 0 : 0; },
+    go: function () { window.openLogWorkout && window.openLogWorkout(); } };
+</script>
+<script src="assets/flipcoin-earn.js?v=8"></script>
 <script>
 /* ============================================================
    One table, every state. Everything below reads from it: the
@@ -1421,7 +1442,7 @@ var STATES = {
     hero: { score: null, mealsIn: 2, mealSlots: 4 },
     macros: { mode: "grams", title: "What you have eaten",
       v: [[54], [157], [41], [12]],
-      lock: "Your sufficiency score will unlock once your coach has assigned you a diet plan after your first consultation." },
+      lock: "Your Momentum score will unlock once your coach has assigned you a move plan after your first consultation." },
     cal: { mode: "line", eaten: 1213 },
     kaira: { say: KAIRA.noplan, act: "log" },
     diary: { mode: "free", title: "Your meals", count: "", logged: true }
@@ -1532,22 +1553,28 @@ function run(dur, step) {
 /* ============================================================
    The day being viewed, and the calendar behind the chip.
 
-   Today is Tuesday 15 September 2026. The person joined on 1 Sep
-   and their coach set the plan on 5 Sep, so this one month holds
-   every kind of day the sheet has to draw: scored, perfect, one
-   nothing was logged on, four that came before the plan, and the
-   days that have not happened yet.
+   Today is Tuesday 15 September 2026. The person joined on 24 Aug
+   and their coach set the plan on 28 Aug, so two months hold every
+   kind of day the sheet has to draw: each day's Momentum, five medal
+   days, three days with no movement logged, four that came before
+   the plan, and the days that have not happened yet. Today has no
+   entry: its ring is the live score (MVMOM.score()).
    ============================================================ */
 var CAL = {
   today: { y: 2026, m: 9, d: 15 },
-  join: { y: 2026, m: 9, d: 1 },
+  join: { y: 2026, m: 8, d: 24 },
   score: {
-    "2026-9-5": 74, "2026-9-6": 52, "2026-9-7": 88, "2026-9-8": 100, "2026-9-9": 70,
-    "2026-9-10": 46, "2026-9-11": 79, "2026-9-12": 66, "2026-9-14": 61, "2026-9-15": 54
+    "2026-8-28": 42, "2026-8-29": 58, "2026-8-31": 64,
+    "2026-9-1": 71, "2026-9-2": 83, "2026-9-3": 47, "2026-9-4": 90, "2026-9-5": 66,
+    "2026-9-7": 38, "2026-9-8": 85, "2026-9-9": 74, "2026-9-10": 92, "2026-9-11": 55,
+    "2026-9-13": 81, "2026-9-14": 60
   },
-  /* logged, but before the plan existed, so there is nothing to score them against */
-  preplan: { "2026-9-1": 1, "2026-9-2": 1, "2026-9-3": 1, "2026-9-4": 1 }
+  /* movement logged, but before the plan existed, so there is nothing to score them against */
+  preplan: { "2026-8-24": 1, "2026-8-25": 1, "2026-8-26": 1, "2026-8-27": 1 }
 };
+/* the medal artwork and the celebration it reopens: Move's own medal, the Sneaker, chosen in
+   v7/move-medal-options.html */
+window.MV_MEDAL = window.MV_MEDAL || { src: "../icons/badge/move/sneaker.svg", sheet: "../badge-celebration-options.html?only=1&embed=1&pillar=move" };
 
 var MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 var SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -1652,25 +1679,31 @@ document.getElementById("dayLabel").textContent = S.day;
     return '<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">' +
       '<circle cx="16" cy="16" r="13" fill="none" style="stroke:var(' + (o.faint ? "--g-100" : "--g-200") + ')" stroke-width="3"' +
         (o.open ? ' stroke-dasharray="3 4" stroke-linecap="round"' : "") + "/>" +
-      (pct > 0 ? '<circle cx="16" cy="16" r="13" fill="none" style="stroke:var(--brand-600)" stroke-width="3" stroke-linecap="round" ' +
+      (pct > 0 ? '<circle cx="16" cy="16" r="13" fill="none" style="stroke:var(--in-600)" stroke-width="3" stroke-linecap="round" ' +
         'stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct)).toFixed(1) + '" transform="rotate(-90 16 16)"/>' : "") +
-      (o.full ? '<circle cx="16" cy="16" r="3" style="fill:var(--brand-200)"/>' : "") + "</svg>";
+      (o.full ? '<circle cx="16" cy="16" r="3" style="fill:var(--in-200)"/>' : "") + "</svg>";
   }
 
   function cell(y, m, d) {
     var k = dayKind(y, m, d);
-    var sc = CAL.score[dkey(y, m, d)];
+    /* today's ring is the live Momentum; before a plan there is none, so today reads as movement logged before the plan */
+    var sc = k === "today" ? window.MVMOM && window.MVMOM.score() : CAL.score[dkey(y, m, d)];
     var off = k === "future" || k === "before";
     var sel = VIEW.y === y && VIEW.m === m && VIEW.d === d && !off;
-    var vis = k === "preplan" ? '<span class="dsdot"></span>'
+    /* before a plan (?state=noplan…) no day has a score: a day with a workout logged is a dot, a day with none is dashed.
+       ponytail: past pre-plan days are all read as logged; real history comes with real data */
+    var P0 = window.MVPLAN, NP = P0 && P0.noplan;
+    var todayLogged = !NP || P0.S.extra.some(function (a) { return a.length; });
+    var pre = k === "preplan" || (NP && !off && !(k === "today" && !todayLogged)) || (!NP && k === "today" && sc == null);
+    var vis = pre ? '<span class="dsdot"></span>'
       : off ? ring(0, { faint: true })
-      : k === "missed" ? ring(0, { open: true })
+      : k === "missed" || (NP && k === "today") ? ring(0, { open: true })
       /* a day at 80% or more earned the medal, so the calendar shows it, small and without its ribbon */
-      : sc >= 80 ? '<img class="dsmed" src="../icons/badge/simple/heart-apple.svg" alt="">'
+      : sc >= 80 ? '<img class="dsmed" src="' + window.MV_MEDAL.src + '" alt="">'
       : ring(sc / 100, { full: sc >= 100 });
     var says = k === "future" ? "not yet" : k === "before" ? "before you joined"
-      : k === "preplan" ? "logged, before your plan" : k === "missed" ? "nothing logged"
-      : sc + " out of 100" + (sc >= 80 ? ", medal earned" : "");
+      : pre ? "movement logged, before your plan" : k === "missed" || (NP && k === "today") ? "no movement logged"
+      : "Momentum " + sc + " out of 100" + (sc >= 80 ? ", medal earned" : "");
     return '<button class="dsd' + (k === "today" ? " today" : "") + (sel ? " sel" : "") + '"' + (off ? " disabled" : "") +
       ' data-d="' + d + '" aria-label="' + d + " " + MONTHS[m - 1] + ", " + says + '"' + (sel ? ' aria-current="date"' : "") + '>' +
       '<span class="dsn">' + d + "</span>" + vis + "</button>";
@@ -1707,7 +1740,7 @@ document.getElementById("dayLabel").textContent = S.day;
       return;
     }
     bodyEl.innerHTML = grid() +
-      '<p class="dsl">The ring is your nutrition sufficiency out of 100. A medal is a day at 80% or more.</p>';
+      '<p class="dsl">The ring is your Momentum out of 100. A medal is a day at 80% or more.</p>';
   }
 
   function go(y, m, d) {
@@ -1779,7 +1812,8 @@ document.getElementById("dayLabel").textContent = S.day;
     if (b && b.dataset.d) go(SHOW.y, SHOW.m, +b.dataset.d);
   });
   window.closeDateSheet = close;
-  if (flag === "1" || flag === "loading" || flag === "error") open();
+  /* after the Move scripts, so today's ring can read the live Momentum */
+  if (flag === "1" || flag === "loading" || flag === "error") addEventListener("DOMContentLoaded", open);
 })();
 
 /* ---------- scripts fetched only when a flag asks for them ---------- */
@@ -1877,7 +1911,11 @@ function loadScripts(list, done) {
   window.setHeroScore = function (n, delta) {
     if (opts.score === n && !delta) return;
     opts.score = n;
-    if (delta) {
+    /* a hero that can only remount (Cloud Drop) steps up from the old score and shows its own +N% as the number lands,
+       so the page's quick tag would come too early */
+    var steps = !(live && typeof live.set === "function");
+    opts.from = steps && delta ? n - delta : null;
+    if (delta && !steps) {
       var wrap = document.getElementById("heroWrap");
       wrap.classList.remove("bump");
       void wrap.offsetWidth;
@@ -1911,6 +1949,7 @@ function loadScripts(list, done) {
       pending = null;
       unmount();
       mount();
+      opts.from = null;   /* the step-up is for this arrival only */
     }, 420);
   };
   }
@@ -2143,7 +2182,7 @@ function loadScripts(list, done) {
     }
     var olds = [].map.call(grid.querySelectorAll(".mval strong"), function (s) { return +s.getAttribute("data-n") || 0; });
     var wasAt = REDUCED ? null : fillsNow(grid);
-    grid.innerHTML = cells(vals);
+    grid.innerHTML = cells(vals || M.v);
     if (wasAt) travel(grid, wasAt);
     var news = [].map.call(grid.querySelectorAll(".mval strong"), function (s) { return +s.getAttribute("data-n") || 0; });
     if (olds.length === news.length) {
@@ -2313,7 +2352,7 @@ function loadScripts(list, done) {
     : SCORE == null ? "Nothing was logged on " + S.day
     : PAST ? S.day : "";
   var hero = '<div class="ebub-wrap">' + (LOCKED ? '<div class="ebub lock"><div class="lk" id="esLock"></div></div>'
-      : '<div class="ebub"><b>' + Math.round(SCORE || 0) + '<sup>%</sup></b><span>Sufficient</span></div>') +
+      : '<div class="ebub"><b>' + Math.round(SCORE || 0) + '<sup>%</sup></b><span>Momentum</span></div>') +
     (caption ? '<div class="ecap">' + caption + "</div>" : "") + "</div>";
 
   /* the padlock plays once and holds, as on the day view; its player loads only when it is needed */
@@ -2340,26 +2379,31 @@ function loadScripts(list, done) {
   var COACHCARD =
     '<div class="ecoach">' +
       '<span class="av">SC</span>' +
-      '<span class="t"><span>Your Eat coach</span><b>Sahana Chandra</b></span>' +
+      '<span class="t"><span>Your Move coach</span><b>Sahana Chandra</b></span>' +
       '<button class="msg">Message</button>' +
     "</div>";
 
   /* one set of words for every state: nothing here depends on whether a plan
      exists or a score has started */
   var SECS = [
-    { h: "What is nutrition sufficiency?", p: [
-      "Your sufficiency score shows how well you have eaten your macronutrients, protein, carbs and fats, against your Eat plan. It rewards eating the right foods in the right amounts."] },
+    { h: "What is Momentum?", p: [
+      "Momentum shows how well you kept moving through your day, from morning to night. It reads your workout, your steps and your small moves together, and rewards movement spread across the day over one big session."] },
     { h: "How your score works", p: [
-      "Your score is out of 100. Protein, carbs and fats each make up a third of it, so reaching all three targets gives you 100. It starts at zero each morning and grows as you log.",
-      "If any of them goes more than 20% over its target, your score starts to come down."] },
-    { h: "How does staying nutritionally sufficient help?", p: [
-      "When your day meets its targets, your body gets what it needs, in the right amounts."], li: [
-      "Your blood sugar stays steadier through the day.",
-      "You feel full for longer, with fewer cravings between meals.",
-      "Your energy holds from morning to night.",
-      "Your body keeps its strength and recovers well."] },
-    { h: "Where do your targets come from?", p: [
-      "Your coach sets them for you after your consultation, from your goal, your body and your health."], coach: true }
+      "Your score starts fresh each morning. It grows when you:"], li: [
+      "<b>Do your workout.</b> The one your coach planned, or any workout you log yourself.",
+      "<b>Move in every part of the day.</b> A workout or a small move in the morning, afternoon, evening and night.",
+      "<b>Reach your step goal.</b> Walking anywhere, at any time, counts.",
+      "<b>Tick off your small moves.</b> The quick ones your coach added to each part of your day."] },
+    { h: "Why moving all day matters", p: [
+      "One workout followed by hours of sitting does less for your body than the same movement spread out. So your score grows most when you move a little in every part of the day."] },
+    { h: "How does keeping your momentum help?", p: [
+      "Moving often through the day keeps your body working, not just for one hour."], li: [
+      "Your blood sugar stays steadier after meals.",
+      "Your body uses more energy across the whole day.",
+      "You feel less stiff and more awake.",
+      "Your workouts become easier to keep up."] },
+    { h: "Where does your plan come from?", p: [
+      "Your coach sets your workout, small moves and step target after your consultation, from your goal, your body and your health."], coach: true }
   ];
 
   var secs = SECS.map(function (x, i) {
@@ -2369,23 +2413,17 @@ function loadScripts(list, done) {
       (x.li ? '<ul class="elist2">' + x.li.map(function (t) { return "<li>" + t + "</li>"; }).join("") + "</ul>" : "") +
       (x.coach ? COACHCARD : "") + "</div>";
   }).join("");
-  secs += '<p class="efine"><b>Disclaimer:</b> Nutrition sufficiency is based on protein, carbs and fats only. It does not account for vitamins, minerals or other measures of your health.</p>';
+  secs += '<p class="efine"><b>Disclaimer:</b> Momentum counts the movement you log and the steps from Health. It does not measure intensity or heart rate.</p>';
 
   host.innerHTML = '<div class="sheet esheet" id="es-suff" role="dialog" aria-modal="true" aria-labelledby="est-suff">' +
-    '<div class="shead"><h4 id="est-suff">Nutrition sufficiency</h4>' +
+    '<div class="shead"><h4 id="est-suff">Momentum</h4>' +
       '<button class="x" id="esX" aria-label="Close">' + XICON + "</button></div>" +
-    '<div class="sbody">' + hero + card + secs + "</div>" +
-    '<div class="sfoot"><button class="ecta" id="esAsk">Ask KAIRA more about this' + ARR + "</button></div></div>";
+    '<div class="sbody">' + hero + card + secs + "</div></div>";
 
   var sheet = document.getElementById("es-suff");
-  document.getElementById("esAsk").addEventListener("click", function () {
-    if (window.kairaAsk) window.kairaAsk("Tell me more about my nutrition sufficiency score.", [
-      "Your nutrition sufficiency score is out of 100 and shows how much of today's targets your meals met: protein, carbs and fats.",
-      "Each meal adds its own share, so it starts at zero each morning and grows as you log. Meals close to the Eat plan suggested by your coach add the most.",
-      "A little over your Eat plan still earns full points. Far past it, the extra takes points back. Keep logging honestly."]);
-  });
   var open = function () {
     window.closeSheets();
+    if (window.MVSHEET) window.MVSHEET(sheet);
     sheet.classList.add("on");
     col.classList.add("open-edu");
     mountSheetHero();
@@ -2406,6 +2444,7 @@ function loadScripts(list, done) {
 
   var plate = document.getElementById("heroWrap");
   plate.onclick = open;
+  window.openMomentum = open;
   plate.onkeydown = function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } };
 
   var flag = Q.get("sheet");
@@ -3001,10 +3040,12 @@ function mealsIn() {
     var CHEV = '<svg class="ico" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M6 9l6 6 6-6"/></svg>';
     var FORK18 = '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>';
     var USER18 = '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/></svg>';
+    /* the Workout tile's horizontal dumbbell, drawn in the same outline as the person and the padlock beside it */
+    var BELL18 = '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="4.5" y="5.5" width="3.5" height="13" rx="1.2"/><rect x="16" y="5.5" width="3.5" height="13" rx="1.2"/><path d="M2 9.5v5M22 9.5v5M8 12h8"/></svg>';
     var LOCK18 = '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>';
     var MARK = card.querySelector(".kmark").outerHTML;
     var head = function (sub) {
-      return '<div class="eh">' + MARK + '<div><h4>Show us what you eat.</h4>' +
+      return '<div class="eh">' + MARK + '<div><h4>Show us how you move.</h4>' +
         (sub ? '<p class="sub">' + sub + '</p>' : "") + "</div></div>";
     };
     var body;
@@ -3032,11 +3073,11 @@ function mealsIn() {
       /* two tight rows: label and line share one breath each */
       body = head("") +
         '<div class="elist">' +
-          '<div class="erow"><span class="ic">' + FORK18 + '</span><span class="t">Log everything you eat, we do not judge, promise.</span></div>' +
-          '<div class="erow"><span class="ic">' + USER18 + '</span><span class="t">Your coach will look at this before building your Eat plan.</span></div>' +
-          '<div class="erow"><span class="ic">' + LOCK18 + '</span><span class="t">Your sufficiency score unlocks after your first consultation, once your plan is ready.</span></div>' +
+          '<div class="erow"><span class="ic">' + BELL18 + '</span><span class="t">Log any workout you do, we do not judge, promise.</span></div>' +
+          '<div class="erow"><span class="ic">' + USER18 + '</span><span class="t">Your coach will look at this before building your move plan.</span></div>' +
+          '<div class="erow"><span class="ic">' + LOCK18 + '</span><span class="t">Your Momentum score unlocks after your first consultation, once your plan is ready.</span></div>' +
         '</div>' +
-        '<div class="kact"><span class="klab">Log your meal</span>' + BTNS + '</div>';
+        '<div class="kact"><span class="klab">Log your workout</span>' + BTNS + '</div>';
     }
     card.classList.add("edu");
     card.innerHTML = body;
@@ -3322,8 +3363,7 @@ function mealsIn() {
     var nv = e.target.closest && e.target.closest("[data-nav]");
     if (!nv) return;
     var to = nv.getAttribute("data-nav");
-    if (window.parent !== window) return parent.postMessage({ nav: to }, "*");
-    location.href = to + ".html";
+    location.href = "/move/" + to + ".html";   /* in the preview frame too: the frame only knows Eat's screens */   /* Move's own Trend and Learn, never Eat's */
   });
 
   /* Some doors know more than which meal they came from. A tick knows the option
@@ -3368,6 +3408,7 @@ function mealsIn() {
      macro, whichever is more. A meal with no plan has no target, so it shows
      what went in and says so. */
   var IRLEG = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><path fill="#fff" d="M0 0h24v24H0z"/><path fill="#E4E7EC" d="M1 9.333c0-1.196.97-2.166 2.167-2.166H20.5c1.197 0 2.167.97 2.167 2.166v4.875c0 1.197-.97 2.167-2.167 2.167H3.167A2.167 2.167 0 0 1 1 14.208z"/><path fill="url(#ira)" d="M16.9 5h2a.5.5 0 0 1 .5.5v12a.5.5 0 0 1-.5.5h-2z" opacity=".2"/><path fill="url(#irb)" d="M4.25 5.5a.5.5 0 0 1 .5-.5h2v13h-2a.5.5 0 0 1-.5-.5z" opacity=".2"/><path fill="url(#irc)" d="M18.333 5.542a.542.542 0 1 1 1.084 0v11.916a.542.542 0 1 1-1.084 0z"/><path fill="url(#ird)" d="M4.25 5.542a.542.542 0 1 1 1.083 0v11.916a.542.542 0 1 1-1.083 0z"/><defs><linearGradient id="ira" x1="18.15" x2="18.15" y1="5" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#344054"/><stop offset=".19" stop-color="#fff"/><stop offset=".85" stop-color="#fff"/><stop offset="1" stop-color="#344054"/></linearGradient><linearGradient id="irb" x1="5.5" x2="5.5" y1="5" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#344054"/><stop offset=".19" stop-color="#fff"/><stop offset=".85" stop-color="#fff"/><stop offset="1" stop-color="#344054"/></linearGradient><linearGradient id="irc" x1="18.875" x2="18.875" y1="5" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#98A2B3"/><stop offset=".2" stop-color="#667085"/><stop offset=".85" stop-color="#667085"/><stop offset="1" stop-color="#98A2B3"/></linearGradient><linearGradient id="ird" x1="4.792" x2="4.792" y1="5" y2="18" gradientUnits="userSpaceOnUse"><stop stop-color="#98A2B3"/><stop offset=".2" stop-color="#667085"/><stop offset=".85" stop-color="#667085"/><stop offset="1" stop-color="#98A2B3"/></linearGradient></defs></svg>';
+  window.IRLEG = IRLEG;   /* Move's burn breakdown (plan.js) wears the same legend */
   function mealSheet(m) {
     /* a free card (no plan yet, or a free user) has no target, whatever the meal carries underneath */
     var free = S.diary.mode === "free";
@@ -3641,13 +3682,22 @@ function mealsIn() {
     });
   }
 })();
-/* ---------- the day's badge, once sufficiency reaches 80% ----------
-   ?badge=medal | quote | head | date | sticker | seal picks where it sits, for the placement doc.
+/* ---------- the day's badge, once Momentum reaches 80% ----------
+   Move hangs the medal on its own; ?badge=quote | head | date | sticker | seal are Eat's placement experiments.
+   momentum.js calls window.MVMEDAL() once a changed score has finished stepping.
    ponytail: placement is a flag until one is chosen, then the others go. */
 (function () {
-  var where = Q.get("badge");
-  if (!where) return;
-  var SRC = "../icons/badge/simple/heart-apple.svg";
+  var where = Q.get("badge") || "medal";
+  var SRC = window.MV_MEDAL.src;
+  /* the ribbon the medal hangs from; ?ribbon= picks one for v7/move-ribbon-options.html. ponytail: Eat's until one is chosen */
+  var RIBBONS = {
+    eat: "linear-gradient(90deg,#CDA935 0 33%,#299D6B 33% 67%,#CDA935 67%)",
+    indigo: "linear-gradient(90deg,#CDA935 0 30%,#444CE7 30% 70%,#CDA935 70%)",
+    edges: "linear-gradient(90deg,#3538CD 0 30%,#E2C15A 30% 70%,#3538CD 70%)",
+    pin: "linear-gradient(90deg,#3538CD 0 22%,#E2C15A 22% 30%,#444CE7 30% 70%,#E2C15A 70% 78%,#3538CD 78%)",
+    satin: "linear-gradient(90deg,#2D3282,#444CE7 35%,#8098F9 50%,#444CE7 65%,#2D3282)"
+  };
+  var RIBBON = RIBBONS[Q.get("ribbon")] || RIBBONS.eat;
   var css = document.createElement("style");
   css.textContent =
     ".bdg-date{position:absolute;right:16px;top:calc(50% + 2px);transform:translateY(-50%);display:flex;align-items:center;gap:4px;font:600 13px Roboto,sans-serif;color:#826E2D}" +
@@ -3657,7 +3707,7 @@ function mealsIn() {
     ".bdg-head img{width:24px;height:auto}.bdg-head + .earnchip{margin-left:8px}" +
     "#cm img.bdg-q{width:40px;height:auto;filter:drop-shadow(0 3px 5px rgba(29,77,56,.25))}" +
     ".bdg-medal{cursor:pointer;position:absolute;z-index:5;right:28px;top:106px;display:flex;flex-direction:column;align-items:center;transform-origin:50% 0;animation:bdgSwing 1.4s cubic-bezier(.4,0,.2,1) .4s both}" +
-    ".bdg-medal .rb{width:18px;height:40px;margin-bottom:-16px;background:linear-gradient(90deg,#CDA935 0 33%,#299D6B 33% 67%,#CDA935 67%)}.bdg-medal img{position:relative}" +
+    ".bdg-medal .rb{width:18px;height:40px;margin-bottom:-16px;background:" + RIBBON + "}.bdg-medal img{position:relative}" +
     ".bdg-medal img{width:40px;height:auto;filter:drop-shadow(0 6px 8px rgba(29,77,56,.3))}" +
     "@keyframes bdgSwing{0%{opacity:0;transform:translateY(-24px) rotate(10deg)}45%{opacity:1;transform:rotate(-4deg)}75%{transform:rotate(1.5deg)}to{transform:none}}" +
     ".dateline .pill{position:relative}.bdg-sticker{position:absolute;right:16px;top:-15px;width:32px;transform:rotate(14deg);opacity:0;animation:bdgStick .5s cubic-bezier(.2,0,0,1) .9s forwards}" +
@@ -3668,22 +3718,25 @@ function mealsIn() {
   document.head.appendChild(css);
   var img = '<img src="' + SRC + '" alt="">';
   function place() {
-    if (document.querySelector("[data-bdg]") || !(S.hero.score >= 80)) return;
+    var sc = window.MVMOM ? window.MVMOM.score() : S.hero.score;
+    /* a day that falls back under 80 loses its medal, as its calendar ring would */
+    if (!(sc >= 80)) { var had = document.querySelector("[data-bdg]"); if (had && where === "medal") had.remove(); return; }
+    if (document.querySelector("[data-bdg]")) return;
     var el = document.createElement(where === "head" ? "button" : "div");
     el.setAttribute("data-bdg", where);
-    el.setAttribute("aria-label", "Medal earned today");
+    el.setAttribute("aria-label", "Momentum medal earned today");
     /* in KAIRA's line, the badge takes the quote mark's place */
-    if (where === "quote") { var q = document.querySelector("#cm .q"); if (!q) return; el = Object.assign(document.createElement("img"), { src: SRC, alt: "Medal earned today", className: "q bdg-q" }); el.setAttribute("data-bdg", where); q.replaceWith(el); }
+    if (where === "quote") { var q = document.querySelector("#cm .q"); if (!q) return; el = Object.assign(document.createElement("img"), { src: SRC, alt: "Momentum medal earned today", className: "q bdg-q" }); el.setAttribute("data-bdg", where); q.replaceWith(el); }
     /* a medal on a short gold ribbon, hanging from under the header, swinging in once */
     else if (where === "medal") {
       el.className = "bdg-medal"; el.innerHTML = '<span class="rb"></span>' + img; el.setAttribute("role", "button"); el.tabIndex = 0;
-      el.setAttribute("aria-label", "Medal earned today. See it again");
+      el.setAttribute("aria-label", "Momentum medal earned today. See it again");
       document.getElementById("col").appendChild(el);
       /* a tap plays the celebration again: the Sunrise sheet, over this screen */
       var openMedal = function () {
         if (document.getElementById("medalSheet")) return;
         var f = document.createElement("iframe");
-        f.id = "medalSheet"; f.title = "Medal earned today"; f.src = "../badge-celebration-options.html?only=1&embed=1";
+        f.id = "medalSheet"; f.title = "Momentum medal earned today"; f.src = window.MV_MEDAL.sheet;
         f.style.cssText = "position:fixed;top:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;height:100%;border:0;background:transparent;z-index:200";
         document.body.appendChild(f);
       };
@@ -3698,13 +3751,21 @@ function mealsIn() {
     else if (where === "date") { el.className = "bdg-date"; el.innerHTML = img; document.querySelector(".dateline").appendChild(el); }
     else if (where === "head") { el.className = "bdg-head"; el.innerHTML = img + "4"; var line = document.querySelector(".eatline"), chip = line.querySelector(".earnchip"); line.insertBefore(el, chip); }
   }
-  /* the score settles after the hero animates, so look again for a few seconds */
-  var tries = 0, tick = setInterval(function () { place(); if (document.querySelector("[data-bdg]") || ++tries > 15) clearInterval(tick); }, 400);
+  window.MVMEDAL = place;
+  /* the score settles after the hero animates, so look again for a few seconds. On Move one look is enough once
+     MVMOM is up: a later change waits for momentum.js, so the medal never lands before the number has stepped */
+  var tries = 0, tick = setInterval(function () { place(); if (window.MVMOM || document.querySelector("[data-bdg]") || ++tries > 15) clearInterval(tick); }, 400);
 })();
 </script>
-<script src="assets/score-say.js?v=2"></script>
+<script src="assets/score-say.js?v=3"></script>
 <script src="chrome.js"></script>
-<script src="/move/plan.js?v=16"></script>
-<script src="/move/player.js"></script>
+<script src="/move/plan.js?v=51"></script>
+<script src="/move/player.js?v=16"></script>
+<script src="/move/tray.js?v=21"></script>
+<script src="/move/say-sheet.js?v=5"></script>
+<script src="/move/log.js?v=16"></script>
+<script src="/move/health.js?v=3"></script>
+<script src="/move/cases.js?v=8"></script>
+<script src="/move/momentum.js?v=14"></script>
 </body>
 </html>
