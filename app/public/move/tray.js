@@ -201,7 +201,7 @@
       if (!ctl) return done();
       setTimeout(done, 6200);   /* the moment hands back on an animation frame; a background tab never draws one */
       /* no gain before a plan: the moment names the log and says who reads it */
-      setTimeout(function () { ctl.win({ d: gain, n: names.length, title: names.length === 1 ? "Workout logged" : label(names.length) + " logged", say: gain == null ? "Your coach will see this when they build your plan." : "added to your Momentum score" }, done); }, 600);
+      setTimeout(function () { ctl.win({ d: gain, n: names.length, title: names.length === 1 ? "Workout logged" : label(names.length) + " logged", say: gain == null ? (window.MVPLAN && MVPLAN.free ? "It adds to what you moved today." : "Your coach will see this when they build your plan.") : "added to your Momentum score" }, done); }, 600);
     };
     if (window.WinMoment) return run();
     loadWin(run, done);

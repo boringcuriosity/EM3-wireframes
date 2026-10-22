@@ -23,7 +23,7 @@ window.MV = function (i, eaten, target) {
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="../icons/glyph-masks.css">
 <link rel="stylesheet" href="goodflip-ui.css">
-<link rel="stylesheet" href="/move/plan.css?v=49">
+<link rel="stylesheet" href="/move/plan.css?v=50">
 <link rel="stylesheet" href="/move/log.css?v=27">
 <link rel="stylesheet" href="/move/player.css?v=14">
 <style>
@@ -1448,24 +1448,23 @@ var STATES = {
   /* A free user: not on a care program, so there is no coach, no plan and no
      sufficiency score at all, not even a locked one. What they get is the
      diary: log meals, and see the grams and calories add up. */
+  /* A free user: not on a care program, so no coach, no plan and no Momentum score at all, not even a locked one.
+     The day is the no-plan day (plan.js): log workouts, see kcal and steps add up. */
   free: {
     day: "Today", next: false, free: true,
     hero: { score: null, mealsIn: 2, mealSlots: 4 },
-    /* the sum of the foods seeded into breakfast and lunch below (FREE_FOODS) */
-    macros: { mode: "grams", title: "What you have eaten", v: [[30], [161], [30], [0]] },
-    cal: { mode: "line", eaten: 1030 },
+    macros: { mode: "grams", v: [[54], [157], [41], [12]] },
+    cal: { mode: "line", eaten: 1213 },
     kaira: { say: KAIRA.free, act: "log" },
     diary: { mode: "free", title: "Your meals", count: "", logged: true }
   },
-  /* A free user who has logged nothing today. Nothing has been eaten that the
-     app knows of, so there is nothing for "What you have eaten" to say: the
-     section and the calorie total stand down, and KAIRA's card and the meals
-     carry the screen. Both come back with the first log. */
+  /* A free user who has logged nothing today: the same plain day, nothing in it yet */
   freeempty: {
     day: "Today", next: false, free: true,
     hero: { score: null, mealsIn: 0, mealSlots: 4 },
-    macros: { mode: "hide" },
-    cal: { mode: "hide" },
+    /* steps still come in from the phone, so the tiles stay; no coach to teach about, so KAIRA just offers the log */
+    macros: { mode: "grams", v: [[0], [0], [0], [0]] },
+    cal: { mode: "line", eaten: 0 },
     kaira: { say: KAIRA.free, act: "log" },
     diary: { mode: "free", title: "Your meals", count: "", logged: false }
   },
@@ -3002,7 +3001,7 @@ function mealsIn() {
          does not change what it is. */
       /* one heading for this card wherever there is a score to shape, so the
          section reads the same from the first minute of a plan to the last */
-      var text = S.free ? "What you have eaten" : S.macros.mode === "grams" ? "" : "What shaped your score?";
+      var text = S.macros.mode === "grams" ? "" : "What shaped your score?";   /* a free user is grams too, so no heading */
       /* the gold gap badge is the macro card's, so it is kept rather than
          written over */
       var slot = title.querySelector(".gapslot");
@@ -3757,9 +3756,9 @@ function mealsIn() {
 </script>
 <script src="assets/score-say.js?v=4"></script>
 <script src="chrome.js"></script>
-<script src="/move/plan.js?v=51"></script>
+<script src="/move/plan.js?v=53"></script>
 <script src="/move/player.js?v=19"></script>
-<script src="/move/tray.js?v=23"></script>
+<script src="/move/tray.js?v=24"></script>
 <script src="/move/say-kaira.js?v=7"></script>
 <script src="/move/log.js?v=31"></script>
 <script src="/move/health.js?v=3"></script>

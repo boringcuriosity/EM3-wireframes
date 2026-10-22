@@ -353,6 +353,21 @@
       <div class="cases" data-cases="say"></div>
     </section>
 
+    <section id="free">
+      <div class="snum">Section</div>
+      <h2>A free user</h2>
+      <p>Someone who uses the app without a care program. There is no coach and no move plan, so there is no Momentum score at all, not even a locked one, and nothing that hints at one. The screen is a workout diary: log what you did, and see the calories and steps add up through the day.</p>
+      <ul class="plain">
+        <li><b>No score.</b> The score and everything about it stands down. The day starts at the date, then the numbers.</li>
+        <li><b>Workout and Steps.</b> Two tiles with what was done and no target. No Small moves tile, since only a coach sets those.</li>
+        <li><b>Steps.</b> Counted by their phone, with no goal beside them.</li>
+        <li><b>Part-of-day cards.</b> Morning to night, each a plain card with a plus to log into. Workouts appear as they are logged.</li>
+        <li><b>Nothing logged yet.</b> The same screen with 0 kcal, since steps still come in from the phone.</li>
+        <li><b>After a log.</b> "Workout logged. It adds to what you moved today." Never a coach, never a score.</li>
+      </ul>
+      <div class="cases" data-cases="free"></div>
+    </section>
+
     <section id="cards">
       <div class="snum">Section</div>
       <h2>Part-of-day cards</h2>
@@ -469,6 +484,11 @@ const CASES = {
     ["day=active&now=22", "No workout, stayed active", "day=active", "Every small move, near the steps goal. Moving in three parts keeps half the score: 50."],
     ["day=sick&now=22", "A sick day", "day=sick", "1,400 steps and nothing else. Steps alone never count for moving all day: 1."],
   ],
+  free: [
+    ["state=freeempty", "Nothing logged yet", "freeempty", "No program, so no coach, no plan and no score. Steps come in from the phone; each part of the day offers a plus."],
+    ["state=free", "A workout in", "free", "A morning walk logged: 119 kcal and the steps add up, with no targets to measure them against."],
+    ["state=free&act=walk", "Logging a workout", "free · walk", "The log ends on its own line, with no coach and no score in it."],
+  ],
   say: [
     ["act=tip", "A small move ticked", "act=tip", "Get off one stop early, ticked. The score steps from 36 to 38, then the line says +2%."],
     ["act=drop", "A small move undone", "act=drop", "Take the stairs, marked as not done. The score settles at 34. No minus and no line: Momentum never penalises."],
@@ -547,6 +567,7 @@ const SECTIONS = [
   ["health", "Apple Health"],
   ["states", "One day, in order"],
   ["say", "The line under the score"],
+  ["free", "A free user"],
   ["cards", "Part-of-day cards"],
   ["steps", "Your steps"],
   ["tray", "Logging the plan"],

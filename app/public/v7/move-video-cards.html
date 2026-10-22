@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video card kit</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<link rel="stylesheet" href="/move/player.css">
+<style>
+  /* Every video card and section the Move videos page is built from, at real size, drawn by move/videos.js.
+     Tap any card to open its sheet. The page itself: move-videos.html. */
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .2px; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--g-500); }
+  h1 { margin: 12px 0 10px; font-size: 40px; line-height: 48px; font-weight: 600; }
+  h2.k { margin: 48px 0 4px; font-size: 22px; line-height: 30px; font-weight: 600; }
+  .lede, .sub { max-width: 760px; margin: 0; font-size: 15px; line-height: 24px; color: var(--g-600); }
+  .lede { font-size: 17px; line-height: 27px; }
+  .row { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; margin-top: 18px; }
+  .cell { display: flex; flex-direction: column; gap: 10px; }
+  .cell > small { font-size: 12px; color: var(--g-500); }
+  .frame { width: 334px; border: 1px solid var(--g-200); border-radius: 24px; overflow: hidden; }
+  .frame .mvv { padding: 16px 0; gap: 0; }
+  @media (max-width: 720px) { .wrap { padding: 32px 16px 56px; } h1 { font-size: 30px; line-height: 38px; } .frame { width: 100%; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="eyebrow">Move · Learn · Videos</span>
+  <h1>Video card kit</h1>
+  <p class="lede">The video card and the row it lives in, at real size, with the app's own covers and words. Everything is live: play opens the full screen player, Know more its sheet, and the heart and bookmark work.</p>
+  <div id="kit"></div>
+</div>
+<script src="/move/videos.js"></script>
+<script src="/move/vplayer.js"></script>
+<script>
+  const S = MVV.S, by = k => S.find(s => s.k === k).items;
+  const box = html => '<div class="frame"><div class="mvv" style="padding:16px">' + html + '</div></div>';
+  const cell = (lab, html) => '<div class="cell">' + html + '<small>' + lab + '</small></div>';
+  const G = [
+    ["The card", "Minutes on the cover, bookmark top right; title and heart; level and equipment; two lines with Know more set into the second.", '<div class="row">' +
+      cell("Exercise of the week", box(MVV.card(MVV.WEEK, "Exercise of the week"))) + cell("In a row", box(MVV.card(by("walking")[0]))) + '</div>'],
+    ["Likes", "The count shows from 10; under that the heart stands alone.", '<div class="row">' +
+      cell("184 likes", box(MVV.card(by("cardio")[0]))) + cell("5 likes: count hidden", box(MVV.card(by("breathing")[3]))) + '</div>'],
+    ["Know more", "Only when the description runs past two lines. A short one shows whole, with no link.", '<div class="row">' +
+      cell("Steps, do's and don'ts inside", box(MVV.card(by("walking")[0]))) + cell("Short: no Know more", box(MVV.card(by("walking")[3]))) + cell("A series cover", box(MVV.card(by("dance")[0]))) + '</div>'],
+    ["A row", "Head and See all, then the rail; the next card peeks.", '<div class="row"><div class="frame" style="width:390px"><div class="mvv" style="padding:16px 0">' + MVV.section(S[0]) + '</div></div></div>']
+  ];
+  document.getElementById("kit").innerHTML = G.map(([h, sub, body]) => '<h2 class="k">' + h + '</h2><p class="sub">' + sub + '</p>' + body).join("");
+  MVV.fit();
+</script>
+</body>
+</html>

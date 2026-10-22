@@ -128,10 +128,10 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stro
 .ns .card-h h3{font-size:17px}
 .ns .sub{font-size:12.5px;color:var(--muted);margin:0 0 0 42px}
 .ns .tools{margin-left:auto;display:flex;align-items:center;gap:10px}
-.chips{display:inline-flex;gap:6px}
-.chips button{font-size:12.5px;font-weight:600;color:var(--ink-2);padding:7px 14px;border-radius:10px;border:1px solid var(--g200);background:#fff;transition:background .2s var(--ease),color .2s var(--ease),border-color .2s var(--ease)}
-.chips button:hover{border-color:var(--jade-300)}
-.chips button[aria-selected=true]{background:var(--jade);border-color:var(--jade);color:#fff;box-shadow:0 2px 8px #299d6b40}
+.chips{display:inline-flex;gap:2px;padding:3px;border-radius:11px;background:var(--g100)}   /* one segmented toggle */
+.chips button{flex:1;font-size:12.5px;font-weight:600;color:var(--g500);padding:6px 14px;border-radius:8px;transition:background .2s var(--ease),color .2s var(--ease),box-shadow .2s var(--ease)}
+.chips button:hover{color:var(--ink-2)}
+.chips button[aria-selected=true]{background:#fff;color:var(--jade-700);box-shadow:0 1px 3px #10182814,0 0 0 .6px var(--g200)}
 .range{font-size:12px;font-weight:600;color:var(--ink-2);display:flex;align-items:center;gap:6px;padding:7px 12px;border-radius:10px;background:#ffffffb3;border:1px solid var(--line-2)}
 .range .i{width:15px;height:15px;color:var(--jade)}
 .range{cursor:pointer;transition:border-color .2s var(--ease)}
@@ -220,7 +220,7 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stro
 .tip .t1{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700;font-size:12px;color:var(--g700)}
 .tip .sc{font-family:var(--display);font-size:26px;font-weight:800;line-height:1;margin:6px 0 8px;letter-spacing:-.02em}
 .tip .sc small{font-family:var(--body);font-size:11px;color:var(--muted);font-weight:500;letter-spacing:0}
-.tip .r{display:grid;grid-template-columns:18px 50px 1fr 30px;align-items:center;gap:7px;margin-top:5px;color:var(--g700)}
+.tip .r{display:grid;grid-template-columns:18px 46px 1fr auto;align-items:center;gap:7px;margin-top:5px;color:var(--g700)}
 .tip .r .meter{height:5px}
 .tip .r b{text-align:right;font-weight:700;font-size:11px}
 .tip .lost{margin-top:9px;padding-top:8px;border-top:1px dashed var(--g200);color:var(--g500);font-size:11px;line-height:1.45}
@@ -249,7 +249,7 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stro
 .bullet{position:relative;height:10px;border-radius:6px;background:#fff;box-shadow:inset 0 0 0 .6px var(--g200)}
 .bullet .zone{position:absolute;top:-3px;bottom:-3px;border-radius:5px;background:repeating-linear-gradient(135deg,var(--jade-200) 0 2px,var(--jade-50) 2px 5px);border:1px solid var(--jade-300)}
 .bullet .fill{position:absolute;left:0;top:2px;bottom:2px;border-radius:4px;background:var(--mc);transition:width .5s var(--ease)}
-.bullet .dot{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:#fff;border:3px solid var(--mc);box-shadow:0 1px 3px #10182833;transition:left .5s var(--ease)}
+.bullet .dot{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;border-radius:2px;background:var(--mc);transition:left .5s var(--ease)}   /* a marker, not a handle: nothing here can be dragged */
 .mrow-f{display:flex;justify-content:space-between;align-items:center;margin-top:9px;font-size:11px;color:var(--g500)}
 .mrow-f b{color:var(--ink)}
 .dots{display:grid;grid-template-columns:repeat(30,1fr);gap:2px;margin-top:8px}
@@ -259,7 +259,7 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stro
 .side-f{display:flex;gap:12px;flex-wrap:wrap;font-size:10.5px;color:var(--g500);margin-top:6px}
 .side-f span{display:inline-flex;align-items:center;gap:5px}
 .side-f .z{width:16px;height:8px;border-radius:3px;background:repeating-linear-gradient(135deg,var(--jade-200) 0 2px,var(--jade-50) 2px 5px);border:1px solid var(--jade-300)}
-.side-f .dd{width:9px;height:9px;border-radius:50%;border:2.5px solid var(--g500)}
+.side-f .dd{width:3px;height:11px;border-radius:2px;background:var(--g500)}
 .side-f .sq{width:8px;height:8px;border-radius:2px;background:var(--g500)}
 .side-f .sq.l{background:var(--g200)}
 .day-score{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:14px;margin-bottom:10px;background:linear-gradient(135deg,var(--band-50),#fff);border:.625px solid var(--band-100)}
@@ -399,6 +399,42 @@ body.k-open .kc{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
 .info{padding:0}
 .card-h>.tt{margin-left:-6px}
 h5>.tt{margin-left:-2px}
+
+/* small screens: the side nav becomes a drawer behind a menu button; snapshot, KPIs, popovers and tooltips fit 360px */
+.menu,.nav-scrim{display:none}
+@media (max-width:860px){
+  .top{gap:10px;padding:12px 16px;position:sticky;top:0;z-index:15}
+  .menu{display:grid;place-items:center;width:40px;height:40px;margin-left:-8px;border-radius:10px;color:var(--ink-2)}
+  .page-title{flex:1}
+  .side{display:block!important;position:fixed;left:0;top:0;bottom:0;width:272px;z-index:41;overflow:auto;padding:16px 14px 24px;transform:translateX(-100%);visibility:hidden;transition:transform .3s var(--ease),visibility 0s .3s}
+  body.nav-open .side{transform:none;visibility:visible;box-shadow:0 24px 64px #10182840;transition:transform .3s var(--ease)}
+  .nav-scrim{display:block;position:fixed;inset:0;z-index:40;background:#10182866;opacity:0;pointer-events:none;transition:opacity .25s var(--ease)}
+  body.nav-open .nav-scrim{opacity:1;pointer-events:auto}
+}
+@media (max-width:700px){#kpis{grid-template-columns:1fr 1fr!important}#kpis>:first-child{grid-column:1/-1}}
+@media (max-width:560px){
+  .stats{grid-template-columns:1fr 1fr!important}
+  .me span:last-child{display:none}.me{padding:6px}
+  .rp-pop{right:auto;left:0;width:min(308px,calc(100vw - 32px))}
+  .tt-b,.tt-b.l,.tt-b.r,.tt-b.w{position:fixed;left:16px;right:16px;top:auto;width:auto;max-width:none;transform:translateY(26px)}
+  .tt-b .tags li{grid-template-columns:120px 1fr}
+  /* dates and the view toggle share one row */
+  .ns .tools{gap:8px;flex-wrap:wrap}.ns .tools .rp{flex:none}.chips{flex:1 1 170px;min-width:0}.chips button{min-width:0;padding:6px 4px;font-size:12px}.k-head{flex:1 0 100%;justify-content:center}
+  /* nested cards each kept their desktop gutter, leaving the chart ~280px; on phones the gutters stack thin */
+  .content{padding:12px 8px 32px}.card{padding:16px 14px}.ns{padding:0}.ns-top{padding:16px 14px 14px}.ns-in{padding:12px 10px 14px}.panel{padding:14px 12px}.kpi{padding:10px 12px}
+}
+
+.chart{contain:inline-size}   /* the scrolling bars must not widen the card they sit in */
+.cscroll{padding-top:16px;margin-top:-16px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none}.cscroll::-webkit-scrollbar{display:none}
+@media (max-width:560px){
+  /* the bar's details sit as a card under the chart, so they never cover the bars */
+  .chart .tip{position:static;width:auto;margin-top:12px;display:none;transform:none;box-shadow:none;background:var(--g100);border:0}
+  .chart .tip.on{display:block}
+  .kc{width:100vw;height:100dvh;border-radius:0}
+  .kc-h{gap:10px;padding:12px 14px}.kc-brand{border:0;padding-right:0}.kc-pt{display:none}
+  .kc-tabs{padding:0 16px;gap:20px}.kc-b{padding:16px}.kc-f{padding:10px 12px 6px}
+  .mk table{display:block;overflow-x:auto}
+}
 </style>
 </head>
 <body>
@@ -440,7 +476,7 @@ const HELP={
   medal:`<b>Medal days</b>Days that scored 80 or more, out of the days logged. On each one the user earned a medal in the app.`,
   days:`<b>Days logged</b>Days with at least one meal logged. Days with nothing logged are left out of the average, so they do not pull it down.`,
   chart:`<b>Reading the chart</b>Each bar is the score for one day, or the average for a week or month.<ul><li>The colours show the points protein, carbs and fats earned, each worth up to 33.</li><li>The empty top of a bar is the points missed.</li><li>The shaded bands behind match the score bands.</li><li>The dashed line is the average for the range.</li></ul>`,
-  macros:`<b>Macros</b>Average eaten per day against the daily target.<ul><li>The striped zone is the target range: 80% of the target up to 20% above it.</li><li>The ring marks what was eaten.</li><li>A day is in range when the macro lands inside the striped zone.</li></ul>`
+  macros:`<b>Macros</b>Average eaten per day against the daily target.<ul><li>The striped zone is the target range: 80% of the target up to 20% above it.</li><li>The bar and its end line mark what was eaten.</li><li>A day is in range when the macro lands inside the striped zone.</li></ul>`
 };</script>
 
 <div class="app">
@@ -459,8 +495,10 @@ const HELP={
     <div class="nav" id="nav"></div>
   </aside>
 
+  <div class="nav-scrim" id="nav-scrim"></div>
   <div class="main">
     <header class="top">
+      <button class="menu" id="menu" aria-label="Menu" aria-expanded="false"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
       <h2 class="page-title">Patient Overview</h2>
       <div class="me"><span class="av">SC</span><span><b>Sahana chandra</b><small>Nutritionist</small></span></div>
     </header>
@@ -505,7 +543,6 @@ const HELP={
                 <button role="tab" data-v="weekly">Weekly</button>
                 <button role="tab" data-v="monthly">Monthly</button>
               </div>
-              <button class="k-head" id="k-open"><img src="icons/trend-kaira-mark.png" alt=""><b id="k-btn">Ask KAIRA</b></button>
             </div>
           </div>
           <p class="sub">How close logged meals came to the diet plan targets, out of 100.</p>
@@ -518,7 +555,7 @@ const HELP={
           <div class="ns-body">
             <div class="panel">
               <div class="chart-h">
-                <div><h4><span id="chart-title"></span><script>document.write(tip("reading the chart",HELP.chart,"l w"))</script></h4><p id="chart-hint">Select a bar to see that day.</p></div>
+                <div><h4><span id="chart-title"></span><script>document.write(tip("reading the chart",HELP.chart,"l w"))</script></h4><p id="chart-hint">Tap a bar to see that day.</p></div>
                 <div class="legend">
                   <span><i class="mt sm p"><i class="glyph-protein"></i></i>Protein</span>
                   <span><i class="mt sm c"><i class="glyph-carbs"></i></i>Carbs</span>
@@ -648,7 +685,7 @@ function render(){
   const [f,t]=range();
   document.getElementById('range').innerHTML=ic('cal')+`${fmt(f)} to ${fmt(t)}`+ic('down','i dn');
   document.getElementById('chart-title').textContent={daily:'Daily score',weekly:'Weekly average score',monthly:'Monthly average score'}[state.v];
-  document.getElementById('chart-hint').textContent=`Select a bar to see that ${{daily:'day',weekly:'week',monthly:'month'}[state.v]}.`;
+  document.getElementById('chart-hint').textContent=`Tap a bar to see that ${{daily:'day',weekly:'week',monthly:'month'}[state.v]}.`;
   kpis();chart();side();kline();
 }
 
@@ -671,9 +708,9 @@ function kpis(){
 /* ---------- stacked bar chart ---------- */
 function chart(){
   if(!document.getElementById('chart'))return;
-  const el=document.getElementById('chart'),W=el.clientWidth,H=300,pl=30,pr=W<640?28:72,pt=10,pb=40,narrow=W<640;
+  const el=document.getElementById('chart'),CW=el.clientWidth,W=CW<640?Math.max(CW,90+B.length*30):CW,H=CW<640?240:300,pl=30,pr=CW<640?60:72,pt=10,narrow=CW<640,pb=narrow&&state.v!="daily"?26:40;
   const iw=W-pl-pr,step=iw/B.length,bw=Math.min(step*.52,state.v=='daily'&&B.length>14?18:52),y=v=>pt+(1-v/100)*(H-pt-pb),rx=Math.min(7,bw/3);
-  let g=`<svg viewBox="0 0 ${W} ${H}" height="${H}" role="group" aria-label="${document.getElementById('chart-title').textContent}">`;
+  let g=`<div class="cscroll"><svg viewBox="0 0 ${W} ${H}" height="${H}"${W>CW?` style="width:${W}px"`:""} role="group" aria-label="${document.getElementById('chart-title').textContent}">`;
   // band zones, shaded behind the bars; the score's tooltip names them, so no labels at the edge
   BANDS.forEach(([a,b,l,k])=>{
     g+=`<rect x="${pl}" y="${y(b)}" width="${iw}" height="${y(a)-y(b)}" fill="var(--${k}-50)"/>
@@ -681,7 +718,7 @@ function chart(){
   [0,50,70,80,100].forEach(v=>g+=`<line x1="${pl}" x2="${pl+iw}" y1="${y(v)}" y2="${y(v)}" stroke="${v?'#fff':'var(--g200)'}" stroke-width="${v?1.2:1}"/><text class="yl" x="${pl-8}" y="${y(v)+3}" text-anchor="end">${v}</text>`);
   // the medal line: a day at 80 or more earns the user a medal in the app, as on Momentum
   g+=`<line x1="${pl}" x2="${W-pr+6}" y1="${y(80)}" y2="${y(80)}" stroke="var(--c-800)" stroke-width="1.2" stroke-dasharray="2 3" pointer-events="none"/>
-    ${narrow?'':`<text class="band-l" x="${W-pr+12}" y="${y(80)+4+(Math.abs(y(P.score)-y(80))<18?(y(P.score)<=y(80)?15:-15):0)}" fill="var(--c-800)">Medal 80</text>`}`;
+    ${`<text class="band-l" x="${W-pr+12}" y="${y(80)+4+(Math.abs(y(P.score)-y(80))<18?(y(P.score)<=y(80)?15:-15):0)}" fill="var(--c-800)">Medal 80</text>`}`;
   B.forEach((b,i)=>{
     const x=pl+step*i+(step-bw)/2,cx=x+bw/2,a=b.a;
     g+=`<g class="bar${state.sel===i?' sel':''}" data-i="${i}" tabindex="0" role="button" aria-label="${b.title}: ${a?Math.round(a.score)+' out of 100':'nothing logged'}">
@@ -697,13 +734,18 @@ function chart(){
     g+=`</g>`;
   });
   g+=`<line x1="${pl}" x2="${W-pr+8}" y1="${y(P.score)}" y2="${y(P.score)}" stroke="var(--ink-2)" stroke-width="1.4" stroke-dasharray="5 4" pointer-events="none"/>
-    <rect x="${W-pr+(narrow?-52:8)}" y="${y(P.score)-11}" width="48" height="22" rx="11" fill="var(--ink-2)"/><text x="${W-pr+(narrow?-28:32)}" y="${y(P.score)+4}" text-anchor="middle" style="font:700 10.5px var(--body);fill:#fff">Avg ${Math.round(P.score)}</text></svg>`;
+    <rect x="${W-pr+8}" y="${y(P.score)-11}" width="48" height="22" rx="11" fill="var(--ink-2)"/><text x="${W-pr+32}" y="${y(P.score)+4}" text-anchor="middle" style="font:700 10.5px var(--body);fill:#fff">Avg ${Math.round(P.score)}</text></svg>`;
   el.classList.toggle('has-sel',state.sel!=null);
-  el.innerHTML=g+'<div class="tip" id="tip"></div>';
+  const was=el.querySelector('.cscroll'),keep=was&&was.scrollWidth==W?was.scrollLeft:null;
+  el.innerHTML=g+'</div><div class="tip" id="tip"></div>';
+  /* scrolled: the latest bars first, and a tap keeps the place */
+  const sc=el.querySelector('.cscroll');sc.scrollLeft=keep==null?W:keep;
+  /* on phones the selected bar's card stays open under the chart, however the chart was redrawn */
+  if(PIN!=null)queueMicrotask(()=>el.querySelector(`.bar[data-i="${PIN}"]`)?.dispatchEvent(new Event('mouseenter')));
   const tip=el.querySelector('#tip');
   el.querySelectorAll('.bar').forEach(n=>{
-    const i=+n.dataset.i,show=()=>{tip.innerHTML=tipHtml(B[i]);const bx=n.getBBox(),left=bx.x+bx.width/2+14+228>W?bx.x+bx.width/2-242:bx.x+bx.width/2+14;tip.style.left=left+'px';tip.style.top='8px';tip.classList.add('on')};
-    n.onmouseenter=show;n.onfocus=show;n.onmouseleave=n.onblur=()=>tip.classList.remove('on');
+    const i=+n.dataset.i,show=()=>{tip.innerHTML=tipHtml(B[i]);const bx=n.getBBox(),left=bx.x+bx.width/2+14+228>W?bx.x+bx.width/2-242:bx.x+bx.width/2+14;tip.style.left=Math.max(0,Math.min(left,W-228))+'px';tip.style.top='8px';tip.classList.add('on')};
+    n.onmouseenter=show;n.onfocus=show;n.onmouseleave=n.onblur=()=>{if(PIN==null)tip.classList.remove('on');else if(PIN!==i)el.querySelector(`.bar[data-i="${PIN}"]`)?.dispatchEvent(new Event('mouseenter'))};
     n.onclick=()=>select(i);
     n.onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();select(i)}
       if(e.key=='ArrowRight'||e.key=='ArrowLeft'){e.preventDefault();el.querySelector(`.bar[data-i="${i+(e.key=='ArrowRight'?1:-1)}"]`)?.focus()}};
@@ -711,13 +753,13 @@ function chart(){
 }
 function tipHtml(b){
   const a=b.a;if(!a)return `<div class="t1">${b.title}</div><div class="lost" style="border:0;margin-top:6px;padding:0">Nothing logged, so this day is left out of the average.</div>`;
-  const offT=MAC.reduce((s,m)=>s+(100-a.m[m.k])/3,0)*a.cov/100,miss=100-a.cov;
-  return `<div class="t1"><span>${b.title}</span><span style="display:flex;gap:4px"><span class="pill ${band(a.score)[1]}">${EMO[band(a.score)[0]]} ${band(a.score)[0]}</span></span></div>
+    return `<div class="t1"><span>${b.title}</span><span style="display:flex;gap:4px"><span class="pill ${band(a.score)[1]}">${EMO[band(a.score)[0]]} ${band(a.score)[0]}</span></span></div>
   <div class="sc" style="color:${bandCol(a.score)}">${Math.round(a.score)}<small> of 100</small></div>
-  ${MAC.map(m=>`<div class="r">${tile(m.k,'sm')}<span>${m.name}</span><div class="meter" style="--mc:${m.col}"><i style="width:${a.pts[m.k]/33.34*100}%"></i></div><b>${a.pts[m.k].toFixed(1)}</b></div>`).join('')}
-  ${miss>=1?`<div class="lost">${Math.round(miss)} points lost to meals not logged.</div>`:''}`;
+  ${MAC.map(m=>`<div class="r">${tile(m.k,'sm')}<span>${m.name}</span><div class="meter" style="--mc:${a.A[m.k]>T[m.k]+buf(T[m.k])?'var(--att)':'var(--g500)'}"><i style="width:${Math.min(100,a.A[m.k]/T[m.k]*100)}%"></i></div><b>${r0(a.A[m.k])}/${T[m.k]} g</b></div>`).join('')}`;
 }
-function select(i){state.sel=state.sel===i?null:i;chart();side();kline();if(state.sel!=null){document.querySelector(`.bar[data-i="${i}"]`)?.focus();document.getElementById('tip').classList.remove('on')}}
+function select(i){PIN=PIN===i?null:i;const t=document.getElementById('tip');if(PIN==null)t.classList.remove('on');else document.querySelector(`.bar[data-i="${i}"]`)?.dispatchEvent(new Event('mouseenter'))}
+var PIN=null;   /* the bar whose tooltip a tap has pinned open */
+var TOUCH=matchMedia('(hover:none)').matches;
 
 /* ---------- side panel: macros ---------- */
 function bullet(r,t){
@@ -730,7 +772,7 @@ function side(){
   const foot=`<div class="side-f"><span><i class="z"></i>Target range</span><span><i class="dd"></i>Eaten</span></div>`;
   if(!b){
     el.innerHTML=`<div class="side-h"><div><h4>Macros${tip('macros',HELP.macros,'r')}</h4><p>Daily average against target</p></div></div>`+
-    MAC.map(m=>{const A=P.A[m.k],[sl,sc]=status(A,T[m.k]);return `<div class="mrow ${m.k}"><div class="mrow-h">${tile(m.k,'lg')}<span><span class="n">${m.name}</span><span class="g"><b>${Math.round(A)} g</b> of ${T[m.k]} g</span></span><span class="pill ${sc}">${sl}</span></div>${bullet(P.ratio[m.k],T[m.k])}
+    MAC.map(m=>{const A=P.A[m.k];return `<div class="mrow ${m.k}"><div class="mrow-h">${tile(m.k,'lg')}<span><span class="n">${m.name}</span><span class="g"><b>${Math.round(A)} g</b> of ${T[m.k]} g</span></span></div>${bullet(P.ratio[m.k],T[m.k])}
       <div class="mrow-f"><span>In range on <b>${P.inR[m.k]} of ${P.nl}</b> days</span></div></div>`}).join('')+foot;
     return;
   }
@@ -740,7 +782,7 @@ function side(){
     const one=a.n==1?b.days[0]:null,[bn,bc]=band(a.score),diff=Math.round(a.score-P.score);
     el.innerHTML=head+`<div class="day-score" style="${bandVars(a.score)}">${gauge(a.score,56,5)}<div style="flex:1"><span class="pill ${bc}">${EMO[bn]} ${bn}</span><small style="margin-top:5px">${diff>=0?'+':''}${diff} vs period average</small></div>
       ${one?`<div style="width:104px"><small>${5-one.missed.length} of 5 meals logged</small><div class="meals">${MEALS.map((x,j)=>`<i class="${one.missed.includes(j)?'no':''}" title="${x[0]}"></i>`).join('')}</div></div>`:''}</div>`+
-      MAC.map(m=>{const A=a.A[m.k],[sl,sc]=status(A,T[m.k]);return `<div class="mrow ${m.k}"><div class="mrow-h">${tile(m.k,'lg')}<span><span class="n">${m.name}</span><span class="g"><b>${Math.round(A)} g</b> of ${T[m.k]} g</span></span><span class="pill ${sc}">${sl}</span></div>${bullet(a.ratio[m.k],T[m.k])}</div>`}).join('')+foot;
+      MAC.map(m=>{const A=a.A[m.k];return `<div class="mrow ${m.k}"><div class="mrow-h">${tile(m.k,'lg')}<span><span class="n">${m.name}</span><span class="g"><b>${Math.round(A)} g</b> of ${T[m.k]} g</span></span></div>${bullet(a.ratio[m.k],T[m.k])}</div>`}).join('')+foot;
   }
   el.querySelector('#back').onclick=()=>select(state.sel);
 }
@@ -782,7 +824,7 @@ function insights(b){
 }
 function kline(){
   const b=state.sel!=null?B[state.sel]:null;
-  document.getElementById('k-btn').textContent=b?`Ask KAIRA about ${b.a&&b.a.n>1?'this '+(state.v=='weekly'?'week':'month'):fmt(b.days[0].date)}`:'Ask KAIRA';
+  if(document.getElementById('k-btn'))document.getElementById('k-btn').textContent=b?`Ask KAIRA about ${b.a&&b.a.n>1?'this '+(state.v=='weekly'?'week':'month'):fmt(b.days[0].date)}`:'Ask KAIRA';
 }
 /* ---------- KAIRA chat replies: plain text and tables ---------- */
 const r0=Math.round,pc=x=>r0(x*100)+'%';
@@ -847,7 +889,7 @@ function openK(){
   else ask(`How is Sahana's nutrition sufficiency score moving ${periodName()}?`,periodReply);
   document.getElementById('k-in').focus();
 }
-function closeK(){document.body.classList.remove('k-open');document.getElementById('drawer').setAttribute('aria-hidden','true');document.getElementById('k-open').focus()}
+function closeK(){document.body.classList.remove('k-open');document.getElementById('drawer').setAttribute('aria-hidden','true');document.getElementById('k-open')?.focus()}
 document.getElementById('sugg').onclick=e=>{const i=e.target.closest('button')?.dataset.i;if(i!=null)ask(SUGG[i][0],SUGG[i][1])};
 document.getElementById('k-in').oninput=e=>document.getElementById('k-send').classList.toggle('on',!!e.target.value.trim());
 document.getElementById('comp').onsubmit=e=>{e.preventDefault();const inp=document.getElementById('k-in'),q=inp.value.trim();if(!q)return;ask(q.replace(/</g,'&lt;'),route(q));inp.value='';document.getElementById('k-send').classList.remove('on')};
@@ -861,7 +903,7 @@ const parse=v=>{const [y,m,d]=v.split('-').map(Number);return new Date(y,m-1,d)}
 const PRE=[['Last 7 days',()=>[addD(TODAY,-6),TODAY]],['Last 30 days',()=>[addD(TODAY,-29),TODAY]],['Last 8 weeks',()=>[addD(TODAY,-55),TODAY]],['Whole plan',()=>[START,TODAY]]];
 const rp=document.getElementById('rp'),rbtn=document.getElementById('range'),rf=document.getElementById('rp-from'),rt=document.getElementById('rp-to');
 [rf,rt].forEach(x=>{x.min=iso(START);x.max=iso(TODAY)});
-function setRange(f,t){state.from=f;state.to=t;state.sel=null;closeRp();render()}
+function setRange(f,t){state.from=f;state.to=t;state.sel=null;PIN=null;closeRp();render()}
 function openRp(){
   const [f,t]=range();rf.value=iso(f);rt.value=iso(t);checkRp();
   document.getElementById('rp-pre').innerHTML=PRE.map(([l,fn],i)=>{const [a,b]=fn();return `<button type="button" data-i="${i}" aria-pressed="${iso(a)==iso(f)&&iso(b)==iso(t)}">${l}</button>`}).join('');
@@ -881,14 +923,22 @@ addEventListener('click',e=>{if(!rp.hidden&&!e.target.closest('.rp'))closeRp()})
 addEventListener('keydown',e=>{if(e.key=='Escape'&&document.activeElement?.classList.contains('info')){e.stopImmediatePropagation();document.activeElement.blur();return}if(e.key=='Escape'&&!rp.hidden){e.stopImmediatePropagation();closeRp();rbtn.focus()}},true);
 
 /* ---------- wiring ---------- */
-document.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{state.v=b.dataset.v;state.sel=null;render()});
-document.getElementById('k-open').onclick=openK;
+document.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{state.v=b.dataset.v;state.sel=null;PIN=null;render()});
+
 document.getElementById('k-close').onclick=closeK;
 document.getElementById('scrim').onclick=closeK;
-addEventListener('keydown',e=>{if(e.key!='Escape')return;if(document.body.classList.contains('k-open'))closeK();else if(state.sel!=null)select(state.sel)});
+addEventListener('keydown',e=>{if(e.key!='Escape')return;if(document.body.classList.contains('k-open'))closeK();else if(PIN!=null)select(PIN)});
 new ResizeObserver(()=>chart()).observe(document.getElementById('chart'));
 state.v=new URLSearchParams(location.search).get('view')||'weekly';
 render();
+/* ---------- menu on small screens ---------- */
+{const tog=o=>{document.body.classList.toggle('nav-open',o);document.getElementById('menu').setAttribute('aria-expanded',o)};
+document.getElementById('menu').onclick=()=>tog(!document.body.classList.contains('nav-open'));
+document.getElementById('nav-scrim').onclick=()=>tog(false);
+document.querySelector('.side').addEventListener('click',e=>{if(e.target.closest('a,button'))tog(false)});
+addEventListener('keydown',e=>{if(e.key=='Escape')tog(false)});}
+/* a turned phone or a resized window redraws the chart at its new width */
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(chart,150)});
 </script>
 </body>
 </html>

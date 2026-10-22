@@ -42,7 +42,9 @@
 
   /* Before a plan (?state=noplanempty, noplan): the coach has set nothing yet, so every part of the day is a plain card
      with a plus, there are no small moves, and steps have no goal. What they log is what the coach reads first. */
-  var NOPLAN = /^noplan/.test(new URLSearchParams(location.search).get("state") || "");
+  var ST = new URLSearchParams(location.search).get("state") || "";
+  /* a free user (?state=free, freeempty) has no coach and never will: the same plain day, with no score, no goal and no coach in the words */
+  var FREE = /^free/.test(ST), NOPLAN = FREE || /^noplan/.test(ST);
   if (NOPLAN) RT.forEach(function (rt) { rt.ex = []; rt.tips = []; });
   /* no small moves exist until the coach sets them, so their tile stands down and the other two share the row */
   if (NOPLAN) { var st0 = document.createElement("style"); st0.textContent = ".mgrid{grid-template-columns:1fr 1fr !important}.mgrid>:nth-child(2){display:none}"; document.head.appendChild(st0); }
@@ -57,7 +59,7 @@
   if (NOPLAN) {
     S.done = [{}, {}, {}, {}]; S.at = [{}, {}, {}, {}]; S.tips = [[], [], [], []];
     /* noplan: one walk logged this morning, the kcal as log.js counts it (MET 3.5 × 3.5 × 65 kg ÷ 200 × 30 min) */
-    if (new URLSearchParams(location.search).get("state") === "noplan") S.extra[0].push({ name: "Walking", ic: "directions_walk", min: 30, kcal: 119, at: "07:30" });
+    if (ST === "noplan" || ST === "free") S.extra[0].push({ name: "Walking", ic: "directions_walk", min: 30, kcal: 119, at: "07:30" });
   }
 
   var IC = {
@@ -65,6 +67,8 @@
     checkD: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M20 6L9 17l-5-5"/></svg>',
     checkG: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
     play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.53.85l10.2-6.5a1 1 0 0 0 0-1.7L9.53 4.65A1 1 0 0 0 8 5.5z"/></svg>',
+    /* the Steps tile's own glyph, so every way into steps wears the same mark */
+    steps: '<i class="ic-steps" aria-hidden="true"></i>',
     plusSq: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>',
     clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
     chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
@@ -154,7 +158,7 @@
     var row = document.querySelector(".kaira .btns"); if (!row) return;
     var b = row.querySelector('[data-x="logsteps"]');
     if (HEALTH) { if (b) b.remove(); return; }
-    if (!b) row.insertAdjacentHTML("beforeend", '<button class="kbtn out" data-x="logsteps"><span>' + IC.plusSq + '<b>Log steps</b></span></button>');
+    if (!b) row.insertAdjacentHTML("beforeend", '<button class="kbtn out" data-x="logsteps"><span>' + IC.steps + '<b>Log steps</b></span></button>');
   }
   document.addEventListener("click", function (e) { if (e.target.closest('[data-x="logsteps"]')) stepsSheet(); });
   function syncHTML() {
@@ -181,9 +185,9 @@
     return '<section class="mv-steps"><div class="sec"><h2>Your steps</h2></div><div class="mv-sc">' +
       '<div class="mv-sh"><div class="t"><div class="mv-big">' + fmt(tot) + ' <span>' + (NOPLAN ? "steps" : "of " + fmt(GOAL) + " steps") + '</span></div>' +
         /* what is left, said plainly, the number carrying the weight */
-        '</div><button class="mv-logbtn" data-log>' + IC.plusSq + 'Log steps</button></div>' +
+        '</div><button class="mv-logbtn" data-log>' + IC.steps + 'Log steps</button></div>' +
         /* its own row under the number and the button, so it has the card's full width */
-        '<div class="mv-sub">' + (NOPLAN ? "Your coach sets your daily goal after your first consultation." : left > 0 ? '<b>' + fmt(left) + ' more</b> to reach today\'s goal' : "<b>Goal reached.</b> Every step from here is extra.") + '</div>' +
+        '<div class="mv-sub">' + (FREE ? "Counted by your phone." : NOPLAN ? "Your coach sets your daily goal after your first consultation." : left > 0 ? '<b>' + fmt(left) + ' more</b> to reach today\'s goal' : "<b>Goal reached.</b> Every step from here is extra.") + '</div>' +
       (NOPLAN ? "" : '<div class="mv-prog"><i style="width:' + Math.min(100, tot / GOAL * 100) + '%"></i></div>') +
       '<div class="mv-chart" role="group" aria-label="Steps by hour">' + bars + '</div>' +
       '<div class="mv-bl" aria-hidden="true">' + TICKS.map(function (t) { return '<span>' + t + '</span>'; }).join("") + '</div>' +
@@ -419,6 +423,6 @@
   });
 
   /* for /move/player.js: the same plan, ticks and tick sheet */
-  window.MVPLAN = { noplan: NOPLAN, connect: connect, health: function () { return HEALTH; }, android: ANDROID, burned: burned, S: S, EX: EX, ORDER: ORDER, RT: RT, IC: IC, img: img, feelSheet: feelSheet, render: render, onDone: null };
+  window.MVPLAN = { noplan: NOPLAN, free: FREE, connect: connect, health: function () { return HEALTH; }, android: ANDROID, burned: burned, S: S, EX: EX, ORDER: ORDER, RT: RT, IC: IC, img: img, feelSheet: feelSheet, render: render, onDone: null };
   render();
 })();
