@@ -66,29 +66,29 @@
   var count = function (n) { return n >= 10 ? n : ""; };   /* a few likes reads as none, so small counts stay hidden */
   var lvl = function (x) { return x.lv + " · No equipment"; };
   var ALL = [], SAVED = [];
-  function card(x, tag) {
+  function card(x, tag, k) {
+    var q = k ? ' data-q="' + k + '"' : "";
     var i = ALL.indexOf(x); if (i < 0) i = ALL.push(x) - 1;
     return '<article class="mvv-card">' +
-      '<div class="mvv-cov"><button class="mvv-play" data-play="' + i + '" aria-label="Play ' + x.t + '"><img src="' + IMG + x.img + '.webp" alt="" loading="lazy">' +
+      '<div class="mvv-cov"><button class="mvv-play" data-play="' + i + '"' + q + ' aria-label="Play ' + x.t + '"><img src="' + IMG + x.img + '.webp" alt="" loading="lazy">' +
       '<span class="mvv-min">' + IC.play + x.min + " min</span></button>" +
-      '<button class="mvv-mark" data-mark="' + i + '" aria-pressed="' + (SAVED.indexOf(x) >= 0) + '" aria-label="Save">' + IC.mark + "</button></div>" +
+      '<button class="mvv-mark" data-mark="' + i + '" aria-pressed="' + (SAVED.indexOf(x) >= 0) + '" aria-label="Save"><span class="mvv-ring"></span>' + IC.mark + "</button></div>" +
       '<div class="mvv-body">' + (tag ? '<span class="mvv-tag"><span aria-hidden="true">🌟</span>' + tag + "</span>" : "") +
-      '<div class="mvv-top"><h3>' + x.t + '</h3><button class="mvv-like" data-like="' + i + '" aria-pressed="' + !!x.liked + '" aria-label="Like">' + IC.heart + "<span>" + count(x.likes + (x.liked ? 1 : 0)) + "</span></button></div>" +
+      '<div class="mvv-top"><h3>' + x.t + '</h3><button class="mvv-like" data-like="' + i + '" aria-pressed="' + !!x.liked + '" aria-label="Like"><span class="mvv-ring"></span>' + IC.heart + "<span>" + count(x.likes + (x.liked ? 1 : 0)) + "</span></button></div>" +
       '<p class="mvv-lv">' + lvl(x) + "</p>" +
       /* Know more sits inside the second line, over a fade, and only when the words run past two lines */
-      '<div class="mvv-dw"><p class="mvv-d">' + parts(x.d).about + '</p><button class="mvv-more" data-more="' + i + '">Know more</button></div></div></article>';
+      '<div class="mvv-dw"><p class="mvv-d">' + parts(x.d).about + '</p><button class="mvv-more" data-more="' + i + '"' + q + '>Know more</button></div></div></article>';
   }
   function section(sec) {
     return '<section class="mvv-sec"><div class="mvv-h"><h2>' + sec.h + '</h2><a class="mvv-all" href="#v-' + sec.k + '">See all' + IC.chev + "</a></div>" +
-      '<div class="mvv-rail">' + sec.items.map(function (x) { return card(x); }).join("") + "</div></section>";
+      '<div class="mvv-rail">' + sec.items.map(function (x) { return card(x, null, sec.k); }).join("") + "</div></section>";
   }
   var savedRow = function () { return SAVED.length ? section({ k: "saved", h: "Saved", items: SAVED.slice().reverse() }) : ""; };
   /* See all: every video in a row, one under another, full width */
   function list(k) {
     var sec = k === "saved" ? { h: "Saved", items: SAVED.slice().reverse() } : S.filter(function (s) { return s.k === k; })[0];
-    if (!sec) return null;
-    return { h: sec.h, n: sec.items.length, html: '<div class="mvv"><div class="mvv-vlist">' + (sec.items.length ? sec.items.map(function (x) { return card(x); }).join("")
-      : '<p class="mvv-none">Nothing saved yet. Tap the bookmark on any video to keep it here.</p>') + "</div></div>" };
+    if (!sec || !sec.items.length) return null;   /* Saved only exists once something is saved: no empty page, back to Learn */
+    return { h: sec.h, n: sec.items.length, html: '<div class="mvv"><div class="mvv-vlist">' + sec.items.map(function (x) { return card(x, null, k); }).join("") + "</div></div>" };
   }
   /* a Know more only where the two lines actually cut something off */
   function fit(root) { (root || document).querySelectorAll(".mvv-dw").forEach(function (w) { var p = w.firstChild; w.classList.toggle("cut", p.scrollHeight > p.clientHeight + 1); }); }
@@ -98,39 +98,54 @@
   }
 
   /* Know more: the whole description in a sheet. Circle X top right, title top left, no handle, at most 90% tall */
-  function about(x) {
+  function about(x, k) {
     var p = parts(x.d), list = function (h, a, tag) { return a ? "<h6>" + h + "</h6><" + tag + ">" + a.map(function (s) { return "<li>" + s + "</li>"; }).join("") + "</" + tag + ">" : ""; };
     var sh = document.createElement("div"); sh.className = "mvv-sheet";
     sh.innerHTML = '<div class="mvv-dim"></div><div class="mvv-panel" role="dialog" aria-modal="true" aria-label="' + x.t + '"><div class="mvv-ph"><div><b>' + x.t + "</b><span>" + lvl(x) + '</span></div><button class="mvv-x" aria-label="Close">' + IC.x + "</button></div>" +
       '<div class="mvv-sb"><p>' + p.about + "</p>" + list("Steps to perform", p.steps, "ol") + list("Do’s", p.dos, "ul") + list("Don’ts", p.donts, "ul") + "</div>" +
-      '<div class="mvv-sf"><button class="mvv-go" data-play="' + ALL.indexOf(x) + '">' + IC.play + "Play video</button></div></div>";
+      '<div class="mvv-sf"><button class="mvv-go" data-play="' + ALL.indexOf(x) + '"' + (k ? ' data-q="' + k + '"' : "") + '>' + IC.play + "Play video</button></div></div>";
     document.body.appendChild(sh);
     requestAnimationFrame(function () { sh.classList.add("on"); });
     var close = function () { sh.classList.remove("on"); setTimeout(function () { sh.remove(); }, 300); };
     sh.querySelector(".mvv-dim").onclick = sh.querySelector(".mvv-x").onclick = close;
     sh.querySelector(".mvv-go").addEventListener("click", close);
   }
-  function toast(t) {
-    var el = document.createElement("div"); el.className = "mvv-toast"; el.setAttribute("role", "status"); el.textContent = t;
-    document.body.appendChild(el); requestAnimationFrame(function () { el.classList.add("on"); });
-    setTimeout(function () { el.classList.remove("on"); setTimeout(function () { el.remove(); }, 300); }, 1800);
+  /* the system toast, as Move and Eat draw it (move/index.html): top of the screen, light, a tick or a cross on a
+     solid disc, one line, nothing to tap. type: "success" (default) or "error" */
+  var TICO = {
+    success: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+    error: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>'
+  };
+  var tEl, tT;
+  function toast(msg, type) {
+    type = type === "error" ? "error" : "success";
+    if (!tEl) { tEl = document.createElement("div"); tEl.setAttribute("role", "status"); document.body.appendChild(tEl); }
+    tEl.className = "toast " + type;
+    tEl.innerHTML = '<span class="ti">' + TICO[type] + "</span><span>" + msg + "</span>";
+    tEl.classList.remove("on"); void tEl.offsetWidth; tEl.classList.add("on");
+    clearTimeout(tT); tT = setTimeout(function () { tEl.classList.remove("on"); }, 3000);
+  }
+  function anim(sel, on) {
+    document.querySelectorAll(sel).forEach(function (l) { l.classList.remove("pop", "out"); void l.offsetWidth; l.classList.add(on ? "pop" : "out"); });
   }
   document.addEventListener("click", function (e) {
     var b = e.target.closest("[data-play],[data-like],[data-mark],[data-more]"); if (!b) return;
     var d = b.dataset;
-    if (d.play) return window.MVVPLAYER && window.MVVPLAYER.open(ALL[d.play]);
-    if (d.more) return about(ALL[d.more]);
+    if (d.play) return window.MVVPLAYER && window.MVVPLAYER.open(ALL[d.play], false, false, queue(d.q, ALL[d.play]));
+    if (d.more) return about(ALL[d.more], d.q);
     if (d.like) {
       var x = ALL[d.like]; x.liked = !x.liked;
       /* the same video can sit in two rows (Saved and its own), so every copy changes together */
-      document.querySelectorAll('[data-like="' + d.like + '"]').forEach(function (l) { l.setAttribute("aria-pressed", x.liked); l.querySelector("span").textContent = count(x.likes + (x.liked ? 1 : 0)); });
+      anim('[data-like="' + d.like + '"]', x.liked);
+      document.querySelectorAll('[data-like="' + d.like + '"]').forEach(function (l) { l.setAttribute("aria-pressed", x.liked); l.querySelector("span:not(.mvv-ring)").textContent = count(x.likes + (x.liked ? 1 : 0)); });
       return;
     }
     var m = ALL[d.mark], k = SAVED.indexOf(m);
     if (k < 0) SAVED.push(m); else SAVED.splice(k, 1);
     document.querySelectorAll('[data-mark="' + d.mark + '"]').forEach(function (l) { l.setAttribute("aria-pressed", k < 0); });
+    anim('[data-mark="' + d.mark + '"]', k < 0);
     var host = document.querySelector(".mvv-saved"); if (host) { host.innerHTML = savedRow(); fit(host); }
-    toast(k < 0 ? "Saved. Find it under Saved." : "Removed from Saved");
+    toast(k < 0 ? "Saved. Find it under Saved." : "Removed from Saved.");
   });
 
   var css = '\
@@ -144,7 +159,7 @@
 .mvv-rail{display:flex;gap:16px;overflow-x:auto;padding:2px var(--gut,16px) 8px;scroll-snap-type:x mandatory;scroll-padding-left:var(--gut,16px);scrollbar-width:none;align-items:flex-start}.mvv-rail::-webkit-scrollbar{display:none}\
 .mvv-rail>.mvv-card{flex:0 0 296px;scroll-snap-align:start}\
 .mvv-week{padding:0 var(--gut,16px)}\
-.mvv-vlist{display:flex;flex-direction:column;gap:28px;padding:4px var(--gut,16px) 8px}.mvv-none{margin:24px 0;font:400 15px/22px Roboto,sans-serif;color:var(--g-500)}\
+.mvv-vlist{display:flex;flex-direction:column;gap:28px;padding:4px var(--gut,16px) 8px}\
 /* the cover: the whole picture at its own 3.06:1, in FlipFeed\'s sticker edge */\
 .mvv-cov{position:relative;aspect-ratio:' + RATIO + ';border-radius:10px;border:1px solid var(--in-500,#6172F3);box-shadow:3px 4px 0 var(--in-300,#A4BCFD);background:var(--g-100)}\
 .mvv .mvv-play{position:absolute;inset:0;display:block;border-radius:9px;overflow:hidden}\
@@ -152,13 +167,13 @@
 .mvv-min{position:absolute;left:8px;bottom:8px;display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 9px 0 7px;border-radius:999px;background:#101828b3;color:#fff;font:600 12px/1 Roboto,sans-serif;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}\
 .mvv-min svg{width:12px;height:12px}\
 .mvv .mvv-mark::after{content:"";position:absolute;inset:-8px}.mvv .mvv-mark{position:absolute;right:6px;top:6px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;color:#fff;background:linear-gradient(160deg,#3a425680 0%,#10182866 55%,#1d243380 100%);box-shadow:inset 0 1px 1px #ffffff73,inset 0 0 0 .5px #ffffff4d,0 1px 4px #10182826;backdrop-filter:blur(10px) saturate(1.6);-webkit-backdrop-filter:blur(10px) saturate(1.6)}.mvv .mvv-mark::before{content:"";position:absolute;inset:1px 6px auto;height:42%;border-radius:50% 50% 40% 40%;background:linear-gradient(#ffffff40,#ffffff00);pointer-events:none}.mvv .mvv-mark svg{position:relative}.mvv-mark svg{position:relative}.mvv .mvv-mark[aria-pressed=true]{color:#fff}.mvv-mark svg{width:14px;height:14px;fill:none;transition:fill .2s,color .2s}\
-.mvv .mvv-mark[aria-pressed=true]{background:linear-gradient(160deg,#3CCB8Bd9,#299D6Bcc 55%,#2A805Ad9);box-shadow:inset 0 1px 1px #ffffffb3,inset 0 -1px 1px #ffffff33,inset 0 0 0 .5px #ffffff66,0 1px 4px #299d6b40}.mvv-mark[aria-pressed=true] svg{fill:currentColor}\
+.mvv .mvv-mark[aria-pressed=true]{color:#fff}.mvv-mark[aria-pressed=true] svg{fill:currentColor}\
 /* the words */\
 .mvv-body{display:flex;flex-direction:column;padding:12px 2px 0}\
 .mvv-tag{align-self:flex-start;margin-bottom:10px;display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 10px 0 8px;border-radius:8px;border:1px solid transparent;font:500 12.5px/1 Roboto,sans-serif;letter-spacing:.25px;color:var(--ok-600,#039855);background:linear-gradient(90deg,var(--ok-100,#D1FADF),var(--ok-50,#ECFDF3) 30%,var(--ok-50,#ECFDF3) 70%,var(--ok-100,#D1FADF)) padding-box,conic-gradient(from 180deg,var(--ok-600,#039855),var(--ok-300,#6CE9A6) 25%,var(--ok-300,#6CE9A6) 50%,var(--ok-600,#039855) 75%,var(--ok-300,#6CE9A6)) border-box}.mvv-tag span{font-size:13px}\
 .mvv-top{display:flex;align-items:flex-start;gap:8px}\
 .mvv-top h3{flex:1;min-width:0;margin:0;font:600 16px/22px Roboto,sans-serif;letter-spacing:.2px;color:var(--g-900)}\
-.mvv .mvv-like{flex:none;display:inline-flex;align-items:center;gap:3px;height:30px;min-width:30px;justify-content:center;margin:-4px -6px 0 0;padding:0 6px;border-radius:999px;color:var(--g-500);font:500 13px/1 Roboto,sans-serif;font-variant-numeric:tabular-nums}\
+.mvv .mvv-like{position:relative;flex:none;display:inline-flex;align-items:center;gap:3px;height:30px;min-width:30px;justify-content:center;margin:-4px -6px 0 0;padding:0 6px;border-radius:999px;color:var(--g-500);font:500 13px/1 Roboto,sans-serif;font-variant-numeric:tabular-nums}\
 .mvv-like svg{width:19px;height:19px;fill:none;transition:fill .2s,color .2s,transform .2s cubic-bezier(.2,.7,.2,1)}\
 .mvv-like:active svg{transform:scale(.88)}\
 .mvv .mvv-like[aria-pressed=true]{color:#E3405A}.mvv-like[aria-pressed=true] svg{fill:currentColor}\
@@ -180,10 +195,33 @@
 .mvv-sb ol,.mvv-sb ul{margin:0;padding-left:20px}.mvv-sb li{margin-bottom:6px}.mvv-sb li::marker{color:var(--g-400,#98A2B3)}\
 .mvv-sf{padding:12px 16px calc(16px + var(--gf-home-h,20px) + env(safe-area-inset-bottom,0px));border-top:1px solid var(--g-100)}\
 .mvv-sheet .mvv-go{width:100%;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--brand-600);color:#fff;font:600 16px/1 Roboto,sans-serif;box-shadow:0 4px 0 var(--brand-700,#2A805A)}.mvv-go svg{width:18px;height:18px}\
-.mvv-toast{position:fixed;left:50%;bottom:96px;z-index:70;transform:translate(-50%,8px);opacity:0;padding:10px 16px;border-radius:12px;background:var(--g-900);color:#fff;font:500 14px/20px Roboto,sans-serif;box-shadow:0 8px 24px #10182833;transition:opacity .2s,transform .3s cubic-bezier(.2,.7,.2,1);pointer-events:none;white-space:nowrap}\
-.mvv-toast.on{opacity:1;transform:translate(-50%,0)}\
-@media (prefers-reduced-motion:reduce){.mvv-dim,.mvv-panel,.mvv-like svg,.mvv-toast{transition:none}}';
+.toast{position:fixed;left:50%;top:62px;transform:translate(-50%,-12px);width:calc(100% - var(--gut,16px) * 2);max-width:358px;display:flex;align-items:center;gap:10px;padding:12px 16px 12px 12px;border-radius:var(--r-md,12px);background:#fff;color:var(--g-900);border:1px solid var(--g-300,#D0D5DD);font:500 14px/20px Roboto,sans-serif;box-shadow:0 10px 15px -3px rgba(16,24,40,.10),0 4px 6px -4px rgba(16,24,40,.08);opacity:0;pointer-events:none;transition:opacity .24s cubic-bezier(.2,0,0,1),transform .32s cubic-bezier(.16,1,.3,1);z-index:70}\
+.toast.on{opacity:1;transform:translate(-50%,0)}.toast span{flex:1;min-width:0}\
+.toast.success{background:#ECFDF3;border-color:#039855}.toast.error{background:#FEF3F2;border-color:#D92D20}\
+.toast .ti{flex:0 0 auto;display:grid;place-items:center;width:22px;height:22px;border-radius:9999px}.toast.success .ti{background:#039855}.toast.error .ti{background:#D92D20}\
+/* on press: the mark swells a little and settles, a faint ring breathes out once; unpressing just settles */\
+.mvv-like,.mvv-mark{isolation:isolate}\
+.mvv .mvv-mark>*{grid-area:1/1}\
+.mvv-like.pop svg,.mvv-mark.pop svg{animation:mvvSwell .42s cubic-bezier(.2,.7,.2,1)}\
+.mvv-like.out svg,.mvv-mark.out svg{animation:mvvSettle .28s cubic-bezier(.2,.7,.2,1)}\
+@keyframes mvvSwell{0%{transform:scale(.86)}45%{transform:scale(1.2)}100%{transform:scale(1)}}\
+@keyframes mvvSettle{0%{transform:scale(.9)}100%{transform:scale(1)}}\
+.mvv-ring{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;border:1.5px solid currentColor;opacity:0;pointer-events:none;z-index:-1}\
+.mvv-like .mvv-ring{left:15px}\
+.pop>.mvv-ring{animation:mvvRing .5s cubic-bezier(.2,.7,.2,1)}\
+@keyframes mvvRing{0%{transform:scale(.5);opacity:.5}100%{transform:scale(1.5);opacity:0}}\
+.mvv-like span:not(.mvv-ring){display:inline-block}.mvv-like.pop span:not(.mvv-ring){animation:mvvTick .3s cubic-bezier(.2,.7,.2,1)}\
+@keyframes mvvTick{0%{transform:translateY(5px);opacity:0}100%{transform:none;opacity:1}}\
+@media (prefers-reduced-motion:reduce){.toast{transition:opacity .2s linear;transform:translate(-50%,0)}.mvv-dim,.mvv-panel,.mvv-like svg{transition:none}.pop svg,.out svg,.pop>.mvv-ring,.mvv-like.pop span{animation:none!important}}';
   var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
-  window.MVV = { page: page, card: card, section: section, list: list, fit: fit, parts: parts, S: S, WEEK: WEEK, IMG: IMG };
+  function queue(k, x) {
+    if (k === "saved") return { k: k, h: "Saved", items: SAVED.slice().reverse() };
+    var sec = S.filter(function (s) { return k ? s.k === k : s.items.indexOf(x) >= 0; })[0];
+    return sec ? { k: sec.k, h: sec.h, items: sec.items } : null;
+  }
+  function find(q) { q = q.toLowerCase(); return [WEEK].concat.apply([WEEK], S.map(function (s) { return s.items; })).filter(function (x) { return x.t.toLowerCase().indexOf(q) >= 0; })[0]; }
+  function save(x) { if (x && SAVED.indexOf(x) < 0) SAVED.push(x); }
+  function more(x) { if (ALL.indexOf(x) < 0) ALL.push(x); about(x); }
+  window.MVV = { queue: queue, find: find, save: save, more: more, page: page, card: card, section: section, list: list, fit: fit, parts: parts, S: S, WEEK: WEEK, IMG: IMG };
 })();

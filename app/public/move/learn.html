@@ -7,7 +7,7 @@
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap">
 <link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
-<link rel="stylesheet" href="/move/player.css">
+<link rel="stylesheet" href="/move/player.css?v=16">
 <style>
   /* Move's Learn: the Exercise & Movement list, as the app draws it. Its own page, so nothing here leads into Eat.
      No Back at the top: the tab bar and the browser's own back do that. Photos: v7/img/move/learn/CREDITS.md.
@@ -34,14 +34,14 @@
   .sub { min-height: 100vh; }
   .subbar { position: sticky; top: 54px; z-index: 5; display: flex; align-items: center; gap: 6px; height: 56px; padding: 0 12px 0 6px; background: #fff; border-bottom: 1px solid var(--g-100); }
   .subbar button { width: 44px; height: 44px; border: 0; background: none; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--g-900); }
-  .subbar button svg { width: 22px; height: 22px; }
+  .subbar button img { width: 22px; height: 22px; display: block; }   /* GoodFlip's own back mark, as on the tab bar and Log workout */
   .subbar h2 { flex: 1; min-width: 0; margin: 0; font: 600 18px/24px Roboto, sans-serif; letter-spacing: .2px; }
   .subbar span { font: 400 13px/18px Roboto, sans-serif; color: var(--g-500); }
   [hidden] { display: none !important; }
   .row { display: flex; gap: 16px; padding: 18px 0 16px; border-bottom: 1px solid var(--g-200); cursor: pointer; }
   .row:last-child { border-bottom: 0; }
-  .th { flex: 0 0 88px; height: 88px; border-radius: 10px; overflow: hidden; border: 1px solid var(--g-200); box-shadow: 2px 3px 0 0 var(--g-200); background: var(--g-50); }
-  .th img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .row .th { flex: 0 0 88px; height: 88px; border-radius: 10px; overflow: hidden; border: 1px solid var(--g-200); box-shadow: 2px 3px 0 0 var(--g-200); background: var(--g-50); }
+  .row .th img { display: block; width: 100%; height: 100%; object-fit: cover; }
   .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: space-between; min-height: 88px; }
   .tx b { margin: 4px 0 0; font: 600 18px/25px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-900); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .tx span { margin-top: 10px; font: 400 14px/20px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-500); }
@@ -62,7 +62,7 @@
     <div id="videos"></div>
   </main>
   <main class="sub" id="sub" hidden>
-    <div class="subbar"><button id="subBack" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 18l-6-6 6-6"/></svg></button><h2 id="subT"></h2><span id="subN"></span></div>
+    <div class="subbar"><button id="subBack" aria-label="Back"><img src="/v7/icons/move/log/back.svg" alt=""></button><h2 id="subT"></h2><span id="subN"></span></div>
     <div id="subB"></div>
   </main>
   <nav class="nav">
@@ -93,7 +93,12 @@
 <script src="/move/vplayer.js"></script>
 <script>
   var home = document.getElementById("home"), sub = document.getElementById("sub"), y = 0;
+  /* for the doc: ?saved=pursed,apical saves before the page draws; ?more=mountain opens Know more; ?play=cat opens the player, &view=portrait out of full screen */
+  var Q = new URLSearchParams(location.search);
+  (Q.get("saved") || "").split(",").filter(Boolean).forEach(function (w) { MVV.save(MVV.find(w)); });
   document.getElementById("videos").innerHTML = MVV.page();
+  if (Q.get("more")) setTimeout(function () { MVV.more(MVV.find(Q.get("more"))); }, 300);
+  if (Q.get("play")) setTimeout(function () { var x = MVV.find(Q.get("play")); MVVPLAYER.open(x, Q.get("view") === "portrait", Q.has("paused"), MVV.queue(null, x)); }, 300);
   /* #articles, #v-<row> or #v-saved: a page of its own; no hash: home, back where it was */
   function route() {
     var h = location.hash.slice(1), page = null;
