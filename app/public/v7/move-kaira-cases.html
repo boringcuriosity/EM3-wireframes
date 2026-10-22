@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Momentum commentary</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* Move: the line under the Momentum score and what KAIRA says behind it, laid out as Eat's v7/score-commentary.html.
+     The phone is the live Move screen: a case runs (?day, ?act), the line says it, and tapping "Learn more by asking
+     KAIRA" opens her answer (move/say-kaira.js). */
+  :root{ --g-200:#E4E7EC; --g-500:#667085; --g-600:#475467; --g-900:#101828; --in-50:#EEF4FF; --in-600:#444CE7; --in-700:#3538CD; }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;font-family:Roboto,system-ui,sans-serif;letter-spacing:.25px;color:var(--g-900)}
+  .page{max-width:1760px;margin:0 auto;padding:44px 24px 80px}
+  h1{font-size:30px;line-height:38px;font-weight:600;margin:0 0 8px}
+  .lede{font-size:15px;line-height:24px;color:var(--g-600);max-width:80ch;margin:0}
+  .duo{display:flex;gap:40px;align-items:flex-start;margin-top:32px;flex-wrap:wrap}
+  .list{flex:1;min-width:320px;max-width:620px;display:flex;flex-direction:column;gap:8px}
+  .list h3{font-size:13px;letter-spacing:.6px;text-transform:uppercase;color:var(--g-500);margin:16px 0 4px;font-weight:600}
+  .list h3:first-child{margin-top:0}
+  .list button{display:grid;grid-template-columns:1fr auto;gap:4px 12px;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid var(--g-200);background:#fff;cursor:pointer;font:400 13.5px/20px Roboto,sans-serif;color:var(--g-600);letter-spacing:.2px}
+  .list button:hover{border-color:#C7D7FE}
+  .list button.on{border-color:var(--in-600);background:var(--in-50);box-shadow:0 0 0 1px var(--in-600)}
+  .list .nm{font-weight:600;color:var(--g-900)}
+  .list .ln{grid-column:1 / -1}
+  .list .lk{color:var(--in-700);font-weight:500}
+  .list .kg{background:linear-gradient(90deg,#444CE7,#1A9FBF);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}
+  .list .dc{justify-self:end;height:20px;padding:0 6px;border-radius:6px;display:inline-flex;align-items:center;font:600 12px/1 Roboto,sans-serif;font-variant-numeric:tabular-nums}
+  .list .dc.calm{background:#F2F4F7;color:#475467;box-shadow:inset 0 0 0 1px #E4E7EC}.list .dc.up{background:#ECFDF3;color:#067647;box-shadow:inset 0 0 0 1px #ABEFC6}
+  .list .why{grid-column:1 / -1;font-size:12.5px;line-height:18px;color:var(--g-500)}
+  .col{width:390px;position:sticky;top:24px}
+  .phone{width:390px;height:780px;border-radius:44px;overflow:hidden;background:#fff;border:1px solid var(--g-200);box-shadow:0 24px 48px -18px rgba(16,24,40,.22)}
+  .phone iframe{width:390px;height:780px;border:0;display:block}
+  .meta{font-size:12.5px;line-height:18px;color:var(--g-500);margin-top:10px}
+  .meta a{color:var(--g-600);font-weight:600}
+  @media (max-width:720px){ .col{position:static;width:100%} .phone{width:100%;max-width:390px} }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>A line under the Momentum score</h1>
+  <p class="lede">After each log, one short sentence under the score says how much that log moved it, as on Eat. Tapping "Learn more by asking KAIRA" opens KAIRA with the question already asked, and she walks through what was logged, what it added, the rule behind it and what is still open. The line on arrival is a nudge with no link, as Eat's not-started line. Momentum never takes points away, so there is no line or answer about a drop. Pick a case on the right, then tap the line on the phone.</p>
+  <div class="duo">
+    <div class="col"><div class="phone"><iframe id="ph" title="Move screen"></iframe></div>
+      <p class="meta" id="meta"></p></div>
+    <div class="list" id="bar"></div>
+  </div>
+</div>
+<script>
+/* [query, name, delta, tone, the line, what KAIRA walks through] */
+var G = [
+  ["The four moments", [
+    ["day=zero", "Zero", "0", "calm", "Log your first workout to see your Momentum score grow.", "", "Nothing logged yet, so no KAIRA link, as Eat's not-started line: there is nothing to explain."],
+    ["act=walk", "+x%", "+23%", "up", "Your score went up by 23%, keep logging your movement.", 1, "What was logged and what it added (the walk's calories, plus 10% for a new part of the day), the rule behind it, then what is still open."],
+    ["day=nearly&act=cross", "Crossed 80%", "+12%", "up", "We are proud of you! Today's medal is yours. Your score went up by 12%.", 1, "The medal first, then what took it past 80%, and what is left for tonight."],
+    ["day=plan&now=22&act=walk", "Reached 100%", "+10%", "up", "Amazing! You reached 100% today. Your score went up by 10%.", 1, "A night walk makes every part of the day count: 100%, with nothing left to chase today."]
+  ]]
+];
+var NOW = G[0][1][1];
+var CHEV = '<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-left:1px"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
+var bar = document.getElementById("bar"), ph = document.getElementById("ph"), meta = document.getElementById("meta");
+G.forEach(function (g) {
+  var h = document.createElement("h3"); h.textContent = g[0]; bar.appendChild(h);
+  g[1].forEach(function (c) {
+    var b = document.createElement("button");
+    b.innerHTML = '<span class="nm">' + c[1] + '</span><span class="dc ' + c[3] + '">' + c[2] + '</span><span class="ln">' + c[4] +
+      (c[5] ? ' <span class="lk">Learn more by asking <span class="kg">KAIRA</span>' + CHEV + "</span>" : "") + '</span><span class="why">' + c[6] + "</span>";
+    b.onclick = function () { NOW = c; [].forEach.call(bar.querySelectorAll("button"), function (x) { x.classList.toggle("on", x === b); }); load(); };
+    if (c === NOW) b.className = "on";
+    bar.appendChild(b);
+  });
+});
+function load() {
+  var href = "/move/index.html" + (NOW[0] ? "?" + NOW[0] : "");
+  ph.src = href;
+  meta.innerHTML = (NOW[5] ? "Wait for the line, then tap Learn more by asking KAIRA. " : "") + '<a href="' + href + '" target="_blank">Open full size</a>';
+}
+/* the score's hero waits for its host to say go */
+addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+load();
+</script>
+</body>
+</html>

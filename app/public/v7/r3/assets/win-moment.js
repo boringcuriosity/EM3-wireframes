@@ -104,7 +104,6 @@
   var seg = function (t, a, b) { return cl((t - a) / (b - a)); };
   var eOut = function (x) { return 1 - Math.pow(1 - x, 3); };
   var eIO = function (x) { return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
-  var eBack = function (x) { return 1 + 2.2 * Math.pow(x - 1, 3) + 1.2 * Math.pow(x - 1, 2); };
   var mix = function (a, b, k) { return a + (b - a) * k; };
   var buzz = function (ms) { try { navigator.vibrate && navigator.vibrate(ms || 8); } catch (e) {} };
 
@@ -140,7 +139,7 @@
       if (!disc) return;
       // the tick lands first, then each line rises in on its own beat, and every number counts up
       c.style.opacity = (w > 0 ? 1 : 0) * (exitAt ? 1 - seg(ex(), 0, .3) : 1);
-      disc.style.transform = "scale(" + (w < .3 ? eBack(seg(w, 0, .3)) : 1) + ")";
+      disc.style.transform = "scale(" + eOut(seg(w, 0, .3)) + ")";   /* settles, no overshoot */
       tick.style.strokeDashoffset = 76 * (1 - eOut(seg(w, .15, .4)));
       c.querySelectorAll("[data-in]").forEach(function (el) {
         var k = eOut(seg(w, +el.dataset.in, +el.dataset.in + .45));

@@ -41,7 +41,7 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stro
 /* ---------- portal shell ---------- */
 .app{display:grid;grid-template-columns:60px 200px 1fr;min-height:100vh}
 .rail{background:var(--surface);border-right:1px solid var(--line-2);display:flex;flex-direction:column;align-items:center;gap:6px;padding:14px 0}
-.rail .logo{width:26px;height:26px;margin-bottom:18px}
+.rail .logo{width:28px;height:28px;object-fit:contain;margin-bottom:18px}
 .rail button{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:var(--ink-2)}
 .rail button.on{background:var(--jade-100);color:var(--jade)}
 .side{background:var(--surface);border-right:1px solid var(--line-2);padding:10px 10px 24px;font-size:13px}
@@ -339,6 +339,35 @@ body.k-open .kc{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
 @media (max-width:1240px){.ns-body,.kpis{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:700px){#kpis{grid-template-columns:1fr}}
 @media (max-width:860px){.app{grid-template-columns:1fr}.rail,.side{display:none}.coaches{grid-template-columns:1fr}.content{padding:16px}.ns .tools{margin-left:0;width:100%;flex-wrap:wrap}.ns .sub{margin-left:0}}
+
+
+
+/* three KPI cards: the score, days, medal days */
+#kpis{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) minmax(0,1fr)}
+.kpi.medal{justify-content:center}
+.kpi.medal .stat-val{font-size:26px}
+@media (max-width:700px){#kpis{grid-template-columns:1fr}}
+
+/* ---------- tags: the app's own verdict (r3/goodflip-ui.css .gf-verdict, r3/eat.html): Roboto 12, a soft wash and a 1px conic
+   border, green for on track, gold for room to grow, red for needs attention, grey for neutral; a small emoji leads, as in the app ---------- */
+.pill{height:22px;padding:0 8px;gap:4px;border-radius:8px;border:1px solid transparent;font:400 12px/14.4px Roboto,system-ui,sans-serif;letter-spacing:.25px;
+  background:linear-gradient(90deg,#d1fadf,#ecfdf3 30%,#ecfdf3 70%,#d1fadf) padding-box,conic-gradient(from 180deg,#039855,#32d583 25%,#32d583 50%,#039855 75%,#32d583) border-box;color:#039855}
+.pill.ok,.pill.solid{background:linear-gradient(90deg,#d1fadf,#ecfdf3 30%,#ecfdf3 70%,#d1fadf) padding-box,conic-gradient(from 180deg,#039855,#32d583 25%,#32d583 50%,#039855 75%,#32d583) border-box;color:#039855}
+.pill.warn,.pill.medal{background:linear-gradient(90deg,#fef1c7,#fffbee 30%,#fffbee 70%,#fef1c7) padding-box,conic-gradient(from 180deg,#826e2d,#e7c144 25%,#e7c144 50%,#826e2d 75%,#e7c144) border-box;color:#826e2d}
+.pill.bad{background:linear-gradient(90deg,#fee4e2,#fef3f2 30%,#fef3f2 70%,#fee4e2) padding-box,conic-gradient(from 180deg,#d92d20,#f97066 25%,#f97066 50%,#d92d20 75%,#f97066) border-box;color:#d92d20}
+.pill.mute{background:linear-gradient(90deg,#f2f4f7,#f9fafb 30%,#f9fafb 70%,#f2f4f7) padding-box,conic-gradient(from 180deg,#d0d5dd,#e4e7ec 25%,#e4e7ec 50%,#d0d5dd 75%,#e4e7ec) border-box;color:#475467}
+.pill .d{display:none}
+/* progress in the KPI cards and the score ring stays neutral: the colour belongs to the chart */
+.kpi.hero{--band-50:#f9fafb;--band-100:#eaecf0}
+
+
+/* the tag legend in the Average score tooltip: each tag as it appears, then what it means */
+.tt-b .tags{list-style:none;padding:0;margin:8px 0 0;display:flex;flex-direction:column;gap:8px}
+.tt-b .tags li{display:grid;grid-template-columns:132px 1fr;gap:8px;align-items:start;margin:0}
+.tt-b .tags .pill{justify-self:start}
+
+/* the rail and the patient menu stay put while the overview scrolls */
+.rail,.side{position:sticky;top:0;height:100vh;overflow-y:auto;align-self:start}
 </style>
 </head>
 <body>
@@ -376,7 +405,8 @@ body.k-open .kc{opacity:1;pointer-events:auto;transform:translate(-50%,-50%)}
 let ttN=0;const tip=(label,html,cls='')=>{const id='tt'+(++ttN);return `<span class="tt"><button type="button" class="info" aria-label="About ${label}" aria-describedby="${id}">${ic('info')}</button><span class="tt-b ${cls}" role="tooltip" id="${id}">${html}</span></span>`};
 const HELP={
   score:`<b>How the score works</b>Each meal in the diet plan has protein, carbs and fats targets.<ul><li>A macro gets full marks from 80% of its target up to 20% above it, or at least 3 g above.</li><li>Below that it earns part of the mark. Well above it, it loses marks.</li><li>Each meal counts in proportion to its calories, and a full day adds up to 100.</li><li>A meal that is not logged scores zero.</li></ul>`,
-  avg:`<b>Average score</b>The average of the daily scores on days with at least one meal logged.<ul><li><i class="bd" style="background:var(--great)"></i>85 and above: Great</li><li><i class="bd" style="background:var(--solid)"></i>70 to 84: Solid</li><li><i class="bd" style="background:var(--grow)"></i>50 to 69: Room to grow</li><li><i class="bd" style="background:var(--att)"></i>Below 50: Needs attention</li></ul>`,
+  avg:`<b>Average score</b>The average of the daily scores on days with at least one meal logged.<ul class="tags"><li><span class="pill ok">🏅 Great</span><span>80 and above. Meals came very close to the diet plan targets. The user earned a medal in the app that day.</span></li><li><span class="pill solid">✨ Solid</span><span>70 to 79. Close to the targets, with a little still to gain.</span></li><li><span class="pill warn">⛅ Room to grow</span><span>50 to 69. Some meals are well off their targets.</span></li><li><span class="pill bad">⚠️ Needs attention</span><span>Below 50. Most meals are far from their targets, or not logged.</span></li></ul>`,
+  medal:`<b>Medal days</b>Days that scored 80 or more, out of the days logged. On each one the user earned a medal in the app.`,
   days:`<b>Days logged</b>Days with at least one meal logged. Days with nothing logged are left out of the average, so they do not pull it down.`,
   chart:`<b>Reading the chart</b>Each bar is the score for one day, or the average for a week or month.<ul><li>The colours show the points protein, carbs and fats earned, each worth up to 33.</li><li>The empty top of a bar is the points missed.</li><li>The shaded bands behind match the score bands.</li><li>The dashed line is the average for the range.</li></ul>`,
   macros:`<b>Macros</b>Average eaten per day against the daily target.<ul><li>The striped zone is the target range: 80% of the target up to 20% above it.</li><li>The ring marks what was eaten.</li><li>A day is in range when the macro lands inside the striped zone.</li></ul>`
@@ -384,7 +414,7 @@ const HELP={
 
 <div class="app">
   <nav class="rail" aria-label="Portal">
-    <svg class="logo" viewBox="0 0 26 26" aria-hidden="true"><path d="M4 4l18 18M22 4 4 22" stroke="#299d6b" stroke-width="4" stroke-linecap="round"/><circle cx="20" cy="6" r="3.2" fill="#e7c144"/></svg>
+    <img class="logo" src="icons/goodflip-logo-small.png" alt="GoodFlip">
     <button aria-label="Home"><script>document.write(ic('home'))</script></button>
     <button aria-label="Chats"><script>document.write(ic('chat'))</script></button>
     <button aria-label="Calendar"><script>document.write(ic('cal'))</script></button>
@@ -536,7 +566,7 @@ for(let d=new Date(START),i=0;d<=TODAY;d.setDate(d.getDate()+1),i++){
 /* ---------- helpers ---------- */
 const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
 const fmt=(d,o={day:'numeric',month:'short'})=>d.toLocaleDateString('en-GB',o);
-const BANDS=[[85,100,'Great','great','ok'],[70,85,'Solid','solid','solid'],[50,70,'Room to grow','grow','warn'],[0,50,'Needs attention','att','bad']];
+const BANDS=[[80,100,'Great','great','ok'],[70,80,'Solid','solid','solid'],[50,70,'Room to grow','grow','warn'],[0,50,'Needs attention','att','bad']];
 const bandOf=v=>BANDS.find(b=>v>=b[0])||BANDS[3];
 const band=v=>{const b=bandOf(v);return [b[2],b[4]]};
 const bandCol=v=>`var(--${bandOf(v)[3]})`;
@@ -544,7 +574,7 @@ const bandVars=v=>{const k=bandOf(v)[3];return `--band-50:var(--${k}-50);--band-
 const tile=(k,sz='')=>{const m=MAC.find(x=>x.k==k);return `<i class="mt ${sz} ${k}"><i class="glyph-${m.g}"></i></i>`};
 function agg(days){
   const L=days.filter(d=>d.logged);if(!L.length)return null;
-  const o={n:days.length,nl:L.length,score:avg(L.map(d=>d.score)),cov:avg(L.map(d=>d.cov)),pts:{},ratio:{},m:{},A:{},inR:{}};
+  const o={n:days.length,nl:L.length,medal:L.filter(d=>d.score>=80).length,score:avg(L.map(d=>d.score)),cov:avg(L.map(d=>d.cov)),pts:{},ratio:{},m:{},A:{},inR:{}};
   for(const k in T){o.pts[k]=avg(L.map(d=>d.pts[k]));o.ratio[k]=avg(L.map(d=>d.ratio[k]));o.m[k]=avg(L.map(d=>d.m[k]));o.A[k]=avg(L.map(d=>d.A[k]));o.inR[k]=L.filter(d=>inRange(d.A[k],T[k])).length}
   return o;
 }
@@ -554,7 +584,7 @@ function gauge(v,size=84,sw=6){
   const c=size/2,r=c-sw/2-1,C=2*Math.PI*r;
   return `<div class="gauge${size<80?' sm':''}" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}" aria-hidden="true">
     <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--g100)" stroke-width="${sw}"/>
-    <circle class="arc" cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${bandCol(v)}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${v/100*C} ${C}"/></svg>
+    <circle class="arc" cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--g700)" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${v/100*C} ${C}"/></svg>
     <div class="num"><b style="color:var(--ink)">${Math.round(v)}</b></div></div>`;
 }
 function spark(vals,h,col='var(--jade)'){
@@ -591,15 +621,20 @@ function render(){
   kpis();chart();side();kline();
 }
 
+/* ---------- medal days: a day at 80 or more earns the user a medal in the app (r3/eat.html), as on Momentum ---------- */
+const EMO={'Great':'\u{1F3C5}','Solid':'\u2728','Room to grow':'\u26C5','Needs attention':'\u26A0\uFE0F'};
+
 /* ---------- KPI tiles ---------- */
 function kpis(){
   const [bn,bc]=band(P.score);
-  document.getElementById('kpis').innerHTML=`<div class="kpi hero" style="${bandVars(P.score)}">${gauge(P.score)}
-    <div class="meta"><div class="stat-label"><span>Average score${tip('the average score',HELP.avg,'l')}</span></div>
-      <div class="hero-line"><span class="pill ${bc}"><i class="d"></i>${bn}</span></div></div>
+  document.getElementById('kpis').innerHTML=`<div class="kpi hero">${gauge(P.score)}
+    <div class="meta"><div class="stat-label"><span>Average score${tip('the average score',HELP.avg,'l w')}</span></div>
+      <div class="hero-line"><span class="pill ${bc}">${EMO[bn]} ${bn}</span></div></div>
 </div>
   <div class="kpi days"><div class="stat-label"><span>Days logged${tip('days logged',HELP.days,'l')}</span></div><div class="stat-val">${P.nl}<small>of ${PD.length}</small></div>
-    <div class="meter"><i style="width:${P.nl/PD.length*100}%"></i></div></div>`;
+    <div class="meter"><i style="width:${P.nl/PD.length*100}%;--mc:var(--g500)"></i></div></div>
+  <div class="kpi medal"><div class="stat-label"><span>Medal days${tip('medal days',HELP.medal,'l')}</span></div><div class="stat-val">${P.medal}<small>of ${P.nl}</small></div>
+    <div class="meter"><i style="width:${P.nl?P.medal/P.nl*100:0}%;--mc:var(--g500)"></i></div></div>`;
 }
 
 /* ---------- stacked bar chart ---------- */
@@ -613,7 +648,7 @@ function chart(){
     g+=`<rect x="${pl}" y="${y(b)}" width="${iw}" height="${y(a)-y(b)}" fill="var(--${k}-50)"/>
       <rect x="${W-pr+(narrow?14:62)}" y="${y(b)+2}" width="4" height="${y(a)-y(b)-4}" rx="2" fill="var(--${k})"><title>${l}</title></rect>
       ${narrow?'':`<text class="band-l" x="${W-pr+72}" y="${(y(a)+y(b))/2+4}" fill="var(--${k})">${l}</text>`}`});
-  [0,50,70,85,100].forEach(v=>g+=`<line x1="${pl}" x2="${pl+iw}" y1="${y(v)}" y2="${y(v)}" stroke="${v?'#fff':'var(--g200)'}" stroke-width="${v?1.2:1}"/><text class="yl" x="${pl-8}" y="${y(v)+3}" text-anchor="end">${v}</text>`);
+  [0,50,70,80,100].forEach(v=>g+=`<line x1="${pl}" x2="${pl+iw}" y1="${y(v)}" y2="${y(v)}" stroke="${v?'#fff':'var(--g200)'}" stroke-width="${v?1.2:1}"/><text class="yl" x="${pl-8}" y="${y(v)+3}" text-anchor="end">${v}</text>`);
   B.forEach((b,i)=>{
     const x=pl+step*i+(step-bw)/2,cx=x+bw/2,a=b.a;
     g+=`<g class="bar${state.sel===i?' sel':''}" data-i="${i}" tabindex="0" role="button" aria-label="${b.title}: ${a?Math.round(a.score)+' out of 100':'nothing logged'}">
@@ -644,7 +679,7 @@ function chart(){
 function tipHtml(b){
   const a=b.a;if(!a)return `<div class="t1">${b.title}</div><div class="lost" style="border:0;margin-top:6px;padding:0">Nothing logged, so this day is left out of the average.</div>`;
   const offT=MAC.reduce((s,m)=>s+(100-a.m[m.k])/3,0)*a.cov/100,miss=100-a.cov;
-  return `<div class="t1"><span>${b.title}</span><span class="pill ${band(a.score)[1]}">${band(a.score)[0]}</span></div>
+  return `<div class="t1"><span>${b.title}</span><span style="display:flex;gap:4px"><span class="pill ${band(a.score)[1]}">${EMO[band(a.score)[0]]} ${band(a.score)[0]}</span></span></div>
   <div class="sc" style="color:${bandCol(a.score)}">${Math.round(a.score)}<small> of 100</small></div>
   ${MAC.map(m=>`<div class="r">${tile(m.k,'sm')}<span>${m.name}</span><div class="meter" style="--mc:${m.col}"><i style="width:${a.pts[m.k]/33.34*100}%"></i></div><b>${a.pts[m.k].toFixed(1)}</b></div>`).join('')}
   ${miss>=1?`<div class="lost">${Math.round(miss)} points lost to meals not logged.</div>`:''}`;
@@ -670,7 +705,7 @@ function side(){
   if(!a){el.innerHTML=head+`<div class="empty">${ic('plate')}<div>No meals were logged on this day.<br>It is left out of the average.</div></div>`}
   else{
     const one=a.n==1?b.days[0]:null,[bn,bc]=band(a.score),diff=Math.round(a.score-P.score);
-    el.innerHTML=head+`<div class="day-score" style="${bandVars(a.score)}">${gauge(a.score,56,5)}<div style="flex:1"><span class="pill ${bc}"><i class="d"></i>${bn}</span><small style="margin-top:5px">${diff>=0?'+':''}${diff} vs period average</small></div>
+    el.innerHTML=head+`<div class="day-score" style="${bandVars(a.score)}">${gauge(a.score,56,5)}<div style="flex:1"><span class="pill ${bc}">${EMO[bn]} ${bn}</span><small style="margin-top:5px">${diff>=0?'+':''}${diff} vs period average</small></div>
       ${one?`<div style="width:104px"><small>${5-one.missed.length} of 5 meals logged</small><div class="meals">${MEALS.map((x,j)=>`<i class="${one.missed.includes(j)?'no':''}" title="${x[0]}"></i>`).join('')}</div></div>`:''}</div>`+
       MAC.map(m=>{const A=a.A[m.k],[sl,sc]=status(A,T[m.k]);return `<div class="mrow ${m.k}"><div class="mrow-h">${tile(m.k,'lg')}<span><span class="n">${m.name}</span><span class="g"><b>${Math.round(A)} g</b> of ${T[m.k]} g</span></span><span class="pill ${sc}">${sl}</span></div>${bullet(a.ratio[m.k],T[m.k])}</div>`}).join('')+foot;
   }
@@ -784,6 +819,8 @@ document.getElementById('sugg').onclick=e=>{const i=e.target.closest('button')?.
 document.getElementById('k-in').oninput=e=>document.getElementById('k-send').classList.toggle('on',!!e.target.value.trim());
 document.getElementById('comp').onsubmit=e=>{e.preventDefault();const inp=document.getElementById('k-in'),q=inp.value.trim();if(!q)return;ask(q.replace(/</g,'&lt;'),route(q));inp.value='';document.getElementById('k-send').classList.remove('on')};
 document.getElementById('k-new').onclick=()=>{document.getElementById('d-body').innerHTML='';document.getElementById('k-in').focus()};
+
+
 
 /* ---------- date range picker ---------- */
 const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;

@@ -191,8 +191,11 @@
     var landed = false, done = function () { if (landed) return; landed = true;
       /* back at the top, behind the green, so the score is in view when it steps up; from the player, it stays where it was */
       if (!stay) window.scrollTo({ top: 0, behavior: "instant" });
-      land(); var h = document.querySelector("body > div.wm[role=status]"); if (h) h.remove(); };
-    window.WIN_MODE = "aurora";   /* Move's arrival: green ribbons from the left (v7/move-win-moment-options.html) */
+      /* the day is rebuilt while the white still covers it, then the white fades off it: no hard cut, and the rebuild is never seen */
+      land(); var h = document.querySelector("body > div.wm[role=status]"); if (!h) return;
+      h.style.pointerEvents = "none"; h.style.transition = "opacity .36s cubic-bezier(.2,0,0,1)";
+      requestAnimationFrame(function () { requestAnimationFrame(function () { h.style.opacity = "0"; }); });
+      setTimeout(function () { h.remove(); }, 420); };
     var run = function () {
       var ctl = window.WinMoment && WinMoment.begin(rect, names);
       if (!ctl) return done();
@@ -201,8 +204,16 @@
       setTimeout(function () { ctl.win({ d: gain, n: names.length, title: names.length === 1 ? "Workout logged" : label(names.length) + " logged", say: gain == null ? "Your coach will see this when they build your plan." : "added to your Momentum score" }, done); }, 600);
     };
     if (window.WinMoment) return run();
-    var sc = document.createElement("script"); sc.src = "assets/win-moment.js?v=18"; sc.onload = run; sc.onerror = done; document.head.appendChild(sc);
+    loadWin(run, done);
   }
+  /* Move's arrival: green ribbons from the left (v7/move-win-moment-options.html). win-moment.js reads this once, when it
+     loads, so it is set before the script is ever fetched */
+  window.WIN_MODE = "aurora";
+  /* fetched once the page has settled, so the first log starts at once instead of waiting on the script */
+  function loadWin(ok, fail) {
+    var sc = document.createElement("script"); sc.src = "assets/win-moment.js?v=19"; sc.onload = ok; if (fail) sc.onerror = fail; document.head.appendChild(sc);
+  }
+  addEventListener("load", function () { setTimeout(function () { if (!window.WinMoment) loadWin(function () {}); }, 1500); });
 
   /* the player's "Next" marks the one on screen as done now, without a question */
   P.feelSheet = function (r, id) {

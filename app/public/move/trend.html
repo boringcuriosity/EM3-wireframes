@@ -93,7 +93,7 @@ const CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke
 /* the score's verdict chip, in its gold state: the conic edge, the soft fill */
 const pill = d => '<span class="gf-verdict warn soonchip up" style="--d:' + d + 's">' + CLOCK + 'Coming soon</span>';
 const V = {
-  fan: { art: () => glimpse("fan"), t: 1.6 },
+  fan: { art: () => glimpse("fan"), t: 0 },   /* the words land at once; the cards deal in after them */
 };
 /* the four glimpse cards, laid out four ways */
 const G = "/v7/icons/glyph-";
@@ -112,7 +112,7 @@ function glimpse(kind) {
   const st = (html, style) => html.replace('class="gc', 'style="' + style + '" class="gc');
   if (kind === "fan") {
     const P = [["-96px", "16px", "-12deg"], ["-32px", "-4px", "-4deg"], ["32px", "-4px", "4deg"], ["96px", "16px", "12deg"]];
-    return '<div class="fan">' + c.map((h, i) => st(h, "--x:" + P[i][0] + ";--y:" + P[i][1] + ";--r:" + P[i][2] + ";--d:" + (.15 + i * .14) + "s;z-index:" + i)).join("") + '</div>';
+    return '<div class="fan">' + c.map((h, i) => st(h, "--x:" + P[i][0] + ";--y:" + P[i][1] + ";--r:" + P[i][2] + ";--d:" + (.45 + i * .14) + "s;z-index:" + i)).join("") + '</div>';
   }
 }
 /* one message on every version: what's coming, and what to do meanwhile */

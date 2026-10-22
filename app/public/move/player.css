@@ -52,7 +52,7 @@
 .mvp-seg i { flex: 1; height: 4px; border-radius: 9999px; background: var(--g-200); transition: background .3s var(--ease); }
 .mvp-seg i.ok { background: var(--ok-600); }
 .mvp-seg i.now { background: var(--brand-200); }
-.mvp-scroll { flex: 1; min-height: 0; overflow-y: auto; margin: 0 calc(var(--gut) * -1); padding: 0 var(--gut) 16px; scrollbar-width: none; }
+.mvp-scroll { flex: 1; min-height: 0; overflow-y: auto; margin: 0 calc(var(--gut) * -1); padding: 0 var(--gut) 96px; scrollbar-width: none; }
 .mvp-scroll::-webkit-scrollbar { display: none; }
 .mvp-scroll h5 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: .1px; text-wrap: balance; }
 .mvp-done { display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0; font-size: 13px; line-height: 18px; font-weight: 600; color: var(--ok-600); }
@@ -68,17 +68,27 @@
 .mvp-desc li { margin: 0 0 4px; }
 .mvp-desc li::marker { color: var(--g-400); }
 
-/* the sticky foot: Up next on a pale green band, the one button on white under it */
-.mvp-dock { flex: none; margin: 0 calc(var(--gut) * -1); overflow: hidden; border-radius: 20px 20px 0 0; box-shadow: 0 -10px 24px -16px rgba(16,24,40,.18); }
-.mvp-band { display: flex; align-items: center; gap: 12px; padding: 12px var(--gut); background: var(--brand-50); border-top: 1px solid var(--brand-100); border-bottom: 1px solid var(--brand-100); }
-.mvp-band .th { position: relative; flex-shrink: 0; width: 64px; height: 40px; border-radius: 8px; overflow: hidden; background: var(--g-100); }
+/* the sticky foot: Up next as a liquid glass capsule floating over the reading (chosen in v7/move-upnext-options.html),
+   so the steps blur as they slide under it, with the one button on white below */
+.mvp-dock { position: relative; z-index: 2; flex: none; margin: -80px calc(var(--gut) * -1) 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0) 0, rgba(255,255,255,.55) 40px, #fff 84px); }
+/* a faint mint to indigo light behind the glass, so it reads as glass even with nothing under it */
+.mvp-dock::before { content: ""; position: absolute; left: 24px; right: 24px; top: 6px; height: 64px; z-index: -1; border-radius: 9999px; filter: blur(22px); opacity: .55;
+  background: linear-gradient(90deg, #A6E3C8, #CDE7F7 50%, #C7D2FE); }
+.mvp-band { position: relative; display: flex; align-items: center; gap: 12px; margin: 0 var(--gut); padding: 10px 16px 10px 10px; border-radius: 16px;
+  background: linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.42)); -webkit-backdrop-filter: blur(20px) saturate(180%); backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(255,255,255,.5), inset 0 0 0 1px rgba(255,255,255,.35), 0 0 0 1px rgba(16,24,40,.06), 0 14px 30px -12px rgba(16,24,40,.25); }
+/* the shine across the top of the glass */
+.mvp-band::after { content: ""; position: absolute; inset: 0 0 50%; border-radius: 16px 16px 0 0; pointer-events: none;
+  background: radial-gradient(60% 100% at 35% 0%, rgba(255,255,255,.6), rgba(255,255,255,0) 70%); }
+.mvp-band .th { position: relative; flex-shrink: 0; width: 64px; height: 40px; border-radius: 10px; overflow: hidden; background: var(--g-100); }
 .mvp-band .th img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .mvp-band .b { flex: 1; min-width: 0; }
 .mvp-band .l { display: block; font-size: 12px; line-height: 16px; color: var(--g-500); }
 .mvp-band .n { display: block; font-size: 15px; line-height: 20px; font-weight: 600; color: var(--g-900); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .mvp-all { position: relative; flex-shrink: 0; height: 32px; padding: 0 2px; border: 0; background: none; color: var(--brand-600); font-size: 14px; font-weight: 600; cursor: pointer; }
 .mvp-all::after { content: ""; position: absolute; inset: -6px -8px; }
-.mvp-foot { padding: 12px var(--gut) 32px; background: #fff; }
+.mvp-foot { padding: 12px var(--gut) 32px; }
 .mvp-go { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; height: 52px; margin-bottom: 7px; border: 0; border-radius: 12px; cursor: pointer;
   background: var(--brand-600); color: #fff; font: 700 15px/1 Roboto, sans-serif; letter-spacing: .25px; box-shadow: 0 7px 0 var(--brand-700); }
 .mvp-go:active { transform: translateY(4px); box-shadow: 0 3px 0 var(--brand-700); }

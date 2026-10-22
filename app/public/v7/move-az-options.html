@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jump by letter</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* Move: looks for the A to Z index on Log your workout's All workouts tab. Each pair is the live list with ?az=: at rest
+     (act=alltab), then held on S (act=az). The looks live in move/log.css under [data-az]. */
+  :root { --g-200: #E4E7EC; --g-500: #667085; --g-600: #475467; --g-900: #101828; --in-50: #EEF4FF; --in-200: #C7D7FE; --in-700: #3538CD; --z: .62; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .2px; }
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 56px 24px 80px; }
+  .eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--g-500); }
+  h1 { margin: 12px 0 10px; font-size: 40px; line-height: 48px; font-weight: 600; }
+  .lede { max-width: 760px; margin: 0; font-size: 17px; line-height: 27px; color: var(--g-600); }
+  .grid { display: flex; flex-wrap: wrap; gap: 48px 40px; margin-top: 40px; }
+  figure { margin: 0; width: calc(390px * var(--z) * 2 + 12px); }
+  figcaption { min-height: 104px; margin-bottom: 14px; }
+  figcaption b { display: flex; align-items: center; gap: 8px; font-size: 18px; line-height: 26px; }
+  figcaption .rec { font-size: 12px; font-weight: 600; color: var(--in-700); background: var(--in-50); border: 1px solid var(--in-200); border-radius: 999px; padding: 1px 8px; }
+  figcaption p { margin: 6px 0 0; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .pair { display: flex; gap: 12px; }
+  .phone { width: calc(390px * var(--z)); height: calc(780px * var(--z)); overflow: hidden; border-radius: calc(20px * var(--z)); border: 1px solid var(--g-200); box-shadow: 3px 4px 0 rgba(152,162,179,.3); }
+  .phone iframe { width: 390px; height: 780px; border: 0; display: block; transform: scale(var(--z)); transform-origin: 0 0; pointer-events: none; }
+  .tags { display: flex; gap: 12px; margin-top: 8px; font-size: 13px; color: var(--g-500); }
+  .tags span { width: calc(390px * var(--z)); }
+  .tags a { color: var(--g-600); font-weight: 600; text-decoration: none; }
+  @media (max-width: 720px) { .wrap { padding: 32px 16px 56px; } h1 { font-size: 30px; line-height: 38px; } :root { --z: .44; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="eyebrow">Move · Log your workout</span>
+  <h1>Jump by letter</h1>
+  <p class="lede">The A to Z index on All workouts, with ideas from Mobbin (Co-Star, Garmin, Shopee, Depop, Lifesum) in the second half. The letters are neutral grey; Momentum's indigo marks the letter in view and the one under the finger. Each pair is the live list: at rest, then held on S. Open one full size to drag along it.</p>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+/* chosen: today's index, in a soft indigo, with a drop that points at the index. The looks below were tried and dropped */
+const R = [
+  ["", "Chosen: soft indigo", "Today's index in Momentum's indigo instead of green: letters in a soft indigo, the one in view in a pale indigo pill, a pale indigo track while held. The letter under the finger rides in a soft indigo drop whose point aims at the index.", true]
+];
+const TRIED = "Also tried: Quiet ink, Lens, Centre stage, Dots, Indigo pill, Arrive, Only what's there, Capsule track, Letters and dots, Grey bands.";
+const src = (k, act) => "/move/index.html?act=" + act + "&recent=none" + (k ? "&az=" + k : "");
+document.getElementById("grid").innerHTML = R.map(([k, n, line, rec]) =>
+  '<figure><figcaption><b>' + n + (rec ? ' <span class="rec">Chosen</span>' : "") + '</b><p>' + line + '</p></figcaption>' +
+  '<div class="pair"><div class="phone"><iframe src="' + src(k, "alltab") + '" title="' + n + ', at rest" tabindex="-1" loading="lazy"></iframe></div>' +
+  '<div class="phone"><iframe src="' + src(k, "az") + '" title="' + n + ', held on S" tabindex="-1" loading="lazy"></iframe></div></div>' +
+  '<div class="tags"><span>At rest · <a href="' + src(k, "alltab") + '" target="_blank">Open</a></span><span>Held on S</span></div></figure>').join("") + '<p class="lede" style="margin-top:40px">' + TRIED + '</p>';
+</script>
+</body>
+</html>

@@ -4,59 +4,203 @@
    the unit the coach's workouts count in, so both add to the same Momentum, in the part of the day its time falls in. */
 (function () {
   var A = "/v7/icons/move/log/";
-  /* name, Material Symbols (rounded, filled), MET (Compendium of Physical Activities) */
+  /* name, icon, MET (Compendium of Physical Activities). Icons are Material Symbols (rounded, filled); where Material has
+     no glyph for the sport, Material Design Icons (mdi-*, the same 24 grid, filled) or game-icons (frisbee, water polo, rock climbing) */
   var W = [
     ["Walking", "directions_walk", 3.5], ["Running", "directions_run", 9.8], ["Swimming", "pool", 7],
     ["Strength Training", "fitness_center", 5], ["Cycling", "directions_bike", 7.5], ["Yoga", "self_improvement", 2.5],
-    ["Pilates", "sports_gymnastics", 3], ["Rock Climbing", "landscape", 8], ["Martial Arts", "sports_martial_arts", 10],
-    ["Dance", "music_note", 5], ["Hiking", "hiking", 6], ["CrossFit", "exercise", 8], ["Kickboxing", "sports_mma", 9],
-    ["Badminton", "sports_tennis", 5.5], ["Cricket", "sports_cricket", 4.8], ["Football", "sports_soccer", 7],
-    ["Surfing", "surfing", 3], ["Rowing", "rowing", 7]
+    ["Pilates", "mdi-yoga", 3], ["Rock Climbing", "game-icons-mountain-climbing", 8], ["Martial Arts", "sports_martial_arts", 10],
+    ["Dance", "mdi-human-female-dance", 5], ["Hiking", "hiking", 6], ["CrossFit", "exercise", 8], ["Kickboxing", "sports_mma", 9],
+    ["Badminton", "mdi-badminton", 5.5], ["Cricket", "sports_cricket", 4.8], ["Football", "sports_soccer", 7],
+    ["Surfing", "surfing", 3], ["Rowing", "rowing", 7],
+    /* the rest of the live app's Select Exercise list (app.goodflip.in/exercise, Add), A to Z. Left out: what is not a
+       workout (Elevator, Escalator, In vehicle, Still, Unknown, Other, Snowmobile, Meditation) and what is already above
+       under another name (Biking, Dancing, Crossfit, Football (Soccer), Strength training) */
+    ["Aerobics", "sports_gymnastics", 7.3], ["Archery", "mdi-bow-arrow", 4.3], ["Backcountry Skiing", "downhill_skiing", 9], ["Baseball", "sports_baseball", 5],
+    ["Basketball", "sports_basketball", 6.5], ["Beach Volleyball", "sports_volleyball", 8], ["Biathlon", "mdi-biathlon", 9], ["Boxing", "mdi-boxing-glove", 7.8],
+    ["Calisthenics", "sports_gymnastics", 3.8], ["Circuit Training", "fitness_center", 8], ["Cross Skating", "roller_skating", 7], ["Cross-country Skiing", "mdi-ski-cross-country", 9],
+    ["Curling", "mdi-curling", 4], ["Diving", "mdi-diving", 3], ["Downhill Skiing", "downhill_skiing", 5.3], ["Elliptical", "exercise", 5], ["Ergometer", "directions_bike", 7],
+    ["Fencing", "mdi-fencing", 6], ["Fitness Walking", "directions_walk", 4.3], ["Football (American)", "sports_football", 8], ["Football (Australian)", "mdi-football-australian", 8],
+    ["Frisbee", "game-icons-frisbee", 3], ["Gardening", "yard", 3.8], ["Golf", "sports_golf", 4.8], ["Gymnastics", "sports_gymnastics", 3.8], ["Handball", "sports_handball", 8],
+    ["Handbiking", "accessible_forward", 6], ["HIIT", "sprint", 8], ["Hockey", "sports_hockey", 8], ["Horseback Riding", "mdi-horse-human", 5.5], ["Housework", "cleaning_services", 3.3],
+    ["Ice Skating", "ice_skating", 7], ["Indoor Skating", "roller_skating", 7], ["Indoor Volleyball", "sports_volleyball", 4], ["Inline Skating", "roller_skating", 7.5],
+    ["Interval Training", "timer", 8], ["Jogging", "directions_run", 7], ["Jump Rope", "mdi-jump-rope", 11], ["Kayaking", "kayaking", 5], ["Kettlebell", "mdi-kettlebell", 6],
+    ["Kite Skiing", "kitesurfing", 7], ["Kitesurfing", "kitesurfing", 7], ["Mixed Martial Arts", "sports_mma", 10], ["Mountain Biking", "pedal_bike", 8.5],
+    ["Nordic Walking", "nordic_walking", 4.8], ["Open Water Swimming", "waves", 7], ["P90X", "fitness_center", 8], ["Paragliding", "paragliding", 3.5], ["Polo", "mdi-polo", 8],
+    ["Pool Swimming", "pool", 7], ["Racquetball", "mdi-racquetball", 7], ["Road Biking", "directions_bike", 8], ["Roller Skiing", "downhill_skiing", 9], ["Rowing Machine", "rowing", 6],
+    ["Rugby", "sports_rugby", 8.3], ["Running (Treadmill)", "directions_run", 9], ["Running on Sand", "directions_run", 10], ["Sailing", "sailing", 3],
+    ["Scuba Diving", "scuba_diving", 7], ["Skateboarding", "skateboarding", 5], ["Skating", "roller_skating", 7], ["Skiing", "downhill_skiing", 7], ["Sledding", "sledding", 7],
+    ["Snowboarding", "snowboarding", 5.3], ["Snowshoeing", "snowshoeing", 5.3], ["Softball", "sports_baseball", 5], ["Spinning", "directions_bike", 8.5],
+    ["Squash", "mdi-racquetball", 7.3], ["Stair Climbing", "stairs", 8], ["Stair Climbing Machine", "stairs", 9], ["Stand-up Paddle Boarding", "surfing", 6],
+    ["Stationary Biking", "directions_bike", 7], ["Walking with a Stroller", "stroller", 4], ["Table Tennis", "mdi-table-tennis", 4], ["Team Sports", "groups", 6],
+    ["Tennis", "sports_tennis", 7.3], ["Treadmill Walking", "directions_walk", 4.3], ["Utility Biking", "directions_bike", 4], ["Volleyball", "sports_volleyball", 4],
+    ["Wakeboarding", "mdi-ski-water", 6], ["Water Polo", "game-icons-water-polo", 10], ["Weightlifting", "mdi-weight-lifter", 6], ["Wheelchair", "accessible_forward", 3],
+    ["Windsurfing", "kitesurfing", 5], ["Zumba", "mdi-human-female-dance", 6.5]
   ];
   /* kcal = MET x 3.5 x kg / 200 per minute. ponytail: 65 kg until the profile's weight is wired in */
   var KG = 65, burn = function (w, min) { return Math.round(w[2] * 3.5 * KG / 200 * min); };
   var esc = function (s) { return s.replace(/[&<>"]/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); };
 
+  var V1 = new URLSearchParams(location.search).get("logv") === "1";
+  /* All workouts, A to Z, in letter groups; the letters with none are dimmed on the index */
+  var SORTED = W.slice().sort(function (a, b) { return a[0].localeCompare(b[0]); });
+  var AZ = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split(""), HAS = {};
+  SORTED.forEach(function (w) { HAS[w[0][0].toUpperCase()] = 1; });
+  var TICO = {
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="2.6"/></svg>'
+  };
+  /* Recent: the workouts logged before, newest first, each with how long it was last time. Kept on the phone.
+     ?recent=Walking:30:0|Yoga:20:2 (name:minutes:days ago) sets it for the case document, ?recent=none empties it */
+  var RKEY = "mvRecentWorkouts";
+  function recent() {
+    var q = new URLSearchParams(location.search).get("recent");
+    if (q === "none") return [];
+    if (q) return q.split("|").map(function (x) { var p = x.split(":"); return { n: p[0], min: +p[1] || 10, ago: +p[2] || 0 }; });
+    try { return (JSON.parse(localStorage.getItem(RKEY)) || []).map(function (x) { return { n: x.n, min: x.min, ago: Math.round((Date.now() - x.t) / 864e5) }; }); } catch (e) { return []; }
+  }
+  function remember(n, min) {
+    try { var a = (JSON.parse(localStorage.getItem(RKEY)) || []).filter(function (x) { return x.n !== n; }); a.unshift({ n: n, min: min, t: Date.now() }); localStorage.setItem(RKEY, JSON.stringify(a.slice(0, 8))); } catch (e) {}
+  }
+  var byName = function (n) { return W.filter(function (w) { return w[0] === n; })[0]; };
+
   var el = document.createElement("div");
-  el.className = "mvl"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-labelledby", "mvlT");
+  el.className = V1 ? "mvl" : "mvl v2";
+  el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-labelledby", "mvlT");
   el.innerHTML =
-    '<div class="mvl-glow" aria-hidden="true"></div>' +
-    '<div class="mvl-top"><button class="mvl-back" id="mvlBack"><img src="' + A + 'back.svg" alt="">Back</button></div>' +
-    '<div class="mvl-scroll"><h3 id="mvlT">Log Your Exercise</h3>' +
-      '<label class="mvl-search"><img src="' + A + 'search.svg" alt=""><input id="mvlQ" type="search" placeholder="Search by exercise name" autocomplete="off" aria-label="Search by exercise name">' +
+    /* the header and search bar are Eat's food log's: an arrow, the title and the day centred, then the search card */
+    (V1 ? '<div class="mvl-glow" aria-hidden="true"></div><div class="mvl-top"><button class="mvl-back" id="mvlBack"><img src="' + A + 'back.svg" alt="">Back</button></div>' +
+      '<div class="mvl-scroll"><h3 id="mvlT">Log Your Exercise</h3>'
+    : '<div class="mvl-hd"><button class="mvl-bk" id="mvlBack" aria-label="Back"><svg viewBox="0 0 22 22" fill="none" aria-hidden="true"><path fill="currentColor" d="M9.409 3.444c-.015-.015-.473-.13-1.018-.255s-.997-.208-1.004-.185-.064.401-.125.84c-.124.882-.424 1.911-.744 2.555-1 2.006-2.791 3.334-4.964 3.68L1 10.165v1.773l.502.084c3.286.551 5.429 3.008 5.83 6.686.026.24.057.436.069.436.11 0 1.947-.443 1.982-.478.025-.025.006-.25-.042-.5-.531-2.765-2.053-5.015-4.027-5.955l-.474-.226 9.74-.018 6.16-.01v-1.794l-6.176-.011-9.717-.018.598-.303c1.552-.786 2.78-2.328 3.503-4.397.206-.59.517-1.934.46-1.99"/></svg></button>' +
+      '<span class="t"><b id="mvlT">Log your workout</b><span>Today</span></span>' +
+      /* the search bar, once scrolled away, waits here as a bare glyph, as on Eat */
+      '<button class="mvl-hf" id="mvlHf" aria-label="Search" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></div><div class="mvl-scroll">') +
+      '<label class="mvl-search"><svg class="mg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' +
+        '<input id="mvlQ" type="search" placeholder="' + (V1 ? "Search by exercise name" : "Search &amp; log your workout") + '" autocomplete="off" aria-label="Search and log your workout">' +
       '<button class="mvl-clr" id="mvlClr" type="button" aria-label="Clear search"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7"/></svg></button></label>' +
-      '<div class="mvl-lab" id="mvlLab">All Workouts</div><div class="mvl-list" id="mvlList"></div></div>';
+      /* two tabs, as Eat's food log: what you log often, and every workout A to Z (the earlier single list: ?logv=1) */
+      (V1 ? "" : '<div class="mvl-tabs" id="mvlTabs" role="tablist"><button class="mvl-tab" role="tab" data-t="recent">' + TICO.clock + '<span>Recent</span></button>' +
+        '<button class="mvl-tab" role="tab" data-t="all">' + TICO.list + '<span>All workouts</span></button><span class="mvl-ind" aria-hidden="true"></span></div>' +
+        '<div class="mvl-panes"><div class="mvl-pane" id="mvlRecent" data-t="recent"></div><div class="mvl-pane" id="mvlAll" data-t="all"></div></div>') +
+      '<div class="mvl-lab" id="mvlLab">All Workouts</div><div class="mvl-list" id="mvlList"></div></div>' +
+    (V1 ? "" : '<div class="mvl-az" id="mvlAz" aria-label="Jump to a letter">' + AZ.map(function (l) { return '<span data-l="' + l + '"' + (HAS[l] ? "" : ' class="off"') + '>' + l + '</span>'; }).join("") + '</div>' +
+      '<div class="mvl-bub" id="mvlBub" aria-hidden="true"></div>');
   var bar = document.querySelector(".gf-status"); if (bar) el.insertBefore(bar.cloneNode(true), el.firstChild);
   (document.getElementById("col") || document.body).appendChild(el);
   var Qi = el.querySelector("#mvlQ"), list = el.querySelector("#mvlList"), lab = el.querySelector("#mvlLab");
 
+  function wrow(w, i, q, sub) {
+    var n = esc(w[0]), k = q ? w[0].toLowerCase().indexOf(q) : -1;
+    if (k > -1) n = esc(w[0].slice(0, k)) + "<mark>" + esc(w[0].slice(k, k + q.length)) + "</mark>" + esc(w[0].slice(k + q.length));
+    return '<button class="mvl-row" style="--i:' + Math.min(i, 12) + ";--src:url(" + A + w[1] + '.svg)" data-w="' + esc(w[0]) + '"' + (sub ? ' data-min="' + sub.min + '"' : "") + '>' +
+      '<span class="ic"><i></i></span><span class="nm">' + n + "" + '</span>' +
+      '<img src="' + A + 'chevron.svg" alt=""></button>';
+  }
+  var TAB = "all";
   function draw(q) {
     q = (q || "").trim().toLowerCase();
     var hits = W.filter(function (w) { return !q || w[0].toLowerCase().indexOf(q) > -1; });
     el.querySelector(".mvl-search").classList.toggle("has", !!q);
-    lab.textContent = q ? (hits.length ? hits.length + (hits.length > 1 ? " workouts" : " workout") : "No results") : "All Workouts";
-    list.innerHTML = hits.length ? hits.map(function (w, i) {
-      var n = esc(w[0]), k = w[0].toLowerCase().indexOf(q);
-      if (q) n = esc(w[0].slice(0, k)) + "<mark>" + esc(w[0].slice(k, k + q.length)) + "</mark>" + esc(w[0].slice(k + q.length));
-      return '<button class="mvl-row" style="--i:' + i + ";--src:url(" + A + w[1] + '.svg)" data-w="' + esc(w[0]) + '">' +
-        '<span class="ic"><i></i></span><span class="nm">' + n + '</span><img src="' + A + 'chevron.svg" alt=""></button>';
-    }).join("") : '<div class="mvl-none"><b>No workout called "' + esc(Qi.value.trim()) + '"</b>Try a shorter word, like walk, gym or yoga.</div>';
+    el.classList.toggle("q", !!q);
+    lab.textContent = q ? (hits.length ? hits.length + (hits.length > 1 ? " workouts" : " workout") : "") : "All Workouts";
+    lab.hidden = !lab.textContent;   /* nothing found: the message below says so, no label above it */
+    if (!V1 && !q) { list.innerHTML = ""; lab.hidden = true; return panes(); }
+    list.innerHTML = hits.length ? hits.map(function (w, i) { return wrow(w, i, q); }).join("")
+      : '<div class="mvl-none"><b>We could not find "' + esc(Qi.value.trim()) + '" in our list</b>Check the spelling and try again, or search with a different word.</div>';
+  }
+  /* the two tabs' contents: Recent, or its blank state; every workout under its letter */
+  function panes() {
+    var R = recent().filter(function (x) { return byName(x.n); }), i = 0;
+    el.querySelector("#mvlRecent").innerHTML = R.length ? R.map(function (x, j) { return wrow(byName(x.n), j, "", x); }).join("")
+      /* nothing logged yet: Move's own pictogram in its pool of light, one line, and the house primary, as Eat's first open */
+      : '<div class="mvl-blank"><span class="art"><img src="/move/movement.png" alt=""></span>' +
+        '<p>Start with whatever you did last. No judgement, ever.</p><button class="mvl-go" data-go="find">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Find your workout</button></div>';
+    el.querySelector("#mvlAll").innerHTML = AZ.filter(function (l) { return HAS[l]; }).map(function (l) {
+      return '<section class="mvl-sec" data-l="' + l + '"><h4 class="mvl-l">' + l + '</h4>' +
+        SORTED.filter(function (w) { return w[0][0].toUpperCase() === l; }).map(function (w) { return wrow(w, i++, ""); }).join("") + '</section>';
+    }).join("");
+    tab(TAB, true);
+  }
+  /* the indicator travels between the tabs; the panes slide toward the side their tab sits on */
+  function tab(t, still) {
+    if (V1) return;
+    TAB = t;
+    [].forEach.call(el.querySelectorAll(".mvl-tab"), function (b) { var on = b.dataset.t === t; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
+    [].forEach.call(el.querySelectorAll(".mvl-pane"), function (p) { p.classList.toggle("on", p.dataset.t === t); });
+    el.classList.toggle("all", t === "all");
+    var on = el.querySelector(".mvl-tab.on"), ind = el.querySelector(".mvl-ind");
+    if (on && ind) {
+      var w = on.firstElementChild.getBoundingClientRect().width + 6 + on.lastElementChild.offsetWidth;
+      ind.style.transition = still ? "none" : ""; ind.style.width = Math.round(w) + "px";
+      ind.style.transform = "translateX(" + Math.round(on.offsetLeft + (on.offsetWidth - w) / 2) + "px)";
+    }
+    spy();
   }
 
-  function open() { Qi.value = ""; draw(""); el.querySelector(".mvl-scroll").scrollTop = 0; el.querySelector(".mvl-glow").style.translate = ""; el.classList.remove("on"); void el.offsetWidth; el.classList.add("on"); document.documentElement.classList.add("mvl-lock"); }
+  function open() { el.classList.remove("away"); TAB = recent().length ? "recent" : "all"; Qi.value = ""; draw(""); el.querySelector(".mvl-scroll").scrollTop = 0; if (glow) glow.style.translate = ""; el.classList.remove("on"); void el.offsetWidth; el.classList.add("on"); document.documentElement.classList.add("mvl-lock"); }
   function close() { el.classList.remove("on"); Qi.blur(); document.documentElement.classList.remove("mvl-lock"); }
   window.openLogWorkout = open;
 
   Qi.addEventListener("input", function () { draw(Qi.value); });
   /* the glow belongs to the title, so it leaves with it rather than sitting behind the list */
   var glow = el.querySelector(".mvl-glow"), sc = el.querySelector(".mvl-scroll");
-  sc.addEventListener("scroll", function () { glow.style.translate = "0 " + -sc.scrollTop + "px"; }, { passive: true });
+  if (glow) sc.addEventListener("scroll", function () { glow.style.translate = "0 " + -sc.scrollTop + "px"; }, { passive: true });
+  /* scrolled past the search bar: it waits in the header as a glyph; a tap brings the list back to the top and the bar into focus */
+  var sbar = el.querySelector(".mvl-search"), hf = el.querySelector("#mvlHf");
+  if (hf) {
+    sc.addEventListener("scroll", function () { el.classList.toggle("away", sc.scrollTop > sbar.offsetTop + sbar.offsetHeight - 12); }, { passive: true });
+    hf.onclick = function () { sc.scrollTo({ top: 0, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); setTimeout(function () { Qi.focus(); }, 320); };
+  }
   el.querySelector("#mvlClr").onclick = function () { Qi.value = ""; draw(""); Qi.focus(); };
   el.querySelector("#mvlBack").onclick = close;
-  list.addEventListener("click", function (e) {
+  sc.addEventListener("click", function (e) {
+    if (e.target.closest('[data-go="find"]')) return Qi.focus();   /* as Eat's Find your food: straight to the search */
+    var t = e.target.closest(".mvl-tab, [data-go]"); if (t) return tab(t.dataset.t || t.dataset.go);
     var b = e.target.closest(".mvl-row"); if (!b) return;
-    detail(W.filter(function (w) { return w[0] === b.dataset.w; })[0]);
+    detail(byName(b.dataset.w), +b.dataset.min || 0);   /* a recent one opens at the length it was last time */
   });
+
+  /* ---------- the A to Z index: tap a letter to glide to it, or drag along it with the letter riding beside the finger ---------- */
+  var az = el.querySelector("#mvlAz"), bub = el.querySelector("#mvlBub"), cur = "";
+  /* where a letter's header sits once stuck: under the search bar */
+  var PADT = V1 ? 24 : 8;   /* the list's top padding (log.css) */
+  /* v2: the tabs stay at the top and a letter's header stops under them; v1: under the sticky search bar */
+  var stuck = function () { var s2 = el.querySelector(V1 ? ".mvl-search" : ".mvl-tabs"); return s2 ? s2.offsetHeight - PADT : 0; };
+  var SMOOTH = function (smooth) { return smooth && !matchMedia("(prefers-reduced-motion: reduce)").matches ? "smooth" : "auto"; };
+  function go(l, smooth) {
+    var k = AZ.indexOf(l), sec = null;
+    for (; k < AZ.length && !sec; k++) sec = el.querySelector('.mvl-sec[data-l="' + AZ[k] + '"]');
+    if (!sec) return;
+    var y = sec.getBoundingClientRect().top - sc.getBoundingClientRect().top + sc.scrollTop;   /* inside the panes, so measured on screen, not offsetTop */
+    sc.scrollTo({ top: y - stuck() - PADT, behavior: SMOOTH(smooth) });
+  }
+  /* the letter the list is showing lights on the index */
+  function spy() {
+    if (!az) return;
+    var top = sc.getBoundingClientRect().top + stuck() + 30, l = "";
+    [].forEach.call(el.querySelectorAll(".mvl-sec"), function (x) { if (x.getBoundingClientRect().top <= top) l = x.dataset.l; });
+    l = l || "A";
+    if (l !== cur) { cur = l; [].forEach.call(az.children, function (x) { x.classList.toggle("on", x.dataset.l === l); }); }
+  }
+  if (az) {
+    var raf = 0; sc.addEventListener("scroll", function () { cancelAnimationFrame(raf); raf = requestAnimationFrame(spy); }, { passive: true });
+    var drag = false, last = "";
+    /* the letter nearest the finger, measured on screen */
+    var at = function (y) { var best = "A", d = 1e9; [].forEach.call(az.children, function (x) { var r = x.getBoundingClientRect(); if (!r.height) return; var e = Math.abs(r.top + r.height / 2 - y); if (e < d) { d = e; best = x.dataset.l; } }); return best; };
+    var show = function (l, y) {
+      var r = az.getBoundingClientRect(), box = el.getBoundingClientRect();
+      bub.textContent = l; var want = Math.max(r.top, Math.min(r.bottom, y)); bub.style.transition = "none"; bub.style.top = want - box.top + "px";
+      /* measured, then nudged, so the drop's centre sits on the letter whatever the sheet's own offsets are */
+      var got = bub.getBoundingClientRect(); bub.style.top = parseFloat(bub.style.top) + want - (got.top + got.height / 2) + "px"; void bub.offsetWidth; bub.style.transition = ""; bub.classList.add("on");
+      if (l !== last) { last = l; try { navigator.vibrate && navigator.vibrate(4); } catch (x) {} }
+    };
+    az.addEventListener("pointerdown", function (e) { drag = true; az.setPointerCapture(e.pointerId); az.classList.add("held"); var l = at(e.clientY); show(l, e.clientY); go(l, true); e.preventDefault(); });
+    az.addEventListener("pointermove", function (e) { if (!drag) return; var l = at(e.clientY); show(l, e.clientY); if (l !== cur) go(l, false); });
+    var up = function () { if (!drag) return; drag = false; last = ""; az.classList.remove("held"); setTimeout(function () { bub.classList.remove("on"); }, 260); };
+    az.addEventListener("pointerup", up); az.addEventListener("pointercancel", up);
+  }
+  window.MVLOG = { tab: tab, go: go, bubble: function (l) { var r = az.querySelector('[data-l="' + l + '"]').getBoundingClientRect(); show(l, r.top + r.height / 2); go(l, false); } };   /* the case document: straight to the letter */
 
   /* ---------- the workout's own screen: how long, then how hard, when and which day, then Log exercise ----------
      It slides in over the list, the way a phone pushes a screen. The duration is the hero, one wheel in 5 minute steps up to
@@ -120,8 +264,8 @@
   }
   var rollTo = function (c, k) { c.scrollTo({ top: k * ROW, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); };
 
-  function detail(w) {
-    D = { w: w, min: 10, eff: -1, at: defTime(), date: new Date(TODAY) };   /* intensity starts unpicked: "Select" */
+  function detail(w, min) {
+    D = { w: w, min: DUR.indexOf(min) > -1 ? min : 10, eff: -1, at: defTime(), date: new Date(TODAY) };   /* intensity starts unpicked: "Select" */
     drawD();
     dv.classList.remove("on"); void dv.offsetWidth; dv.classList.add("on");
   }
@@ -253,7 +397,7 @@
       P.S.extra[partOf(D.at)].push(x);
       back(); return P.render();
     }
-    back(); close();
+    back(); close(); remember(D.w[0], D.min);
     if (dayDiff(D.date) !== 0) return;   /* ponytail: an earlier day is saved with that day; the prototype only keeps today */
     var r = partOf(D.at);
     var land = function () { if (window.MVMOM) window.MVMOM.logged(); P.S.extra[r].push(x); P.render(); };

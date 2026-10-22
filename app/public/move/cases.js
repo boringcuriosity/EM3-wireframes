@@ -22,6 +22,7 @@
   function extra(r, w, met, min, at) { S.extra[r].push({ name: W[w][0], ic: W[w][1], min: min, kcal: Math.round(met * 3.5 * 65 / 200 * min), at: at }); }
 
   var DAYS = {
+    zero: function () { S.steps = {}; },
     start: function () { S.steps = steps(400); },
     first: function () { did(0, ["box"], "07:10"); S.steps = steps(1500); },
     plan: function () { all(); S.steps = steps(10400); },
@@ -52,7 +53,8 @@
   function scrollTo(s) { var e = $(s); if (e) window.scrollTo(0, e.getBoundingClientRect().top + scrollY - innerHeight / 2); }
   var ACTS = {
     info: function () { window.openMomentum && window.openMomentum(); },
-    say: function () { window.openSayHelp && window.openSayHelp(); },
+    /* the line's KAIRA link, tapped: on its own it asks before anything changes; with &ask=1 another act runs first */
+    kaira: function () { click("#cm .cta"); },
     earn: function () { click(".earnchip"); },
     burn: function () { click('[data-burn="0"]'); },
     bar: function () { scrollTo(".mv-b.now"); click('.mv-b[data-sel="8"]'); },
@@ -72,6 +74,8 @@
     player: function () { window.MVPLAYER.open(0, "box"); },
     side: function () { ACTS.player(); later(900, function () { click('[data-a="side"]'); }); },
     portrait: function () { ACTS.player(); later(900, function () { click('[data-a="portrait"]'); }); },
+    /* a move with steps to read, scrolled, so the Up next bar has text passing under it (v7/move-upnext-options.html) */
+    reading: function () { window.MVPLAYER.open(0, "plank"); later(900, function () { click('[data-a="portrait"]'); later(500, function () { var sc = $(".mvp-scroll"); if (sc) sc.scrollTop = 150; }); }); },
     last: function () { window.MVPLAYER.open(2, "plank"); later(900, function () { click('[data-a="portrait"]'); }); },
     ended: function () { window.MVPLAYER.open(2, "plank"); later(1200, function () { var v = $(".mvp video, video"); if (v) { v.pause(); v.dispatchEvent(new Event("ended")); } }); },
     /* Apple Health not connected (?health=off): the Connect strip, the sheet, and connecting */
@@ -79,12 +83,21 @@
     health: function () { window.openHealth(); },
     connect: function () { window.openHealth(); later(2200, function () { click('#mvHealth [data-h="go"]'); }); },
     search: function () { window.openLogWorkout(); },
+    /* the two tabs (log.js): Recent comes from ?recent=, ?recent=none for its blank state */
+    recenttab: function () { ACTS.search(); later(300, function () { window.MVLOG.tab("recent"); }); },
+    alltab: function () { ACTS.search(); later(300, function () { window.MVLOG.tab("all"); }); },
+    /* the A to Z index held on S, its letter riding beside it */
+    az: function () { ACTS.alltab(); later(700, function () { var a = $("#mvlAz"); if (a) a.classList.add("held"); window.MVLOG.bubble("S"); }); },
     typing: function () { ACTS.search(); later(400, function () { type("wa"); }); },
     none: function () { ACTS.search(); later(400, function () { type("kabaddi"); }); },
-    detail: function () { ACTS.search(); later(500, function () { click('.mvl-row[data-w="Walking"]'); }); }
+    detail: function () { ACTS.search(); later(500, function () { click('.mvl-row[data-w="Walking"]'); }); },
+    /* a walk found by search and logged, at the default ten minutes */
+    walk: function () { ACTS.detail(); later(900, function () { click('[data-d="log"]'); }); }
   };
   var act = Q.get("act");
   /* after the page has loaded (the Earn chip and the hero come in on load), and the cards have settled */
   var go = function () { setTimeout(ACTS[act], +Q.get("wait") || 1200); };
   if (ACTS[act]) document.readyState === "complete" ? go() : addEventListener("load", go);
+  /* &ask=1: once the act's gain has landed and the line has said it (momentum.js waits 2.4 s, the win moment longer), KAIRA is asked */
+  if (Q.get("ask")) addEventListener("load", function () { setTimeout(ACTS.kaira, (+Q.get("wait") || 1200) + (+Q.get("askAt") || 4200)); });
 })();

@@ -23,14 +23,24 @@
       M += rt.tips.length; m += rt.tips.filter(function (t, i) { return S.tips[r][i]; }).length;
       if (moved(r)) on++;
     });
+    var mv = RT.map(function (rt, r) { return moved(r); });
+    /* each thing that counts, by name, so KAIRA can say what a gain came from (say-kaira.js) */
+    var items = [];
+    RT.forEach(function (rt, r) {
+      rt.ex.forEach(function (id) { if (S.done[r][id]) items.push({ k: "e" + r + id, n: EX[id].name, r: r, kcal: EX[id].kcal }); });
+      S.extra[r].forEach(function (x, i) { items.push({ k: "x" + r + i + x.name, n: x.name + ", " + x.min + " min", r: r, kcal: x.kcal }); });
+      rt.tips.forEach(function (t, i) { if (S.tips[r][i]) items.push({ k: "t" + r + i, n: t.t, r: r, tip: true }); });
+    });
     for (var h = 0; h <= NOW; h++) st += S.steps[h] || 0;
-    return { e: 40 * Math.min(1, K ? k / K : 0), s: 10 * Math.min(1, st / GOAL), n: M ? 10 * m / M : 0, sp: 10 * on, raw: [[k, K], [m, M], [st, GOAL]] };
+    return { e: 40 * Math.min(1, K ? k / K : 0), s: 10 * Math.min(1, st / GOAL), n: M ? 10 * m / M : 0, sp: 10 * on, mv: mv, items: items, raw: [[k, K], [m, M], [st, GOAL]] };
   }
   function score() { var p = parts(); return Math.round(p.e + p.s + p.n + p.sp); }
 
   /* before a plan there is no score: the hero keeps its padlock, nothing is said under it, and a log gains nothing to show */
   if (P.noplan) { window.MVMOM = { score: function () { return null; }, gain: function () { return null; }, logged: function () {} }; return; }
-  var last = score(), coin = false;
+  var last = score(), lastP = parts(), coin = false;
+  /* the line's link, as Eat's: tapping it asks KAIRA, with an answer built for this moment (say-kaira.js) */
+  var CTA = "Learn more by asking KAIRA", K = window.MVKAIRA;
   window.S && window.S.hero && (window.S.hero.score = last);
   /* the hero mounts on its own clock, so the first number waits for it */
   (function first(tries) {
@@ -42,12 +52,18 @@
   var hide = document.createElement("style"); hide.textContent = "#cm:not(.said){display:none}#cm:not(.said)+#railSect{margin-top:32px !important}"; document.head.appendChild(hide);
   /* Momentum never penalises: the line only ever names a gain. A score that comes down (something undone or removed)
      simply settles at its new number, and the line goes back to the nudge to log */
-  function say(d) {
+  function say(d, a, b) {
     if (!window.GFSay || !window.GFSay.show) return;
     var cm = document.getElementById("cm"); if (!cm) return;
     if (d <= 0) return intro();   /* no minus: back to the nudge */
     cm.classList.add("said");
-    window.GFSay.show({ lead: "Your score went up by " + d + "%,", rest: "keep logging your movement.", delta: "+" + d + "%", tone: "up", cta: window.SAY_CTA });
+    /* crossing 80% (the medal) and reaching 100% get their own warmth, the gain still in its capsule */
+    var n = last, was = n - d;
+    /* the celebration leads, in bold; the gain follows as its own sentence (score-say.js puts it in the capsule) */
+    var line = n >= 100 && was < 100 ? { lead: "Amazing! You reached 100% today.", rest: "Your score went up by " + d + "%." }
+      : n >= 80 && was < 80 ? { lead: "We are proud of you! Today's medal is yours.", rest: "Your score went up by " + d + "%." }
+      : { lead: "Your score went up by " + d + "%,", rest: "keep logging your movement." };
+    window.GFSay.show({ lead: line.lead, rest: line.rest, delta: "+" + d + "%", tone: "up", cta: CTA, ask: K && K.after(a, b, d) });
   }
   /* on arrival, before anything changes: a nudge to log, as Eat's not-started line ("Log your first meal…").
      It names the next thing to do, never recaps the day; a gain replaces it */
@@ -55,19 +71,20 @@
     var cm = document.getElementById("cm");
     if (!cm || !window.GFSay || !window.GFSay.show) return;
     cm.classList.add("said");
+    /* a nudge alone, as Eat's not-started line: KAIRA is asked only about a gain */
     window.GFSay.show(last > 0
-      ? { lead: "Log your movement through the day to keep your Momentum growing.", rest: "", delta: "", tone: "calm", cta: window.SAY_CTA }
-      : { lead: "Log your first workout to see your Momentum score grow.", rest: "", delta: "", tone: "calm", cta: window.SAY_CTA });
+      ? { lead: "Log your movement through the day to keep your Momentum growing.", rest: "", delta: "", tone: "calm" }
+      : { lead: "Log your first workout to see your Momentum score grow.", rest: "", delta: "", tone: "calm" });
   }
   (function wait(n) { if (document.getElementById("cm")) intro(); else if (n < 40) setTimeout(function () { wait(n + 1); }, 100); })(0);
   function update() {
     var n = score(), d = n - last; if (!d) { coin = false; return; }
-    last = n; if (window.S && window.S.hero) window.S.hero.score = n;
+    var a = lastP, b = parts(); last = n; lastP = b; if (window.S && window.S.hero) window.S.hero.score = n;
     if (window.setHeroScore) window.setHeroScore(n, d > 0 ? d : 0);   /* no step down and no minus on the score */
     /* the line under the score waits for the number to finish stepping, so the gain is read after it is seen:
        Cloud Drop remounts 420 ms after the change and steps over the next 1.9 s */
     /* the medal swings in (or goes, under 80) at the same moment, once the new number has landed */
-    clearTimeout(update.t); update.t = setTimeout(function () { say(d); if (window.MVMEDAL) window.MVMEDAL(); }, 2400);
+    clearTimeout(update.t); update.t = setTimeout(function () { say(d, a, b); if (window.MVMEDAL) window.MVMEDAL(); }, 2400);
     /* a workout log earns coins, once the line has landed */
     if (coin && d > 0 && window.GFFlipcoin) setTimeout(window.GFFlipcoin.show, 3200);
     coin = false;
@@ -88,6 +105,7 @@
   var es = document.getElementById("es-suff"); if (es && es.classList.contains("on")) window.MVSHEET(es);
   window.MVMOM = {
     score: score,
+    parts: parts,
     /* what a change would add, without making it: apply, measure, undo */
     gain: function (apply, undo) { var a = score(); apply(); var b = score(); undo(); return b - a; },
     /* the next change came from logging a workout, so it earns the coin toast */

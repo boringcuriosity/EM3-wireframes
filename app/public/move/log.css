@@ -23,9 +23,11 @@ html.mvl-lock, html.mvl-lock body { overflow: hidden; }
 .mvl-search { position: sticky; top: -24px; z-index: 2; display: flex; align-items: center; gap: 12px; height: 48px; padding: 0 16px; border: 1px solid var(--g-200); border-radius: 12px; background: #fff;
   transition: border-color .2s ease-out, box-shadow .2s ease-out; }
 .mvl-search:focus-within { border-color: var(--brand-500, #299D6B); box-shadow: 0 0 0 4px var(--brand-50); }
-.mvl-search img { width: 24px; height: 24px; flex: none; }
+.mvl-search img, .mvl-search .mg { width: 24px; height: 24px; flex: none; color: var(--g-500); }
 .mvl-search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none; font: 400 14px/1.2 Roboto, sans-serif; letter-spacing: .25px; color: var(--g-900); }
 .mvl-search input::placeholder { color: var(--g-400); }
+/* the field is type=search for the keyboard's Search key; the browser's own clear button would double ours */
+.mvl-search input::-webkit-search-cancel-button, .mvl-search input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; display: none; }
 .mvl-clr { flex: none; width: 24px; height: 24px; border: 0; border-radius: 50%; background: var(--g-100); color: var(--g-500); display: none; place-items: center; cursor: pointer; }
 .mvl-clr svg { width: 10px; height: 10px; }
 .mvl-search.has .mvl-clr { display: grid; }
@@ -44,9 +46,57 @@ html.mvl-lock, html.mvl-lock body { overflow: hidden; }
 /* the rows arrive one after another, a short rise, no bounce */
 .mvl.on .mvl-row { animation: mvlRise .42s cubic-bezier(.22,1,.36,1) both; animation-delay: calc(var(--i) * 28ms + 160ms); }
 @keyframes mvlRise { from { opacity: 0; transform: translateY(8px); } }
-.mvl-none { padding: 32px 8px; text-align: center; font: 400 14px/21px Roboto, sans-serif; color: var(--g-500); }
+.mvl-none { padding: 32px 8px 24px; text-align: center; font: 400 14px/21px Roboto, sans-serif; color: var(--g-500); }
 .mvl-none b { display: block; margin-bottom: 4px; font-size: 16px; font-weight: 600; color: var(--g-900); }
 @media (prefers-reduced-motion: reduce) { .mvl, .mvl-glow { transition: none; } .mvl.on .mvl-glow, .mvl.on .mvl-row { animation: none; } }
+
+/* ---------- Recent and All workouts, as Eat's food log (log.js; the earlier single list: ?logv=1) ---------- */
+.mvl-tabs { position: relative; display: flex; gap: 4px; margin: 16px -16px 0; padding: 0 16px; }
+.mvl-tabs::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--g-200); }
+.mvl-tab { flex: 1; min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 6px; border: 0; background: none; padding: 0 4px; cursor: pointer;
+  font: 600 15px/1 Roboto, sans-serif; letter-spacing: .25px; color: var(--g-500); transition: color .18s ease-out; }
+.mvl-tab svg { width: 17px; height: 17px; flex: none; }
+.mvl-tab.on { color: var(--brand-600); }
+/* one indicator that travels between the tabs */
+.mvl-ind { position: absolute; left: 0; bottom: 0; z-index: 1; height: 5px; border-radius: 5px 5px 0 0; background: var(--brand-600);
+  transition: transform .26s cubic-bezier(.4,0,.2,1), width .26s cubic-bezier(.4,0,.2,1); }
+/* the panes slide toward the side their tab sits on; the one leaving stops taking up height */
+.mvl-panes { position: relative; padding-top: 4px; }
+.mvl-pane { transition: transform .34s cubic-bezier(.22,1,.36,1), opacity .24s ease-out; }
+.mvl-pane:not(.on) { position: absolute; top: 4px; left: 0; right: 0; opacity: 0; pointer-events: none; }
+.mvl-pane[data-t="recent"]:not(.on) { transform: translateX(-28px); }
+.mvl-pane[data-t="all"]:not(.on) { transform: translateX(28px); }
+.mvl.q .mvl-tabs, .mvl.q .mvl-panes { display: none; }
+.mvl-row .nm small { display: block; margin-top: 3px; font-size: 12.5px; line-height: 16px; color: var(--g-500); }
+/* All workouts: a letter heads each group and stays under the search bar while its group scrolls */
+.mvl-l { position: sticky; top: 24px; z-index: 1; margin: 0; padding: 14px 0 6px; background: #fff; font: 600 12px/1 Roboto, sans-serif; letter-spacing: .7px; color: var(--g-500); }
+.mvl-sec .mvl-row { padding-right: 22px; }
+.mvl-sec .mvl-row > img { margin-right: -2px; }
+/* Recent, empty */
+.mvl-blank { display: flex; flex-direction: column; align-items: center; padding: 40px 16px 24px; text-align: center; }
+.mvl-blank .art { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 20px; background: var(--brand-50); color: var(--brand-600); margin-bottom: 16px; }
+.mvl-blank .art svg { width: 30px; height: 30px; }
+.mvl-blank b { font: 600 16px/22px Roboto, sans-serif; color: var(--g-900); }
+.mvl-blank p { margin: 6px 0 20px; max-width: 280px; font: 400 14px/21px Roboto, sans-serif; color: var(--g-500); }
+.mvl-go { height: 40px; padding: 0 18px; border: 1px solid var(--brand-600); border-radius: 10px; background: #fff; color: var(--brand-600); font: 600 14px/1 Roboto, sans-serif; cursor: pointer; }
+.mvl-go:active { background: var(--brand-50); }
+/* the A to Z index, on the right edge of All workouts: tap to glide to a letter, drag along it */
+.mvl-az { position: absolute; right: 2px; top: 50%; margin-top: -146px; z-index: 4; width: 22px; padding: 6px 0; display: flex; flex-direction: column; touch-action: none; user-select: none; cursor: pointer;
+  opacity: 0; pointer-events: none; translate: 6px 0; transition: opacity .24s ease-out, translate .3s cubic-bezier(.22,1,.36,1), background-color .2s ease-out; }
+.mvl.all:not(.q) .mvl-az { opacity: 1; pointer-events: auto; translate: 0 0; }
+.mvl-az span { display: block; text-align: center; font: 600 10.5px/16px Roboto, sans-serif; color: var(--g-500); border-radius: 6px; transition: color .15s ease-out, background-color .15s ease-out; }
+.mvl-az span.off { color: var(--g-300); }
+/* neutral grey letters, as the list's own headings; indigo marks only the letter in view, in a soft pill */
+.mvl-az span.on { color: var(--in-700, #3538CD); background: var(--in-100, #E0EAFF); }
+.mvl-az.held { background: rgba(249,250,251,.95); border-radius: 11px; box-shadow: inset 0 0 0 1px var(--g-100); }
+/* the letter riding beside the finger: a soft indigo drop whose point aims at the index */
+.mvl-bub { position: absolute; right: 34px; top: 0; z-index: 5; width: 50px; height: 50px; margin-top: -25px; display: grid; place-items: center; pointer-events: none;
+  color: var(--in-700, #3538CD); font: 700 22px/1 Roboto, sans-serif;
+  opacity: 0; transform: translateX(6px) scale(.7); transform-origin: 100% 50%; transition: opacity .16s ease-out, transform .22s cubic-bezier(.22,1,.36,1), top .08s linear; }
+.mvl-bub::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: 50% 0 50% 50%; transform: rotate(45deg);
+  background: linear-gradient(135deg, #F5F8FF, var(--in-100, #E0EAFF)); box-shadow: inset 0 0 0 1px var(--in-200, #C7D7FE), 0 8px 18px -8px rgba(68,76,231,.4); }
+.mvl-bub.on { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .mvl-pane, .mvl-ind, .mvl-az, .mvl-bub { transition: none; } }
 
 /* ---------- the workout's own screen (log.js detail): pushed in from the right over the list ---------- */
 .mvd { position: fixed; top: 0; bottom: 0; left: 50%; width: 100%; max-width: 390px; z-index: 41; display: flex; flex-direction: column; padding-top: 54px;
@@ -135,3 +185,39 @@ html.mvl-lock, html.mvl-lock body { overflow: hidden; }
 .pts.mvs .dial + .done { margin-top: 20px; }
 /* "Select", the empty choice, stays quiet even when it is the pick */
 .pts.mvs .mvs-int .wc div.none.on { font-weight: 500; color: var(--g-400); }
+
+/* ---------- the header and search bar, as Eat's food log (v2; ?logv=1 keeps the earlier look) ---------- */
+.mvl-hd { position: relative; z-index: 3; flex: none; display: flex; align-items: center; gap: 8px; padding: 10px 16px; }
+.mvl-bk { width: 44px; height: 44px; flex: none; border: 0; background: none; border-radius: 9999px; display: grid; place-items: center; color: #344054; cursor: pointer; }
+.mvl-bk:hover { background: var(--g-50); }
+.mvl-bk svg { width: 22px; height: 22px; }
+.mvl-hd .t { flex: 1; min-width: 0; text-align: center; }
+.mvl-hd .t b { display: block; font: 700 16px/20px Roboto, sans-serif; letter-spacing: .25px; color: var(--g-900); }
+.mvl-hd .t span { display: block; margin-top: 1px; font: 400 12px/16px Roboto, sans-serif; color: var(--g-500); }
+.mvl-hd .sp { width: 44px; flex: none; }
+/* the search bar's glyph in the header, there only once the bar has scrolled away (Eat's .hfind) */
+.mvl-hf { width: 44px; height: 44px; flex: none; border: 0; background: none; border-radius: 9999px; display: grid; place-items: center; color: #344054; cursor: pointer;
+  opacity: 0; transform: scale(.82); pointer-events: none; transition: opacity .2s ease-out, transform .36s cubic-bezier(.05,.7,.1,1); }
+.mvl-hf svg { width: 22px; height: 22px; }
+.mvl-hf:active { background: var(--g-100); }
+.mvl.away:not(.q) .mvl-hf { opacity: 1; transform: none; pointer-events: auto; transition-delay: .1s; }
+.mvl.v2 .mvl-scroll { padding-top: 8px; }
+.mvl.v2 .mvl-search { position: relative; top: auto; height: 52px; gap: 8px; padding: 0 6px 0 12px; border-color: #E6E9F5;
+  box-shadow: 0 1px 2px rgba(68,76,231,.06), 0 6px 16px -6px rgba(68,76,231,.14); }
+.mvl.v2 .mvl-search .mg { width: 18px; height: 18px; }
+/* indigo is the house colour for a focused input */
+.mvl.v2 .mvl-search:focus-within { border-color: #444CE7; box-shadow: 0 0 0 3px #EEF4FF; }
+ /* the search bar scrolls away (into the header); the tabs stay at the top, and a letter stops under them */
+.mvl.v2 .mvl-tabs { position: sticky; top: -8px; z-index: 2; background: #fff; }
+.mvl.v2 .mvl-l { top: 36px; }
+/* Recent, empty: the pictogram in its pool of light, one line, the primary with its depth */
+.mvl.v2 .mvl-blank { padding: 40px 28px 36px; }
+.mvl.v2 .mvl-blank .art { position: relative; width: auto; height: 76px; margin: 0; background: none; border-radius: 0; }
+.mvl.v2 .mvl-blank .art::before { content: ""; position: absolute; left: 50%; top: 50%; width: 128px; height: 80px; margin: -40px 0 0 -64px; border-radius: 9999px;
+  background: radial-gradient(closest-side, rgba(171,230,204,.34), rgba(255,255,255,0)); }
+.mvl.v2 .mvl-blank .art img { position: relative; display: block; height: 64px; width: auto; }
+.mvl.v2 .mvl-blank p { margin: 22px auto 0; max-width: 268px; font: 500 15px/22px Roboto, sans-serif; color: #475467; text-wrap: pretty; }
+.mvl.v2 .mvl-go { display: inline-flex; align-items: center; gap: 8px; height: 52px; margin-top: 22px; padding: 0 26px; border: 0; border-radius: 12px; background: var(--brand-600); color: #fff;
+  font: 700 15px/1 Roboto, sans-serif; box-shadow: 0 7px 0 var(--brand-700); transition: transform .15s cubic-bezier(.4,0,.2,1), box-shadow .15s cubic-bezier(.4,0,.2,1); }
+.mvl.v2 .mvl-go:active { transform: translateY(7px); box-shadow: none; background: var(--brand-600); }
+.mvl.v2 .mvl-go svg { width: 18px; height: 18px; }
