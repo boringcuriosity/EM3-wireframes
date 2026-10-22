@@ -31,6 +31,13 @@
      position:relative, so without a layer of its own a plain block sliding
      under it is painted over and loses its top edge. */
   .sect.ksect { margin-top: 24px; }
+  /* the KAIRA highlight (KHL below): folded away until it is due, then it opens, no bounce */
+  .ksect.khl { display: grid; grid-template-rows: 0fr; margin-top: 0; opacity: 0; transform: translateY(6px);
+    transition: grid-template-rows .5s cubic-bezier(.2,.7,.2,1), margin-top .5s cubic-bezier(.2,.7,.2,1), opacity .4s .1s ease-out, transform .5s .1s cubic-bezier(.2,.7,.2,1); }
+  .ksect.khl > .kaira { min-height: 0; overflow: hidden; transition: padding .5s cubic-bezier(.2,.7,.2,1), border-width .5s cubic-bezier(.2,.7,.2,1); }
+  .ksect.khl:not(.on) > .kaira { padding-top: 0; padding-bottom: 0; border-width: 0; box-shadow: none; }
+  .ksect.khl.on { grid-template-rows: 1fr; margin-top: 24px; opacity: 1; transform: none; }
+  @media (prefers-reduced-motion: reduce) { .ksect.khl { transition: none; } }
   #stage[hidden] + #railSect { margin-top: 24px; }   /* KAIRA reads as part of the score above her, not a new section */
   .sect.tight { position: relative; z-index: 1; margin-top: -10px; }
 
@@ -2632,6 +2639,7 @@ function nudge(html) {
 }
 function speak() {
   if (!kairaSay || S.kaira.edu || S.kaira.mode === "loading") return;
+  if (window.KHL && KHL.check()) return;   /* the highlight speaks for itself while it is open (below) */
   kairaSay.innerHTML = KSTATIC; return;   // ponytail: the gap-based lines below stay for when the card speaks again
   var g = gapIdx();
   if (g < 0) { kairaSay.innerHTML = KAIRA.perfect; return; }
@@ -2642,6 +2650,45 @@ function speak() {
     ? lag + " " + b.it.name + " at your " + b.m.name.toLowerCase() + " adds " + Math.round(b.it[MK[g]] * b.it.n * 10) / 10 + "g."
     : lag + " Your plan is done for today.");
 }
+
+/* ---------- the KAIRA highlight: hidden on arrival; after 8 seconds on the screen, if meals from the coach's plan are
+   still to log today, the card opens and names the next one. It closes again once every meal is logged.
+   Only on today's scored plan: never on a past day, a free user, or before a plan (that card teaches and stays).
+   ?kwait=ms changes the 8 seconds, for the doc (v7/nutrition-sufficiency.html, The KAIRA highlight) */
+window.KHL = (function () {
+  var sect = document.querySelector(".ksect"), on = false;
+  var live = sect && S.hero.score !== null && S.day === "Today" && !S.kaira.edu && S.diary.mode === "plan";   /* a scored plan today */
+  var left = function () { return MEALS.filter(function (m) { return !(mealCal(m) > 0); }); };
+  function line(L) {
+    var next = L[0].name;
+    return L.length === 1 ? "<strong>" + next + " is still to log.</strong> Snap a photo or say what you ate."
+      : "<strong>" + L.length + " meals still to log today.</strong> Start with " + next.toLowerCase() + ": snap a photo or say what you ate.";
+  }
+  /* folded at once on arrival, so the page never shows the card closing; only the opening animates */
+  if (live) {
+    var kc = sect.querySelector(".kaira");
+    sect.style.transition = kc.style.transition = "none";
+    sect.classList.add("khl"); void sect.offsetHeight;
+    sect.style.transition = kc.style.transition = "";
+  }
+  var api = {
+    /* open, close, or re-word the card from today's meals; true while open, so speak() leaves it alone */
+    check: function () {
+      if (!live || !api.due) return false;
+      var L = left();
+      on = L.length > 0;
+      sect.classList.toggle("on", on);
+      if (on) kairaSay.innerHTML = line(L);
+      return on;
+    },
+    due: false
+  };
+  if (live) setTimeout(function () {
+    if (document.hidden) { document.addEventListener("visibilitychange", function v() { if (!document.hidden) { document.removeEventListener("visibilitychange", v); api.due = true; api.check(); } }); return; }
+    api.due = true; api.check();
+  }, +(Q.get("kwait") || 8000));
+  return api;
+})();
 
 var bloomed = S.hero.score === 100;
 function refresh() {
@@ -3663,7 +3710,7 @@ function mealsIn() {
   var tries = 0, tick = setInterval(function () { place(); if (document.querySelector("[data-bdg]") || ++tries > 15) clearInterval(tick); }, 400);
 })();
 </script>
-<script src="assets/score-say.js?v=3"></script>
+<script src="assets/score-say.js?v=4"></script>
 <script src="chrome.js"></script>
 <script src="assets/kaira-aurora.js?v=3"></script>
 </body>

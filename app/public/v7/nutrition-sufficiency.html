@@ -443,6 +443,21 @@
       <div class="cases" data-cases="say"></div>
     </section>
 
+    <section id="nudge">
+      <div class="snum">Section</div>
+      <h2>KAIRA steps in after 8 seconds</h2>
+      <p>KAIRA's card waits out of sight when Eat opens, so the score and the day come first. If the person stays on the screen for 8 seconds and the Eat plan suggested by their coach still has meals to log, the card opens in place and names what to log next, with Snap and Voice right under it.</p>
+      <ul class="plain">
+        <li><b>8 seconds on the screen.</b> Counted only while the app is in view. Leaving and coming back finishes the wait, it does not start it again.</li>
+        <li><b>One meal left.</b> "Dinner is still to log. Snap a photo or say what you ate."</li>
+        <li><b>More than one.</b> "3 meals still to log today. Start with evening snack: snap a photo or say what you ate." The next unlogged meal in the plan's order.</li>
+        <li><b>Every meal logged.</b> The card stays out of sight. There is nothing to ask of them.</li>
+        <li><b>Only today, only on a plan.</b> Past days, no plan yet and free users keep the card as it is, always in view.</li>
+        <li><b>How it opens.</b> The card unfolds and fades up in half a second, with no bounce. It never closes on its own once open.</li>
+      </ul>
+      <div class="cases" data-cases="nudge"></div>
+    </section>
+
     <section id="free">
       <div class="snum">Section 17</div>
       <h2>A free user</h2>
@@ -820,6 +835,10 @@ const CASES = {
   ],
   /* one person, in order. The four acts below are the same four the prototype
      panel groups its states into, so a link from either side lands in context. */
+  nudge: [
+    ["state=mid&kwait=1500", "Meals left", "kwait", "Three meals still to log, so KAIRA opens after the wait and points at the next one. Shortened to 1.5 seconds here."],
+    ["state=full&kwait=1500", "Every meal logged", "kwait · full", "Nothing left to log, so KAIRA's card stays out of sight."],
+  ],
   say: [
     ["state=empty&say=pre", "Pre-breakfast", "say=pre", "A light start adds its small share."],
     ["state=first&say=plan", "Breakfast as planned", "say=plan", "Breakfast on plan adds its full share."],
@@ -964,6 +983,7 @@ const SECTIONS = [
   ["first", "The first screen"],
   ["states", "One user, in order"],
   ["say", "The line under the score"],
+  ["nudge", "KAIRA after 8 seconds"],
   ["free", "A free user"],
   ["meals", "Meal cards"],
   ["waysin", "The ways in"],

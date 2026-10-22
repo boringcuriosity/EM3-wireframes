@@ -21,6 +21,8 @@ SC.mid = { state: "mid", score: 54, delta: "+20%", tone: "up", lead: "Your score
 if (window.SAY_REST) Object.keys(SC).forEach(function (k) { if (SC[k].rest === "keep logging your meals.") SC[k].rest = window.SAY_REST; });
 /* a host page can swap the KAIRA link for its own words and its own sheet (move/index.html) */
 if (window.SAY_CTA) Object.keys(SC).forEach(function (k) { if (SC[k].cta) SC[k].cta = window.SAY_CTA; });
+SC.medal = { state: "full", score: 83, delta: "+27%", tone: "up", lead: "We are proud of you! Today's medal is yours.", rest: "Your score went up by 27%.", cta: "Learn more by asking KAIRA" };
+SC.hundred = { state: "perfect", score: 100, delta: "+4%", tone: "up", lead: "Amazing! You reached 100% today.", rest: "Your score went up by 4%.", cta: "Learn more by asking KAIRA" };
 SC.full = { state: "full", score: 88, delta: "+4%", tone: "up", lead: "Your score went up by 4%,", rest: "your day is all logged.", cta: "Learn more by asking KAIRA" };
 SC.perfect = { state: "perfect", score: 100, delta: "+4%", tone: "up", lead: "Your score went up by 4%,", rest: "every target met today.", cta: "Learn more by asking KAIRA" };
 SC.over = { state: "over", score: 92, delta: "+9%", tone: "down", lead: "Your score went up by only 9%,", rest: "you could have gained 18% more.", cta: "Find out why from KAIRA" };
