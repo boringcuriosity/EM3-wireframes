@@ -21,7 +21,7 @@ export const PILLAR_SCIENCE = {
   },
 
   /* Momentum, as the /move deck argues it: the day is the thing that matters,
-     not the single session inside it. The sheet said the old NEAT-only story,
+     not the single session inside it. The sheet said the old small-moves-only story,
      which was a claim about where calories burn rather than an explanation of
      the score the pillar actually shows.
 

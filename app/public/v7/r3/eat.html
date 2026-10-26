@@ -901,6 +901,9 @@
   .elist2 li { margin: 0 0 4px; font-size: 14px; line-height: 21px; color: var(--g-600); }
   .esec p { margin: 0 0 8px; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
   .esec p:last-child { margin-bottom: 0; }
+  .esteps { margin-top: 10px; gap: 10px; }
+  .esteps .erow .ic { width: 22px; justify-items: start; margin-top: 1px; }
+  .esteps .erow .t { color: var(--g-600); }
   .edash { border: 0; border-top: 1px dashed var(--g-200); margin: 16px 0 0; }
   .esheet.on { transform: translate(-50%, 0); }
   /* the meal's door to its sheet: a small frosted neutral chip under the suggested time, saying what it opens */
@@ -1261,7 +1264,7 @@
   document.getElementById("kairaMark").innerHTML = GFKaira.mark(30, { halo: false });
 </script>
 <script src="assets/flipcoin-toast.js?v=2"></script>
-<script src="assets/plan-tray.js?v=42"></script>
+<script src="assets/plan-tray.js?v=45"></script>
 <script src="assets/flipcoin-earn.js?v=8"></script>
 <script>
 /* ============================================================
@@ -1370,11 +1373,11 @@ var STATES = {
   noplanempty: {
     day: "Today", next: false,
     hero: { score: null, mealsIn: 0, mealSlots: 4 },
-    /* nothing to measure, so the macros card stands down entirely and Kaira's
-       card carries the teaching and the two ways to log */
+    /* nothing to measure, so the macros card stands down; the line under the
+       score says when it unlocks (score-say.js) and Kaira's card is the plain one */
     macros: { mode: "hide" },
     cal: { mode: "hide" },
-    kaira: { edu: 1, act: "log" },
+    kaira: { act: "log" },
     diary: { mode: "free", title: "Your meals", count: "", logged: false }
   },
   /* Same day, food in. The grams are real from the first meal even though the
@@ -1383,8 +1386,7 @@ var STATES = {
     day: "Today", next: false,
     hero: { score: null, mealsIn: 2, mealSlots: 4 },
     macros: { mode: "grams", title: "What you have eaten",
-      v: [[54], [157], [41], [12]],
-      lock: "Your sufficiency score will unlock once your coach has assigned you a diet plan after your first consultation." },
+      v: [[54], [157], [41], [12]] },   /* the unlock line sits under the score (score-say.js), not in this card */
     cal: { mode: "line", eaten: 1213 },
     kaira: { say: KAIRA.noplan, act: "log" },
     diary: { mode: "free", title: "Your meals", count: "", logged: true }
@@ -1782,7 +1784,7 @@ function loadScripts(list, done) {
      flag is there and costs nothing when it is not */
   if (!(window.HEROES && window.HEROES[name]) && HERO_DIR[name] != null) {
     /* the liquid score brings its own renderer, so it skips three.js */
-    loadScripts((name === "cloud" ? [] : [LAZY.three, LAZY.shaders]).concat("heroes/" + HERO_DIR[name] + name + ".js" + (name === "cloud" ? "?v=20" : "")), start);   /* ?v busts the cache when the liquid score is updated */
+    loadScripts((name === "cloud" ? [] : [LAZY.three, LAZY.shaders]).concat("heroes/" + HERO_DIR[name] + name + ".js" + (name === "cloud" ? "?v=21" : "")), start);   /* ?v busts the cache when the liquid score is updated */
     return;
   }
   start();
@@ -2279,7 +2281,8 @@ function loadScripts(list, done) {
 
   /* Hero: the day view's Cloud Drop, shorter. The score, orbs and tag live
      inside it; a quiet caption only adds the day when it is not today. */
-  var caption = LOCKED ? "Your score unlocks once your plan is ready"
+  /* locked, the first section below says when it unlocks, so no caption repeats it */
+  var caption = LOCKED ? ""
     : SCORE == null ? "Nothing was logged on " + S.day
     : PAST ? S.day : "";
   var hero = '<div class="ebub-wrap">' + (LOCKED ? '<div class="ebub lock"><div class="lk" id="esLock"></div></div>'
@@ -2332,8 +2335,15 @@ function loadScripts(list, done) {
       "Your coach sets them for you after your consultation, from your goal, your body and your health."], coach: true }
   ];
 
-  var secs = SECS.map(function (x, i) {
-    return (i ? '<hr class="edash">' : "") + '<div class="esec"><h5>' + x.h + "</h5>" +
+  /* before a plan (noplanempty, noplan): what to do now comes first, the way Kaira's card used to teach it */
+  var IC = function (d) { return '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px">' + d + "</svg>"; };
+  var FIRST = LOCKED && !S.free ? '<div class="esec"><h5>Show us what you eat.</h5><div class="elist esteps">' + [
+      [IC('<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/>'), "Log everything you eat, we do not judge, promise."],
+      [IC('<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>'), "Your coach will look at this before building your Eat plan."],
+      [IC('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'), "Your Nutrition sufficiency score unlocks after your first Eat Coach consultation, once your coach assigns you a plan."]
+    ].map(function (r) { return '<div class="erow"><span class="ic">' + r[0] + '</span><span class="t">' + r[1] + "</span></div>"; }).join("") + "</div></div>" : "";
+  var secs = FIRST + SECS.map(function (x, i) {
+    return (i || FIRST ? '<hr class="edash">' : "") + '<div class="esec"><h5>' + x.h + "</h5>" +
       (x.f ? '<p class="eformula">' + x.f + "</p>" : "") +
       (x.p ? x.p.map(function (t) { return "<p>" + t + "</p>"; }).join("") : "") +
       (x.li ? '<ul class="elist2">' + x.li.map(function (t) { return "<li>" + t + "</li>"; }).join("") + "</ul>" : "") +
@@ -2344,7 +2354,8 @@ function loadScripts(list, done) {
   host.innerHTML = '<div class="sheet esheet" id="es-suff" role="dialog" aria-modal="true" aria-labelledby="est-suff">' +
     '<div class="shead"><h4 id="est-suff">Nutrition sufficiency</h4>' +
       '<button class="x" id="esX" aria-label="Close">' + XICON + "</button></div>" +
-    '<div class="sbody">' + hero + card + secs + "</div>" +
+    /* nothing logged yet, so no intake card of zeros */
+    '<div class="sbody">' + hero + (M.mode === "hide" ? "" : card) + secs + "</div>" +
     '<div class="sfoot"><button class="ecta" id="esAsk">Ask KAIRA more about this' + ARR + "</button></div></div>";
 
   var sheet = document.getElementById("es-suff");
@@ -2981,6 +2992,8 @@ function mealsIn() {
       var slot = title.querySelector(".gapslot");
       title.textContent = text;
       if (slot) title.appendChild(slot);
+      /* no heading (before a plan): it stops holding its 16px */
+      title.hidden = !text;
     }
     if (ICONRAIL) return;
     host.innerHTML = cards().map(function (c) {
@@ -3106,8 +3119,9 @@ function mealsIn() {
   ];
   /* The same ask, turned back into a question. Composed from the title rather
      than written per tip, so a tip only ever has to say what it is. */
+  /* one strict shape for any tip, so no tip needs its grammar bent: who set it, the tip word for word, the ask */
   function askAbout(title) {
-    return "Tell me why I should " + title.charAt(0).toLowerCase() + title.slice(1) + ".";
+    return "My Eat coach has assigned this tip to me:<br><b>\u201C" + title.replace(/[.\s]+$/, "") + "\u201D</b><br>Help me understand how it is beneficial to me.";
   }
   /* the sheet's icons, drawn in the house line style */
   var KS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">';
@@ -3710,7 +3724,7 @@ function mealsIn() {
   var tries = 0, tick = setInterval(function () { place(); if (document.querySelector("[data-bdg]") || ++tries > 15) clearInterval(tick); }, 400);
 })();
 </script>
-<script src="assets/score-say.js?v=4"></script>
+<script src="assets/score-say.js?v=13"></script>
 <script src="chrome.js"></script>
 <script src="assets/kaira-aurora.js?v=3"></script>
 </body>

@@ -34,7 +34,7 @@
        section under it comes up to about 24px from the tag */
     /* locked, the page already pulls the next section up (no verdict pill) and there is no tag, so it needs far less */
     /* no status tag under the gauge any more, so a scored day pulls the next section up into its space */
-    wrap.style.marginBottom = lock === "lit" ? "-2px" : lock ? "-26px" : "-72px";   /* 0 and 100 now sit inside the arc (er=.115), so nothing hangs below the pearls */   /* the first landing is followed by the Kaira card, which the page pulls up further */
+    wrap.style.marginBottom = lock ? "-26px" : "-72px";   /* both locked states: the unlock line sits under the plate (score-say.js) */   /* 0 and 100 now sit inside the arc (er=.115), so nothing hangs below the pearls */   /* the first landing is followed by the Kaira card, which the page pulls up further */
     /* the score frame is transparent, so it may overhang the stage into the next section without covering it */
     if (stage) { stage.style.paddingTop = "0"; stage.style.overflow = "visible"; }
     /* the score carries its own status tag (Solid Day, Room To Grow, Needs

@@ -179,11 +179,13 @@
     var apply = function (on) { items.forEach(function (x) { if (on) S.done[x.r][x.id] = "Done"; else delete S.done[x.r][x.id]; }); };
     var gain = window.MVMOM ? window.MVMOM.gain(function () { apply(true); }, function () { apply(false); }) : Math.max(1, Math.round(kcal() / plan * 40));
     var land = function () {
+      /* the bar stays put under the ribbons and drops away at once, unseen, behind the white (as the logger does) */
+      bar.style.transition = "none"; bar.classList.remove("up"); document.body.classList.remove("pt-on"); void bar.offsetHeight;
+      requestAnimationFrame(function () { bar.style.transition = ""; });
       if (window.MVMOM) window.MVMOM.logged();
       items.forEach(function (x) { S.done[x.r][x.id] = "Done"; (S.at[x.r] = S.at[x.r] || {})[x.id] = hhmm(x.time); });
       T = []; render(); settle(items);
     };
-    bar.classList.remove("up"); document.body.classList.remove("pt-on");
     win(rect, items.map(function (x) { return EX[x.id].name; }), gain, land);
   }
   /* Eat's win moment, for anything logged on Move: the plan from the bar, or a workout found by search (log.js) */
@@ -211,7 +213,7 @@
   window.WIN_MODE = "aurora";
   /* fetched once the page has settled, so the first log starts at once instead of waiting on the script */
   function loadWin(ok, fail) {
-    var sc = document.createElement("script"); sc.src = "assets/win-moment.js?v=19"; sc.onload = ok; if (fail) sc.onerror = fail; document.head.appendChild(sc);
+    var sc = document.createElement("script"); sc.src = "assets/win-moment.js?v=20"; sc.onload = ok; if (fail) sc.onerror = fail; document.head.appendChild(sc);
   }
   addEventListener("load", function () { setTimeout(function () { if (!window.WinMoment) loadWin(function () {}); }, 1500); });
 

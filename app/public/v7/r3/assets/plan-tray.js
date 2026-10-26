@@ -82,7 +82,7 @@
     /* the review sheet: one flat list, no meal groups. Each food is its name, its helping, its time, and a stepper. */
     ".pts .sh{padding-bottom:0}",
     ".pts .pi{display:flex;align-items:center;gap:12px;padding:14px 0}.pts .pi+.pi{border-top:1px solid #F2F4F7}",
-    ".pts .pi .t{flex:1;min-width:0}.pts .pi .nm{font:600 15px/22px Roboto,sans-serif;color:#101828}",
+    ".pts .pi .t{flex:1;min-width:0}.pts .pi .nm{font:600 15px/22px Roboto,sans-serif;color:#101828;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere}",
     ".pts .pi .mt{font:400 13px/18px Roboto,sans-serif;color:#667085;font-variant-numeric:tabular-nums}",
     /* The time and the stepper are the same kind of thing, a value you can
        change, so they share one treatment: a grey shell, the value in ink, and
@@ -393,9 +393,9 @@
        Generic on purpose, so it reads right for any meal at any hour.
        Log stays greyed until every time is one that has already happened. */
     var ask = late ? '<div class="fbn" role="status"><div class="rib">' + WARN + "Future time</div><div class=\"in\">" +
-      "<b>" + late + (late === 1 ? " item is" : " items are") + " set for later</b>" +
-      "<p>You can only log food you have already eaten. Had " + (late === 1 ? "it" : "them") + "? Set " + (late === 1 ? "it" : "them") + " to now.</p>" +
-      '<button data-pt="setnow">Set ' + (late === 1 ? "it" : "them") + " to now, " + fmt(Math.floor(nowMin() / 5) * 5) + "</button></div></div>" : "";
+      "<b>You\u2019re logging " + late + (late === 1 ? " future item!" : " future items!") + "</b>" +
+      "<p>" + (late === 1 ? "This item is" : "These items are") + " planned to be eaten later. Already had " + (late === 1 ? "it" : "them") + "? Log " + (late === 1 ? "it" : "them") + " now, or come back when you have " + (late === 1 ? "it" : "them") + ".</p>" +
+      '<button data-pt="setnow">Log ' + (late === 1 ? "it" : "them") + " now (" + fmt(Math.floor(nowMin() / 5) * 5) + ")</button></div></div>" : "";
     openSheet(head("Food items to log") + ask +
       T.items.map(function (x, i) {
         return '<div class="pi"><div class="t"><div class="nm">' + x.it.name + '</div><div class="mt">' + helping(x) + " · " + Math.round(x.it.cal / x.it.n * x.n) + " kcal</div></div>" +
@@ -573,11 +573,18 @@
     }
   });
 
-  if (Q.get("pt") === "future") setTimeout(function () {
+  /* ?pt=future: the sheet with later times. ?pt=long: the same, with long dish names, for the 2 line limit on a name */
+  var LONG = ["Multigrain methi thepla with low fat curd and a spoon of homemade green chutney",
+    "Mixed vegetable sabzi with paneer, peas and capsicum, cooked in mustard oil",
+    "Walnuts, almonds and soaked raisins", "Chamomile tea"];
+  if (Q.get("pt") === "future" || Q.get("pt") === "long") setTimeout(function () {
     ["dinner", "bed"].forEach(function (id) {
       [].slice.call(document.querySelectorAll('.item[data-ref^="' + id + '|"]:not(.done) .tickbtn')).slice(0, 2).forEach(function (b) { b.click(); });
     });
-    setTimeout(function () { var g = bar.querySelector(".go"); if (g) g.click(); }, 900);
+    setTimeout(function () {
+      if (Q.get("pt") === "long" && T) T.items.forEach(function (x, i) { if (LONG[i]) x.it = Object.assign({}, x.it, { name: LONG[i] }); });
+      var g = bar.querySelector(".go"); if (g) g.click();
+    }, 900);
   }, 700);
 
   window.GFPlanTray = { toggle: toggle, items: function () { return T ? T.items.slice() : []; } };

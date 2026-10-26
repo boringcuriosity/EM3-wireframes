@@ -129,7 +129,10 @@
     [].forEach.call(el.querySelectorAll(".mvl-tab"), function (b) { var on = b.dataset.t === t; b.classList.toggle("on", on); b.setAttribute("aria-selected", on); });
     [].forEach.call(el.querySelectorAll(".mvl-pane"), function (p) { p.classList.toggle("on", p.dataset.t === t); });
     el.classList.toggle("all", t === "all");
-    var on = el.querySelector(".mvl-tab.on"), ind = el.querySelector(".mvl-ind");
+    /* a switch made deep in a list opens the other at its start, just under the sticky tabs */
+    var tb = el.querySelector(".mvl-tabs"), pn = el.querySelector(".mvl-panes"), gap = pn.getBoundingClientRect().top - tb.getBoundingClientRect().bottom;
+    if (!still && gap < 0) sc.scrollTop += gap;
+    var on =el.querySelector(".mvl-tab.on"), ind = el.querySelector(".mvl-ind");
     if (on && ind) {
       var w = on.firstElementChild.getBoundingClientRect().width + 6 + on.lastElementChild.offsetWidth;
       ind.style.transition = still ? "none" : ""; ind.style.width = Math.round(w) + "px";
@@ -388,6 +391,12 @@
     if (a === "date") return dateSheet();
     if (a === "log") return log(t);
   });
+  /* close without the slide: transitions off for one frame */
+  function instant(fn) {
+    [el, dv].forEach(function (n) { n.style.transition = "none"; });
+    fn(); void el.offsetHeight;
+    requestAnimationFrame(function () { [el, dv].forEach(function (n) { n.style.transition = ""; }); });
+  }
   function log(btn) {
     var P = window.MVPLAN, rect = btn.getBoundingClientRect(), x = { name: D.w[0], ic: D.w[1], min: D.min, kcal: kcal(), at: D.at, eff: D.eff };
     /* an edit replaces the entry, in whichever part of the day its time now falls; the score moves and says so, no win */
@@ -397,10 +406,12 @@
       P.S.extra[partOf(D.at)].push(x);
       back(); return P.render();
     }
-    back(); close(); remember(D.w[0], D.min);
-    if (dayDiff(D.date) !== 0) return;   /* ponytail: an earlier day is saved with that day; the prototype only keeps today */
+    remember(D.w[0], D.min);
+    if (dayDiff(D.date) !== 0) { back(); close(); return; }   /* ponytail: an earlier day is saved with that day; the prototype only keeps today */
     var r = partOf(D.at);
-    var land = function () { if (window.MVMOM) window.MVMOM.logged(); P.S.extra[r].push(x); P.render(); };
+    /* the logger holds still under the ribbons and leaves at once, unseen, when the day is rebuilt behind the white:
+       sliding both screens away while the ribbons swept in made two motions fight, and that was the stutter */
+    var land = function () { instant(function () { back(); close(); }); if (window.MVMOM) window.MVMOM.logged(); P.S.extra[r].push(x); P.render(); };
     var gain = window.MVMOM ? window.MVMOM.gain(function () { P.S.extra[r].push(x); }, function () { P.S.extra[r].pop(); }) : 0;
     if (window.MVTRAY) window.MVTRAY.win(rect, [x.name], gain, land); else land();
   }

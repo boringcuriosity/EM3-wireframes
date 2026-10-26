@@ -265,9 +265,15 @@
       if (w != null) { var cw = Math.min(w, t - 1.9); if (cw > 0 && cw < .03) buzz(18); content(cw); }
     }
 
+    /* the clock the animation runs on: it starts at the first frame actually drawn (the screen underneath is often still
+       closing a sheet when this begins), and no frame may advance it more than 1/30s, so a slow frame early on slows the
+       ribbons for an instant instead of making them jump ahead to catch up. That jump was the stutter at the start. */
+    var clock = 0, last = null;
     function frame(now) {
       if (!alive) return;
-      var t = (now - t0) / 1000, w = winAt == null ? null : (now - winAt) / 1000;
+      if (last == null) last = now;
+      clock += Math.min(now - last, 1000 / 30); last = now;
+      var t = clock / 1000, w = winAt == null ? null : (now - winAt) / 1000;
       x.clearRect(0, 0, W, H);
       (MODE === "rise" ? rise : MODE === "aurora" ? aurora : nova)(t, w);
       /* leave into white, the day view's own ground, so the logger never shows through on the way out */
@@ -275,7 +281,7 @@
       if (exitAt && ex() > .7) { alive = false; done && done(); return; }
       raf = requestAnimationFrame(frame);
     }
-    raf = requestAnimationFrame(frame);
+    raf = requestAnimationFrame(function () { raf = requestAnimationFrame(frame); });   /* one frame to settle, then start */
 
     function layout(d) {
       var TICK = '<svg width="34" height="34" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg>';

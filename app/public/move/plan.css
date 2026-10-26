@@ -266,3 +266,19 @@ button.mv-sync { width: 100%; font-family: inherit; text-align: left; cursor: po
 /* Log steps buttons: the Steps tile's filled glyph, in the button's colour */
 .ic-steps { display: inline-block; width: 18px; height: 18px; flex-shrink: 0; background: currentColor; -webkit-mask: url(/v7/icons/move/steps-filled.svg) center/contain no-repeat; mask: url(/v7/icons/move/steps-filled.svg) center/contain no-repeat; }
 .kbtn.out .ic-steps { color: #299D6B; }
+
+/* Log steps, several times: labels once, one row per time, a quiet remove on added rows, then Add another time */
+.mv-heads { margin-bottom: -2px; }
+.mv-srows { display: flex; flex-direction: column; gap: 10px; }
+.mv-heads, .mv-srow { grid-template-columns: 1fr 1fr 24px; gap: 8px; }
+.mv-srow { align-items: center; }
+.mv-srm { position: relative; width: 24px; height: 24px; border-radius: 50%; border: 0; background: var(--g-100); color: var(--g-600); display: grid; place-items: center; cursor: pointer; }
+.mv-srm svg { width: 12px; height: 12px; }
+.mv-srm::after { content: ""; position: absolute; inset: -10px; }
+.mv-addrow { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; margin: 12px 0 4px; padding: 6px 0; border: 0; background: none; cursor: pointer; font: 600 14px/20px Roboto, sans-serif; color: var(--brand-600); }
+.mv-addrow svg { width: 18px; height: 18px; }
+.mv-srow.new { animation: mvRowIn .28s cubic-bezier(.2,.7,.2,1) both; }
+@keyframes mvRowIn { from { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .mv-srow.new { animation: none; } }
+.mv-chev { flex: none; display: grid; place-items: center; width: 20px; height: 20px; margin-left: -4px; padding: 0; border: 0; background: none; color: var(--g-400); cursor: pointer; }
+.mv-chev svg { width: 16px; height: 16px; }

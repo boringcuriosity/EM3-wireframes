@@ -233,7 +233,7 @@
     .observe(document.getElementById("col") || document.body, { subtree: true, attributes: true, attributeFilter: ["class"] });
 
   window.MVPLAYER = {
-    open: function (r, id) {
+    open: function (r, id, upright) {
       S.r = r; VID.muted = false;
       document.documentElement.classList.add("mvl-lock");   /* the page behind holds still (log.css) */
       P.onDone = function (rr, did) {
@@ -241,8 +241,8 @@
         if (atEnd()) return S.land ? turnBack(close) : close();
         go(nextOpen());
       };
-      /* a tap on a video starts it full screen, turned to landscape */
-      S.land = true; enter = true; bar(false);
+      /* a tap on the thumbnail starts it full screen, turned to landscape; on the name it opens upright, the detail */
+      S.land = !upright; enter = !upright; bar(!!upright);
       go(P.RT[S.r].ex.indexOf(id));
       setTimeout(function () { enter = false; el.classList.remove("enter"); }, 520);
     }

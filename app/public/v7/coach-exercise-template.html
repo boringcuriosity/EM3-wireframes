@@ -1493,7 +1493,7 @@ Yoga for Back Pain -2|P|27|min`;
     if (!c[0]) return "Not set";
     return c[0] === c[1] && u.length === 1 ? (+u[0]).toLocaleString("en-IN") + " a day" : c[0] + " of " + c[1] + " days";
   }
-  var STEP_NAMES = ["Exercise plan", "NEAT (Small moves)", "Steps goal"];
+  var STEP_NAMES = ["Exercise plan", "Small moves", "Steps goal"];
   function drawStepper() {
     var subs = [PLAN.length + (PLAN.length === 1 ? " week" : " weeks"), neatSummary(), stepsSummary()];
     $("stepper").innerHTML = STEP_NAMES.map(function (n, i) {
@@ -1507,9 +1507,9 @@ Yoga for Back Pain -2|P|27|min`;
     if (S.step === 1) {
       var D = day();
       left = "Week " + PLAN[S.w].week_no + " · " + (D.rest_day === "Y" ? "Day " + D.day_no + " is a rest day" : "Day " + D.day_no + " total " + both(dayMin(D), dayKcal(D)));
-      right = '<button class="b ol" data-x="cancel">Cancel</button><button class="b pr" data-x="next">Next: NEAT (Small moves)</button>';
+      right = '<button class="b ol" data-x="cancel">Cancel</button><button class="b pr" data-x="next">Next: Small moves</button>';
     } else if (S.step === 2) {
-      left = "NEAT (Small moves): " + neatSummary();
+      left = "Small moves: " + neatSummary();
       right = '<button class="b ol" data-x="back">Back</button><button class="b pr" data-x="next">Next: Steps goal</button>';
     } else {
       left = "Steps goal: " + stepsSummary();
@@ -1623,7 +1623,7 @@ Yoga for Back Pain -2|P|27|min`;
   function drawNeat() {
     if (S.nw >= PLAN.length) S.nw = 0;
     var list = nList(false), n = neatN(NEAT[dkey(S.nw, S.nd)]);
-    var h = '<div class="s-head"><div><h2>NEAT (Small moves)</h2><p>Short bits of everyday movement, split across the parts of the day. The user ticks the ones you set here; they cannot add their own. Set a day, then copy it to ' + (S.cm === "smart" ? "as many days or weeks as you like." : "another day or week.") + '</p></div>' +
+    var h = '<div class="s-head"><div><h2>Small moves</h2><p>Short bits of everyday movement, split across the parts of the day. The user ticks the ones you set here; they cannot add their own. Set a day, then copy it to ' + (S.cm === "smart" ? "as many days or weeks as you like." : "another day or week.") + '</p></div>' +
         '<button class="linkb" data-x="ptimes">' + ico("time-outline") + 'Edit times</button></div>' +
       '<div class="exbox' + (S.nEx ? " open" : "") + '"><button class="linkb" data-x="nex" aria-expanded="' + !!S.nEx + '">' + ico("bulb-outline") + (S.nEx ? "Hide examples" : "See examples") + '</button>' +
         (S.nEx ? '<div class="exlist">' + NEX.map(function (e) { var k = e.part.toLowerCase(); return '<div class="exi t-' + PS[k].tone + '"><span class="exp">' + ico(PS[k].ic) + e.part + '</span><b>' + e.title + '</b><small>' + e.sub + '</small></div>'; }).join("") + '</div>' : "") + '</div>';
@@ -1812,7 +1812,7 @@ Yoga for Back Pain -2|P|27|min`;
     $("pv").innerHTML = '<div class="crumb"><span data-x="home">Home</span><span>&gt;&gt;</span><span data-x="pvback">Exercise-template</span><span>&gt;&gt;</span><b>Exercise-template-preview</b></div>' +
       '<div class="pvcard"><div class="pvhead"><h3>Preview and Assign Plan</h3>' +
         '<div class="pvrow"><b>Exercise Name</b><div>' + name + '</div></div><div class="pvrow"><b>Start Date</b><div>' + fmt(start) + '</div></div><div class="pvrow"><b>End Date</b><div>' + fmt(iso(end)) + '</div></div>' +
-        '<div class="pvrow"><b>NEAT (Small moves)</b><div>' + neatSummary() + '</div></div><div class="pvrow"><b>Steps goal</b><div>' + stepsSummary() + '</div></div>' +
+        '<div class="pvrow"><b>Small moves</b><div>' + neatSummary() + '</div></div><div class="pvrow"><b>Steps goal</b><div>' + stepsSummary() + '</div></div>' +
         '<div class="pvrow"><b>Master template</b><div>' + (S.tpl.master ? "Will be updated with these changes" : "Not changed") + '</div></div>' +
         '<div class="pvrow"><b>Copy template</b><div>' + (S.tpl.copy ? 'Saved as "' + esc(S.tpl.copy) + '"' : "Not saved") + '</div></div></div>' +
         '<div class="phone"><h1>' + name + '</h1><p class="valid">Valid from ' + fmt(start) + ' to ' + fmt(iso(end)) + '</p>' +

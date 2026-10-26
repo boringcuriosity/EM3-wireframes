@@ -117,18 +117,19 @@
         '<div class="t"><div class="n">' + rt.name + '</div><div class="s">' + rt.win + (rt.ex.length ? ' · ' + mins(rt.ex) + ' min' : '') + '</div>' +
           /* like Eat's "Nutrition breakdown": what this part of the day should burn, and its small moves */
           (rt.ex.length || rt.tips.length ? '<button class="minfo" data-burn="' + r + '" aria-label="' + rt.name + ', movement breakdown">' + IC.info + 'Movement breakdown</button>' : '') + '</div>' +
-        /* no coach workout, so no "Did another workout?" row: logging one lives in the corner, as on Night */
-        (rt.ex.length ? "" : '<button class="mv-add" data-x="logworkout" aria-label="Log a workout in the ' + rt.name.toLowerCase() + '">' + IC.plusSq + '</button>') + '</div>' +
+'</div>' +
       '<div class="mv-mbi">' + (rt.ex.length ? '<div class="lab">Your coach\'s plan</div><div class="mv-items">' + rt.ex.map(function (id) {
         var e = EX[id], f = d[id];
         return '<div class="mv-item' + (f ? " done" : "") + '">' +
           '<button class="mv-tb' + (f ? " on" : "") + '" data-tick="' + r + '|' + id + '" aria-pressed="' + !!f + '" aria-label="' + (f ? "Done, " + f + ": " : "Mark as done: ") + e.name + '"><span class="mv-tk">' + IC.check + '</span></button>' +
           '<button class="mv-th" data-vid="' + r + '|' + id + '" aria-label="Play ' + e.name + '">' + img(id) + '<span>' + IC.play + '</span></button>' +
-          /* the name and its line open the video too, not just the thumbnail */
-          '<button class="mv-nm" data-vid="' + r + '|' + id + '" tabindex="-1">' + e.name + '<span>' + e.sets + ' sets · ' + e.reps + ' reps · ' + e.kcal + ' kcal</span></button>' +
+          /* the thumbnail plays it full screen, turned; the name, its line and the chevron open the detail, upright */
+          '<button class="mv-nm" data-vid="' + r + '|' + id + '|d">' + e.name + '<span>' + e.sets + ' sets · ' + e.reps + ' reps · ' + e.kcal + ' kcal</span></button>' +
+          '<button class="mv-chev" data-vid="' + r + '|' + id + '|d" tabindex="-1" aria-hidden="true">' + IC.chev + '</button>' +
           '</div>';   /* ponytail: how it felt is kept in S.done; how to show it on the row comes later */
       }).join("") + '</div>' : "") + extras(r) +
-      (rt.ex.length ? '<div class="mv-else"><div class="lab">Did another workout?</div><div class="mv-acts"><button>' + IC.plusSq + 'Search and log exercise</button></div></div>' : "") +
+      /* with or without a coach workout, logging one is the same row: "another" only when the coach set one */
+      '<div class="mv-else"><div class="lab">' + (rt.ex.length ? "Did another workout?" : "Did any workout?") + '</div><div class="mv-acts"><button>' + IC.plusSq + 'Search and log exercise</button></div></div>' +
       (rt.tips.length ? '<div class="mv-tips"><div class="lab">Small moves</div><div class="mv-tiplist">' + rt.tips.map(function (t, i) {
         var on = !!S.tips[r][i];
         /* Eat's tip anatomy (.tip, .tmark), so ticking it plays Eat's pop, ring, check draw, burst and wash */
@@ -185,7 +186,7 @@
     return '<section class="mv-steps"><div class="sec"><h2>Your steps</h2></div><div class="mv-sc">' +
       '<div class="mv-sh"><div class="t"><div class="mv-big">' + fmt(tot) + ' <span>' + (NOPLAN ? "steps" : "of " + fmt(GOAL) + " steps") + '</span></div>' +
         /* what is left, said plainly, the number carrying the weight */
-        '</div><button class="mv-logbtn" data-log>' + IC.steps + 'Log steps</button></div>' +
+        '</div><button class="mv-logbtn" data-log>' + IC.plusSq + 'Log steps</button></div>' +
         /* its own row under the number and the button, so it has the card's full width */
         '<div class="mv-sub">' + (FREE ? "Counted by your phone." : NOPLAN ? "Your coach sets your daily goal after your first consultation." : left > 0 ? '<b>' + fmt(left) + ' more</b> to reach today\'s goal' : "<b>Goal reached.</b> Every step from here is extra.") + '</div>' +
       (NOPLAN ? "" : '<div class="mv-prog"><i style="width:' + Math.min(100, tot / GOAL * 100) + '%"></i></div>') +
@@ -203,8 +204,22 @@
     if (!painted) [].forEach.call(document.querySelectorAll(".mgrid .mval strong"), function (n, i) { n.setAttribute("data-n", live()[i]); n.textContent = fmt(live()[i]); });
     painted = true;
     window.paintMacros(null, "");
+    burnLine();
   }
   var painted = false;
+
+  /* Calories burned, laid out like Eat's calorie intake line: workouts (MET x 3.5 x kg / 200 x min, log.js) plus steps.
+     Steps by the ACSM walking equation: level walking costs 0.1 ml O2 per kg per metre above rest, 5 kcal per litre,
+     so 0.5 kcal per kg per km, net of resting; the distance is steps x stride, stride = height x 0.414.
+     ponytail: 65 kg and 165 cm until the profile is wired in, as log.js */
+  var KG = 65, CM = 165;
+  function stepKcal(n) { return n * CM * .414 / 100000 * KG * .5; }
+  function burnLine() {
+    if (!window.paintCal) return;
+    /* the number alone: no one sets a burn goal, and an estimate should not read as a target */
+    var v = live();
+    window.paintCal(Math.round(v[0] + stepKcal(v[2])), 0);
+  }
 
   /* "What shaped your score?" counts from these cards: kcal burned of kcal planned, small moves ticked of planned, steps walked.
      ponytail: one plan for every day the switcher shows; per-day plans come with real data */
@@ -264,17 +279,26 @@
       '<button class="ok" data-done' + (cur ? "" : " disabled") + '>' + (was ? "Save" : "Mark as done") + '</button>' +
       (was ? '<button class="mv-undo" data-undo>Mark as not done</button>' : ""));
   }
+  /* Log steps: one row per time, steps and around when. "+ Add another time" adds a row, so a morning walk and an
+     evening one go in together; Save logs every row with steps in it, each into its own hour */
   var draft = null;
+  function filled() { return draft.rows.filter(function (r) { return +r.n > 0; }).length; }
+  function saveLabel() { var k = filled(); return k > 1 ? "Save " + k + " logs" : "Save"; }
   function stepsSheet(keep) {
-    if (!keep) draft = { n: "", at: NOWT };
+    if (!keep) draft = { rows: [{ n: "", at: NOWT }], pick: 0 };
     var el = window.GFOpenSheet("mvSteps", "Log steps",
-      '<p>They add to the hour you pick.</p>' +
-      '<div class="mv-row2"><label><span class="mv-fl">Steps</span><input class="mv-in" id="mvN" inputmode="numeric" placeholder="0" autocomplete="off" value="' + draft.n + '"></label>' +
-      '<div><span class="mv-fl">Around</span>' + timeBtn("steps", draft.at) + '</div></div>' +
-      '<button class="ok" data-save' + (draft.n ? "" : " disabled") + '>Save</button>');
+      '<div class="mv-row2 mv-heads"><span class="mv-fl">Steps</span><span class="mv-fl">Around</span><span></span></div>' +
+      '<div class="mv-srows">' + draft.rows.map(function (r, i) {
+        return '<div class="mv-row2 mv-srow' + (keep === "new" && i === draft.rows.length - 1 ? " new" : "") + '"><input class="mv-in" data-row="' + i + '"' + (i ? "" : ' id="mvN"') + ' inputmode="numeric" placeholder="0" autocomplete="off" aria-label="Steps" value="' + r.n + '">' +
+          timeBtn("steps|" + i, r.at) + (i ? '<button class="mv-srm" data-srm="' + i + '" aria-label="Remove this time">' + IC.x + "</button>" : "<span></span>") + "</div>";
+      }).join("") + "</div>" +
+      (draft.rows.length < 6 ? '<button class="mv-addrow" data-addrow>' + IC.plusSq + "Add another time</button>" : "") +
+      '<button class="ok" data-save' + (filled() ? "" : " disabled") + ">" + saveLabel() + "</button>");
     el.setAttribute("data-kb-lift", "");   /* the phone frame's keyboard pushes the sheet up, so the field and Save stay in view */
-    if (!keep) setTimeout(function () { el.querySelector("#mvN").focus(); }, 320);
+    var f = el.querySelector('[data-row="' + (keep === "new" ? draft.rows.length - 1 : 0) + '"]');
+    if (!keep || keep === "new") setTimeout(function () { f.focus(); }, keep ? 60 : 320);
   }
+  function keepRows() { [].forEach.call(document.querySelectorAll("#mvSteps [data-row]"), function (x) { draft.rows[+x.dataset.row].n = x.value; }); }
 
   /* ---------- the time wheel: hour, minute, AM or PM, in its own sheet ---------- */
   var NOWT = "15:40", ROW = 44, pickFrom = "";
@@ -292,7 +316,7 @@
   for (var m0 = 0; m0 < 60; m0++) MNS.push(pad(m0));
   function timeSheet(from) {
     pickFrom = from;
-    var v = from === "feel" ? feelAt.at : draft.at, h = +v.slice(0, 2), m = +v.slice(3);
+    var v = from === "feel" ? feelAt.at : draft.rows[draft.pick].at, h = +v.slice(0, 2), m = +v.slice(3);
     var el = window.GFOpenSheet("mvTime", from === "feel" ? "When did you do it?" : "Around what time?",
       '<div class="mv-wheel"><span class="mv-band" aria-hidden="true"></span>' +
         col("h", HRS, "Hour") + '<span class="mv-colon" aria-hidden="true">:</span>' + col("m", MNS, "Minute") + col("p", ["AM", "PM"], "AM or PM") + '</div>' +
@@ -352,20 +376,22 @@
   }
 
   document.addEventListener("click", function (ev) {
-    var t = ev.target.closest("[data-xrm],[data-burn],[data-tick],[data-tip],[data-sel],[data-log],[data-vid],[data-feel],[data-done],[data-undo],[data-save],[data-pick],[data-settime],.mv-wi");
+    var t = ev.target.closest("[data-xrm],[data-burn],[data-tick],[data-tip],[data-sel],[data-log],[data-vid],[data-feel],[data-done],[data-undo],[data-save],[data-pick],[data-settime],[data-addrow],[data-srm],.mv-wi");
     if (!t || !(root.contains(t) || t.closest("#mvFeel,#mvSteps,#mvTime"))) return;
     var a = t.dataset;
     if (t.classList.contains("mv-wi")) { var c = t.parentNode; return c.scrollTo({ top: +a.i * ROW, behavior: "smooth" }); }
     if (a.pick) {
-      if (a.pick === "steps") draft.n = document.getElementById("mvN").value;
+      if (a.pick.indexOf("steps") === 0) { keepRows(); draft.pick = +a.pick.split("|")[1] || 0; }
       if (document.activeElement) document.activeElement.blur();   /* or the keyboard stays up over the wheel */
       return timeSheet(a.pick);
     }
     if ("settime" in a) {
       var v = read(document.getElementById("mvTime"));
       if (pickFrom === "feel") { feelAt.at = v; return feelSheet(feelAt.r, feelAt.id, true); }
-      draft.at = v; return stepsSheet(true);
+      draft.rows[draft.pick].at = v; return stepsSheet(true);
     }
+    if ("addrow" in a) { keepRows(); var last = draft.rows[draft.rows.length - 1].at; draft.rows.push({ n: "", at: last }); return stepsSheet("new"); }
+    if (a.srm) { keepRows(); draft.rows.splice(+a.srm, 1); return stepsSheet(true); }
     if (a.tick) { var p = a.tick.split("|"); return feelSheet(+p[0], p[1]); }
     if (a.burn) return burnSheet(+a.burn);
     if (a.xrm) {
@@ -375,7 +401,7 @@
         function () { S.extra[xr].splice(S.extra[xr].indexOf(xw), 1); },
         window.editLoggedWorkout && function () { window.editLoggedWorkout(xr, xw); });
     }
-    if (a.vid) { var v = a.vid.split("|"); return window.MVPLAYER ? window.MVPLAYER.open(+v[0], v[1]) : vidSheet(v[1]); }
+    if (a.vid) { var v = a.vid.split("|"); return window.MVPLAYER ? window.MVPLAYER.open(+v[0], v[1], v[2] === "d") : vidSheet(v[1]); }
     if ("log" in a) return stepsSheet();
     if (a.tip) {
       var q = a.tip.split("|"), on = S.tips[q[0]][q[1]] = !S.tips[q[0]][q[1]];
@@ -404,22 +430,31 @@
     }
     else if ("undo" in a) { delete S.done[feelAt.r][feelAt.id]; window.closeSheets(); }
     else if ("save" in a) {
-      var sh = document.getElementById("mvSteps"), n = +sh.querySelector("#mvN").value;
-      var at = Math.min(NOW, Math.max(0, parseInt(draft.at, 10) || NOW)), before = S.steps[at] || 0;
-      S.steps[at] = before + n; S.sel = at; window.closeSheets(); render();
-      /* the bar grows from where it was */
-      var bar = root.querySelector('.mv-b[data-sel="' + at + '"]'), to = bar.style.getPropertyValue("--h");
-      var top = Math.max.apply(null, Object.keys(S.steps).map(function (k) { return S.steps[k]; }).concat(1000));
-      bar.style.setProperty("--h", Math.round(before / top * 100) + "%"); void bar.offsetHeight;
-      requestAnimationFrame(function () { bar.style.setProperty("--h", to); });
+      keepRows();
+      var top = Math.max.apply(null, Object.keys(S.steps).map(function (k) { return S.steps[k]; }).concat(1000)), grew = {};
+      draft.rows.forEach(function (r) {
+        var n = +r.n; if (!n) return;
+        var at = Math.min(NOW, Math.max(0, parseInt(r.at, 10) || NOW));
+        if (!(at in grew)) grew[at] = S.steps[at] || 0;
+        S.steps[at] = (S.steps[at] || 0) + n; S.sel = at;
+      });
+      window.closeSheets(); render();
+      /* each bar that got steps grows from where it was */
+      Object.keys(grew).forEach(function (at) {
+        var bar = root.querySelector('.mv-b[data-sel="' + at + '"]'); if (!bar) return;
+        var to = bar.style.getPropertyValue("--h");
+        bar.style.setProperty("--h", Math.round(grew[at] / top * 100) + "%"); void bar.offsetHeight;
+        requestAnimationFrame(function () { bar.style.setProperty("--h", to); });
+      });
       return;
     }
     render();
   });
   document.addEventListener("input", function (ev) {
-    if (ev.target.id !== "mvN") return;
+    if (!ev.target.closest || !ev.target.closest("#mvSteps [data-row]")) return;
     ev.target.value = ev.target.value.replace(/[^0-9]/g, "").replace(/^0+/, "").slice(0, 5);
-    document.querySelector("#mvSteps [data-save]").disabled = !ev.target.value;
+    keepRows();
+    var b = document.querySelector("#mvSteps [data-save]"); b.disabled = !filled(); b.textContent = saveLabel();
   });
 
   /* for /move/player.js: the same plan, ticks and tick sheet */

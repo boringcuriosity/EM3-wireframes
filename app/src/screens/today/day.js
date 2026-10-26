@@ -209,7 +209,7 @@ const MEAL_TIP = {
    the coach who wrote it knew what to ask for. Nobody is ever measured against
    a task they were never given.
 
-   The small movements are the NEAT half: the stairs, standing through a call,
+   The small movements are the small-moves half: the stairs, standing through a call,
    ten minutes after a meal. No gym, no change of clothes, and no stopwatch,
    which is why they are one tap rather than a logger. They are spread one to a
    part of the day on purpose, because spread is what the spread bonus reads

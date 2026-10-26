@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ask KAIRA under tips</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* The tips block of an Eat meal card, as on r3/eat.html. Ask KAIRA moves under the headline and subtext;
+     each variant is one way to draw it. Every card holds the same four tips: with subtext, without,
+     a long title, and one already done (where the ask goes, as today). Earlier chip study: ask-kaira-tip-options.html */
+  :root { --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467;
+    --g-700:#344054; --g-900:#101828; --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-200:#C7D7FE; --in-300:#A4BCFD;
+    --in-500:#6172F3; --in-600:#444CE7; --in-700:#3538CD; --teal:#1A9FBF; --ok-600:#039855;
+    --r-md:12px; --r-xl:24px; --r-pill:9999px; --ease:cubic-bezier(.4,0,.2,1); }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; font-family: Roboto, system-ui, sans-serif; letter-spacing: .25px; color: var(--g-900); }
+  .page { max-width: 1560px; margin: 0 auto; padding: 48px 24px 96px; }
+  .eyebrow { font: 600 12px/16px Roboto; letter-spacing: .8px; text-transform: uppercase; color: var(--g-500); }
+  h1 { font-size: 32px; line-height: 40px; font-weight: 600; margin: 10px 0 8px; }
+  .lede { max-width: 860px; font-size: 15px; line-height: 24px; color: var(--g-600); margin: 0 0 36px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 40px 32px; align-items: flex-start; }
+  .v { width: 358px; }
+  .cap { min-height: 128px; margin-bottom: 12px; }
+  .cap h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font: 600 16px/24px Roboto; }
+  .cap h2 i { font-style: normal; color: var(--g-400); font-weight: 500; }
+  .cap p { margin: 0; font-size: 13.5px; line-height: 20px; color: var(--g-600); }
+  .rec { font: 600 11px/16px Roboto; letter-spacing: .4px; color: #067647; background: #ECFDF3; border: 1px solid #ABEFC6; border-radius: 999px; padding: 1px 8px; }
+  @media (max-width: 760px) { .page { padding: 32px 16px 64px; } h1 { font-size: 26px; line-height: 34px; } .v { width: 100%; } .cap { min-height: 0; } }
+
+  /* ---- the meal card, as on eat.html ---- */
+  .meal { border-radius: var(--r-xl); border: 1px solid transparent; box-shadow: 2px 2px 0 var(--g-200);
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 29%) padding-box,
+      conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; }
+  .mh { padding: 16px; }
+  .mh .n { font: 600 16px/22px Roboto; } .mh .s { font-size: 12px; line-height: 18px; color: var(--g-500); margin-top: 2px; }
+  .mbi { margin: 0 16px; padding: 12px 0 16px; border-top: 1px solid var(--g-100); }
+  .lab { font: 600 12px/16px Roboto; letter-spacing: .7px; text-transform: uppercase; color: var(--g-500); margin: 0 0 12px; }
+  .tiplist { display: flex; flex-direction: column; gap: 16px; }
+  .tip { display: flex; gap: 16px; align-items: flex-start; }
+  .tmark { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--g-300); flex-shrink: 0; }
+  .tip.done .tmark { background: var(--ok-600); border-color: var(--ok-600); }
+  .tip.done .tmark::after { content: ""; width: 10px; height: 5px; margin-top: -2px; border: solid #fff; border-width: 0 0 2px 2px; transform: rotate(-45deg); }
+  .tb { flex: 1; min-width: 0; }
+  .tt { font: 600 14px/20px Roboto; }
+  .td { font-size: 12px; color: var(--g-500); line-height: 18px; margin-top: 2px; }
+  .tip.done .tt { color: var(--g-500); }
+  .tip.done .ak { display: none; }
+  button { font: inherit; letter-spacing: inherit; cursor: pointer; }
+  .ak { margin-top: 8px; }
+  .gfk { flex: none; }
+  .kg { background: linear-gradient(90deg, var(--in-600), var(--teal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+  /* A: a quiet line of text, her mark and a question, the way a link reads in a sentence */
+  .A .ak { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; font: 500 12.5px/18px Roboto; color: var(--in-700); }
+  .A .ak .ch { width: 12px; height: 12px; transition: transform .25s var(--ease); }
+  .A .ak:hover .ch { transform: translateX(2px); }
+
+  /* B: her clipped corner chip, below the words instead of after them, asking the question */
+  .B .ak { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px 0 8px; font: 600 12px/1 Roboto; color: var(--in-700);
+    border: 1px solid transparent; border-radius: 0 var(--r-pill) var(--r-pill) var(--r-pill);
+    background: linear-gradient(180deg, var(--in-25), #fff 70%) padding-box, linear-gradient(100deg, var(--in-600), var(--teal)) border-box;
+    transition: box-shadow .3s var(--ease); }
+  .B .ak:hover { box-shadow: 0 2px 10px rgba(68,76,231,.16); }
+
+  /* C: a whisper bubble, as if KAIRA has leaned in: soft indigo fill, her corner, a typing line */
+  .C .ak { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 10px; border: 0; text-align: left;
+    border-radius: 2px 12px 12px 12px; background: var(--in-25); box-shadow: inset 0 0 0 1px var(--in-100); font: 400 12.5px/18px Roboto; color: var(--g-600); }
+  .C .ak b { font-weight: 600; color: var(--in-700); }
+  .C .ak .go { margin-left: auto; display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px var(--in-100); color: var(--in-600); }
+  .C .ak .go svg { width: 12px; height: 12px; }
+
+  /* D: a suggested question, as in a chat: the line you would ask, ready to send */
+  .D .ak { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; height: 32px; padding: 0 6px 0 10px; border: 1px solid var(--in-200);
+    border-radius: var(--r-pill); background: #fff; font: 500 12.5px/1 Roboto; color: var(--g-700); transition: border-color .25s var(--ease), background .25s var(--ease); }
+  .D .ak:hover { border-color: var(--in-300); background: var(--in-25); }
+  .D .ak .q { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .D .ak .go { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: #fff;
+    background: linear-gradient(135deg, var(--in-600), var(--teal)); }
+  .D .ak .go svg { width: 12px; height: 12px; }
+
+  /* E: her aurora, as a thin line under the words that lights once when the card comes into view */
+  .E .ak { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 0 0 4px; border: 0; background: none; font: 600 12.5px/18px Roboto; }
+  .E .ak::after { content: ""; position: absolute; left: 22px; right: 0; bottom: 0; height: 2px; border-radius: 2px;
+    background: linear-gradient(90deg, var(--in-600), var(--teal), var(--in-300), var(--in-600)); background-size: 300% 100%; animation: aur 3.2s var(--ease) 1 both; }
+  @keyframes aur { from { background-position: 100% 0; opacity: .3; } to { background-position: 0 0; opacity: 1; } }
+
+  /* F: a split footer, the tip's own small action bar: Ask KAIRA, and a quiet note of where the tip came from */
+  .F .ak { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 10px; padding-top: 10px; border: 0; border-top: 1px dashed var(--g-200); background: none; text-align: left; }
+  .F .ak .pill { display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 10px 0 7px; border-radius: var(--r-pill);
+    background: linear-gradient(100deg, var(--in-600), var(--teal)); color: #fff; font: 600 11.5px/1 Roboto; letter-spacing: .3px; }
+  .F .ak .note { font-size: 12px; color: var(--g-400); }
+
+  @media (prefers-reduced-motion: reduce) { .E .ak::after { animation: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">Eat · Meal card · Tips</span>
+  <h1>Ask KAIRA, under the tip</h1>
+  <p class="lede">Today the Ask KAIRA chip trails the tip title, where it competes with the words and wraps oddly on long titles. Here it moves under the headline and subtext, so the tip is read first and the ask follows. Each card holds the same four tips: one with a subtext, one without, a long title, and one already done, where the ask goes away as it does today. Tap any of them: it opens nothing here, the real chat opens on the Eat screen.</p>
+  <div class="grid" id="grid"></div>
+</div>
+
+<script src="r3/assets/kaira.js"></script>
+<script>
+  const M = px => GFKaira.mark(px, { halo: false });
+  const CH = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
+  const UP = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg>';
+  const TIPS = [
+    { t: "Soak 5 almonds ready for tomorrow morning", d: "In a small bowl of water, before bed. Peel them in the morning." },
+    { t: "Walk for 10 minutes after dinner" },
+    { t: "Swap the second roti for a bowl of salad with cucumber, carrot and a squeeze of lemon", d: "Fills you up with fewer carbs." },
+    { t: "Drink warm methi seed water before breakfast", d: "Soak a spoon of seeds overnight.", done: true }
+  ];
+  const V = [
+    { k: "A", n: "Quiet question", d: "One line of text: her mark and \"Why does this help me?\" with a small chevron. The lightest on a card with many tips, and it reads as part of the tip, not a button.",
+      ak: () => M(14) + '<span>Why does this help me?</span>' + '<span class="ch">' + CH + "</span>" },
+    { k: "B", n: "Her chip, below", d: "Today's clipped corner chip, moved under the words and asking the question instead of naming her. Familiar, and it now has a line of its own, so long titles stay clean.",
+      ak: () => M(14) + "Ask KAIRA why it helps" },
+    { k: "C", n: "Whisper bubble", d: "A soft chat bubble in her corner shape, as if she has leaned in: \"Curious why? Ask KAIRA\" with a send circle. Most like a conversation, and the roomiest.",
+      ak: () => M(16) + '<span>Curious why? <b>Ask KAIRA</b></span><span class="go">' + CH + "</span>" },
+    { k: "D", n: "Suggested question", rec: true, d: "The question you would type, as a chat suggestion: a white pill and a small aurora send button. It says exactly what tapping does, and the send arrow makes it feel instant.",
+      ak: () => M(14) + '<span class="q">How does this help me?</span><span class="go">' + UP + "</span>" },
+    { k: "E", n: "Aurora underline", d: "Her name in her own gradient, with a thin aurora line that lights once as the card comes into view, then rests. Beautiful and calm, but less obviously tappable.",
+      ak: () => M(14) + '<span class="kg">Ask KAIRA about this</span>' },
+    { k: "F", n: "Tip footer", d: "A dashed line under the words, then a filled aurora pill and a quiet \"from your coach\". The boldest: clearest to tap, but heavy when a meal has three tips.",
+      ak: () => '<span class="pill">' + GFKaira.mark(12, { halo: false }) + 'Ask KAIRA</span><span class="note">Tip from your coach</span>' }
+  ];
+  const tip = (v, x) => '<div class="tip' + (x.done ? " done" : "") + '"><span class="tmark"></span><div class="tb"><div class="tt">' + x.t + "</div>" +
+    (x.d ? '<div class="td">' + x.d + "</div>" : "") + '<button class="ak" type="button" aria-label="Ask KAIRA how this tip helps: ' + x.t + '">' + v.ak() + "</button></div></div>";
+  document.getElementById("grid").innerHTML = V.map(v => '<div class="v ' + v.k + '"><div class="cap"><h2><i>' + v.k + "</i>" + v.n + (v.rec ? ' <span class="rec">Recommended</span>' : "") + "</h2><p>" + v.d + "</p></div>" +
+    '<div class="meal"><div class="mh"><div class="n">Dinner</div><div class="s">7:30 PM to 9:30 PM</div></div><div class="mbi"><div class="lab">Tips from your coach</div><div class="tiplist">' +
+    TIPS.map(x => tip(v, x)).join("") + "</div></div></div></div>").join("");
+</script>
+</body>
+</html>

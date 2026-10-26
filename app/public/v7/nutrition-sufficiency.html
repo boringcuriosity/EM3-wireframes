@@ -853,8 +853,8 @@ const CASES = {
     ["state=freeempty", "Nothing logged yet", "state=freeempty", "Nothing eaten that the app knows of, so there is no What you have eaten section and no calorie total. KAIRA and the meals carry the screen until the first log."],
   ],
   act1: [
-    ["state=noplanempty", "The first landing", "noplanempty", "Where a Care user starts. No plan, nothing logged, so the score sits locked and Kaira teaches."],
-    ["state=noplan", "Food in, still no plan", "noplan", "They log anyway. The grams are real, with no targets to measure them against."],
+    ["state=noplanempty", "The first landing", "noplanempty", "Where a Care user starts. No plan, nothing logged, so the score sits locked, the line under it says when it unlocks, and Kaira offers the two ways to log."],
+    ["state=noplan", "Food in, still no plan", "noplan", "They log anyway. The grams are real, with no targets to measure them against; the unlock line stays under the score."],
   ],
   act2: [
     ["state=empty", "The plan is assigned", "empty", "The consultation lands and the targets arrive. The day has not started."],
@@ -911,7 +911,8 @@ const CASES = {
   /* the doors that open onto food and the tray. Snap and Voice open the same
      screen on the camera or the microphone, and are not documented here. */
   waysin: [
-    ["state=mid&now=13:00&pt=future", "Logging a time still to come", "now=13:00", "At 1 PM, dinner and bedtime foods are ticked and Log is tapped. The sheet says they are set for later, offers Set them to now, and Log waits."],
+    ["state=mid&now=13:00&pt=future", "Logging a time still to come", "now=13:00", "At 1 PM, dinner and bedtime foods are ticked and Log is tapped. The sheet says they are future items and offers Log them now, which sets their times to now; Log waits until every time has passed."],
+    ["state=mid&now=13:00&pt=long", "Long food names", "pt=long", "The same sheet with long dish names. A name wraps to 2 lines at most and ends in an ellipsis; the time and the count never move."],
     ["r3/log.html?entry=plus", "Meal +", "entry=plus", "Opened from a meal’s + button. Empty tray, the plan first."],
     ["r3/log.html?entry=tick", "Ticking a coach's food", "entry=tick", "In the tray, not yet logged."],
     ["r3/log.html?entry=logall", "Log all", "entry=logall", "Every remaining food at its planned quantity."],

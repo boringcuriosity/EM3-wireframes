@@ -1012,8 +1012,8 @@ sits under the question once there is one.
 **Tips carry no weight.** `isTip(r)` is `kind === "tick"`, the same test the row already uses
 for its info mark. A nudge pays nothing and files nothing, so it cannot decide which pillar is
 big, cannot fill one, and cannot open a score. That includes Momentum: the Move deck sets it out
-as 40 / 10 / 10 / 40 with NEAT as the third tenth, and ticking the stairs was worth ten points
-of NEAT and another ten of spread. It is **Movement 50 + Steps 20 + Spread 30** here, and the
+as 40 / 10 / 10 / 40 with Small moves as the third tenth, and ticking the stairs was worth ten points
+of Small moves and another ten of spread. It is **Movement 50 + Steps 20 + Spread 30** here, and the
 comment in `state.jsx` says where it diverges from the deck and why.
 
 **They look like bubbles.** Three skins behind **Bubble depth** in the panel, defaulting to Orb:
@@ -1438,7 +1438,7 @@ that To-do already does, it is a second way to do the same job.
    never touches `nextActions`, so with plans on the day the strip still lists three
    consultations to book. Marking them done when a plan lands is one line.
 4. **Momentum diverges from the `/move` deck**, which still documents 40 / 10 / 10 / 40 with
-   NEAT. Worth deciding whether the deck gets reissued.
+   Small moves. Worth deciding whether the deck gets reissued.
 5. **`PlanChangedSheet` describes the Move plan as one thing**, and `RoutineList` on Move shows
    only the evening routine, so the morning stretch has no home there.
 6. **No way back to Health Connect for steps.** The source picker came out of the pillar science

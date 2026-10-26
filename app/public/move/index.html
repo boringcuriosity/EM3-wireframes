@@ -23,7 +23,7 @@ window.MV = function (i, eaten, target) {
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="../icons/glyph-masks.css">
 <link rel="stylesheet" href="goodflip-ui.css">
-<link rel="stylesheet" href="/move/plan.css?v=50">
+<link rel="stylesheet" href="/move/plan.css?v=53">
 <link rel="stylesheet" href="/move/log.css?v=27">
 <link rel="stylesheet" href="/move/player.css?v=16">
 <style>
@@ -381,9 +381,9 @@ window.MV = function (i, eaten, target) {
   /* the calorie flame, in the macros' ink and at their 18px, so the row reads as a fourth measure */
   .calc { align-items: center; }
   .calc .ct { display: inline-flex; align-items: center; gap: 6px; }
-  /* Move: GoodFlip's filled clock for active minutes */
+  /* calories burned: Eat's flame, the same as calorie intake */
   .calc .ct::before { content: ""; flex: none; width: 18px; height: 18px; background: linear-gradient(to bottom, #475467, #101828);
-    -webkit-mask: url(../icons/feed-meta-clock.svg) center / contain no-repeat; mask: url(../icons/feed-meta-clock.svg) center / contain no-repeat; }
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='m4.617 6.992-.002.002-.003.002-.007.006-.094.078a3 3 0 0 0-.227.218 4.5 4.5 0 0 0-.628.85c-.436.76-.803 1.895-.597 3.413.203 1.497.832 2.75 1.896 3.622 1.06.87 2.497 1.317 4.233 1.317 1.79 0 3.219-.671 4.165-1.823.938-1.14 1.356-2.696 1.256-4.397-.096-1.632-.985-2.87-1.77-3.964l-.224-.313c-.856-1.209-1.532-2.323-1.368-3.882a.56.56 0 0 0-.56-.621c-.286 0-.614.089-.931.222a5 5 0 0 0-1.03.6C8.033 2.847 7.34 3.635 6.97 4.69c-.369 1.052-.182 2.054.089 2.783.177.48-.015.953-.305 1.09a.53.53 0 0 1-.696-.231l-.605-1.15a.562.562 0 0 0-.835-.189'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 18'%3E%3Cpath d='m4.617 6.992-.002.002-.003.002-.007.006-.094.078a3 3 0 0 0-.227.218 4.5 4.5 0 0 0-.628.85c-.436.76-.803 1.895-.597 3.413.203 1.497.832 2.75 1.896 3.622 1.06.87 2.497 1.317 4.233 1.317 1.79 0 3.219-.671 4.165-1.823.938-1.14 1.356-2.696 1.256-4.397-.096-1.632-.985-2.87-1.77-3.964l-.224-.313c-.856-1.209-1.532-2.323-1.368-3.882a.56.56 0 0 0-.56-.621c-.286 0-.614.089-.931.222a5 5 0 0 0-1.03.6C8.033 2.847 7.34 3.635 6.97 4.69c-.369 1.052-.182 2.054.089 2.783.177.48-.015.953-.305 1.09a.53.53 0 0 1-.696-.231l-.605-1.15a.562.562 0 0 0-.835-.189'/%3E%3C/svg%3E") center / contain no-repeat; }
   /* No target means no bar and nothing on the right, so the card has no reason
      to be three rows tall. Label and figure share one line. */
   /* the frond is gone, so the figure keeps the same 16px edge as a scored day */
@@ -986,6 +986,13 @@ window.MV = function (i, eaten, target) {
   .ebub-wrap .ecap { margin: 0; font-size: 13px; line-height: 18px; color: var(--g-600); }
   .echips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
   .echips > div { border-radius: 14px; background: var(--in-50); border: 1px solid var(--in-100); padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+  /* label at the top, the number pinned to the bottom with its "of" on a line of its own: the three numbers share one line
+     across the cards, whether a label takes one line or two */
+  .echips > div { justify-content: space-between; gap: 10px; }
+  .echips .top { align-items: flex-start; line-height: 16px; }
+  .echips .top .eglyph { flex: none; margin-top: 0; }
+  .echips b { display: block; }
+  .echips b small { display: block; margin-top: 2px; font-size: 12px; line-height: 16px; }
   .echips .top { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--g-600); }
   .echips .eglyph { background: linear-gradient(to bottom, #475467, #101828); }
   .echips b, .ecal b { font: 700 15px/18px Roboto, sans-serif; color: var(--g-900); font-variant-numeric: tabular-nums; }
@@ -1184,7 +1191,6 @@ window.MV = function (i, eaten, target) {
   .glyph-workout { -webkit-mask-image: url(/v7/icons/move/activity-filled.svg); mask-image: url(/v7/icons/move/activity-filled.svg); }
   .glyph-moves { -webkit-mask-image: url(/v7/icons/move/sm/ds-exercise.svg); mask-image: url(/v7/icons/move/sm/ds-exercise.svg); }
   .glyph-steps { -webkit-mask-image: url(/v7/icons/move/steps-filled.svg); mask-image: url(/v7/icons/move/steps-filled.svg); }
-  #calstrip { display: none !important; }
   .macros.tiles .ttop, .macros.tiles .mof { white-space: nowrap; }
   .macros.tiles .mof { letter-spacing: 0; }
   /* Move: the log card is a design-system action card, not Kaira's: white surface, 1px indigo-200 border,
@@ -1850,7 +1856,7 @@ function loadScripts(list, done) {
      flag is there and costs nothing when it is not */
   if (!(window.HEROES && window.HEROES[name]) && HERO_DIR[name] != null) {
     /* the liquid score brings its own renderer, so it skips three.js */
-    loadScripts((name === "cloud" ? [] : [LAZY.three, LAZY.shaders]).concat("heroes/" + HERO_DIR[name] + name + ".js" + (name === "cloud" ? "?v=20" : "")), start);   /* ?v busts the cache when the liquid score is updated */
+    loadScripts((name === "cloud" ? [] : [LAZY.three, LAZY.shaders]).concat("heroes/" + HERO_DIR[name] + name + ".js" + (name === "cloud" ? "?v=21" : "")), start);   /* ?v busts the cache when the liquid score is updated */
     return;
   }
   start();
@@ -2248,18 +2254,15 @@ function loadScripts(list, done) {
     return left >= 0 ? fmt(left) + " left" + when : fmt(-left) + " over";
   }
   function value(eaten, goal) {
-    if (C.mode === "none") return "<b>No active minutes</b>" + when;
-    if (C.mode === "goal") return "<b>0</b> min";
-    if (!goal) return "<b>" + fmt(MINS(eaten)) + "</b> min";
-    return "<b>" + fmt(eaten) + "</b> of " + fmt(goal) + " kcal";
+    return "<b>" + fmt(eaten) + "</b>" + (goal ? " of " + fmt(goal) : "") + " kcal";
   }
   function pct(eaten, goal) { return goal ? Math.max(0, Math.min(1, eaten / goal)) : 0; }
 
   function draw(eaten, goal) {
-    var over = goal && eaten > goal;
-    host.innerHTML = '<div class="calc' + (over ? " over" : "") + (goal ? "" : " slim") + '">' + WM +
-      '<div class="ch"><span class="ct">' + FLAME + 'Active minutes</span>' +
-      '<span class="cr">' + (C.mode === "goal" ? "Log a meal to start the count" : right(eaten, goal)) + '</span></div>' +
+    /* burning past the goal is good news, so never the over state */
+    host.innerHTML = '<div class="calc' + (goal ? "" : " slim") + '">' + WM +
+      '<div class="ch"><span class="ct">' + FLAME + 'Calories burned</span>' +
+      '<span class="cr">' + right(eaten, goal) + '</span></div>' +
       '<div class="cv">' + value(eaten, goal) + '</div>' +
       (goal ? '<span class="cb"><i style="width:0%"></i></span>' : "") + "</div>";
   }
@@ -2272,21 +2275,15 @@ function loadScripts(list, done) {
     setTimeout(function () { i.style.width = w; }, delay);
   }
 
-  /* Move: active minutes, plan workouts and manual logs together. No goal, so the number alone, no bar */
-  C.goal = 0;
-  if (C.mode !== "hide") {
-    draw(C.eaten || 0, 0);
-  }
+  /* Move: calories burned, workouts and steps together. plan.js paints it (window.MVBURN), so nothing is drawn from the staged Eat numbers */
 
   /* Live repaint. The number counts across and the bar slides on from where it
      already is. The first thing logged on an empty day turns the goal line
      into a budget. */
-  window.paintCal = function (eaten) {
-    var goal = 0;
+  window.paintCal = function (eaten, goal) {
+    goal = goal || 0;
     var cv = host.querySelector(".cv"), cr = host.querySelector(".cr");
-    /* a block that was standing down, or was a goal line, becomes a budget */
-    if (!cv || (goal && !host.querySelector(".cb")) || C.mode === "goal" || C.mode === "none") {
-      if (eaten <= 0 && (C.mode === "goal" || C.mode === "none" || C.mode === "hide")) return;
+    if (!cv || !!goal !== !!host.querySelector(".cb")) {
       C.mode = goal ? "fuse" : "line";
       host.hidden = false;
       if (sect) sect.hidden = false;
@@ -2294,7 +2291,6 @@ function loadScripts(list, done) {
     }
     var was = shownCal;
     shownCal = eaten;
-    host.querySelector(".calc").classList.toggle("over", !!(goal && eaten > goal));
     run(520, function (t) {
       var n = Math.round(was + (eaten - was) * t);
       cv.innerHTML = value(n, goal);
@@ -2721,7 +2717,7 @@ function refresh() {
   var vals = MK.map(function (k, i) { return [Math.round(LIVE[k] * 10) / 10, TGT[i]]; });
   var g = gapIdx();
   if (window.paintMacros) window.paintMacros(vals, g > -1 && LIVE.cal > 0 ? MNAME[g] : "", LIVE.cal > 0);
-  if (window.paintCal) window.paintCal(Math.round(LIVE.cal), GOAL);
+  /* Move: the calorie line is burned, not eaten, so plan.js paints it */
   if (SCORED) {
     var next = Math.max(0, Math.min(100, rawScore(LIVE) + LIFT));
     if (window.setHeroScore) window.setHeroScore(next, next - SHOWN);
@@ -3134,8 +3130,9 @@ function mealsIn() {
   ];
   /* The same ask, turned back into a question. Composed from the title rather
      than written per tip, so a tip only ever has to say what it is. */
+  /* one strict shape for any tip, so no tip needs its grammar bent: who set it, the tip word for word, the ask */
   function askAbout(title) {
-    return "Tell me why I should " + title.charAt(0).toLowerCase() + title.slice(1) + ".";
+    return "My Move coach has assigned this tip to me:<br><b>\u201C" + title.replace(/[.\s]+$/, "") + "\u201D</b><br>Help me understand how it is beneficial to me.";
   }
   /* the sheet's icons, drawn in the house line style */
   var KS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">';
@@ -3754,15 +3751,15 @@ function mealsIn() {
   var tries = 0, tick = setInterval(function () { place(); if (window.MVMOM || document.querySelector("[data-bdg]") || ++tries > 15) clearInterval(tick); }, 400);
 })();
 </script>
-<script src="assets/score-say.js?v=4"></script>
+<script src="assets/score-say.js?v=13"></script>
 <script src="chrome.js"></script>
-<script src="/move/plan.js?v=53"></script>
-<script src="/move/player.js?v=19"></script>
-<script src="/move/tray.js?v=24"></script>
+<script src="/move/plan.js?v=61"></script>
+<script src="/move/player.js?v=20"></script>
+<script src="/move/tray.js?v=26"></script>
 <script src="/move/say-kaira.js?v=7"></script>
-<script src="/move/log.js?v=31"></script>
+<script src="/move/log.js?v=33"></script>
 <script src="/move/health.js?v=3"></script>
 <script src="/move/cases.js?v=11"></script>
-<script src="/move/momentum.js?v=19"></script>
+<script src="/move/momentum.js?v=20"></script>
 </body>
 </html>

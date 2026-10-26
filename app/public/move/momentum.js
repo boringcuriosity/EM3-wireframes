@@ -85,8 +85,8 @@
        Cloud Drop remounts 420 ms after the change and steps over the next 1.9 s */
     /* the medal swings in (or goes, under 80) at the same moment, once the new number has landed */
     clearTimeout(update.t); update.t = setTimeout(function () { say(d, a, b); if (window.MVMEDAL) window.MVMEDAL(); }, 2400);
-    /* a workout log earns coins, once the line has landed */
-    if (coin && d > 0 && window.GFFlipcoin) setTimeout(window.GFFlipcoin.show, 3200);
+    /* a workout log earns coins: the toast shows the moment the log lands */
+    if (coin && d > 0 && window.GFFlipcoin) window.GFFlipcoin.show();
     coin = false;
   }
   /* every change to the cards ends in plan.js calling paintMacros, so the score follows from there */

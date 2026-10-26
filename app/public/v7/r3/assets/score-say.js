@@ -28,6 +28,8 @@ SC.perfect = { state: "perfect", score: 100, delta: "+4%", tone: "up", lead: "Yo
 SC.over = { state: "over", score: 92, delta: "+9%", tone: "down", lead: "Your score went up by only 9%,", rest: "you could have gained 18% more.", cta: "Find out why from KAIRA" };
 SC.past = { state: "past", score: 61, delta: "", tone: "calm", lead: "This day ended at 61%.", rest: "", cta: "Learn more by asking KAIRA" };
 SC.empty = SC.start;
+/* Eat before a plan: no score yet, so the line says when it unlocks (Move speaks for itself, momentum.js) */
+if (!window.SAY_REST) SC.noplanempty = SC.noplan = { lock: true, delta: "", tone: "calm", lead: "", rest: "Your Nutrition sufficiency score unlocks after your first Eat Coach consultation, once your coach assigns you a plan." };   /* a note, not news: no bold */
 var DAY = { mac: [[0, 95], [0, 238], [0, 63]], kcal: 1900 };
 function day(p, c, f) { return [[p, 95], [c, 238], [f, 63]]; }
 var BELOW = {
@@ -206,7 +208,7 @@ function ask(s) { return s.cta ? ' <span class="cta" style="cursor:pointer">' + 
 var Q = new URLSearchParams(location.search), S = window.S || {};
 var KEY = Q.get("say") || S.id, s = SC[KEY];
 /* nothing to say without a score, or on a day nobody logged */
-if (!s || !Q.get("say") && S.hero && S.hero.score == null) return;
+if (!s || !Q.get("say") && S.hero && S.hero.score == null && !s.lock) return;
 var CSS = "#cm{position:relative;z-index:3;margin:20px auto 0;padding:0 24px;display:flex;justify-content:center;font-family:Roboto,sans-serif;letter-spacing:.2px}" +
   "#cm .ask{color:#3538CD;font-weight:500;white-space:nowrap;cursor:pointer}" +
   "#cm .kg{background:linear-gradient(90deg,#444CE7,#1A9FBF);-webkit-background-clip:text;background-clip:text;color:transparent;font-weight:600}#cm .kc{color:#1A9FBF}" +
@@ -254,13 +256,18 @@ function mount() {
     if (window.SAY_OPEN) window.SAY_OPEN(); else if (s.ask && window.kairaAsk) window.kairaAsk(s.ask.q, s.ask.a);
   });
   stage.parentNode.insertBefore(cm, stage.nextSibling);
+  /* a locked plate has no verdict pill, so eat.html pulls the next block up (.tight). That block is this line now:
+     it meets the plate itself, and the card under it keeps its own margin */
+  if (s.lock) { [].forEach.call(document.querySelectorAll(".tight"), function (n) { n.classList.remove("tight"); }); cm.style.marginTop = "-8px";
+    /* whatever comes next sits 20px under the line, as #railSect does on a scored day */
+    var nx = cm.nextElementSibling; while (nx && (nx.hidden || nx.offsetParent === null)) nx = nx.nextElementSibling; if (nx) nx.style.marginTop = "20px"; }
   var b = Q.get("say") && BELOW[KEY];
   if (b && KEY !== "start") {
     if (window.paintMacros) window.paintMacros(b.mac, null, true);
     if (window.paintCal) window.paintCal(b.kcal, DAY.kcal);
   }
   /* the shimmer holds until the score has landed: a step after a log is quick, the intro takes longer */
-  setTimeout(function () { cm.classList.add("on"); }, Q.get("say") || s === SC.start ? 1800 : 3800);
+  setTimeout(function () { cm.classList.add("on"); }, Q.get("say") || s === SC.start || s.lock ? 1800 : 3800);
 }
 if (document.readyState === "complete") mount(); else addEventListener("load", mount);
 })();
