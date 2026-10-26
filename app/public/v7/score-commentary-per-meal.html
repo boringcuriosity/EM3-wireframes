@@ -139,7 +139,7 @@
       <b>How each sheet is built</b>
       <ul>
         <li><b>The title answers the line.</b> Why your score went up, why it went down, a perfect day.</li>
-        <li><b>What you logged:</b> every meal in that log, its protein, carbs and fats against its own targets, and the points it added. One meal, two at once, or the whole day.</li>
+        <li><b>1, 2 or 6 meals logged:</b> every meal in that log, as the same card, its protein, carbs and fats against its own targets, and the points it added. One meal, two at once, or the whole day.</li>
         <li><b>How it works:</b> the one rule behind that move, in a sentence or two.</li>
         <li><b>What to do next:</b> always kind, always pointing at the next meal.</li>
       </ul>
@@ -170,7 +170,7 @@
   const nums = rows => '<div class="st">' + rows.map(r => '<div><span>' + r[0] + "</span>" + dc(r[1], r[2]) + "</div>").join("") + "</div>";
   const ok = (p, c, f) => ({ p: [p, p], c: [c, c], f: [f, f] });
   const WHAT = (icon, text, strip) => sec(icon + "What happened", [text], nums(strip));
-  const LOG = (label, cards) => sec("What you logged", [], logged(label, cards));
+  const LOG = (label, cards) => sec(label, [], cards);   /* the heading says it: "2 meals logged" */
   const HOW = t => sec("How it works", [t]);
   const NEXT = (h, t) => sec(h || "Next time", [t]);
   const OVER = { p: [44, 22], c: [110, 55], f: [28, 14] }, FAR = { p: [81, 27], c: [198, 66], f: [51, 17] };
@@ -185,54 +185,52 @@
         NEXT("What to do now", "Log your first meal and watch your score climb.") },
     /* one meal */
     { t: "Why your score went up", h: WHAT(UP, "Your meal met the macro targets set by your coach, so it added all of its points.", [["Possible", "up", "+23%"], ["You got", "up", "+23%"]]) +
-        LOG("1 meal", meal("Breakfast", "+23%", "+23%", BF)) +
+        LOG("1 meal logged", meal("Breakfast", "+23%", "+23%", BF)) +
         HOW("Each meal can add a set number of points. A meal within its targets adds all of them.") +
         NEXT("What’s next", "Keep your next meal within its targets to keep your score climbing.") },
     { t: "Why it went up only a little", h: WHAT(MID, "Your meal could have added " + dc("up", "+23%") + ". You ate less than its targets, so it added " + dc("calm", "+9%") + ".", [["Possible", "up", "+23%"], ["Not eaten", "calm", "−14%"], ["You got", "calm", "+9%"]]) +
-        LOG("1 meal", meal("Breakfast", "+9%", "+23%", { p: [9, 22], c: [22, 55], f: [5, 14] })) +
+        LOG("1 meal logged", meal("Breakfast", "+9%", "+23%", { p: [9, 22], c: [22, 55], f: [5, 14] })) +
         HOW("A meal adds points for how much of its targets you eat. Eat less, and it adds fewer points.") +
         NEXT(null, "Try to eat the full meal your coach suggested to get all of its points.") },
     { t: "Why it went up only a little", h: WHAT(MID, "Your meal could have added " + dc("up", "+23%") + ". It went over its targets, which took off " + dc("down", "−18%") + ", so it added only " + dc("calm", "+5%") + ".", [["Possible", "up", "+23%"], ["Taken off", "down", "−18%"], ["You got", "calm", "+5%"]]) +
-        LOG("1 meal", meal("Breakfast", "+5%", "+23%", OVER)) +
+        LOG("1 meal logged", meal("Breakfast", "+5%", "+23%", OVER)) +
         HOW("A little over a target is fine. Past that, a meal loses points, and the further over it goes, the more it loses.") +
         NEXT(null, "Try to keep each meal within its targets to get its full points.") },
     { t: "Why it went up only a little", h: WHAT(MID, "Your meal could have added " + dc("up", "+28%") + ". Parts of it were off its targets, which took off " + dc("down", "−14%") + ", so it added " + dc("calm", "+14%") + ".", [["Possible", "up", "+28%"], ["Taken off", "down", "−14%"], ["You got", "calm", "+14%"]]) +
-        LOG("1 meal", meal("Lunch", "+14%", "+28%", { p: [14, 27], c: [100, 66], f: [17, 17] })) +
+        LOG("1 meal logged", meal("Lunch", "+14%", "+28%", { p: [14, 27], c: [100, 66], f: [17, 17] })) +
         HOW("Every part of a meal is checked against its own target. On target earns full points, too little earns fewer, too much loses some.") +
         NEXT(null, "Try to keep every part of your meal within its targets to get its full points.") },
     { t: "Why your score did not change", h: WHAT(MID, "Your meal could have added " + dc("up", "+23%") + ". It went well over its targets, which took off all " + dc("down", "−23%") + ", so it added nothing.", [["Possible", "up", "+23%"], ["Taken off", "down", "−23%"], ["You got", "calm", "0%"]]) +
-        LOG("1 meal", meal("Breakfast", "0%", "+23%", { p: [66, 22], c: [165, 55], f: [42, 14] })) +
+        LOG("1 meal logged", meal("Breakfast", "0%", "+23%", { p: [66, 22], c: [165, 55], f: [42, 14] })) +
         HOW("The further a meal goes over its targets, the more points it loses. Far enough over, it adds none.") +
         NEXT(null, "No worries, your next meal within its targets adds its points again.") },
     { t: "Why your score went down", h: WHAT(DOWN, "Your meal could have added " + dc("up", "+28%") + ". It went far over its targets, so it lost all of that and took back " + dc("down", "14%") + " more. Your score went down by " + dc("down", "−14%") + ".", [["Possible", "up", "+28%"], ["Taken off", "down", "−42%"], ["You got", "down", "−14%"]]) +
-        LOG("1 meal", meal("Lunch", "−14%", "+28%", FAR)) +
+        LOG("1 meal logged", meal("Lunch", "−14%", "+28%", FAR)) +
         HOW("Far over its targets, a meal does not just add nothing, it takes points back from your score. That’s alright once in a while, it happens to all of us.") +
         NEXT(null, "Try to keep your next meal within its targets. It helps your score grow again.") },
     /* more than one meal at once */
     { t: "You earned today’s medal", h: WHAT(UP, "You logged two meals together. Both met their targets and added all of their points, so your score went up by " + dc("up", "+45%") + " to " + dc("up", "83%") + ". Past 80%, the medal is yours.", [["First meal", "up", "+28%"], ["Second meal", "up", "+17%"], ["Together", "up", "+45%"]]) +
-        LOG("2 meals, logged together", meal("Lunch", "+28%", "+28%", ok(27, 66, 17)) + meal("Evening snack", "+17%", "+17%", ok(16, 40, 11))) +
+        LOG("2 meals logged", meal("Lunch", "+28%", "+28%", ok(27, 66, 17)) + meal("Evening snack", "+17%", "+17%", ok(16, 40, 11))) +
         HOW("When you log more than one meal at once, each is checked against its own targets, then their points add up.") +
         NEXT("Keep it going", "Try to get here on most days, it’s how you reach your goals.") },
     { t: "Why it went up only a little", h: WHAT(MID, "You logged two meals together. One met its targets and added all " + dc("up", "+23%") + ". The other went over its targets and added only " + dc("calm", "+8%") + ". Together, your score went up by " + dc("calm", "+31%") + ".", [["On target", "up", "+23%"], ["Went over", "calm", "+8%"], ["Together", "calm", "+31%"]]) +
-        LOG("2 meals, logged together", meal("Breakfast", "+23%", "+23%", BF) + meal("Lunch", "+8%", "+28%", { p: [48, 27], c: [125, 66], f: [32, 17] })) +
+        LOG("2 meals logged", meal("Breakfast", "+23%", "+23%", BF) + meal("Lunch", "+8%", "+28%", { p: [48, 27], c: [125, 66], f: [32, 17] })) +
         HOW("Each meal is checked against its own targets. One meal going over does not touch the other: the one on target keeps all of its points.") +
         NEXT(null, "Keep every meal within its targets to get all of its points.") },
     { t: "Why it went up only a little", h: WHAT(MID, "You logged two meals together. One met its targets and added " + dc("up", "+23%") + ". The other went far over its targets and took back " + dc("down", "−14%") + ". Together, your score went up by only " + dc("calm", "+9%") + ".", [["On target", "up", "+23%"], ["Far over", "down", "−14%"], ["Together", "calm", "+9%"]]) +
-        LOG("2 meals, logged together", meal("Breakfast", "+23%", "+23%", BF) + meal("Lunch", "−14%", "+28%", FAR)) +
+        LOG("2 meals logged", meal("Breakfast", "+23%", "+23%", BF) + meal("Lunch", "−14%", "+28%", FAR)) +
         HOW("Points from every meal add up, and a meal far over its targets takes some back. So one meal can cancel out part of what another earned.") +
         NEXT(null, "Keep every meal within its targets and they all add up.") },
     { t: "Why your score went down", h: WHAT(DOWN, "You logged two meals together. One went over its targets and added only " + dc("calm", "+5%") + ". The other went far over and took back " + dc("down", "−14%") + ". Together, your score went down by " + dc("down", "−9%") + ".", [["Went over", "calm", "+5%"], ["Far over", "down", "−14%"], ["Together", "down", "−9%"]]) +
-        LOG("2 meals, logged together", meal("Breakfast", "+5%", "+23%", OVER) + meal("Lunch", "−14%", "+28%", FAR)) +
+        LOG("2 meals logged", meal("Breakfast", "+5%", "+23%", OVER) + meal("Lunch", "−14%", "+28%", FAR)) +
         HOW("Each meal is checked against its own targets, then the points add up. When one meal takes back more than the other adds, your score goes down. That’s alright once in a while.") +
         NEXT(null, "Your next meal within its targets helps your score grow again.") },
     { t: "Why it went up only a little", h: WHAT(MID, "You logged your whole day at once. Most meals met their targets, but two went over, so your day added " + dc("calm", "+40%") + " of a possible " + dc("up", "+100%") + ".", [["Possible", "up", "+100%"], ["Taken off", "down", "−60%"], ["You got", "calm", "+40%"]]) +
-        sec("Your whole day", [], logged("All 6 meals", day([["Pre-breakfast", [[1, 1], [2, 2], [1, 1]], "+1%", "+1%"], ["Breakfast", [[22, 22], [55, 55], [14, 14]], "+23%", "+23%"], ["Lunch", [[48, 27], [125, 66], [32, 17]], "+8%", "+28%"],
-          ["Evening snack", [[16, 16], [40, 40], [11, 11]], "+17%", "+17%"], ["Dinner", [[78, 26], [192, 64], [51, 17]], "−13%", "+27%"], ["Bedtime", [[3, 3], [11, 11], [3, 3]], "+4%", "+4%"]]))) +
+        LOG("6 meals logged", meal("Pre-breakfast", "+1%", "+1%", { p: [1, 1], c: [2, 2], f: [1, 1] }) + meal("Breakfast", "+23%", "+23%", { p: [22, 22], c: [55, 55], f: [14, 14] }) + meal("Lunch", "+8%", "+28%", { p: [48, 27], c: [125, 66], f: [32, 17] }) + meal("Evening snack", "+17%", "+17%", { p: [16, 16], c: [40, 40], f: [11, 11] }) + meal("Dinner", "\u221213%", "+27%", { p: [78, 26], c: [192, 64], f: [51, 17] }) + meal("Bedtime", "+4%", "+4%", { p: [3, 3], c: [11, 11], f: [3, 3] })) +
         HOW("Logging everything at once works the same as one by one: every meal is checked against its own targets, then the points add up.") +
         NEXT(null, "Keeping every meal within its targets is the biggest win.") },
     { t: "A perfect day", h: sec(UP + "What happened", ["Every meal today met the macro targets set by your coach, so each added all of its points. Together they make " + dc("up", "100%") + "."]) +
-        sec("Your whole day", [], logged("All 6 meals", day([["Pre-breakfast", [[1, 1], [2, 2], [1, 1]], "+1%", "+1%"], ["Breakfast", [[22, 22], [55, 55], [14, 14]], "+23%", "+23%"], ["Lunch", [[27, 27], [66, 66], [17, 17]], "+28%", "+28%"],
-          ["Evening snack", [[16, 16], [40, 40], [11, 11]], "+17%", "+17%"], ["Dinner", [[26, 26], [64, 64], [17, 17]], "+27%", "+27%"], ["Bedtime", [[3, 3], [11, 11], [3, 3]], "+4%", "+4%"]]))) +
+        LOG("6 meals logged", meal("Pre-breakfast", "+1%", "+1%", { p: [1, 1], c: [2, 2], f: [1, 1] }) + meal("Breakfast", "+23%", "+23%", { p: [22, 22], c: [55, 55], f: [14, 14] }) + meal("Lunch", "+28%", "+28%", { p: [27, 27], c: [66, 66], f: [17, 17] }) + meal("Evening snack", "+17%", "+17%", { p: [16, 16], c: [40, 40], f: [11, 11] }) + meal("Dinner", "+27%", "+27%", { p: [26, 26], c: [64, 64], f: [17, 17] }) + meal("Bedtime", "+4%", "+4%", { p: [3, 3], c: [11, 11], f: [3, 3] })) +
         NEXT("Make it stick", "Keep it up, days like this will help you build healthy habits.") }
   ];
   /* the cases, grouped: one meal, then more than one at once, then the whole day */
