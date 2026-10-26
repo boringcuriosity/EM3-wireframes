@@ -134,7 +134,8 @@
   <div class="spec">
     <div><h3>1 · Title and kind line, from the overall change</h3><table>
       <tr><td>Up, every meal perfect</td><td><b>Your sufficiency has increased</b><br>You’re doing great. Keep following your coach’s plan and staying within your macros.</td></tr>
-      <tr><td>Up, not every meal</td><td><b>Your sufficiency has increased</b><br>Good progress. Keeping each meal closer to your coach’s plan will help your score grow even more.</td></tr>
+      <tr><td>Up, a meal went over</td><td><b>Your sufficiency has increased</b><br>Good progress! Sticking to the macros your coach planned for each meal will help your score grow even more.</td></tr>
+      <tr><td>Up, a meal was smaller</td><td><b>Your sufficiency has increased</b><br>Good start! Eating the full meals your coach planned will help your score grow even more.</td></tr>
       <tr><td>No change</td><td><b>Your sufficiency stayed the same</b><br>Try to keep each meal within your macros, and your score will improve a lot.</td></tr>
       <tr><td>Down</td><td><b>Your sufficiency has decreased</b><br>It happens sometimes, so don’t worry. Try to keep your macros in range for better nutrition.</td></tr>
     </table></div>
@@ -225,9 +226,11 @@
     return w + ", so it took " + tg(-x.got, "down") + " from your sufficiency score.";
   }
   /* rule 4: the title and kind line, from the overall change */
-  function heading(total, perfect) {
+  function heading(total, perfect, over) {
     if (total > 0 && perfect) return ["Your sufficiency has increased", "You’re doing great. Keep following your coach’s plan and staying within your macros."];
-    if (total > 0) return ["Your sufficiency has increased", "Good progress. Keeping each meal closer to your coach’s plan will help your score grow even more."];
+    /* up, but a meal went over: encourage the planned macros; up, but only smaller meals: encourage the full plate */
+    if (total > 0 && over) return ["Your sufficiency has increased", "Good progress! Sticking to the macros your coach planned for each meal will help your score grow even more."];
+    if (total > 0) return ["Your sufficiency has increased", "Good start! Eating the full meals your coach planned will help your score grow even more."];
     if (total === 0) return ["Your sufficiency stayed the same", "Try to keep each meal within your macros, and your score will improve a lot."];
     return ["Your sufficiency has decreased", "It happens sometimes, so don’t worry. Try to keep your macros in range for better nutrition."];
   }
@@ -245,7 +248,7 @@
   /* the sheet: a timeline of the meals, a dot each (green perfect, gold only some, amber took away), its sentence and its macros */
   function timeline(meals, after) {
     meals.forEach(x => x.st = x.eat.map((e, i) => where(e, TGT[x.meal][i])));
-    const total = meals.reduce((n, x) => n + x.got, 0), [t, sub] = heading(total, meals.every(x => x.st.every(s => s === "ok")));
+    const total = meals.reduce((n, x) => n + x.got, 0), [t, sub] = heading(total, meals.every(x => x.st.every(s => s === "ok")), meals.some(x => x.st.includes("over")));
     const pos = meals.reduce((n, x) => n + TGT[x.meal][3], 0);
     const body = '<p class="tsub">' + sub + '</p><div class="tl">' + meals.map(x => '<div class="tm"><div class="when">' + x.meal + '</div><p class="say">' + said(x) + "</p>" +
       '<div class="tmac">' + x.eat.map((e, i) => '<div class="t-' + x.st[i] + '">' + CAP(MACROS[i]) + "<b>" + e + "<small> / " + TGT[x.meal][i] + "g</small></b></div>").join("") + "</div></div>").join("") + "</div>" +
