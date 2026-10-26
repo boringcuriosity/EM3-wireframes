@@ -246,6 +246,7 @@ window.GFSay = {
   hero: function (opts) {
     if (!Q.get("say")) return;
     opts.score = s.score;
+    if (window.S && S.hero) S.hero.score = s.score;   /* the day reads the same score, so the medal hangs at 80% and over */
     var d = parseInt((s.delta || "0").replace("\u2212", "-"), 10) || 0;
     if (d) opts.from = Math.max(0, s.score - d);
   }

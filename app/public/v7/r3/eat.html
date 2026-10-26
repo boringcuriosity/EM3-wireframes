@@ -3667,8 +3667,9 @@ function mealsIn() {
    ?badge=medal | quote | head | date | sticker | seal picks where it sits, for the placement doc.
    ponytail: placement is a flag until one is chosen, then the others go. */
 (function () {
-  var where = Q.get("badge");
-  if (!where) return;
+  /* settled: the medal hangs from under the header on any day at 80% or more. ?badge= still tries the other places; ?badge=none hides it */
+  var where = Q.get("badge") || "medal";
+  if (where === "none") return;
   var SRC = "../icons/badge/simple/heart-apple.svg";
   var css = document.createElement("style");
   css.textContent =
@@ -3726,7 +3727,7 @@ function mealsIn() {
 </script>
 <script>window.SAY_CTA = "Learn more";   /* the line's link opens How your score works (assets/score-how.js), not KAIRA */</script>
 <script src="assets/score-how.js?v=12"></script>
-<script src="assets/score-say.js?v=23"></script>
+<script src="assets/score-say.js?v=24"></script>
 <script src="chrome.js"></script>
 <script src="assets/kaira-aurora.js?v=3"></script>
 </body>
