@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score line cases</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* The line under the nutrition sufficiency score, case by case. Every phone is the live r3/eat.html
+     (?state= or ?say=), cropped to the score and its line. The sheet at the end explains how the score moves.
+     Copy and cases: r3/assets/score-say.js. */
+  :root { --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-600:#444CE7; --in-700:#3538CD;
+    --ok-50:#ECFDF3; --ok-200:#ABEFC6; --ok-700:#067647; --wa-50:#FFFAEB; --wa-200:#FEDF89; --wa-700:#B54708; --r-xl:24px; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, system-ui, sans-serif; letter-spacing: .2px; }
+  .page { max-width: 1400px; margin: 0 auto; padding: 56px 24px 96px; }
+  .eyebrow { font: 600 12px/16px Roboto; letter-spacing: .8px; text-transform: uppercase; color: var(--g-500); }
+  h1 { margin: 10px 0 10px; font-size: 36px; line-height: 44px; font-weight: 600; }
+  h2 { margin: 64px 0 6px; font-size: 24px; line-height: 32px; font-weight: 600; }
+  .lede { max-width: 820px; margin: 0; font-size: 16px; line-height: 26px; color: var(--g-600); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 40px 28px; margin-top: 32px; }
+  figure { margin: 0; }
+  figcaption { margin-bottom: 12px; min-height: 140px; }
+  figcaption .k { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px; padding: 2px 8px; border-radius: 999px; font: 600 11px/16px Roboto; letter-spacing: .4px; }
+  .k.calm { color: var(--g-600); background: var(--g-100); } .k.up { color: var(--ok-700); background: var(--ok-50); } .k.down { color: var(--wa-700); background: var(--wa-50); }
+  figcaption b { display: block; font-size: 17px; line-height: 24px; }
+  figcaption p { margin: 4px 0 0; font-size: 13.5px; line-height: 20px; color: var(--g-600); }
+  .phone { width: 302px; height: 651px; overflow: hidden; border-radius: 36px; border: 1px solid var(--g-200); position: relative; box-shadow: 0 24px 48px -18px rgba(16,24,40,.18); }   /* the whole 390x844 screen at .7692, so a sheet shows top to bottom */
+
+  .phone iframe { width: 390px; height: 844px; border: 0; display: block; transform: scale(.7692); transform-origin: 0 0; }
+  .open { display: inline-block; margin-top: 8px; font: 600 13px/18px Roboto; color: var(--g-600); text-decoration: none; }
+
+  /* ---- the sheet, drawn to the house rules: title top left, circle X top right, no handle, 90% at most ---- */
+  .sheetwrap { display: flex; gap: 48px; flex-wrap: wrap; align-items: flex-start; margin-top: 28px; }
+  .notes { flex: 1; min-width: 280px; max-width: 520px; font-size: 15px; line-height: 24px; color: var(--g-600); }
+  .notes ul { margin: 8px 0 0; padding-left: 20px; } .notes li { margin-bottom: 8px; } .notes b { color: var(--g-900); }
+  .shphone { width: 390px; max-width: 100%; height: 760px; border-radius: 36px; border: 1px solid var(--g-200); overflow: hidden; position: relative; background: rgba(16,24,40,.45);
+    box-shadow: 0 24px 48px -18px rgba(16,24,40,.22); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; display: flex; flex-direction: column; background: #fff; border-radius: 24px 24px 0 0; }
+  .shead { display: flex; align-items: center; justify-content: space-between; padding: 20px 16px 12px; }
+  .shead h4 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; }
+  .x { width: 32px; height: 32px; padding: 0; border: 0; background: none; cursor: pointer; }
+  .sbody { overflow-y: auto; padding: 0 16px 28px; }
+  .hw { padding: 16px 0; border-top: 1px dashed var(--g-200); }
+  .hw:first-child { border-top: 0; padding-top: 4px; }
+  .hw h5 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 15px; line-height: 22px; font-weight: 700; }
+  .hw p { margin: 0 0 8px; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
+  .hw p:last-child { margin-bottom: 0; }
+  .hw p b { color: var(--g-900); font-weight: 600; }
+  .dc { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 6px; font: 600 12px/1 Roboto; font-variant-numeric: tabular-nums; vertical-align: 1px; }
+  .dc.up { background: var(--ok-50); color: var(--ok-700); box-shadow: inset 0 0 0 1px var(--ok-200); }
+  .dc.down { background: var(--wa-50); color: var(--wa-700); box-shadow: inset 0 0 0 1px var(--wa-200); }
+  .dc.calm { background: var(--g-100); color: var(--g-600); box-shadow: inset 0 0 0 1px var(--g-200); }
+  .shares { display: grid; grid-template-columns: 1fr auto; margin: 10px 0 4px; border-top: 1px solid var(--in-100); font-size: 13.5px; line-height: 20px; }
+  .shares span { padding: 7px 0; border-bottom: 1px solid var(--in-100); color: var(--g-600); }
+  .shares span:nth-child(2n) { text-align: right; font-weight: 600; color: var(--g-900); font-variant-numeric: tabular-nums; }
+  .ex { margin: 8px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--in-50); font-size: 13px; line-height: 20px; color: var(--g-600); }
+  .ex b { color: var(--g-900); }
+  .ico { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 13px; height: 13px; }
+  .ico.up { background: var(--ok-50); color: var(--ok-700); } .ico.mid { background: var(--g-100); color: var(--g-600); } .ico.down { background: var(--wa-50); color: var(--wa-700); }
+  .ex .exl { display: block; margin-bottom: 2px; font: 600 11px/16px Roboto; letter-spacing: .6px; text-transform: uppercase; color: var(--in-700); }
+  .learn { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; padding: 0; border: 0; background: none; cursor: pointer; font: 500 14px/20px Roboto; color: var(--in-700); }
+  .learn svg { width: 14px; height: 14px; }
+  .modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(16,24,40,.5); opacity: 0; pointer-events: none; transition: opacity .25s ease-out; }
+  .modal.on { opacity: 1; pointer-events: auto; }
+  .modal .shphone { height: min(760px, 92vh); background: transparent; box-shadow: none; border: 0; }
+  .modal .sheet { transform: translateY(24px); transition: transform .32s cubic-bezier(.22,1,.36,1); }
+  .modal.on .sheet { transform: none; }
+  .sfoot { flex-shrink: 0; padding: 12px 16px 16px; background: #fff; border-top: 1px solid var(--g-100); }
+  .ecta { display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; margin-bottom: 7px; border: 0; border-radius: 12px;
+    background: #299D6B; color: #fff; font: 700 15px/1 Roboto, sans-serif; box-shadow: 0 7px 0 #2A805A; cursor: pointer; }
+  .fine { margin: 12px 0 0; font-size: 12px; line-height: 18px; color: var(--g-500); }
+  @media (max-width: 720px) { .page { padding: 32px 16px 64px; } h1 { font-size: 28px; line-height: 36px; } .phone { width: 100%; } figcaption { min-height: 0; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">Eat · Nutrition sufficiency</span>
+  <h1>The line under the score</h1>
+  <p class="lede">After every log, one short line under the score says what that log did: up, up but less than it could have, unchanged, or down. Before a plan, or before the first log, it says what comes next instead. Each phone below is the live Eat screen in that moment, cropped to the score and its line. Under each one, How does my score work? opens the sheet that explains it.</p>
+
+  <h2>Every case</h2>
+  <div class="grid" id="grid"></div>
+
+  <h2>How your score works</h2>
+  <p class="lede">One sheet explains all of it, so no single line has to. In the app it opens from Learn more on the line; here, every case opens it too.</p>
+  <div class="sheetwrap">
+    <div class="shphone">
+      <div class="sheet" role="dialog" aria-label="How your score works">
+        <div class="shead"><h4>How your score works</h4>
+          <button class="x" aria-label="Close"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path fill="#98A2B3" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button></div>
+        <div class="sbody">
+          <div class="sec">
+            <h5>A fresh start every day</h5>
+            <p>Your score starts at <span class="dc calm">0%</span> each morning and grows as you log your meals. When every meal meets your coach’s suggested targets, you reach <span class="dc up">100%</span>.</p>
+          </div>
+          <div class="sec">
+            <h5><span class="ico up"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg></span>When it goes up</h5>
+            <p>When a meal meets your coach’s suggested targets for it, it adds everything it can to your score.</p>
+            <p class="ex"><span class="exl">Example</span>Breakfast just as planned adds <b>+23%</b>.</p>
+          </div>
+          <div class="sec">
+            <h5><span class="ico mid"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3.5 8h9"/></svg></span>When it goes up just a little</h5>
+            <p>Eat a little less than your coach’s target, and the meal still helps, just a bit less.</p>
+            <p>Eat a lot more than the target, and your score is reduced, so the meal adds less than it could have.</p>
+            <p class="ex"><span class="exl">Example</span>Half your breakfast adds about <b>+12%</b>. A double breakfast adds only <b>+5%</b>, when it could have added <b>+23%</b>.</p>
+          </div>
+          <div class="sec">
+            <h5><span class="ico down"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M3.5 8.5 8 13l4.5-4.5"/></svg></span>When it comes down</h5>
+            <p>Sometimes a meal turns out much bigger than your coach’s targets, and your score dips. That’s alright once in a while, it happens to all of us. Let’s try to stick to your coach’s targets to avoid losing points.</p>
+            <p class="ex"><span class="exl">Example</span>A large pizza at lunch brings your score down by <b>14%</b>.</p>
+          </div>
+          <div class="sec">
+            <h5>Days worth celebrating</h5>
+            <p>Reach <span class="dc up">80%</span> or more and you’re a champion: today’s medal is yours. Try to get there on most days, it’s how you reach your goals.</p>
+          </div>
+        </div>
+        <div class="sfoot"><button class="ecta" type="button">Got it</button></div>
+      </div>
+    </div>
+    <div class="notes">
+      <b>What the sheet answers</b>
+      <ul>
+        <li><b>How does it work?</b> It starts fresh each morning; meals that meet the coach’s targets add the most.</li>
+        <li><b>Why did it go up?</b> A meal that meets its targets adds all it can.</li>
+        <li><b>Why only a little?</b> Eating more than the coach suggested loses points; staying within the targets earns them all.</li>
+        <li><b>Why did it drop?</b> A much bigger meal dips it, said gently, with a nudge back to the targets.</li>
+        <li><b>What is worth aiming for?</b> 80% or more: a champion’s day and a medal.</li>
+      </ul>
+      <p>Every case above opens this sheet with <b>How does my score work?</b> The examples use the sample plan.</p>
+    </div>
+  </div>
+</div>
+<script src="r3/assets/score-how.js?v=12"></script>
+<script>
+  /* the sheet's words come from the app's own file, so the doc and the Eat screen never drift */
+  document.querySelector(".sbody").innerHTML = window.SCORE_HOW;
+  const C = [
+    ["calm", "Before a plan", "Plan not assigned", "No score yet, so the line says when it unlocks. Kaira's card below offers the two ways to log.", "state=noplanempty"],
+    ["calm", "Nothing logged", "Food not logged", "A plan, but no log today. The line names the first thing to do; it never recaps.", "state=empty"],
+    ["up", "Up", "Went up, +x%", "The meal matched the plan and added its full share. The gain sits in a green capsule.", "say=plan"],
+    ["down", "Up, but less", "Went up +x%, could have gained y% more", "Over the plan, so the meal added less than its share. The line says what it could have added.", "say=double"],
+    ["down", "No change", "Did not change, could have gained y%", "Well over the plan, so the meal added nothing. The line still says what a planned meal would add.", "say=triple"],
+    ["down", "Down", "Dropped by −x%", "Far over the plan, so the meal took points back. The line offers Learn more and never scolds.", "say=pizza"],
+    ["up", "80% and over", "Medal earned", "Crossing 80% leads with the celebration, then the gain as its own sentence.", "say=medal"],
+    ["up", "100%", "Every target met", "Reaching 100% is all praise: no number, just what it means and a nudge to make days like this stick.", "say=hundred"]
+  ];
+  document.getElementById("grid").innerHTML = C.map(c => '<figure><figcaption><span class="k ' + c[0] + '">' + c[1] + "</span><b>" + c[2] + "</b><p>" + c[3] + "</p></figcaption>" +
+    '<div class="phone"><iframe loading="lazy" src="r3/eat.html?' + c[4] + '" title="' + c[2] + '"></iframe></div>' +
+    '<button class="learn" type="button" data-learn>How does my score work?<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button><br>' +
+    '<a class="open" href="r3/eat.html?' + c[4] + '" target="_blank">Open full size →</a></figure>').join("");
+  /* every case opens the one sheet, over the page, as it would over the Eat screen */
+  const modal = document.createElement("div"); modal.className = "modal"; modal.innerHTML = '<div class="shphone">' + document.querySelector(".shphone").innerHTML + "</div>";
+  document.body.appendChild(modal);
+  const shut = () => modal.classList.remove("on");
+  document.addEventListener("click", e => {
+    if (e.target.closest("[data-learn]")) { modal.querySelector(".sbody").scrollTop = 0; modal.classList.add("on"); return; }
+    if (modal.classList.contains("on") && (e.target === modal || e.target.closest(".modal .x, .modal .ecta"))) shut();
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") shut(); });
+  /* a framed Eat screen draws its score only when the page hosting it says so; 8 phones fit well under the browser's WebGL limit */
+  addEventListener("message", e => { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+</script>
+</body>
+</html>

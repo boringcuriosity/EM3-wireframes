@@ -20,14 +20,15 @@ SC.mid = { state: "mid", score: 54, delta: "+20%", tone: "up", lead: "Your score
 /* a pillar that copies this screen names what to keep logging (Move sets "keep logging your movement.") */
 if (window.SAY_REST) Object.keys(SC).forEach(function (k) { if (SC[k].rest === "keep logging your meals.") SC[k].rest = window.SAY_REST; });
 /* a host page can swap the KAIRA link for its own words and its own sheet (move/index.html) */
-if (window.SAY_CTA) Object.keys(SC).forEach(function (k) { if (SC[k].cta) SC[k].cta = window.SAY_CTA; });
 SC.medal = { state: "full", score: 83, delta: "+27%", tone: "up", lead: "We are proud of you! Today's medal is yours.", rest: "Your score went up by 27%.", cta: "Learn more by asking KAIRA" };
-SC.hundred = { state: "perfect", score: 100, delta: "+4%", tone: "up", lead: "Amazing! You reached 100% today.", rest: "Your score went up by 4%.", cta: "Learn more by asking KAIRA" };
+SC.hundred = { state: "perfect", score: 100, delta: "+4%", tone: "up", lead: "Amazing! You reached 100% sufficiency.", rest: "Keep it up, days like this will help you build healthy habits.", cta: "Learn more by asking KAIRA" };
 SC.full = { state: "full", score: 88, delta: "+4%", tone: "up", lead: "Your score went up by 4%,", rest: "your day is all logged.", cta: "Learn more by asking KAIRA" };
 SC.perfect = { state: "perfect", score: 100, delta: "+4%", tone: "up", lead: "Your score went up by 4%,", rest: "every target met today.", cta: "Learn more by asking KAIRA" };
 SC.over = { state: "over", score: 92, delta: "+9%", tone: "down", lead: "Your score went up by only 9%,", rest: "you could have gained 18% more.", cta: "Find out why from KAIRA" };
 SC.past = { state: "past", score: 61, delta: "", tone: "calm", lead: "This day ended at 61%.", rest: "", cta: "Learn more by asking KAIRA" };
 SC.empty = SC.start;
+/* a host page can swap the link for its own words and its own sheet (r3/eat.html: Learn more). After every case above, medal and 100% included */
+if (window.SAY_CTA) Object.keys(SC).forEach(function (k) { if (SC[k].cta) { SC[k].cta = window.SAY_CTA; if (!SC[k].rest) SC[k].lead = SC[k].lead.replace(/,$/, "."); } });   /* "dropped by 14%," reads "dropped by 14%." before Learn more */
 /* Eat before a plan: no score yet, so the line says when it unlocks (Move speaks for itself, momentum.js) */
 if (!window.SAY_REST) SC.noplanempty = SC.noplan = { lock: true, delta: "", tone: "calm", lead: "", rest: "Your Nutrition sufficiency score unlocks after your first Eat Coach consultation, once your coach assigns you a plan." };   /* a note, not news: no bold */
 var DAY = { mac: [[0, 95], [0, 238], [0, 63]], kcal: 1900 };
@@ -232,7 +233,7 @@ var CSS = "#cm{position:relative;z-index:3;margin:20px auto 0;padding:0 24px;dis
       /* the number sits in the same capsule as Change and reason: green up, amber when it went up less or came down */
       "#cm .dc{display:inline-flex;align-items:center;height:20px;padding:0 6px;margin:0 1px;border-radius:6px;vertical-align:1px;font:600 12px/1 Roboto,sans-serif;font-variant-numeric:tabular-nums}" +
       "#cm .dc.down{background:#FFFAEB;color:#B54708;box-shadow:inset 0 0 0 1px #FEDF89}#cm .dc.calm{background:#F2F4F7;color:#475467;box-shadow:inset 0 0 0 1px #E4E7EC}#cm .dc.up{background:#ECFDF3;color:#067647;box-shadow:inset 0 0 0 1px #ABEFC6}";
-var html = function (s) { var lead = s.lead.replace(/ by (only )?\d+%?\.?/, ' by $1<span class="dc ' + s.tone + '">' + s.delta + "</span>"); return '<div class="in"><svg class="q" viewBox="0 0 24 24" fill="currentColor"><path d="M4.6 18.7C3.5 17.5 3 16.3 3 14.3c0-3.5 2.5-6.6 6-8.2l.9 1.4C6.6 9.3 5.9 11.6 5.7 13.1c.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Zm10 0c-1.1-1.2-1.6-2.4-1.6-4.4 0-3.5 2.5-6.6 6-8.2l.9 1.4c-3.3 1.8-4 4.1-4.2 5.6.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Z"/></svg><span class="sk"><i></i><i></i></span><span class="sw"></span><span class="tx"><b>' + lead + "</b> " + s.rest.replace(/ gained (\d+%)\.?/, ' gained <span class="dc calm">+$1</span>').replace(/ went up by \d+%/, ' went up by <span class="dc ' + s.tone + '">' + s.delta + "</span>") + ask(s) + "</span></div>"; };
+var html = function (s) { var lead = s.lead.replace(/ by (only )?\d+%?(\.?)/, ' by $1<span class="dc ' + s.tone + '">' + s.delta + "</span>$2"); return '<div class="in"><svg class="q" viewBox="0 0 24 24" fill="currentColor"><path d="M4.6 18.7C3.5 17.5 3 16.3 3 14.3c0-3.5 2.5-6.6 6-8.2l.9 1.4C6.6 9.3 5.9 11.6 5.7 13.1c.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Zm10 0c-1.1-1.2-1.6-2.4-1.6-4.4 0-3.5 2.5-6.6 6-8.2l.9 1.4c-3.3 1.8-4 4.1-4.2 5.6.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Z"/></svg><span class="sk"><i></i><i></i></span><span class="sw"></span><span class="tx"><b>' + lead + "</b> " + s.rest.replace(/ gained (\d+%)(\.?)/, ' gained <span class="dc calm">+$1</span>$2').replace(/ went up by \d+%/, ' went up by <span class="dc ' + s.tone + '">' + s.delta + "</span>") + ask(s) + "</span></div>"; };
 
 /* a ?say= case is the moment just after a log: its score, and the step up (or down) to it */
 window.GFSay = {
@@ -249,7 +250,8 @@ window.GFSay.show = function (c) { s = c; if (cm) { cm.innerHTML = html(s); cm.c
 function mount() {
   var stage = document.getElementById("stage");
   if (!stage) return;
-  var st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
+  /* Eat's Learn more is a plain link, so it takes the house link green (--brand-600) instead of KAIRA's indigo */
+  var st = document.createElement("style"); st.textContent = CSS + (window.SAY_CTA ? "#cm .cta,#cm .cta .ask,#cm .cta .kc{color:#299D6B;font-weight:500}" : ""); document.head.appendChild(st);
   cm = document.createElement("div"); cm.id = "cm"; cm.innerHTML = html(s);
   cm.addEventListener("click", function (e) {
     if (!e.target.closest(".cta")) return;

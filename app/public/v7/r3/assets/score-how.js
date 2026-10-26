@@ -1,0 +1,23 @@
+/* "How your score works": the one sheet behind every line under the score (score-say.js's Learn more).
+   The copy lives here once; v7/score-commentary-cases.html draws the same HTML. */
+(function () {
+var HTML = "<div class=\"hw\"><h5>A fresh start every day</h5><p>Your score starts at <span class=\"dc calm\">0%</span> each morning and grows as you log your meals. When every meal meets your coach’s suggested targets, you reach <span class=\"dc up\">100%</span>.</p></div><div class=\"hw\"><h5><span class=\"ico up\"><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 13V3M3.5 7.5 8 3l4.5 4.5\"/></svg></span>When it goes up</h5><p>When a meal meets your coach’s targets, it adds its full points to your score.</p><p class=\"ex\"><span class=\"exl\">Example</span>A meal within your coach’s targets: your score goes up by <span class=\"dc up\">+23%</span></p></div><div class=\"hw\"><h5><span class=\"ico mid\"><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"><path d=\"M3.5 8h9\"/></svg></span>When it goes up just a little</h5><p>When a meal goes over your coach’s targets, it adds only a few points. Try to stay within your coach’s targets for each meal to get full points and a good score overall.</p><p class=\"ex\"><span class=\"exl\">Example</span>A meal over your coach’s targets: your score goes up by only <span class=\"dc calm\">+4%</span>. It could have been <span class=\"dc up\">+10%</span>, but going over your targets took off <span class=\"dc down\">−6%</span>.</p></div><div class=\"hw\"><h5><span class=\"ico down\"><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M8 3v10M3.5 8.5 8 13l4.5-4.5\"/></svg></span>When it comes down</h5><p>When a meal goes far over your coach’s targets, your score dips. That’s alright once in a while, it happens to all of us. Try to stay within your coach’s targets to avoid losing points.</p><p class=\"ex\"><span class=\"exl\">Example</span>A meal far over your coach’s targets: your score goes down by <span class=\"dc down\">−14%</span></p></div><div class=\"hw\"><h5>Days worth celebrating</h5><p>Reach <span class=\"dc up\">80%</span> or more and you’re a champion: today’s medal is yours. Try to get there on most days, it’s how you reach your goals.</p></div>";
+window.SCORE_HOW = HTML;
+var CSS = "#scoreHow .hw{padding:16px 0;border-top:1px dashed #E4E7EC}#scoreHow .hw:first-child{border-top:0;padding-top:4px}" +
+  "#scoreHow h5{display:flex;align-items:center;gap:8px;margin:0 0 8px;font:700 15px/22px Roboto,sans-serif;color:#101828}" +
+  "#scoreHow .hw p{margin:0 0 8px;font-size:14px;line-height:21px;color:#475467;text-wrap:pretty}#scoreHow .hw p:last-child{margin-bottom:0}#scoreHow .hw p b{color:#101828;font-weight:600}" +
+  "#scoreHow .dc{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:6px;font:600 12px/1 Roboto,sans-serif;font-variant-numeric:tabular-nums;vertical-align:1px}" +
+  "#scoreHow .dc.up{background:#ECFDF3;color:#067647;box-shadow:inset 0 0 0 1px #ABEFC6}#scoreHow .dc.down{background:#FFFAEB;color:#B54708;box-shadow:inset 0 0 0 1px #FEDF89}#scoreHow .dc.calm{background:#F2F4F7;color:#475467;box-shadow:inset 0 0 0 1px #E4E7EC}" +
+  "#scoreHow .ex{margin-top:8px;padding:10px 12px;border-radius:12px;background:#EEF4FF;font-size:13px;line-height:20px}" +
+  "#scoreHow .exl{display:block;margin-bottom:2px;font:600 11px/16px Roboto,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:#3538CD}" +
+  "#scoreHow .ico{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex:none}#scoreHow .ico svg{width:13px;height:13px}" +
+  "#scoreHow .ico.up{background:#ECFDF3;color:#067647}#scoreHow .ico.mid{background:#F2F4F7;color:#475467}#scoreHow .ico.down{background:#FFFAEB;color:#B54708}";
+window.SAY_OPEN = function () {
+  if (!window.GFOpenSheet) return;
+  if (!document.getElementById("scoreHowCss")) { var st = document.createElement("style"); st.id = "scoreHowCss"; st.textContent = CSS; document.head.appendChild(st); }
+  var el = window.GFOpenSheet("scoreHow", "How your score works", HTML);
+  /* Got it, the house primary (eat.html .sfoot/.ecta), held at the foot while the words scroll */
+  el.insertAdjacentHTML("beforeend", '<div class="sfoot"><button class="ecta" type="button">Got it</button></div>');
+  el.querySelector(".sfoot .ecta").onclick = function () { window.closeSheets(); };
+};
+})();

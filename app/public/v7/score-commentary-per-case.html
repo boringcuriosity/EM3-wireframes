@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score line, per case</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* The line under the nutrition sufficiency score, case by case. Every phone is the live r3/eat.html
+     (?state= or ?say=), cropped to the score and its line. The sheet at the end explains how the score moves.
+     Copy and cases: r3/assets/score-say.js. */
+  :root { --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-600:#444CE7; --in-700:#3538CD;
+    --ok-50:#ECFDF3; --ok-200:#ABEFC6; --ok-700:#067647; --wa-50:#FFFAEB; --wa-200:#FEDF89; --wa-700:#B54708; --r-xl:24px; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, system-ui, sans-serif; letter-spacing: .2px; }
+  .page { max-width: 1400px; margin: 0 auto; padding: 56px 24px 96px; }
+  .eyebrow { font: 600 12px/16px Roboto; letter-spacing: .8px; text-transform: uppercase; color: var(--g-500); }
+  h1 { margin: 10px 0 10px; font-size: 36px; line-height: 44px; font-weight: 600; }
+  h2 { margin: 64px 0 6px; font-size: 24px; line-height: 32px; font-weight: 600; }
+  .lede { max-width: 820px; margin: 0; font-size: 16px; line-height: 26px; color: var(--g-600); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 40px 28px; margin-top: 32px; }
+  figure { margin: 0; }
+  figcaption { margin-bottom: 12px; min-height: 140px; }
+  figcaption .k { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px; padding: 2px 8px; border-radius: 999px; font: 600 11px/16px Roboto; letter-spacing: .4px; }
+  .k.calm { color: var(--g-600); background: var(--g-100); } .k.up { color: var(--ok-700); background: var(--ok-50); } .k.down { color: var(--wa-700); background: var(--wa-50); }
+  figcaption b { display: block; font-size: 17px; line-height: 24px; }
+  figcaption p { margin: 4px 0 0; font-size: 13.5px; line-height: 20px; color: var(--g-600); }
+  .phone { width: 302px; height: 651px; overflow: hidden; border-radius: 36px; border: 1px solid var(--g-200); position: relative; box-shadow: 0 24px 48px -18px rgba(16,24,40,.18); }   /* the whole 390x844 screen at .7692, so a sheet shows top to bottom */
+
+  .phone iframe { width: 390px; height: 844px; border: 0; display: block; transform: scale(.7692); transform-origin: 0 0; }
+  .open { display: inline-block; margin-top: 8px; font: 600 13px/18px Roboto; color: var(--g-600); text-decoration: none; }
+
+  /* ---- the sheet, drawn to the house rules: title top left, circle X top right, no handle, 90% at most ---- */
+  .sheetwrap { display: flex; gap: 48px; flex-wrap: wrap; align-items: flex-start; margin-top: 28px; }
+  .notes { flex: 1; min-width: 280px; max-width: 520px; font-size: 15px; line-height: 24px; color: var(--g-600); }
+  .notes ul { margin: 8px 0 0; padding-left: 20px; } .notes li { margin-bottom: 8px; } .notes b { color: var(--g-900); }
+  .shphone { width: 390px; max-width: 100%; height: 760px; border-radius: 36px; border: 1px solid var(--g-200); overflow: hidden; position: relative; background: rgba(16,24,40,.45);
+    box-shadow: 0 24px 48px -18px rgba(16,24,40,.22); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; display: flex; flex-direction: column; background: #fff; border-radius: 24px 24px 0 0; }
+  .shead { display: flex; align-items: center; justify-content: space-between; padding: 20px 16px 12px; }
+  .shead h4 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; }
+  .x { width: 32px; height: 32px; padding: 0; border: 0; background: none; cursor: pointer; }
+  .sbody { overflow-y: auto; padding: 0 16px 28px; }
+  .hw { padding: 16px 0; border-top: 1px dashed var(--g-200); }
+  .hw:first-child { border-top: 0; padding-top: 4px; }
+  .hw h5 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 15px; line-height: 22px; font-weight: 700; }
+  .hw p { margin: 0 0 8px; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
+  .hw p:last-child { margin-bottom: 0; }
+  .hw p b { color: var(--g-900); font-weight: 600; }
+  .dc { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 6px; font: 600 12px/1 Roboto; font-variant-numeric: tabular-nums; vertical-align: 1px; }
+  .dc.up { background: var(--ok-50); color: var(--ok-700); box-shadow: inset 0 0 0 1px var(--ok-200); }
+  .dc.down { background: var(--wa-50); color: var(--wa-700); box-shadow: inset 0 0 0 1px var(--wa-200); }
+  .dc.calm { background: var(--g-100); color: var(--g-600); box-shadow: inset 0 0 0 1px var(--g-200); }
+  .shares { display: grid; grid-template-columns: 1fr auto; margin: 10px 0 4px; border-top: 1px solid var(--in-100); font-size: 13.5px; line-height: 20px; }
+  .shares span { padding: 7px 0; border-bottom: 1px solid var(--in-100); color: var(--g-600); }
+  .shares span:nth-child(2n) { text-align: right; font-weight: 600; color: var(--g-900); font-variant-numeric: tabular-nums; }
+  .ex { margin: 8px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--in-50); font-size: 13px; line-height: 20px; color: var(--g-600); }
+  .ex b { color: var(--g-900); }
+  .ico { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 13px; height: 13px; }
+  .ico.up { background: var(--ok-50); color: var(--ok-700); } .ico.mid { background: var(--g-100); color: var(--g-600); } .ico.down { background: var(--wa-50); color: var(--wa-700); }
+  .ex .exl { display: block; margin-bottom: 2px; font: 600 11px/16px Roboto; letter-spacing: .6px; text-transform: uppercase; color: var(--in-700); }
+  .learn { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; padding: 0; border: 0; background: none; cursor: pointer; font: 500 14px/20px Roboto; color: var(--in-700); }
+  .learn svg { width: 14px; height: 14px; }
+  .modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(16,24,40,.5); opacity: 0; pointer-events: none; transition: opacity .25s ease-out; }
+  .modal.on { opacity: 1; pointer-events: auto; }
+  .modal .shphone { height: min(760px, 92vh); background: transparent; box-shadow: none; border: 0; }
+  .modal .sheet { transform: translateY(24px); transition: transform .32s cubic-bezier(.22,1,.36,1); }
+  .modal.on .sheet { transform: none; }
+  .sfoot { flex-shrink: 0; padding: 12px 16px 16px; background: #fff; border-top: 1px solid var(--g-100); }
+  .ecta { display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; margin-bottom: 7px; border: 0; border-radius: 12px;
+    background: #299D6B; color: #fff; font: 700 15px/1 Roboto, sans-serif; box-shadow: 0 7px 0 #2A805A; cursor: pointer; }
+  .plate { margin: 10px 0 0 !important; font-size: 13px !important; line-height: 19px !important; color: var(--g-500) !important; }
+  .st { display: flex; gap: 8px; margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--in-50); }
+  .st div { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .st span:first-child { font: 600 11px/16px Roboto; letter-spacing: .5px; text-transform: uppercase; color: var(--in-700); }
+  .st .dc { align-self: flex-start; }
+  .pick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .pick button { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--g-200); background: #fff; font: 500 13px Roboto, sans-serif; color: var(--g-600); cursor: pointer; }
+  .pick button.on { background: var(--g-900); border-color: var(--g-900); color: #fff; }
+  .fine { margin: 12px 0 0; font-size: 12px; line-height: 18px; color: var(--g-500); }
+  @media (max-width: 720px) { .page { padding: 32px 16px 64px; } h1 { font-size: 28px; line-height: 36px; } .phone { width: 100%; } figcaption { min-height: 0; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">Eat · Nutrition sufficiency</span>
+  <h1>The line under the score, one sheet per case</h1>
+  <p class="lede">The same cases as the general version (score-commentary-cases.html), but here Learn more opens a sheet about that moment only: why the score did what it did, an example, and what to do next. Tap Learn more inside a phone, or How did this happen? under it.</p>
+
+  <h2>Every case</h2>
+  <div class="grid" id="grid"></div>
+
+  <h2>Every sheet</h2>
+  <p class="lede">Pick a case to read its sheet.</p>
+  <div class="pick" id="pick"></div>
+  <div class="sheetwrap">
+    <div class="shphone" id="shphone">
+      <div class="sheet" role="dialog">
+        <div class="shead"><h4></h4>
+          <button class="x" aria-label="Close"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path fill="#98A2B3" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button></div>
+        <div class="sbody"></div>
+        <div class="sfoot"><button class="ecta" type="button">Got it</button></div>
+      </div>
+    </div>
+    <div class="notes">
+      <b>How each sheet is built</b>
+      <ul>
+        <li><b>The title answers the line.</b> Why your score went up, why it went down, a perfect day.</li>
+        <li><b>What happened:</b> the meal against its targets, with the same numbers the line shows: what was possible, what was taken off, what it got. No meal names, no foods.</li>
+        <li><b>How it works:</b> the one rule behind that move, in a sentence or two.</li>
+        <li><b>What to do next:</b> always kind, always pointing at the next meal.</li>
+      </ul>
+      <p>The general sheet with every rule in one place stays at score-commentary-cases.html, to compare.</p>
+    </div>
+  </div>
+</div>
+<script>
+  const UP = '<span class="ico up"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg></span>';
+  const MID = '<span class="ico mid"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3.5 8h9"/></svg></span>';
+  const DOWN = '<span class="ico down"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M3.5 8.5 8 13l4.5-4.5"/></svg></span>';
+  const dc = (t, v) => '<span class="dc ' + t + '">' + v + "</span>";
+  const sec = (h, p, extra) => '<div class="hw"><h5>' + h + "</h5>" + p.map(x => "<p>" + x + "</p>").join("") + (extra || "") + "</div>";
+  /* the real numbers of this moment, side by side: what you got, what was possible, what the extra took */
+  const nums = rows => '<div class="st">' + rows.map(r => '<div><span>' + r[0] + "</span>" + dc(r[1], r[2]) + "</div>").join("") + "</div>";
+  /* one sheet per case, three beats: what happened (the real numbers), how it works, what to do next */
+  const SH = [
+    { t: "Your score is on its way", h: sec("What is happening", ["Your coach has not set your Eat plan yet, so there is nothing to measure your meals against. Your score stays locked until then."]) +
+        sec("How it works", ["Your Nutrition sufficiency score compares each meal with your coach’s targets. Your coach sets those targets after your first Eat Coach consultation."]) +
+        sec("What to do now", ["Keep logging what you eat. Your coach will look at it before building your Eat plan, so every log helps."]) },
+    { t: "Start your score", h: sec("What is happening", ["Nothing is logged yet today, so your score is at " + dc("calm", "0%") + "."]) +
+        sec("How it works", ["Your score starts at 0% each morning and grows with every meal you log. A meal that meets your coach’s targets adds its full points."]) +
+        sec("What to do now", ["Log your first meal and watch your score climb."]) },
+    { t: "Why your score went up", h: sec(UP + "What happened", ["Your meal met your coach’s targets, so it added its full points."], nums([["You got", "up", "+23%"], ["Possible", "up", "+23%"]])) +
+        sec("How it works", ["Each meal can add a set number of points. When it meets your coach’s targets, it adds all of them."]) +
+        sec("What to do next", ["Keep your next meal within your coach’s targets to keep your score climbing."]) },
+    { t: "Why it went up only a little", h: sec(MID + "What happened", ["Your meal went over your coach’s targets. It could have added " + dc("up", "+23%") + ", but the extra took off " + dc("down", "−18%") + ", so it added only " + dc("calm", "+5%") + "."],
+          nums([["Possible", "up", "+23%"], ["Taken off", "down", "−18%"], ["You got", "calm", "+5%"]])) +
+        sec("How it works", ["A meal that goes over your coach’s targets adds fewer points. The further over it goes, the more points it loses."]) +
+        sec("Next time", ["Try to keep your next meal within your coach’s targets to get its full points."]) },
+    { t: "Why your score did not change", h: sec(MID + "What happened", ["Your meal went well over your coach’s targets, so it added no points. It could have added " + dc("up", "+23%") + "."],
+          nums([["Possible", "up", "+23%"], ["You got", "calm", "0%"]])) +
+        sec("How it works", ["The further a meal goes over your coach’s targets, the more points it loses. Far enough over, it adds none."]) +
+        sec("Next time", ["No worries, your next meal within your coach’s targets adds its points again."]) },
+    { t: "Why your score went down", h: sec(DOWN + "What happened", ["Your meal went far over your coach’s targets, so it took points back and your score went down by " + dc("down", "−14%") + "."],
+          nums([["Possible", "up", "+28%"], ["You got", "down", "−14%"]])) +
+        sec("How it works", ["A meal far over your coach’s targets does not just add fewer points, it takes some back. That’s alright once in a while, it happens to all of us."]) +
+        sec("Next time", ["Try to stay within your coach’s targets to avoid losing points. Your next meal within them helps your score grow again."]) },
+    { t: "You earned today’s medal", h: sec(UP + "What happened", ["Your meal added " + dc("up", "+27%") + " and took your score to " + dc("up", "83%") + ", past the 80% medal line. You’re a champion today."]) +
+        sec("How it works", ["Reach 80% or more in a day and the medal is yours. Every meal within your coach’s targets brings you closer."]) +
+        sec("Keep it going", ["Try to get here on most days, it’s how you reach your goals."]) },
+    { t: "A perfect day", h: sec(UP + "What happened", ["Every meal today met your coach’s targets, so your score reached " + dc("up", "100%") + " sufficiency."]) +
+        sec("How it works", ["When every meal meets your coach’s targets, each one adds its full points, and together they make 100%."]) +
+        sec("Make it stick", ["Keep it up, days like this will help you build healthy habits."]) }
+  ];
+  const C = [
+    ["calm", "Before a plan", "Plan not assigned", "No score yet, so the line says when it unlocks. Kaira's card below offers the two ways to log.", "state=noplanempty"],
+    ["calm", "Nothing logged", "Food not logged", "A plan, but no log today. The line names the first thing to do; it never recaps.", "state=empty"],
+    ["up", "Up", "Went up, +x%", "The meal matched the plan and added its full share. The gain sits in a green capsule.", "say=plan"],
+    ["down", "Up, but less", "Went up +x%, could have gained y% more", "Over the plan, so the meal added less than its share. The line says what it could have added.", "say=double"],
+    ["down", "No change", "Did not change, could have gained y%", "Well over the plan, so the meal added nothing. The line still says what a planned meal would add.", "say=triple"],
+    ["down", "Down", "Dropped by −x%", "Far over the plan, so the meal took points back. The line offers Learn more and never scolds.", "say=pizza"],
+    ["up", "80% and over", "Medal earned", "Crossing 80% leads with the celebration, then the gain as its own sentence.", "say=medal"],
+    ["up", "100%", "Every target met", "Reaching 100% is all praise: no number, just what it means and a nudge to make days like this stick.", "say=hundred"]
+  ];
+  const CH = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
+  document.getElementById("grid").innerHTML = C.map((c, i) => '<figure><figcaption><span class="k ' + c[0] + '">' + c[1] + "</span><b>" + c[2] + "</b><p>" + c[3] + "</p></figcaption>" +
+    '<div class="phone"><iframe loading="lazy" data-i="' + i + '" src="r3/eat.html?' + c[4] + '" title="' + c[2] + '"></iframe></div>' +
+    '<button class="learn" type="button" data-learn="' + i + '">' + (i < 2 ? "What does this mean?" : "How did this happen?") + CH + "</button><br>" +
+    '<a class="open" href="r3/eat.html?' + c[4] + '" target="_blank">Open full size →</a></figure>').join("");
+  const fill = (root, i) => { root.querySelector("h4").textContent = SH[i].t; root.querySelector(".sbody").innerHTML = SH[i].h; root.querySelector(".sbody").scrollTop = 0; };
+  /* the viewer: one chip per case */
+  const pick = document.getElementById("pick"), view = document.getElementById("shphone");
+  pick.innerHTML = C.map((c, i) => '<button type="button" data-p="' + i + '">' + c[2] + "</button>").join("");
+  const show = i => { fill(view, i); [].forEach.call(pick.children, (b, k) => b.classList.toggle("on", k === i)); };
+  pick.onclick = e => { const b = e.target.closest("[data-p]"); if (b) show(+b.dataset.p); };
+  show(2);
+  /* the same sheet over the page, from the link under each phone */
+  const modal = document.createElement("div"); modal.className = "modal"; modal.innerHTML = '<div class="shphone">' + view.innerHTML + "</div>";
+  document.body.appendChild(modal);
+  const shut = () => modal.classList.remove("on");
+  document.addEventListener("click", e => {
+    const l = e.target.closest("[data-learn]");
+    if (l) { fill(modal, +l.dataset.learn); modal.classList.add("on"); return; }
+    if (modal.classList.contains("on") && (e.target === modal || e.target.closest(".modal .x, .modal .ecta"))) shut();
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") shut(); });
+  /* inside each phone, Learn more opens that case's sheet: the app's own sheet (score-how.js), with this case's words */
+  document.querySelectorAll(".phone iframe").forEach(f => f.addEventListener("load", () => {
+    const w = f.contentWindow, i = +f.dataset.i, base = w.SAY_OPEN;
+    if (!base) return;
+    w.SAY_OPEN = () => { base(); const el = w.document.getElementById("scoreHow"); if (el) fill(el, i);
+      if (!w.document.getElementById("perCaseCss")) { const st = w.document.createElement("style"); st.id = "perCaseCss";
+        st.textContent = "#scoreHow .plate{margin:10px 0 0;font-size:13px;line-height:19px;color:#667085}#scoreHow .st{display:flex;gap:8px;margin-top:10px;padding:10px 12px;border-radius:12px;background:#EEF4FF}#scoreHow .st div{flex:1;display:flex;flex-direction:column;gap:4px}#scoreHow .st span:first-child{font:600 11px/16px Roboto,sans-serif;letter-spacing:.5px;text-transform:uppercase;color:#3538CD}#scoreHow .st .dc{align-self:flex-start}";
+        w.document.head.appendChild(st); } };
+  }));
+  /* a framed Eat screen draws its score only when the page hosting it says so; 8 phones fit well under the browser's WebGL limit */
+  addEventListener("message", e => { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+</script>
+</body>
+</html>

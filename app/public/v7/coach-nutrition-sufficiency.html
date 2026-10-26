@@ -223,6 +223,11 @@ svg.i{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.7;stro
 .tip .r{display:grid;grid-template-columns:18px 46px 1fr auto;align-items:center;gap:7px;margin-top:5px;color:var(--g700)}
 .tip .r .meter{height:5px}
 .tip .r b{text-align:right;font-weight:700;font-size:11px}
+.tip .tipsm{display:flex;align-items:center;gap:6px;margin-top:9px;padding-top:8px;border-top:1px dashed var(--g200);color:var(--g600);font-size:11px;font-weight:600}
+.tip .tipsm .tk{flex:none;width:14px;height:14px;border-radius:4px;border:1.5px solid var(--g300,#D0D5DD);position:relative}
+.tip .tipsm .tk.all{background:var(--jade,#299d6b);border-color:var(--jade,#299d6b)}
+.tip .tipsm .tk::after{content:"";position:absolute;left:3px;top:1px;width:4px;height:7px;border:solid var(--g500);border-width:0 1.5px 1.5px 0;transform:rotate(45deg)}
+.tip .tipsm .tk.all::after{border-color:#fff}
 .tip .lost{margin-top:9px;padding-top:8px;border-top:1px dashed var(--g200);color:var(--g500);font-size:11px;line-height:1.45}
 
 .k-strip{position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:linear-gradient(100deg,#eaf8fd 0%,#f1f3ff 45%,#effaf5 100%);border:.625px solid #d6eef6;overflow:hidden}
@@ -631,6 +636,10 @@ for(let d=new Date(START),i=0;d<=TODAY;d.setDate(d.getDate()+1),i++){
   DAYS.push({date,we,logged:true,cov,missed,ratio,A,m,pts,score});
 }
 
+/* tips the coach set for the day, and how many the patient marked done. Derived from the day rather than drawn
+   from rnd(), so the seeded scores above stay exactly as they were. ponytail: 4 tips a day until tips come from the plan */
+DAYS.forEach((d,i)=>{if(!d.logged)return;d.tN=4;d.tD=Math.max(0,Math.min(4,Math.round(d.score/25+((i*7)%3-1)*.6)))});
+
 /* ---------- helpers ---------- */
 const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
 const fmt=(d,o={day:'numeric',month:'short'})=>d.toLocaleDateString('en-GB',o);
@@ -644,6 +653,7 @@ function agg(days){
   const L=days.filter(d=>d.logged);if(!L.length)return null;
   const o={n:days.length,nl:L.length,medal:L.filter(d=>d.score>=80).length,score:avg(L.map(d=>d.score)),cov:avg(L.map(d=>d.cov)),pts:{},ratio:{},m:{},A:{},inR:{}};
   for(const k in T){o.pts[k]=avg(L.map(d=>d.pts[k]));o.ratio[k]=avg(L.map(d=>d.ratio[k]));o.m[k]=avg(L.map(d=>d.m[k]));o.A[k]=avg(L.map(d=>d.A[k]));o.inR[k]=L.filter(d=>inRange(d.A[k],T[k])).length}
+  o.tD=L.reduce((n,d)=>n+d.tD,0);o.tN=L.reduce((n,d)=>n+d.tN,0);
   return o;
 }
 
@@ -755,7 +765,8 @@ function tipHtml(b){
   const a=b.a;if(!a)return `<div class="t1">${b.title}</div><div class="lost" style="border:0;margin-top:6px;padding:0">Nothing logged, so this day is left out of the average.</div>`;
     return `<div class="t1"><span>${b.title}</span><span style="display:flex;gap:4px"><span class="pill ${band(a.score)[1]}">${EMO[band(a.score)[0]]} ${band(a.score)[0]}</span></span></div>
   <div class="sc" style="color:${bandCol(a.score)}">${Math.round(a.score)}<small> of 100</small></div>
-  ${MAC.map(m=>`<div class="r">${tile(m.k,'sm')}<span>${m.name}</span><div class="meter" style="--mc:${a.A[m.k]>T[m.k]+buf(T[m.k])?'var(--att)':'var(--g500)'}"><i style="width:${Math.min(100,a.A[m.k]/T[m.k]*100)}%"></i></div><b>${r0(a.A[m.k])}/${T[m.k]} g</b></div>`).join('')}`;
+  ${MAC.map(m=>`<div class="r">${tile(m.k,'sm')}<span>${m.name}</span><div class="meter" style="--mc:${a.A[m.k]>T[m.k]+buf(T[m.k])?'var(--att)':'var(--g500)'}"><i style="width:${Math.min(100,a.A[m.k]/T[m.k]*100)}%"></i></div><b>${r0(a.A[m.k])}/${T[m.k]} g</b></div>`).join('')}
+  ${a.tN?`<div class="tipsm"><i class="tk${a.tD==a.tN?' all':''}"></i>${a.tD}/${a.tN} tips marked</div>`:''}`;
 }
 function select(i){PIN=PIN===i?null:i;const t=document.getElementById('tip');if(PIN==null)t.classList.remove('on');else document.querySelector(`.bar[data-i="${i}"]`)?.dispatchEvent(new Event('mouseenter'))}
 var PIN=null;   /* the bar whose tooltip a tap has pinned open */
