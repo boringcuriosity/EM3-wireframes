@@ -45,7 +45,7 @@
   .hw { padding: 16px 0; border-top: 1px dashed var(--g-200); }
   .hw:first-child { border-top: 0; padding-top: 4px; }
   .hw h5 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 15px; line-height: 22px; font-weight: 700; }
-  .hw p { margin: 0 0 8px; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
+  .hw p { margin: 0 0 8px; font-size: 14px; line-height: 24px; color: var(--g-600); text-wrap: pretty; }
   .hw p:last-child { margin-bottom: 0; }
   .hw p b { color: var(--g-900); font-weight: 600; }
   .dc { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 6px; font: 600 12px/1 Roboto; font-variant-numeric: tabular-nums; vertical-align: 1px; }
@@ -176,31 +176,32 @@
   const T = {
     full: { t: "Why your score went up", icon: UP,
       what: v => "Your score went up by " + dc("up", v.got) + ". Everything you logged met the macro targets set by your coach.",
-      how: "Each meal you log is checked against its own macro targets. On target, it adds all of its points.",
+      how: "Each meal you log is checked against its own macro targets. A meal within its targets adds all of its points.",
       next: ["What’s next", "Keep your next meal within its macro targets to keep your score climbing."] },
     part: { t: "Why it went up only a little", icon: MID,
-      what: v => "Your score went up by " + dc("calm", v.got) + ", out of a possible " + dc("up", v.possible) + ". Some of what you logged was off its macro targets.",
-      how: "Each meal you log is checked against its own macro targets. The further off a meal is, too little or too much, the fewer points it adds.",
+      what: v => "Your score went up by " + dc("calm", v.got) + ", out of a possible " + dc("up", v.possible) + ". Part of what you ate was over or under the macro targets set by your coach.",
+      how: "Each meal you log is checked against its own macro targets. The further a meal is from its targets, whether too little or too much, the fewer points it adds.",
       next: ["Next time", "Keep each meal within its macro targets to get all of its points."] },
     zero: { t: "Why your score did not change", icon: MID,
-      what: v => "Your score did not change, out of a possible " + dc("up", v.possible) + ". What you logged went well over its macro targets.",
+      what: v => "Your score did not change. What you ate went well over the macro targets set by your coach, so it added none of the " + dc("up", v.possible) + " it could have.",
       how: "Each meal you log is checked against its own macro targets. The further over a meal goes, the fewer points it adds. Far enough over, it adds none.",
-      next: ["Next time", "No worries, your next meal within its macro targets adds its points again."] },
+      next: ["Next time", "No worries. Keep your next meal within its targets and it will add points again."] },
     down: { t: "Why your score went down", icon: DOWN,
-      what: v => "Your score went down by " + dc("down", v.got) + ", out of a possible " + dc("up", v.possible) + ". Some of what you logged went far over its macro targets.",
-      how: "Each meal you log is checked against its own macro targets. Far over them, a meal takes points back from your score. That’s alright once in a while, it happens to all of us.",
-      next: ["Next time", "Your next meal within its macro targets helps your score grow again."] },
+      what: v => "Your score went down by " + dc("down", v.got.replace("−", "")) + ". Part of what you ate went far over the macro targets set by your coach, so it took points away instead of adding them.",
+      how: "Each meal you log is checked against its own macro targets. A meal far over its targets takes points away from your score. That’s okay once in a while, it happens to everyone.",
+      next: ["Next time", "Keep your next meal within its targets and your score will grow again."] },
     medal: { t: "You earned today’s medal", icon: UP,
-      what: v => "Your score went up by " + dc("up", v.got) + " to " + dc("up", v.score) + ". Everything you logged met the macro targets set by your coach. Past 80%, the medal is yours.",
-      how: "Each meal you log is checked against its own macro targets. On target, it adds all of its points.",
-      next: ["Keep it going", "Try to get here on most days, it’s how you reach your goals."] },
+      what: v => "Your score went up by " + dc("up", v.got) + " to " + dc("up", v.score) + ". Everything you logged met the macro targets set by your coach. Anything over 80% earns you today’s medal.",
+      how: "Each meal you log is checked against its own macro targets. A meal within its targets adds all of its points.",
+      next: ["Keep it going", "Try to reach 80% on most days. That’s how you reach your goals."] },
     perfect: { t: "A perfect day", icon: UP,
       what: v => "You reached " + dc("up", "100%") + ". Every meal today met the macro targets set by your coach.",
-      how: "Each meal you log is checked against its own macro targets. On target, it adds all of its points, and together they make 100%.",
+      how: "Each meal you log is checked against its own macro targets. When every meal is within its targets, together they make 100%.",
       next: ["Make it stick", "Keep it up, days like this will help you build healthy habits."] }
   };
   /* the same three numbers under every outcome */
-  const strip = v => nums([["Possible", "up", v.possible], ["Missed", v.missed === "0%" ? "calm" : "down", v.missed], ["You got", v.got.startsWith("−") ? "down" : v.got === v.possible ? "up" : "calm", v.got]]);
+  const strip = v => { const dn = v.got.startsWith("−");   /* on a drop: Possible · Lost · Your change */
+    return nums([["Possible", "up", v.possible], [dn ? "Lost" : "Missed", v.missed === "0%" ? "calm" : "down", v.missed], [dn ? "Your change" : "You got", dn ? "down" : v.got === v.possible ? "up" : "calm", v.got]]); };
   const build = (k, v, n, cards) => { const x = T[k];
     return { t: x.t, h: sec(x.icon + "What happened", [x.what(v)], strip(v)) + LOG(n, cards) + sec("How it works", [x.how]) + sec(x.next[0], [x.next[1]]) }; };
   const DAY = (lunch, dinner) => meal("Pre-breakfast", "+1%", "+1%", ok(1, 2, 1)) + meal("Breakfast", "+23%", "+23%", BF) + lunch + meal("Evening snack", "+17%", "+17%", ok(16, 40, 11)) + dinner + meal("Bedtime", "+4%", "+4%", ok(3, 11, 3));

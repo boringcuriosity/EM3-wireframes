@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sets and reps options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* Move's exercise player: ways to show "2 sets of 10 reps, 30 sec between sets, 15 sec before next" that a first-time
+     user understands without the words sets and reps. Each frame is the player's top, drawn in GoodFlip tokens
+     (r3/goodflip-ui.css); the live player is move/player.js (.mvp-facts). Research: Mobbin, the web, the design system. */
+  :root { --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0; --brand-600:#299D6B; --brand-700:#2A805A;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-200:#C7D7FE; --in-600:#444CE7; --in-700:#3538CD;
+    --gold-50:#FFFBEE; --gold-200:#FEF1C7; --gold-800:#A68A2D;
+    --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-800:#1D2939; --g-900:#101828;
+    --ok-50:#ECFDF3; --ok-200:#ABEFC6; --ok-700:#067647; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, system-ui, sans-serif; letter-spacing: .25px; }
+  .page { max-width: 1440px; margin: 0 auto; padding: 56px 24px 96px; }
+  .eyebrow { font: 600 12px/16px Roboto; letter-spacing: .8px; text-transform: uppercase; color: var(--g-500); }
+  h1 { margin: 10px 0 10px; font-size: 34px; line-height: 42px; font-weight: 600; }
+  .lede { max-width: 860px; margin: 0; font-size: 16px; line-height: 26px; color: var(--g-600); }
+  .why { max-width: 860px; margin: 20px 0 0; padding: 16px 18px; border-radius: 16px; background: var(--g-50); font-size: 14.5px; line-height: 23px; color: var(--g-700); }
+  .why b { color: var(--g-900); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 48px 32px; margin-top: 40px; }
+  figure { margin: 0; }
+  figcaption { min-height: 168px; margin-bottom: 14px; }
+  figcaption .k { display: flex; align-items: center; gap: 8px; font: 600 17px/24px Roboto; }
+  figcaption .k i { font-style: normal; color: var(--g-400); font-weight: 500; }
+  .rec { font: 600 11px/16px Roboto; color: var(--ok-700); background: var(--ok-50); border: 1px solid var(--ok-200); border-radius: 999px; padding: 1px 8px; }
+  .now { font: 600 11px/16px Roboto; color: var(--g-600); background: var(--g-100); border-radius: 999px; padding: 1px 8px; }
+  figcaption p { margin: 6px 0 0; font-size: 13.5px; line-height: 20px; color: var(--g-600); }
+  figcaption .src { margin-top: 6px; font-size: 12px; color: var(--g-500); }
+  figcaption .src a { color: var(--g-500); }
+
+  /* ---- the player, top part ---- */
+  .ph { width: 340px; max-width: 100%; border: 1px solid var(--g-200); border-radius: 28px; overflow: hidden; background: #fff; box-shadow: 0 24px 48px -20px rgba(16,24,40,.18); }
+  .vid { position: relative; height: 150px; background: linear-gradient(160deg, #3a3f4a, #1d2027); }
+  .vid::after { content: ""; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(255,255,255,.22) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M8 5v14l11-7z'/%3E%3C/svg%3E") center/20px no-repeat; }
+  .vid .bar { position: absolute; left: 14px; right: 14px; bottom: 12px; height: 3px; border-radius: 2px; background: rgba(255,255,255,.3); }
+  .vid .bar i { display: block; width: 12%; height: 100%; border-radius: 2px; background: #fff; }
+  .body { padding: 16px 16px 18px; }
+  .th { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .th h5 { margin: 0; font: 600 20px/26px Roboto; }
+  .mk { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px 0 6px; border-radius: 999px; border: 1px solid var(--brand-200); font: 500 12.5px Roboto; color: var(--brand-600); white-space: nowrap; }
+  .mk::before { content: ""; width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--brand-600); }
+  .desc { margin-top: 14px; font-size: 13.5px; line-height: 21px; color: var(--g-600); }
+  .desc::after { content: ""; display: block; height: 10px; margin-top: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--g-100), #fff); }
+
+  /* A: today */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .chips span { height: 28px; padding: 0 10px; display: inline-flex; align-items: center; gap: 4px; border-radius: 999px; border: 1px solid var(--g-200); font: 600 13px Roboto; color: var(--g-800); }
+  .chips em { font-style: normal; font-weight: 400; color: var(--g-500); }
+
+  /* B: one plain sentence */
+  .say { margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--in-50); }
+  .say b { display: block; font: 600 16px/24px Roboto; color: var(--g-900); }
+  .say span { display: block; margin-top: 2px; font-size: 13px; line-height: 19px; color: var(--g-600); }
+
+  /* C: step timeline */
+  .tl { display: flex; align-items: stretch; gap: 4px; margin-top: 12px; }
+  .tl div { flex: 1.25; min-width: 0; padding: 8px 6px; border-radius: 10px; text-align: center; background: var(--brand-50); box-shadow: inset 0 0 0 1px var(--brand-200); }
+  .tl div b { display: block; font: 700 15px/20px Roboto; color: var(--g-900); }
+  .tl div span { display: block; margin-top: 1px; font-size: 11.5px; line-height: 15px; color: var(--g-600); }
+  .tl .r { flex: 1; background: var(--g-50); box-shadow: inset 0 0 0 1px var(--g-200); }
+  .tl .r b { font-weight: 600; color: var(--g-600); }
+  .tl .on { background: #fff; box-shadow: inset 0 0 0 1.5px var(--brand-600); }
+  .tl .on b { color: var(--brand-700); }
+  .tl-note { margin-top: 8px; font-size: 12px; color: var(--g-500); }
+
+  /* D: unrolled checklist */
+  .ul { margin-top: 12px; border: 1px solid var(--g-200); border-radius: 12px; overflow: hidden; }
+  .ul div { display: flex; align-items: center; gap: 10px; padding: 9px 12px; font-size: 14px; line-height: 20px; }
+  .ul div + div { border-top: 1px solid var(--g-100); }
+  .ul .ck { flex: none; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--g-300); }
+  .ul .ck.done { border-color: var(--brand-600); background: var(--brand-600) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23fff' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round' d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center/12px no-repeat; }
+  .ul .rs { background: var(--g-50); color: var(--g-600); font-size: 13px; }
+  .ul .rs .ic { flex: none; width: 20px; height: 20px; display: grid; place-items: center; color: var(--g-500); }
+  .ul b { font-weight: 600; }
+  .ul .tag { margin-left: auto; font-size: 12px; color: var(--g-500); }
+
+  /* E: stat row, tracker style */
+  .stat { margin-top: 12px; border: 1px solid var(--g-200); border-radius: 12px; }
+  .stat .row { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .stat .row div { padding: 10px 12px; }
+  .stat .row div + div { border-left: 1px solid var(--g-100); }
+  .stat b { display: block; font: 600 20px/26px Roboto; font-variant-numeric: tabular-nums; }
+  .stat span { display: block; font-size: 12px; line-height: 16px; color: var(--g-500); }
+  .stat .ft { padding: 8px 12px; border-top: 1px dashed var(--g-200); font-size: 12.5px; color: var(--g-600); }
+
+  /* F: round dots and a big count */
+  .rd { display: flex; align-items: center; gap: 14px; margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: var(--g-50); }
+  .rd .big { font: 700 34px/1 Roboto; font-variant-numeric: tabular-nums; }
+  .rd .big small { font: 500 13px Roboto; color: var(--g-500); margin-left: 4px; }
+  .rd .side { margin-left: auto; text-align: right; }
+  .rd .side b { display: block; font: 600 13px/18px Roboto; }
+  .rd .dots { display: flex; gap: 5px; justify-content: flex-end; margin-top: 6px; }
+  .rd .dots i { width: 22px; height: 6px; border-radius: 3px; background: var(--g-200); }
+  .rd .dots i.on { background: var(--brand-600); }
+  .rd-note { margin-top: 8px; font-size: 12.5px; color: var(--g-600); }
+
+  /* G: guided rest, the moment between rounds */
+  .rest { position: relative; height: 410px; padding: 28px 20px 20px; text-align: center; background: linear-gradient(180deg, var(--brand-50), #fff 60%); }
+  .rest .l { font: 600 12px/16px Roboto; letter-spacing: .6px; text-transform: uppercase; color: var(--brand-700); }
+  .ring { position: relative; width: 150px; height: 150px; margin: 18px auto 0; }
+  .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring b { position: absolute; inset: 0; display: grid; place-items: center; font: 700 44px/1 Roboto; font-variant-numeric: tabular-nums; }
+  .ring b small { display: block; font: 500 13px Roboto; color: var(--g-500); margin-top: 4px; }
+  .rest .nx { margin: 18px auto 0; max-width: 260px; padding: 10px 12px; border-radius: 12px; background: #fff; box-shadow: inset 0 0 0 1px var(--g-200); font-size: 13.5px; line-height: 20px; color: var(--g-600); }
+  .rest .nx b { color: var(--g-900); }
+  .rest .bt { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+  .rest .bt span { height: 36px; padding: 0 16px; display: inline-flex; align-items: center; border-radius: 10px; font: 600 13.5px Roboto; border: 1px solid var(--g-200); color: var(--g-700); }
+  .rest .bt .p { background: var(--brand-600); border-color: var(--brand-600); color: #fff; box-shadow: 0 4px 0 var(--brand-700); }
+
+  .notes { margin-top: 64px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+  .notes h3 { margin: 0 0 8px; font: 600 16px/22px Roboto; }
+  .notes ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 21px; color: var(--g-600); }
+  .notes li { margin-bottom: 6px; } .notes a { color: var(--in-700); }
+  @media (max-width: 720px) { .page { padding: 32px 16px 64px; } h1 { font-size: 26px; line-height: 34px; } figcaption { min-height: 0; } .ph { width: 100%; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">Move · Exercise player</span>
+  <h1>Sets, reps and rest that anyone can follow</h1>
+  <p class="lede">Today the player shows four chips under the move: 2 sets, 10 reps, 30 sec between sets, 15 sec before next. They are accurate, but a first-time user has to know what a set and a rep are, and work out how the two rests fit together. Every option below is the same Plank to push up, drawn in the player, with the same numbers.</p>
+  <div class="why"><b>What the research says.</b> No leading fitness app shows rest as a chip beside sets and reps. Google Health (Fitbit), Tonal and Bevel turn each set and each rest into a step in order; Peloton and Centr show one number at a time while you move; Hevy, Peloton and Ladder start the rest timer for you and show what comes next. The NHS writes "repeat 5 times" for older adults and keeps "sets" for the hard version. So the words that work are <b>times</b> and <b>rounds</b>, and the rest is something the app runs, not something to work out.</div>
+  <div class="grid" id="grid"></div>
+
+  <div class="notes">
+    <div><h3>Mobbin, what top apps do</h3><ul>
+      <li>Google Health: the session unrolled, "Set 1 · 12 reps", then "Rest 30 secs" as its own row. <a href="https://mobbin.com/screens/ccd7535d-7673-4b21-89d4-ac6b792970ad">screen</a></li>
+      <li>Fitbit and Ladder: rest as a full screen countdown with "Next: Set 2 of 3". <a href="https://mobbin.com/screens/e6319ff3-94ff-490a-bb8d-92f80e7a42be">screen</a> <a href="https://mobbin.com/screens/f17aa38b-027a-4a2b-85e7-f1e80d2e7270">screen</a></li>
+      <li>Peloton Strength+: "Set 1 / 1" and a big rep count while you move; "3x · 8 reps" in the list. <a href="https://mobbin.com/screens/ddbad8c8-8a68-4c12-98d5-6475e8e7bb74">screen</a></li>
+      <li>Runna: one sentence, "Do one set, rest 90 seconds and repeat 2 times", then set cards. <a href="https://mobbin.com/screens/1872a5dc-02d5-41ad-b68d-b4db48de4cec">screen</a></li>
+      <li>Tonal: "Rest, 30 secs" as a list row between moves. <a href="https://mobbin.com/screens/c281932e-ae03-4adc-ae7f-98cb8db9421e">screen</a></li>
+    </ul></div>
+    <div><h3>The web, plain words and timers</h3><ul>
+      <li>NHS strength exercises for older people: "Repeat five times", sets only in the hard version. <a href="https://www.nhs.uk/live-well/exercise/strength-exercises/">nhs.uk</a></li>
+      <li>Fitbod explains it in help only: "do it 10 times in a row, rest, repeat". <a href="https://help.fitbod.me/hc/en-us/articles/29486697282711-Exercise-Details-Screen-Sets-Reps-and-Weight-Fields-Explained">help.fitbod.me</a></li>
+      <li>Hevy starts rest on its own when a set is done, with +15 and Skip. <a href="https://www.hevyapp.com/features/workout-rest-timer/">hevyapp.com</a></li>
+      <li>Seven counts the last 10 seconds of rest out loud and names the next move. <a href="https://www.applevis.com/apps/watch/health-fitness/seven-7-minute-workout">applevis.com</a></li>
+      <li>Older adults misread handouts with complex wording; a spoken guide does as well as video. <a href="https://www.sciencedirect.com/science/article/abs/pii/S0031940604001592">study</a></li>
+    </ul></div>
+    <div><h3>GoodFlip system, how it is drawn</h3><ul>
+      <li>Brand green for the move being done, greys for rest, indigo or gold only for a note: tokens from r3/goodflip-ui.css.</li>
+      <li>Things you cannot tap stay flat (no hard offset shadow); chips are for tapping, so static facts become tiles or a timeline.</li>
+      <li>The system's vertical stepper (green done, ringed current, hollow upcoming) is the base for the checklist option.</li>
+      <li>No timer component exists yet; the rest ring is new, built from the circular progress ring.</li>
+    </ul></div>
+  </div>
+</div>
+<script>
+  const vid = '<div class="vid"><div class="bar"><i></i></div></div>';
+  const head = '<div class="th"><h5>Plank to push up</h5><span class="mk">Mark as completed</span></div>';
+  const desc = '<div class="desc">A full-body exercise that builds core strength, corrects posture and improves your range of motion.</div>';
+  const ph = mid => '<div class="ph">' + vid + '<div class="body">' + head + mid + desc + '</div></div>';
+  const TIMER = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M10 2h4"/></svg>';
+  const V = [
+    { k: "A", n: "Today", tag: "now", d: "Four chips: right numbers, wrong words for a beginner. Two rests side by side with no order, and nothing says what to do first.",
+      body: '<div class="chips"><span>2 <em>sets</em></span><span>10 <em>reps</em></span><span>30 sec <em>between sets</em></span><span>15 sec <em>before next</em></span></div>' },
+    { k: "B", n: "One plain sentence", d: "Say it the way a coach would, in the order you do it. No new words to learn, and it translates cleanly to Hindi. The NHS and Runna way.", src: "NHS, Runna, Fitbod help",
+      body: '<div class="say"><b>Do it 10 times. Rest 30 sec. Do 10 more.</b><span>Then take 15 sec before the next move.</span></div>' },
+    { k: "C", n: "Step timeline", rec: true, d: "The same plan as four blocks in order: do, rest, do, get ready. The order explains how the rests fit, and the block you are on is outlined as the video plays. Compact enough to sit above the description.", src: "Google Health, Apple Fitness+, Tonal",
+      body: '<div class="tl"><div class="on"><b>10</b><span>times</span></div><div class="r"><b>30s</b><span>rest</span></div><div><b>10</b><span>times</span></div><div class="r"><b>15s</b><span>then next</span></div></div><div class="tl-note">2 rounds, with a short rest in between</div>' },
+    { k: "D", n: "Unrolled checklist", d: "Every round and every rest is a row in order, ticked as you go. Nothing to multiply, and each tick is a small win. Takes more height than the timeline.", src: "Google Health, Tonal, GoodFlip vertical stepper",
+      body: '<div class="ul"><div><span class="ck done"></span><b>Round 1</b> · 10 times</div><div class="rs"><span class="ic">' + TIMER + '</span>Rest 30 sec</div><div><span class="ck"></span><b>Round 2</b> · 10 times</div><div class="rs"><span class="ic">' + TIMER + '</span>15 sec, then the next move</div></div>' },
+    { k: "E", n: "Three numbers, labelled", d: "The tracker card from the design system: rounds, times each, rest, each with a plain label, and the break before the next move as one line under it. The calmest change from today.", src: "GoodFlip tracker card",
+      body: '<div class="stat"><div class="row"><div><b>2</b><span>rounds</span></div><div><b>10</b><span>times each</span></div><div><b>30s</b><span>rest between</span></div></div><div class="ft">15 sec break before the next move</div></div>' },
+    { k: "F", n: "One number at a time", d: "While the move plays, only what matters now: the count for this round, and which round you are on as filling bars. What comes after is one quiet line.", src: "Peloton Strength+, Centr",
+      body: '<div class="rd"><div class="big">10<small>times</small></div><div class="side"><b>Round 1 of 2</b><div class="dots"><i class="on"></i><i></i></div></div></div><div class="rd-note">Then rest 30 sec, and go again.</div>' }
+  ];
+  const fig = v => '<figure><figcaption><div class="k"><i>' + v.k + "</i>" + v.n + (v.rec ? ' <span class="rec">Recommended</span>' : v.tag ? ' <span class="now">Today</span>' : "") + "</div><p>" + v.d + "</p>" + (v.src ? '<div class="src">From: ' + v.src + "</div>" : "") + "</figcaption>" + ph(v.body) + "</figure>";
+  /* G: the rest itself, run by the app, shown between rounds */
+  const C = 2 * Math.PI * 66;
+  const G = '<figure><figcaption><div class="k"><i>G</i>The rest, run for you <span class="rec">Pairs with C</span></div><p>When a round ends, the player itself counts the rest down and says what is next, with Skip and +15 sec. Nobody has to remember "30 sec between sets"; the app does it. After the last round it counts the 15 sec to the next move the same way.</p><div class="src">From: Fitbit, Ladder, Hevy, Seven</div></figcaption>' +
+    '<div class="ph"><div class="rest"><div class="l">Rest</div><div class="ring"><svg viewBox="0 0 150 150"><circle cx="75" cy="75" r="66" fill="none" stroke="#E4E7EC" stroke-width="8"/><circle cx="75" cy="75" r="66" fill="none" stroke="#299D6B" stroke-width="8" stroke-linecap="round" stroke-dasharray="' + (C * .62).toFixed(1) + " " + C.toFixed(1) + '"/></svg><b><span>19<small>seconds</small></span></b></div>' +
+    '<div class="nx">Next: <b>Round 2 of 2</b>, Plank to push up, 10 times</div><div class="bt"><span>+15 sec</span><span class="p">Skip rest</span></div></div></div></figure>';
+  document.getElementById("grid").innerHTML = V.map(fig).join("") + G;
+</script>
+</body>
+</html>

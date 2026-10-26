@@ -5,7 +5,7 @@ var HTML = "<div class=\"hw\"><h5>A fresh start every day</h5><p>Your score star
 window.SCORE_HOW = HTML;
 var CSS = "#scoreHow .hw{padding:16px 0;border-top:1px dashed #E4E7EC}#scoreHow .hw:first-child{border-top:0;padding-top:4px}" +
   "#scoreHow h5{display:flex;align-items:center;gap:8px;margin:0 0 8px;font:700 15px/22px Roboto,sans-serif;color:#101828}" +
-  "#scoreHow .hw p{margin:0 0 8px;font-size:14px;line-height:21px;color:#475467;text-wrap:pretty}#scoreHow .hw p:last-child{margin-bottom:0}#scoreHow .hw p b{color:#101828;font-weight:600}" +
+  "#scoreHow .hw p{margin:0 0 8px;font-size:14px;line-height:24px;color:#475467;text-wrap:pretty}#scoreHow .hw p:last-child{margin-bottom:0}#scoreHow .hw p b{color:#101828;font-weight:600}" +
   "#scoreHow .dc{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:6px;font:600 12px/1 Roboto,sans-serif;font-variant-numeric:tabular-nums;vertical-align:1px}" +
   "#scoreHow .dc.up{background:#ECFDF3;color:#067647;box-shadow:inset 0 0 0 1px #ABEFC6}#scoreHow .dc.down{background:#FFFAEB;color:#B54708;box-shadow:inset 0 0 0 1px #FEDF89}#scoreHow .dc.calm{background:#F2F4F7;color:#475467;box-shadow:inset 0 0 0 1px #E4E7EC}" +
   "#scoreHow .ex{margin-top:8px;padding:10px 12px;border-radius:12px;background:#EEF4FF;font-size:13px;line-height:20px}" +

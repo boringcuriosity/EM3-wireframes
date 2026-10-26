@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score sheet template</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* The sheet behind "Learn more" on the line under the score, as one template that fits any log: one meal or many,
+     up, the same or down, and any mix of macros. Only the meals, their macros and their points change.
+     Earlier, wordier versions: score-commentary-per-meal.html, score-commentary-per-case.html. */
+  :root { --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-50:#EEF4FF; --in-100:#E0EAFF; --in-700:#3538CD; --brand-600:#299D6B; --brand-700:#2A805A;
+    --ok-50:#ECFDF3; --ok-200:#ABEFC6; --ok-700:#067647; --wa-50:#FFFAEB; --wa-200:#FEDF89; --wa-700:#B54708; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, system-ui, sans-serif; letter-spacing: .2px; }
+  .page { max-width: 1440px; margin: 0 auto; padding: 56px 24px 96px; }
+  .eyebrow { font: 600 12px/16px Roboto; letter-spacing: .8px; text-transform: uppercase; color: var(--g-500); }
+  h1 { margin: 10px 0 10px; font-size: 34px; line-height: 42px; font-weight: 600; }
+  h2 { margin: 56px 0 8px; font-size: 22px; line-height: 30px; font-weight: 600; }
+  .lede { max-width: 860px; margin: 0; font-size: 16px; line-height: 26px; color: var(--g-600); }
+
+  /* the template, written out for dev */
+  .spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-top: 20px; }
+  .spec > div { padding: 16px 18px; border-radius: 16px; background: var(--g-50); font-size: 14px; line-height: 22px; color: var(--g-700); }
+  .spec h3 { margin: 0 0 8px; font: 600 15px/22px Roboto; color: var(--g-900); }
+  .spec table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 19px; }
+  .spec td { padding: 6px 8px 6px 0; border-top: 1px solid var(--g-200); vertical-align: top; }
+  .spec td:first-child { white-space: nowrap; color: var(--g-500); }
+  .spec code { font: 500 12.5px ui-monospace, Menlo, monospace; color: var(--in-700); }
+
+  /* the phones */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 44px 32px; margin-top: 24px; }
+  figure { margin: 0; }
+  figcaption { margin-bottom: 12px; min-height: 48px; }
+  figcaption b { display: block; font: 600 16px/22px Roboto; }
+  figcaption span { font-size: 13px; line-height: 19px; color: var(--g-500); }
+  .ph { position: relative; width: 340px; max-width: 100%; height: 700px; border: 1px solid var(--g-200); border-radius: 36px; overflow: hidden; background: #8b909a;
+    box-shadow: 0 24px 48px -20px rgba(16,24,40,.22); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; display: flex; flex-direction: column; border-radius: 24px 24px 0 0;
+    background: linear-gradient(180deg, var(--tint) 0, #fff 120px); --tint: #fff; }
+  .sheet.up { --tint: #EAF8F1; --ink: #067647; --ring: #CBF0E0; }
+  .sheet.flat { --tint: #F2F4F7; --ink: #475467; --ring: #E4E7EC; }
+  .sheet.down { --tint: #FFF6E8; --ink: #B54708; --ring: #FEDF89; }
+  .sh { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 22px 18px 0; }
+  .sh h4 { margin: 0; font: 700 20px/27px Roboto; letter-spacing: 0; color: var(--g-900); }
+  .sh .x { flex: none; width: 28px; height: 28px; border-radius: 50%; background: rgba(16,24,40,.28) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath stroke='%23fff' stroke-width='2.4' stroke-linecap='round' d='M8 8l8 8M16 8l-8 8'/%3E%3C/svg%3E") center/16px no-repeat; }
+  .sb { overflow-y: auto; padding: 0 18px 14px; }
+  .sub { margin: 6px 0 14px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .ml { padding: 12px; border-radius: 14px; background: #fff; box-shadow: 0 0 0 1px var(--g-200); }
+  .ml + .ml { margin-top: 8px; }
+  .ml .v { margin: 0; font-size: 14.5px; line-height: 26px; color: var(--g-700); }   /* room for the tags between lines */
+  .ml .v b { font-weight: 600; color: var(--g-900); }
+  /* a percentage is always a small tag, the same as under the score */
+  .tag { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; margin: 0 1px; border-radius: 6px; vertical-align: 1px; font: 600 12px/1 Roboto; font-variant-numeric: tabular-nums; }
+  .tag.up { background: var(--ok-50); color: var(--ok-700); box-shadow: inset 0 0 0 1px var(--ok-200); }
+  .tag.down { background: var(--wa-50); color: var(--wa-700); box-shadow: inset 0 0 0 1px var(--wa-200); }
+  /* macro tiles: neutral; only a number off its target takes a colour */
+  .mac { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+  .mac div { padding: 6px 8px; border-radius: 10px; background: var(--g-50); }
+  .mac span { display: flex; align-items: center; gap: 4px; font-size: 11px; line-height: 15px; color: var(--g-600); }
+  .mac span i { flex: none; width: 13px; height: 13px; background: linear-gradient(#475467, #101828); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+  .mac b { display: block; margin-top: 1px; font: 700 14px/19px Roboto; color: var(--g-900); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .mac b small { font: 400 11px Roboto; color: var(--g-500); }
+  .mac .over b { color: var(--wa-700); } .mac .under b { color: var(--g-500); }
+  .end { margin: 14px 0 0; padding: 12px 14px; border-radius: 14px; background: var(--g-50); font-size: 14.5px; line-height: 26px; color: var(--g-700); }
+  .end b { font-weight: 700; }
+  .sf { padding: 12px 18px 18px; background: #fff; border-top: 1px solid var(--g-100); }
+  .sf span { display: flex; align-items: center; justify-content: center; height: 48px; border-radius: 12px; background: var(--brand-600); color: #fff; font: 700 15px Roboto; box-shadow: 0 6px 0 var(--brand-700); }
+  @media (max-width: 720px) { .page { padding: 32px 16px 64px; } h1 { font-size: 26px; line-height: 34px; } .ph { width: 100%; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">Eat · Nutrition sufficiency · Learn more</span>
+  <h1>The score sheet, as one template</h1>
+  <p class="lede">One sheet for every log: one meal or many, up, the same or down, and any mix of protein, carbs and fats. The words come from a handful of fixed lines; only the meals, their macros and their points change. Every phone below is the same template with different data.</p>
+
+  <h2>The template</h2>
+  <div class="spec">
+    <div><h3>1 · Top: a short title and a kind line</h3><table>
+      <tr><td>Every meal perfect</td><td><b>Your sufficiency has increased</b><br>You’re doing great. Keep following your coach’s plan and staying within your macros.</td></tr>
+      <tr><td>Up, not every meal perfect</td><td><b>Your sufficiency has increased</b><br>Good progress. Keeping each meal closer to your coach’s plan will help your score grow even more.</td></tr>
+      <tr><td>No change</td><td><b>Your sufficiency stayed the same</b><br>Try to keep each meal within your macros, and your score will improve a lot.</td></tr>
+      <tr><td>Down</td><td><b>Your sufficiency has decreased</b><br>It happens sometimes, so don’t worry. Try to keep your macros in range for better nutrition.</td></tr>
+    </table><p style="margin:8px 0 0;font-size:12.5px;color:var(--g-500)">The top of the sheet takes a soft tint: green up, grey the same, amber down.</p></div>
+    <div><h3>2 · Each meal: two sentences and its macros</h3><table>
+      <tr><td>One sentence</td><td>How it went, <b>so</b> what it did, against what it could have done.</td></tr>
+      <tr><td>How it went</td><td>Your <b><code>{meal}</code></b> was perfect · was bigger / smaller than planned. · had more <code>{carbs and fats}</code> than planned · had less <code>{protein}</code> than planned · had more <code>{carbs}</code> and less <code>{protein}</code> than planned</td></tr>
+      <tr><td>So it</td><td>(perfect) Your <b>{meal}</b> was perfect and added <code>{x}%</code> to your sufficiency score. · (not all earned) only added <code>{x}%</code>. · didn’t change your sufficiency score. · took <code>{x}%</code> from your sufficiency score.</td></tr>
+      <tr><td>Example</td><td>“Up by only 5%, could have gained 18% more” reads: Your <b>breakfast</b> was bigger than planned, so it only added 5%.</td></tr>
+      <tr><td>Macros</td><td>Protein, Carbs, Fats on a light grey tile, within target in dark: <code>{eaten} / {target}g</code>. The eaten number is amber when more, grey when less.</td></tr>
+    </table><p style="margin:8px 0 0;font-size:12.5px;color:var(--g-500)">Within target is 80% to 120% of the macro target: a placeholder, to match the score’s own rule.</p></div>
+    <div><h3>3 · More than one meal</h3><table>
+      <tr><td>Last card</td><td>Together, these meals added <code>{x}%</code> to your sufficiency. · Together, these meals took <code>{x}%</code> from your sufficiency. · Together, they balanced out, so your score stayed the same. · Together, these meals took <code>{x}%</code> from your score.</td></tr>
+      <tr><td>One meal</td><td>No last card: the meal already says it.</td></tr>
+    </table></div>
+  </div>
+
+  <h2>Every case, same template</h2>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+  /* the sample plan's macro targets and points per meal */
+  const PLAN = {
+    "Pre-breakfast": { t: [1, 2, 1], pts: 1 }, Breakfast: { t: [22, 55, 14], pts: 23 }, Lunch: { t: [27, 66, 17], pts: 28 },
+    "Evening snack": { t: [10, 20, 6], pts: 17 }, Dinner: { t: [26, 64, 17], pts: 27 }, Bedtime: { t: [3, 11, 3], pts: 4 }
+  };
+  const NAMES = ["protein", "carbs", "fats"];
+  const state = (e, t) => e > t * 1.2 ? "over" : e < t * .8 ? "under" : "ok";
+  const list = a => a.length < 2 ? a[0] : a.slice(0, -1).join(", ") + " and " + a[a.length - 1];
+  /* one sentence per meal: what happened, so what it did, and against what it could have done.
+     "up by only 5%, could have gained 18% more" reads: "...so it only added 5%." */
+  const tag = (x, t) => '<span class="tag ' + t + '">' + x + "%</span>";
+  function why(name, st) {
+    const m = "<b>" + name.toLowerCase() + "</b>", over = NAMES.filter((n, i) => st[i] === "over"), under = NAMES.filter((n, i) => st[i] === "under");
+    if (!over.length && !under.length) return "Your " + m + " was perfect";
+    if (over.length === 3) return "Your " + m + " was bigger than planned";
+    if (under.length === 3) return "Your " + m + " was smaller than planned";
+    return "Your " + m + " had " + [over.length ? "more " + list(over) : "", under.length ? "less " + list(under) : ""].filter(Boolean).join(" and ") + " than planned";
+  }
+  const did = (x, pos, who) => x >= pos ? "added its full " + tag(x, "up") :
+    x > 0 ? "only added " + tag(x, "up") :
+    x === 0 ? "didn\u2019t change your sufficiency score" :
+    "took " + tag(-x, "down") + " from your sufficiency score";
+  /* the full stop stays on the line with the last tag */
+  const stop = t => /<\/span>$/.test(t) ? t.replace(/(<span class="tag[^>]*>[^<]*<\/span>)$/, '<span style="white-space:nowrap">$1.</span>') : t + ".";
+  /* a meal that earned it all says so simply: "Your breakfast was perfect and added 23% to your score." */
+  /* a smaller meal just says how much it added: "so it added only 5%" */
+  const meal = (m, st) => m.got >= PLAN[m.meal].pts ? why(m.meal, st) + " and added " + tag(m.got, "up") + " to your sufficiency score." :
+    st.every(x => x === "under") && m.got > 0 ? stop(why(m.meal, st) + ", so it only added " + tag(m.got, "up")) :
+    stop(why(m.meal, st) + ", so it " + did(m.got, PLAN[m.meal].pts));
+  const together = (x, pos) => x === 0 ? "Together, they balanced out, so your score stayed the same." :
+    stop("Together, these meals " + (x > 0 ? "added " + tag(x, "up") + " to your sufficiency" : "took " + tag(-x, "down") + " from your sufficiency"));
+  const ICON = {
+    up: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>',
+    flat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>',
+    down: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5.5 12.5 12 19l6.5-6.5"/></svg>'
+  };
+  /* a short title and a kind line, fixed per outcome */
+  function head(total, allPerfect) {
+    if (total > 0 && allPerfect) return ["up", "Your sufficiency has increased", "You’re doing great. Keep following your coach’s plan and staying within your macros."];
+    if (total > 0) return ["up", "Your sufficiency has increased", "Good progress. Keeping each meal closer to your coach’s plan will help your score grow even more."];
+    if (total === 0) return ["flat", "Your sufficiency stayed the same", "Try to keep each meal within your macros, and your score will improve a lot."];
+    return ["down", "Your sufficiency has decreased", "It happens sometimes, so don’t worry. Try to keep your macros in range for better nutrition."];
+  }
+  /* the sheet: meals = [{ meal, eat: [p, c, f], got }] from the log; every word around them is fixed */
+  function sheet(meals) {
+    const states = meals.map(m => m.eat.map((e, i) => state(e, PLAN[m.meal].t[i])));
+    const total = meals.reduce((n, m) => n + m.got, 0), [tone, t, sub] = head(total, states.every(st => st.every(x => x === "ok")));
+    const body = meals.map((m, k) => {
+      const tg = PLAN[m.meal].t, st = states[k];
+      return '<div class="ml"><p class="v">' + meal(m, st) + "</p>" +
+        '<div class="mac">' + m.eat.map((e, i) => '<div class="' + st[i] + '"><span>' + NAMES[i][0].toUpperCase() + NAMES[i].slice(1) + "</span><b>" + e + "<small> / " + tg[i] + "g</small></b></div>").join("") + "</div></div>";
+    }).join("");
+    const end = meals.length > 1 ? '<p class="end">' + together(total, meals.reduce((n, m) => n + PLAN[m.meal].pts, 0)) + "</p>" : "";
+    return '<div class="ph"><div class="sheet ' + tone + '"><div class="sh"><h4>' + t + '</h4><span class="x"></span></div>' +
+      '<div class="sb"><p class="sub">' + sub + "</p>" + body + end + "</div>" +
+      '<div class="sf"><span>Got it</span></div></div></div>';
+  }
+  const C = [
+    ["One meal, all on target", "Every macro within target: all of breakfast’s points.", [{ meal: "Breakfast", eat: [22, 55, 14], got: 23 }]],
+    ["One meal, up only a little", "The line under the score: up by only 5%, could have gained 18% more.", [{ meal: "Breakfast", eat: [44, 110, 28], got: 5 }]],
+    ["One meal, some macros over", "Carbs over, protein and fats on target.", [{ meal: "Lunch", eat: [27, 100, 17], got: 14 }]],
+    ["One meal, smaller than planned", "Every macro under: fewer points.", [{ meal: "Breakfast", eat: [9, 22, 5], got: 9 }]],
+    ["One meal, mixed", "Protein under, carbs over, fats on target.", [{ meal: "Lunch", eat: [14, 100, 17], got: 12 }]],
+    ["One meal, no change", "Well over every target: no points, none taken.", [{ meal: "Breakfast", eat: [66, 165, 42], got: 0 }]],
+    ["One meal, score decreased", "Far over every target: points taken back.", [{ meal: "Lunch", eat: [81, 198, 51], got: -14 }]],
+    ["Two meals, all on target", "Logged together: both add all their points.", [{ meal: "Lunch", eat: [27, 66, 17], got: 28 }, { meal: "Evening snack", eat: [10, 20, 6], got: 17 }]],
+    ["Two meals, score stayed the same", "One meal adds what the other takes back.", [{ meal: "Breakfast", eat: [22, 55, 14], got: 23 }, { meal: "Lunch", eat: [27, 150, 40], got: -23 }]],
+    ["Two meals, score decreased", "One a little over, one far over: down overall.", [{ meal: "Breakfast", eat: [44, 110, 28], got: 5 }, { meal: "Lunch", eat: [81, 198, 51], got: -14 }]],
+    ["Three meals, up but not fully", "One on target, one with more carbs, one smaller.", [{ meal: "Breakfast", eat: [22, 55, 14], got: 23 }, { meal: "Lunch", eat: [27, 100, 17], got: 14 }, { meal: "Evening snack", eat: [4, 8, 2], got: 5 }]],
+    ["Whole day, every target met", "Six meals at once: the same template, just longer.", Object.keys(PLAN).map(k => ({ meal: k, eat: PLAN[k].t.slice(), got: PLAN[k].pts }))]
+  ];
+  document.getElementById("grid").innerHTML = C.map(c => "<figure><figcaption><b>" + c[0] + "</b><span>" + c[1] + "</span></figcaption>" + sheet(c[2]) + "</figure>").join("");
+</script>
+</body>
+</html>
