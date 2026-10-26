@@ -20,12 +20,18 @@ SC.mid = { state: "mid", score: 54, delta: "+20%", tone: "up", lead: "Your score
 /* a pillar that copies this screen names what to keep logging (Move sets "keep logging your movement.") */
 if (window.SAY_REST) Object.keys(SC).forEach(function (k) { if (SC[k].rest === "keep logging your meals.") SC[k].rest = window.SAY_REST; });
 /* a host page can swap the KAIRA link for its own words and its own sheet (move/index.html) */
-SC.medal = { state: "full", score: 83, delta: "+27%", tone: "up", lead: "We are proud of you! Today's medal is yours.", rest: "Your score went up by 27%.", cta: "Learn more by asking KAIRA" };
+SC.medal = { state: "full", score: 83, delta: "+45%", tone: "up", lead: "We are proud of you! Today's medal is yours.", rest: "Your score went up by 45%.",   /* lunch and evening snack, logged together */ cta: "Learn more by asking KAIRA" };
 SC.hundred = { state: "perfect", score: 100, delta: "+4%", tone: "up", lead: "Amazing! You reached 100% sufficiency.", rest: "Keep it up, days like this will help you build healthy habits.", cta: "Learn more by asking KAIRA" };
 SC.full = { state: "full", score: 88, delta: "+4%", tone: "up", lead: "Your score went up by 4%,", rest: "your day is all logged.", cta: "Learn more by asking KAIRA" };
 SC.perfect = { state: "perfect", score: 100, delta: "+4%", tone: "up", lead: "Your score went up by 4%,", rest: "every target met today.", cta: "Learn more by asking KAIRA" };
 SC.over = { state: "over", score: 92, delta: "+9%", tone: "down", lead: "Your score went up by only 9%,", rest: "you could have gained 18% more.", cta: "Find out why from KAIRA" };
 SC.past = { state: "past", score: 61, delta: "", tone: "calm", lead: "This day ended at 61%.", rest: "", cta: "Learn more by asking KAIRA" };
+/* meals logged together, and meals with mixed macros (v7/score-commentary-per-meal.html): the line reads as always */
+SC.macromix = { label: "Lunch, protein low and carbs over", state: "first", score: 14, delta: "+14%", tone: "down", lead: "Your score went up by only 14%,", rest: "you could have gained 14% more.", cta: "Learn more" };
+SC.mixover = { label: "Breakfast on target, lunch over", state: "first", score: 31, delta: "+31%", tone: "down", lead: "Your score went up by only 31%,", rest: "you could have gained 20% more.", cta: "Learn more" };
+SC.mixback = { label: "Breakfast on target, lunch far over", state: "first", score: 9, delta: "+9%", tone: "down", lead: "Your score went up by only 9%,", rest: "you could have gained 42% more.", cta: "Learn more" };
+SC.mixdown = { label: "Breakfast over, lunch far over", state: "first", score: 11, delta: "\u22129%", tone: "down", lead: "Your score dropped by 9%,", rest: "", cta: "Learn more" };
+SC.dayall = { label: "The whole day at once, mixed", state: "full", score: 40, delta: "+40%", tone: "down", lead: "Your score went up by only 40%,", rest: "you could have gained 60% more.", cta: "Learn more" };
 SC.empty = SC.start;
 /* a host page can swap the link for its own words and its own sheet (r3/eat.html: Learn more). After every case above, medal and 100% included */
 if (window.SAY_CTA) Object.keys(SC).forEach(function (k) { if (SC[k].cta) { SC[k].cta = window.SAY_CTA; if (!SC[k].rest) SC[k].lead = SC[k].lead.replace(/,$/, "."); } });   /* "dropped by 14%," reads "dropped by 14%." before Learn more */

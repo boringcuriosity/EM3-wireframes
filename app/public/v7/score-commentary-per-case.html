@@ -127,31 +127,31 @@
   /* one sheet per case, three beats: what happened (the real numbers), how it works, what to do next */
   const SH = [
     { t: "Your score is on its way", h: sec("What is happening", ["Your coach has not set your Eat plan yet, so there is nothing to measure your meals against. Your score stays locked until then."]) +
-        sec("How it works", ["Your Nutrition sufficiency score compares each meal with your coach’s targets. Your coach sets those targets after your first Eat Coach consultation."]) +
+        sec("How it works", ["Your Nutrition sufficiency score compares each meal with the macro targets set by your coach. Your coach sets them after your first Eat Coach consultation."]) +
         sec("What to do now", ["Keep logging what you eat. Your coach will look at it before building your Eat plan, so every log helps."]) },
     { t: "Start your score", h: sec("What is happening", ["Nothing is logged yet today, so your score is at " + dc("calm", "0%") + "."]) +
-        sec("How it works", ["Your score starts at 0% each morning and grows with every meal you log. A meal that meets your coach’s targets adds its full points."]) +
+        sec("How it works", ["Your score starts at 0% each morning and grows with every meal you log. A meal that meets the macro targets set by your coach adds its full points."]) +
         sec("What to do now", ["Log your first meal and watch your score climb."]) },
-    { t: "Why your score went up", h: sec(UP + "What happened", ["Your meal met your coach’s targets, so it added its full points."], nums([["You got", "up", "+23%"], ["Possible", "up", "+23%"]])) +
-        sec("How it works", ["Each meal can add a set number of points. When it meets your coach’s targets, it adds all of them."]) +
-        sec("What to do next", ["Keep your next meal within your coach’s targets to keep your score climbing."]) },
-    { t: "Why it went up only a little", h: sec(MID + "What happened", ["Your meal went over your coach’s targets. It could have added " + dc("up", "+23%") + ", but the extra took off " + dc("down", "−18%") + ", so it added only " + dc("calm", "+5%") + "."],
+    { t: "Why your score went up", h: sec(UP + "What happened", ["Your meal met the macro targets set by your coach, so it added its full points."], nums([["You got", "up", "+23%"], ["Possible", "up", "+23%"]])) +
+        sec("How it works", ["Each meal can add a set number of points. When it meets the macro targets set by your coach, it adds all of them."]) +
+        sec("What to do next", ["Keep your next meal within the macro targets set by your coach to keep your score climbing."]) },
+    { t: "Why it went up only a little", h: sec(MID + "What happened", ["Your meal went over the macro targets set by your coach. It could have added " + dc("up", "+23%") + ", but the extra took off " + dc("down", "−18%") + ", so it added only " + dc("calm", "+5%") + "."],
           nums([["Possible", "up", "+23%"], ["Taken off", "down", "−18%"], ["You got", "calm", "+5%"]])) +
-        sec("How it works", ["A meal that goes over your coach’s targets adds fewer points. The further over it goes, the more points it loses."]) +
-        sec("Next time", ["Try to keep your next meal within your coach’s targets to get its full points."]) },
-    { t: "Why your score did not change", h: sec(MID + "What happened", ["Your meal went well over your coach’s targets, so it added no points. It could have added " + dc("up", "+23%") + "."],
+        sec("How it works", ["A meal that goes over the macro targets set by your coach adds fewer points. The further over it goes, the more points it loses."]) +
+        sec("Next time", ["Try to keep your next meal within the macro targets set by your coach to get its full points."]) },
+    { t: "Why your score did not change", h: sec(MID + "What happened", ["Your meal went well over the macro targets set by your coach, so it added no points. It could have added " + dc("up", "+23%") + "."],
           nums([["Possible", "up", "+23%"], ["You got", "calm", "0%"]])) +
-        sec("How it works", ["The further a meal goes over your coach’s targets, the more points it loses. Far enough over, it adds none."]) +
-        sec("Next time", ["No worries, your next meal within your coach’s targets adds its points again."]) },
-    { t: "Why your score went down", h: sec(DOWN + "What happened", ["Your meal went far over your coach’s targets, so it took points back and your score went down by " + dc("down", "−14%") + "."],
+        sec("How it works", ["The further a meal goes over the macro targets set by your coach, the more points it loses. Far enough over, it adds none."]) +
+        sec("Next time", ["No worries, your next meal within the macro targets set by your coach adds its points again."]) },
+    { t: "Why your score went down", h: sec(DOWN + "What happened", ["Your meal went far over the macro targets set by your coach, so it took points back and your score went down by " + dc("down", "−14%") + "."],
           nums([["Possible", "up", "+28%"], ["You got", "down", "−14%"]])) +
-        sec("How it works", ["A meal far over your coach’s targets does not just add fewer points, it takes some back. That’s alright once in a while, it happens to all of us."]) +
-        sec("Next time", ["Try to stay within your coach’s targets to avoid losing points. Your next meal within them helps your score grow again."]) },
-    { t: "You earned today’s medal", h: sec(UP + "What happened", ["Your meal added " + dc("up", "+27%") + " and took your score to " + dc("up", "83%") + ", past the 80% medal line. You’re a champion today."]) +
-        sec("How it works", ["Reach 80% or more in a day and the medal is yours. Every meal within your coach’s targets brings you closer."]) +
+        sec("How it works", ["A meal far over the macro targets set by your coach does not just add fewer points, it takes some back. That’s alright once in a while, it happens to all of us."]) +
+        sec("Next time", ["Try to stay within the macro targets set by your coach to avoid losing points. Your next meal within them helps your score grow again."]) },
+    { t: "You earned today’s medal", h: sec(UP + "What happened", ["Your two meals added " + dc("up", "+45%") + " and took your score to " + dc("up", "83%") + ", past the 80% medal line. You’re a champion today."]) +
+        sec("How it works", ["Reach 80% or more in a day and the medal is yours. Every meal within the macro targets set by your coach brings you closer."]) +
         sec("Keep it going", ["Try to get here on most days, it’s how you reach your goals."]) },
-    { t: "A perfect day", h: sec(UP + "What happened", ["Every meal today met your coach’s targets, so your score reached " + dc("up", "100%") + " sufficiency."]) +
-        sec("How it works", ["When every meal meets your coach’s targets, each one adds its full points, and together they make 100%."]) +
+    { t: "A perfect day", h: sec(UP + "What happened", ["Every meal today met the macro targets set by your coach, so your score reached " + dc("up", "100%") + " sufficiency."]) +
+        sec("How it works", ["When every meal meets the macro targets set by your coach, each one adds its full points, and together they make 100%."]) +
         sec("Make it stick", ["Keep it up, days like this will help you build healthy habits."]) }
   ];
   const C = [

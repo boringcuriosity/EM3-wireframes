@@ -540,7 +540,7 @@ const HELP={
                   <div class="rp-in"><label>From<input type="date" id="rp-from"></label><label>To<input type="date" id="rp-to"></label></div>
                   <p class="rp-err" id="rp-err" role="alert"></p>
                   <div class="rp-act"><button type="button" class="rp-cancel" id="rp-cancel">Cancel</button><button type="button" class="rp-apply" id="rp-apply">Apply</button></div>
-                  <p class="rp-note">Logs start on 5 Aug, when the plan began.</p>
+                  <p class="rp-note" id="rp-note">Logs start on 5 Aug, when the plan began.</p>
                 </div>
               </div>
               <div class="chips" role="tablist" aria-label="View">
@@ -673,12 +673,39 @@ function spark(vals,h,col='var(--jade)'){
 
 /* ---------- views ---------- */
 const DAY=864e5,addD=(d,n)=>new Date(d.getTime()+n*DAY);
-function range(){return state.from?[state.from,state.to]:state.v=='daily'?[addD(TODAY,-29),TODAY]:[START,TODAY]}
+/* The filter rules, one place:
+   - each view has its own default and presets (VIEW below); switching view resets to that view's default
+   - Weekly snaps to whole Monday to Sunday weeks, Monthly to whole calendar months, both clipped to the plan (5 Aug) and today
+   - Daily shows at most 31 days; longer belongs to Weekly */
+const MAXDAILY=31;
+const mon=d=>addD(d,-((d.getDay()+6)%7)),som=d=>new Date(d.getFullYear(),d.getMonth(),1),eom=d=>new Date(d.getFullYear(),d.getMonth()+1,0);
+const clip=(f,t)=>[f<START?START:f,t>TODAY?TODAY:t];
+/* the coach's real questions: how did this week go, how was last month, what changed since we last spoke.
+   ponytail: the last consultation is a sample date until the consultations API is wired in */
+const LASTCONSULT=new Date(2026,9,7),SINCE=['Since last consultation',()=>[LASTCONSULT,TODAY]];
+const VIEW={
+  daily:{def:()=>[addD(TODAY,-29),TODAY],pre:[['This week',()=>[mon(TODAY),TODAY]],['Last week',()=>[addD(mon(TODAY),-7),addD(mon(TODAY),-1)]],['Last 14 days',()=>[addD(TODAY,-13),TODAY]],
+      ['Last 30 days',()=>[addD(TODAY,-29),TODAY]],['This month',()=>[som(TODAY),TODAY]],SINCE],
+    note:'Daily shows up to 31 days. For longer, switch to Weekly.'},
+  weekly:{def:()=>[START,TODAY],pre:[['Last 4 weeks',()=>[addD(mon(TODAY),-21),TODAY]],['Last 8 weeks',()=>[addD(mon(TODAY),-49),TODAY]],SINCE,['Whole plan',()=>[START,TODAY]]],
+    note:'Weeks run Monday to Sunday; a range takes in every week it touches.'},
+  monthly:{def:()=>[START,TODAY],pre:[['This month',()=>[som(TODAY),TODAY]],['Last month',()=>[som(new Date(TODAY.getFullYear(),TODAY.getMonth()-1,1)),eom(new Date(TODAY.getFullYear(),TODAY.getMonth()-1,1))]],
+      ['Last 3 months',()=>[som(new Date(TODAY.getFullYear(),TODAY.getMonth()-2,1)),TODAY]],['Whole plan',()=>[START,TODAY]]],
+    note:'A range takes in every calendar month it touches.'}
+};
+function range(){
+  let [f,t]=state.from?[state.from,state.to]:VIEW[state.v].def();
+  if(state.v=='weekly'){f=mon(f);t=addD(mon(t),6)}
+  if(state.v=='monthly'){f=som(f);t=eom(t)}
+  return clip(f,t);
+}
 function buckets(v){
   const [f,t]=range(),DD=DAYS.filter(d=>d.date>=f&&d.date<=t);
   if(v=='daily')return DD.map(d=>({days:[d],label:d.date.getDate(),sub:'SMTWTFS'[d.date.getDay()],title:fmt(d.date,{weekday:'long',day:'numeric',month:'short'}),bold:d.date.getDay()==1}));
   if(v=='weekly'){const out=[];DD.forEach((d,i)=>{if(i==0||d.date.getDay()==1)out.push({days:[]});out.at(-1).days.push(d)});
-    return out.map(b=>{const w=Math.floor((b.days[0].date-addD(START,-((START.getDay()+6)%7)))/(7*DAY))+1;return {...b,label:'W'+w,sub:fmt(b.days[0].date),title:`Week ${w}, ${fmt(b.days[0].date)} to ${fmt(b.days.at(-1).date)}`}})}
+    return out.map(b=>{const w=Math.floor((b.days[0].date-mon(START))/(7*DAY))+1,a=b.days[0].date,z=b.days.at(-1).date,n=b.days.length;
+      const part=n==7?'':z.getTime()==TODAY.getTime()?'so far':a.getTime()==START.getTime()?'plan start':'';
+      return {...b,label:'W'+w,sub:part||fmt(a),title:`Week ${w}, ${fmt(a)} to ${fmt(z)}`+(part?` (${n} day${n>1?'s':''}, ${part})`:'')}})}
   const out={};DD.forEach(d=>{(out[d.date.getMonth()]??=[]).push(d)});
   return Object.values(out).map(days=>{const a=days[0].date,z=days.at(-1).date,full=a.getDate()==1&&addD(z,1).getDate()==1,now=z.getTime()==TODAY.getTime();
     const part=full?'':now&&a.getDate()==1?'so far':`${a.getDate()} to ${z.getDate()}`;
@@ -911,30 +938,33 @@ document.getElementById('k-new').onclick=()=>{document.getElementById('d-body').
 /* ---------- date range picker ---------- */
 const iso=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const parse=v=>{const [y,m,d]=v.split('-').map(Number);return new Date(y,m-1,d)};
-const PRE=[['Last 7 days',()=>[addD(TODAY,-6),TODAY]],['Last 30 days',()=>[addD(TODAY,-29),TODAY]],['Last 8 weeks',()=>[addD(TODAY,-55),TODAY]],['Whole plan',()=>[START,TODAY]]];
 const rp=document.getElementById('rp'),rbtn=document.getElementById('range'),rf=document.getElementById('rp-from'),rt=document.getElementById('rp-to');
 [rf,rt].forEach(x=>{x.min=iso(START);x.max=iso(TODAY)});
 function setRange(f,t){state.from=f;state.to=t;state.sel=null;PIN=null;closeRp();render()}
 function openRp(){
   const [f,t]=range();rf.value=iso(f);rt.value=iso(t);checkRp();
-  document.getElementById('rp-pre').innerHTML=PRE.map(([l,fn],i)=>{const [a,b]=fn();return `<button type="button" data-i="${i}" aria-pressed="${iso(a)==iso(f)&&iso(b)==iso(t)}">${l}</button>`}).join('');
+  /* a preset is on when the range it gives, snapped like the view snaps, is the range on screen */
+  const snap=([a,b])=>{const k=state.from,l=state.to;state.from=a;state.to=b;const r=range();state.from=k;state.to=l;return r};
+  document.getElementById('rp-pre').innerHTML=VIEW[state.v].pre.map(([l,fn],i)=>{const [a,b]=snap(fn());return `<button type="button" data-i="${i}" aria-pressed="${iso(a)==iso(f)&&iso(b)==iso(t)}">${l}</button>`}).join('');
+  document.getElementById('rp-note').textContent='Logs start on 5 Aug, when the plan began. Last consultation: '+fmt(LASTCONSULT)+'. '+VIEW[state.v].note;
   rp.hidden=false;rbtn.setAttribute('aria-expanded','true');rf.focus();
 }
 function closeRp(){rp.hidden=true;rbtn.setAttribute('aria-expanded','false')}
 function checkRp(){
-  const e=!rf.value||!rt.value?'Pick both dates.':parse(rf.value)>parse(rt.value)?'The start date is after the end date.':parse(rf.value)<START||parse(rt.value)>TODAY?'Pick dates between 5 Aug and 21 Oct.':'';
+  const e=!rf.value||!rt.value?'Pick both dates.':parse(rf.value)>parse(rt.value)?'The start date is after the end date.':parse(rf.value)<START||parse(rt.value)>TODAY?'Pick dates between 5 Aug and 21 Oct.':state.v=='daily'&&(parse(rt.value)-parse(rf.value))/DAY+1>MAXDAILY?'Daily shows up to 31 days. Pick a shorter range, or switch to Weekly.':'';
   document.getElementById('rp-err').textContent=e;document.getElementById('rp-apply').disabled=!!e;
 }
 rbtn.onclick=()=>rp.hidden?openRp():closeRp();
 rf.oninput=rt.oninput=checkRp;
-document.getElementById('rp-pre').onclick=e=>{const i=e.target.closest('button')?.dataset.i;if(i!=null)setRange(...PRE[i][1]())};
+document.getElementById('rp-pre').onclick=e=>{const i=e.target.closest('button')?.dataset.i;if(i!=null)setRange(...VIEW[state.v].pre[i][1]())};
 document.getElementById('rp-apply').onclick=()=>setRange(parse(rf.value),parse(rt.value));
 document.getElementById('rp-cancel').onclick=()=>{closeRp();rbtn.focus()};
 addEventListener('click',e=>{if(!rp.hidden&&!e.target.closest('.rp'))closeRp()});
 addEventListener('keydown',e=>{if(e.key=='Escape'&&document.activeElement?.classList.contains('info')){e.stopImmediatePropagation();document.activeElement.blur();return}if(e.key=='Escape'&&!rp.hidden){e.stopImmediatePropagation();closeRp();rbtn.focus()}},true);
 
 /* ---------- wiring ---------- */
-document.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{state.v=b.dataset.v;state.sel=null;PIN=null;render()});
+/* a new view starts on its own default range, so a week's custom dates never become one lonely month bar */
+document.querySelectorAll('.chips button').forEach(b=>b.onclick=()=>{state.v=b.dataset.v;state.from=state.to=null;state.sel=null;PIN=null;closeRp();render()});
 
 document.getElementById('k-close').onclick=closeK;
 document.getElementById('scrim').onclick=closeK;

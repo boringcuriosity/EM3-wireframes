@@ -238,7 +238,7 @@ button.mv-sync { width: 100%; font-family: inherit; text-align: left; cursor: po
 /* ---------- the Apple Health sheet (move/health.js): the screen that comes next (v7/move-health-sheet-options.html, A) ---------- */
 #mvHealth .hsub { margin: 0; font-size: 15px; line-height: 23px; color: var(--g-600); }
 #mvHealth .peek { position: relative; margin-top: 20px; height: 288px; overflow: hidden; border-radius: 28px 28px 0 0; background: var(--g-50); border: 1px solid var(--g-200); border-bottom: 0; padding: 20px 16px 0; }
-#mvHealth .peek::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 48px; background: linear-gradient(rgba(255,255,255,0), #fff); }
+#mvHealth .peek::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 190px; background: linear-gradient(rgba(255,255,255,0), rgba(255,255,255,.45) 30%, rgba(255,255,255,.85) 65%, #fff); pointer-events: none;   /* a picture of the next screen: the switches wash out so they never read as controls */ }
 #mvHealth .app { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 #mvHealth .app b { font-size: 15px; color: var(--g-900); }
 #mvHealth .tile { width: 52px; height: 52px; border-radius: 13px; display: grid; place-items: center; overflow: hidden; background: #fff; box-shadow: 0 0 0 1px rgba(16,24,40,.06), 0 2px 6px rgba(16,24,40,.08); }
@@ -282,3 +282,66 @@ button.mv-sync { width: 100%; font-family: inherit; text-align: left; cursor: po
 @media (prefers-reduced-motion: reduce) { .mv-srow.new { animation: none; } }
 .mv-chev { flex: none; display: grid; place-items: center; width: 20px; height: 20px; margin-left: -4px; padding: 0; border: 0; background: none; color: var(--g-400); cursor: pointer; }
 .mv-chev svg { width: 16px; height: 16px; }
+
+/* ?hv=1: the next screen as a picture. The screen is drawn at 390 wide and scaled to .54 inside a phone with a
+   real bezel, island (iOS) or punch hole (Android), cut off by the sheet with a fade */
+#mvHealth .dev-wrap { margin-top: 16px; }
+#mvHealth .flab { text-align: center; font: 600 12px/16px Roboto, sans-serif; letter-spacing: .6px; text-transform: uppercase; color: var(--g-500); }
+#mvHealth .dev { position: relative; width: 226px; height: 286px; margin: 12px auto 0; padding: 7px 7px 0; border-radius: 38px 38px 0 0;
+  background: linear-gradient(145deg, #3a3d42, #1b1c1f 40%, #2b2d31); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 20px 40px -18px rgba(16,24,40,.35);
+  -webkit-mask-image: linear-gradient(#000 70%, transparent 99%); mask-image: linear-gradient(#000 70%, transparent 99%); }
+#mvHealth .dev.and { border-radius: 30px 30px 0 0; }
+#mvHealth .dev-scr { position: relative; height: 100%; overflow: hidden; border-radius: 31px 31px 0 0; background: #F2F2F7; }
+#mvHealth .dev.and .dev-scr { border-radius: 24px 24px 0 0; background: #fff; }
+#mvHealth .dev-cam { position: absolute; z-index: 2; left: 50%; top: 14px; width: 54px; height: 16px; border-radius: 10px; background: #000; transform: translateX(-50%); }
+#mvHealth .dev.and .dev-cam { width: 9px; height: 9px; top: 15px; border-radius: 50%; }
+#mvHealth .ds { width: 390px; transform: scale(.546); transform-origin: 0 0; font-family: -apple-system, "SF Pro Text", Roboto, sans-serif; color: #000; }
+#mvHealth .ds-sb { display: flex; justify-content: space-between; align-items: center; height: 54px; padding: 0 30px 0 44px; }
+#mvHealth .ds-sb b { font-size: 17px; font-weight: 600; }
+#mvHealth .ds-sb span { display: flex; align-items: flex-end; gap: 2px; height: 12px; }
+#mvHealth .ds-sb i { width: 3.5px; border-radius: 1px; background: #000; } #mvHealth .ds-sb .b1 { height: 4px; } #mvHealth .ds-sb .b2 { height: 6.5px; } #mvHealth .ds-sb .b3 { height: 9px; } #mvHealth .ds-sb .b4 { height: 12px; }
+#mvHealth .ds-sb em { width: 25px; height: 12px; margin-left: 6px; border-radius: 3.5px; border: 1.5px solid rgba(0,0,0,.4); box-shadow: inset 0 0 0 1.5px #fff; background: #000; }
+#mvHealth .ds-gf { display: block; width: 76px; height: 76px; margin: 0 auto; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.06); overflow: hidden; }
+#mvHealth .ds-gf img, #mvHealth .ds-hc img { width: 100%; height: 100%; object-fit: contain; }
+#mvHealth .ds h3 { margin: 16px 24px 8px; text-align: center; font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: -.3px; }
+#mvHealth .ds p { margin: 0 32px 22px; text-align: center; font-size: 15px; line-height: 20px; color: #3c3c43; }
+#mvHealth .ds-h { margin: 0 36px 8px; font-size: 13px; line-height: 18px; color: rgba(60,60,67,.6); text-transform: uppercase; }
+#mvHealth .ds-row { display: flex; align-items: center; gap: 12px; height: 46px; padding: 0 16px; background: #fff; font-size: 17px; }
+#mvHealth .ds-n { flex: 1; }
+#mvHealth .ds-ic { display: grid; place-items: center; width: 24px; height: 24px; flex: none; }
+#mvHealth .ds-ic svg { width: 22px; height: 22px; }
+#mvHealth .ds-sw { position: relative; width: 51px; height: 31px; border-radius: 16px; background: #E9E9EA; }
+#mvHealth .ds-sw::after { content: ""; position: absolute; left: 2px; top: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 3px 8px rgba(0,0,0,.15); }
+#mvHealth .ds-sw.on { background: #34C759; } #mvHealth .ds-sw.on::after { left: 22px; }
+/* iOS: the Health Access sheet, grouped rows on system grey */
+#mvHealth .ds-nav { display: flex; justify-content: space-between; align-items: center; padding: 6px 18px 14px; font-size: 17px; color: #007AFF; }
+#mvHealth .ds-nav b { color: #000; font-weight: 600; }
+#mvHealth .ds-pair { display: flex; align-items: center; justify-content: center; gap: 12px; padding-top: 6px; }
+#mvHealth .ds-app { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 17px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.06), 0 2px 6px rgba(0,0,0,.06); overflow: hidden; }
+#mvHealth .ds-app img { width: 62%; height: 62%; object-fit: contain; }
+#mvHealth .ds-app.gf img { width: 70%; height: 70%; }
+#mvHealth .ds-app.hc img { width: 100%; height: 100%; }
+#mvHealth .ds-lk { width: 24px; height: 24px; color: rgba(60,60,67,.45); } #mvHealth .ds-lk svg { width: 100%; height: 100%; }
+#mvHealth .ds-and .ds-pair { padding-top: 20px; }
+#mvHealth .ds-and .ds-app { width: 56px; height: 56px; border-radius: 50%; }
+#mvHealth .ds-and .ds-lk { color: #747775; }
+#mvHealth .ds-ios h3 { font-size: 34px; line-height: 41px; margin-top: 12px; }
+#mvHealth .ds-grp { margin: 0 16px; border-radius: 10px; overflow: hidden; }
+#mvHealth .ds-grp .ds-row + .ds-row { box-shadow: inset 52px 1px 0 -51px rgba(60,60,67,.18); }
+/* Android: the Health Connect permission screen, Material 3 on white */
+#mvHealth .ds-and { font-family: Roboto, sans-serif; }
+#mvHealth .ds-and h3 { font-size: 24px; line-height: 32px; font-weight: 400; letter-spacing: 0; }
+#mvHealth .ds-and p { color: #444746; font-size: 14px; }
+#mvHealth .ds-and .ds-h { text-transform: none; color: #444746; font-size: 14px; font-weight: 500; margin: 0 24px 4px; }
+#mvHealth .ds-and .ds-row { height: 56px; padding: 0 24px; font-size: 16px; }
+#mvHealth .ds-and .ds-row { gap: 16px; }
+#mvHealth .ds-and .ds-sw { width: 52px; height: 32px; background: #E1E3E1; box-shadow: inset 0 0 0 2px #747775; }
+#mvHealth .ds-and .ds-sw::after { left: 8px; top: 8px; width: 16px; height: 16px; background: #747775; box-shadow: none; }
+#mvHealth .ds-and .ds-sw.on { background: #0B57D0; box-shadow: none; } #mvHealth .ds-and .ds-sw.on::after { left: 24px; top: 4px; width: 24px; height: 24px; background: #fff; }
+/* ?hv=2: what it reads, ticked */
+#mvHealth .reads { margin-top: 20px; padding: 20px 16px; border-radius: 20px; background: var(--g-50); }
+#mvHealth .rlab { margin: 16px 0 6px; font: 600 12px/16px Roboto, sans-serif; letter-spacing: .6px; text-transform: uppercase; color: var(--g-500); }
+#mvHealth .rl { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 15px; line-height: 22px; color: var(--g-900); }
+#mvHealth .rl + .rl { border-top: 1px solid var(--g-100); }
+#mvHealth .ck { flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--brand-50); position: relative; }
+#mvHealth .ck::after { content: ""; position: absolute; left: 7px; top: 4px; width: 5px; height: 9px; border: solid var(--brand-600); border-width: 0 2px 2px 0; transform: rotate(45deg); }

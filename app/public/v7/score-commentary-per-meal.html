@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score line, per meal</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* The line under the nutrition sufficiency score, case by case. Every phone is the live r3/eat.html
+     (?state= or ?say=), cropped to the score and its line. The sheet at the end explains how the score moves.
+     Copy and cases: r3/assets/score-say.js. */
+  :root { --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-600:#444CE7; --in-700:#3538CD;
+    --ok-50:#ECFDF3; --ok-200:#ABEFC6; --ok-700:#067647; --wa-50:#FFFAEB; --wa-200:#FEDF89; --wa-700:#B54708; --r-xl:24px; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, system-ui, sans-serif; letter-spacing: .2px; }
+  .page { max-width: 1400px; margin: 0 auto; padding: 56px 24px 96px; }
+  .eyebrow { font: 600 12px/16px Roboto; letter-spacing: .8px; text-transform: uppercase; color: var(--g-500); }
+  h1 { margin: 10px 0 10px; font-size: 36px; line-height: 44px; font-weight: 600; }
+  h2 { margin: 64px 0 6px; font-size: 24px; line-height: 32px; font-weight: 600; }
+  .lede { max-width: 820px; margin: 0; font-size: 16px; line-height: 26px; color: var(--g-600); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 40px 28px; margin-top: 32px; }
+  figure { margin: 0; }
+  figcaption { margin-bottom: 12px; min-height: 140px; }
+  figcaption .k { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 6px; padding: 2px 8px; border-radius: 999px; font: 600 11px/16px Roboto; letter-spacing: .4px; }
+  .k.calm { color: var(--g-600); background: var(--g-100); } .k.up { color: var(--ok-700); background: var(--ok-50); } .k.down { color: var(--wa-700); background: var(--wa-50); }
+  figcaption b { display: block; font-size: 17px; line-height: 24px; }
+  figcaption p { margin: 4px 0 0; font-size: 13.5px; line-height: 20px; color: var(--g-600); }
+  .phone { width: 302px; height: 651px; overflow: hidden; border-radius: 36px; border: 1px solid var(--g-200); position: relative; box-shadow: 0 24px 48px -18px rgba(16,24,40,.18); }   /* the whole 390x844 screen at .7692, so a sheet shows top to bottom */
+
+  .phone iframe { width: 390px; height: 844px; border: 0; display: block; transform: scale(.7692); transform-origin: 0 0; }
+  .open { display: inline-block; margin-top: 8px; font: 600 13px/18px Roboto; color: var(--g-600); text-decoration: none; }
+
+  /* ---- the sheet, drawn to the house rules: title top left, circle X top right, no handle, 90% at most ---- */
+  .sheetwrap { display: flex; gap: 48px; flex-wrap: wrap; align-items: flex-start; margin-top: 28px; }
+  .notes { flex: 1; min-width: 280px; max-width: 520px; font-size: 15px; line-height: 24px; color: var(--g-600); }
+  .notes ul { margin: 8px 0 0; padding-left: 20px; } .notes li { margin-bottom: 8px; } .notes b { color: var(--g-900); }
+  .shphone { width: 390px; max-width: 100%; height: 760px; border-radius: 36px; border: 1px solid var(--g-200); overflow: hidden; position: relative; background: rgba(16,24,40,.45);
+    box-shadow: 0 24px 48px -18px rgba(16,24,40,.22); }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; display: flex; flex-direction: column; background: #fff; border-radius: 24px 24px 0 0; }
+  .shead { display: flex; align-items: center; justify-content: space-between; padding: 20px 16px 12px; }
+  .shead h4 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; }
+  .x { width: 32px; height: 32px; padding: 0; border: 0; background: none; cursor: pointer; }
+  .sbody { overflow-y: auto; padding: 0 16px 28px; }
+  .hw { padding: 16px 0; border-top: 1px dashed var(--g-200); }
+  .hw:first-child { border-top: 0; padding-top: 4px; }
+  .hw h5 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 15px; line-height: 22px; font-weight: 700; }
+  .hw p { margin: 0 0 8px; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
+  .hw p:last-child { margin-bottom: 0; }
+  .hw p b { color: var(--g-900); font-weight: 600; }
+  .dc { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 6px; font: 600 12px/1 Roboto; font-variant-numeric: tabular-nums; vertical-align: 1px; }
+  .dc.up { background: var(--ok-50); color: var(--ok-700); box-shadow: inset 0 0 0 1px var(--ok-200); }
+  .dc.down { background: var(--wa-50); color: var(--wa-700); box-shadow: inset 0 0 0 1px var(--wa-200); }
+  .dc.calm { background: var(--g-100); color: var(--g-600); box-shadow: inset 0 0 0 1px var(--g-200); }
+  .shares { display: grid; grid-template-columns: 1fr auto; margin: 10px 0 4px; border-top: 1px solid var(--in-100); font-size: 13.5px; line-height: 20px; }
+  .shares span { padding: 7px 0; border-bottom: 1px solid var(--in-100); color: var(--g-600); }
+  .shares span:nth-child(2n) { text-align: right; font-weight: 600; color: var(--g-900); font-variant-numeric: tabular-nums; }
+  .ex { margin: 8px 0 0; padding: 10px 12px; border-radius: 12px; background: var(--in-50); font-size: 13px; line-height: 20px; color: var(--g-600); }
+  .ex b { color: var(--g-900); }
+  .ico { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+  .ico svg { width: 13px; height: 13px; }
+  .ico.up { background: var(--ok-50); color: var(--ok-700); } .ico.mid { background: var(--g-100); color: var(--g-600); } .ico.down { background: var(--wa-50); color: var(--wa-700); }
+  .ex .exl { display: block; margin-bottom: 2px; font: 600 11px/16px Roboto; letter-spacing: .6px; text-transform: uppercase; color: var(--in-700); }
+  .learn { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; padding: 0; border: 0; background: none; cursor: pointer; font: 500 14px/20px Roboto; color: var(--in-700); }
+  .learn svg { width: 14px; height: 14px; }
+  .modal { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(16,24,40,.5); opacity: 0; pointer-events: none; transition: opacity .25s ease-out; }
+  .modal.on { opacity: 1; pointer-events: auto; }
+  .modal .shphone { height: min(760px, 92vh); background: transparent; box-shadow: none; border: 0; }
+  .modal .sheet { transform: translateY(24px); transition: transform .32s cubic-bezier(.22,1,.36,1); }
+  .modal.on .sheet { transform: none; }
+  .sfoot { flex-shrink: 0; padding: 12px 16px 16px; background: #fff; border-top: 1px solid var(--g-100); }
+  .ecta { display: flex; align-items: center; justify-content: center; width: 100%; height: 52px; margin-bottom: 7px; border: 0; border-radius: 12px;
+    background: #299D6B; color: #fff; font: 700 15px/1 Roboto, sans-serif; box-shadow: 0 7px 0 #2A805A; cursor: pointer; }
+  .plate { margin: 10px 0 0 !important; font-size: 13px !important; line-height: 19px !important; color: var(--g-500) !important; }
+  .st { display: flex; gap: 8px; margin-top: 10px; padding: 10px 12px; border-radius: 12px; background: var(--in-50); }
+  .st div { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .st span:first-child { font: 600 11px/16px Roboto; letter-spacing: .5px; text-transform: uppercase; color: var(--in-700); }
+  .st .dc { align-self: flex-start; }
+  .st{display:flex;gap:8px;margin-top:10px;padding:10px 12px;border-radius:12px;background:#EEF4FF}
+  .st div{flex:1;display:flex;flex-direction:column;gap:4px}
+  .st span:first-child{font:600 11px/16px Roboto,sans-serif;letter-spacing:.5px;text-transform:uppercase;color:#3538CD}
+  .st .dc{align-self:flex-start}
+  .pm-lab{margin:2px 0 8px;font:600 11px/16px Roboto,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:#667085}
+  .pm-meal{padding:12px;border-radius:12px;background:#EEF4FF}
+  .pm-meal+.pm-meal{margin-top:8px}
+  .pm-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .pm-h b{font:600 14px/20px Roboto,sans-serif;color:#101828}
+  .pm-h span{display:flex;align-items:center;gap:6px}
+  .pm-h small{font-size:12px;color:#667085}
+  .pm-t{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+  .pm-t div{position:relative;padding:8px 10px;border-radius:10px;background:#fff}
+  .pm-t span{display:block;font-size:11.5px;line-height:16px;color:#667085}
+  .pm-t b{display:block;margin-top:2px;font:700 15px/20px Roboto,sans-serif;color:#101828;font-variant-numeric:tabular-nums}
+  .pm-t b small{font-size:11px;font-weight:500;color:#98A2B3}
+  .pm-t i{position:absolute;right:8px;top:8px;display:grid;place-items:center;width:16px;height:16px;border-radius:50%;font:700 10px/1 Roboto,sans-serif;font-style:normal}
+  .pm-t .pm-ok i{background:#ECFDF3;color:#067647}
+  .pm-t .pm-over i{background:#FFFAEB;color:#B54708}
+  .pm-t .pm-under i{background:#F2F4F7;color:#475467}
+  .pm-t .pm-over b{color:#B54708}
+  .pm-t .pm-under b{color:#667085}
+  .pm-day{border-radius:12px;background:#EEF4FF;padding:6px 10px;font-size:12.5px;line-height:18px}
+  .pm-dh,.pm-dr{display:grid;grid-template-columns:1.6fr .8fr .8fr .8fr auto;gap:6px;align-items:center;padding:7px 0}
+  .pm-dh{font:600 10.5px/14px Roboto,sans-serif;letter-spacing:.4px;text-transform:uppercase;color:#3538CD}
+  .pm-dh span:not(:first-child),.pm-dr span{text-align:center}
+  .pm-dr{border-top:1px solid #E0EAFF;color:#475467}
+  .pm-dr b{font-weight:600;color:#101828}
+  .pm-dr .pm-ok{color:#067647;font-weight:700}
+  .pm-dr .pm-over{color:#B54708;font-weight:700}
+  
+  .pick { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+  .pick button { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--g-200); background: #fff; font: 500 13px Roboto, sans-serif; color: var(--g-600); cursor: pointer; }
+  .pick button.on { background: var(--g-900); border-color: var(--g-900); color: #fff; }
+  .fine { margin: 12px 0 0; font-size: 12px; line-height: 18px; color: var(--g-500); }
+  @media (max-width: 720px) { .page { padding: 32px 16px 64px; } h1 { font-size: 28px; line-height: 36px; } .phone { width: 100%; } figcaption { min-height: 0; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">Eat · Nutrition sufficiency</span>
+  <h1>The line under the score, meal by meal</h1>
+  <p class="lede">The per-case sheets (score-commentary-per-case.html), but each one shows the meals behind that moment: protein, carbs and fats of every meal logged, against that meal’s macro targets set by the coach, and the points each meal added. People log one meal, two at once, or the whole day, so the cases cover all three.</p>
+
+  <h2>Every case</h2>
+  <div class="grid" id="grid"></div>
+
+  <h2>Every sheet</h2>
+  <p class="lede">Pick a case to read its sheet.</p>
+  <div class="pick" id="pick"></div>
+  <div class="sheetwrap">
+    <div class="shphone" id="shphone">
+      <div class="sheet" role="dialog">
+        <div class="shead"><h4></h4>
+          <button class="x" aria-label="Close"><svg width="32" height="32" viewBox="0 0 32 32" fill="none"><path fill="#98A2B3" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button></div>
+        <div class="sbody"></div>
+        <div class="sfoot"><button class="ecta" type="button">Got it</button></div>
+      </div>
+    </div>
+    <div class="notes">
+      <b>How each sheet is built</b>
+      <ul>
+        <li><b>The title answers the line.</b> Why your score went up, why it went down, a perfect day.</li>
+        <li><b>What you logged:</b> every meal in that log, its protein, carbs and fats against its own targets, and the points it added. One meal, two at once, or the whole day.</li>
+        <li><b>How it works:</b> the one rule behind that move, in a sentence or two.</li>
+        <li><b>What to do next:</b> always kind, always pointing at the next meal.</li>
+      </ul>
+      <p>To compare: one general sheet (score-commentary-cases.html) and per case without meals (score-commentary-per-case.html).</p>
+    </div>
+  </div>
+</div>
+<script>
+  const UP = '<span class="ico up"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3M3.5 7.5 8 3l4.5 4.5"/></svg></span>';
+  const MID = '<span class="ico mid"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3.5 8h9"/></svg></span>';
+  const DOWN = '<span class="ico down"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3v10M3.5 8.5 8 13l4.5-4.5"/></svg></span>';
+  const dc = (t, v) => '<span class="dc ' + t + '">' + v + "</span>";
+  const sec = (h, p, extra) => '<div class="hw"><h5>' + h + "</h5>" + p.map(x => "<p>" + x + "</p>").join("") + (extra || "") + "</div>";
+  /* one meal, as the user sees it: its points, then three small tiles, one per macro: eaten / target, and a mark
+     (a tick within the target, an arrow up when over, down when under). Nothing to read twice */
+  const MAC = [["Protein", "p"], ["Carbs", "c"], ["Fats", "f"]];
+  const state = (e, t) => e > t * 1.2 ? "pm-over" : e < t * .8 ? "pm-under" : "pm-ok";
+  const MARK = { "pm-ok": "✓", "pm-over": "↑", "pm-under": "↓" };
+  const meal = (name, got, of, m) => '<div class="pm-meal"><div class="pm-h"><b>' + name + '</b><span>' + dc(got.startsWith("−") ? "down" : got === of ? "up" : "calm", got) + '<small>of ' + of + '</small></span></div><div class="pm-t">' +
+    MAC.map(([n, k]) => { const [e, t] = m[k], st = state(e, t); return '<div class="' + st + '"><span>' + n + '</span><b>' + e + '<small>/' + t + 'g</small></b></div>'; }).join("") + "</div></div>";
+  /* the whole day, compact: one line per meal, its three macros and its points */
+  const day = rows => '<div class="pm-day"><div class="pm-dh"><span>Meal</span><span>Protein</span><span>Carbs</span><span>Fats</span><span>Added</span></div>' +
+    rows.map(r => '<div class="pm-dr"><b>' + r[0] + "</b>" + r[1].map(([e, t]) => '<span class="' + state(e, t) + '">' + MARK[state(e, t)] + "</span>").join("") + "<span>" + dc(r[2].startsWith("\u2212") ? "down" : r[2] === r[3] ? "up" : "calm", r[2]) + "</span></div>").join("") + "</div>";
+  const logged = (n, body) => '<div class="pm-lab">' + n + "</div>" + body;
+  /* each meal's macro targets set by the coach, and the points it can add (the sample plan) */
+  const BF = { p: [22, 22], c: [55, 55], f: [14, 14] };
+  /* the sum behind the line, as three numbers side by side */
+  const nums = rows => '<div class="st">' + rows.map(r => '<div><span>' + r[0] + "</span>" + dc(r[1], r[2]) + "</div>").join("") + "</div>";
+  const ok = (p, c, f) => ({ p: [p, p], c: [c, c], f: [f, f] });
+  const WHAT = (icon, text, strip) => sec(icon + "What happened", [text], nums(strip));
+  const LOG = (label, cards) => sec("What you logged", [], logged(label, cards));
+  const HOW = t => sec("How it works", [t]);
+  const NEXT = (h, t) => sec(h || "Next time", [t]);
+  const OVER = { p: [44, 22], c: [110, 55], f: [28, 14] }, FAR = { p: [81, 27], c: [198, 66], f: [51, 17] };
+  /* every sheet: what happened, how it works and what next are the same standard words for every user, about "your meal"
+     and points going up or down; only "What you logged" shows which meals and their protein, carbs and fats */
+  const SH = [
+    { t: "Your score is on its way", h: sec("What is happening", ["Your coach has not set your Eat plan yet, so there are no macro targets to measure your meals against. Your score stays locked until then."]) +
+        HOW("Your coach sets macro targets for every meal after your first Eat Coach consultation. Each meal you log is then compared with its own targets.") +
+        NEXT("What to do now", "Keep logging what you eat. Your coach will look at it before building your Eat plan, so every log helps.") },
+    { t: "Start your score", h: sec("What is happening", ["Nothing is logged yet today, so your score is at " + dc("calm", "0%") + "."]) +
+        HOW("Every meal in your plan has macro targets set by your coach. A meal within its targets adds all of its points.") +
+        NEXT("What to do now", "Log your first meal and watch your score climb.") },
+    /* one meal */
+    { t: "Why your score went up", h: WHAT(UP, "Your meal met the macro targets set by your coach, so it added all of its points.", [["Possible", "up", "+23%"], ["You got", "up", "+23%"]]) +
+        LOG("1 meal", meal("Breakfast", "+23%", "+23%", BF)) +
+        HOW("Each meal can add a set number of points. A meal within its targets adds all of them.") +
+        NEXT("What’s next", "Keep your next meal within its targets to keep your score climbing.") },
+    { t: "Why it went up only a little", h: WHAT(MID, "Your meal could have added " + dc("up", "+23%") + ". You ate less than its targets, so it added " + dc("calm", "+9%") + ".", [["Possible", "up", "+23%"], ["Not eaten", "calm", "−14%"], ["You got", "calm", "+9%"]]) +
+        LOG("1 meal", meal("Breakfast", "+9%", "+23%", { p: [9, 22], c: [22, 55], f: [5, 14] })) +
+        HOW("A meal adds points for how much of its targets you eat. Eat less, and it adds fewer points.") +
+        NEXT(null, "Try to eat the full meal your coach suggested to get all of its points.") },
+    { t: "Why it went up only a little", h: WHAT(MID, "Your meal could have added " + dc("up", "+23%") + ". It went over its targets, which took off " + dc("down", "−18%") + ", so it added only " + dc("calm", "+5%") + ".", [["Possible", "up", "+23%"], ["Taken off", "down", "−18%"], ["You got", "calm", "+5%"]]) +
+        LOG("1 meal", meal("Breakfast", "+5%", "+23%", OVER)) +
+        HOW("A little over a target is fine. Past that, a meal loses points, and the further over it goes, the more it loses.") +
+        NEXT(null, "Try to keep each meal within its targets to get its full points.") },
+    { t: "Why it went up only a little", h: WHAT(MID, "Your meal could have added " + dc("up", "+28%") + ". Parts of it were off its targets, which took off " + dc("down", "−14%") + ", so it added " + dc("calm", "+14%") + ".", [["Possible", "up", "+28%"], ["Taken off", "down", "−14%"], ["You got", "calm", "+14%"]]) +
+        LOG("1 meal", meal("Lunch", "+14%", "+28%", { p: [14, 27], c: [100, 66], f: [17, 17] })) +
+        HOW("Every part of a meal is checked against its own target. On target earns full points, too little earns fewer, too much loses some.") +
+        NEXT(null, "Try to keep every part of your meal within its targets to get its full points.") },
+    { t: "Why your score did not change", h: WHAT(MID, "Your meal could have added " + dc("up", "+23%") + ". It went well over its targets, which took off all " + dc("down", "−23%") + ", so it added nothing.", [["Possible", "up", "+23%"], ["Taken off", "down", "−23%"], ["You got", "calm", "0%"]]) +
+        LOG("1 meal", meal("Breakfast", "0%", "+23%", { p: [66, 22], c: [165, 55], f: [42, 14] })) +
+        HOW("The further a meal goes over its targets, the more points it loses. Far enough over, it adds none.") +
+        NEXT(null, "No worries, your next meal within its targets adds its points again.") },
+    { t: "Why your score went down", h: WHAT(DOWN, "Your meal could have added " + dc("up", "+28%") + ". It went far over its targets, so it lost all of that and took back " + dc("down", "14%") + " more. Your score went down by " + dc("down", "−14%") + ".", [["Possible", "up", "+28%"], ["Taken off", "down", "−42%"], ["You got", "down", "−14%"]]) +
+        LOG("1 meal", meal("Lunch", "−14%", "+28%", FAR)) +
+        HOW("Far over its targets, a meal does not just add nothing, it takes points back from your score. That’s alright once in a while, it happens to all of us.") +
+        NEXT(null, "Try to keep your next meal within its targets. It helps your score grow again.") },
+    /* more than one meal at once */
+    { t: "You earned today’s medal", h: WHAT(UP, "You logged two meals together. Both met their targets and added all of their points, so your score went up by " + dc("up", "+45%") + " to " + dc("up", "83%") + ". Past 80%, the medal is yours.", [["First meal", "up", "+28%"], ["Second meal", "up", "+17%"], ["Together", "up", "+45%"]]) +
+        LOG("2 meals, logged together", meal("Lunch", "+28%", "+28%", ok(27, 66, 17)) + meal("Evening snack", "+17%", "+17%", ok(16, 40, 11))) +
+        HOW("When you log more than one meal at once, each is checked against its own targets, then their points add up.") +
+        NEXT("Keep it going", "Try to get here on most days, it’s how you reach your goals.") },
+    { t: "Why it went up only a little", h: WHAT(MID, "You logged two meals together. One met its targets and added all " + dc("up", "+23%") + ". The other went over its targets and added only " + dc("calm", "+8%") + ". Together, your score went up by " + dc("calm", "+31%") + ".", [["On target", "up", "+23%"], ["Went over", "calm", "+8%"], ["Together", "calm", "+31%"]]) +
+        LOG("2 meals, logged together", meal("Breakfast", "+23%", "+23%", BF) + meal("Lunch", "+8%", "+28%", { p: [48, 27], c: [125, 66], f: [32, 17] })) +
+        HOW("Each meal is checked against its own targets. One meal going over does not touch the other: the one on target keeps all of its points.") +
+        NEXT(null, "Keep every meal within its targets to get all of its points.") },
+    { t: "Why it went up only a little", h: WHAT(MID, "You logged two meals together. One met its targets and added " + dc("up", "+23%") + ". The other went far over its targets and took back " + dc("down", "−14%") + ". Together, your score went up by only " + dc("calm", "+9%") + ".", [["On target", "up", "+23%"], ["Far over", "down", "−14%"], ["Together", "calm", "+9%"]]) +
+        LOG("2 meals, logged together", meal("Breakfast", "+23%", "+23%", BF) + meal("Lunch", "−14%", "+28%", FAR)) +
+        HOW("Points from every meal add up, and a meal far over its targets takes some back. So one meal can cancel out part of what another earned.") +
+        NEXT(null, "Keep every meal within its targets and they all add up.") },
+    { t: "Why your score went down", h: WHAT(DOWN, "You logged two meals together. One went over its targets and added only " + dc("calm", "+5%") + ". The other went far over and took back " + dc("down", "−14%") + ". Together, your score went down by " + dc("down", "−9%") + ".", [["Went over", "calm", "+5%"], ["Far over", "down", "−14%"], ["Together", "down", "−9%"]]) +
+        LOG("2 meals, logged together", meal("Breakfast", "+5%", "+23%", OVER) + meal("Lunch", "−14%", "+28%", FAR)) +
+        HOW("Each meal is checked against its own targets, then the points add up. When one meal takes back more than the other adds, your score goes down. That’s alright once in a while.") +
+        NEXT(null, "Your next meal within its targets helps your score grow again.") },
+    { t: "Why it went up only a little", h: WHAT(MID, "You logged your whole day at once. Most meals met their targets, but two went over, so your day added " + dc("calm", "+40%") + " of a possible " + dc("up", "+100%") + ".", [["Possible", "up", "+100%"], ["Taken off", "down", "−60%"], ["You got", "calm", "+40%"]]) +
+        sec("Your whole day", [], logged("All 6 meals", day([["Pre-breakfast", [[1, 1], [2, 2], [1, 1]], "+1%", "+1%"], ["Breakfast", [[22, 22], [55, 55], [14, 14]], "+23%", "+23%"], ["Lunch", [[48, 27], [125, 66], [32, 17]], "+8%", "+28%"],
+          ["Evening snack", [[16, 16], [40, 40], [11, 11]], "+17%", "+17%"], ["Dinner", [[78, 26], [192, 64], [51, 17]], "−13%", "+27%"], ["Bedtime", [[3, 3], [11, 11], [3, 3]], "+4%", "+4%"]]))) +
+        HOW("Logging everything at once works the same as one by one: every meal is checked against its own targets, then the points add up.") +
+        NEXT(null, "Keeping every meal within its targets is the biggest win.") },
+    { t: "A perfect day", h: sec(UP + "What happened", ["Every meal today met the macro targets set by your coach, so each added all of its points. Together they make " + dc("up", "100%") + "."]) +
+        sec("Your whole day", [], logged("All 6 meals", day([["Pre-breakfast", [[1, 1], [2, 2], [1, 1]], "+1%", "+1%"], ["Breakfast", [[22, 22], [55, 55], [14, 14]], "+23%", "+23%"], ["Lunch", [[27, 27], [66, 66], [17, 17]], "+28%", "+28%"],
+          ["Evening snack", [[16, 16], [40, 40], [11, 11]], "+17%", "+17%"], ["Dinner", [[26, 26], [64, 64], [17, 17]], "+27%", "+27%"], ["Bedtime", [[3, 3], [11, 11], [3, 3]], "+4%", "+4%"]]))) +
+        NEXT("Make it stick", "Keep it up, days like this will help you build healthy habits.") }
+  ];
+  /* the cases, grouped: one meal, then more than one at once, then the whole day */
+  const C = [
+    ["calm", "Before a plan", "Plan not assigned", "No score yet, so the line says when it unlocks.", "state=noplanempty"],
+    ["calm", "Nothing logged", "Food not logged", "A plan, but no log today. The line names the first thing to do.", "state=empty"],
+    ["up", "1 meal", "On target", "Breakfast within all three targets: its full points.", "say=plan"],
+    ["calm", "1 meal", "Ate less", "Breakfast below its targets: fewer points.", "say=some"],
+    ["down", "1 meal", "Went over", "Breakfast over its targets: going over took most of its points.", "say=double"],
+    ["down", "1 meal", "Mixed macros", "Lunch with protein low, carbs over and fats on target: each macro counts for itself.", "say=macromix"],
+    ["down", "1 meal", "No change", "Breakfast far over its targets: every point lost.", "say=triple"],
+    ["down", "1 meal", "Went down", "Lunch far over its targets: it took points back.", "say=pizza"],
+    ["up", "2 meals at once", "Both on target", "Lunch and evening snack, logged together: their points add up, past the medal.", "say=medal"],
+    ["down", "2 meals at once", "One on target, one over", "Breakfast keeps all its points; lunch loses some of its own.", "say=mixover"],
+    ["down", "2 meals at once", "One adds, one takes back", "Breakfast adds, lunch takes back: still up, but only a little.", "say=mixback"],
+    ["down", "2 meals at once", "Net down", "Lunch takes back more than breakfast adds: the score goes down.", "say=mixdown"],
+    ["down", "Whole day at once", "Mixed day", "Six meals at once: four on target, two over.", "say=dayall"],
+    ["up", "Whole day", "Every target met", "All praise, no number, and a nudge to make days like this stick.", "say=hundred"]
+  ];  const CH = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
+  document.getElementById("grid").innerHTML = C.map((c, i) => '<figure><figcaption><span class="k ' + c[0] + '">' + c[1] + "</span><b>" + c[2] + "</b><p>" + c[3] + "</p></figcaption>" +
+    '<div class="phone"><iframe loading="lazy" data-i="' + i + '" src="r3/eat.html?' + c[4] + '" title="' + c[2] + '"></iframe></div>' +
+    '<button class="learn" type="button" data-learn="' + i + '">' + (i < 2 ? "What does this mean?" : "How did this happen?") + CH + "</button><br>" +
+    '<a class="open" href="r3/eat.html?' + c[4] + '" target="_blank">Open full size →</a></figure>').join("");
+  const fill = (root, i) => { root.querySelector("h4").textContent = SH[i].t; root.querySelector(".sbody").innerHTML = SH[i].h; root.querySelector(".sbody").scrollTop = 0; };
+  /* the viewer: one chip per case */
+  const pick = document.getElementById("pick"), view = document.getElementById("shphone");
+  pick.innerHTML = C.map((c, i) => '<button type="button" data-p="' + i + '">' + c[2] + "</button>").join("");
+  const show = i => { fill(view, i); [].forEach.call(pick.children, (b, k) => b.classList.toggle("on", k === i)); };
+  pick.onclick = e => { const b = e.target.closest("[data-p]"); if (b) show(+b.dataset.p); };
+  show(2);
+  /* the same sheet over the page, from the link under each phone */
+  const modal = document.createElement("div"); modal.className = "modal"; modal.innerHTML = '<div class="shphone">' + view.innerHTML + "</div>";
+  document.body.appendChild(modal);
+  const shut = () => modal.classList.remove("on");
+  document.addEventListener("click", e => {
+    const l = e.target.closest("[data-learn]");
+    if (l) { fill(modal, +l.dataset.learn); modal.classList.add("on"); return; }
+    if (modal.classList.contains("on") && (e.target === modal || e.target.closest(".modal .x, .modal .ecta"))) shut();
+  });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") shut(); });
+  /* inside each phone, Learn more opens that case's sheet: the app's own sheet (score-how.js), with this case's words */
+  document.querySelectorAll(".phone iframe").forEach(f => f.addEventListener("load", () => {
+    const w = f.contentWindow, i = +f.dataset.i, base = w.SAY_OPEN;
+    if (!base) return;
+    w.SAY_OPEN = () => { base(); const el = w.document.getElementById("scoreHow"); if (el) fill(el, i);
+      if (!w.document.getElementById("perCaseCss")) { const st = w.document.createElement("style"); st.id = "perCaseCss";
+        st.textContent = ".st{display:flex;gap:8px;margin-top:10px;padding:10px 12px;border-radius:12px;background:#EEF4FF}.st div{flex:1;display:flex;flex-direction:column;gap:4px}.st span:first-child{font:600 11px/16px Roboto,sans-serif;letter-spacing:.5px;text-transform:uppercase;color:#3538CD}.st .dc{align-self:flex-start}.pm-lab{margin:2px 0 8px;font:600 11px/16px Roboto,sans-serif;letter-spacing:.6px;text-transform:uppercase;color:#667085}.pm-meal{padding:12px;border-radius:12px;background:#EEF4FF}.pm-meal+.pm-meal{margin-top:8px}.pm-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.pm-h b{font:600 14px/20px Roboto,sans-serif;color:#101828}.pm-h span{display:flex;align-items:center;gap:6px}.pm-h small{font-size:12px;color:#667085}.pm-t{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.pm-t div{position:relative;padding:8px 10px;border-radius:10px;background:#fff}.pm-t span{display:block;font-size:11.5px;line-height:16px;color:#667085}.pm-t b{display:block;margin-top:2px;font:700 15px/20px Roboto,sans-serif;color:#101828;font-variant-numeric:tabular-nums}.pm-t b small{font-size:11px;font-weight:500;color:#98A2B3}.pm-t i{position:absolute;right:8px;top:8px;display:grid;place-items:center;width:16px;height:16px;border-radius:50%;font:700 10px/1 Roboto,sans-serif;font-style:normal}.pm-t .pm-ok i{background:#ECFDF3;color:#067647}.pm-t .pm-over i{background:#FFFAEB;color:#B54708}.pm-t .pm-under i{background:#F2F4F7;color:#475467}.pm-t .pm-over b{color:#B54708}.pm-t .pm-under b{color:#667085}.pm-day{border-radius:12px;background:#EEF4FF;padding:6px 10px;font-size:12.5px;line-height:18px}.pm-dh,.pm-dr{display:grid;grid-template-columns:1.6fr .8fr .8fr .8fr auto;gap:6px;align-items:center;padding:7px 0}.pm-dh{font:600 10.5px/14px Roboto,sans-serif;letter-spacing:.4px;text-transform:uppercase;color:#3538CD}.pm-dh span:not(:first-child),.pm-dr span{text-align:center}.pm-dr{border-top:1px solid #E0EAFF;color:#475467}.pm-dr b{font-weight:600;color:#101828}.pm-dr .pm-ok{color:#067647;font-weight:700}.pm-dr .pm-over{color:#B54708;font-weight:700}";
+        w.document.head.appendChild(st); } };
+  }));
+  /* a framed Eat screen draws its score only when the page hosting it says so; 8 phones fit well under the browser's WebGL limit */
+  addEventListener("message", e => { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+</script>
+</body>
+</html>
