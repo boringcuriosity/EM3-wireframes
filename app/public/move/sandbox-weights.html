@@ -59,7 +59,10 @@
   .wed input:focus{outline:none;border-color:var(--brand)}
   .wed .tot{margin-left:auto;font-size:13px;color:var(--muted)}
   .wed .tot b{color:var(--ink)} .wed .tot.bad b{color:#D92D20}
-  .cmp{margin-top:16px;overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:#fff}
+  .cmpd{margin-top:16px}
+  .cmpd summary{cursor:pointer;width:fit-content;padding:8px 14px;border:1px solid var(--border);border-radius:10px;background:#fff;font-size:13px;font-weight:600;color:var(--ink)}
+  .cmpd[open] summary{margin-bottom:0}
+  .cmp{margin-top:12px;overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:#fff}
   .cmp table{width:100%;border-collapse:collapse;font-size:13px}
   .cmp th,.cmp td{padding:9px 12px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
   .cmp th:first-child,.cmp td:first-child{text-align:left;white-space:normal;min-width:220px}
@@ -264,7 +267,7 @@
   <div class="formula" id="formula"></div>
   <div class="wsets" id="wsets" role="group" aria-label="Weights"></div>
   <div class="wed" id="wed"></div>
-  <div class="cmp" id="cmp"></div>
+  <details class="cmpd"><summary>Sample day, on this plan, under every weight set</summary><div class="cmp" id="cmp"></div></details>
 
 
   <div class="grid">
@@ -382,11 +385,11 @@
   /* weight sets to compare. Spread is full once you have moved in `parts` parts of the day */
   var SETS = [
     { t: "Today's weights", s: "Spread can give 40 for a tick in each part.", E: 40, S: 10, N: 10, SP: 40, parts: 4 },
-    { t: "Even", rec: true, s: "Workout leads; steps, small moves and spread share the rest fairly.", E: 45, S: 25, N: 15, SP: 15, parts: 3 },
-    { t: "Balanced", s: "Workout leads, steps count properly, spread is a small nudge.", E: 50, S: 30, N: 10, SP: 10, parts: 3 },
-    { t: "Workout first", s: "The coach's routine carries most of the day.", E: 60, S: 20, N: 10, SP: 10, parts: 3 },
-    { t: "Steps and workout", s: "Walking counts nearly as much as the routine.", E: 45, S: 35, N: 10, SP: 10, parts: 3 },
-    { t: "Your own", s: "Type any weights below and every score updates.", E: 50, S: 30, N: 10, SP: 10, parts: 3 }
+    { t: "Even", rec: true, s: "Workout leads; steps, small moves and spread share the rest fairly.", E: 45, S: 25, N: 15, SP: 15, parts: 4 },
+    { t: "Balanced", s: "Workout leads, steps count properly, spread is a small nudge.", E: 50, S: 30, N: 10, SP: 10, parts: 4 },
+    { t: "Workout first", s: "The coach's routine carries most of the day.", E: 60, S: 20, N: 10, SP: 10, parts: 4 },
+    { t: "Steps and workout", s: "Walking counts nearly as much as the routine.", E: 45, S: 35, N: 10, SP: 10, parts: 4 },
+    { t: "Your own", s: "Type any weights below and every score updates.", E: 50, S: 30, N: 10, SP: 10, parts: 4 }
   ];
   var MINE = SETS[SETS.length - 1];
   var Wt = SETS[1];   /* opens on Even: 45 · 25 · 15 · 15 */
@@ -514,7 +517,7 @@
     }).join("");
     var tot = Wt.E + Wt.S + Wt.N + Wt.SP, fld = function (k, l, max) { return '<label>' + l + '<input type="number" min="0" max="' + max + '" data-wk="' + k + '" value="' + Wt[k] + '"></label>'; };
     if (!document.activeElement || !document.activeElement.dataset || !document.activeElement.dataset.wk)
-      $("wed").innerHTML = fld("E", "Exercise", 100) + fld("S", "Steps", 100) + fld("N", "Small moves", 100) + fld("SP", "Spread", 100) + fld("parts", "Spread full at (parts)", 4) +
+      $("wed").innerHTML = fld("E", "Exercise", 100) + fld("S", "Steps", 100) + fld("N", "Small moves", 100) + fld("SP", "Spread", 100) +
         '<span class="tot' + (tot === 100 ? "" : " bad") + '">Adds up to <b>' + tot + '</b>' + (tot === 100 ? "" : ", scores are scaled to 100") + '</span>';
     else $("wed").querySelector(".tot").outerHTML = '<span class="tot' + (tot === 100 ? "" : " bad") + '">Adds up to <b>' + tot + '</b>' + (tot === 100 ? "" : ", scores are scaled to 100") + '</span>';
     $("cmp").innerHTML = '<table><tr><th>Sample day, on this plan</th>' + SETS.map(function (w) { return '<th' + (w === Wt ? ' class="on"' : "") + '>' + w.t + '</th>'; }).join("") + '</tr>' +
