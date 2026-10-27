@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score sheet prompt</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* The system prompt behind Learn more: the AI writes the sheet of v7/score-sheet-timeline.html, in its exact voice.
+     The prompt itself lives in score-sheet-ai-prompt.txt, so the page and the file can never disagree. */
+  :root { --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-50:#EEF4FF; --in-600:#444CE7; --ok-50:#ECFDF3; --ok-700:#067647; --brand:#299D6B; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, system-ui, sans-serif; letter-spacing: .2px; }
+  .page { max-width: 1100px; margin: 0 auto; padding: 56px 24px 96px; }
+  .eyebrow { font: 600 11px/16px Roboto; letter-spacing: .8px; text-transform: uppercase; color: var(--g-500); }
+  h1 { margin: 10px 0 10px; font: 600 32px/40px Roboto; }
+  h2 { margin: 48px 0 8px; font: 600 22px/30px Roboto; }
+  p, li { font-size: 15px; line-height: 24px; color: var(--g-600); max-width: 820px; }
+  p { margin: 0 0 8px; }
+  b { color: var(--g-900); font-weight: 600; }
+  a { color: var(--in-600); text-decoration: none; }
+  code { font: 500 13px ui-monospace, Menlo, monospace; color: var(--in-600); }
+  .flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
+  .flow div { padding: 14px 16px; border-radius: 16px; background: var(--g-50); font-size: 13px; line-height: 20px; color: var(--g-700); }
+  .flow div b { display: block; margin-bottom: 4px; font-size: 15px; }
+  .bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 16px; padding: 10px 14px; border-radius: 16px 16px 0 0; background: #1D2939; color: #fff; font: 500 13px Roboto; }
+  .bar button { height: 32px; padding: 0 14px; border: 0; border-radius: 8px; background: var(--brand); color: #fff; font: 600 13px Roboto; cursor: pointer; }
+  pre { margin: 0; max-height: 640px; overflow: auto; padding: 18px; border-radius: 0 0 16px 16px; background: #101828; color: #E4E7EC; font: 400 13px/21px ui-monospace, Menlo, monospace; white-space: pre-wrap; }
+  table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; line-height: 20px; }
+  th, td { padding: 10px 12px; border-bottom: 1px solid var(--g-100); text-align: left; vertical-align: top; color: var(--g-700); }
+  th { font: 600 11px/16px Roboto; letter-spacing: .5px; text-transform: uppercase; color: var(--g-500); background: var(--g-50); }
+  td:first-child { font-weight: 600; color: var(--g-900); white-space: nowrap; }
+  .tag { display: inline-flex; align-items: center; height: 20px; padding: 0 6px; border-radius: 6px; font: 600 12px/1 Roboto; }
+  .tag.up { background: #ECFDF3; color: #067647; box-shadow: inset 0 0 0 1px #ABEFC6; }
+  .tag.down { background: #FEF3F2; color: #B42318; box-shadow: inset 0 0 0 1px #FECDCA; }
+  .samples { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 28px 24px; margin-top: 20px; }
+  .smp h3 { margin: 0 0 4px; font: 600 16px/22px Roboto; }
+  .smp .in { margin: 0 0 10px; font-size: 12.5px; line-height: 19px; color: var(--g-500); }
+  .smp .ok { display: inline-flex; margin-bottom: 10px; padding: 2px 8px; border-radius: 999px; background: var(--ok-50); color: var(--ok-700); font: 600 11px/16px Roboto; }
+  .ai { padding: 14px 16px; border-radius: 16px; background: var(--g-50); font-size: 14px; line-height: 21px; color: var(--g-700); }
+  .ai p { margin: 0 0 10px; max-width: none; font-size: 14px; line-height: 21px; color: var(--g-700); }
+  .ai p:last-child { margin-bottom: 0; }
+  .wc { margin: 6px 0 0; font-size: 12px; color: var(--g-500); }
+  @media (max-width: 640px) { .page { padding: 32px 16px 64px; } h1 { font-size: 26px; line-height: 34px; } td:first-child { white-space: normal; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">Eat · Nutrition sufficiency · Learn more</span>
+  <h1>One prompt for every score sheet</h1>
+  <p>Each time someone taps <b>Learn more</b> under the line beneath their score, the app sends this system prompt and the facts of what they just logged. The AI writes every word: what happened, how each meal went, and what would help next, in the warm voice of <a href="/v7/score-sheet-timeline.html">the timeline template</a>.</p>
+
+  <div class="flow">
+    <div><b>1 · Tap</b>Learn more under the commentary card.</div>
+    <div><b>2 · The app sends the facts</b>Score before and after, the overall change, and for each meal its change and its protein, carbs and fats against target.</div>
+    <div><b>3 · The AI writes the rest</b>A bold first line, a kind nudge, a short paragraph per meal and the overall change, in light markdown.</div>
+    <div><b>4 · The app checks and shows it</b>Turns ' into ’ and checks the numbers before showing it.</div>
+  </div>
+
+  <h2>The system prompt</h2>
+  <p>Copy it as it is. It is also a plain file for the backend: <a href="/v7/score-sheet-ai-prompt.txt">score-sheet-ai-prompt.txt</a>.</p>
+  <div class="bar"><span>score-sheet-ai-prompt.txt</span><button id="copy" type="button">Copy prompt</button></div>
+  <pre id="prompt">Loading…</pre>
+
+  <h2>Every scenario it covers</h2>
+  <p>Only the cases where the line under the score shows <b>Learn more</b>. Before a plan, and on a day with nothing logged, there is no Learn more, so the AI is never called. The prompt carries three short examples of the voice; the AI writes every case fresh from the facts.</p>
+  <table>
+    <tr><th>Case</th><th>What was logged</th><th>Overall</th></tr>
+    <tr><td>On target</td><td>1 meal, every macro within target</td><td>Up, full share</td></tr>
+    <tr><td>Ate less</td><td>1 meal, every macro below target</td><td>Up, a smaller share</td></tr>
+    <tr><td>Went over</td><td>1 meal, every macro above target</td><td>Up, a smaller share</td></tr>
+    <tr><td>Mixed macros</td><td>1 meal, one macro on, one over, one under</td><td>Up, a smaller share</td></tr>
+    <tr><td>No change</td><td>1 meal, far over</td><td>No change</td></tr>
+    <tr><td>Went down</td><td>1 meal, far over</td><td>Down</td></tr>
+    <tr><td>Both on target</td><td>2 meals, all within</td><td>Up, full share</td></tr>
+    <tr><td>One on target, one over</td><td>2 meals</td><td>Up, a smaller share</td></tr>
+    <tr><td>One adds, one takes back</td><td>2 meals</td><td>Up, a little</td></tr>
+    <tr><td>Net down</td><td>2 meals</td><td>Down</td></tr>
+    <tr><td>Mixed day</td><td>6 meals at once, one smaller, one over</td><td>Up, a smaller share</td></tr>
+    <tr><td>Every target met</td><td>The whole day, all within</td><td>Up to 100%</td></tr>
+  </table>
+
+  <h2>What the AI actually wrote</h2>
+  <p>Real replies from Claude Haiku 4.5 with this prompt, one per case, each written fresh from new facts (different meals and numbers from the prompt’s examples). Shown as they came back, with only the light formatting the AI used. Each was checked: every percentage is one it was given, with the right sign; every meal is named; nothing about what a meal “could have added”; no em dash; within the word limit.</p>
+  <div class="samples" id="samples"></div>
+
+  <h2>Guardrails for the build</h2>
+  <ul>
+    <li><b>The app owns the numbers.</b> Changes, scores and grams are sent ready. The AI only talks about them, and may only repeat them.</li>
+    <li><b>Clean up first.</b> Replies often use ' for ’. Replace it before showing.</li>
+    <li><b>Check before showing.</b> Every percentage in the reply is one that was sent, with the same sign; every meal is named; no “could have added”; no em dash; under the word limit. If a check fails, show the timeline template’s own sentences instead, built from the same facts.</li>
+    <li><b>Render light markdown only.</b> Bold and paragraphs. Nothing else is used.</li>
+    <li><b>Low temperature.</b> Warm but steady: the same facts should read much the same each time.</li>
+    <li><b>Same macro rule everywhere.</b> 80% to 120% is a placeholder until it matches the score’s own rule.</li>
+  </ul>
+</div>
+<script>
+  /* the samples: the AI's own text, shown as it came back with only its bold and paragraphs */
+  var esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); };
+  var sgn = function (v) { return (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v) + "%"; };
+  var brief = function (m) { return m.meal + " " + sgn(m.change) + " · protein " + m.protein.eaten + "/" + m.protein.target + "g, carbs " + m.carbs.eaten + "/" + m.carbs.target + "g, fats " + m.fats.eaten + "/" + m.fats.target + "g"; };
+  var plain = function (t) { return t.split(/\n\s*\n/).map(function (p) { return "<p>" + esc(p.trim()).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\n/g, "<br>") + "</p>"; }).join(""); };
+  fetch("/v7/data/score-sheet-ai-samples.json").then(function (r) { return r.json(); }).then(function (R) {
+    document.getElementById("samples").innerHTML = Object.keys(R).map(function (k) {
+      var x = R[k], i = x.input;
+      return '<div class="smp"><h3>' + esc(x.name) + '</h3><p class="in">' + i.meals.map(brief).map(esc).join("<br>") + "<br>Score " + i.score_before + "% to " + i.score_after + "%</p>" +
+        (x.issues.length ? "" : '<span class="ok">All checks pass</span>') +
+        '<div class="ai">' + plain(x.text) + '</div><p class="wc">' + x.words + " words</p></div>";
+    }).join("");
+  });
+  /* the prompt is read from its file, so this page always shows what the backend sends */
+  fetch("/v7/score-sheet-ai-prompt.txt").then(function (r) { return r.text(); }).then(function (t) { document.getElementById("prompt").textContent = t; });
+  document.getElementById("copy").addEventListener("click", function () {
+    var b = this; navigator.clipboard.writeText(document.getElementById("prompt").textContent).then(function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy prompt"; }, 1600); });
+  });
+</script>
+</body>
+</html>

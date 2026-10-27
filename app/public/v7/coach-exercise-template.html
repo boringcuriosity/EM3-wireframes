@@ -172,7 +172,13 @@
   .asave{margin:-6px 0 20px}
   .asave .aopt{margin:0}
   /* the two ways to save, as radio cards: a circle, the label, a line under it; the copy's name sits inside its own card */
-  .aseg{display:none;flex-direction:column;gap:8px;margin-top:10px}
+  /* the two ways to save sit under the checkbox they belong to, indented to its label (12 padding + 18 box + 10 gap) */
+  .aseg{display:none;flex-direction:column;gap:8px;margin:0 12px 12px 40px}
+  /* one card: the checkbox row is its header, and the two ways to save sit inside it once ticked */
+  .asave{border:1px solid #e4e7ec;border-radius:8px;background:#fff;transition:border-color .15s ease-out,background .15s ease-out}
+  .asave .aopt,.asave .aopt:has(input:checked){border:0;background:none}
+  .asave:has(#aSave:checked){border-color:var(--primary);background:var(--primary-l)}
+  .asave .arc:has(input[type=radio]:checked){background:#fff}   /* on the card's green, the picked one stays white and keeps its ring */
   .asave:has(#aSave:checked) .aseg{display:flex}
   .arc{display:flex;gap:10px;align-items:flex-start;padding:12px;border:1px solid #d0d5dd;border-radius:8px;background:#fff;cursor:pointer;transition:border-color .15s ease-out,background .15s ease-out}
   .arc:has(input[type=radio]:checked){border-color:var(--primary);background:var(--primary-l);box-shadow:inset 0 0 0 1px var(--primary)}
@@ -692,13 +698,85 @@
   .cmtog button[aria-checked="true"]{background:#fff;color:var(--primary);box-shadow:0 1px 3px rgba(16,24,40,.12)}
   .drop.cdrop.off{opacity:.5;cursor:not-allowed}
   .gbar .drop.cdrop{height:36px;border-radius:999px}
+
+  /* ---------- Preview and Assign: days with too little spread, as a warning ---------- */
+  .alert.xl{width:min(640px,calc(100vw - 32px));max-height:calc(100vh - 48px);overflow:auto}
+  .alert .btns button:disabled{opacity:.4;cursor:default;background:none}
+  .spw{margin:-6px 0 16px;padding:14px;border:1px solid #FEF1C7;border-radius:var(--r-md);background:#FFFCF2}
+  .spw-h{display:flex;gap:10px;align-items:flex-start}
+  .spw-h > .ic{flex:none;width:20px;height:20px;margin-top:1px;color:#B54708}
+  .spw-h b{display:block;font-size:14px;font-weight:600;color:#101828}
+  .spw-h small{display:block;margin-top:2px;font-size:12.5px;line-height:18px;color:#475467}
+  .spl{max-height:264px;overflow:auto;margin:12px 0;padding:4px 10px;border:1px solid var(--bd);border-radius:var(--r-sm);background:#fff}
+  .spwk{position:sticky;top:-4px;z-index:1;display:flex;justify-content:space-between;padding:8px 0 4px;background:#fff;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--ink3)}
+  .spwk span{font-weight:500;letter-spacing:0;text-transform:none}
+  .spr{display:grid;grid-template-columns:52px 1fr auto;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #F2F4F7}
+  .spwk + .spr{border-top:0}
+  .spr > b{font-size:13px;font-weight:600;color:#344054}
+  .spr > small{font-size:12px;color:#B54708;white-space:nowrap}
+  .sps{display:flex;flex-wrap:wrap;gap:6px}
+  .spc{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 9px 0 7px;border:1px dashed var(--bd2);border-radius:999px;font-size:12px;color:#98A2B3}
+  .spc .ic{width:13px;height:13px;opacity:.6}
+  .spc.on{border:1px solid transparent;background:var(--tchip);color:var(--tink);font-weight:600}
+  .spc.on .ic{opacity:1}
+  .spok{margin:0}
+
+  /* ---------- an exercise not picked yet reads as an empty field, not as a chosen one ---------- */
+  .msel .trig.empty{border:1px dashed var(--bd2);background:#fff;font-weight:400}
+  .msel .trig.empty .ph{color:#98A2B3;font-weight:400;font-size:14px}
+  .msel .trig.empty .car{border-top-color:#98A2B3}
+  .msel .trig.empty:hover{border-color:var(--primary);background:#fff}
+  .msel.open .trig.empty{border-style:solid;border-color:var(--primary)}
+
+  /* ---------- reordering: a quiet six-dot grip at the start of each row ---------- */
+  .row > div:first-child{gap:2px}
+  .row > div:first-child .msel{flex:1;min-width:0}
+  .cols div:first-child{padding-left:32px}   /* in line with the names, which now sit after the grip */
+  .grip{flex:none;width:18px;height:28px;margin-left:2px;padding:0;border:0;border-radius:6px;background:none;display:grid;place-items:center;color:#C9CED6;cursor:grab;touch-action:none;transition:color .15s,background .15s}
+  .grip svg{width:7px;height:12px;fill:currentColor}
+  .grip.off{cursor:default}
+  .row:hover .grip:not(.off){color:#667085}
+  .grip:not(.off):hover{background:#F2F4F7;color:#344054}
+  .grip:focus-visible{outline:2px solid var(--primary);outline-offset:1px;color:#344054}
+  .row.drag{position:relative;z-index:5;background:#fff;border-radius:10px;box-shadow:0 12px 24px -8px rgba(16,24,40,.22),0 0 0 1px #E4E7EC}
+  .row.drag .grip{color:var(--primary);cursor:grabbing}
+  .sorting .row:not(.drag){transition:transform .22s cubic-bezier(.2,0,0,1)}
+  .row.settle{transition:transform .2s cubic-bezier(.2,0,0,1),box-shadow .2s}
+  .row.moved{animation:rowLand .7s ease-out}
+  @keyframes rowLand{from{background:var(--primary-l)}to{background:transparent}}
+
+  /* ---------- Add a Routine: pick its time of day, and it is added with it ---------- */
+  .addr{position:relative}
+  .addr > .b .car{width:0;height:0;margin-left:2px;border-left:4px solid transparent;border-right:4px solid transparent;border-top:5px solid currentColor;opacity:.85;transition:transform .2s cubic-bezier(.2,0,0,1)}
+  .addr.open > .b .car{transform:rotate(180deg)}
+  .addr .panel{position:absolute;z-index:40;left:0;top:46px;min-width:290px;padding:6px;background:#fff;border-radius:var(--r-md);box-shadow:0 12px 24px -6px rgba(16,24,40,.18),0 0 0 1px rgba(16,24,40,.06);display:none}
+  .addr.open > .panel{display:block}
+  .addr .phd{padding:6px 12px 4px;font-size:11px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--ink3)}
+  .addr .opt{display:flex;align-items:center;height:40px;line-height:40px;font-size:14px}
+  .addr .opt > i:not(.ic){font-style:normal;color:#667085;margin-left:4px}
+  .addr .opt.edit{gap:8px;margin-top:4px;border-top:1px solid #EEF0F3;border-radius:0 0 var(--r-sm) var(--r-sm);color:var(--primary);font-weight:600}
+  .addr .opt.edit .ic{width:16px;height:16px}
+  .rt.fresh{animation:rtIn .45s cubic-bezier(.2,0,0,1)}
+  @keyframes rtIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+  /* ---------- the copy dialog's Copy and To, as dropdowns ---------- */
+  .cq .drop.cdd{flex:1;max-width:380px;height:40px;border-radius:10px}
+  .cdd .v{display:flex;align-items:center;min-width:0}
+  .cdd .v.ph{color:#98A2B3}
+  .cdd .panel{min-width:100%}
+  .cdd .opt{display:flex;align-items:center}
+  .cdd .todi{width:20px;height:20px;margin-right:8px;flex:none}
+  .cdd .opt.clr{margin-top:4px;border-top:1px solid #EEF0F3;border-radius:0 0 var(--r-sm) var(--r-sm);color:#B42318}
+  .cfrom{margin-left:56px}
+
+  @media (prefers-reduced-motion: reduce){.sorting .row,.row.settle,.addr > .b .car{transition:none}.row.moved,.rt.fresh{animation:none}}
 </style>
 </head>
 <body>
 <div class="app mini" id="app">
   <div class="logo"><span class="lclip"><img src="img/coach/goodflip_logo_large.png" alt="GoodFlip" title="Home"></span></div>
   <div class="top">
-    <div class="cmtog" role="radiogroup" aria-label="Copy variant"><span>Copy</span><button role="radio" data-x="cm-basic" aria-checked="true">Basic</button><button role="radio" data-x="cm-smart" aria-checked="false">Smart</button></div>
+    <div class="cmtog" role="radiogroup" aria-label="Copy variant"><span>Copy</span><button role="radio" data-x="cm-basic" aria-checked="false">Basic</button><button role="radio" data-x="cm-smart" aria-checked="true">Smart</button></div>
     <span class="grow"></span>
     <button class="circ" aria-label="Settings"><img src="img/coach/icons/settings.svg" alt=""></button>
     <button class="circ" aria-label="Notifications"><img src="img/coach/icons/notifications.svg" alt=""></button>
@@ -1024,7 +1102,7 @@ Yoga for Back Pain -2|P|27|min`;
 
   /* ================= state ================= */
   var S = { tpl: { master: false, copy: "" }, w: 0, d: 0, weeArry: [], routineArr: [], open: null, filter: "", copyDay: "", disease: "Diabetes", assessment: null,
-    step: 1, reached: 1, nw: 0, nd: 0, sw: 0, sd: 0, cm: "basic" };
+    step: 1, reached: 1, nw: 0, nd: 0, sw: 0, sd: 0, cm: "smart" };   /* Smart copy is the default; Basic stays one tap away */
   /* the parts of the day: one set of times for the whole plan, editable by the coach */
   var PARTS = [{ k: "morning", label: "Morning", from: "06:00", to: "12:00" }, { k: "afternoon", label: "Afternoon", from: "12:00", to: "16:00" },
     { k: "evening", label: "Evening", from: "16:00", to: "20:00" }, { k: "night", label: "Night", from: "20:00", to: "23:00" }];
@@ -1084,6 +1162,9 @@ Yoga for Back Pain -2|P|27|min`;
   function ask(h, m, yes, x) {
     $("aH").textContent = h; $("aM").textContent = m; $("scrim").classList.add("on");
     $("aX").hidden = !x; $("aX").innerHTML = x ? x.html : ""; $("scrim").firstChild.classList.toggle("wide", !!x);
+    $("scrim").firstChild.classList.toggle("xl", !!(x && x.xl));
+    $("aYes").disabled = false;
+    if (x && x.init) x.init();   /* e.g. Yes waits on a checkbox */
     $("aNo").onclick = function () { $("scrim").classList.remove("on"); };
     $("aYes").onclick = function () { $("scrim").classList.remove("on"); yes(x && x.read()); };
   }
@@ -1105,6 +1186,50 @@ Yoga for Back Pain -2|P|27|min`;
   }
 
 
+
+  /* ================= spread: how many parts of the day a day moves in =================
+     A part of the day counts when it has a routine with at least one exercise picked, or at least one small move.
+     A day that is not a rest day should cover at least two. It is a warning, not a rule: Preview and Assign lists
+     those days, and Yes waits until the coach ticks that they have checked them. */
+  var SPREAD_MIN = 2;
+  function slotsOf(wi, di) {
+    var D = PLAN[wi].days[di], L = NEAT[dkey(wi, di)], on = {};
+    D.routines.forEach(function (r) { if (r.time && r.exercises.some(function (ex) { return ex.content_master_id; })) on[r.time] = 1; });
+    if (L) PARTS.forEach(function (p) { if (L[p.k].length) on[p.k] = 1; });
+    return on;
+  }
+  function lowSpread() {
+    var out = [];
+    PLAN.forEach(function (w, wi) { w.days.forEach(function (D, di) {
+      if (D.rest_day === "Y") return;   /* a rest day is meant to be quiet */
+      var on = slotsOf(wi, di); if (Object.keys(on).length < SPREAD_MIN) out.push({ wi: wi, di: di, on: on });
+    }); });
+    return out;
+  }
+  function previewOpts(name) {
+    var save = saveOpts(name), low = lowSpread();
+    if (!low.length) return save;
+    var n = low.length, by = {};
+    low.forEach(function (l) { (by[l.wi] = by[l.wi] || []).push(l); });
+    var rows = Object.keys(by).map(function (wi) {
+      return '<div class="spwk">Week ' + PLAN[wi].week_no + '<span>' + by[wi].length + (by[wi].length === 1 ? " day" : " days") + '</span></div>' + by[wi].map(function (l) {
+        var got = PARTS.filter(function (p) { return l.on[p.k]; });
+        return '<div class="spr"><b>Day ' + (l.di + 1) + '</b><span class="sps">' + PARTS.map(function (p) {
+            var on = !!l.on[p.k];
+            return '<span class="spc' + (on ? " on t-" + PS[p.k].tone : "") + '" aria-label="' + p.label + (on ? ", planned" : ", nothing planned") + '">' + ico(PS[p.k].ic) + p.label + '</span>';
+          }).join("") + '</span><small>' + (got.length ? "Only " + got[0].label.toLowerCase() : "Nothing planned") + '</small></div>';
+      }).join("");
+    }).join("");
+    return {
+      xl: true,
+      html: '<div class="spw"><div class="spw-h">' + ico("alert-circle-outline") + '<div><b>' + n + (n === 1 ? " day moves" : " days move") + ' in fewer than ' + SPREAD_MIN + ' parts of the day</b>' +
+          '<small>A part of the day counts when it has a routine or a small move. Momentum grows when movement is spread through the day, so these days will score lower on moving all day.</small></div></div>' +
+        '<div class="spl">' + rows + '</div>' +
+        '<label class="aopt spok"><input type="checkbox" id="aSpread"><span><b>Assign anyway</b><small>I have checked these days and want to keep them as they are.</small></span></label></div>' + save.html,
+      read: save.read,
+      init: function () { var y = $("aYes"), c = $("aSpread"); y.disabled = true; c.onchange = function () { y.disabled = !c.checked; }; }
+    };
+  }
 
   /* ================= the top fields and the two assessment dropdowns ================= */
   $("pname").value = "28 days Plan";
@@ -1152,7 +1277,7 @@ Yoga for Back Pain -2|P|27|min`;
     return '<input class="num' + (val === "" ? " bad" : "") + '" value="' + val + '" data-num="' + path + '|' + key + '" inputmode="numeric">';
   }
   function exSelect(ex, path) {
-    return '<div class="msel" data-msel="' + path + '"><div class="trig"' + (ex.title ? ' title="' + ex.title + '"' : "") + '>' + (ex.title ? '<span class="v">' + ex.title + '</span>' : '<span class="ph">Select Exercise</span>') + '<span class="car"></span></div></div>';
+    return '<div class="msel" data-msel="' + path + '"><div class="trig' + (ex.title ? "" : " empty") + '"' + (ex.title ? ' title="' + ex.title + '"' : "") + '>' + (ex.title ? '<span class="v">' + ex.title + '</span>' : '<span class="ph">Select Exercise</span>') + '<span class="car"></span></div></div>';
   }
   function drawDay() {
     if (S.flag) drawWeeks();   /* the week counts follow each fix */
@@ -1163,7 +1288,13 @@ Yoga for Back Pain -2|P|27|min`;
         return '<button class="' + (i === S.d ? "on" : "") + (d.rest_day === "Y" ? " isrest" : "") + (bad ? " bad" : "") + '" data-day="' + i + '"' + (bad ? ' aria-label="Day ' + d.day_no + ', needs fixing"' : "") + '>Day ' + d.day_no + (d.rest_day === "Y" ? ico("bed-outline") : "") + '</button>';
       }).join("") + '</div>' +
       '<div class="daytot" id="daytot">' + dayTotHTML(D) + '</div></div>' +
-      '<div class="acts"><button class="b pr" data-x="addroutine">' + ico("add-circle-outline") + 'Add a Routine</button>' +
+      /* Add a Routine asks for its time of day first, so a new routine never arrives without one. A rest day keeps the plain
+         button, which says why it cannot add */
+      '<div class="acts">' + (rest ? '<button class="b pr" data-x="addroutine">' + ico("add-circle-outline") + 'Add a Routine</button>'
+        : '<div class="addr" data-drop="addr"><button class="b pr" aria-haspopup="listbox">' + ico("add-circle-outline") + 'Add a Routine<span class="car"></span></button><div class="panel">' +
+          '<div class="phd">Time of day</div>' +
+          PARTS.map(function (p) { return '<div class="opt" data-addrt="' + p.k + '"><span class="todi t-' + PS[p.k].tone + '">' + ico(PS[p.k].ic) + '</span>' + p.label + ' <i>' + span(p) + '</i></div>'; }).join("") +
+          '<div class="opt edit" data-x="ptimes">' + ico("time-outline") + 'Edit times</div></div></div>') +
         (rest ? '<button class="b pink" data-x="rest">' + ico("barbell-outline") + 'Unmark as Rest Day</button>' : '<button class="b teal" data-x="rest">' + ico("bed-outline") + 'Mark as Rest Day</button>') +
         '<button class="b red" data-x="clear">' + ico("refresh-outline") + 'Clear all Values</button><span class="grow"></span>' +
         (S.cm === "smart" ? copyBtns("e", true) :
@@ -1172,7 +1303,6 @@ Yoga for Back Pain -2|P|27|min`;
     /* after a failed Next: what this day still needs, in plain words */
     var g = S.flag ? gaps(D) : [];
     if (g.length) h += '<div class="dgap" role="alert"><span class="di">' + ico("alert-circle-outline") + '</span><div><b>Day ' + D.day_no + ' needs fixing</b><ul>' +
-      (g.indexOf("min2") > -1 ? '<li>Add at least 2 routines, or mark it as a rest day.</li>' : "") +
       (g.indexOf("time") > -1 ? '<li>Set a time of day for every routine.</li>' : "") + '</ul></div></div>';
     if (!rest) D.routines.forEach(function (r, ri) {
       var tp = r.time ? part(r.time) : null;
@@ -1188,8 +1318,11 @@ Yoga for Back Pain -2|P|27|min`;
         '<div class="cols"><div>Exercise</div><div>Exercise<br>Type</div><div>Reps</div><div>Set</div><div>Rest Post Set </div><div>Rest Post<br>Exercise</div><div>Duration</div><div>Kcal<br>burned' + KTIP + '</div><div>Delete</div></div>' +
         r.exercises.map(function (ex, ei) {
           var p = ri + "." + ei;
+          /* a grip to drag the row within its routine; arrow keys move it one place for anyone not using a pointer */
+          var grip = r.exercises.length > 1 ? '<button class="grip" data-grip="' + p + '" aria-label="Reorder ' + (ex.title ? esc(ex.title) : "exercise") + ', ' + (ei + 1) + ' of ' + r.exercises.length + '. Drag, or use the arrow keys">' +
+            '<svg viewBox="0 0 10 16" aria-hidden="true"><circle cx="2.5" cy="3" r="1.3"/><circle cx="7.5" cy="3" r="1.3"/><circle cx="2.5" cy="8" r="1.3"/><circle cx="7.5" cy="8" r="1.3"/><circle cx="2.5" cy="13" r="1.3"/><circle cx="7.5" cy="13" r="1.3"/></svg></button>' : '<span class="grip off"></span>';
           return '<div class="row" id="r' + S.w + S.d + ri + ei + '">' +
-            '<div>' + exSelect(ex, p) + '</div>' +
+            '<div>' + grip + exSelect(ex, p) + '</div>' +
             '<div class="type">' + ex.exerciseType + '</div>' +
             '<div>' + numBox(ex.reps, "reps", p) + '<span class="lbl">Reps</span></div>' +
             '<div>' + numBox(ex.sets, "sets", p) + '<span class="lbl">Sets</span></div>' +
@@ -1310,6 +1443,17 @@ Yoga for Back Pain -2|P|27|min`;
       else if (cp[1] !== "" && day().routines.length > 1) day().routines[+cp[1]].exercises = deep(from.exercises);
       drawDay(); return;
     }
+    if ((a = t.closest("[data-addrt]"))) {
+      var AD = day(); closeAll();
+      if (AD.routines.length >= 10) { toast("Maximum 10 routines in a day"); return; }
+      var mx = AD.routines.reduce(function (m, r) { return Math.max(m, r.routine_no); }, 0);
+      S.routineArr.push(mx + 1);
+      AD.routines.push({ routine_no: mx + 1, time: a.dataset.addrt, exercises: [blank()] }); drawDay();
+      /* the new routine slides into view, its first exercise ready to pick */
+      var rts = document.querySelectorAll("#right .rt"), nr = rts[rts.length - 1];
+      if (nr) { nr.classList.add("fresh"); nr.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" }); }
+      return;
+    }
     if ((a = t.closest("[data-rtime]"))) { var rt = a.dataset.rtime.split("|"); day().routines[+rt[0]].time = rt[1]; closeAll(); drawDay(); return; }
     if ((a = t.closest('[data-x="ptimes"]'))) { openTimes(); return; }
     if ((a = t.closest("button.sitem[data-step]")) && !a.disabled) { if (+a.dataset.step < S.step || +a.dataset.step <= S.reached) { if (S.step === 1 && +a.dataset.step > 1 && !checkPlan()) return; goStep(+a.dataset.step); } return; }
@@ -1358,7 +1502,13 @@ Yoga for Back Pain -2|P|27|min`;
       if (list.length > 1) list.splice(+pp[1], 1); else toast("Minimum 1 Exercise");
       drawDay(); return;
     }
-    if ((a = t.closest("[data-addex]"))) { day().routines[+a.dataset.addex].exercises.push(blank()); drawDay(); return; }
+    if ((a = t.closest("[data-addex]"))) {
+      var axr = +a.dataset.addex, axl = day().routines[axr].exercises; axl.push(blank()); drawDay();
+      /* the new row opens its exercise search straight away, so the next tap is picking one */
+      var ms = document.querySelector('[data-msel="' + axr + "." + (axl.length - 1) + '"]');
+      if (ms) { ms.closest(".row").scrollIntoView({ block: "center", behavior: REDUCED ? "auto" : "smooth" }); openPicker(ms); }
+      return;
+    }
     if (!(a = t.closest("[data-x]"))) return;
     var x = a.dataset.x;
     if (x === "addweek") {
@@ -1402,7 +1552,7 @@ Yoga for Back Pain -2|P|27|min`;
       if (!checkPlan()) { goStep(1); return; }
       ask("Preview and assign", "Are you sure you want to preview and assign this exercise plan?", function (tpl) {
         S.tpl = tpl; setTimeout(showPreview, 1000);
-      }, saveOpts($("pname").value.trim()));
+      }, previewOpts($("pname").value.trim()));
     } else if (x === "pclose") $("pscrim").classList.remove("on");
     else if (x === "psave") saveTimes();
     else if (x === "nex") { S.nEx = !S.nEx; drawNeat(); }
@@ -1453,6 +1603,57 @@ Yoga for Back Pain -2|P|27|min`;
     var v = Math.min(9999, Math.max(1, (parseInt(e.target.value, 10) || 0) + (e.deltaY < 0 ? 1 : -1)));
     e.target.value = v; e.target.dispatchEvent(new Event("input", { bubbles: true }));
   }, { passive: false });
+  /* ================= reordering exercises inside a routine ================= */
+  var REDUCED = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function moveEx(ri, from, to, focus) {
+    var list = day().routines[ri].exercises;
+    if (to !== from && to >= 0 && to < list.length) list.splice(to, 0, list.splice(from, 1)[0]); else to = from;
+    drawDay();
+    var row = $("r" + S.w + S.d + ri + to); if (!row) return;
+    if (to !== from) row.classList.add("moved");
+    if (focus) { var g = row.querySelector(".grip"); if (g) g.focus(); }
+  }
+  /* the row lifts and follows the pointer; the others slide aside to show where it will land */
+  var DRG = null;
+  $("right").addEventListener("pointerdown", function (e) {
+    var g = e.target.closest(".grip[data-grip]"); if (!g || e.button) return;
+    e.preventDefault(); closeAll();
+    var p = g.dataset.grip.split("."), row = g.closest(".row"), rows = [].slice.call(row.parentNode.querySelectorAll(":scope > .row"));
+    DRG = { ri: +p[0], from: +p[1], to: +p[1], y: e.clientY, rows: rows, row: row, pitch: row.offsetHeight,
+      mids: rows.map(function (x) { var b = x.getBoundingClientRect(); return b.top + b.height / 2; }) };
+    g.setPointerCapture(e.pointerId);
+    row.classList.add("drag"); row.parentNode.classList.add("sorting");
+  });
+  $("right").addEventListener("pointermove", function (e) {
+    if (!DRG) return;
+    var D = DRG, n = D.rows.length - 1;
+    /* held between the first and the last row, so it never leaves its routine */
+    var dy = Math.max(D.mids[0] - D.mids[D.from], Math.min(D.mids[n] - D.mids[D.from], e.clientY - D.y)), c = D.mids[D.from] + dy, to = D.from, j;
+    for (j = 0; j < D.from; j++) if (c < D.mids[j]) { to = j; break; }
+    if (to === D.from) for (j = D.from + 1; j <= n; j++) if (c > D.mids[j]) to = j;
+    D.to = to;
+    D.row.style.transform = "translateY(" + dy + "px)";
+    D.rows.forEach(function (x, k) {
+      if (k === D.from) return;
+      var s = D.from < to && k > D.from && k <= to ? -D.pitch : to < D.from && k >= to && k < D.from ? D.pitch : 0;
+      x.style.transform = s ? "translateY(" + s + "px)" : "";
+    });
+  });
+  function dropRow() {
+    if (!DRG) return; var D = DRG; DRG = null;
+    var a = D.rows[D.from], b = D.rows[D.to];
+    /* it glides into the gap the others opened, then the routine is redrawn in its new order */
+    var land = D.to > D.from ? b.offsetTop + b.offsetHeight - a.offsetTop - a.offsetHeight : b.offsetTop - a.offsetTop;
+    a.classList.add("settle"); a.style.transform = land ? "translateY(" + land + "px)" : "";
+    setTimeout(function () { moveEx(D.ri, D.from, D.to); }, REDUCED ? 0 : 200);
+  }
+  $("right").addEventListener("pointerup", dropRow);
+  $("right").addEventListener("pointercancel", dropRow);
+  $("right").addEventListener("keydown", function (e) {
+    var g = e.target.closest && e.target.closest(".grip[data-grip]"); if (!g) return;
+    var d = e.key === "ArrowUp" ? -1 : e.key === "ArrowDown" ? 1 : 0; if (!d) return;
+    e.preventDefault(); var p = g.dataset.grip.split("."); moveEx(+p[0], +p[1], +p[1] + d, true);
+  });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeAll(); $("scrim").classList.remove("on"); $("pscrim").classList.remove("on"); $("cscrim").classList.remove("on"); } });
   $("step2").addEventListener("input", function (e) {
     var t = e.target, k;
@@ -1536,23 +1737,22 @@ Yoga for Back Pain -2|P|27|min`;
     var zero = null;
     PLAN.forEach(function (w, wi) { w.days.forEach(function (d, di) { if (d.rest_day === "Y") return; d.routines.forEach(function (r, ri) { r.exercises.forEach(function (ex, ei) { if (!zero && +ex.duration === 0) zero = { w: wi, d: di, r: ri, e: ei }; }); }); }); });
     if (zero) { toast("Exercise duration cannot be zero"); jumpTo(zero); return false; }
-    /* every day that is not a rest day needs at least two routines, each with its time of day */
+    /* every routine needs its time of day. How many parts of the day a plan covers is a warning at Preview and Assign, not a rule */
     var bad = [];
     PLAN.forEach(function (w, wi) { w.days.forEach(function (d, di) { if (gaps(d).length) bad.push({ w: wi, d: di }); }); });
     if (bad.length) {
       S.flag = true; S.w = bad[0].w; S.d = bad[0].d; S.copyDay = ""; draw();
-      $("bannerT").textContent = bad.length + (bad.length === 1 ? " day needs" : " days need") + " at least 2 routines, each with a time of day, unless it is a rest day. They are marked in red.";
+      $("bannerT").textContent = bad.length + (bad.length === 1 ? " day needs" : " days need") + " a time of day for every routine. They are marked in red.";
       $("banner").classList.add("on");
       return false;
     }
     S.flag = false; $("banner").classList.remove("on");
     return true;
   }
-  /* what a day is missing: "min2" (fewer than two routines) and "time" (a routine with no time of day); a rest day misses nothing */
+  /* what a day is missing: "time" (a routine with no time of day); a rest day misses nothing */
   function gaps(d) {
     if (d.rest_day === "Y") return [];
     var g = [];
-    if (d.routines.length < 2) g.push("min2");
     if (d.routines.some(function (r) { return !r.time; })) g.push("time");
     return g;
   }
@@ -1676,9 +1876,11 @@ Yoga for Back Pain -2|P|27|min`;
     var whats = [["day", "Day " + (C.d + 1)], ["week", "All of week " + wk]];
     if (C.g === "e") { var ED = PLAN[C.w].days[C.d]; if (ED.rest_day !== "Y" && ED.routines.length > 1) ED.routines.forEach(function (r, ri) { whats.splice(whats.length - 1, 0, ["r" + ri, "Routine " + r.routine_no + " only"]); }); }
     if (C.g === "n") PARTS.forEach(function (p) { var c = src ? src[p.k].length : 0; if (c) whats.splice(whats.length - 1, 0, [p.k, p.label + " only"]); });
-    h += '<div class="cq"><span class="clab">Copy</span><div class="cseg">' + whats.map(function (o) {
-      return '<button class="' + (C.what === o[0] ? "on" : "") + '" data-cwhat="' + o[0] + '">' + (PS[o[0]] ? '<span class="todi t-' + PS[o[0]].tone + '">' + ico(PS[o[0]].ic) + '</span>' : "") + o[1] + '</button>';
-    }).join("") + '</div></div>';
+    /* what to copy is a dropdown, not a row of tabs: a day with many routines, or small moves in every part, would run long */
+    var tod = function (k) { return PS[k] ? '<span class="todi t-' + PS[k].tone + '">' + ico(PS[k].ic) + '</span>' : ""; };
+    var curW = whats.filter(function (o) { return o[0] === C.what; })[0] || whats[0];
+    h += '<div class="cq"><span class="clab">Copy</span><div class="drop cdd" data-drop="cwhat"><span class="v">' + tod(curW[0]) + curW[1] + '</span><span class="car"></span><div class="panel">' +
+      whats.map(function (o) { return '<div class="opt' + (o[0] === C.what ? " sel" : "") + '" data-cwhat="' + o[0] + '">' + tod(o[0]) + o[1] + '</div>'; }).join("") + '</div></div></div>';
     h += '<p class="cfrom">' + (isWeek() ? "Every day of week " + wk + " goes to the same day in the weeks you pick."
       : C.g === "e" ? "Week " + wk + ", Day " + (C.d + 1) + ": " + eFrom()
       : C.g === "s" ? "Week " + wk + ", Day " + (C.d + 1) + ": " + (src ? (+src).toLocaleString("en-IN") + " steps" : "not set")
@@ -1686,7 +1888,11 @@ Yoga for Back Pain -2|P|27|min`;
     /* quick picks */
     var q = isWeek() ? [["allw", "All other weeks"], ["none", "Clear"]]
       : [["restw", "Rest of week " + wk], ["sameday", "Day " + (C.d + 1) + " of every week"], ["all", "Every day of the plan"], ["none", "Clear"]];
-    h += '<div class="cq"><span class="clab">To</span><div class="cquick">' + q.map(function (o) { return '<button class="chipb" data-cq="' + o[0] + '">' + o[1] + '</button>'; }).join("") + '</div></div>';
+    /* where to is a dropdown of quick picks; the grid under it picks single days. The label names the pick until the grid changes it */
+    var curQ = q.filter(function (o) { return o[0] === C.q; })[0], nSel = selCount();
+    h += '<div class="cq"><span class="clab">To</span><div class="drop cdd" data-drop="cq"><span class="v' + (curQ ? "" : " ph") + '">' +
+      (curQ ? curQ[1] : nSel ? "Your own pick on the grid" : isWeek() ? "Choose weeks" : "Choose days") + '</span><span class="car"></span><div class="panel">' +
+      q.map(function (o) { return '<div class="opt' + (o[0] === C.q ? " sel" : "") + (o[0] === "none" ? " clr" : "") + '" data-cq="' + o[0] + '">' + (o[0] === "none" ? "Clear all" : o[1]) + '</div>'; }).join("") + '</div></div></div>';
     /* the grid: a row per week, a column per day */
     h += '<div class="cgrid' + (isWeek() ? " wmode" : "") + '"><div class="cgh"><span></span>' + DSHORT.map(function (_, di) {
       return '<button data-ccol="' + di + '"' + (isWeek() ? " disabled" : "") + ' title="Day ' + (di + 1) + ' of every week">D' + (di + 1) + '</button>';
@@ -1708,6 +1914,10 @@ Yoga for Back Pain -2|P|27|min`;
   }
   function copyClick(a) {
     var x;
+    /* the To label names a quick pick only while the grid still matches it */
+    if (a.dataset.cq) C.q = a.dataset.cq === "none" ? null : a.dataset.cq;
+    else if (a.dataset.cell != null || a.dataset.crow != null || a.dataset.ccol != null) C.q = null;
+    else if (a.dataset.cwhat && (a.dataset.cwhat === "week") !== isWeek()) C.q = null;   /* days to weeks clears the pick */
     if ((x = a.dataset.cwhat)) { if ((x === "week") !== isWeek()) C.sel = {}; C.what = x; }
     else if ((x = a.dataset.cmode)) C.mode = x;
     else if ((x = a.dataset.cq)) {

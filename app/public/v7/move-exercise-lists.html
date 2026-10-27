@@ -67,6 +67,7 @@
   <h1>Coach plan exercises and the log list</h1>
   <p>Both lists the person can move with: what their coach assigns, and what they log themselves by search. Each has one icon and its calories per minute for a 70 kg person, taken from the 2024 Adult Compendium of Physical Activities (kcal per minute = MET × 3.5 × 70 ÷ 200). Duplicates are grouped under one name; nothing is deleted.</p>
 
+  <p style="margin-top:12px">The Search and log tab is the one list people search when they log a workout: every coach exercise and every log activity, with duplicates removed. A numbered series (Lean muscle development 1 to 6, HIIT 1 to 7) is one entry; “- NAFLD” versions join their twin; a coach exercise with a log activity’s name joins that activity.</p>
   <div class="facts">
     <div class="fact"><h3>Where these come from</h3>Coach list: the live exercise library, 202 videos (<code>content_master</code>, ExerciseVideo), one row each. Log list: the team sheet “Activity logging - exercise_with_intensity”, 286 names and 373 intensity rows; names that are the same activity are merged into 143, with their intensities kept.</div>
     <div class="fact warn"><h3>Coach exercises earn 0 kcal today</h3>The library has no MET or calorie field, and the calorie total skips plan logs (MyTatvaCore <code>Goal_readings_model.js</code>, plan logs are excluded). The numbers here would be new.</div>
@@ -75,13 +76,13 @@
   </div>
 
   <div class="bar">
-    <div class="tabs" role="group" aria-label="List"><button data-tab="coach" aria-pressed="true">Coach plan<i id="nc"></i></button><button data-tab="log" aria-pressed="false">Log list<i id="nl"></i></button></div>
+    <div class="tabs" role="group" aria-label="List"><button data-tab="coach" aria-pressed="true">Coach plan<i id="nc"></i></button><button data-tab="log" aria-pressed="false">Log list<i id="nl"></i></button><button data-tab="combined" aria-pressed="false">Search and log<i id="nx"></i></button></div>
     <input id="q" type="search" placeholder="Search exercises" aria-label="Search exercises">
     <label><input type="checkbox" id="fl"> Only with flags</label>
   </div>
   <div class="list" id="list"></div>
 </div>
-<script src="/v7/data/exercise-lists.js?v=6"></script>
+<script src="/v7/data/exercise-lists.js?v=7"></script>
 <script>
 (function () {
   var D = window.EXL, tab = "coach", $ = function (id) { return document.getElementById(id); };
@@ -111,13 +112,24 @@
 (e.ind ? '<span class="tag ok">Common in India</span>' : "") + "</div></div>" +
       (ks.length ? '<div class="kc"><b>' + (lo === hi ? lo.toFixed(2) : lo.toFixed(1) + " to " + hi.toFixed(1)) + '</b><span>kcal / min</span></div>' : kc(null)) + "</div>";
   }
-  function flagged(x) { return tab === "coach" ? (x.fl && x.fl.length) || x.ti || x.cf === "none" : x.a !== "keep"; }
+  /* the combined list: what Search and log shows, one row per exercise, with what it combines */
+  function combRow(x) {
+    var ks = x.i.length ? x.i.map(function (i) { return i.kc; }) : [x.kc], lo = Math.min.apply(null, ks), hi = Math.max.apply(null, ks);
+    return '<div class="row">' + ico(x.ic) + '<div><div class="nm">' + esc(x.n) + "</div>" +
+      (x.src.length ? '<div class="sub">Combines <em>' + x.src.map(esc).join(", ") + "</em></div>" : "") +
+      (x.i.length > 1 ? '<div class="sub">' + x.i.length + " intensities</div>" : "") +
+      '<div class="tags">' + x.from.map(function (f) { return '<span class="tag ' + (f === "Coach plan" ? "close" : "ok") + '">' + f + "</span>"; }).join("") + "</div></div>" +
+      '<div class="kc"><b>' + (lo === hi ? lo.toFixed(2) : lo.toFixed(1) + " to " + hi.toFixed(1)) + "</b><span>kcal / min</span></div></div>";
+  }
+  function flagged(x) { return tab === "combined" ? x.src.length > 0 : tab === "coach" ? (x.fl && x.fl.length) || x.ti || x.cf === "none" : x.a !== "keep"; }
   function draw() {
     var q = $("q").value.trim().toLowerCase(), only = $("fl").checked, rows = D[tab].filter(function (x) {
-      var hay = (x.n + " " + (x.t || x.s || []).join(" ")).toLowerCase();
+      var hay = (x.n + " " + (x.t || x.s || x.src || []).join(" ")).toLowerCase();
       return (!q || hay.indexOf(q) > -1) && (!only || flagged(x));
     }), h = "";
-    if (tab === "coach") {
+    if (tab === "combined") {
+      h = rows.length ? '<div class="grp">One list, no duplicates · ' + rows.length + "</div>" + rows.map(combRow).join("") : "";
+    } else if (tab === "coach") {
       [["single", "Single exercises"], ["session", "Sessions"]].forEach(function (g) {
         var r = rows.filter(function (c) { return c.k === g[0]; }); if (r.length) h += '<div class="grp">' + g[1] + " · " + r.length + "</div>" + r.map(coachRow).join("");
       });
@@ -126,7 +138,7 @@
     }
     $("list").innerHTML = h || '<div class="empty">Nothing matches.</div>';
   }
-  $("nc").textContent = D.coach.length; $("nl").textContent = D.log.length;
+  $("nx").textContent = D.combined.length; $("nc").textContent = D.coach.length; $("nl").textContent = D.log.length;
   document.addEventListener("click", function (e) { var b = e.target.closest("[data-tab]"); if (!b) return; tab = b.dataset.tab;
     document.querySelectorAll("[data-tab]").forEach(function (x) { x.setAttribute("aria-pressed", x === b); }); draw(); });
   $("q").addEventListener("input", draw); $("fl").addEventListener("change", draw);
