@@ -37,8 +37,12 @@
     ["Wakeboarding", "mdi-ski-water", 6], ["Water Polo", "game-icons-water-polo", 10], ["Weightlifting", "mdi-weight-lifter", 6], ["Wheelchair", "accessible_forward", 3],
     ["Windsurfing", "kitesurfing", 5], ["Zumba", "mdi-human-female-dance", 6.5]
   ];
-  /* kcal = MET x 3.5 x kg / 200 per minute. ponytail: 65 kg until the profile's weight is wired in */
-  var KG = 65, burn = function (w, min) { return Math.round(w[2] * 3.5 * KG / 200 * min); };
+  /* one list for Search and log: every coach exercise and every log activity, alike (all-exercises.js, from /v7/move-exercise-lists.html).
+     Icons there are paths under /v7/icons/move/; the list above stays as the fallback */
+  if (window.MV_ALL) W = window.MV_ALL.W;
+  var ICN = function (ic) { return ic.indexOf("/") > -1 ? "/v7/icons/move/" + ic : A + ic + ".svg"; };
+  /* kcal = MET x 3.5 x kg / 200 per minute. ponytail: 70 kg, the backend's default body weight, until the profile's weight is wired in */
+  var KG = 70, burn = function (w, min) { return Math.round(w[2] * 3.5 * KG / 200 * min); };
   var esc = function (s) { return s.replace(/[&<>"]/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); };
 
   var V1 = new URLSearchParams(location.search).get("logv") === "1";
@@ -92,7 +96,7 @@
   function wrow(w, i, q, sub) {
     var n = esc(w[0]), k = q ? w[0].toLowerCase().indexOf(q) : -1;
     if (k > -1) n = esc(w[0].slice(0, k)) + "<mark>" + esc(w[0].slice(k, k + q.length)) + "</mark>" + esc(w[0].slice(k + q.length));
-    return '<button class="mvl-row" style="--i:' + Math.min(i, 12) + ";--src:url(" + A + w[1] + '.svg)" data-w="' + esc(w[0]) + '"' + (sub ? ' data-min="' + sub.min + '"' : "") + '>' +
+    return '<button class="mvl-row" style="--i:' + Math.min(i, 12) + ";--src:url(" + ICN(w[1]) + ')" data-w="' + esc(w[0]) + '"' + (sub ? ' data-min="' + sub.min + '"' : "") + '>' +
       '<span class="ic"><i></i></span><span class="nm">' + n + "" + '</span>' +
       '<img src="' + A + 'chevron.svg" alt=""></button>';
   }
@@ -229,7 +233,9 @@
     Badminton: [["Social, general", 5.5], ["Competitive", 7.0]],
     Football: [["Casual, general", 7.0], ["Competitive", 10.0]]
   };
-  var ints = function (w) { return INT[w[0]] || [["Moderate", w[2]], ["Light", Math.round(w[2] * 7.5) / 10], ["Vigorous", Math.round(w[2] * 13) / 10]]; };
+  if (window.MV_ALL) INT = window.MV_ALL.INT;
+  /* one effort level only: no Intensity row, as the live app shows the picker only when there is more than one */
+  var ints = function (w) { return INT[w[0]] || (window.MV_ALL ? [["General", w[2]]] : [["Moderate", w[2]], ["Light", Math.round(w[2] * 7.5) / 10], ["Vigorous", Math.round(w[2] * 13) / 10]]); };
   var DUR = []; for (var q = 5; q <= 120; q += 5) DUR.push(q);
   var D = null, ROW = 44, TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
   var MON = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -276,13 +282,13 @@
     dv.innerHTML = BAR +
       '<div class="mvl-top"><button class="mvl-back" data-d="back"><img src="' + A + 'back.svg" alt="">Back</button></div>' +
       '<div class="mvd-scroll">' +
-        '<div class="mvd-hd"><span class="mvd-ic"><i style="--src:url(' + A + D.w[1] + '.svg)"></i></span><h3 id="mvdT">' + esc(D.w[0]) + '</h3></div>' +
+        '<div class="mvd-hd"><span class="mvd-ic"><i style="--src:url(' + ICN(D.w[1]) + ')"></i></span><h3 id="mvdT">' + esc(D.w[0]) + '</h3></div>' +
         '<p class="mvd-q">How long did you do it?</p>' +
         /* bordered, with a pointer each side at the picked row, as the live app's wheels */
         '<div class="dial"><div class="mvd-wheel"><span class="band"></span>' + col("d", DUR, DUR.indexOf(D.min), "Minutes") + '<span class="u">min</span></div></div>' +
         /* the settings card, as GoodFlip's Settings draws it (Figma, ring designs, 3900:7479): icon, label, value, chevron */
         '<div class="mvd-rows">' +
-          row("effort", "row-fire", "Intensity", D.eff < 0 ? "Select" : esc(ints(D.w)[D.eff][0]), D.eff < 0 ? "opt" : "") +
+          (ints(D.w).length > 1 ? row("effort", "row-fire", "Intensity", D.eff < 0 ? "Select" : esc(ints(D.w)[D.eff][0]), D.eff < 0 ? "opt" : "") : "") +
           '<i class="hr"></i>' + row("time", "time", "Time", fmtT(D.at), late() ? "late" : "") +
           '<i class="hr"></i>' + row("date", "date", "Date", fmtD(D.date), "") +
         '</div>' +

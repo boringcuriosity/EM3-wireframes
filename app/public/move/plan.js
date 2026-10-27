@@ -4,20 +4,20 @@
 (function () {
   var IMG = "/v7/img/move/", VID = "/v7/video/move/", ICO = "/v7/img/coach/icons/";
   var EX = {
-    box: { name: "Box breathing", img: "box", fx: 17, min: 21, kcal: 30, reps: 10, sets: 2, restSet: "30 sec", rest: "15 sec", video: "box",
+    box: { ic: "family-breathing", name: "Box breathing", img: "box", fx: 17, min: 21, kcal: 30, reps: 10, sets: 2, restSet: "30 sec", rest: "15 sec", video: "box",
       why: "Box breathing helps you take charge of your automatic breathing patterns and train your breath for better health." },
-    plank: { name: "Plank to push up", img: "plank", fx: 33, min: 3, kcal: 25, reps: 10, sets: 2, restSet: "30 sec", rest: "15 sec", video: "plank",
+    plank: { ic: "family-push-up", name: "Plank to push up", img: "plank", fx: 33, min: 3, kcal: 25, reps: 10, sets: 2, restSet: "30 sec", rest: "15 sec", video: "plank",
       why: "A full-body exercise that builds core strength, corrects posture and improves your range of motion.",
       steps: ["Lie straight on your stomach with your hands in line with your shoulders.", "Go into a plank by straightening your arms and lifting your knees off the floor.",
         "Tighten your stomach and squeeze your buttocks. Lower down by bending one elbow at a time, then push back up, alternating arms.", "Repeat for 10 to 15 repetitions.", "Come back to the plank position."],
       dos: ["Keep your back and body straight.", "Keep your arms straight while you are in the plank."], donts: ["Do not raise your hips.", "Do not rush. Move slowly."] },
-    spot: { name: "Spot jump", img: "spot", fx: 37, min: 2, kcal: 20, reps: 10, sets: 2, restSet: "30 sec", rest: "15 sec", video: "spot",
+    spot: { ic: "family-cardio", name: "Spot jump", img: "spot", fx: 37, min: 2, kcal: 20, reps: 10, sets: 2, restSet: "30 sec", rest: "15 sec", video: "spot",
       why: "Spot jump raises your metabolism and oxygen capacity, and builds stamina for the heart and lungs.",
       steps: ["Stand straight with your hands on your waist.", "Keep your back and spine straight. Do not bend forwards.", "Jump up and down with your legs together and knees straight.", "Start slowly, then gradually increase the speed."],
       dos: ["Keep your feet together while jumping.", "Keep your knees straight."], donts: ["Do not jump too high.", "Do as many as your stamina allows."] },
-    coastal: { name: "Lateral costal breathing", img: "coastal", fx: 30, min: 5, kcal: 8, reps: 10, sets: 2, restSet: "30 sec", rest: "15 sec",
+    coastal: { ic: "family-breathing", name: "Lateral costal breathing", img: "coastal", fx: 30, min: 5, kcal: 8, reps: 10, sets: 2, restSet: "30 sec", rest: "15 sec",
       why: "Moves the ribcage through its full range, so you breathe better, move better through the spine and let the shoulder blades work properly." },
-    sideleg: { name: "Side leg raise", img: "sideleg", fx: 33, min: 2, kcal: 10, reps: 10, sets: 2, restSet: "30 sec", rest: "15 sec",
+    sideleg: { ic: "family-leg-raise", name: "Side leg raise", img: "sideleg", fx: 33, min: 2, kcal: 10, reps: 10, sets: 2, restSet: "30 sec", rest: "15 sec",
       why: "Improves the range of motion at the hip, and helps body alignment and stability.",
       steps: ["Lie on one side with your legs straight.", "Rest your lower arm under your head and your top hand on your waist.", "Raise your top leg straight up, knee straight and hips steady.", "Keep your shoulder and hip in line.", "Lower your leg, then repeat on the other side."],
       dos: ["Keep your back in a straight line with your legs."], donts: ["Do not rotate your hips forward or backward.", "Do not bend your knee or overstretch your leg."] }
@@ -58,8 +58,8 @@
   };
   if (NOPLAN) {
     S.done = [{}, {}, {}, {}]; S.at = [{}, {}, {}, {}]; S.tips = [[], [], [], []];
-    /* noplan: one walk logged this morning, the kcal as log.js counts it (MET 3.5 × 3.5 × 65 kg ÷ 200 × 30 min) */
-    if (ST === "noplan" || ST === "free") S.extra[0].push({ name: "Walking", ic: "directions_walk", min: 30, kcal: 119, at: "07:30" });
+    /* noplan: one walk logged this morning, the kcal as log.js counts it (MET 3.5 × 3.5 × 70 kg ÷ 200 × 30 min) */
+    if (ST === "noplan" || ST === "free") S.extra[0].push({ name: "Walking", ic: "directions_walk", min: 30, kcal: 129, at: "07:30" });
   }
 
   var IC = {
@@ -89,7 +89,7 @@
     if (!S.extra[r].length) return "";
     /* "also" only beside the coach's workouts; on a card with nothing planned it is simply what was logged */
     return '<div class="mv-xtra"><div class="lab">' + (RT[r].ex.length ? "You also logged" : "You logged") + '</div>' + S.extra[r].map(function (x, i) {
-      return '<div class="mv-xr"><span class="ic"><i style="--src:url(/v7/icons/move/log/' + x.ic + '.svg)"></i></span>' +
+      return '<div class="mv-xr"><span class="ic"><i style="--src:url(' + (x.ic.indexOf("/") > -1 ? "/v7/icons/move/" + x.ic : "/v7/icons/move/log/" + x.ic + ".svg") + ')"></i></span>' +
         '<span class="nm">' + x.name + '<span>' + x.min + ' min · ' + x.kcal + ' kcal</span></span>' +
         '<button class="mv-xrm" data-xrm="' + r + '|' + i + '" aria-label="More for ' + x.name + '">' + IC.dots + '</button></div>';
     }).join("") + '</div>';

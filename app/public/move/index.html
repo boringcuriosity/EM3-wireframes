@@ -18,14 +18,14 @@ window.MV = function (i, eaten, target) {
   var base = target || [95, 238, 63][i], v = Math.min(1, (eaten || 0) / base) * window.MOVEPART[i].T;
   return i === 2 ? Math.round(v / 10) * 10 : Math.round(v);
 };</script>
-<script>window.SAY_REST = "keep logging your movement."; window.HERO_WORD = "Momentum"; window.HERO_ORB = { colors: { "#246649": "#444CE7", "#79CCA8": "#8098F9", "#ABE6CC": "#A4BCFD", "#59B38C": "#6172F3",
+<script>window.SAY_LOCK = "Your Momentum score unlocks after your first Move Coach consultation, once your coach assigns you a plan."; window.SAY_REST = "keep logging your movement."; window.HERO_WORD = "Momentum"; window.HERO_ORB = { colors: { "#246649": "#444CE7", "#79CCA8": "#8098F9", "#ABE6CC": "#A4BCFD", "#59B38C": "#6172F3",
   "0.160784 0 0 0 0 0.615686 0 0 0 0 0.419608": "0.502 0 0 0 0 0.596 0 0 0 0 0.976" }, shadow: [.176, .196, .51], introSky: ["indigo", "indigosoft"] };</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="../icons/glyph-masks.css">
 <link rel="stylesheet" href="goodflip-ui.css">
 <link rel="stylesheet" href="/move/plan.css?v=64">
 <link rel="stylesheet" href="/move/log.css?v=27">
-<link rel="stylesheet" href="/move/player.css?v=16">
+<link rel="stylesheet" href="/move/player.css?v=18">
 <style>
   * { box-sizing: border-box; }
   html, body { margin: 0; }
@@ -985,6 +985,12 @@ window.MV = function (i, eaten, target) {
   .ebub.lock .lk { width: 62%; height: 62%; }
   .ebub-wrap .ecap { margin: 0; font-size: 13px; line-height: 18px; color: var(--g-600); }
   .echips { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .echips.two { grid-template-columns: repeat(2, 1fr); }
+  #railSect.notitle > .gf-h { margin-bottom: 0; }
+  #railSect.notitle + .sect { margin-top: 20px; }
+  .esteps { margin-top: 10px; gap: 10px; }
+  .esteps .erow .ic { width: 22px; justify-items: start; margin-top: 1px; }
+  .esteps .erow .t { color: var(--g-600); }
   .echips > div { border-radius: 14px; background: var(--in-50); border: 1px solid var(--in-100); padding: 10px; display: flex; flex-direction: column; gap: 6px; }
   /* label at the top, the number pinned to the bottom with its "of" on a line of its own: the three numbers share one line
      across the cards, whether a label takes one line or two */
@@ -1436,7 +1442,7 @@ var STATES = {
        card carries the teaching and the two ways to log */
     macros: { mode: "hide" },
     cal: { mode: "hide" },
-    kaira: { edu: 1, act: "log" },
+    kaira: { act: "log" },   /* the plain card; the unlock line sits under the score and the teaching is in the sheet, as Eat */
     diary: { mode: "free", title: "Your meals", count: "", logged: false }
   },
   /* Same day, food in. The grams are real from the first meal even though the
@@ -1445,8 +1451,7 @@ var STATES = {
     day: "Today", next: false,
     hero: { score: null, mealsIn: 2, mealSlots: 4 },
     macros: { mode: "grams", title: "What you have eaten",
-      v: [[54], [157], [41], [12]],
-      lock: "Your Momentum score will unlock once your coach has assigned you a move plan after your first consultation." },
+      v: [[54], [157], [41], [12]] },   /* the unlock line sits under the score (score-say.js), not in this card */
     cal: { mode: "line", eaten: 1213 },
     kaira: { say: KAIRA.noplan, act: "log" },
     diary: { mode: "free", title: "Your meals", count: "", logged: true }
@@ -2331,17 +2336,18 @@ function loadScripts(list, done) {
   /* the intake, as in suff-sheet-variants.html (C): three small tiles that echo the day view's, calories as one line under them */
   var num = function (a, b, unit) { return "<b" + (b && a > b ? ' class="over"' : "") + ">" + fmt(a) + "<small>" + (b ? " of " + fmt(b) : "") + unit + "</small></b>"; };
   var chips = NUTS.map(function (n, i) {
+    if (LOCKED && i === 1) return "";   /* no plan, no small moves */
     var v = val(i);
     return '<div><span class="top"><span class="' + n.cls + ' eglyph"></span>' + n.name + "</span>" +
       (LOCKED ? num(window.MV(i, v.eaten, 0), 0, n.unit) : num(SCORE == null ? 0 : window.MV(i, v.eaten, v.target || TGT[i]), n.T, n.unit)) + "</div>";
   }).join("");
   var CAL = S.cal || {};
   /* calories first, as on the Eat screen, with the same filled flame; the three macros follow */
-  var card = '<div class="echips">' + chips + "</div>";
+  var card = '<div class="echips' + (LOCKED ? " two" : "") + '">' + chips + "</div>";
 
   /* Hero: the day view's Cloud Drop, shorter. The score, orbs and tag live
      inside it; a quiet caption only adds the day when it is not today. */
-  var caption = LOCKED ? "Your score unlocks once your plan is ready"
+  var caption = LOCKED ? ""   /* the rows below say when it unlocks, as on Eat */
     : SCORE == null ? "Nothing was logged on " + S.day
     : PAST ? S.day : "";
   var hero = '<div class="ebub-wrap">' + (LOCKED ? '<div class="ebub lock"><div class="lk" id="esLock"></div></div>'
@@ -2399,8 +2405,15 @@ function loadScripts(list, done) {
       "Your coach sets your workout, small moves and step target after your consultation, from your goal, your body and your health."], coach: true }
   ];
 
-  var secs = SECS.map(function (x, i) {
-    return (i ? '<hr class="edash">' : "") + '<div class="esec"><h5>' + x.h + "</h5>" +
+  /* before a plan (noplanempty, noplan): what to do now comes first, as on Eat's sheet */
+  var IC = function (d) { return '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px">' + d + "</svg>"; };
+  var FIRST = LOCKED && !S.free ? '<div class="esec"><h5>Show us how you move.</h5><div class="elist esteps">' + [
+      [IC('<path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/>'), "Log any workout you do, we do not judge, promise."],
+      [IC('<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>'), "Your coach will look at this before building your move plan."],
+      [IC('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'), "Your Momentum score unlocks after your first Move Coach consultation, once your coach assigns you a plan."]
+    ].map(function (r) { return '<div class="erow"><span class="ic">' + r[0] + '</span><span class="t">' + r[1] + "</span></div>"; }).join("") + "</div></div>" : "";
+  var secs = FIRST + SECS.map(function (x, i) {
+    return (i || FIRST ? '<hr class="edash">' : "") + '<div class="esec"><h5>' + x.h + "</h5>" +
       (x.f ? '<p class="eformula">' + x.f + "</p>" : "") +
       (x.p ? x.p.map(function (t) { return "<p>" + t + "</p>"; }).join("") : "") +
       (x.li ? '<ul class="elist2">' + x.li.map(function (t) { return "<li>" + t + "</li>"; }).join("") + "</ul>" : "") +
@@ -2411,12 +2424,15 @@ function loadScripts(list, done) {
   host.innerHTML = '<div class="sheet esheet" id="es-suff" role="dialog" aria-modal="true" aria-labelledby="est-suff">' +
     '<div class="shead"><h4 id="est-suff">Momentum</h4>' +
       '<button class="x" id="esX" aria-label="Close">' + XICON + "</button></div>" +
-    '<div class="sbody">' + hero + card + secs + "</div></div>";
+    /* nothing logged yet, so no tiles of zeros (as Eat) */
+    '<div class="sbody">' + hero + (M.mode === "hide" ? "" : card) + secs + "</div></div>";
 
   var sheet = document.getElementById("es-suff");
   var open = function () {
     window.closeSheets();
     if (window.MVSHEET) window.MVSHEET(sheet);
+    /* before a plan there is no Momentum to read from, so the two tiles take the day's real workout and steps (plan.js) */
+    else if (LOCKED) [0, 2].forEach(function (i, k) { var b = sheet.querySelectorAll(".echips > div > b")[k]; if (b) b.innerHTML = window.MV(i, 0, 0).toLocaleString("en-IN") + "<small>" + NUTS[i].unit + "</small>"; });
     sheet.classList.add("on");
     col.classList.add("open-edu");
     mountSheetHero();
@@ -3751,13 +3767,16 @@ function mealsIn() {
   var tries = 0, tick = setInterval(function () { place(); if (window.MVMOM || document.querySelector("[data-bdg]") || ++tries > 15) clearInterval(tick); }, 400);
 })();
 </script>
-<script src="assets/score-say.js?v=26"></script>
+<script src="assets/score-say.js?v=29"></script>
 <script src="chrome.js"></script>
-<script src="/move/plan.js?v=61"></script>
-<script src="/move/player.js?v=20"></script>
+<script src="/move/plan.js?v=63"></script>
+<script>/* before a plan the burn card has no "What shaped your score?" above it, so it sits 20px from the line and from Kaira's card, as the first landing does */
+(function () { var t = document.getElementById("railTitle"); if (window.MVPLAN && MVPLAN.noplan && t && !t.textContent.trim()) document.getElementById("railSect").classList.add("notitle"); })();</script>
+<script src="/move/player.js?v=22"></script>
 <script src="/move/tray.js?v=26"></script>
 <script src="/move/say-kaira.js?v=7"></script>
-<script src="/move/log.js?v=33"></script>
+<script src="/move/all-exercises.js?v=1"></script>
+<script src="/move/log.js?v=35"></script>
 <script src="/move/health.js?v=15"></script>
 <script src="/move/cases.js?v=11"></script>
 <script src="/move/momentum.js?v=20"></script>

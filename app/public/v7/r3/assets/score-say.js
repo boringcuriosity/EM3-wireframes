@@ -9,9 +9,9 @@ var SC = {
   pre: { label: "Pre-breakfast", state: "empty", score: 1, delta: "+1%", tone: "up", lead: "Your score went up by 1%,", rest: "keep logging your meals.", cta: "Learn more by asking KAIRA" },
   plan: { label: "Breakfast as planned", state: "first", score: 23, delta: "+23%", tone: "up", lead: "Your score went up by 23%,", rest: "keep logging your meals.", cta: "Learn more by asking KAIRA" },
   some: { label: "Only some breakfast", state: "first", score: 9, delta: "+9%", tone: "up", lead: "Your score went up by 9%,", rest: "keep logging your meals.", cta: "Learn more by asking KAIRA" },
-  double: { label: "Double breakfast", state: "first", score: 5, delta: "+5%", tone: "down", lead: "Your score went up by only 5%,", rest: "you could have gained 18% more.", cta: "Find out why from KAIRA" },
-  triple: { label: "Triple breakfast", state: "empty", score: 0, delta: "0", tone: "down", lead: "Your score did not change,", rest: "you could have gained 23%.", cta: "Find out why from KAIRA" },
-  whole: { label: "Whole day at breakfast", state: "empty", score: 0, delta: "0", tone: "down", lead: "Your score did not change,", rest: "you could have gained 23%.", cta: "Find out why from KAIRA" },
+  double: { label: "Double breakfast", state: "first", score: 5, delta: "+5%", tone: "down", lead: "Your score went up by only 5%.", rest: "", cta: "Find out why from KAIRA" },
+  triple: { label: "Triple breakfast", state: "empty", score: 0, delta: "0", tone: "down", lead: "Your score did not change.", rest: "", cta: "Find out why from KAIRA" },
+  whole: { label: "Whole day at breakfast", state: "empty", score: 0, delta: "0", tone: "down", lead: "Your score did not change.", rest: "", cta: "Find out why from KAIRA" },
   pizza: { label: "Big pizza at lunch", state: "first", score: 9, delta: "\u221214%", tone: "down", lead: "Your score dropped by 14%,", rest: "", cta: "find out why from KAIRA" }
 };
 /* the day's own states: what the last log of each one did */
@@ -24,19 +24,21 @@ SC.medal = { state: "full", score: 83, delta: "+45%", tone: "up", lead: "We are 
 SC.hundred = { state: "perfect", score: 100, delta: "+4%", tone: "up", lead: "Amazing! You reached 100% sufficiency.", rest: "Keep it up, days like this will help you build healthy habits.", cta: "Learn more by asking KAIRA" };
 SC.full = { state: "full", score: 88, delta: "+4%", tone: "up", lead: "Your score went up by 4%,", rest: "your day is all logged.", cta: "Learn more by asking KAIRA" };
 SC.perfect = { state: "perfect", score: 100, delta: "+4%", tone: "up", lead: "Your score went up by 4%,", rest: "every target met today.", cta: "Learn more by asking KAIRA" };
-SC.over = { state: "over", score: 92, delta: "+9%", tone: "down", lead: "Your score went up by only 9%,", rest: "you could have gained 18% more.", cta: "Find out why from KAIRA" };
+SC.over = { state: "over", score: 92, delta: "+9%", tone: "down", lead: "Your score went up by only 9%.", rest: "", cta: "Find out why from KAIRA" };
 SC.past = { state: "past", score: 61, delta: "", tone: "calm", lead: "This day ended at 61%.", rest: "", cta: "Learn more by asking KAIRA" };
 /* meals logged together, and meals with mixed macros (v7/score-commentary-per-meal.html): the line reads as always */
-SC.macromix = { label: "Lunch, protein low and carbs over", state: "first", score: 14, delta: "+14%", tone: "down", lead: "Your score went up by only 14%,", rest: "you could have gained 14% more.", cta: "Learn more" };
-SC.mixover = { label: "Breakfast on target, lunch over", state: "first", score: 31, delta: "+31%", tone: "down", lead: "Your score went up by only 31%,", rest: "you could have gained 20% more.", cta: "Learn more" };
-SC.mixback = { label: "Breakfast on target, lunch far over", state: "first", score: 9, delta: "+9%", tone: "down", lead: "Your score went up by only 9%,", rest: "you could have gained 42% more.", cta: "Learn more" };
+SC.macromix = { label: "Lunch, protein low and carbs over", state: "first", score: 14, delta: "+14%", tone: "down", lead: "Your score went up by only 14%.", rest: "", cta: "Learn more" };
+SC.mixover = { label: "Breakfast on target, lunch over", state: "first", score: 31, delta: "+31%", tone: "down", lead: "Your score went up by only 31%.", rest: "", cta: "Learn more" };
+SC.mixback = { label: "Breakfast on target, lunch far over", state: "first", score: 9, delta: "+9%", tone: "down", lead: "Your score went up by only 9%.", rest: "", cta: "Learn more" };
 SC.mixdown = { label: "Breakfast over, lunch far over", state: "first", score: 11, delta: "\u22129%", tone: "down", lead: "Your score dropped by 9%,", rest: "", cta: "Learn more" };
-SC.dayall = { label: "The whole day at once, mixed", state: "full", score: 40, delta: "+40%", tone: "down", lead: "Your score went up by only 40%,", rest: "you could have gained 60% more.", cta: "Learn more" };
+SC.dayall = { label: "The whole day at once, mixed", state: "full", score: 40, delta: "+40%", tone: "down", lead: "Your score went up by only 40%.", rest: "", cta: "Learn more" };
 SC.empty = SC.start;
 /* a host page can swap the link for its own words and its own sheet (r3/eat.html: Learn more). After every case above, medal and 100% included */
 if (window.SAY_CTA) Object.keys(SC).forEach(function (k) { if (SC[k].cta) { SC[k].cta = window.SAY_CTA; if (!SC[k].rest) SC[k].lead = SC[k].lead.replace(/,$/, "."); } });   /* "dropped by 14%," reads "dropped by 14%." before Learn more */
 /* Eat before a plan: no score yet, so the line says when it unlocks (Move speaks for itself, momentum.js) */
-if (!window.SAY_REST) SC.noplanempty = SC.noplan = { lock: true, delta: "", tone: "calm", lead: "", rest: "Your Nutrition sufficiency score unlocks after your first Eat Coach consultation, once your coach assigns you a plan." };   /* a note, not news: no bold */
+/* before a plan: no score yet, so the line says when it unlocks. A pillar that copies this screen brings its own words (Move: SAY_LOCK) */
+var LOCKLINE = window.SAY_LOCK || (!window.SAY_REST && "Your Nutrition sufficiency score unlocks after your first Eat Coach consultation, once your coach assigns you a plan.");
+if (LOCKLINE) SC.noplanempty = SC.noplan = { lock: true, delta: "", tone: "calm", lead: "", rest: LOCKLINE };   /* a note, not news: no bold */
 var DAY = { mac: [[0, 95], [0, 238], [0, 63]], kcal: 1900 };
 function day(p, c, f) { return [[p, 95], [c, 238], [f, 63]]; }
 var BELOW = {
@@ -81,7 +83,7 @@ function foods(list) {
 var BF = [["2 moong dal cheela"], ["1 bowl curd"]];
 var OK = "No worries, keep logging honestly.";
 SC.double.ask = {
-  q: "Why did my nutrition sufficiency score only go up by +5%? It says I could have gained +18% more. How?",
+  q: "Why did my nutrition sufficiency score only go up by +5%?",
   a: [
     "You had more than the Eat plan suggested by your coach at breakfast, and the extra held your nutrition sufficiency score back.",
     "Your nutrition sufficiency score went up by only " + tg("+5%", "down") + " because you had:" + foods(BF.concat([["2 aloo parathas with butter", 1], ["1 glass sweet lassi", 1]])) +
@@ -126,7 +128,7 @@ SC.some.ask = {
   ]
 };
 SC.triple.ask = {
-  q: "Why didn't my nutrition sufficiency score change? It says I could have gained +23%.",
+  q: "Why didn't my nutrition sufficiency score change?",
   a: [
     "You had a lot more than the Eat plan suggested by your coach at breakfast, so it did not add to your nutrition sufficiency score.",
     "Your nutrition sufficiency score stayed at " + tg("0%", "calm") + " because you had:" + foods(BF.concat([["3 aloo parathas with butter", 1], ["2 glasses sweet lassi", 1]])) +
@@ -136,7 +138,7 @@ SC.triple.ask = {
   ]
 };
 SC.whole.ask = {
-  q: "Why didn't my nutrition sufficiency score change? It says I could have gained +23%.",
+  q: "Why didn't my nutrition sufficiency score change?",
   a: [
     "You had nearly a whole day's food at breakfast, so it did not add to your nutrition sufficiency score.",
     "Your nutrition sufficiency score stayed at " + tg("0%", "calm") + " because you had:" + foods([["4 aloo parathas with butter", 1], ["2 bowls poha", 1], ["1 glass mango shake", 1], ["2 bananas", 1]]) +
@@ -188,7 +190,7 @@ SC.perfect.ask = {
   ]
 };
 SC.over.ask = {
-  q: "Why did my nutrition sufficiency score only go up by +9%? It says I could have gained +18% more.",
+  q: "Why did my nutrition sufficiency score only go up by +9%?",
   a: [
     "You had more than the Eat plan suggested by your coach at dinner, and the extra held your nutrition sufficiency score back.",
     "A little over your Eat plan still earns full points. Past that, the extra takes points back, so dinner added " + tg("+9%", "down") + " of a possible " + tg("+27%", "up") + ".",
@@ -238,8 +240,10 @@ var CSS = "#cm{position:relative;z-index:3;margin:20px auto 0;padding:0 24px;dis
       "#cm .tx{position:relative}#cm b{color:#101828;font-weight:600}" +
       /* the number sits in the same capsule as Change and reason: green up, amber when it went up less or came down */
       "#cm .dc{display:inline-flex;align-items:center;height:20px;padding:0 6px;margin:0 1px;border-radius:6px;vertical-align:1px;font:600 12px/1 Roboto,sans-serif;font-variant-numeric:tabular-nums}" +
-      "#cm .dc.down{background:#FFFAEB;color:#B54708;box-shadow:inset 0 0 0 1px #FEDF89}#cm .dc.calm{background:#F2F4F7;color:#475467;box-shadow:inset 0 0 0 1px #E4E7EC}#cm .dc.up{background:#ECFDF3;color:#067647;box-shadow:inset 0 0 0 1px #ABEFC6}";
-var html = function (s) { var lead = s.lead.replace(/ by (only )?\d+%?(\.?)/, ' by $1<span class="dc ' + s.tone + '">' + (/dropped/.test(s.lead) ? s.delta.replace("\u2212", "") : s.delta) + "</span>$2");   /* "dropped by 14%", not "dropped by minus 14%" */ return '<div class="in"><svg class="q" viewBox="0 0 24 24" fill="currentColor"><path d="M4.6 18.7C3.5 17.5 3 16.3 3 14.3c0-3.5 2.5-6.6 6-8.2l.9 1.4C6.6 9.3 5.9 11.6 5.7 13.1c.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Zm10 0c-1.1-1.2-1.6-2.4-1.6-4.4 0-3.5 2.5-6.6 6-8.2l.9 1.4c-3.3 1.8-4 4.1-4.2 5.6.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Z"/></svg><span class="sk"><i></i><i></i></span><span class="sw"></span><span class="tx"><b>' + lead + "</b> " + s.rest.replace(/ gained (\d+%)(\.?)/, ' gained <span class="dc calm">+$1</span>$2').replace(/ went up by \d+%/, ' went up by <span class="dc ' + s.tone + '">' + s.delta + "</span>") + ask(s) + "</span></div>"; };
+      "#cm .dc.down{background:#FEF3F2;color:#B42318;box-shadow:inset 0 0 0 1px #FECDCA}#cm .dc.calm{background:#F2F4F7;color:#475467;box-shadow:inset 0 0 0 1px #E4E7EC}#cm .dc.up{background:#ECFDF3;color:#067647;box-shadow:inset 0 0 0 1px #ABEFC6}";
+/* every change wears its sign, and the sign sets the colour: + green, \u2212 red */
+var tcls = function (d) { return /^[\u2212-]/.test(d) ? "down" : /^\+/.test(d) ? "up" : "calm"; };
+var html = function (s) { var lead = s.lead.replace(/ by (only )?\d+%?(\.?)/, ' by $1<span class="dc ' + tcls(s.delta) + '">' + s.delta + "</span>$2"); return '<div class="in"><svg class="q" viewBox="0 0 24 24" fill="currentColor"><path d="M4.6 18.7C3.5 17.5 3 16.3 3 14.3c0-3.5 2.5-6.6 6-8.2l.9 1.4C6.6 9.3 5.9 11.6 5.7 13.1c.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Zm10 0c-1.1-1.2-1.6-2.4-1.6-4.4 0-3.5 2.5-6.6 6-8.2l.9 1.4c-3.3 1.8-4 4.1-4.2 5.6.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Z"/></svg><span class="sk"><i></i><i></i></span><span class="sw"></span><span class="tx"><b>' + lead + "</b> " + s.rest.replace(/ gained (\d+%)(\.?)/, ' gained <span class="dc up">+$1</span>$2').replace(/ went up by \d+%/, ' went up by <span class="dc ' + tcls(s.delta) + '">' + s.delta + "</span>") + ask(s) + "</span></div>"; };
 
 /* a ?say= case is the moment just after a log: its score, and the step up (or down) to it */
 window.GFSay = {

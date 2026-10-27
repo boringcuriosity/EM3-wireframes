@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exercise lists</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* Move: the coach plan exercise list and the log list, side by side in one doc, each with an icon and kcal per minute at 70 kg.
+     Data: /v7/data/exercise-lists.js, generated from the cleaned lists (2024 Adult Compendium, every code checked). */
+  :root { --brand: #299D6B; --brand-700: #2A805A; --green-50: #ECFDF3; --green-600: #039855;
+    --bg-indigo: #EEF4FF; --in-600: #444CE7; --in-text: #2D3282; --amber-50: #FFFAEB; --amber-700: #B54708; --red-50: #FEF3F2; --red-700: #B42318;
+    --bg-2: #F2F4F7; --bg-n2: #F9FAFB; --bd: #E4E7EC; --g-400: #98A2B3; --t-1: #101828; --t-2: #344054; --t-3: #475467; --t-4: #667085; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--t-1); font-family: Roboto, system-ui, sans-serif; letter-spacing: .2px; }
+  .page { max-width: 1200px; margin: 0 auto; padding: 48px 24px 96px; }
+  .eyebrow { font: 600 11px/16px Roboto; letter-spacing: .8px; text-transform: uppercase; color: var(--t-4); }
+  h1 { margin: 8px 0 10px; font: 600 32px/40px Roboto; }
+  h2 { margin: 0 0 6px; font: 600 22px/30px Roboto; }
+  h3 { margin: 0 0 6px; font: 600 15px/22px Roboto; }
+  p { margin: 0; font-size: 15px; line-height: 24px; color: var(--t-3); max-width: 860px; }
+  b { font-weight: 600; color: var(--t-1); }
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 24px; }
+  .fact { padding: 16px; border-radius: 16px; background: var(--bg-n2); font-size: 13px; line-height: 21px; color: var(--t-2); }
+  .fact.warn { background: var(--amber-50); }
+  .fact code { font: 500 11px ui-monospace, Menlo, monospace; color: var(--in-600); }
+
+  .bar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 40px -24px 0; padding: 12px 24px; background: rgba(255,255,255,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--bd); }
+  .tabs { display: inline-flex; padding: 3px; border-radius: 10px; background: var(--bg-2); }
+  .tabs button { height: 32px; padding: 0 14px; border: 0; border-radius: 8px; background: none; font: 500 13px Roboto; color: var(--t-3); cursor: pointer; }
+  .tabs button[aria-pressed=true] { background: #fff; color: var(--t-1); box-shadow: 0 1px 2px rgba(16,24,40,.08); }
+  .tabs button i { font-style: normal; color: var(--g-400); margin-left: 4px; }
+  .bar input[type=search] { flex: 1; min-width: 180px; height: 36px; padding: 0 12px; border: 1px solid var(--bd); border-radius: 10px; font: 400 15px Roboto; }
+  .bar input[type=search]:focus { outline: none; border-color: var(--brand); }
+  .bar label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--t-3); }
+
+  .list { margin-top: 8px; }
+  .grp { margin: 28px 0 6px; font: 600 11px/16px Roboto; letter-spacing: .6px; text-transform: uppercase; color: var(--t-4); }
+  .row { display: grid; grid-template-columns: 44px 1fr auto; gap: 14px; align-items: start; padding: 12px 0; border-top: 1px solid var(--bg-2); }
+  .ico { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: var(--green-50); color: var(--green-600); }
+  .ico i { width: 26px; height: 26px; background: currentColor; -webkit-mask: var(--src) center/contain no-repeat; mask: var(--src) center/contain no-repeat; }
+  .ico.none { background: var(--bg-2); color: var(--g-400); font: 600 11px Roboto; }
+  .nm { font: 500 15px/22px Roboto; color: var(--t-1); }
+  .sub { margin-top: 2px; font-size: 13px; line-height: 19px; color: var(--t-4); }
+  .sub a { color: var(--in-600); text-decoration: none; }
+  .sub em { font-style: normal; color: var(--t-3); }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+  .tag { display: inline-flex; align-items: center; height: 20px; padding: 0 7px; border-radius: 6px; font: 500 11px/1 Roboto; background: var(--bg-2); color: var(--t-3); }
+  .tag.ok { background: var(--green-50); color: var(--brand-700); }
+  .tag.close { background: var(--bg-indigo); color: var(--in-text); }
+  .tag.warn { background: var(--amber-50); color: var(--amber-700); }
+  .tag.bad { background: var(--red-50); color: var(--red-700); }
+  .kc { text-align: right; white-space: nowrap; }
+  .kc b { display: block; font: 600 18px/24px Roboto; }
+  .kc span { display: block; font-size: 11px; line-height: 16px; color: var(--t-4); }
+  .kc.na b { color: var(--g-400); font-weight: 500; font-size: 15px; }
+  .ints { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 4px 16px; margin-top: 8px; }
+  .int { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px dashed var(--bd); font-size: 13px; line-height: 19px; color: var(--t-2); }
+  .int b { font-weight: 600; }
+  .empty { padding: 40px 0; text-align: center; color: var(--t-4); }
+  @media (max-width: 640px) { .page { padding: 32px 16px 64px; } .bar { margin: 32px -16px 0; padding: 10px 16px; } .row { grid-template-columns: 40px 1fr; } .kc { grid-column: 2; text-align: left; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">Move · Exercise lists</span>
+  <h1>Coach plan exercises and the log list</h1>
+  <p>Both lists the person can move with: what their coach assigns, and what they log themselves by search. Each has one icon and its calories per minute for a 70 kg person, taken from the 2024 Adult Compendium of Physical Activities (kcal per minute = MET × 3.5 × 70 ÷ 200). Duplicates are grouped under one name; nothing is deleted.</p>
+
+  <div class="facts">
+    <div class="fact"><h3>Where these come from</h3>Coach list: the live exercise library, 202 videos (<code>content_master</code>, ExerciseVideo), one row each. Log list: the team sheet “Activity logging - exercise_with_intensity”, 286 names and 373 intensity rows; names that are the same activity are merged into 143, with their intensities kept.</div>
+    <div class="fact warn"><h3>Coach exercises earn 0 kcal today</h3>The library has no MET or calorie field, and the calorie total skips plan logs (MyTatvaCore <code>Goal_readings_model.js</code>, plan logs are excluded). The numbers here would be new.</div>
+    <div class="fact warn"><h3>“Duration” is one rep, not the video</h3>In the library, <code>time_duration</code> is the time one rep takes. The coach portal works out the plan’s Duration as (reps × one rep + rest post set) × sets + rest post exercise. So “Neck Pain stretches, 26 min” means one rep is stored as 5 min: a data error to fix.</div>
+    <div class="fact warn"><h3>The log list uses a fixed number</h3><code>exercise_intensity_rel.cal_per_min</code> is one value per intensity, for 70 kg, with no body weight. The numbers here are updated to the 2024 Compendium, so they replace the sheet’s where they differ.</div>
+  </div>
+
+  <div class="bar">
+    <div class="tabs" role="group" aria-label="List"><button data-tab="coach" aria-pressed="true">Coach plan<i id="nc"></i></button><button data-tab="log" aria-pressed="false">Log list<i id="nl"></i></button></div>
+    <input id="q" type="search" placeholder="Search exercises" aria-label="Search exercises">
+    <label><input type="checkbox" id="fl"> Only with flags</label>
+  </div>
+  <div class="list" id="list"></div>
+</div>
+<script src="/v7/data/exercise-lists.js?v=6"></script>
+<script>
+(function () {
+  var D = window.EXL, tab = "coach", $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); };
+  var ico = function (p) { return p ? '<span class="ico"><i style="--src:url(/v7/icons/move/' + p + ')"></i></span>' : '<span class="ico none">?</span>'; };
+  var CONF = { exact: ["ok", "Exact match"], close: ["close", "Close match"], none: ["bad", "No Compendium match"], study: ["ok", "Measured in a study"], "study-close": ["close", "Close to a study"], proxy: ["warn", "Nearest stand-in"] };
+  var kc = function (v) { return v == null ? '<div class="kc na"><b>No value</b><span>no honest match</span></div>' : '<div class="kc"><b>' + v.toFixed(2) + '</b><span>kcal / min</span></div>'; };
+
+  function coachRow(c) {
+    var f = (c.fl || []).map(function (x) { return '<span class="tag warn">' + esc(x) + "</span>"; }).join("");
+    return '<div class="row">' + ico(c.ic) + "<div><div class=\"nm\">" + esc(c.n) + "</div>" +
+      '<div class="sub">' + (c.k === "session" ? "Session" : "Single exercise") + " · " + esc(c.ty) + (c.met != null ? " · MET " + c.met + (c.code ? " · " + esc(c.code) + " " + esc(c.act) : "") : "") + "</div>" +
+      (c.t.length ? '<div class="sub">Same exercise as <em>' + c.t.map(esc).join(", ") + "</em></div>" : "") +
+      (c.no ? '<div class="sub">' + esc(c.no) + "</div>" : "") +
+      (c.url ? '<div class="sub">Source: <a href="' + esc(c.url) + '" target="_blank" rel="noopener">' + esc(c.src.split(".")[0]) + "</a></div>" : "") +
+      '<div class="tags"><span class="tag ' + CONF[c.cf][0] + '">' + CONF[c.cf][1] + "</span>" + f + "</div></div>" + kc(c.kc) + "</div>";
+  }
+  function logRow(e) {
+    var ks = e.i.map(function (x) { return x.kc; }).filter(function (v) { return v != null; }), lo = Math.min.apply(null, ks), hi = Math.max.apply(null, ks);
+    return '<div class="row">' + ico(e.ic) + "<div><div class=\"nm\">" + esc(e.n) + "</div>" +
+      (e.s.length ? '<div class="sub">Merges <em>' + e.s.map(esc).join(", ") + "</em></div>" : "") +
+      (e.a !== "keep" ? '<div class="sub">' + esc(e.r) + "</div>" : "") +
+      '<div class="ints">' + e.i.map(function (x) {
+        return '<div class="int" title="' + esc((x.code || "no code") + " " + (x.act || "") + (x.no ? " · " + x.no : "")) + '"><span>' + esc(x.n) + "</span><span>" + "<b>" + (x.kc != null ? x.kc.toFixed(2) : "–") + "</b></span></div>";
+      }).join("") + "</div>" +
+      '<div class="tags">' + (e.a === "hide" ? '<span class="tag warn">Worth reviewing</span>' : e.a === "merge" ? '<span class="tag close">Merged</span>' : e.a === "rename" ? '<span class="tag close">Renamed</span>' : "") +
+(e.ind ? '<span class="tag ok">Common in India</span>' : "") + "</div></div>" +
+      (ks.length ? '<div class="kc"><b>' + (lo === hi ? lo.toFixed(2) : lo.toFixed(1) + " to " + hi.toFixed(1)) + '</b><span>kcal / min</span></div>' : kc(null)) + "</div>";
+  }
+  function flagged(x) { return tab === "coach" ? (x.fl && x.fl.length) || x.ti || x.cf === "none" : x.a !== "keep"; }
+  function draw() {
+    var q = $("q").value.trim().toLowerCase(), only = $("fl").checked, rows = D[tab].filter(function (x) {
+      var hay = (x.n + " " + (x.t || x.s || []).join(" ")).toLowerCase();
+      return (!q || hay.indexOf(q) > -1) && (!only || flagged(x));
+    }), h = "";
+    if (tab === "coach") {
+      [["single", "Single exercises"], ["session", "Sessions"]].forEach(function (g) {
+        var r = rows.filter(function (c) { return c.k === g[0]; }); if (r.length) h += '<div class="grp">' + g[1] + " · " + r.length + "</div>" + r.map(coachRow).join("");
+      });
+    } else {
+      if (rows.length) h += '<div class="grp">All activities · ' + rows.length + "</div>" + rows.map(logRow).join("");
+    }
+    $("list").innerHTML = h || '<div class="empty">Nothing matches.</div>';
+  }
+  $("nc").textContent = D.coach.length; $("nl").textContent = D.log.length;
+  document.addEventListener("click", function (e) { var b = e.target.closest("[data-tab]"); if (!b) return; tab = b.dataset.tab;
+    document.querySelectorAll("[data-tab]").forEach(function (x) { x.setAttribute("aria-pressed", x === b); }); draw(); });
+  $("q").addEventListener("input", draw); $("fl").addEventListener("change", draw);
+  draw();
+})();
+</script>
+</body>
+</html>

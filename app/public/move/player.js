@@ -5,6 +5,20 @@
 (function () {
   var P = window.MVPLAN; if (!P) return;
   var EX = P.EX, S0 = P.S, IC = P.IC;
+  /* What to do: each set, each rest, then the rest before the next exercise, as flat rows (v7/move-sets-reps-recipe.html, round 8 A).
+     One set of words for every exercise; at most 2 sets for now */
+  var SVG = { clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    next: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>' };
+  var secs = function (t) { return "<b>" + String(t).replace(/\s*sec$/, " seconds") + "</b>"; };
+  function steps(e) {
+    var n = Math.min(2, e.sets || 1), row = function (k, ic, lb, t) { return '<div class="mvp-st ' + k + '"><span class="ic">' + ic + '</span><span class="tx">' + (lb ? '<span class="lb">' + lb + '</span>' : "") + '<span class="t">' + t + '</span></span></div>'; };
+    var ex = '<i style="--src:url(/v7/icons/move/ex/set/' + (e.ic || "family-strength") + '.svg)"></i>', h = "";
+    for (var i = 0; i < n; i++) {
+      h += row("do", ex, n > 1 ? "Set " + (i + 1) : "", i ? "Do it again, <b>" + e.reps + " times</b>" : "Do this exercise <b>" + e.reps + " times</b>");
+      if (i < n - 1) h += row("rs", SVG.clock, "Between sets", "Rest for " + secs(e.restSet));
+    }
+    return '<div class="mvp-steps"><div class="mvp-lbl">What to do</div>' + h + row("nx", SVG.next, "Before the next exercise", "Rest for " + secs(e.rest)) + '</div>';
+  }
   var PI = {
     x: '<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 2l10 10M12 2 2 12"/></svg>',
     play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13a1 1 0 0 0 1.53.85l10.2-6.5a1 1 0 0 0 0-1.7L9.53 4.65A1 1 0 0 0 8 5.5z"/></svg>',
@@ -124,8 +138,8 @@
         '<div class="mvp-scroll"><div class="mvp-th"><h5>' + e.name + '</h5>' +
           /* marking it done stays on this exercise; Next is what moves on */
           '<button class="mvp-mark' + (done(id) ? " on" : "") + '" data-a="mark" aria-pressed="' + done(id) + '"><span class="ck">' + PI.check + '</span>' + (done(id) ? "Completed" : "Mark as completed") + '</button></div>' +
-          '<div class="mvp-facts"><span>' + e.sets + ' <i>sets</i></span><span>' + e.reps + ' <i>reps</i></span><span>' + e.restSet + ' <i>between sets</i></span><span>' + e.rest + ' <i>before next</i></span></div>' +
-          '<div class="mvp-desc"><p>' + e.why + '</p>' + (e.steps
+          steps(e) +
+          '<div class="mvp-desc"><div class="mvp-lbl">About this exercise</div><p>' + e.why + '</p>' + (e.steps
             ? '<h6>Steps to perform</h6><ol>' + e.steps.map(function (x) { return '<li>' + x + '</li>'; }).join("") + '</ol>' +
               '<h6>Do\'s</h6><ul>' + e.dos.map(function (x) { return '<li>' + x + '</li>'; }).join("") + '</ul>' +
               '<h6>Don\'ts</h6><ul>' + e.donts.map(function (x) { return '<li>' + x + '</li>'; }).join("") + '</ul>' : "") + '</div></div>' +

@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sets and reps rounds</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* Round four: the recipe as a template, drawn in GoodFlip's own patterns (Figma eIycxrJSM8IOSLgAavFUE4):
+     the gold "how to" step card (5075:3262), the "all steps" card (3260:2917), the movement verdict tag (6875:9959),
+     and the journey stages colours (4162:5955). The steps come from the plan's numbers alone, so any exercise works. */
+  :root {
+    /* GoodFlip tokens, from the Figma variables */
+    --bg-gold: #FFFBEE; --bg-gold-2: #FEF1C7; --bd-gold: #FDE8A4; --gold-600: #E7C144; --gold-700: #CDA935;
+    --bg-indigo: #EEF4FF; --in-200: #C7D7FE; --in-600: #444CE7; --in-text: #2D3282;
+    --teal-50: #EEFFFF; --teal-text: #2D8282;
+    --green-50: #ECFDF3; --green-400: #32D583; --green-500: #12B76A; --green-600: #039855;
+    --bg-2: #F2F4F7; --bg-n2: #F9FAFB; --bd-n: #E4E7EC; --g-300: #D0D5DD; --g-400: #98A2B3;
+    --t-1: #101828; --t-2: #344054; --t-3: #475467; --t-4: #667085;
+    --brand-600: #299D6B; --brand-700: #2A805A;
+    --r-xs: 8px; --r-s: 12px; --r-m: 16px; --r-l: 24px; --sp-xs: 8px; --sp-s: 12px; --sp-m: 16px; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--t-1); font-family: Roboto, system-ui, sans-serif; letter-spacing: .25px; }
+  .page { max-width: 1440px; margin: 0 auto; padding: 56px 24px 96px; }
+  .eyebrow { font: 600 12px/16px Roboto; letter-spacing: .8px; text-transform: uppercase; color: var(--t-4); }
+  h1 { margin: 10px 0 10px; font-size: 34px; line-height: 42px; font-weight: 600; }
+  h2 { margin: 0 0 6px; font: 600 22px/30px Roboto; display: flex; align-items: center; gap: 10px; }
+  h2 i { font-style: normal; color: var(--g-400); font-weight: 500; }
+  .rec { font: 500 12px/1.2 Roboto; color: #fff; background: var(--green-600); border-radius: var(--r-xs); padding: 4px 8px; }
+  .lede, section > p { max-width: 900px; margin: 0; font-size: 15.5px; line-height: 25px; color: var(--t-3); }
+  section { margin-top: 64px; }
+  .row { display: flex; flex-wrap: wrap; gap: 28px; margin-top: 20px; align-items: flex-start; }
+  .plan { margin-bottom: 8px; font: 500 12px/16px Roboto; color: var(--t-4); }
+
+  .spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-top: 24px; }
+  .spec > div { padding: 16px 18px; border-radius: var(--r-m); background: var(--bg-n2); font-size: 13.5px; line-height: 21px; color: var(--t-2); }
+  .spec h3 { margin: 0 0 8px; font: 600 15px/22px Roboto; color: var(--t-1); }
+  .spec table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 19px; }
+  .spec td { padding: 6px 8px 6px 0; border-top: 1px solid var(--bd-n); vertical-align: top; }
+  .spec td:first-child { white-space: nowrap; color: var(--t-4); }
+  .spec code { font: 500 12.5px ui-monospace, Menlo, monospace; color: var(--in-600); }
+
+  /* the player, top part */
+  .ph { width: 360px; border: 1px solid var(--bd-n); border-radius: 28px; overflow: hidden; background: #fff; box-shadow: 0 20px 40px -20px rgba(16,24,40,.2); }
+  .vid { height: 120px; background: linear-gradient(160deg, #3a3f4a, #1d2027); position: relative; }
+  .vid::after { content: ""; position: absolute; left: 50%; top: 50%; width: 40px; height: 40px; margin: -20px 0 0 -20px; border-radius: 50%; background: rgba(255,255,255,.22) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M8 5v14l11-7z'/%3E%3C/svg%3E") center/18px no-repeat; }
+  .body { padding: var(--sp-m); }
+  .title { margin: 0 0 var(--sp-m); font: 600 18px/24px Roboto; }   /* Title/Medium */
+  .desc { margin-top: var(--sp-m); height: 9px; border-radius: 4px; background: linear-gradient(90deg, var(--bg-2), #fff); }
+
+  /* ---- round four: references from Mobbin (Runna, WHOOP, Tonal, Peloton, Ladder), drawn in GoodFlip tokens ---- */
+  .lbl { margin: 0 0 var(--sp-xs); font: 500 12px/16px Roboto; letter-spacing: .4px; text-transform: uppercase; color: var(--t-4); }
+  .tm { display: inline-flex; align-items: center; gap: 4px; font: 500 12px/16px Roboto; color: var(--t-4); }
+  .tm svg { width: 14px; height: 14px; }
+  .hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-s); }
+  /* A: stat tiles + segmented bar (WHOOP, Peloton) */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-xs); }
+  .stat { padding: 12px 12px 10px; border-radius: var(--r-s); background: var(--bg-n2); }
+  .stat b { display: block; font: 600 26px/30px Roboto; letter-spacing: -.5px; color: var(--t-1); }
+  .stat b small { font: 500 14px Roboto; letter-spacing: 0; color: var(--t-3); }
+  .stat span { display: block; margin-top: 2px; font: 500 12px/16px Roboto; color: var(--t-4); }
+  .stat.g { background: var(--green-50); } .stat.g b { color: var(--green-600); }
+  .seg { display: flex; gap: 3px; margin-top: var(--sp-m); }
+  .seg i { height: 8px; border-radius: 4px; background: var(--brand-600); }
+  .seg i.r { background: var(--bd-n); }
+  .segl { display: flex; gap: 3px; margin-top: 6px; font: 400 11px/14px Roboto; color: var(--t-4); }
+  .segl span { text-align: center; white-space: nowrap; overflow: hidden; }
+  .segl span.d { color: var(--brand-700); font-weight: 500; }
+  /* B: set cards with a rest bar between (Runna) */
+  .scards { display: flex; flex-direction: column; gap: 6px; }
+  .scard { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: var(--r-s); background: #fff; box-shadow: 0 0 0 1px var(--bd-n), 0 1px 2px rgba(16,24,40,.05); }
+  .scard .n { display: flex; align-items: center; gap: 10px; font: 600 15px/20px Roboto; color: var(--t-1); }
+  .scard .n i { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; background: var(--green-50); color: var(--green-600); font: 600 13px Roboto; font-style: normal; }
+  .scard .amt { display: inline-flex; align-items: baseline; gap: 4px; padding: 4px 10px; border-radius: 999px; background: var(--green-50); font: 600 15px/20px Roboto; color: var(--green-600); }
+  .scard .amt small { font: 500 12px Roboto; color: var(--brand-700); }
+  .rbar { display: flex; align-items: center; justify-content: center; gap: 6px; height: 30px; margin: 0 14px; border-radius: 8px; background: var(--bg-indigo); font: 500 12px/1 Roboto; color: var(--in-text); }
+  .rbar svg { width: 14px; height: 14px; }
+  .rbar.nx { margin: 4px 0 0; background: var(--bg-2); color: var(--t-3); }
+  /* C: big numbers with a sentence (Tonal, Ladder) */
+  .hero { display: flex; align-items: flex-end; gap: 14px; padding: 16px; border-radius: var(--r-m); background: linear-gradient(135deg, var(--green-50), #fff 80%); box-shadow: inset 0 0 0 1px #D1FADF; }
+  .hero .x { font: 300 30px/44px Roboto; color: var(--t-4); }
+  .hero .num b { display: block; font: 700 44px/44px Roboto; letter-spacing: -1.5px; color: var(--t-1); }
+  .hero .num span { display: block; margin-top: 4px; font: 600 11px/14px Roboto; letter-spacing: .8px; text-transform: uppercase; color: var(--brand-700); }
+  .hero .side { margin-left: auto; text-align: right; font: 500 12px/16px Roboto; color: var(--t-4); }
+  .hero .side b { display: block; font: 600 18px/24px Roboto; color: var(--t-1); }
+  .say { margin: var(--sp-s) 2px 0; font-size: 15px; line-height: 23px; color: var(--t-2); }
+  .say b { font-weight: 600; color: var(--t-1); }
+  /* D: a horizontal journey of rounds (journey stages) */
+  .jr { display: flex; align-items: flex-start; padding: 16px 12px 12px; border-radius: var(--r-m); background: var(--bg-n2); }
+  .jr .st { flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; width: 56px; }
+  .jr .st i { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: #fff; box-shadow: inset 0 0 0 2px var(--brand-600); font: 700 18px/1 Roboto; font-style: normal; color: var(--t-1); }
+  .jr .st i small { display: block; font: 500 10px/1 Roboto; color: var(--t-4); margin-top: -8px; }
+  .jr .st span { font: 500 12px/16px Roboto; color: var(--t-3); }
+  .jr .lk { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; padding-top: 18px; min-width: 24px; }
+  .jr .lk hr { width: 100%; margin: 0; border: 0; border-top: 2px dashed var(--g-300); }
+  .jr .lk span { font: 500 11px/14px Roboto; color: var(--t-4); white-space: nowrap; }
+  .jr-foot { display: flex; justify-content: space-between; margin-top: var(--sp-s); font-size: 13px; line-height: 18px; color: var(--t-4); }
+  .jr-foot b { color: var(--t-1); font-weight: 600; }
+  .g4 .how { padding: var(--sp-m); border-radius: var(--r-m); background: var(--bg-gold); box-shadow: inset 0 0 0 1px var(--bd-gold); }
+  .g4 .how h6 { margin: 0 0 var(--sp-s); font: 600 14px/20px Roboto; color: var(--t-1); }
+  .g4 .steps { position: relative; display: flex; flex-direction: column; gap: var(--sp-xs); }
+  .g4 .stp { position: relative; display: grid; grid-template-columns: 30px 1fr; gap: var(--sp-s); align-items: start; }
+  .g4 .stp:not(:last-child)::after { content: ""; position: absolute; left: 14px; top: 32px; bottom: -10px; border-left: 1.5px dashed var(--in-600); opacity: .55; }
+  .g4 .nb { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--in-200); box-shadow: inset 0 0 0 1px var(--in-600); font: 600 14px/1 Roboto; color: var(--in-text); }
+  .g4 .pan { padding: 10px var(--sp-s); border-radius: var(--r-s); background: var(--bg-gold-2); font-size: 16px; line-height: 24px; color: var(--t-1); }
+  .g4 .pan b { font-weight: 600; }
+  .g4 .stp.r .nb { background: var(--bg-2); box-shadow: inset 0 0 0 1px var(--g-300); color: var(--t-4); }
+  .g4 .stp.r .pan { background: none; padding: 4px 2px; font-size: 14px; line-height: 21px; color: var(--t-3); }
+  .g4 .stp.r .pan b { color: var(--t-1); }
+  .g4 .wt { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; margin-left: 6px; border-radius: var(--r-xs); font: 400 12px/1.2 Roboto; vertical-align: 2px; white-space: nowrap; }
+  .g4 .wt.set { background: var(--bg-indigo); box-shadow: inset 0 0 0 1px var(--in-200); color: var(--in-text); }
+  .g4 .wt.rest { background: var(--bg-n2); box-shadow: inset 0 0 0 1px var(--bd-n); color: var(--t-4); }
+  .g4 .loop { position: relative; padding: var(--sp-s); border-radius: var(--r-s); background: var(--bg-gold-2); }
+  .g4 .loop .times { position: absolute; right: 10px; top: 10px; display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px; border-radius: var(--r-xs); background: var(--in-600); color: #fff; font: 600 12px/1 Roboto; }
+  .g4 .loop .times svg { width: 13px; height: 13px; }
+  .g4 .loop .ln { display: grid; grid-template-columns: 30px 1fr; gap: var(--sp-s); align-items: center; padding: 4px 64px 4px 0; font-size: 16px; line-height: 24px; color: var(--t-1); }
+  .g4 .loop .ln.r { font-size: 14px; color: var(--t-3); }
+  .g4 .loop .cap { margin-top: 6px; padding-top: 8px; border-top: 1px dashed var(--bd-gold); font-size: 12px; line-height: 18px; color: var(--t-4); }
+  .g4 .then { display: grid; grid-template-columns: 30px 1fr; gap: var(--sp-s); align-items: center; margin-top: var(--sp-xs); font-size: 14px; line-height: 21px; color: var(--t-3); }
+  .g4 .then b { color: var(--t-1); }
+  .g4 .ic { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: #fff; color: var(--in-text); font: 600 11px Roboto; }
+  .g4 .ic.r { color: var(--t-4); }
+  .g4 .ic svg { width: 15px; height: 15px; }
+  .g4 .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 4px; padding: var(--sp-m); border-radius: var(--r-m); background: var(--bg-gold); box-shadow: inset 0 0 0 1px var(--bd-gold); }
+  .g4 .flow .b { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; min-width: 54px; padding: 6px 8px; border-radius: var(--r-xs); }
+  .g4 .flow .b b { font: 600 15px/20px Roboto; }
+  .g4 .flow .b span { font: 400 11px/14px Roboto; }
+  .g4 .flow .d { background: var(--bg-indigo); box-shadow: inset 0 0 0 1px var(--in-200); color: var(--in-text); }
+  .g4 .flow .rr { background: var(--bg-n2); box-shadow: inset 0 0 0 1px var(--bd-n); color: var(--t-4); }
+  .g4 .flow .a { color: var(--g-400); font-size: 14px; }
+  .g4 .flow-say { margin: var(--sp-s) 2px 0; font-size: 14px; line-height: 21px; color: var(--t-3); }
+  .g4 .cards { display: flex; flex-direction: column; gap: var(--sp-xs); }
+  .g4 .sc { display: grid; grid-template-columns: 32px 1fr; gap: var(--sp-s); }
+  .g4 .sc .num2 { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--teal-50); color: var(--teal-text); font: 600 15px Roboto; }
+  .g4 .sc.r .num2 { background: var(--bg-2); color: var(--t-4); }
+  .g4 .sc .bx { padding: var(--sp-s) 14px; border-radius: var(--r-m); background: var(--bg-2); }
+  .g4 .sc .bx b { display: block; font: 600 16px/22px Roboto; color: var(--t-1); }
+  .g4 .sc .bx span { display: block; margin-top: 2px; font-size: 14px; line-height: 20px; color: var(--t-4); }
+  .g4 .sc .bx .pill { display: inline-block; margin-top: 8px; padding: 3px 10px; border-radius: 999px; background: #fff; font: 400 12px/18px Roboto; color: var(--t-2); }
+  .g4 .sc .pill em { font-style: normal; font-weight: 600; color: var(--in-600); }
+  .g4 .sc.r .pill em { color: var(--gold-700); }
+  .g4 .live .stp.done .nb { background: var(--green-500); box-shadow: none; color: #fff; }
+  .g4 .live .stp.done .pan { background: none; padding: 4px 2px; font-size: 14px; line-height: 21px; color: var(--t-4); text-decoration: line-through; text-decoration-color: var(--g-300); }
+  .g4 .live .stp.done .pan b { color: var(--t-4); }
+  .g4 .live .stp.now .nb { background: var(--in-600); box-shadow: 0 0 0 4px var(--in-200); color: #fff; }
+  .g4 .live .stp.now .pan { padding: 10px var(--sp-s); border-radius: var(--r-s); background: #fff; box-shadow: inset 0 0 0 1.5px var(--in-600); }
+  .g4 .live .stp.next { opacity: .55; }
+  .g4 .left { display: flex; align-items: center; margin-top: 6px; font: 500 12px/16px Roboto; color: var(--in-600); }
+  .g4 .left i { flex: 1; height: 4px; margin-right: 10px; border-radius: 2px; background: var(--in-200); overflow: hidden; }
+  .g4 .left i::before { content: ""; display: block; width: 40%; height: 100%; background: var(--in-600); }
+  .g5 .sets { border: 1px solid var(--bd-n); border-radius: var(--r-s); overflow: hidden; }
+  .g5 .srow { display: flex; align-items: center; gap: var(--sp-s); padding: var(--sp-s) 14px; }
+  .g5 .srow + .srow, .g5 .srest + .srow, .g5 .srow + .srest { border-top: 1px solid var(--bd-n); }
+  .g5 .srow .k { width: 44px; font: 500 13px/18px Roboto; color: var(--t-4); }
+  .g5 .srow .v { flex: 1; font: 500 16px/24px Roboto; color: var(--t-1); }
+  .g5 .srow .v small { font: 400 13px Roboto; color: var(--t-4); }
+  .g5 .srest { display: flex; align-items: center; gap: 8px; padding: 6px 14px; background: var(--bg-n2); font: 400 12px/18px Roboto; color: var(--t-4); }
+  .g5 .srest svg { width: 14px; height: 14px; }
+  .g5 .after { margin-top: var(--sp-xs); font: 400 13px/18px Roboto; color: var(--t-4); }
+  .g5 .big { font: 600 22px/28px Roboto; color: var(--t-1); }
+  .g5 .big span { color: var(--t-4); font-weight: 400; }
+  .g5 .gloss { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin-top: var(--sp-s); padding-top: var(--sp-s); border-top: 1px solid var(--bd-n); font-size: 14px; line-height: 20px; color: var(--t-3); }
+  .g5 .gloss b { font-weight: 600; color: var(--t-1); }
+  .g5 .ol { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .g5 .ol li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; font-size: 15px; line-height: 22px; color: var(--t-1); }
+  .g5 .ol li i { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--green-50); color: var(--green-600); font: 600 12px/1 Roboto; font-style: normal; }
+  .g5 .ol li.r { color: var(--t-4); font-size: 14px; }
+  .g5 .ol li.r i { background: var(--bg-2); color: var(--t-4); }
+  .g5 .ol li b { font-weight: 600; }
+  /* ---- round 7: the recipe, five ways to dress it ---- */
+  /* A: soft timeline */
+  .g7 .tl { position: relative; display: flex; flex-direction: column; gap: 6px; padding-left: 26px; }
+  .g7 .tl::before { content: ""; position: absolute; left: 8px; top: 14px; bottom: 14px; width: 2px; border-radius: 1px; background: linear-gradient(var(--green-400), var(--in-200)); }
+  .g7 .tl .s { position: relative; }
+  .g7 .tl .s::before { content: ""; position: absolute; left: -23px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%; background: var(--brand-600); box-shadow: 0 0 0 3px #fff, 0 0 0 4px #D1FADF; }
+  .g7 .tl .s.do > div { padding: 10px 14px; border-radius: var(--r-s); background: #fff; box-shadow: 0 1px 3px rgba(16,24,40,.08), 0 0 0 1px var(--bd-n); font-size: 15px; line-height: 22px; }
+  .g7 .tl .s.do small { display: block; font: 500 11px/14px Roboto; letter-spacing: .5px; text-transform: uppercase; color: var(--brand-700); }
+  .g7 .tl .s.rs::before { width: 8px; height: 8px; margin-top: -4px; left: -21px; background: #fff; box-shadow: 0 0 0 2px var(--in-200); }
+  .g7 .tl .s.rs > div { display: flex; align-items: center; gap: 6px; padding: 2px 4px; font-size: 13px; line-height: 20px; color: var(--t-4); }
+  .g7 .tl .s.rs svg { width: 14px; height: 14px; color: var(--in-600); }
+  .g7 .tl b { font-weight: 600; color: var(--t-1); }
+  /* B: count first tiles */
+  .g7 .cf { display: flex; flex-direction: column; gap: 6px; }
+  .g7 .cf .t { display: flex; align-items: center; gap: 14px; padding: 10px 14px 10px 10px; border-radius: var(--r-m); background: var(--green-50); }
+  .g7 .cf .t .q { flex: none; width: 56px; height: 56px; border-radius: 14px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.06); }
+  .g7 .cf .t .q b { font: 700 22px/24px Roboto; letter-spacing: -.5px; color: var(--green-600); }
+  .g7 .cf .t .q span { font: 500 10px/12px Roboto; color: var(--t-4); }
+  .g7 .cf .t > div { font-size: 14px; line-height: 20px; color: var(--t-3); }
+  .g7 .cf .t > div b { display: block; font: 600 16px/22px Roboto; color: var(--t-1); }
+  .g7 .cf .rp { align-self: center; display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; background: var(--bg-indigo); font: 500 12px/18px Roboto; color: var(--in-text); }
+  .g7 .cf .rp svg { width: 13px; height: 13px; }
+  .g7 .cf .t.nx { background: var(--bg-n2); }
+  .g7 .cf .t.nx .q b { color: var(--t-3); }
+  /* C: recipe card with dotted leaders */
+  .g7 .rc { padding: 16px; border-radius: var(--r-m); background: #fff; box-shadow: 0 0 0 1px var(--bd-n), 0 8px 20px -12px rgba(16,24,40,.18); }
+  .g7 .rc h6 { display: flex; justify-content: space-between; margin: 0 0 10px; padding-bottom: 10px; border-bottom: 1px solid var(--bd-n); font: 600 15px/20px Roboto; color: var(--t-1); }
+  .g7 .rc h6 span { font: 500 12px/20px Roboto; color: var(--t-4); }
+  .g7 .rc .l { display: flex; align-items: baseline; gap: 8px; padding: 5px 0; font-size: 15px; line-height: 22px; color: var(--t-2); }
+  .g7 .rc .l .n { width: 18px; font: 600 12px Roboto; color: var(--brand-600); }
+  .g7 .rc .l .dots { flex: 1; border-bottom: 1.5px dotted var(--g-300); transform: translateY(-4px); }
+  .g7 .rc .l b { font-weight: 600; color: var(--t-1); white-space: nowrap; }
+  .g7 .rc .l.r { color: var(--t-4); font-size: 13px; }
+  .g7 .rc .l.r .n { color: var(--g-400); }
+  .g7 .rc .l.r b { font-weight: 500; color: var(--in-600); }
+  /* D: icon rows */
+  .g7 .ir { border-radius: var(--r-m); background: var(--bg-n2); padding: 6px; }
+  .g7 .ir .w { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: var(--r-s); }
+  .g7 .ir .w.do { background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.06); }
+  .g7 .ir .w + .w { margin-top: 4px; }
+  .g7 .ir .ico { flex: none; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; }
+  .g7 .ir .ico svg { width: 20px; height: 20px; }
+  .g7 .ir .do .ico { background: var(--green-50); color: var(--green-600); }
+  .g7 .ir .rs .ico { background: var(--bg-indigo); color: var(--in-600); }
+  .g7 .ir .nx .ico { background: var(--bg-2); color: var(--t-4); }
+  .g7 .ir .w > div { flex: 1; font-size: 15px; line-height: 21px; color: var(--t-1); }
+  .g7 .ir .w > div small { display: block; font: 500 11px/14px Roboto; color: var(--t-4); }
+  .g7 .ir .rs > div, .g7 .ir .nx > div { font-size: 14px; color: var(--t-3); }
+  .g7 .ir b { font-weight: 600; color: var(--t-1); }
+  /* E: deep green coach card */
+  .g7 .dk { padding: 18px 16px; border-radius: var(--r-l); background: radial-gradient(120% 90% at 100% 0%, #3CCB8B 0%, #299D6B 38%, #1B6B48 100%); color: #fff; }
+  .g7 .dk h6 { margin: 0 0 14px; font: 500 12px/16px Roboto; letter-spacing: .8px; text-transform: uppercase; color: rgba(255,255,255,.75); }
+  .g7 .dk .s { display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: center; padding: 7px 0; font-size: 15px; line-height: 22px; }
+  .g7 .dk .s + .s { border-top: 1px solid rgba(255,255,255,.14); }
+  .g7 .dk .s i { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: #fff; color: #1B6B48; font: 700 12px/1 Roboto; font-style: normal; }
+  .g7 .dk .s.r { font-size: 13px; color: rgba(255,255,255,.75); }
+  .g7 .dk .s.r i { background: rgba(255,255,255,.16); color: #fff; }
+  .g7 .dk b { font-weight: 600; color: #fff; }
+  /* ---- round 8: icon rows, flat. Nothing raised, nothing outlined, no chevrons: it reads, it doesn't tap ---- */
+  .g8 .ex { display: inline-block; width: 20px; height: 20px; background: currentColor; -webkit-mask: var(--src) center/contain no-repeat; mask: var(--src) center/contain no-repeat; }
+  .g8 .ico { flex: none; display: grid; place-items: center; }
+  .g8 .ico svg { width: 18px; height: 18px; }
+  .g8 .tx { flex: 1; min-width: 0; }
+  .g8 .tx b { display: block; font: 500 15px/21px Roboto; color: var(--t-1); }
+  .g8 .tx span { display: block; font: 400 13px/18px Roboto; color: var(--t-4); }
+  .g8 .tx b b { display: inline; font-weight: 600; }
+  .g8 .tx .lb { font: 500 11px/14px Roboto; letter-spacing: .5px; text-transform: uppercase; color: var(--t-4); }
+  /* A: hairlines */
+  .g8 .ha .w { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+  .g8 .ha .w + .w { border-top: 1px solid var(--bg-2); }
+  .g8 .ha .ico { width: 36px; height: 36px; border-radius: 10px; }
+  .g8 .ha .do .ico { background: var(--green-50); color: var(--green-600); }
+  .g8 .ha .rs .ico { background: var(--bg-indigo); color: var(--in-600); }
+  .g8 .ha .nx .ico { background: var(--bg-2); color: var(--t-4); }
+  /* B: icons on a rail */
+  .g8 .rl .w { position: relative; display: flex; align-items: flex-start; gap: 14px; padding-bottom: 14px; }
+  .g8 .rl .w:last-child { padding-bottom: 0; }
+  .g8 .rl .w:not(:last-child)::after { content: ""; position: absolute; left: 15px; top: 34px; bottom: 2px; width: 1.5px; background: var(--bd-n); }
+  .g8 .rl .ico { width: 32px; height: 32px; border-radius: 50%; }
+  .g8 .rl .do .ico { background: var(--green-50); color: var(--green-600); }
+  .g8 .rl .rs .ico, .g8 .rl .nx .ico { width: 24px; height: 24px; margin: 4px; background: none; color: var(--in-600); }
+  .g8 .rl .nx .ico { color: var(--t-4); }
+  .g8 .rl .tx { padding-top: 5px; }
+  .g8 .rl .rs .tx, .g8 .rl .nx .tx { padding-top: 6px; }
+  .g8 .rl .rs .tx b, .g8 .rl .nx .tx b { font-size: 13px; line-height: 18px; color: var(--t-3); }
+  /* C: spec sheet, amount on the right */
+  .g8 .sp .w { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
+  .g8 .sp .ico { width: 32px; height: 32px; border-radius: 50%; }
+  .g8 .sp .do .ico { background: var(--green-50); color: var(--green-600); }
+  .g8 .sp .tx b { font-weight: 500; }
+  .g8 .sp .q { font: 600 16px/22px Roboto; color: var(--t-1); text-align: right; white-space: nowrap; }
+  .g8 .sp .q small { display: block; font: 400 12px/16px Roboto; color: var(--t-4); }
+  .g8 .sp .rs, .g8 .sp .nx { padding: 2px 0 2px 44px; gap: 6px; font: 400 13px/18px Roboto; color: var(--t-4); }
+  .g8 .sp .rs .ico, .g8 .sp .nx .ico { width: auto; height: auto; color: var(--in-600); }
+  .g8 .sp .nx .ico { color: var(--g-400); }
+  .g8 .sp .rs .ico svg, .g8 .sp .nx .ico svg { width: 14px; height: 14px; }
+  .g8 .sp .nx { margin-top: 6px; padding-top: 10px; border-top: 1px dashed var(--bd-n); }
+  /* D: one soft tray, rows flat inside it */
+  .g8 .tr { padding: 4px 14px; border-radius: var(--r-m); background: var(--bg-n2); }
+  .g8 .tr .w { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+  .g8 .tr .ico { width: 32px; height: 32px; }
+  .g8 .tr .do .ico { color: var(--green-600); }
+  .g8 .tr .do .ex { width: 26px; height: 26px; }
+  .g8 .tr .rs { padding: 0 0 0 44px; margin: -2px 0; font: 500 12px/18px Roboto; color: var(--in-600); gap: 6px; }
+  .g8 .tr .rs .ico { width: auto; height: auto; }
+  .g8 .tr .rs .ico svg { width: 14px; height: 14px; }
+  .g8 .tr .nx { border-top: 1px solid var(--bd-n); margin-top: 4px; }
+  .g8 .tr .nx .ico { color: var(--t-4); }
+  .g8 .tr .nx .tx b { font-size: 14px; color: var(--t-3); }
+  /* the list of rounds */
+  .rounds { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 24px; }
+  .rd { display: block; padding: 14px 16px; border-radius: var(--r-m); background: var(--bg-n2); text-decoration: none; color: var(--t-2); font-size: 13px; line-height: 19px; transition: background .2s; }
+  .rd:hover { background: var(--bg-2); }
+  .rd .no { font: 600 12px/16px Roboto; letter-spacing: .6px; text-transform: uppercase; color: var(--t-4); }
+  .rd b { display: block; margin: 4px 0 6px; font: 600 16px/22px Roboto; color: var(--t-1); }
+  .rd.now { background: var(--green-50); } .rd.now .no { color: var(--green-600); }
+  .rd.gone { opacity: .6; }
+  .rd em { font-style: normal; color: var(--brand-700); font-weight: 500; }
+  .round { margin-top: 96px; padding-top: 32px; border-top: 1px solid var(--bd-n); }
+  .round > .eyebrow { display: block; }
+  .round h1 { font-size: 28px; line-height: 36px; }
+  @media (max-width: 720px) { .page { padding: 32px 16px 64px; } h1 { font-size: 26px; line-height: 34px; } .ph { width: 100%; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">Move · Exercise player · Sets and reps</span>
+  <h1>Every round, start to now</h1>
+  <p class="lede">How we got from “2 sets × 10 reps” chips to a plan people understand at a glance. Rounds 1 and 2 are their own pages; rounds 4 to 8 are drawn below on the same three plans, newest last. Round 3 was written over by round 4, which kept its first four looks.</p>
+  <div class="rounds">
+    <a class="rd" href="/v7/move-sets-reps-options.html"><span class="no">Round 1 · own page ↗</span><b>First options</b>Today, One plain sentence, Step timeline, Unrolled checklist, Three numbers labelled, One number at a time</a>
+    <a class="rd" href="/v7/move-sets-reps-explain.html"><span class="no">Round 2 · own page ↗</span><b>Explain the words</b>Count the dots, <em>A recipe</em>, The total first, Time to scale, <em>Teach the words once</em>, Learn by doing, Like climbing stairs. You liked the two in green.</a>
+    <div class="rd gone"><span class="no">Round 3 · not kept</span><b>Recipe as a template</b>Recipe, Recipe with word tags, Loop ×N, Flow line, Words you can tap, Taught once. A to D carried into round 4; E and F dropped.</div>
+    <a class="rd" href="#r4"><span class="no">Round 4 · below</span><b>GoodFlip patterns</b>Gold “how to” card, word tags, one round repeated, flow line, step cards, live recipe. Felt too gold.</a>
+    <a class="rd" href="#r5"><span class="no">Round 5 · below</span><b>Kept simple</b>Set by set, One line with words explained, Plain steps. Felt too blank.</a>
+    <a class="rd" href="#r6"><span class="no">Round 6 · below</span><b>At a glance</b>Numbers and shape, Set cards with rest between, Big numbers with one sentence, Rounds as a journey. From Mobbin.</a>
+    <a class="rd" href="#r7"><span class="no">Round 7 · below</span><b>A recipe, dressed up</b>Soft timeline, Count first, Recipe card, Icon rows, Coach card. You liked Icon rows.</a>
+    <a class="rd now" href="#r8"><span class="no">Round 8 · now</span><b>Icon rows, kept flat</b>Hairlines, Icons on a rail, Amount on the right, One soft tray.</a>
+  </div>
+
+  <div class="spec">
+    <div><h3>Input: the plan, nothing else</h3><table>
+      <tr><td><code>sets</code></td><td>How many rounds</td></tr>
+      <tr><td><code>reps</code> or <code>hold</code></td><td>Times to do it, or seconds to hold it</td></tr>
+      <tr><td><code>side</code></td><td>One side, or each side</td></tr>
+      <tr><td><code>restSet</code> · <code>restNext</code></td><td>Seconds between rounds · before the next exercise</td></tr>
+    </table></div>
+    <div><h3>The lines it builds</h3><table>
+      <tr><td>Do</td><td>Do it <b><code>{reps}</code> times</b> · Do it <b><code>{reps}</code> more times</b></td></tr>
+      <tr><td>Hold</td><td>Hold it for <b><code>{hold}</code> seconds</b> · Hold it again for <b><code>{hold}</code> seconds</b></td></tr>
+      <tr><td>Each side</td><td>+ on each side</td></tr>
+      <tr><td>Rest</td><td>Rest for <b><code>{restSet}</code> seconds</b></td></tr>
+      <tr><td>Last</td><td>Take <b><code>{restNext}</code> seconds</b>, then start the next exercise</td></tr>
+    </table></div>
+    <div><h3>The order and the words</h3><table>
+      <tr><td>Order</td><td>Do, rest, do, rest… do, then the last step. No rest after the final round.</td></tr>
+      <tr><td>Words</td><td>Always “it”, never the exercise name, so nothing ever breaks.</td></tr>
+      
+    </table></div>
+  </div>
+  <div id="looks"></div>
+</div>
+<script>
+  /* ---------- the template ---------- */
+  const PLANS = [
+    { name: "Plank to push up", sets: 2, reps: 10, restSet: 30, restNext: 15, label: "2 sets of 10 reps" },
+    { name: "Side leg raise", sets: 3, reps: 12, side: true, restSet: 20, restNext: 15, label: "3 sets of 12 reps, each side" },
+    { name: "Wall sit", sets: 3, hold: 30, restSet: 30, restNext: 20, label: "3 sets, 30 second hold" }
+  ];
+  const side = p => p.side ? " on each side" : "";
+  const doIt = (p, again) => p.hold ? (again ? "Hold it again for <b>" + p.hold + " seconds</b>" : "Hold it for <b>" + p.hold + " seconds</b>") + side(p)
+    : "Do it <b>" + p.reps + (again ? " more times" : " times") + "</b>" + side(p);
+  const rest = p => "Rest for <b>" + p.restSet + " seconds</b>";
+  const last = p => "Take <b>" + p.restNext + " seconds</b>, then start the next exercise";
+  function steps(p) {   /* do, rest, do, rest… do, last */
+    const out = [];
+    for (let i = 0; i < p.sets; i++) { out.push({ k: "do", t: doIt(p, i > 0), i }); if (i < p.sets - 1) out.push({ k: "rest", t: rest(p) }); }
+    out.push({ k: "last", t: last(p) });
+    return out;
+  }
+  const ph = (p, inner) => '<div><div class="plan">' + p.name + " · " + p.label + '</div><div class="ph"><div class="vid"></div><div class="body"><h5 class="title">' + p.name + "</h5>" + inner + '<div class="desc"></div></div></div></div>';
+
+  const CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+  const NEXT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+  /* ponytail: about 3 seconds a rep, times 2 for each side; good enough for "about N min" */
+  const work = p => (p.hold || p.reps * 3) * (p.side ? 2 : 1);
+  const mins = p => Math.max(1, Math.round((p.sets * work(p) + (p.sets - 1) * p.restSet) / 60));
+  const amt = p => p.hold ? p.hold + " sec" : p.reps + " reps";
+  const unit = p => p.hold ? "sec hold" : "reps";
+  const LOOKS = [
+    { k: "A", n: "Numbers first, then the shape", rec: true, d: "Three tiles say the plan the way WHOOP and Peloton do: sets, reps, rest. Under them a bar shows the shape of it: green for each set, grey for each rest. Glance, and you know what is coming and for how long.",
+      r: p => '<div class="hd"><span class="lbl" style="margin:0">Your plan</span><span class="tm">' + CLOCK + "About " + mins(p) + " min</span></div>" +
+        '<div class="stats"><div class="stat g"><b>' + p.sets + "</b><span>sets</span></div>" +
+        '<div class="stat"><b>' + (p.hold || p.reps) + (p.hold ? "<small>s</small>" : "") + "</b><span>" + (p.hold ? "hold" : "reps") + (p.side ? ", each side" : " per set") + "</span></div>" +
+        '<div class="stat"><b>' + p.restSet + "<small>s</small></b><span>rest between</span></div></div>" +
+        (() => { const t = p.sets * work(p) + (p.sets - 1) * p.restSet, parts = [];
+          for (let i = 0; i < p.sets; i++) { parts.push({ w: work(p), d: 1, l: "Set " + (i + 1) }); if (i < p.sets - 1) parts.push({ w: p.restSet, l: "Rest" }); }
+          return '<div class="seg">' + parts.map(x => '<i class="' + (x.d ? "" : "r") + '" style="flex:' + x.w + '"></i>').join("") + '</div><div class="segl">' + parts.map(x => '<span class="' + (x.d ? "d" : "") + '" style="flex:' + x.w + '">' + x.l + "</span>").join("") + "</div>"; })() },
+    { k: "B", n: "Set cards, rest in between", d: "Each set is a card with its amount in a green pill; the rest sits between cards as a small indigo bar, like Runna. The order reads itself, and the last bar says what comes after.",
+      r: p => '<div class="lbl">' + p.sets + " sets</div><div class=\"scards\">" + Array.from({ length: p.sets }, (_, i) =>
+          '<div class="scard"><span class="n"><i>' + (i + 1) + "</i>Set " + (i + 1) + '</span><span class="amt">' + amt(p) + (p.side ? " <small>each side</small>" : p.hold ? " <small>hold</small>" : "") + "</span></div>" +
+          (i < p.sets - 1 ? '<div class="rbar">' + CLOCK + "Rest " + p.restSet + " sec</div>" : "")).join("") +
+        '<div class="rbar nx">' + NEXT + p.restNext + " sec, then the next exercise</div></div>" },
+    { k: "C", n: "Big numbers, one sentence", d: "The plan in large type the way Tonal and Ladder show it, each number labelled under it. One plain sentence turns it into what to do, so the words sets and reps teach themselves.",
+      r: p => '<div class="hero"><div class="num"><b>' + p.sets + "</b><span>Sets</span></div><span class=\"x\">\u00d7</span><div class=\"num\"><b>" + (p.hold ? p.hold + "s" : p.reps) + "</b><span>" + (p.hold ? "Hold" : "Reps") + "</span></div>" +
+        '<div class="side"><b>' + p.restSet + "s</b>rest</div></div>" +
+        '<p class="say">' + (p.hold ? "Hold it for <b>" + p.hold + " seconds</b>" : "Do it <b>" + p.reps + " times</b>") + side(p) + ". That is one set. Do <b>" + p.sets + " sets</b>, with <b>" + p.restSet + " seconds</b> of rest between them.</p>" },
+    { k: "D", n: "Rounds as a journey", d: "Each set is a circle holding its count, joined by dashed lines that carry the rest. Reads left to right like a short trip, and later the circles can fill green as you finish them.",
+      r: p => '<div class="jr">' + Array.from({ length: p.sets }, (_, i) =>
+          '<div class="st"><i>' + (p.hold || p.reps) + "</i><span>Set " + (i + 1) + "</span></div>" + (i < p.sets - 1 ? '<div class="lk"><hr><span>' + p.restSet + "s rest</span></div>" : "")).join("") + "</div>" +
+        '<div class="jr-foot"><span>Each circle: <b>' + (p.hold ? p.hold + " sec hold" : p.reps + " reps") + "</b>" + side(p) + "</span><span>Then " + p.restNext + "s, next</span></div>" }
+  ];
+  const LOOP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8.7M20 4v4.7h-4.7M20 12a8 8 0 0 1-13.7 5.6L4 15.3M4 20v-4.7h4.7"/></svg>';
+  const PAUSE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 7v10M15 7v10"/></svg>';
+  const tagOf = s => s.k === "do" ? '<span class="wt set">Set ' + (s.i + 1) + "</span>" : s.k === "rest" ? '<span class="wt rest">rest between sets</span>' : '<span class="wt rest">before next</span>';
+  const list = (p, tags) => '<div class="how"><h6>How to do it</h6><div class="steps">' + steps(p).map((s, n) => '<div class="stp' + (s.k === "do" ? "" : " r") + '"><span class="nb">' + (n + 1) + '</span><div class="pan">' + s.t + (tags ? tagOf(s) : "") + "</div></div>").join("") + "</div></div>";
+  const why = s => s.k === "rest" ? "Catch your breath before the next set." : s.k === "last" ? "Get ready for the next exercise." : s.i === 0 ? "Go at a steady pace, with good form." : "The same again.";
+  /* round 4: GoodFlip patterns from the Figma file, gold how-to card */
+  const R4 = [
+    { k: "A", n: "The recipe", d: "Gold how-to card, indigo numbers on a dashed line, each move on a gold panel, rests quieter.", r: p => list(p, false) },
+    { k: "B", n: "The recipe that teaches", d: "The same card with the coach’s word beside each step in a small tag.", r: p => list(p, true) },
+    { k: "C", n: "One round, repeated", d: "One round drawn once with an indigo ×N, then the step after it.",
+      r: p => '<div class="how"><h6>One round</h6><div class="loop"><span class="times">' + LOOP + "×" + p.sets + '</span><div class="ln"><span class="ic">' + (p.hold ? p.hold + "s" : p.reps + "×") + "</span><span>" + doIt(p, false) + "</span></div>" +
+        (p.sets > 1 ? '<div class="ln r"><span class="ic r">' + PAUSE + "</span><span>" + rest(p) + "</span></div>" : "") + '<div class="cap">Repeat ' + p.sets + " times. No rest after the last one.</div></div>" +
+        '<div class="then"><span class="ic r">' + NEXT + "</span><span>" + last(p) + "</span></div></div>" },
+    { k: "D", n: "A flow line", d: "The plan as one line of blocks: indigo to move, grey to rest.",
+      r: p => '<div class="flow">' + steps(p).map(s => s.k === "do" ? '<span class="b d"><b>' + (p.hold ? p.hold + "s" : p.reps + "×") + "</b><span>" + (p.hold ? "hold" : "times") + (p.side ? ", each side" : "") + "</span></span>" : s.k === "rest" ? '<span class="b rr"><b>' + p.restSet + "s</b><span>rest</span></span>" : '<span class="b rr"><b>' + p.restNext + "s</b><span>then next</span></span>").join('<span class="a">→</span>') +
+        '</div><p class="flow-say">' + (p.hold ? "Hold it for " + p.hold + " seconds" : "Do it " + p.reps + " times") + side(p) + ", " + p.sets + " rounds, resting " + p.restSet + " seconds between them.</p>" },
+    { k: "E", n: "Step cards that explain", d: "The “all steps” pattern: heading, one reason, a small pill with the coach’s word.",
+      r: p => '<div class="cards">' + steps(p).map((s, n) => '<div class="sc' + (s.k === "do" ? "" : " r") + '"><span class="num2">' + (n + 1) + '</span><div class="bx"><b>' + s.t.replace(/<\/?b>/g, "") + "</b><span>" + why(s) + '</span><span class="pill">' + (s.k === "do" ? "This is <em>Set " + (s.i + 1) + "</em>" : s.k === "rest" ? "This is a <em>rest</em>" : "Then <em>next exercise</em>") + "</span></div></div>").join("") + "</div>" },
+    { k: "F", n: "The recipe, live", d: "Done steps tick green, the current one is outlined with time left, the rest wait.",
+      r: p => { const ss = steps(p); return '<div class="how live"><h6>Step 2 of ' + ss.length + '</h6><div class="steps">' + ss.map((s, n) => '<div class="stp' + (s.k === "do" ? "" : " r") + (n < 1 ? " done" : n === 1 ? " now" : " next") + '"><span class="nb">' + (n < 1 ? "✓" : n + 1) + '</span><div class="pan">' + s.t + (n === 1 ? '<div class="left"><i></i><span>0:18 left</span></div>' : "") + "</div></div>").join("") + "</div></div>"; } }
+  ];
+  /* round 5: kept simple, white */
+  const R5 = [
+    { k: "A", n: "Set by set", d: "Each set one row, the rest sitting between rows, like a gym log.",
+      r: p => '<div class="lbl">Your sets</div><div class="sets">' + Array.from({ length: p.sets }, (_, i) => '<div class="srow"><span class="k">Set ' + (i + 1) + '</span><span class="v">' + (p.hold ? p.hold + " sec hold" : p.reps + " reps") + (p.side ? " <small>each side</small>" : "") + "</span></div>" + (i < p.sets - 1 ? '<div class="srest">' + CLOCK + p.restSet + " sec rest</div>" : "")).join("") + '</div><div class="after">Then ' + p.restNext + " sec rest before the next exercise</div>" },
+    { k: "B", n: "One line, words explained", d: "The plan in one line, and what each word means under it.",
+      r: p => '<div class="big">' + p.sets + " × " + (p.hold ? p.hold + "s" : p.reps) + " <span>" + (p.hold ? "hold" : "reps") + (p.side ? ", each side" : "") + "</span></div>" +
+        '<div class="gloss"><b>' + p.sets + " sets</b><span>Do the full round " + p.sets + " times</span><b>" + (p.hold ? p.hold + " sec" : p.reps + " reps") + "</b><span>" + (p.hold ? "Hold still for " + p.hold + " seconds each time" : "Repeat the move " + p.reps + " times in each set") + side(p) + "</span><b>" + p.restSet + " sec</b><span>Rest between sets</span><b>" + p.restNext + " sec</b><span>Rest before the next exercise</span></div>" },
+    { k: "C", n: "Plain steps", d: "Small green numbers for what you do, grey for rests, no panels.",
+      r: p => '<div class="lbl">How to do it</div><ol class="ol">' + steps(p).map((s, n) => '<li class="' + (s.k === "do" ? "" : "r") + '"><i>' + (n + 1) + "</i><span>" + s.t + "</span></li>").join("") + "</ol>" }
+  ];
+  /* round 7: the recipe from round 2, dressed five ways. Same steps(), same words */
+  const MOVE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M8 21l3-6 3 2v4M10 9l3-1 3 3 3 1M13 8l-2 7"/></svg>';
+  const cnt = p => p.hold ? [p.hold, "sec"] : [p.reps, p.side ? "each side" : "times"];
+  const R7 = [
+    { k: "A", n: "Soft timeline", rec: true, d: "A thin line that fades from green to indigo carries the steps. Each move is a white card with a small Set label; each rest is just a line of text on the track. Calm, and the order is obvious.",
+      r: p => '<div class="lbl">How to do it</div><div class="tl">' + steps(p).map(s => s.k === "do" ? '<div class="s do"><div><small>Set ' + (s.i + 1) + "</small>" + s.t + "</div></div>" : '<div class="s rs"><div>' + (s.k === "rest" ? CLOCK : NEXT) + "<span>" + s.t + "</span></div></div>").join("") + "</div>" },
+    { k: "B", n: "Count first", d: "Each move leads with its number in a white square on a green tile, like a recipe’s quantities. Rests sit between as small indigo pills, the next exercise in grey at the end.",
+      r: p => '<div class="cf">' + steps(p).map(s => s.k === "do" ? '<div class="t"><span class="q"><b>' + cnt(p)[0] + "</b><span>" + cnt(p)[1] + "</span></span><div><b>Set " + (s.i + 1) + "</b>" + s.t.replace(/<\/?b>/g, "") + "</div></div>"
+        : s.k === "rest" ? '<span class="rp">' + CLOCK + "Rest " + p.restSet + " sec</span>" : '<div class="t nx"><span class="q"><b>' + p.restNext + '</b><span>sec</span></span><div><b>Then</b>Start the next exercise</div></div>').join("") + "</div>" },
+    { k: "C", n: "Recipe card", d: "A real recipe card: a title with the time, then each step with dotted leaders out to its amount, the way a menu lists prices. Moves in dark, rests in indigo.",
+      r: p => '<div class="rc"><h6>How to do it<span>About ' + mins(p) + " min</span></h6>" + steps(p).map((s, n) => {
+          const v = s.k === "do" ? (p.hold ? p.hold + " sec" : p.reps + "×") + (p.side ? " each side" : "") : s.k === "rest" ? p.restSet + " sec" : p.restNext + " sec";
+          const w = s.k === "do" ? (p.hold ? (s.i ? "Hold again" : "Hold") : (s.i ? "Do it again" : "Do it")) : s.k === "rest" ? "Rest" : "Then next exercise";
+          return '<div class="l' + (s.k === "do" ? "" : " r") + '"><span class="n">' + (n + 1) + "</span><span>" + w + '</span><span class="dots"></span><b>' + v + "</b></div>"; }).join("") + "</div>" },
+    { k: "D", n: "Icon rows", d: "Each step gets a small tinted icon: a figure for moves, a clock for rests, an arrow for what’s next. Moves sit on white rows over a soft grey tray, so they lift off the page.",
+      r: p => '<div class="ir">' + steps(p).map(s => '<div class="w ' + (s.k === "do" ? "do" : s.k === "rest" ? "rs" : "nx") + '"><span class="ico">' + (s.k === "do" ? MOVE : s.k === "rest" ? CLOCK : NEXT) + "</span><div>" + (s.k === "do" ? "<small>Set " + (s.i + 1) + "</small>" : "") + s.t + "</div></div>").join("") + "</div>" },
+    { k: "E", n: "Coach card", d: "The recipe on a deep GoodFlip green card with white type, like a note handed over by the coach. The richest of the five; it gives the player one confident colour moment.",
+      r: p => '<div class="dk"><h6>Your coach’s recipe</h6>' + steps(p).map((s, n) => '<div class="s' + (s.k === "do" ? "" : " r") + '"><i>' + (n + 1) + "</i><span>" + s.t + "</span></div>").join("") + "</div>" }
+  ];
+  /* round 8: icon rows, flat, in one set of words for every exercise.
+     Set 1: Do this exercise {reps} times | Hold this position for {hold} seconds. Set 2+: Do it again, {reps} times | Hold it again for {hold} seconds. [on each side] 
+     Labels: Set {n} | Between sets | Before the next exercise. Rests: Rest for {seconds} seconds.
+     The set icon is the exercise's own (from the coach library); the rest icon is always the clock. */
+  const EXI = { "Plank to push up": "im-push-up", "Side leg raise": "hi-workout-kicking", "Wall sit": "im-squat",
+    "Arm circle": "im-stretch", "Scapular retraction": "hi-shoulder", "Bridging exercise": "im-bridge", "Neck pain stretches": "hi-yoga", "Arm exercise with band": "he-arm", "Leg exercise with band": "tb-lunge" };
+  /* a real plan, "simple plan.pdf" (Dr. Iswarya V, Week 1 Day 1 and 2): reps, sets, rest post set, rest post exercise */
+  const PDF = [
+    { name: "Arm circle", sets: 2, reps: 10, restSet: 30, restNext: 15, label: "10 reps · 2 sets · 30 sec · 15 sec" },
+    { name: "Scapular retraction", sets: 2, reps: 10, restSet: 30, restNext: 15, label: "10 reps · 2 sets · 30 sec · 15 sec" },
+    { name: "Bridging exercise", sets: 2, reps: 10, restSet: 30, restNext: 15, label: "10 reps · 2 sets · 30 sec · 15 sec" },
+    { name: "Neck pain stretches", sets: 1, reps: 5, restSet: 30, restNext: 30, label: "Breathing · 5 reps · 1 set · 30 sec · 30 sec" },
+    { name: "Arm exercise with band", sets: 1, reps: 5, restSet: 30, restNext: 30, label: "5 reps · 1 set · 30 sec · 30 sec" }
+  ];
+  const exIcon = p => '<i class="ex" style="--src:url(/v7/icons/move/ex/' + (EXI[p.name] || "im-push-up") + '.svg)"></i>';
+  const W8 = {
+    /* first set names it ("this exercise", the title is right above); later sets say "again" with the same count,
+       because "10 more times" can read as 20 in total */
+    set: (p, i) => ({ t: p.sets > 1 ? "Set " + (i + 1) : "", b: (p.hold
+      ? (i ? "Hold it again for <b>" + p.hold + " seconds</b>" : "Hold this position for <b>" + p.hold + " seconds</b>")
+      : (i ? "Do it again, <b>" + p.reps + " times</b>" : "Do this exercise <b>" + p.reps + " times</b>")) + side(p) }),
+    /* every row is the same shape: a small neutral label that says where you are, then one plain instruction */
+    rest: p => ({ t: "Between sets", b: "Rest for <b>" + p.restSet + " seconds</b>" }),
+    next: p => ({ t: "Before the next exercise", b: "Rest for <b>" + p.restNext + " seconds</b>" })
+  };
+  const rows8 = (p, f) => steps(p).map(st => { const k = st.k === "do" ? "do" : st.k === "rest" ? "rs" : "nx", w = st.k === "do" ? W8.set(p, st.i) : st.k === "rest" ? W8.rest(p) : W8.next(p);
+    return '<div class="w ' + k + '"><span class="ico">' + (k === "do" ? exIcon(p) : k === "rs" ? CLOCK : NEXT) + "</span>" + f(k, w, p) + "</div>"; }).join("");
+  const tx = (k, w) => '<div class="tx">' + (w.t ? '<span class="lb">' + w.t + "</span>" : "") + "<b>" + w.b + "</b>" + (w.s ? "<span>" + w.s + "</span>" : "") + "</div>";
+  /* names the block as the coach's prescription, so it isn't mistaken for form tips (the video and description cover form) */
+  const LBL8 = '<div class="lbl">What to do</div>';
+  const R8 = [
+    { k: "A", n: "Hairlines", rec: true, d: "The icon rows you liked, flattened: no white rows, no tray, no shadow. Just tinted icon squares and a hairline between steps, so it reads like a list on the page, not buttons.",
+      r: p => LBL8 + '<div class="ha">' + rows8(p, tx) + "</div>" },
+    { k: "B", n: "Icons on a rail", d: "The exercise icon in a soft green circle for each set, joined by a thin grey line. Rests drop to a small indigo clock and one short line, so the sets lead and the rests whisper.",
+      r: p => LBL8 + '<div class="rl">' + rows8(p, tx) + "</div>" },
+    { k: "C", n: "Amount on the right", d: "Like a spec sheet: the set on the left, its amount on the right where the eye looks for numbers. Rests are tucked in as small indented lines between sets.",
+      r: p => LBL8 + '<div class="sp">' + rows8(p, (k, w, p) => k === "do" ? '<div class="tx"><b>' + (w.t || "Once through") + '</b></div><span class="q">' + (p.hold ? p.hold + " sec" : p.reps + " reps") + "<small>" + (p.side ? "each side" : p.hold ? "hold" : "") + "</small></span>" : "<span>" + w.b + (w.s ? " · " + w.s.toLowerCase() : "") + "</span>") + "</div>" },
+    { k: "D", n: "One soft tray", d: "The whole recipe on one quiet grey surface. Sets carry a larger exercise icon with no tile; rests are slim indigo lines between them; the next exercise sits under a divider at the end.",
+      r: p => LBL8 + '<div class="tr">' + rows8(p, (k, w) => k === "rs" ? "<span>" + w.b + "</span>" : tx(k, w)) + "</div>" }
+  ];
+  const ROUNDS = [
+    { id: "r4", no: "Round 4", t: "GoodFlip patterns", d: "Drawn in the design system’s own patterns: the gold how-to card, verdict tags, all-steps cards, journey colours. Your note: too gold and weird.", g: "g4", L: R4 },
+    { id: "r5", no: "Round 5", t: "Kept simple", d: "White, one hairline, green only for what you do. Your note: too blank and basic.", g: "g5", L: R5 },
+    { id: "r6", no: "Round 6", t: "Sets and reps, at a glance", d: "From how fitness apps on Mobbin show a plan (Runna, WHOOP, Tonal, Peloton, Ladder), in GoodFlip’s green, indigo and neutrals.", g: "g6", L: LOOKS },
+    { id: "r7", no: "Round 7", t: "A recipe, dressed up", d: "Round 2’s recipe, which you liked, in five finishes. Same steps and the same words for any exercise; only the look changes.", g: "g7", L: R7 },
+    { id: "r8", no: "Round 8 · now", t: "Icon rows, kept flat", d: "Round 7’s icon rows, made calm: nothing raised or outlined, so nothing looks tappable. Each set shows the exercise’s own icon, each rest the clock, in one set of words that fits any exercise. Drawn on a real coach plan (simple plan.pdf), including one-set exercises, where there is no rest between sets.", g: "g8", L: R8, P: PDF }
+  ];
+  document.getElementById("looks").innerHTML = ROUNDS.map(R => '<div class="round ' + R.g + '" id="' + R.id + '"><span class="eyebrow">' + R.no + "</span><h1>" + R.t + '</h1><p class="lede">' + R.d + "</p>" +
+    R.L.map(L => "<section><h2><i>" + L.k + "</i>" + L.n + (L.rec ? ' <span class="rec">Recommended</span>' : "") + "</h2><p>" + L.d + '</p><div class="row">' + (R.P || PLANS).map(p => ph(p, L.r(p))).join("") + "</div></section>").join("") + "</div>").join("");
+</script>
+</body>
+</html>
