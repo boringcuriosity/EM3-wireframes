@@ -18,8 +18,8 @@
   function tick(r, n) { for (var i = 0; i < n; i++) S.tips[r][i] = true; }
   function all() { did(0, RT[0].ex, "07:10"); did(2, RT[2].ex, "18:10"); RT.forEach(function (rt, r) { tick(r, rt.tips.length); }); }
   var W = { walk: ["Walking", "directions_walk"], gym: ["Strength training", "fitness_center"], run: ["Running", "directions_run"], bad: ["Badminton", "sports_tennis"] };
-  /* kcal as log.js counts it: MET × 3.5 × 65 kg ÷ 200 × minutes */
-  function extra(r, w, met, min, at) { S.extra[r].push({ name: W[w][0], ic: W[w][1], min: min, kcal: Math.round(met * 3.5 * 65 / 200 * min), at: at }); }
+  /* kcal as log.js counts it: MET × 3.5 × 70 kg ÷ 200 × minutes */
+  function extra(r, w, met, min, at) { S.extra[r].push({ name: W[w][0], ic: W[w][1], min: min, kcal: Math.round(met * 3.5 * 70 / 200 * min), at: at }); }
 
   var DAYS = {
     zero: function () { S.steps = {}; },
@@ -37,7 +37,12 @@
     /* the default afternoon, plus a walk before 6 AM: it counts, in the chart and the total */
     early: function () { did(0, ["box", "plank"], "07:10"); tick(0, 1); S.steps = steps(5080); S.steps[5] = 1900; },
     /* everything but the afternoon's one small move: 78, so ?act=cross ticks it and the day crosses 80 */
-    nearly: function () { all(); S.tips[1] = []; S.steps = steps(10400); }
+    nearly: function () { all(); S.tips[1] = []; S.steps = steps(10400); },
+    /* the commentary doc (v7/momentum-commentary.html): a big morning, a small move in the afternoon, the step goal reached */
+    over: function () { did(0, RT[0].ex, "07:10"); extra(0, "walk", 3.5, 15, "07:40"); tick(0, 1); S.steps = steps(5200); },
+    tick: function () { did(0, ["box", "plank"], "07:10"); tick(0, 1); tick(1, 1); S.steps = steps(5080); },
+    goal: function () { did(0, ["box", "plank", "spot"], "07:10"); tick(0, 2); tick(1, 1); S.steps = steps(10100); },
+    medal: function () { did(0, ["box", "plank", "spot"], "07:10"); tick(0, 2); tick(1, 1); did(2, ["plank"], "18:10"); S.steps = steps(10100); }
   };
   var day = Q.get("day");
   if (DAYS[day]) {
@@ -91,6 +96,8 @@
     typing: function () { ACTS.search(); later(400, function () { type("wa"); }); },
     none: function () { ACTS.search(); later(400, function () { type("kabaddi"); }); },
     detail: function () { ACTS.search(); later(500, function () { click('.mvl-row[data-w="Walking"]'); }); },
+    /* a coach exercise found by search: Burpees, its intensity wheel open (light, moderate, vigorous from the Compendium) */
+    intensity: function () { ACTS.search(); later(400, function () { type("burpees"); }); later(1000, function () { click('.mvl-row[data-w="Burpees"]'); }); later(1700, function () { click('[data-d="effort"]'); }); },
     /* a walk found by search and logged, at the default ten minutes */
     walk: function () { ACTS.detail(); later(900, function () { click('[data-d="log"]'); }); }
   };

@@ -40,12 +40,13 @@
     var open = [], gone = [];
     p.mv.forEach(function (m, i) { if (!m) (ENDS[i] > NOW ? open : gone).push(NAMES[i]); });
     var K = p.raw[0][1], kc = K - p.raw[0][0], M = p.raw[1][1], tips = M - p.raw[1][0], G = p.raw[2][1], st = G - p.raw[2][0];
+    var W = window.MVW || { E: 45, S: 25, N: 15, SP: 15, PARTS: 4 }, part = W.SP / W.PARTS;   /* momentum.js sets the weights */
     return [
-      { k: "parts", v: 10 * open.length, open: open },
-      { k: "workout", v: kc > 0 ? 40 * kc / K : 0, kc: kc },
-      { k: "gone", v: 10 * gone.length, gone: gone },
-      { k: "steps", v: st > 0 ? 10 * st / G : 0, st: st },
-      { k: "tips", v: tips > 0 ? 10 * tips / M : 0, n: tips }
+      { k: "parts", v: part * open.length, open: open },
+      { k: "workout", v: kc > 0 ? W.E * kc / K : 0, kc: kc },
+      { k: "gone", v: part * gone.length, gone: gone },
+      { k: "steps", v: st > 0 ? W.S * st / G : 0, st: st },
+      { k: "tips", v: tips > 0 ? W.N * tips / M : 0, n: tips }
     ].filter(function (x) { return x.v > .5; }).sort(function (a, b) { return b.v - a.v; });
   }
   function next(p) {

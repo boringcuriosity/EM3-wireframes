@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Momentum commentary</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* The line under the Momentum score, case by case, on the live Move screen (move/index.html?day=…&now=…), and the
+     sheet behind its Learn more: an AI reply written from the day's facts with v7/momentum-ai-prompt.txt.
+     Replies and facts: v7/data/momentum-ai-samples.json (real Claude Haiku 4.5 runs, checked). */
+  :root { --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-50:#EEF4FF; --in-100:#E0EAFF; --in-600:#444CE7; --ok-50:#ECFDF3; --ok-200:#ABEFC6; --ok-700:#067647; --wa-50:#FFFAEB; --wa-700:#B54708;
+    --brand:#299D6B; --brand-700:#2A805A; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, system-ui, sans-serif; letter-spacing: .2px; }
+  .page { max-width: 1400px; margin: 0 auto; padding: 56px 24px 96px; }
+  .eyebrow { font: 600 11px/16px Roboto; letter-spacing: .8px; text-transform: uppercase; color: var(--g-500); }
+  h1 { margin: 10px 0 10px; font: 600 34px/42px Roboto; }
+  h2 { margin: 64px 0 8px; font: 600 24px/32px Roboto; }
+  h3 { margin: 40px 0 4px; font: 600 18px/26px Roboto; }
+  .lede { max-width: 860px; margin: 0; font-size: 16px; line-height: 26px; color: var(--g-600); }
+  a { color: var(--in-600); text-decoration: none; }
+  code { font: 500 13px ui-monospace, Menlo, monospace; color: var(--in-600); }
+  .formula { display: inline-flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: 18px; padding: 10px 14px; border: 1px solid var(--g-200); border-radius: 12px; font: 600 14px Roboto; }
+  .formula i { font-style: normal; color: var(--g-300); } .formula .sp { color: var(--brand); }
+  .spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-top: 20px; }
+  .spec > div { padding: 16px 18px; border-radius: 16px; background: var(--g-50); }
+  .spec h4 { margin: 0 0 8px; font: 600 15px/22px Roboto; }
+  .spec table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 20px; color: var(--g-700); }
+  .spec td { padding: 7px 8px 7px 0; border-top: 1px solid var(--g-200); vertical-align: top; }
+  .spec td:first-child { color: var(--g-500); width: 38%; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 40px 28px; margin-top: 20px; }
+  figure { margin: 0; }
+  figcaption { min-height: 118px; margin-bottom: 12px; }
+  figcaption b { display: block; font: 600 17px/24px Roboto; }
+  figcaption p { margin: 4px 0 0; font-size: 13px; line-height: 20px; color: var(--g-600); }
+  .k { display: inline-flex; margin-bottom: 6px; padding: 2px 8px; border-radius: 999px; font: 600 11px/16px Roboto; letter-spacing: .3px; background: var(--ok-50); color: var(--ok-700); }
+  .k.calm { background: var(--g-100); color: var(--g-600); }
+  .phone { width: 302px; height: 600px; overflow: hidden; border-radius: 36px; border: 1px solid var(--g-200); position: relative; box-shadow: 0 24px 48px -18px rgba(16,24,40,.18); }
+  .phone iframe { width: 390px; height: 780px; border: 0; display: block; transform: scale(.7744); transform-origin: 0 0; }
+  .learn { display: inline-flex; align-items: center; gap: 4px; margin-top: 12px; padding: 0; border: 0; background: none; font: 600 14px/20px Roboto; color: var(--brand-700); cursor: pointer; }
+  .learn svg { width: 14px; height: 14px; }
+  .open { display: inline-block; margin-top: 4px; font: 500 13px/18px Roboto; color: var(--g-500); }
+  /* the sheet: the house rules, title top left, circle X top right, no handle, 90% at most, Got it sticky */
+  .scrim { position: fixed; inset: 0; z-index: 20; display: none; align-items: flex-end; justify-content: center; background: rgba(16,24,40,.45); }
+  .scrim.on { display: flex; }
+  .sheet { width: 390px; max-width: 100%; max-height: 90vh; display: flex; flex-direction: column; background: #fff; border-radius: 24px 24px 0 0; animation: up .32s cubic-bezier(.2,.8,.2,1); }
+  @keyframes up { from { transform: translateY(24px); opacity: 0; } }
+  .shead { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 4px; }
+  .shead h4 { margin: 0; font: 600 18px/24px Roboto; }
+  .x { width: 28px; height: 28px; border: 0; border-radius: 50%; background: var(--g-100); color: var(--g-600); display: grid; place-items: center; cursor: pointer; }
+  .x svg { width: 12px; height: 12px; }
+  .sbody { overflow-y: auto; padding: 12px 20px 8px; }
+  .ai p { margin: 0 0 12px; font-size: 15px; line-height: 23px; color: var(--g-700); }
+  .ai p b { font-weight: 600; color: var(--g-900); }
+  .ai p:first-child b { font-size: 17px; line-height: 24px; }
+  .ksh .note { margin: 4px 0 10px; }
+  .facts { margin: 6px 0 4px; } .facts summary { font: 500 13px/20px Roboto; color: var(--g-500); cursor: pointer; }
+  .facts pre { max-height: 220px; overflow: auto; margin: 8px 0 0; padding: 12px; border-radius: 12px; background: var(--g-50); font: 400 11.5px/17px ui-monospace, Menlo, monospace; color: var(--g-700); white-space: pre-wrap; }
+  .sfoot { padding: 12px 20px 24px; border-top: 1px solid var(--g-100); }
+  .got { width: 100%; height: 48px; border: 0; border-radius: 12px; background: var(--brand); color: #fff; font: 600 16px Roboto; cursor: pointer; }
+  .ai .tg { display: inline-block; padding: 0 6px; border-radius: 6px; background: var(--ok-50); color: var(--ok-700); font-weight: 600; font-size: .92em; line-height: 1.5; }
+  .ai p b { font-weight: 600; color: var(--g-900); }
+  .note { margin: 0 0 10px; padding: 8px 10px; border-radius: 10px; background: var(--wa-50); font-size: 12.5px; line-height: 18px; color: var(--wa-700); }
+  /* every reply, to read in one go */
+  .replies { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+  /* each note as the sheet shows it: a mini sheet on a soft scrim, the AI's markdown only (bold opening, paragraphs) */
+  .rp { display: flex; flex-direction: column; }
+  .rp h5 { margin: 0 0 8px; font: 600 13px/18px Roboto; color: var(--g-500); }
+  .rp .mini { flex: 1; display: flex; flex-direction: column; padding: 28px 14px 0; border-radius: 20px; background: linear-gradient(180deg, #EEF1F5, #E4E7EC); }
+  .rp .msheet { flex: 1; display: flex; flex-direction: column; background: #fff; border-radius: 20px 20px 0 0; box-shadow: 0 -8px 24px -12px rgba(16,24,40,.18); }
+  .rp .mhead { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 2px; font: 600 15px/20px Roboto; color: var(--g-900); }
+  .rp .mhead i { width: 22px; height: 22px; border-radius: 50%; background: var(--g-100); display: grid; place-items: center; color: var(--g-500); }
+  .rp .mhead i svg { width: 9px; height: 9px; }
+  .rp .mt { display: flex; align-items: center; gap: 6px; }
+  .rp .mbody { flex: 1; padding: 10px 16px 4px; }
+  .rp .kmd { font-size: 14px; line-height: 21px; } .rp .kmd .kt { font-size: 16px; line-height: 22px; } .rp .kmd li { padding: 8px 0; }
+  .rp .mfoot { padding: 8px 16px 16px; } .rp .mfoot span { display: block; height: 36px; border-radius: 10px; background: var(--brand); color: #fff; font: 600 13px/36px Roboto; text-align: center; }
+  .rp small { display: block; margin-top: 8px; font-size: 12px; color: var(--g-500); }
+  .bar { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding: 10px 14px; border-radius: 16px 16px 0 0; background: #1D2939; color: #fff; font: 500 13px Roboto; }
+  .bar button { height: 32px; padding: 0 14px; border: 0; border-radius: 8px; background: var(--brand); color: #fff; font: 600 13px Roboto; cursor: pointer; }
+  pre.prompt { margin: 0; max-height: 520px; overflow: auto; padding: 18px; border-radius: 0 0 16px 16px; background: #101828; color: #E4E7EC; font: 400 13px/21px ui-monospace, Menlo, monospace; white-space: pre-wrap; }
+  ul.plain { max-width: 860px; padding-left: 20px; } ul.plain li { margin-bottom: 8px; font-size: 15px; line-height: 24px; color: var(--g-600); }
+  @media (max-width: 640px) { .page { padding: 32px 16px 64px; } h1 { font-size: 26px; line-height: 34px; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">Move · Momentum · The line under the score</span>
+  <h1>Momentum, in kind words</h1>
+  <p class="lede">After every log, one short line under the score notices the effort and gives one easy next step. Tap <b>Learn more</b> and a friendly note explains the moment, written by AI from the day’s facts. Every phone below is the live Move screen; tap Learn more inside it, or the link under it.</p>
+  <div class="formula">Momentum <i>=</i> Exercise (45) <i>+</i> Steps (25) <i>+</i> Small moves (15) <i>+</i> <span class="sp">Moving through the day (15, full at 4 parts)</span></div>
+
+  <h2>The line under the score</h2>
+  <p class="lede">Written by the app, not the AI, from a few fixed sentences. Each one notices the effort first, then gives one easy next step in everyday words. Only the % and the situation change. The detail lives in the note behind Learn more.</p>
+  <div class="spec">
+    <div><h4>Every situation</h4><table>
+      <tr><td>Start of the day, 0%</td><td><b>As your day starts fresh, log every move to keep your Momentum growing.</b></td></tr>
+      <tr><td>First log of the day</td><td><b>Nice start! Your Momentum is up <code>+X%</code>.</b> Keep logging your movement to see your score grow.</td></tr>
+      <tr><td>Any log that adds</td><td><b>Your Momentum went up by <code>+X%</code>.</b> Every move you log keeps your score growing.</td></tr>
+      <tr><td>Steps from the phone</td><td><b>Your steps added <code>+X%</code>.</b> Every step you take is moving you forward.</td></tr>
+      <tr><td>The whole workout at once</td><td><b>Great workout! Your Momentum is up <code>+X%</code>.</b> Spreading your movement through the day keeps you healthy and strong.</td></tr>
+      <tr><td>More than the coach’s workout</td><td><b>Great effort! Your Momentum is up <code>+X%</code>.</b> Spreading your workout through the day keeps it growing.</td></tr>
+      <tr><td>More than the workout, adds nothing</td><td><b>Great effort, you’ve finished your coach’s workout today!</b> Spreading your workout through the day keeps your Momentum growing.</td></tr>
+      <tr><td>Crossed 80%</td><td><b>You’ve earned today’s medal!</b> Your Momentum went up by <code>+X%</code>. Well done.</td></tr>
+      <tr><td>Above 80%, still adding</td><td><b>Your Momentum went up by <code>+X%</code>.</b> You’re having a great day, keep it going.</td></tr>
+      <tr><td>100%</td><td><b>You reached 100% Momentum!</b> You moved well all through the day.</td></tr>
+      <tr><td>A past day</td><td>This day ended at <code>X%</code> Momentum.</td></tr>
+    </table></div>
+    <div><h4>How the app picks</h4><table>
+      <tr><td>First</td><td>100% reached, then the medal (crossed 80%), then already above 80%</td></tr>
+      <tr><td>Then</td><td>More than the coach’s workout: all at once if it went from under half to beyond the plan in one log</td></tr>
+      <tr><td>Then</td><td>First log of the day, then steps only, then any other log</td></tr>
+      <tr><td>Never</td><td>A minus. Logging never lowers Momentum.</td></tr>
+    </table></div>
+  </div>
+
+  <h2>Every case</h2>
+  <div id="cases"></div>
+
+  <h2>Every note, in one place</h2>
+  <p class="lede">What KAIRA wrote for each case, drawn by the same sheet the app opens. KAIRA sends markdown only: a bold opening, a short paragraph, What helps next as points, a closing line. The sheet turns the opening into a title, each point into a GoodFlip arrow, a gain into a green tag.</p>
+  <div class="replies" id="replies"></div>
+
+  <h2>The prompt</h2>
+  <p class="lede">One system prompt for every Momentum note. The app sends only facts: the score before and now, where the change came from, the medal, and its best next steps with the score each would reach. The AI never works out a number. Also as a plain file: <a href="/v7/momentum-ai-prompt.txt">momentum-ai-prompt.txt</a>.</p>
+  <div class="bar"><span>momentum-ai-prompt.txt</span><button id="copy" type="button">Copy prompt</button></div>
+  <pre class="prompt" id="prompt">Loading…</pre>
+
+  <h2>How these notes were tested</h2>
+  <ul class="plain">
+    <li><b>Real runs.</b> Claude Haiku 4.5, one per case, on the facts the live screen produces. The prompt’s own examples use different numbers, so nothing here is copied.</li>
+    <li><b>Checked like the app would.</b> Every percentage is one the app sent; every change has its sign and %; every “from to” range starts at today’s score; no minus, no dash inside a sentence, no jargon (spread, kcal, points); only bold and “- ” points, at most two; under 85 words.</li>
+    <li><b>What the first rounds caught, now fixed in the prompt.</b> KAIRA guessed why a score moved (now the app sends where the change came from), credited the medal to the wrong log (now the app sends the medal state), said one big effort beats moving often (now forbidden), and in the points round wrote “Rest is part of getting better” and grand closings like “changed the day entirely” (both now ruled out).</li>
+    <li><b>Retry, then fall back.</b> If a reply fails a check, ask once more; if it fails again, show the app’s own template note. In this round <b>Half of each routine</b> passed on the retry (the first try named a score the app never sent). <b>A run instead of the routine</b> and <b>Gym instead of the plan</b> passed the checks but read oddly, so they were run again after the prompt fix.</li>
+  </ul>
+</div>
+
+<script src="/v7/r3/assets/kaira.js"></script>
+<script src="/move/kaira-sheet.js?v=1"></script>
+<script>
+  var CH = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
+  var esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); };
+  /* the AI's light formatting: bold and paragraphs, nothing else */
+  var plain = function (t) { return t.split(/\n\s*\n|\n(?=\S)/).map(function (p) { return "<p>" + esc(p.trim()).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+    /* the app styles the numbers the AI writes: a gain as a green tag, a score it can reach in bold */
+    .replace(/\+(\d+)%/g, '<span class="tg">+$1%</span>').replace(/(\d+% to \d+%)/g, "<b>$1</b>") + "</p>"; }).join(""); };
+  var DESC = {
+    first: "Box breathing, the first thing today. The morning now counts.",
+    afternoon: "Two of the five morning exercises done, mid afternoon.",
+    tick: "One small move in the afternoon: it counts, and so does the afternoon.",
+    over: "The whole morning routine and a 15 minute walk on top. The workout is now full.",
+    goal: "Steps from the phone pass 10,000.",
+    medal: "The evening exercise takes the day past 80%.",
+    hundred: "A night walk after a full plan: every part of the day moved.",
+    plan: "Every exercise and small move, steps on target. Nothing at night yet.",
+    half: "Half of each routine, two small moves.",
+    morning: "All of the morning, nothing after.",
+    swap: "A 30 minute run did the workout, so the evening plank adds nothing more.",
+    gym: "An hour of strength training in the evening, nothing else planned done.",
+    active: "No workout, every small move, near the step goal.",
+    sick: "Nothing logged, 1,400 steps. A day to rest."
+  };
+  var R, open = function (k) {
+    var c = R[k];
+    KairaSheet.open(c.text, (c.fallback ? '<p class="note">KAIRA’s two tries both failed a check, so the app shows its own note.</p>' : "") +
+      '<details class="facts"><summary>The facts KAIRA was given</summary><pre>' + esc(JSON.stringify(c.input, null, 2)) + "</pre></details>");
+  };
+
+  fetch("/v7/data/momentum-ai-samples.json").then(function (r) { return r.json(); }).then(function (data) {
+    R = data;
+    var groups = {}; Object.keys(R).forEach(function (k) { (groups[R[k].group] = groups[R[k].group] || []).push(k); });
+    document.getElementById("cases").innerHTML = Object.keys(groups).map(function (g) {
+      return "<h3>" + esc(g) + '</h3><div class="grid">' + groups[g].map(function (k) {
+        var c = R[k], i = c.input;
+        return '<figure><figcaption><span class="k' + (i.change > 0 ? "" : " calm") + '">' + (i.change > 0 ? "+" + i.change + "% · " : "") + i.score_now + "% at " + esc(i.time_now) + "</span><b>" + esc(c.name) + "</b><p>" + esc(DESC[k]) + "</p></figcaption>" +
+          '<div class="phone"><iframe loading="lazy" data-k="' + k + '" src="/move/index.html?' + c.q + '" title="' + esc(c.name) + '"></iframe></div>' +
+          '<button class="learn" type="button" data-k="' + k + '">Learn more' + CH + "</button><br>" +
+          '<a class="open" href="/move/index.html?' + c.q + '" target="_blank">Open full size →</a></figure>';
+      }).join("") + "</div>";
+    }).join("");
+    document.getElementById("replies").innerHTML = Object.keys(R).map(function (k) {
+      var c = R[k];
+      return '<div class="rp"><h5>' + esc(c.name) + '</h5><div class="mini"><div class="msheet"><div class="mhead"><span class="mt">' + GFKaira.mark(18, { halo: false }) + 'KAIRA analysis</span><i><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l8 8M10 2 2 10"/></svg></i></div><div class="mbody">' + KairaSheet.html(c.text) + '</div><div class="mfoot"><span>Got it</span></div></div></div><small>' + (c.fallback ? "The app’s own note (AI failed twice)" : c.words + " words" + (c.tries ? " · passed on the retry" : "")) + "</small></div>";
+    }).join("");
+    document.querySelectorAll(".learn").forEach(function (b) { b.onclick = function () { open(b.dataset.k); }; });
+    /* each phone: once the screen has settled, the line under the score says this case's words, and its Learn more opens the note */
+    document.querySelectorAll(".phone iframe").forEach(function (f) {
+      f.addEventListener("load", function () {
+        var k = f.dataset.k, w = f.contentWindow;
+        setTimeout(function () {
+          try {
+            w.SAY_OPEN = function () { open(k); };
+            if (w.GFSay && w.GFSay.show) { var cm = w.document.getElementById("cm"); if (cm) cm.classList.add("said"); w.GFSay.show(R[k].line); }
+          } catch (e) {}
+        }, 1600);
+      });
+    });
+  });
+  /* a framed Move screen waits to be told it is on show before it draws its score */
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+  fetch("/v7/momentum-ai-prompt.txt").then(function (r) { return r.text(); }).then(function (t) { document.getElementById("prompt").textContent = t; });
+  document.getElementById("copy").onclick = function () { var b = this; navigator.clipboard.writeText(document.getElementById("prompt").textContent).then(function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy prompt"; }, 1600); }); };
+</script>
+</body>
+</html>

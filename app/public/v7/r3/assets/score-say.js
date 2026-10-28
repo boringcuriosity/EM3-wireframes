@@ -243,7 +243,7 @@ var CSS = "#cm{position:relative;z-index:3;margin:20px auto 0;padding:0 24px;dis
       "#cm .dc.down{background:#FEF3F2;color:#B42318;box-shadow:inset 0 0 0 1px #FECDCA}#cm .dc.calm{background:#F2F4F7;color:#475467;box-shadow:inset 0 0 0 1px #E4E7EC}#cm .dc.up{background:#ECFDF3;color:#067647;box-shadow:inset 0 0 0 1px #ABEFC6}";
 /* every change wears its sign, and the sign sets the colour: + green, \u2212 red */
 var tcls = function (d) { return /^[\u2212-]/.test(d) ? "down" : /^\+/.test(d) ? "up" : "calm"; };
-var html = function (s) { var lead = s.lead.replace(/ by (only )?\d+%?(\.?)/, ' by $1<span class="dc ' + tcls(s.delta) + '">' + s.delta + "</span>$2"); return '<div class="in"><svg class="q" viewBox="0 0 24 24" fill="currentColor"><path d="M4.6 18.7C3.5 17.5 3 16.3 3 14.3c0-3.5 2.5-6.6 6-8.2l.9 1.4C6.6 9.3 5.9 11.6 5.7 13.1c.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Zm10 0c-1.1-1.2-1.6-2.4-1.6-4.4 0-3.5 2.5-6.6 6-8.2l.9 1.4c-3.3 1.8-4 4.1-4.2 5.6.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Z"/></svg><span class="sk"><i></i><i></i></span><span class="sw"></span><span class="tx"><b>' + lead + "</b> " + s.rest.replace(/ gained (\d+%)(\.?)/, ' gained <span class="dc up">+$1</span>$2').replace(/ went up by \d+%/, ' went up by <span class="dc ' + tcls(s.delta) + '">' + s.delta + "</span>") + ask(s) + "</span></div>"; };
+var html = function (s) { var lead = s.lead.replace(/( by (?:only )?| is up | added )\d+%?(\.?)/, function (m, p, dot) { return p + '<span class="dc ' + tcls(s.delta) + '">' + s.delta + "</span>" + dot; }); return '<div class="in"><svg class="q" viewBox="0 0 24 24" fill="currentColor"><path d="M4.6 18.7C3.5 17.5 3 16.3 3 14.3c0-3.5 2.5-6.6 6-8.2l.9 1.4C6.6 9.3 5.9 11.6 5.7 13.1c.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Zm10 0c-1.1-1.2-1.6-2.4-1.6-4.4 0-3.5 2.5-6.6 6-8.2l.9 1.4c-3.3 1.8-4 4.1-4.2 5.6.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Z"/></svg><span class="sk"><i></i><i></i></span><span class="sw"></span><span class="tx"><b>' + lead + "</b> " + s.rest.replace(/ gained (\d+%)(\.?)/, ' gained <span class="dc up">+$1</span>$2').replace(/ went up by \d+%/, ' went up by <span class="dc ' + tcls(s.delta) + '">' + s.delta + "</span>") + ask(s) + "</span></div>"; };
 
 /* a ?say= case is the moment just after a log: its score, and the step up (or down) to it */
 window.GFSay = {
@@ -266,7 +266,7 @@ function mount() {
   cm = document.createElement("div"); cm.id = "cm"; cm.innerHTML = html(s);
   cm.addEventListener("click", function (e) {
     if (!e.target.closest(".cta")) return;
-    if (window.SAY_OPEN) window.SAY_OPEN(); else if (s.ask && window.kairaAsk) window.kairaAsk(s.ask.q, s.ask.a);
+    if (window.SAY_OPEN) window.SAY_OPEN(s); else if (s.ask && window.kairaAsk) window.kairaAsk(s.ask.q, s.ask.a);
   });
   stage.parentNode.insertBefore(cm, stage.nextSibling);
   /* a locked plate has no verdict pill, so eat.html pulls the next block up (.tight). That block is this line now:

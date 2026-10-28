@@ -57,6 +57,13 @@
   .ints { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 4px 16px; margin-top: 8px; }
   .int { display: flex; justify-content: space-between; gap: 8px; padding: 4px 0; border-bottom: 1px dashed var(--bd); font-size: 13px; line-height: 19px; color: var(--t-2); }
   .int b { font-weight: 600; }
+  /* a coach exercise's intensity levels: one line each, name, Compendium code, MET, kcal; the default tagged */
+  .lv { margin-top: 8px; max-width: 560px; font-size: 13px; line-height: 20px; color: var(--t-2); }
+  .lvh, .lvr { display: grid; grid-template-columns: 1fr 56px 40px 72px; gap: 12px; padding: 5px 0; border-bottom: 1px solid var(--bd); }
+  .lvh { font-size: 11px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; opacity: .7; }
+  .lvr span:not(:first-child), .lvr b, .lvh span:not(:first-child) { text-align: right; font-variant-numeric: tabular-nums; }
+  .lvr b { font-weight: 600; }
+  .lvr em.tag { font-style: normal; margin-left: 6px; vertical-align: 1px; }
   .empty { padding: 40px 0; text-align: center; color: var(--t-4); }
   @media (max-width: 640px) { .page { padding: 32px 16px 64px; } .bar { margin: 32px -16px 0; padding: 10px 16px; } .row { grid-template-columns: 40px 1fr; } .kc { grid-column: 2; text-align: left; } }
 </style>
@@ -66,6 +73,7 @@
   <span class="eyebrow">Move · Exercise lists</span>
   <h1>Coach plan exercises and the log list</h1>
   <p>Both lists the person can move with: what their coach assigns, and what they log themselves by search. Each has one icon and its calories per minute for a 70 kg person, taken from the 2024 Adult Compendium of Physical Activities (kcal per minute = MET × 3.5 × 70 ÷ 200). Duplicates are grouped under one name; nothing is deleted.</p>
+  <p style="margin-top:12px">Intensity is picked by the person when they log, never by the coach. Coach exercises get one only where the Compendium lists the same activity at different efforts: bodyweight sessions (general, high intensity), calisthenics (light, moderate, vigorous), video workouts (moderate, vigorous), HIIT (moderate, vigorous) and aerobic dance (low, high impact). Each level is named by the Compendium’s effort word (or its MET band when it gives none: under 3 light, 3 to 5.9 moderate, 6 and over vigorous). The code the exercise already used is the default. Pilates, yoga, stretching, stairs, punching bag, step-ups and weight training keep one value: their other Compendium codes are a different style, pace or load, not the same activity done harder.</p>
 
   <p style="margin-top:12px">The Search and log tab is the one list people search when they log a workout: every coach exercise and every log activity, with duplicates removed. A numbered series (Lean muscle development 1 to 6, HIIT 1 to 7) is one entry; “- NAFLD” versions join their twin; a coach exercise with a log activity’s name joins that activity.</p>
   <div class="facts">
@@ -82,7 +90,7 @@
   </div>
   <div class="list" id="list"></div>
 </div>
-<script src="/v7/data/exercise-lists.js?v=7"></script>
+<script src="/v7/data/exercise-lists.js?v=11"></script>
 <script>
 (function () {
   var D = window.EXL, tab = "coach", $ = function (id) { return document.getElementById(id); };
@@ -95,6 +103,9 @@
     var f = (c.fl || []).map(function (x) { return '<span class="tag warn">' + esc(x) + "</span>"; }).join("");
     return '<div class="row">' + ico(c.ic) + "<div><div class=\"nm\">" + esc(c.n) + "</div>" +
       '<div class="sub">' + (c.k === "session" ? "Session" : "Single exercise") + " · " + esc(c.ty) + (c.met != null ? " · MET " + c.met + (c.code ? " · " + esc(c.code) + " " + esc(c.act) : "") : "") + "</div>" +
+      (c.i.length ? '<div class="lv"><div class="lvh"><span>Intensity the person picks when logging</span><span>Code</span><span>MET</span><span>kcal / min</span></div>' + c.i.map(function (x) {
+        return '<div class="lvr" title="' + esc(x.act) + '"><span>' + esc(x.n) + (x.d ? ' <em class="tag ok">Default</em>' : "") + "</span><span>" + x.code + "</span><span>" + x.m + "</span><b>" + x.kc.toFixed(2) + "</b></div>";
+      }).join("") + "</div>" : "") +
       (c.t.length ? '<div class="sub">Same exercise as <em>' + c.t.map(esc).join(", ") + "</em></div>" : "") +
       (c.no ? '<div class="sub">' + esc(c.no) + "</div>" : "") +
       (c.url ? '<div class="sub">Source: <a href="' + esc(c.url) + '" target="_blank" rel="noopener">' + esc(c.src.split(".")[0]) + "</a></div>" : "") +
@@ -117,7 +128,7 @@
     var ks = x.i.length ? x.i.map(function (i) { return i.kc; }) : [x.kc], lo = Math.min.apply(null, ks), hi = Math.max.apply(null, ks);
     return '<div class="row">' + ico(x.ic) + '<div><div class="nm">' + esc(x.n) + "</div>" +
       (x.src.length ? '<div class="sub">Combines <em>' + x.src.map(esc).join(", ") + "</em></div>" : "") +
-      (x.i.length > 1 ? '<div class="sub">' + x.i.length + " intensities</div>" : "") +
+      (x.i.length > 1 ? '<div class="sub">Intensity: ' + x.i.map(function (i) { return esc(i.n) + " " + i.m; }).join(", ") + " MET</div>" : "") +
       '<div class="tags">' + x.from.map(function (f) { return '<span class="tag ' + (f === "Coach plan" ? "close" : "ok") + '">' + f + "</span>"; }).join("") + "</div></div>" +
       '<div class="kc"><b>' + (lo === hi ? lo.toFixed(2) : lo.toFixed(1) + " to " + hi.toFixed(1)) + "</b><span>kcal / min</span></div></div>";
   }

@@ -177,7 +177,7 @@
     var items = T.slice(), go = bar.querySelector(".go"), rect = go.getBoundingClientRect(), plan = (window.MOVEPART && window.MOVEPART[0].T) || kcal();
     /* the gain the win moment shows is the real change to Momentum (momentum.js), worked out before it is made */
     var apply = function (on) { items.forEach(function (x) { if (on) S.done[x.r][x.id] = "Done"; else delete S.done[x.r][x.id]; }); };
-    var gain = window.MVMOM ? window.MVMOM.gain(function () { apply(true); }, function () { apply(false); }) : Math.max(1, Math.round(kcal() / plan * 40));
+    var gain = window.MVMOM ? window.MVMOM.gain(function () { apply(true); }, function () { apply(false); }) : Math.max(1, Math.round(kcal() / plan * 45));
     var land = function () {
       /* the bar stays put under the ribbons and drops away at once, unseen, behind the white (as the logger does) */
       bar.style.transition = "none"; bar.classList.remove("up"); document.body.classList.remove("pt-on"); void bar.offsetHeight;

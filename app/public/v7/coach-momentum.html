@@ -515,14 +515,14 @@ h5>.tt{margin-left:-2px}
 <script>const ic=(n,c='i')=>`<svg class="${c}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
 let ttN=0;const tip=(label,html,cls='')=>{const id='tt'+(++ttN);return `<span class="tt"><button type="button" class="info" aria-label="About ${label}" aria-describedby="${id}">${ic('info')}</button><span class="tt-b ${cls}" role="tooltip" id="${id}">${html}</span></span>`};
 const HELP={
-  score:`<b>How the score works</b>Momentum shows how fully the movement plan was done, and how spread through the day. It starts at 0 each day and can reach 100.<ul><li><b>Workout, up to 40:</b> calories burned against the calories the coach planned. The coach's routine and workouts the user logs both count.</li><li><b>Spread, up to 40:</b> 10 for each part of the day with a workout or small move: morning, afternoon, evening and night. Steps alone do not count here.</li><li><b>Steps, up to 10:</b> steps against the daily goal.</li><li><b>Small moves, up to 10:</b> the share of the coach's small moves ticked off.</li></ul>Nothing takes points away. A day at 80 or more earns the user a medal in the app.`,
+  score:`<b>How the score works</b>Momentum shows how fully the movement plan was done, and how spread through the day. It starts at 0 each day and can reach 100.<ul><li><b>Workout, up to 45:</b> calories burned against the calories the coach planned. The coach's routine and workouts the user logs both count.</li><li><b>Spread, up to 15:</b> about 4 for each part of the day with a workout or small move: morning, afternoon, evening and night. Steps alone do not count here.</li><li><b>Steps, up to 25:</b> steps against the daily goal.</li><li><b>Small moves, up to 15:</b> the share of the coach's small moves ticked off.</li></ul>Nothing takes points away. A day at 80 or more earns the user a medal in the app.`,
   avg:`<b>Average score</b>The average of the daily scores on days with any movement recorded.<ul class="tags"><li><span class="pill ok">🏅 Great</span><span>80 and above. The movement plan was done, and spread through the day. The user earned a medal in the app that day.</span></li><li><span class="pill solid">✨ Solid</span><span>70 to 79. Most of the plan done, with a part of the day still open.</span></li><li><span class="pill warn">⛅ Room to grow</span><span>50 to 69. Part of the plan done, or movement in only some parts of the day.</span></li><li><span class="pill bad">⚠️ Needs attention</span><span>Below 50. Little of the movement plan was done.</span></li></ul>`,
   medal:`<b>Medal days</b>Days that scored 80 or more, out of the days with movement. On each one the user earned a medal in the app.`,
   days:`<b>Days with movement</b>Days with a workout, a small move or steps recorded. Days with nothing are left out of the average, so they do not pull it down.`,
   chart:`<b>Reading the chart</b>Each bar is the score for one day, or the average for a week or month.<ul><li>The colours are the four parts of the score, at the points each earned.</li><li>The empty top of a bar is the points not earned.</li><li>The dotted gold line is the medal line at 80. The dashed line is the average for the range.</li></ul>`,
   own:`<b>Their own workouts</b>Workouts the user logged themselves, beyond the coach's plan, and on how many days. They add to the workout calories and to the spread. They show what the user chooses to do, which helps shape the next plan.`,
   plan:`<b>Plan done</b>The coach's daily plan against what was done: calories burned against the planned workout, small moves ticked off, steps against the goal. A workout the user logs themselves adds to the calories.`,
-  parts:`<b>When they move</b>How many days each part of the day counted, from a workout or small move done in it. Each part adds 10 to the score. The part they move in least is the cheapest place to add points.`,
+  parts:`<b>When they move</b>How many days each part of the day counted, from a workout or small move done in it. Each part adds about 4 to the score, 15 for all four. The part they move in least is the cheapest place to add points.`,
 };</script>
 
 <div class="app">
@@ -648,13 +648,13 @@ document.getElementById('nav').innerHTML=[
 ].map(x=>typeof x=='string'?`<div class="h">${x.toUpperCase()}</div>`:`<a href="#" class="${x[2]?'on':''} ${x[4]?'sub':''}">${x[0]?ic(x[0]):''}${x[1]}${x[3]?'<span class="soon">SOON</span>':''}</a>`).join('');
 
 /* ---------- the Momentum rule (move/momentum.js, move/sandbox.html) ----------
-   Workout 40 x min(1, kcal burned / kcal planned), Spread 10 for each part of the day moved in (a workout,
-   a small move or a logged workout; steps alone do not count), Steps 10 x min(1, steps / goal), Small moves 10 x ticked / planned.
+   Workout 45 x min(1, kcal burned / kcal planned), Spread 15 x parts of the day moved in / 4 (a workout,
+   a small move or a logged workout; steps alone do not count), Steps 25 x min(1, steps / goal), Small moves 15 x ticked / planned.
    Nothing takes points away. */
 const PLAN={kcal:118,steps:10000,moves:5};
 const PARTS=['Morning','Afternoon','Evening','Night'],PWIN=['6 AM to 12 PM','12 to 4 PM','4 to 8 PM','8 to 11 PM'];
 /* icons are the Move screen's own (move/index.html .glyph-*); Spread takes the part-of-day cards' sun */
-const CMP=[{k:'w',name:'Workout',max:40,col:'var(--mo)',ic:'/v7/icons/move/activity-filled.svg'},{k:'a',name:'Spread',max:40,col:'var(--spread)',ic:'/v7/img/coach/icons/partly-sunny-outline.svg'},{k:'s',name:'Steps',max:10,col:'var(--c)',ic:'/v7/icons/move/steps-filled.svg'},{k:'m',name:'Small moves',max:10,col:'var(--jade)',ic:'/v7/icons/move/sm/ds-exercise.svg'}];
+const CMP=[{k:'w',name:'Workout',max:45,col:'var(--mo)',ic:'/v7/icons/move/activity-filled.svg'},{k:'a',name:'Spread',max:15,col:'var(--spread)',ic:'/v7/img/coach/icons/partly-sunny-outline.svg'},{k:'s',name:'Steps',max:25,col:'var(--c)',ic:'/v7/icons/move/steps-filled.svg'},{k:'m',name:'Small moves',max:15,col:'var(--jade)',ic:'/v7/icons/move/sm/ds-exercise.svg'}];
 /* the workouts the mock user logs themselves, most liked first; names from the Log your workout list (move/log.js) */
 const OWN=['Walking','Badminton','Yoga','Cycling','Swimming','Dance','Jogging','Cricket','Strength Training','Zumba','Stair Climbing','Table Tennis'];
 
@@ -674,7 +674,7 @@ for(let d=new Date(START),i=0;d<=TODAY;d.setDate(d.getDate()+1),i++){
   if(own)part[own.p]=true;
   const steps=Math.max(800,Math.round((we?8400:6000+3000*t)+(rnd()-.5)*5200));
   const burned=kc+(own?own.kcal:0);
-  const pts={w:40*Math.min(1,burned/PLAN.kcal),a:10*part.filter(Boolean).length,s:10*Math.min(1,steps/PLAN.steps),m:10*moves/PLAN.moves};
+  const pts={w:45*Math.min(1,burned/PLAN.kcal),a:15*Math.min(4,part.filter(Boolean).length)/4,s:25*Math.min(1,steps/PLAN.steps),m:15*moves/PLAN.moves};
   DAYS.push({date,we,logged:true,kc,burned,moves,own,part,steps,pts,score:Math.round(pts.w+pts.a+pts.s+pts.m)});
 }
 

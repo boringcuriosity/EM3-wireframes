@@ -248,7 +248,7 @@
     if (FROM < 0) return Math.floor(NOWM / 5) * 5;
     var w = SPANS[FROM]; return NOWM >= w[0] && NOWM < w[1] ? Math.floor(NOWM / 5) * 5 : Math.min(Math.floor(NOWM / 5) * 5, Math.round((w[0] + w[1]) / 2 / 5) * 5);
   }
-  var kcal = function () { return Math.round(ints(D.w)[Math.max(0, D.eff)][1] * 3.5 * KG / 200 * D.min); };
+  var kcal = function () { return Math.round((D.eff < 0 ? D.w[2] : ints(D.w)[D.eff][1]) * 3.5 * KG / 200 * D.min); };   /* unpicked: the workout's default MET (W), which need not be first in the list */
   var late = function () { return dayDiff(D.date) === 0 && D.at > NOWM; };
 
   var dv = document.createElement("div");
