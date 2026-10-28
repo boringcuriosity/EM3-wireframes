@@ -54,7 +54,7 @@
   .tag[data-s="attention"] { --t-ink: #d92d20;
     --t-fill: linear-gradient(122.66deg, #fee4e2 3%, #fef3f2 20.1%, #fef3f2 79.8%, #fee4e2 94.3%);
     --t-line: conic-gradient(from 90deg, #f97066 0deg, #d92d20 7.44deg, #f97066 25.61deg, #f97066 177.04deg, #d92d20 188.81deg, #f97066 212.01deg, #f97066 360deg); }
-  .tag[data-s="none"], .tag[data-s="gathering"], .tag[data-s="log"] { --t-ink: #667085;
+  .tag[data-s="none"], .tag[data-s="gathering"], .tag[data-s="log"], .tag[data-s="rest"] { --t-ink: #667085;
     --t-fill: linear-gradient(124.82deg, #f2f4f7 3%, #f9fafb 20.1%, #f9fafb 79.8%, #f2f4f7 94.3%);
     --t-line: conic-gradient(from 90deg, #f2f4f7 0deg, #e4e7ec 6.87deg, #f2f4f7 23.84deg, #f2f4f7 177.28deg, #e4e7ec 188.13deg, #f2f4f7 209.95deg, #f2f4f7 360deg); }
   /* Figma sets Roboto a touch wider than browsers, so pin each chip to its Figma width */
@@ -160,6 +160,11 @@
   .locked .score .num, .locked .score .word, .locked .tag { display: none; }
   /* blank (a day with no score: missed, loading): empty orbs, no number, the tag says why */
   .blank .score .num, .blank .score .word { display: none; }
+  /* the full rest day: the cloud and sun alone fill the plate's middle, no words (the line under the plate says it); 594 x 222 at 168 wide, filling the plate */
+  .rest-anim { display: none; width: 168px; height: 63px; margin: 0 auto;
+    /* the art's clouds end in a flat white edge, so its foot fades into the plate */
+    -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent); mask-image: linear-gradient(to bottom, #000 72%, transparent); }
+  .blank.rest .rest-anim { display: block; }
   .locked .lock { display: block; }
 </style>
 </head>
@@ -170,6 +175,7 @@
     <div class="num"><span class="slot" id="n"></span><i>%</i></div>
     <div class="word">Sufficient<svg class="wi" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 16v-4.5M12 8h.01"/></svg></div>
     <div class="lock" id="lock"></div>
+    <div class="rest-anim" id="restAnim"></div>
   </div>
   <div class="tag" id="tag" data-s="solid"><span id="tagText">Solid Day</span><i class="spin"></i></div>
   <div id="macros" aria-hidden="true"></div>
@@ -563,6 +569,8 @@ const FROM = !STILL && EMBED && QS.has('from') ? +QS.get('from') : null, LOADED 
 const BLANK = EMBED && !LOCK && QS.has('blank');
 if (BLANK) {
   document.documentElement.classList.add('blank');
+  /* a full rest day (Move, ?tag=rest): no number to pour, so the plate says so in its middle */
+  if (QS.get('tag') === 'rest') document.documentElement.classList.add('rest');
   Object.assign(VARIANTS.find(v => v.name === 'Cloud Drop'), { introSky: ['mist', 'mist'], sky: ['mist', 'cloud'], lift: .72, glow: [.93, .95, .94], glowS: .3, aura: 0 });
 }
 if (LOCK) {
@@ -574,6 +582,7 @@ if (LOCK) {
 setVariant(Math.max(0, VARIANTS.findIndex(v => v.name === (EMBED ? QS.get('v') || 'Cloud Drop' : 'Cloud'))));
 // the padlock: the same player and animation the Plate uses, from the prototype's assets
 let lockAnim = null, lockPlayed = false;
+const restEl = BLANK && QS.get('tag') === 'rest' ? $('restAnim') : null;
 if (LOCK) {
   const load = src => new Promise(r => { const sc = document.createElement('script'); sc.src = src; sc.onload = sc.onerror = r; document.head.append(sc); });
   Promise.all([load('../../assets/lottie_light.min.js'), load('../../assets/lock-anim.js')]).then(() => {
@@ -583,6 +592,17 @@ if (LOCK) {
     // it locks once and holds on its last frame; the bubble answers with a small pulse as it clicks shut
     lockAnim.addEventListener('complete', () => { pulseV += .9; });
     if (STILL || matchMedia('(prefers-reduced-motion: reduce)').matches) lockAnim.addEventListener('DOMLoaded', () => lockAnim.goToAndStop(lockAnim.totalFrames - 1, true));
+  });
+}
+// a full rest day: the cloud and sun drift on a loop, still for reduced motion
+if (BLANK && QS.get('tag') === 'rest') {
+  const load = src => new Promise(r => { const sc = document.createElement('script'); sc.src = src; sc.onload = sc.onerror = r; document.head.append(sc); });
+  Promise.all([load('../../assets/lottie_light.min.js'), load('../../assets/rest-anim.js')]).then(() => {
+    if (!window.lottie || !window.GF_REST) return;
+    const calm = STILL || matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const a = lottie.loadAnimation({ container: $('restAnim'), renderer: 'svg', loop: !calm, autoplay: !calm, animationData: window.GF_REST,
+      rendererSettings: { preserveAspectRatio: 'xMidYMid meet' } });
+    if (calm) a.addEventListener('DOMLoaded', () => a.goToAndStop(60, true));
   });
 }
 // macro card: one vessel per macro, filled to its level, grams counting up with it
@@ -638,7 +658,7 @@ const mix = (a, b, k) => a + (b - a) * k;
 
 const Y1 = EMBED ? (+QS.get('y') || .01) : .2, SCORE = LOCK ? 0 : EMBED ? Math.max(0, Math.min(100, Math.round(+QS.get('score') || 0))) : 85;
 // status tags; the score picks one, and tapping the chip previews the rest
-const TAGS = [['solid', 'Solid Day'], ['grow', 'Room To Grow'], ['attention', 'Needs Attention'], ['none', 'No Data Available'], ['gathering', 'Gathering data'], ['log', 'Log your meals']];
+const TAGS = [['solid', 'Solid Day'], ['grow', 'Room To Grow'], ['attention', 'Needs Attention'], ['none', 'No Data Available'], ['gathering', 'Gathering data'], ['log', 'Log your meals'], ['rest', 'Rest day']];
 let tagIdx = SCORE >= 70 ? 0 : SCORE >= 50 ? 1 : 2;
 // embedded, the host may name the tag (an unfinished day gets no verdict)
 if (EMBED && QS.get('tag')) tagIdx = Math.max(0, TAGS.findIndex(x => x[0] === QS.get('tag')));
@@ -810,7 +830,9 @@ function frame(now) {
   scoreEl.style.filter = `blur(${(1 - op) * 8}px)`;
   // number and word sit centred, then glide up as the tag arrives beneath them
   const tagP = eIO(seg(t, 8.7, 9.5));
-  scoreEl.style.transform = `translate(${bx}px,${by}px) translate(-50%,-50%) scale(${(.92 + .08 * op) * (1 + pulse)})`;   // text keeps real pixel sizes, never scaled below 12px
+  scoreEl.style.transform = `translate(${bx}px,${by}px) translate(-50%,-50%) scale(${(.92 + .08 * op) * (1 + pulse)})`;
+  // a full rest day: the cloud and sun are cropped to the drop, so nothing hangs over its rim
+  if (restEl) restEl.style.clipPath = `circle(${(main.r * H * .96).toFixed(1)}px at 50% 50%)`;   // text keeps real pixel sizes, never scaled below 12px
   tagEl.style.opacity = tagP;
   // chip sits in the gauge's open gap, centred between 0 and 100
   // Text sits still: anchored to the bubble's resting seat, not its breathing, and snapped to whole pixels once it

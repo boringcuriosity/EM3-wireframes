@@ -48,8 +48,8 @@
        score's own tag (Solid Day, Room To Grow, Needs Attention). Gathering
        data is not a general-purpose tag, so it is not used here. */
     /* nothing logged on a planned day is an invitation, not missing data */
-    var tag = lock ? "" : blank ? (opts.state === "loading" ? "gathering" : "none") : opts.mealsIn === 0 ? "log" : "";
-    fr.src = BASE + "cloud/index.html?build=27&embed=1&k=.88&er=.102&ey=-.095&y=.03&v=Cloud%20Drop&intro=murmuration" + (lock ? "&lock=" + lock : blank ? "&blank=1" : "&score=" + Math.round(opts.score)) + (tag ? "&tag=" + tag : "") +
+    var tag = lock ? "" : blank ? (opts.state === "loading" ? "gathering" : opts.rest ? "rest" : "none") : opts.mealsIn === 0 ? "log" : "";
+    fr.src = BASE + "cloud/index.html?build=34&embed=1&k=.88&er=.102&ey=-.095&y=.03&v=Cloud%20Drop&intro=murmuration" + (lock ? "&lock=" + lock : blank ? "&blank=1" : "&score=" + Math.round(opts.score)) + (tag ? "&tag=" + tag : "") +
       (opts.from != null && !lock && !blank ? "&from=" + Math.round(opts.from) : "");
     fr.title = ""; fr.tabIndex = -1; fr.setAttribute("aria-hidden", "true");
     /* taps go to the hero wrap underneath, which opens the sufficiency sheet */

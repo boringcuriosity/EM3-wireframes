@@ -10,7 +10,7 @@
 (function (root) {
   var KEEP = "Keep logging your movement to see your score grow.";
   function pick(d, n, a, b, logged) {
-    var was = n - d, plan = b.raw[0][1], beyond = b.raw[0][0] > plan;
+    var was = n - d, plan = b.raw[0][1], beyond = plan > 0 && b.raw[0][0] > plan;   /* a rest day plans no workout, so nothing goes past it */
     return n >= 100 && was < 100 ? { k: "hundred", lead: "You reached 100% Momentum!", rest: "You moved well all through the day.", delta: "" }
       : n >= 80 && was < 80 ? { k: "medal", lead: "You’ve earned today’s medal!", rest: "Your Momentum went up by " + d + "%. Well done." }
       : was >= 80 ? { k: "above80", lead: "Your Momentum went up by " + d + "%.", rest: "You’re having a great day, keep it going." }
@@ -23,7 +23,7 @@
       : { k: "any", lead: "Your Momentum went up by " + d + "%.", rest: "Every move you log keeps your score growing." };
   }
   /* a workout log that changed nothing: only true when the workout's calories are already met */
-  function full(b) { return b.raw[0][0] >= b.raw[0][1]; }
+  function full(b) { return b.raw[0][1] > 0 && b.raw[0][0] >= b.raw[0][1]; }
   root.MVPICK = { pick: pick, full: full };
 
   if (typeof window === "undefined" && typeof process !== "undefined") {   /* node only: the check */
@@ -42,6 +42,9 @@
     /* a small move ticked after the workout went past the plan is not "Great effort": it was not a workout log */
     t("any", 3, 68, P(157, 118, 5200, one), P(157, 118, 5200, two), false);
     assert.strictEqual(full(P(157, 118)), true); assert.strictEqual(full(P(100, 118)), false);
+    /* a rest day from workouts: a walk logged is a first log, not "more than the plan", and never "reached today's workout goal" */
+    t("first", 9, 9, P(0, 0, 0, []), P(129, 0, 0, one), true);
+    assert.strictEqual(full(P(129, 0)), false);
     console.log("momentum-pick: all cases pass");
   }
 })(typeof window !== "undefined" ? window : globalThis);

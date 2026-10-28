@@ -17,13 +17,19 @@ window.MOVEPART = [
 window.MV = function (i, eaten, target) {
   var base = target || [95, 238, 63][i], v = Math.min(1, (eaten || 0) / base) * window.MOVEPART[i].T;
   return i === 2 ? Math.round(v / 10) * 10 : Math.round(v);
-};</script>
+};
+/* ?off=e,n,s: what the coach marked off today (coach-exercise-template.html): e a rest day from workouts,
+   n no small moves, s no steps goal. A part that is off sits out of the score and the others count for more;
+   all three off is a full rest day with no score (v7/move-rest-days.html) */
+window.MVOFF = (function (o) { var f = { e: /e/.test(o), n: /n/.test(o), s: /s/.test(o) }; f.any = f.e || f.n || f.s; f.all = f.e && f.n && f.s; return f; })(new URLSearchParams(location.search).get("off") || "");
+/* no target for any of the three: small moves do not exist today, so their tile stands down and Workout and Steps share the row */
+if (window.MVOFF.all) document.write("<style>#railSect[hidden]{display:none}#railSect .mgrid{grid-template-columns:1fr 1fr !important}#railSect .mgrid>:nth-child(2){display:none}</style>");</script>
 <script>window.SAY_LOCK = "Your Momentum score unlocks after your first Move Coach consultation, once your coach assigns you a plan."; window.SAY_REST = "keep logging your movement."; window.HERO_WORD = "Momentum"; window.HERO_ORB = { colors: { "#246649": "#444CE7", "#79CCA8": "#8098F9", "#ABE6CC": "#A4BCFD", "#59B38C": "#6172F3",
   "0.160784 0 0 0 0 0.615686 0 0 0 0 0.419608": "0.502 0 0 0 0 0.596 0 0 0 0 0.976" }, shadow: [.176, .196, .51], introSky: ["indigo", "indigosoft"] };</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="../icons/glyph-masks.css">
 <link rel="stylesheet" href="goodflip-ui.css">
-<link rel="stylesheet" href="/move/plan.css?v=64">
+<link rel="stylesheet" href="/move/plan.css?v=66">
 <link rel="stylesheet" href="/move/log.css?v=27">
 <link rel="stylesheet" href="/move/player.css?v=18">
 <style>
@@ -312,6 +318,8 @@ window.MV = function (i, eaten, target) {
   .macros.tiles .mval strong { color: inherit; }
   .macros.tiles .mval small { font: 500 12px/1 Roboto, sans-serif; margin-left: 1px; }
   .macros.tiles .mval span { font: 500 13px/18px Roboto, sans-serif; color: var(--g-500); }
+  /* a part with no target today: its words in place of a number */
+  .macros.tiles .m .mval .moff { font: 600 15px/20px Roboto, sans-serif; color: var(--g-700); }
   .macros.tiles .mof { margin-top: 3px; font: 400 12px/16px Roboto, sans-serif; color: var(--g-600); font-variant-numeric: tabular-nums; }
   #railMacros.tiles .calc { background: transparent; border-radius: 0; border-top-color: var(--g-200); padding: 12px 10px; }
   /* calories first: the rule moves under the line, between it and the tiles */
@@ -954,6 +962,8 @@ window.MV = function (i, eaten, target) {
   .irex ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 21px; color: var(--g-600); }
   .irex li + li { margin-top: 6px; }
   /* the sufficiency sheet, as suff-sheet-variants.html C: a still bubble, three tiles, calories as a line, Ask KAIRA pinned */
+  #es-suff .ebub b.erest { font-size: 20px; line-height: 26px; }
+  #es-suff .ebub-wrap .ecap.rest { max-width: 300px; margin: 4px auto 8px; text-align: center; font-size: 14px; line-height: 21px; color: var(--g-700); }
   #es-suff h4 { font-size: 20px; line-height: 28px; font-weight: 800; }
   #es-suff .sbody { flex: 1 1 auto; padding-bottom: 28px; }
   #es-suff .esec h5 { font-size: 15px; line-height: 22px; font-weight: 700; margin-bottom: 6px; }
@@ -1861,7 +1871,7 @@ function loadScripts(list, done) {
      flag is there and costs nothing when it is not */
   if (!(window.HEROES && window.HEROES[name]) && HERO_DIR[name] != null) {
     /* the liquid score brings its own renderer, so it skips three.js */
-    loadScripts((name === "cloud" ? [] : [LAZY.three, LAZY.shaders]).concat("heroes/" + HERO_DIR[name] + name + ".js" + (name === "cloud" ? "?v=21" : "")), start);   /* ?v busts the cache when the liquid score is updated */
+    loadScripts((name === "cloud" ? [] : [LAZY.three, LAZY.shaders]).concat("heroes/" + HERO_DIR[name] + name + ".js" + (name === "cloud" ? "?v=28" : "")), start);   /* ?v busts the cache when the liquid score is updated */
     return;
   }
   start();
@@ -1874,7 +1884,7 @@ function loadScripts(list, done) {
   }
   /* ponytail: run the hero only while it is on screen. The gallery shows many
      phones at once and Chrome drops the oldest WebGL contexts past ~16. */
-  var opts = { score: S.hero.score, state: S.id, mealsIn: S.hero.mealsIn, mealSlots: S.hero.mealSlots };
+  var opts = { score: S.hero.score, state: S.id, mealsIn: S.hero.mealsIn, mealSlots: S.hero.mealSlots, rest: !!(window.MVOFF && window.MVOFF.all) };
   if (window.GFSay) window.GFSay.hero(opts);   /* ?say=: the score just after that log (assets/score-say.js) */
   /* arriving from a log: the logger left the gain behind, so the score starts
      where the day stood and steps up, rather than playing its intro again */
@@ -2129,6 +2139,9 @@ function loadScripts(list, done) {
      unchanged, and the same .mval strong[data-n] the live count reads */
   function tileCells(vals) {
     return G.map(function (g, i) {
+      /* a part the coach set no target for today: a white tile, no fill. With nothing yet it reads No target (small moves always do,
+         as only the coach sets them); a workout logged or steps synced show their number, with No target today under it */
+      var NOTGT = window.MVOFF && window.MVOFF["ens"[i]];
       var v = (vals || [])[i] || [0, 0], target = v[1], done = M.mode === "goals" ? 0 : window.MV(i, v[0], target), T = g.T;
       var pct = M.mode === "targets" && target ? Math.max(0, Math.min(1, done / T)) : 0;
       var val = M.mode === "blank" ? "<span>Not logged</span>"
@@ -2136,6 +2149,10 @@ function loadScripts(list, done) {
         : "<strong data-n=\"" + done + "\">" + fmt(done) + "</strong>";
       /* "X of 30 min", "X of 4", "X of 10,000 steps" */
       var of = M.mode === "grams" || M.mode === "blank" || !target ? "" : '<span class="mof">of ' + fmt(T) + g.unit + "</span>";
+      /* nothing yet and no target: a 0 would measure against nothing, so the tile says the plan instead */
+      if (NOTGT && !done) return '<div class="m"><span class="tpool"></span><span class="ttop"><span class="tgl ' + g.cls + '"></span>' + g.name + '</span>' +
+        '<span class="mval"><span class="moff">' + (i === 1 ? "None today" : "No target") + '</span></span><span class="mof">By your coach</span></div>';   /* small moves are a list, not a target */
+      if (NOTGT) { pct = 0; of = '<span class="mof">No target today</span>'; if (i === 0) val = "<strong data-n=\"" + done + "\">" + fmt(done) + "</strong><small>" + g.unit + "</small>"; }
       var over = false;   /* moving more than planned is never shown in red */
       return '<div class="m' + (pct >= 1 ? " done" : pct <= 0 ? " still" : "") + (over ? " over" : "") + (of ? "" : " nof") + '"><span class="tpool"><span class="gfill" style="--f:' + (pct * 100).toFixed(1) + '%"></span></span>' +
         '<span class="ttop"><span class="tgl ' + g.cls + '"></span>' + g.name + '</span>' +
@@ -2343,16 +2360,20 @@ function loadScripts(list, done) {
   }).join("");
   var CAL = S.cal || {};
   /* calories first, as on the Eat screen, with the same filled flame; the three macros follow */
-  var card = '<div class="echips' + (LOCKED ? " two" : "") + '">' + chips + "</div>";
+  /* a full rest day (MVOFF.all): no score, so no tiles to explain it */
+  var REST = window.MVOFF && window.MVOFF.all;
+  var card = REST ? "" : '<div class="echips' + (LOCKED ? " two" : "") + '">' + chips + "</div>";
 
   /* Hero: the day view's Cloud Drop, shorter. The score, orbs and tag live
      inside it; a quiet caption only adds the day when it is not today. */
-  var caption = LOCKED ? ""   /* the rows below say when it unlocks, as on Eat */
+  var caption = REST ? "Your coach planned no workout, small moves or steps for today, so there’s no score. Your Momentum starts fresh tomorrow."
+    : LOCKED ? ""   /* the rows below say when it unlocks, as on Eat */
     : SCORE == null ? "Nothing was logged on " + S.day
     : PAST ? S.day : "";
   var hero = '<div class="ebub-wrap">' + (LOCKED ? '<div class="ebub lock"><div class="lk" id="esLock"></div></div>'
+      : REST ? '<div class="ebub"><b class="erest">No target</b></div>'
       : '<div class="ebub"><b>' + Math.round(SCORE || 0) + '<sup>%</sup></b><span>Momentum</span></div>') +
-    (caption ? '<div class="ecap">' + caption + "</div>" : "") + "</div>";
+    (caption ? '<div class="ecap' + (REST ? " rest" : "") + '">' + caption + "</div>" : "") + "</div>";
 
   /* the padlock plays once and holds, as on the day view; its player loads only when it is needed */
   function mountSheetHero() {
@@ -2401,6 +2422,8 @@ function loadScripts(list, done) {
       "Your body uses more energy across the whole day.",
       "You feel less stiff and more awake.",
       "Your workouts become easier to keep up."] },
+    { h: "What if something has no target today?", p: [
+      "Your coach may set no target for your workout, small moves or steps on a day. That part sits out of your score, and the others count for more, so you can still reach 100%. Anything you log still shows. When none of the three has a target, there’s no score that day."] },
     { h: "Where does your plan come from?", p: [
       "Your coach sets your workout, small moves and step target after your consultation, from your goal, your body and your health."], coach: true }
   ];
@@ -3770,7 +3793,7 @@ function mealsIn() {
 <script>window.SAY_CTA = "Learn more";   /* the line's link in the house link green, as Eat; it opens KAIRA analysis (move/kaira-sheet.js) */</script>
 <script src="assets/score-say.js?v=31"></script>
 <script src="chrome.js"></script>
-<script src="/move/plan.js?v=63"></script>
+<script src="/move/plan.js?v=69"></script>
 <script>/* before a plan the burn card has no "What shaped your score?" above it, so it sits 20px from the line and from Kaira's card, as the first landing does */
 (function () { var t = document.getElementById("railTitle"); if (window.MVPLAN && MVPLAN.noplan && t && !t.textContent.trim()) document.getElementById("railSect").classList.add("notitle"); })();</script>
 <script src="/move/player.js?v=22"></script>
@@ -3781,7 +3804,7 @@ function mealsIn() {
 <script src="/move/log.js?v=36"></script>
 <script src="/move/health.js?v=15"></script>
 <script src="/move/cases.js?v=15"></script>
-<script src="/move/momentum-pick.js?v=1"></script>
-<script src="/move/momentum.js?v=28"></script>
+<script src="/move/momentum-pick.js?v=2"></script>
+<script src="/move/momentum.js?v=43"></script>
 </body>
 </html>

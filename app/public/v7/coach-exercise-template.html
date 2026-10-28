@@ -697,6 +697,8 @@
   .cmtog button{height:30px;padding:0 14px;border:0;border-radius:8px;background:none;font-size:13px;font-weight:600;color:var(--ink2);cursor:pointer}
   .cmtog button[aria-checked="true"]{background:#fff;color:var(--primary);box-shadow:0 1px 3px rgba(16,24,40,.12)}
   .drop.cdrop.off{opacity:.5;cursor:not-allowed}
+  .sofft{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .sofft .b{height:36px;border-radius:999px}
   .gbar .drop.cdrop{height:36px;border-radius:999px}
 
   /* ---------- Preview and Assign: days with too little spread, as a warning ---------- */
@@ -1467,7 +1469,7 @@ Yoga for Back Pain -2|P|27|min`;
         tws.forEach(function (tw) {
           for (var di = 0; di < 7; di++) {
             if (g === "e") { var sd = PLAN[fw].days[di], td = PLAN[tw].days[di]; if (sd && td) { td.rest_day = sd.rest_day; td.routines = sd.rest_day === "Y" ? [] : deep(sd.routines); } }
-            else { var fk = dkey(fw, di), tk = dkey(tw, di); if (g === "n") { if (NEAT[fk]) NEAT[tk] = deep(NEAT[fk]); else delete NEAT[tk]; } else putSteps(tk, STEPS[fk]); }
+            else { var fk = dkey(fw, di), tk = dkey(tw, di); if (g === "n") { if (NEAT[fk]) NEAT[tk] = deep(NEAT[fk]); else delete NEAT[tk]; putNoff(tk, fk); } else putSteps(tk, STEPS[fk]); }
           }
         });
         g === "e" ? draw() : g === "n" ? drawNeat() : drawSteps(); drawBar();
@@ -1479,7 +1481,7 @@ Yoga for Back Pain -2|P|27|min`;
       var gc = a.dataset.gcopy.split("|"); closeAll();
       if (gc[1] !== " ") {
         var gw = gc[0] === "n" ? S.nw : S.sw, from = dkey(gw, gc[0] === "n" ? S.nd : S.sd), to = dkey(gw, +gc[1]);
-        if (gc[0] === "n") { if (NEAT[from]) NEAT[to] = deep(NEAT[from]); else delete NEAT[to]; drawNeat(); }
+        if (gc[0] === "n") { if (NEAT[from]) NEAT[to] = deep(NEAT[from]); else delete NEAT[to]; putNoff(to, from); drawNeat(); }
         else { putSteps(to, STEPS[from]); drawSteps(); }
         drawBar(); toast("Copied to Day " + (+gc[1] + 1));
       }
@@ -1543,6 +1545,10 @@ Yoga for Back Pain -2|P|27|min`;
       if (day().rest_day !== "Y") { var err = firstError(); if (err) { toast(err.msg); jumpTo(err); return; } }
       if (S.d < PLAN[S.w].days.length - 1) S.d++; else { S.d = 0; S.w = S.w + 1 < PLAN.length ? S.w + 1 : 0; }
       S.copyDay = ""; draw(); $("main").scrollTop = 0;
+    } else if (x === "step2next" || x === "step3next") {
+      var w = x === "step2next" ? "nw" : "sw", d = x === "step2next" ? "nd" : "sd";
+      if (S[d] < 6) S[d]++; else { S[d] = 0; S[w] = S[w] + 1 < PLAN.length ? S[w] + 1 : 0; }
+      x === "step2next" ? drawNeat() : drawSteps(); $("main").scrollTop = 0;
     } else if (x === "next") {
       if (S.step === 1) { if (checkPlan()) goStep(2); }
       else if (S.step === 2) { if (checkNeat()) goStep(3); }
@@ -1565,6 +1571,8 @@ Yoga for Back Pain -2|P|27|min`;
       drawDay(); if (S.step === 2) drawNeat(); if (S.step === 3) drawSteps();
     }
     else if (x === "cgo") doCopy();
+    else if (x === "noff") { var nk = dkey(S.nw, S.nd); if (NOFF[nk]) delete NOFF[nk]; else NOFF[nk] = 1; drawNeat(); drawBar(); }
+    else if (x === "soff") { var ok = dkey(S.sw, S.sd); if (STEPS[ok] === "off") delete STEPS[ok]; else STEPS[ok] = "off"; drawSteps(); drawBar(); }
     else if (x === "sminus" || x === "splus") {
       var sk = dkey(S.sw, S.sd), v = (parseInt(STEPS[sk], 10) || 0) + (x === "splus" ? 500 : -500);
       if (v > 0) STEPS[sk] = String(Math.min(99999, v)); else delete STEPS[sk];
@@ -1688,11 +1696,11 @@ Yoga for Back Pain -2|P|27|min`;
   /* ================= the stepper and the bar at the foot ================= */
   /* how many of the plan's days have something set, and the values when it is the steps goal */
   function setDays(test) { var n = 0, all = PLAN.length * 7; PLAN.forEach(function (w, wi) { for (var di = 0; di < 7; di++) if (test(dkey(wi, di))) n++; }); return [n, all]; }
-  function neatSummary() { var c = setDays(function (k) { return neatN(NEAT[k]) > 0; }); return !c[0] ? "None yet" : c[0] === c[1] ? "Set every day" : c[0] + " of " + c[1] + " days"; }
+  function neatSummary() { var c = setDays(function (k) { return NOFF[k] || neatN(NEAT[k]) > 0; }); return !c[0] ? "None yet" : c[0] === c[1] ? "Set every day" : c[0] + " of " + c[1] + " days"; }
   function stepsSummary() {
     var vals = {}, c = setDays(function (k) { if (STEPS[k]) vals[STEPS[k]] = 1; return !!STEPS[k]; }), u = Object.keys(vals);
     if (!c[0]) return "Not set";
-    return c[0] === c[1] && u.length === 1 ? (+u[0]).toLocaleString("en-IN") + " a day" : c[0] + " of " + c[1] + " days";
+    return c[0] === c[1] && u.length === 1 ? (u[0] === "off" ? "No steps days" : (+u[0]).toLocaleString("en-IN") + " a day") : c[0] + " of " + c[1] + " days";
   }
   var STEP_NAMES = ["Exercise plan", "Small moves", "Steps goal"];
   function drawStepper() {
@@ -1820,18 +1828,21 @@ Yoga for Back Pain -2|P|27|min`;
     return '<div class="gacts"><button class="cbtn" data-copy="' + g + '|day"' + dis + '>' + ico("copy-outline") + 'Copy this day</button>' +
       '<button class="cbtn" data-copy="' + g + '|week">' + ico("layers-outline") + 'Copy this week</button></div>';
   }
+  /* Save & Next under the day, as the exercise plan's: moves on to the next day, then the next week */
+  function saveNext(id) { var r = $(id).querySelector(".right"); if (r) r.insertAdjacentHTML("beforeend", '<div class="center"><button class="b pr" data-x="' + id + 'next">Save &amp; Next' + ico("chevron-back-outline", "flip") + '</button></div>'); }
   function drawNeat() {
     if (S.nw >= PLAN.length) S.nw = 0;
-    var list = nList(false), n = neatN(NEAT[dkey(S.nw, S.nd)]);
+    var list = nList(false), n = neatN(NEAT[dkey(S.nw, S.nd)]), off = !!NOFF[dkey(S.nw, S.nd)];
     var h = '<div class="s-head"><div><h2>Small moves</h2><p>Short bits of everyday movement, split across the parts of the day. The user ticks the ones you set here; they cannot add their own. Set a day, then copy it to ' + (S.cm === "smart" ? "as many days or weeks as you like." : "another day or week.") + '</p></div>' +
         '<button class="linkb" data-x="ptimes">' + ico("time-outline") + 'Edit times</button></div>' +
       '<div class="exbox' + (S.nEx ? " open" : "") + '"><button class="linkb" data-x="nex" aria-expanded="' + !!S.nEx + '">' + ico("bulb-outline") + (S.nEx ? "Hide examples" : "See examples") + '</button>' +
         (S.nEx ? '<div class="exlist">' + NEX.map(function (e) { var k = e.part.toLowerCase(); return '<div class="exi t-' + PS[k].tone + '"><span class="exp">' + ico(PS[k].ic) + e.part + '</span><b>' + e.title + '</b><small>' + e.sub + '</small></div>'; }).join("") + '</div>' : "") + '</div>';
-    h += '<div class="box nbox">' + gridNav("n", S.nw, S.nd, function (wi, di) { var c = neatN(NEAT[dkey(wi, di)]); return c ? c + (c === 1 ? " move" : " moves") : ""; }) +
-      '<div class="gbar"><div class="gwhere">' + ico("calendar-clear-outline") + '<b>Week ' + PLAN[S.nw].week_no + ', Day ' + (S.nd + 1) + '</b><span>' + (n ? n + (n === 1 ? " small move" : " small moves") : "Nothing set yet") + '</span></div>' +
-        (n ? '<button class="cbtn ghost" data-x="nclear">' + ico("refresh-outline") + 'Clear day</button>' : "") + copyBtns("n", n > 0) + '</div>' +
-      partsHTML(list) + '</div></div>';
-    $("step2").innerHTML = h;
+    h += '<div class="box nbox">' + gridNav("n", S.nw, S.nd, function (wi, di) { if (NOFF[dkey(wi, di)]) return "No small moves"; var c = neatN(NEAT[dkey(wi, di)]); return c ? c + (c === 1 ? " move" : " moves") : ""; }) +
+      '<div class="gbar"><div class="gwhere">' + ico("calendar-clear-outline") + '<b>Week ' + PLAN[S.nw].week_no + ', Day ' + (S.nd + 1) + '</b><span>' + (off ? "No small moves" : n ? n + (n === 1 ? " small move" : " small moves") : "Nothing set yet") + '</span></div>' +
+        '<span class="sofft">' + (off ? '<button class="b pink" data-x="noff">' + ico("barbell-outline") + 'Unmark as No Moves Day</button>' : '<button class="b teal" data-x="noff">' + ico("bed-outline") + 'Mark as No Moves Day</button>') +
+        (n && !off ? '<button class="cbtn ghost" data-x="nclear">' + ico("refresh-outline") + 'Clear day</button>' : "") + copyBtns("n", off || n > 0) + '</span></div>' +
+      (off ? '<div class="rest">' + ico("bed-outline") + '<b>Day ' + (S.nd + 1) + ' has no small moves</b><span>Small moves won’t count in Momentum this day. Unmark it to plan moves.</span></div>' : partsHTML(list)) + '</div></div>';
+    $("step2").innerHTML = h; saveNext("step2");
     requestAnimationFrame(function () { $("step2").querySelectorAll(".msub2").forEach(grow); });
   }
 
@@ -1840,11 +1851,14 @@ Yoga for Back Pain -2|P|27|min`;
     if (S.sw >= PLAN.length) S.sw = 0;
     var v = STEPS[dkey(S.sw, S.sd)] || "";
     $("step3").innerHTML = '<div class="s-head"><div><h2>Steps goal</h2><p>The daily steps target. Every step the user walks counts toward it, wherever it comes from. Set a day, then copy it ' + (S.cm === "smart" ? "across the plan." : "to another day or week.") + '</p></div></div>' +
-      '<div class="box nbox">' + gridNav("s", S.sw, S.sd, function (wi, di) { var x = STEPS[dkey(wi, di)]; return x ? (+x).toLocaleString("en-IN") : ""; }) +
-      '<div class="gbar"><div class="gwhere">' + ico("calendar-clear-outline") + '<b>Week ' + PLAN[S.sw].week_no + ', Day ' + (S.sd + 1) + '</b></div>' + copyBtns("s", !!v) + '</div>' +
-      '<div class="goal"><div class="ghead"><span class="picon t-teal">' + ico("footsteps-outline") + '</span><label for="steps">Steps goal for this day</label></div><div class="gin">' +
+      '<div class="box nbox">' + gridNav("s", S.sw, S.sd, function (wi, di) { var x = STEPS[dkey(wi, di)]; return x ? fmtS(x) : ""; }) +
+      '<div class="gbar"><div class="gwhere">' + ico("calendar-clear-outline") + '<b>Week ' + PLAN[S.sw].week_no + ', Day ' + (S.sd + 1) + '</b></div>' + '<span class="sofft">' + (v === "off" ? '<button class="b pink" data-x="soff">' + ico("footsteps-outline") + 'Unmark as No Steps Day</button>' : '<button class="b teal" data-x="soff">' + ico("bed-outline") + 'Mark as No Steps Day</button>') +
+      copyBtns("s", !!v) + '</span></div>' +
+      (v === "off" ? '<div class="rest">' + ico("bed-outline") + '<b>Day ' + (S.sd + 1) + ' has no steps goal</b><span>Steps won’t count in Momentum this day. Unmark it to set a goal.</span></div></div></div>' : '') +
+      (v === "off" ? "" : '<div class="goal"><div class="ghead"><span class="picon t-teal">' + ico("footsteps-outline") + '</span><label for="steps">Steps goal for this day</label></div><div class="gin">' +
         '<button class="gb" data-x="sminus" aria-label="500 fewer">−</button><input id="steps" value="' + (v ? (+v).toLocaleString("en-IN") : "") + '" placeholder="Enter steps" inputmode="numeric" maxlength="6">' +
-        '<button class="gb" data-x="splus" aria-label="500 more">+</button></div><small>steps a day · the buttons move it by 500</small></div></div></div>';
+        '<button class="gb" data-x="splus" aria-label="500 more">+</button></div><small>steps a day · the buttons move it by 500</small></div></div></div>');
+    saveNext("step3");
   }
 
   /* ================= copy: one day, one part of a day, or a whole week, to any days or weeks ================= */
@@ -1859,7 +1873,7 @@ Yoga for Back Pain -2|P|27|min`;
   function selCount() { return Object.keys(C.sel).length; }
   /* whether a day already holds something, for the dots on the grid */
   function hasAt(wi, di) {
-    if (C.g === "n") return neatN(NEAT[dkey(wi, di)]) > 0;
+    if (C.g === "n") return !!NOFF[dkey(wi, di)] || neatN(NEAT[dkey(wi, di)]) > 0;
     if (C.g === "s") return !!STEPS[dkey(wi, di)];
     var D = PLAN[wi].days[di];
     return !!D && (D.rest_day === "Y" || D.routines.some(function (r) { return r.exercises.some(function (ex) { return ex.content_master_id; }); }));
@@ -1883,7 +1897,7 @@ Yoga for Back Pain -2|P|27|min`;
       whats.map(function (o) { return '<div class="opt' + (o[0] === C.what ? " sel" : "") + '" data-cwhat="' + o[0] + '">' + tod(o[0]) + o[1] + '</div>'; }).join("") + '</div></div></div>';
     h += '<p class="cfrom">' + (isWeek() ? "Every day of week " + wk + " goes to the same day in the weeks you pick."
       : C.g === "e" ? "Week " + wk + ", Day " + (C.d + 1) + ": " + eFrom()
-      : C.g === "s" ? "Week " + wk + ", Day " + (C.d + 1) + ": " + (src ? (+src).toLocaleString("en-IN") + " steps" : "not set")
+      : C.g === "s" ? "Week " + wk + ", Day " + (C.d + 1) + ": " + (src ? (src === "off" ? "no steps day" : (+src).toLocaleString("en-IN") + " steps") : "not set")
       : "Week " + wk + ", Day " + (C.d + 1) + ": " + (PS[C.what] ? src[C.what].map(function (m) { return m.title || "Untitled"; }).join(", ") : neatN(src) + " small moves")) + '</p>';
     /* quick picks */
     var q = isWeek() ? [["allw", "All other weeks"], ["none", "Clear"]]
@@ -1969,19 +1983,25 @@ Yoga for Back Pain -2|P|27|min`;
       else { c.routine_no = next(); t.routines.push(c); }
     });
   }
+  /* a no steps day, as a rest day in the exercise plan: for a user who can't walk (a cast, a wheelchair). Copy it to
+     a week or the whole plan for a while or for good. Momentum leaves steps out that day and shares their 25% across the rest */
+  /* the same for small moves: a day with none for the user to tick. The day's moves stay underneath, as a rest day's routines */
+  var NOFF = {};
+  function putNoff(to, from) { if (NOFF[from]) NOFF[to] = 1; else delete NOFF[to]; }
+  function fmtS(x) { return x === "off" ? "No steps" : (+x).toLocaleString("en-IN"); }
   function putSteps(k, v) { if (v) STEPS[k] = v; else delete STEPS[k]; }
   function doCopy() {
     var n = selCount(), unit;
     if (isWeek()) {
       Object.keys(C.sel).forEach(function (wi) {
-        for (var di = 0; di < 7; di++) { var from = dkey(C.w, di), to = dkey(+wi, di); C.g === "e" ? putDay(+wi, di, C.w, di, -1) : C.g === "n" ? putNeat(to, NEAT[from]) : putSteps(to, STEPS[from]); }
+        for (var di = 0; di < 7; di++) { var from = dkey(C.w, di), to = dkey(+wi, di); C.g === "e" ? putDay(+wi, di, C.w, di, -1) : C.g === "n" ? (putNeat(to, NEAT[from]), putNoff(to, from)) : putSteps(to, STEPS[from]); }
       });
       unit = n === 1 ? "week" : "weeks";
     } else {
       var from = dkey(C.w, C.d);
       var at = {}; PLAN.forEach(function (w, wi) { for (var di = 0; di < 7; di++) at[dkey(wi, di)] = [wi, di]; });
       var eri = C.what.charAt(0) === "r" ? +C.what.slice(1) : -1;
-      Object.keys(C.sel).forEach(function (k) { C.g === "e" ? putDay(at[k][0], at[k][1], C.w, C.d, eri) : C.g === "n" ? putNeat(k, NEAT[from], PS[C.what] ? C.what : null) : putSteps(k, STEPS[from]); });
+      Object.keys(C.sel).forEach(function (k) { C.g === "e" ? putDay(at[k][0], at[k][1], C.w, C.d, eri) : C.g === "n" ? (putNeat(k, NEAT[from], PS[C.what] ? C.what : null), PS[C.what] || putNoff(k, from)) : putSteps(k, STEPS[from]); });
       unit = n === 1 ? "day" : "days";
     }
     $("cscrim").classList.remove("on");
@@ -2032,7 +2052,9 @@ Yoga for Back Pain -2|P|27|min`;
   }
 
   $("sdate").value = iso(today); $("sshow").value = mdy(iso(today));
-  drawAssess(); draw(); goStep(1);
+  drawAssess(); draw();
+  var STQ = +new URLSearchParams(location.search).get("step");   /* ?step=2 or 3 opens on Small moves or Steps goal */
+  if (STQ > 1) { S.reached = STQ; goStep(STQ); } else goStep(1);
 })();
 </script>
 </body>

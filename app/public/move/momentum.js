@@ -12,6 +12,12 @@
   var GOAL = (window.MOVEPART && window.MOVEPART[2].T) || 10000;
   /* the weights, in one place; say-kaira.js reads them too */
   var W = window.MVW = { E: 45, S: 25, N: 15, SP: 15, PARTS: 4 };
+  /* what the coach marked off today (index.html MVOFF) sits out, and the parts left share its weight in proportion, so 100 stays
+     reachable. Moving through the day comes from workouts and small moves, so with both off it sits out too.
+     All three off: a full rest day, no score */
+  var OFF = window.MVOFF || {};
+  var ON = { E: OFF.e ? 0 : W.E, S: OFF.s ? 0 : W.S, N: OFF.n ? 0 : W.N, SP: OFF.e && OFF.n ? 0 : W.SP };
+  var SCALE = ON.E + ON.S + ON.N + ON.SP ? 100 / (ON.E + ON.S + ON.N + ON.SP) : 0;
   var sum = function (a, f) { return a.reduce(function (n, x) { return n + f(x); }, 0); };
 
   function moved(r) {
@@ -34,11 +40,34 @@
       rt.tips.forEach(function (t, i) { if (S.tips[r][i]) items.push({ k: "t" + r + i, n: t.t, r: r, tip: true }); });
     });
     for (var h = 0; h <= NOW; h++) st += S.steps[h] || 0;
-    return { e: W.E * Math.min(1, K ? k / K : 0), s: W.S * Math.min(1, st / GOAL), n: M ? W.N * m / M : 0, sp: W.SP * Math.min(on, W.PARTS) / W.PARTS, mv: mv, items: items, raw: [[k, K], [m, M], [st, GOAL]] };
+    return { e: SCALE * ON.E * Math.min(1, K ? k / K : 0), s: SCALE * ON.S * Math.min(1, st / GOAL), n: M ? SCALE * ON.N * m / M : 0, sp: SCALE * ON.SP * Math.min(on, W.PARTS) / W.PARTS, mv: mv, items: items, raw: [[k, K], [m, M], [st, GOAL]] };
   }
   function score() { var p = parts(); return Math.round(p.e + p.s + p.n + p.sp); }
 
   /* before a plan there is no score: the hero keeps its padlock, nothing is said under it, and a log gains nothing to show */
+  /* no target for all three: no number on the plate (Cloud Drop's rest tag, the cloud and sun), one line under it, and the sheet's tiles say why */
+  if (OFF.all) {
+    if (window.S && window.S.hero) window.S.hero.score = null;
+    (function first(n) { if (window.setHeroScore) window.setHeroScore(null); else if (n < 50) setTimeout(function () { first(n + 1); }, 100); })(0);
+    (function wait(n) {
+      var cm = document.getElementById("cm");
+      if (cm && window.GFSay && window.GFSay.show) { cm.classList.add("said"); window.GFSay.show({ lead: "Nothing to track today, so there’s no score. Rest well.", rest: "", delta: "", tone: "calm" }); }
+      else if (n < 40) setTimeout(function () { wait(n + 1); }, 100);
+    })(0);
+    window.MVSHEET = function (sheet) {
+    };
+    /* the section under the score shows only once something is done: calories burned, then Workout and Steps (no small moves
+       exist today), under a title that names no score. Nothing done, nothing to show */
+    var sect = document.getElementById("railSect"), title = document.getElementById("railTitle");
+    if (title) title.textContent = "What you did today";
+    /* Workout and Steps always side by side once either has something; the empty one reads No target, never a 0 */
+    var showDone = function () { var p = parts(); if (sect) sect.hidden = !(p.raw[0][0] > 0 || p.raw[2][0] > 0); };
+    showDone();
+    var pm0 = window.paintMacros;
+    window.paintMacros = function () { if (pm0) pm0.apply(this, arguments); showDone(); };
+    window.MVMOM = { score: function () { return null; }, gain: function () { return null; }, logged: function () {} };
+    return;
+  }
   if (P.noplan) { window.MVMOM = { score: function () { return null; }, gain: function () { return null; }, logged: function () {} }; return; }
   var last = score(), lastP = parts(), coin = false, coinWas = false;
   /* the line's link, as Eat's: tapping it asks KAIRA, with an answer built for this moment (say-kaira.js) */
@@ -66,20 +95,29 @@
   }
   /* on arrival, before anything changes: a nudge to log, as Eat's not-started line ("Log your first meal…").
      It names the next thing to do, never recaps the day; a gain replaces it */
+  /* a day with something off opens on what counts today, in place of the fresh-day line */
+  var REST = {
+    e: "No workout target today. Your small moves and steps still grow your Momentum.",
+    n: "No small moves today. Your workout and steps still grow your Momentum.",
+    s: "No step target today. Your workout and small moves still grow your Momentum.",
+    en: "No workout target or small moves today. Your steps are all that count.",
+    es: "No workout or step target today. Your small moves are all that count.",
+    ns: "No small moves or step target today. Your workout is all that counts."
+  };
   function intro() {
     var cm = document.getElementById("cm");
     if (!cm || !window.GFSay || !window.GFSay.show) return;
     cm.classList.add("said");
     /* a nudge alone, as Eat's not-started line: KAIRA is asked only about a gain */
     /* fresh until the first workout or small move: steps alone from the phone still read as the start of the day */
-    window.GFSay.show(parts().items.length
+    window.GFSay.show(parts().items.length && !OFF.any
       ? { lead: "Keep moving through the day to grow your Momentum.", rest: "", delta: "", tone: "calm" }
-      : { lead: "As your day starts fresh, log every move to keep your Momentum growing.", rest: "", delta: "", tone: "calm" });
+      : { lead: OFF.any ? REST[(OFF.e ? "e" : "") + (OFF.n ? "n" : "") + (OFF.s ? "s" : "")] : "As your day starts fresh, log every move to keep your Momentum growing.", rest: "", delta: "", tone: "calm" });
   }
   function full() {
     var cm = document.getElementById("cm"); if (!cm || !window.GFSay || !window.GFSay.show) return;
     cm.classList.add("said");
-    window.GFSay.show({ lead: "Great effort, you’ve finished your coach’s workout today!", rest: "Spreading your workout through the day keeps your Momentum growing.", delta: "", tone: "calm", cta: CTA });
+    window.GFSay.show({ lead: "Great effort, you’ve reached today’s workout goal!", rest: "Spreading your workout through the day keeps your Momentum growing.", delta: "", tone: "calm", cta: CTA });
   }
   (function wait(n) { if (document.getElementById("cm")) intro(); else if (n < 40) setTimeout(function () { wait(n + 1); }, 100); })(0);
   function update() {
@@ -108,6 +146,7 @@
     var b = sheet.querySelector(".ebub b"), tiles = sheet.querySelectorAll(".echips > div > b"), unit = [" kcal", "", " steps"];
     if (b) b.innerHTML = score() + "<sup>%</sup>";
     parts().raw.forEach(function (v, i) {
+      if (tiles[i] && OFF["ens"[i]]) return void (tiles[i].innerHTML = v[0] && i !== 1 ? v[0].toLocaleString("en-IN") + "<small>" + (i ? " steps" : " kcal") + ", no target today</small>" : (i === 1 ? "None today" : "No target") + "<small>By your coach</small>");
       if (tiles[i]) tiles[i].innerHTML = v[0].toLocaleString("en-IN") + "<small> of " + v[1].toLocaleString("en-IN") + unit[i] + "</small>";
     });
   };

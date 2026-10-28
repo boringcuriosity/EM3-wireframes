@@ -281,6 +281,7 @@
       <span><b>Coach portal</b> <a href="coach-exercise-template.html" target="_blank">coach-exercise-template.html</a></span>
       <span><b>Commentary</b> <a href="momentum-commentary.html" target="_blank">momentum-commentary.html</a></span>
       <span><b>Exercise lists</b> <a href="move-exercise-lists.html" target="_blank">move-exercise-lists.html</a></span>
+      <span><b>No target today</b> <a href="move-rest-days.html" target="_blank">move-rest-days.html</a></span>
       <span><b id="caseCount">0</b> live cases</span>
     </div>
   </div>
@@ -360,6 +361,25 @@
       <div class="cases" data-cases="notes2"></div>
       <div class="grouphead"><h3>How the day ended</h3><span></span></div>
       <div class="cases" data-cases="notes3"></div>
+    </section>
+
+    <section id="notarget">
+      <div class="snum">Section</div>
+      <h2>No target today</h2>
+      <p>In the coach portal, any day can be marked a <b>Rest Day</b> (workout), a <b>No Moves Day</b> (small moves) or a <b>No Steps Day</b> (steps), for a day or a week, for a while or for good. The user never sees “rest” or “off”: one phrase, <b>No target today</b>, fits a recovery day, a cast or a wheelchair alike, because it describes the plan, never the body. Every case side by side: <a href="move-rest-days.html" target="_blank">move-rest-days.html</a>.</p>
+      <ul class="plain">
+        <li><b>The score.</b> A part with no target sits out, and the parts left are scaled up to fill 100, so 100% stays reachable. With steps out: workout 60, small moves 20, through the day 20. With workout and small moves out, moving through the day sits out too, and steps are the whole score. With all three out there is no score: the plate shows the cloud and sun, cropped to the drop.</li>
+        <li><b>The line under the score.</b> Names what counts today, in place of the fresh-day line: “No workout target today. Your small moves and steps still grow your Momentum.” After a log, the usual gain lines take over; on a day with no workout target a log never says “reached today’s workout goal”. All three out: “Nothing to track today, so there’s no score. Rest well.”</li>
+        <li><b>The tiles.</b> White, no fill. A workout logged or steps synced show their number with <b>No target today</b>; with nothing yet the tile reads <b>No target</b>, <b>By your coach</b>, never a 0. Small moves are the coach’s list, so theirs reads <b>None today</b>, <b>By your coach</b>.</li>
+        <li><b>All three out.</b> The section is hidden until something is done. Then it’s titled <b>What you did today</b>: calories burned, then Workout and Steps side by side, the empty one reading No target.</li>
+        <li><b>The plan and steps cards.</b> One quiet card over the plan says what isn’t planned, with a calendar icon. Search and log exercise stays on every card. Steps keep their count, chart and Log steps, with “No target set for today, so your steps don’t count toward your score.”</li>
+      </ul>
+      <div class="grouphead"><h3>One part with no target</h3><span></span></div>
+      <div class="cases" data-cases="nt1"></div>
+      <div class="grouphead"><h3>Two parts with no target</h3><span></span></div>
+      <div class="cases" data-cases="nt2"></div>
+      <div class="grouphead"><h3>All three with no target</h3><span></span></div>
+      <div class="cases" data-cases="nt3"></div>
     </section>
 
     <section id="free">
@@ -507,6 +527,26 @@ const CASES = {
     ["day=active&now=22", "No workout, stayed active", "day=active", "Every small move, near the steps goal, moving in three parts: 51."],
     ["day=sick&now=22", "A sick day", "day=sick", "1,400 steps and nothing else. Steps alone never count for moving all day: 4."],
   ],
+  nt1: [
+    ["off=e", "No workout target, nothing logged", "off=e", "No coach exercises on the cards. Workout reads No target. Small moves and steps count, scaled to fill 100."],
+    ["off=e&log=walk", "No workout target, a walk logged", "off=e&log=walk", "A 30 minute walk: Workout shows 129 kcal, No target today, and the morning counts as moved."],
+    ["off=n", "No small moves", "off=n", "No small moves on the cards. The tile reads None today. Workout and steps count."],
+    ["off=s", "No step target", "off=s", "Steps still sync and log. The tile shows 5,080, No target today. Workout and small moves count."],
+    ["off=s&steps=0", "No step target, no steps yet", "off=s&steps=0", "The Steps tile reads No target, never a 0. Log steps stays on the card."],
+    ["off=e&sheet=info", "The Momentum sheet", "off=e&sheet=info", "Tap the score: the tiles follow the same rule, and a new section explains what no target today means."],
+  ],
+  nt2: [
+    ["off=e,n", "Steps only", "off=e,n", "No workout target and no small moves: steps are the whole score. Each part of the day is a plain card."],
+    ["off=e,s", "Small moves only", "off=e,s", "Small moves and moving through the day count, half each."],
+    ["off=n,s", "Workout only", "off=n,s", "The coach’s workout and moving through the day count."],
+  ],
+  nt3: [
+    ["off=e,n,s&steps=0", "Nothing planned, nothing done", "off=e,n,s", "No score: the plate shows the cloud and sun. The section under it is hidden."],
+    ["off=e,n,s&steps=0&log=walk", "Nothing planned, a walk only", "+ log=walk", "What you did today: calories burned, Workout 129 kcal, Steps reads No target."],
+    ["off=e,n,s", "Nothing planned, steps only", "+ steps", "What you did today: calories burned, Workout reads No target, Steps 5,080."],
+    ["off=e,n,s&log=walk", "Nothing planned, a walk and steps", "+ both", "What you did today: calories burned, then Workout and Steps side by side, both No target today."],
+    ["off=e,n,s&sheet=info", "The Momentum sheet", "+ sheet", "The bubble reads No target, the tiles go, and one sentence explains there’s no score today."],
+  ],
   notes1: [
     ["day=first&now=8&note=1", "The first workout", "first", "Box breathing, the first thing today. The morning now counts. The card reads: “Nice start! Your Momentum is up 15%. Keep logging your movement to see your score grow.” Learn more opens KAIRA analysis."],
     ["now=15&note=1", "Half the morning routine", "afternoon", "Two of the five morning exercises done, mid afternoon. The card reads: “Your Momentum went up by 9%. Every move you log keeps your score growing.” Learn more opens KAIRA analysis."],
@@ -522,7 +562,7 @@ const CASES = {
     ["day=plan&now=22&note=1", "Followed the plan", "plan", "Every exercise and small move, steps on target. Nothing at night yet. The card reads: “Your Momentum went up by 9%. You’re having a great day, keep it going.” Learn more opens KAIRA analysis."],
     ["day=half&now=22&note=1", "Half of each routine", "half", "Half of each routine, two small moves. The card reads: “Your Momentum went up by 9%. Every move you log keeps your score growing.” Learn more opens KAIRA analysis."],
     ["day=morning&now=22&note=1", "Only the morning", "morning", "All of the morning, nothing after. The card reads: “Your Momentum went up by 3%. Every move you log keeps your score growing.” Learn more opens KAIRA analysis."],
-    ["day=swap&now=22&note=1", "A run instead of the routine", "swap", "A 30 minute run did the workout, so the evening plank adds nothing more. The card reads: “Great effort, you’ve finished your coach’s workout today! Spreading your workout through the day keeps your Momentum growing.” Learn more opens KAIRA analysis."],
+    ["day=swap&now=22&note=1", "A run instead of the routine", "swap", "A 30 minute run did the workout, so the evening plank adds nothing more. The card reads: “Great effort, you’ve reached today’s workout goal! Spreading your workout through the day keeps your Momentum growing.” Learn more opens KAIRA analysis."],
     ["day=gym&now=22&note=1", "Gym instead of the plan", "gym", "An hour of strength training in the evening, nothing else planned done. The card reads: “Great workout! Your Momentum is up 49%. Spreading your movement through the day keeps you healthy and strong.” Learn more opens KAIRA analysis."],
     ["day=active&now=22&note=1", "No workout, stayed active", "active", "No workout, every small move, near the step goal. The card reads: “Your Momentum went up by 3%. Every move you log keeps your score growing.” Learn more opens KAIRA analysis."],
   ],
@@ -617,6 +657,7 @@ const SECTIONS = [
   ["health", "Apple Health"],
   ["states", "One day, in order"],
   ["say", "The line under the score"],
+  ["notarget", "No target today"],
   ["free", "A free user"],
   ["cards", "Part-of-day cards"],
   ["steps", "Your steps"],

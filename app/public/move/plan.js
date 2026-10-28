@@ -62,6 +62,17 @@
     if (ST === "noplan" || ST === "free") S.extra[0].push({ name: "Walking", ic: "directions_walk", min: 30, kcal: 129, at: "07:30" });
   }
 
+  /* what the coach marked off today (index.html MVOFF, v7/move-rest-days.html): a rest day takes the coach's workouts
+     off the cards, no small moves takes the small moves off, and steps off keeps the count with no goal. Logging a
+     workout stays open on every card: moving on a rest day is never wrong, it just is not asked for */
+  var OFF = window.MVOFF || {};
+  if (OFF.e) { RT.forEach(function (rt) { rt.ex = []; }); S.done = [{}, {}, {}, {}]; S.at = [{}, {}, {}, {}]; }
+  if (OFF.n) { RT.forEach(function (rt) { rt.tips = []; }); S.tips = [[], [], [], []]; }
+  /* for the case doc (v7/move-rest-days.html): &log=walk adds a morning walk, as noplan's; &steps=0 is a day with no steps yet */
+  var QQ = new URLSearchParams(location.search);
+  if (QQ.get("log") === "walk") S.extra[0].push({ name: "Walking", ic: "directions_walk", min: 30, kcal: 129, at: "07:30" });
+  if (QQ.get("steps") === "0") S.steps = {};
+
   var IC = {
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
     checkD: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M20 6L9 17l-5-5"/></svg>',
@@ -183,6 +194,13 @@
         /* the tapped hour says its count in a small tip over its bar, held inside the card at the two ends */
         (S.sel === b ? '<span class="mv-htip' + (b < 4 ? " l" : b > 19 ? " r" : "") + '" role="status"><b>' + fmt(val) + ' steps</b>' + hr(b) + ' to ' + hr(b + 1) + (b === NOW ? ", so far" : "") + '</span>' : "") + '</button>';
     }
+    /* no step target today: the phone still counts and the user can still log, so the card stays whole, with no goal and no bar */
+    if (OFF.s) return '<section class="mv-steps"><div class="sec"><h2>Your steps</h2></div><div class="mv-sc">' +
+      '<div class="mv-sh"><div class="t"><div class="mv-big">' + fmt(tot) + ' <span>steps</span></div></div><button class="mv-logbtn" data-log>' + IC.plusSq + 'Log steps</button></div>' +
+      '<div class="mv-sub">No target set for today, so your steps don’t count toward your score.</div>' +
+      '<div class="mv-chart" role="group" aria-label="Steps by hour">' + bars + '</div>' +
+      '<div class="mv-bl" aria-hidden="true">' + TICKS.map(function (t) { return '<span>' + t + '</span>'; }).join("") + '</div>' +
+      '</div>' + syncHTML() + '</section>';
     return '<section class="mv-steps"><div class="sec"><h2>Your steps</h2></div><div class="mv-sc">' +
       '<div class="mv-sh"><div class="t"><div class="mv-big">' + fmt(tot) + ' <span>' + (NOPLAN ? "steps" : "of " + fmt(GOAL) + " steps") + '</span></div>' +
         /* what is left, said plainly, the number carrying the weight */
@@ -195,8 +213,17 @@
 '</div>' + syncHTML() + '</section>';
   }
 
+  /* one quiet card over the plan when the coach planned a rest: what is off today, in a line, and that moving is still welcome */
+  function restHTML() {
+    if (!OFF.e && !OFF.n) return "";
+    var t = OFF.all ? ["Nothing planned today", "Your coach planned no workout, small moves or steps today. Anything you do, you can still log."]
+      : OFF.e && OFF.n ? ["No workout target or small moves today", "Your coach set neither for today. If you feel like moving, you can still log it."]
+      : OFF.e ? ["No workout target today", "Your coach set no workout for today. Anything you do, you can still log, and your small moves are still here."]
+      : ["No small moves today", "Your coach planned no small moves for today."];
+    return '<div class="mv-rest"><i class="bed" aria-hidden="true"></i><div><b>' + t[0] + '</b><span>' + t[1] + '</span></div></div>';
+  }
   function render() {
-    root.innerHTML = '<div class="sec"><h2>' + (NOPLAN ? "Your day" : "Your move plan") + '</h2></div>' +
+    root.innerHTML = '<div class="sec"><h2>' + (NOPLAN ? "Your day" : "Your move plan") + '</h2></div>' + restHTML() +
       RT.map(card).join("") + stepsHTML();
     stepsDoor();
     if (!window.paintMacros) return;
