@@ -1,7 +1,7 @@
 /* KAIRA analysis: the sheet behind Learn more under the Momentum score.
    KAIRA writes markdown only (v7/momentum-ai-prompt.txt): a bold opening, a short paragraph, "What helps next"
-   with "- " points, a closing line. This draws it for reading: the opening as a title, points behind GoodFlip's
-   green arrow disc, a gain as a green tag, a score range in bold. House sheet rules: title top left, circle X
+   with "- " points, a closing line. This draws it for reading: the opening as a title, points on KAIRA's
+   gold turn-arrow, a gain as a green tag, a score range in bold. House sheet rules: title top left, circle X
    top right, no handle, 90% at most, Got it at the foot.
 
      KairaSheet.html(md)          the note alone, for a page that lays it out itself
@@ -10,39 +10,50 @@
    else the plain answer KAIRA would give in chat (say-kaira.js). */
 (function () {
   if (window.KairaSheet) return;
-  var ARROW = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="12" fill="#299D6B"/><path d="M12.8449 6.80593C12.6449 6.61547 12.3284 6.62316 12.138 6.82312C11.9475 7.02307 11.9552 7.33955 12.1551 7.53001L16.3228 11.4998H6.5C6.22386 11.4998 6 11.7236 6 11.9998C6 12.2759 6.22386 12.4998 6.5 12.4998H16.3228L12.1551 16.4696C11.9552 16.66 11.9475 16.9765 12.138 17.1765C12.3284 17.3764 12.6449 17.3841 12.8449 17.1936L17.7908 12.4825C17.9034 12.3752 17.9701 12.2384 17.9907 12.0962C17.9968 12.065 18 12.0327 18 11.9998C18 11.9667 17.9968 11.9344 17.9907 11.9032C17.97 11.761 17.9034 11.6243 17.7908 11.5171L12.8449 6.80593Z" fill="#fff"/></svg>';
   var X = '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l8 8M10 2 2 10"/></svg>';
   var CSS = [
     ".ksh{position:fixed;inset:0;z-index:60;display:flex;align-items:flex-end;justify-content:center;background:rgba(16,24,40,0);transition:background .25s ease-out;pointer-events:none}",
     ".ksh.on{background:rgba(16,24,40,.45);pointer-events:auto}",
-    ".ksh .kbox{width:100%;max-width:390px;max-height:90vh;display:flex;flex-direction:column;background:#fff;border-radius:24px 24px 0 0;transform:translateY(100%);transition:transform .32s cubic-bezier(.2,0,0,1)}",
-    ".ksh.on .kbox{transform:none}",
-    ".khd{display:flex;align-items:center;justify-content:space-between;padding:20px 20px 4px}",
-    ".khd h4{display:flex;align-items:center;gap:8px;margin:0;font:600 18px/24px Roboto,system-ui,sans-serif;color:#101828}",
-    ".khd .kx{width:28px;height:28px;border:0;border-radius:50%;background:#F2F4F7;color:#475467;display:grid;place-items:center;cursor:pointer}",
-    ".khd .kx svg{width:12px;height:12px}",
-    ".kbd{overflow-y:auto;padding:12px 20px 8px}",
-    ".kft{padding:12px 20px calc(20px + env(safe-area-inset-bottom));border-top:1px solid #F2F4F7}",
-    ".kft button{width:100%;height:48px;border:0;border-radius:12px;background:#299D6B;color:#fff;font:600 16px Roboto,system-ui,sans-serif;cursor:pointer}",
+    /* the app's own sheet (plan-tray.js .pts): 16px sides, 20px top, title 800 20/28, a 32px circle X, no divider */
+    ".ksh .kshbox{width:100%;max-width:390px;max-height:90vh;display:flex;flex-direction:column;background:#fff;border-radius:20px 20px 0 0;transform:translateY(100%);transition:transform .3s cubic-bezier(.2,0,0,1)}",
+    ".ksh.on .kshbox{transform:none}",
+    ".ksh-hd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 16px 0}",
+    ".ksh-hd h4{display:flex;align-items:center;gap:8px;margin:0;font:800 20px/28px Roboto,system-ui,sans-serif;color:#101828}",
+    ".ksh-hd .ksh-x{width:32px;height:32px;border:0;border-radius:50%;background:#F2F4F7;color:#344054;display:grid;place-items:center;cursor:pointer;flex-shrink:0}",
+    ".ksh-hd .ksh-x svg{width:12px;height:12px}",
+    ".ksh-bd{overflow-y:auto;padding:16px 16px 4px}",
+    ".ksh-ft{padding:12px 16px calc(20px + var(--gf-home-h,20px) + env(safe-area-inset-bottom,0px))}",
+    /* the house primary button: green, 52 tall, the darker depth bar under it that it presses into */
+    ".ksh-ft button{width:100%;height:52px;border:0;border-radius:12px;background:#299D6B;color:#fff;font:700 15px/1 Roboto,system-ui,sans-serif;box-shadow:0 7px 0 #2A805A;cursor:pointer;transition:transform .2s ease-out,box-shadow .2s ease-out}",
+    ".ksh-ft button:active{transform:translateY(7px);box-shadow:none}",
+    /* while KAIRA writes: the note's own shape in grey, a light sweep across it, then the words fade in */
+    "@keyframes kshim{from{background-position:150% 0}to{background-position:-50% 0}}",
+    ".ksh-sk i{display:block;height:14px;margin:0 0 10px;border-radius:7px;background:linear-gradient(90deg,#F2F4F7 30%,#E4E7EC 50%,#F2F4F7 70%) 0 0/200% 100%;animation:kshim 1.2s linear infinite}",
+    ".ksh-sk i.t{height:22px;width:62%;margin-bottom:16px}.ksh-sk i.s{width:84%}.ksh-sk i.l{width:28%;height:12px;margin:20px 0 12px}.ksh-sk i.p{width:76%}.ksh-sk i.q{width:58%}",
+    ".ksh-sk em{display:flex;align-items:center;gap:6px;margin-top:18px;font:500 13px/18px Roboto,system-ui,sans-serif;font-style:normal;color:#667085}",
+    "@keyframes kin{from{opacity:0;transform:translateY(6px)}}",
+    ".ksh-md.ksh-in{animation:kin .36s cubic-bezier(.2,0,0,1) both}",
+    "@media (prefers-reduced-motion:reduce){.ksh-sk i{animation:none}.ksh-md.ksh-in{animation:none}.ksh .kshbox{transition:none}}",
     /* the note: one rhythm of 12px between blocks */
-    ".kmd{font:400 15px/23px Roboto,system-ui,sans-serif;color:#344054}",
-    ".kmd>*{margin:0 0 12px}",
-    ".kmd b{font-weight:600;color:#101828}",
-    ".kmd .kt{font:600 18px/26px Roboto,system-ui,sans-serif;color:#101828;margin-bottom:6px}",
-    ".kmd .kl{font:600 12px/16px Roboto,system-ui,sans-serif;letter-spacing:.4px;text-transform:uppercase;color:#667085;margin:18px 0 8px}",
-    ".kmd ul{list-style:none;padding:4px 14px;border-radius:14px;background:#F6FAF8;border:1px solid #E3F1EA}",
-    ".kmd li{display:grid;grid-template-columns:20px 1fr;gap:10px;align-items:start;padding:10px 0}",
-    ".kmd li+li{border-top:1px solid #E3F1EA}",
-    ".kmd li svg{width:20px;height:20px;margin-top:2px}",
-    ".kmd .tg{display:inline-block;padding:0 6px;border-radius:6px;background:#ECFDF3;color:#067647;font-weight:600;font-size:.93em;line-height:1.55}",
-    ".kmd .kc{color:#475467}"
+    ".ksh-md{font:400 15px/23px Roboto,system-ui,sans-serif;color:#344054}",
+    ".ksh-md>*{margin:0 0 12px}",
+    ".ksh-md b{font-weight:600;color:#101828}",
+    ".ksh-md .ksh-t{font:600 18px/26px Roboto,system-ui,sans-serif;color:#101828;margin-bottom:6px}",
+    ".ksh-md .ksh-l{font:600 12px/16px Roboto,system-ui,sans-serif;letter-spacing:.4px;text-transform:uppercase;color:#667085;margin:18px 0 8px}",
+    /* points on KAIRA's gold turn-arrow, as the Move sufficiency sheet's reasons (assets/trend-bullet.svg); no box */
+    ".ksh-md ul{list-style:none;padding:0;display:flex;flex-direction:column;gap:8px}",
+    ".ksh-md li{position:relative;padding-left:24px}",
+    ".ksh-md li b{white-space:nowrap}",
+    ".ksh-md li::before{content:'';position:absolute;left:0;top:3.5px;width:16px;height:16px;background:url(/v7/r3/assets/trend-bullet.svg) no-repeat center/16px}",
+    ".ksh-md .ksh-g{display:inline-block;padding:0 6px;border-radius:6px;background:#ECFDF3;color:#067647;font-weight:600;font-size:.93em;line-height:1.55}",
+    ".ksh-md .ksh-c{color:#475467}"
   ].join("");
   var st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
 
   var esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); };
   var inline = function (t) {
     return esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
-      .replace(/(<b>)?\+(\d+)%(<\/b>)?/g, '<span class="tg">+$2%</span>');   /* a gain, bold or not, as a green tag */
+      .replace(/(<b>)?\+(\d+)%(<\/b>)?/g, '<span class="ksh-g">+$2%</span>');   /* a gain, bold or not, as a green tag */
   };
   /* markdown, the little KAIRA uses: paragraphs, line breaks, **bold**, "- " points */
   function html(md) {
@@ -54,19 +65,19 @@
         var only = /^\*\*([^*]+)\*\*$/.exec(l);
         if (/^- /.test(l)) {
           flush();
-          var li = "<li>" + ARROW + "<span>" + inline(l.slice(2)) + "</span></li>";
+          var li = "<li>" + inline(l.slice(2)) + "</li>";
           if (out.length && /<\/ul>$/.test(out[out.length - 1])) out[out.length - 1] = out[out.length - 1].replace(/<\/ul>$/, li + "</ul>");
           else out.push("<ul>" + li + "</ul>");
-        } else if (only && first) { flush(); out.push('<p class="kt">' + esc(only[1]) + "</p>"); }
-        else if (only && /next|helps/i.test(only[1])) { flush(); out.push('<p class="kl">' + esc(only[1]) + "</p>"); }
+        } else if (only && first) { flush(); out.push('<p class="ksh-t">' + esc(only[1]) + "</p>"); }
+        else if (only && /next|helps/i.test(only[1])) { flush(); out.push('<p class="ksh-l">' + esc(only[1]) + "</p>"); }
         else para.push(l);
         first = false;
       });
       flush();
     });
     /* the closing thought, when the note ends on a plain paragraph after the points, reads quieter */
-    if (out.length > 2 && /^<p>/.test(out[out.length - 1]) && /<\/ul>$/.test(out[out.length - 2])) out[out.length - 1] = out[out.length - 1].replace("<p>", '<p class="kc">');
-    return '<div class="kmd">' + out.join("") + "</div>";
+    if (out.length > 2 && /^<p>/.test(out[out.length - 1]) && /<\/ul>$/.test(out[out.length - 2])) out[out.length - 1] = out[out.length - 1].replace("<p>", '<p class="ksh-c">');
+    return '<div class="ksh-md">' + out.join("") + "</div>";
   }
 
   var host;
@@ -79,9 +90,17 @@
       document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
     }
     var mark = window.GFKaira ? window.GFKaira.mark(24, { halo: false }) : "";
-    host.innerHTML = '<div class="kbox"><div class="khd"><h4 id="kshT">' + mark + 'KAIRA analysis</h4><button class="kx" data-k="close" aria-label="Close">' + X + "</button></div>" +
-      '<div class="kbd">' + html(md) + (extra || "") + '</div><div class="kft"><button data-k="close">Got it</button></div></div>';
+    var sk = '<div class="ksh-sk" aria-live="polite"><i class="t"></i><i></i><i class="s"></i><i class="q"></i><i class="l"></i><i class="p"></i><i class="q"></i>' +
+      "<em>" + (window.GFKaira ? window.GFKaira.mark(14, { halo: false }) : "") + "KAIRA is looking at your day…</em></div>";
+    host.innerHTML = '<div class="kshbox"><div class="ksh-hd"><h4 id="kshT">' + mark + 'KAIRA analysis</h4><button class="ksh-x" data-k="close" aria-label="Close">' + X + "</button></div>" +
+      '<div class="ksh-bd">' + sk + '</div><div class="ksh-ft"><button data-k="close">Got it</button></div></div>';
     void host.offsetWidth; requestAnimationFrame(function () { host.classList.add("on"); });
+    /* ponytail: the note is ready at once in the prototype; the shimmer stands in for the AI call (about 1.4 s), the live app shows it until the reply lands */
+    clearTimeout(host._t);
+    host._t = setTimeout(function () {
+      var bd = host.querySelector(".ksh-bd"); if (!bd) return;
+      bd.innerHTML = html(md).replace('class="ksh-md"', 'class="ksh-md ksh-in"') + (extra || "");
+    }, 1400);
   }
   function close() { if (host) host.classList.remove("on"); }
   window.KairaSheet = { html: html, open: open, close: close };
@@ -91,12 +110,14 @@
   var NOTES = null, Q = new URLSearchParams(location.search);
   var mine = function () {
     if (!NOTES) return null;
+    /* the case whose flags all match this screen; the most specific wins (now=15 is inside day=tick&now=15) */
+    var best = null, most = -1;
     for (var k in NOTES) {
-      var c = NOTES[k], p = new URLSearchParams(c.q), ok = true;
-      p.forEach(function (v, key) { if (Q.get(key) !== v) ok = false; });
-      if (ok) return c;
+      var c = NOTES[k], p = new URLSearchParams(c.q), ok = true, n = 0;
+      p.forEach(function (v, key) { n++; if (Q.get(key) !== v) ok = false; });
+      if (ok && n > most) { best = c; most = n; }
     }
-    return null;
+    return best;
   };
   fetch("/v7/data/momentum-ai-samples.json").then(function (r) { return r.json(); }).then(function (d) {
     NOTES = d;

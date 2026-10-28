@@ -59,20 +59,8 @@
     var cm = document.getElementById("cm"); if (!cm) return;
     if (d <= 0) return intro();   /* no minus: back to the nudge */
     cm.classList.add("said");
-    /* crossing 80% (the medal) and reaching 100% get their own warmth, the gain still in its capsule */
-    var n = last, was = n - d;
-    /* a few fixed sentences cover every case (v7/momentum-commentary.html): the effort first, then one easy next step */
-    var KEEP = "Keep logging your movement to see your score grow.", plan = b.raw[0][1], beyond = b.raw[0][0] > plan, logged = coinWas;
-    var line = n >= 100 && was < 100 ? { lead: "You reached 100% Momentum!", rest: "You moved well all through the day.", delta: "" }
-      : n >= 80 && was < 80 ? { lead: "You’ve earned today’s medal!", rest: "Your Momentum went up by " + d + "%. Well done." }
-      : was >= 80 ? { lead: "Your Momentum went up by " + d + "%.", rest: "You’re having a great day, keep it going." }
-      /* the whole workout in one go, from little or none of it */
-      : logged && beyond && a.raw[0][0] < plan / 2 ? { lead: "Great workout! Your Momentum is up " + d + "%.", rest: "Spreading your movement through the day keeps you healthy and strong." }
-      /* more than the coach planned: the effort counts, spreading it through the day grows Momentum */
-      : logged && beyond ? { lead: "Great effort! Your Momentum is up " + d + "%.", rest: "Spreading your workout through the day keeps it growing." }
-      : !a.items.length && b.items.length ? { lead: "Nice start! Your Momentum is up " + d + "%.", rest: KEEP }
-      : b.items.length === a.items.length && b.raw[2][0] > a.raw[2][0] ? { lead: "Your steps added " + d + "%.", rest: "Every step you take is moving you forward." }
-      : { lead: "Your Momentum went up by " + d + "%.", rest: "Every move you log keeps your score growing." };
+    /* a few fixed sentences cover every case (v7/momentum-commentary.html), picked by move/momentum-pick.js */
+    var line = window.MVPICK.pick(d, last, a, b, coinWas);
     if (line.delta === undefined) line.delta = "+" + d + "%";
     window.GFSay.show({ lead: line.lead, rest: line.rest, delta: line.delta, tone: "up", cta: CTA, ask: K && K.after(a, b, d) });
   }
@@ -83,7 +71,8 @@
     if (!cm || !window.GFSay || !window.GFSay.show) return;
     cm.classList.add("said");
     /* a nudge alone, as Eat's not-started line: KAIRA is asked only about a gain */
-    window.GFSay.show(last > 0
+    /* fresh until the first workout or small move: steps alone from the phone still read as the start of the day */
+    window.GFSay.show(parts().items.length
       ? { lead: "Keep moving through the day to grow your Momentum.", rest: "", delta: "", tone: "calm" }
       : { lead: "As your day starts fresh, log every move to keep your Momentum growing.", rest: "", delta: "", tone: "calm" });
   }
@@ -95,14 +84,17 @@
   (function wait(n) { if (document.getElementById("cm")) intro(); else if (n < 40) setTimeout(function () { wait(n + 1); }, 100); })(0);
   function update() {
     var n = score(), d = n - last;
-    /* a workout logged that adds nothing: the workout was already full, so say where more would come from */
-    if (!d) { if (coin) full(); coin = false; return; }
-    var a = lastP, b = parts(); last = n; lastP = b; if (window.S && window.S.hero) window.S.hero.score = n;
+    /* a workout logged that adds nothing says where more would come from, only when the workout's calories are really met: a short log can add less than a point and round to no change */
+    if (!d) { if (coin && window.MVPICK.full(parts())) full(); coin = false; return; }
+    /* changes that land within one line's wait are said together: the gain since the first of them, from where it began */
+    var a = update.t ? update.a : lastP, b = parts(), d0 = update.t ? update.d + d : d; update.a = a; update.d = d0;
+    last = n; lastP = b; if (window.S && window.S.hero) window.S.hero.score = n;
     if (window.setHeroScore) window.setHeroScore(n, d > 0 ? d : 0);   /* no step down and no minus on the score */
     /* the line under the score waits for the number to finish stepping, so the gain is read after it is seen:
        Cloud Drop remounts 420 ms after the change and steps over the next 1.9 s */
     /* the medal swings in (or goes, under 80) at the same moment, once the new number has landed */
-    var wasLog = coin; clearTimeout(update.t); update.t = setTimeout(function () { coinWas = wasLog; say(d, a, b); if (window.MVMEDAL) window.MVMEDAL(); }, 2400);
+    var wasLog = coin || (update.t && update.log); update.log = wasLog; clearTimeout(update.t);
+    update.t = setTimeout(function () { update.t = 0; coinWas = wasLog; say(d0, a, b); if (window.MVMEDAL) window.MVMEDAL(); }, 2400);
     /* a workout log earns coins: the toast shows the moment the log lands */
     if (coin && d > 0 && window.GFFlipcoin) window.GFFlipcoin.show();
     coin = false;

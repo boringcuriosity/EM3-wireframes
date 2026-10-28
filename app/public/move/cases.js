@@ -23,7 +23,7 @@
 
   var DAYS = {
     zero: function () { S.steps = {}; },
-    start: function () { S.steps = steps(400); },
+    start: function () { S.steps = steps(0); },   /* nothing yet, not even steps, so the score reads 0 */
     first: function () { did(0, ["box"], "07:10"); S.steps = steps(1500); },
     plan: function () { all(); S.steps = steps(10400); },
     walk: function () { all(); extra(3, "walk", 3.5, 20, "20:40"); S.steps = steps(10800); },

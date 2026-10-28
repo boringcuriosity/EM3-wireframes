@@ -70,18 +70,38 @@
   .rp h5 { margin: 0 0 8px; font: 600 13px/18px Roboto; color: var(--g-500); }
   .rp .mini { flex: 1; display: flex; flex-direction: column; padding: 28px 14px 0; border-radius: 20px; background: linear-gradient(180deg, #EEF1F5, #E4E7EC); }
   .rp .msheet { flex: 1; display: flex; flex-direction: column; background: #fff; border-radius: 20px 20px 0 0; box-shadow: 0 -8px 24px -12px rgba(16,24,40,.18); }
-  .rp .mhead { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 2px; font: 600 15px/20px Roboto; color: var(--g-900); }
+  .rp .mhead { display: flex; align-items: center; justify-content: space-between; padding: 16px 12px 2px; font: 800 15px/20px Roboto; color: var(--g-900); }
   .rp .mhead i { width: 22px; height: 22px; border-radius: 50%; background: var(--g-100); display: grid; place-items: center; color: var(--g-500); }
   .rp .mhead i svg { width: 9px; height: 9px; }
   .rp .mt { display: flex; align-items: center; gap: 6px; }
-  .rp .mbody { flex: 1; padding: 10px 16px 4px; }
-  .rp .kmd { font-size: 14px; line-height: 21px; } .rp .kmd .kt { font-size: 16px; line-height: 22px; } .rp .kmd li { padding: 8px 0; }
-  .rp .mfoot { padding: 8px 16px 16px; } .rp .mfoot span { display: block; height: 36px; border-radius: 10px; background: var(--brand); color: #fff; font: 600 13px/36px Roboto; text-align: center; }
+  .rp .mbody { flex: 1; padding: 10px 12px 4px; }
+  .rp .ksh-md { font-size: 14px; line-height: 21px; } .rp .ksh-md .ksh-t { font-size: 16px; line-height: 22px; }
+  .rp .mfoot { padding: 8px 12px 16px; } .rp .mfoot span { display: block; height: 38px; margin-bottom: 5px; border-radius: 10px; background: #299D6B; color: #fff; font: 700 13px/38px Roboto; text-align: center; box-shadow: 0 5px 0 #2A805A; }
   .rp small { display: block; margin-top: 8px; font-size: 12px; color: var(--g-500); }
   .bar { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding: 10px 14px; border-radius: 16px 16px 0 0; background: #1D2939; color: #fff; font: 500 13px Roboto; }
   .bar button { height: 32px; padding: 0 14px; border: 0; border-radius: 8px; background: var(--brand); color: #fff; font: 600 13px Roboto; cursor: pointer; }
   pre.prompt { margin: 0; max-height: 520px; overflow: auto; padding: 18px; border-radius: 0 0 16px 16px; background: #101828; color: #E4E7EC; font: 400 13px/21px ui-monospace, Menlo, monospace; white-space: pre-wrap; }
   ul.plain { max-width: 860px; padding-left: 20px; } ul.plain li { margin-bottom: 8px; font-size: 15px; line-height: 24px; color: var(--g-600); }
+  /* every case, as score-commentary.html: one phone, the cases beside it as its switch */
+  .duo { display: flex; gap: 40px; align-items: flex-start; margin-top: 24px; flex-wrap: wrap; }
+  .col { width: 390px; }
+  .phone.big { width: 390px; height: 780px; border-radius: 44px; }
+  .phone.big iframe { transform: none; }
+  .pmeta { display: flex; gap: 16px; margin-top: 10px; font-size: 13px; color: var(--g-500); }
+  .pmeta .learn, .pmeta .open { margin: 0; font-size: 13px; }
+  .list { flex: 1; min-width: 320px; max-width: 620px; display: flex; flex-direction: column; gap: 8px; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; padding: 2px; }
+  .list h3 { margin: 12px 0 2px; font: 600 12px/16px Roboto; letter-spacing: .6px; text-transform: uppercase; color: var(--g-500); }
+  .list h3:first-child { margin-top: 0; }
+  .list button { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--g-200); background: #fff; cursor: pointer; font: 400 13.5px/20px Roboto; color: var(--g-600); }
+  .list button:hover { border-color: #C7D7FE; }
+  .list button.on { border-color: #444CE7; background: #EEF4FF; box-shadow: 0 0 0 1px #444CE7; }
+  .list .nm { font-weight: 600; color: var(--g-900); }
+  .list .ln { grid-column: 1 / -1; }
+  .list .ds { grid-column: 1 / -1; font-size: 12.5px; color: var(--g-500); }
+  .list .lk { color: #299D6B; font-weight: 500; }
+  .list .dc { justify-self: end; height: 20px; padding: 0 6px; border-radius: 6px; display: inline-flex; align-items: center; font: 600 12px/1 Roboto; font-variant-numeric: tabular-nums; }
+  .list .dc.up { background: #ECFDF3; color: #067647; box-shadow: inset 0 0 0 1px #ABEFC6; } .list .dc.calm { background: #F2F4F7; color: #475467; box-shadow: inset 0 0 0 1px #E4E7EC; }
+  @media (max-width: 640px) { .col, .phone.big { width: 100%; } }
   @media (max-width: 640px) { .page { padding: 32px 16px 64px; } h1 { font-size: 26px; line-height: 34px; } }
 </style>
 </head>
@@ -89,14 +109,28 @@
 <div class="page">
   <span class="eyebrow">Move · Momentum · The line under the score</span>
   <h1>Momentum, in kind words</h1>
-  <p class="lede">After every log, one short line under the score notices the effort and gives one easy next step. Tap <b>Learn more</b> and a friendly note explains the moment, written by AI from the day’s facts. Every phone below is the live Move screen; tap Learn more inside it, or the link under it.</p>
+  <p class="lede">After every log, one short line under the score notices the effort and gives one easy next step. Tap <b>Learn more</b> and a friendly note explains the moment, written by AI from the day’s facts. Pick any case to see it on the live Move screen, then read the prompt behind the notes.</p>
   <div class="formula">Momentum <i>=</i> Exercise (45) <i>+</i> Steps (25) <i>+</i> Small moves (15) <i>+</i> <span class="sp">Moving through the day (15, full at 4 parts)</span></div>
+
+  <h2>Every case</h2>
+  <p class="lede">Pick a case. Tap <b>Learn more</b> in the phone to open KAIRA analysis.</p>
+  <div class="duo">
+    <div class="col"><div class="phone big"><iframe id="ph" title="Move"></iframe></div>
+      <div class="pmeta"><button class="learn" type="button" id="facts">The facts KAIRA was given</button><a class="open" id="full" target="_blank">Open full size →</a></div></div>
+    <div class="list" id="bar"></div>
+  </div>
+
+  <h2>The prompt</h2>
+  <p class="lede">One system prompt for every Momentum note. The app sends only facts: the score before and now, where the change came from, the medal, and its best next steps with the score each would reach. The AI never works out a number. Also as a plain file: <a href="/v7/momentum-ai-prompt.txt">momentum-ai-prompt.txt</a>.</p>
+  <div class="bar"><span>momentum-ai-prompt.txt</span><button id="copy" type="button">Copy prompt</button></div>
+  <pre class="prompt" id="prompt">Loading…</pre>
 
   <h2>The line under the score</h2>
   <p class="lede">Written by the app, not the AI, from a few fixed sentences. Each one notices the effort first, then gives one easy next step in everyday words. Only the % and the situation change. The detail lives in the note behind Learn more.</p>
   <div class="spec">
     <div><h4>Every situation</h4><table>
       <tr><td>Start of the day, 0%</td><td><b>As your day starts fresh, log every move to keep your Momentum growing.</b></td></tr>
+      <tr><td>Back later, nothing new yet</td><td><b>Keep moving through the day to grow your Momentum.</b></td></tr>
       <tr><td>First log of the day</td><td><b>Nice start! Your Momentum is up <code>+X%</code>.</b> Keep logging your movement to see your score grow.</td></tr>
       <tr><td>Any log that adds</td><td><b>Your Momentum went up by <code>+X%</code>.</b> Every move you log keeps your score growing.</td></tr>
       <tr><td>Steps from the phone</td><td><b>Your steps added <code>+X%</code>.</b> Every step you take is moving you forward.</td></tr>
@@ -112,33 +146,27 @@
       <tr><td>First</td><td>100% reached, then the medal (crossed 80%), then already above 80%</td></tr>
       <tr><td>Then</td><td>More than the coach’s workout: all at once if it went from under half to beyond the plan in one log</td></tr>
       <tr><td>Then</td><td>First log of the day, then steps only, then any other log</td></tr>
+      <tr><td>Adds nothing</td><td>Only after a workout log when the workout’s calories are already met. A log that adds under a point leaves the line as it was</td></tr>
+      <tr><td>Together</td><td>Changes within the line’s 2.4 s wait are said as one gain, from where the first began</td></tr>
       <tr><td>Never</td><td>A minus. Logging never lowers Momentum.</td></tr>
     </table></div>
   </div>
 
-  <h2>Every case</h2>
-  <div id="cases"></div>
-
   <h2>Every note, in one place</h2>
-  <p class="lede">What KAIRA wrote for each case, drawn by the same sheet the app opens. KAIRA sends markdown only: a bold opening, a short paragraph, What helps next as points, a closing line. The sheet turns the opening into a title, each point into a GoodFlip arrow, a gain into a green tag.</p>
+  <p class="lede">What KAIRA wrote for each case, drawn by the same sheet the app opens. KAIRA sends markdown only: a bold opening, a short paragraph, What helps next as points, a closing line. The sheet turns the opening into a title, each point onto KAIRA’s gold turn-arrow, a gain into a green tag.</p>
   <div class="replies" id="replies"></div>
-
-  <h2>The prompt</h2>
-  <p class="lede">One system prompt for every Momentum note. The app sends only facts: the score before and now, where the change came from, the medal, and its best next steps with the score each would reach. The AI never works out a number. Also as a plain file: <a href="/v7/momentum-ai-prompt.txt">momentum-ai-prompt.txt</a>.</p>
-  <div class="bar"><span>momentum-ai-prompt.txt</span><button id="copy" type="button">Copy prompt</button></div>
-  <pre class="prompt" id="prompt">Loading…</pre>
 
   <h2>How these notes were tested</h2>
   <ul class="plain">
     <li><b>Real runs.</b> Claude Haiku 4.5, one per case, on the facts the live screen produces. The prompt’s own examples use different numbers, so nothing here is copied.</li>
-    <li><b>Checked like the app would.</b> Every percentage is one the app sent; every change has its sign and %; every “from to” range starts at today’s score; no minus, no dash inside a sentence, no jargon (spread, kcal, points); only bold and “- ” points, at most two; under 85 words.</li>
+    <li><b>Checked like the app would.</b> Every percentage is one the app sent; every change has its sign and %; every “from to” range starts at today’s score; no minus, no dash inside a sentence, no jargon (kcal, points, “parts of the day”); only bold and “- ” points, at most two; under 95 words.</li>
     <li><b>What the first rounds caught, now fixed in the prompt.</b> KAIRA guessed why a score moved (now the app sends where the change came from), credited the medal to the wrong log (now the app sends the medal state), said one big effort beats moving often (now forbidden), and in the points round wrote “Rest is part of getting better” and grand closings like “changed the day entirely” (both now ruled out).</li>
     <li><b>Retry, then fall back.</b> If a reply fails a check, ask once more; if it fails again, show the app’s own template note. In this round <b>Half of each routine</b> passed on the retry (the first try named a score the app never sent). <b>A run instead of the routine</b> and <b>Gym instead of the plan</b> passed the checks but read oddly, so they were run again after the prompt fix.</li>
   </ul>
 </div>
 
 <script src="/v7/r3/assets/kaira.js"></script>
-<script src="/move/kaira-sheet.js?v=1"></script>
+<script src="/move/kaira-sheet.js?v=7"></script>
 <script>
   var CH = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3.5 10.5 8 6 12.5"/></svg>';
   var esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); };
@@ -147,6 +175,7 @@
     /* the app styles the numbers the AI writes: a gain as a green tag, a score it can reach in bold */
     .replace(/\+(\d+)%/g, '<span class="tg">+$1%</span>').replace(/(\d+% to \d+%)/g, "<b>$1</b>") + "</p>"; }).join(""); };
   var DESC = {
+    start: "The plan is in. 7 AM, nothing done yet, no steps yet.",
     first: "Box breathing, the first thing today. The morning now counts.",
     afternoon: "Two of the five morning exercises done, mid afternoon.",
     tick: "One small move in the afternoon: it counts, and so does the afternoon.",
@@ -171,32 +200,36 @@
   fetch("/v7/data/momentum-ai-samples.json").then(function (r) { return r.json(); }).then(function (data) {
     R = data;
     var groups = {}; Object.keys(R).forEach(function (k) { (groups[R[k].group] = groups[R[k].group] || []).push(k); });
-    document.getElementById("cases").innerHTML = Object.keys(groups).map(function (g) {
-      return "<h3>" + esc(g) + '</h3><div class="grid">' + groups[g].map(function (k) {
-        var c = R[k], i = c.input;
-        return '<figure><figcaption><span class="k' + (i.change > 0 ? "" : " calm") + '">' + (i.change > 0 ? "+" + i.change + "% · " : "") + i.score_now + "% at " + esc(i.time_now) + "</span><b>" + esc(c.name) + "</b><p>" + esc(DESC[k]) + "</p></figcaption>" +
-          '<div class="phone"><iframe loading="lazy" data-k="' + k + '" src="/move/index.html?' + c.q + '" title="' + esc(c.name) + '"></iframe></div>' +
-          '<button class="learn" type="button" data-k="' + k + '">Learn more' + CH + "</button><br>" +
-          '<a class="open" href="/move/index.html?' + c.q + '" target="_blank">Open full size →</a></figure>';
-      }).join("") + "</div>";
+    /* the cases in the order of Every situation, from the start of the day at 0. The start has no log, so no Learn more */
+    R.start = { name: "The day starts", q: "day=start&now=7", nonote: true, input: { change: 0, score_now: 0 },
+      line: { lead: "As your day starts fresh, log every move to keep your Momentum growing.", rest: "" } };
+    var SIT = [["Start of the day, 0%", ["start"]], ["First log of the day", ["first"]], ["Any log that adds", ["afternoon", "tick", "half", "morning", "active"]],
+      ["Steps from the phone", ["goal"]], ["The whole workout at once", ["gym"]], ["More than the coach’s workout", ["over"]],
+      ["More than the workout, adds nothing", ["swap"]], ["Crossed 80%", ["medal"]], ["Above 80%, still adding", ["plan"]], ["100%", ["hundred"]]];
+    var NOW = location.hash.slice(1); if (!R[NOW]) NOW = "start";
+    var bar = document.getElementById("bar"), ph = document.getElementById("ph");
+    bar.innerHTML = SIT.map(function (g) {
+      return "<h3>" + esc(g[0]) + "</h3>" + g[1].map(function (k) {
+        var c = R[k], i = c.input, up = i.change > 0;
+        return '<button type="button" data-k="' + k + '"><span class="nm">' + esc(c.name) + '</span>' + (up ? '<span class="dc up">+' + i.change + "% · " + i.score_now + "%</span>" : "<span></span>") +
+          '<span class="ln">' + esc(c.line.lead) + " " + esc(c.line.rest) + "</span></button>";
+      }).join("");
     }).join("");
-    document.getElementById("replies").innerHTML = Object.keys(R).map(function (k) {
+    var pick = function (k) {
+      NOW = k; history.replaceState(null, "", "#" + k);
+      [].forEach.call(bar.querySelectorAll("button"), function (x) { x.classList.toggle("on", x.dataset.k === k); });
+      var href = "/move/index.html?" + R[k].q + "&note=1";
+      ph.src = href + "&_=" + Date.now();   /* always the newest screen, never a cached one */
+      document.getElementById("full").href = href;
+      document.getElementById("facts").style.display = R[k].nonote ? "none" : "";
+    };
+    bar.addEventListener("click", function (e) { var b = e.target.closest("button[data-k]"); if (b) pick(b.dataset.k); });
+    document.getElementById("facts").onclick = function () { open(NOW); };
+    pick(NOW);
+    document.getElementById("replies").innerHTML = [].concat.apply([], SIT.map(function (g) { return g[1]; })).filter(function (k) { return !R[k].nonote; }).map(function (k) {
       var c = R[k];
       return '<div class="rp"><h5>' + esc(c.name) + '</h5><div class="mini"><div class="msheet"><div class="mhead"><span class="mt">' + GFKaira.mark(18, { halo: false }) + 'KAIRA analysis</span><i><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l8 8M10 2 2 10"/></svg></i></div><div class="mbody">' + KairaSheet.html(c.text) + '</div><div class="mfoot"><span>Got it</span></div></div></div><small>' + (c.fallback ? "The app’s own note (AI failed twice)" : c.words + " words" + (c.tries ? " · passed on the retry" : "")) + "</small></div>";
     }).join("");
-    document.querySelectorAll(".learn").forEach(function (b) { b.onclick = function () { open(b.dataset.k); }; });
-    /* each phone: once the screen has settled, the line under the score says this case's words, and its Learn more opens the note */
-    document.querySelectorAll(".phone iframe").forEach(function (f) {
-      f.addEventListener("load", function () {
-        var k = f.dataset.k, w = f.contentWindow;
-        setTimeout(function () {
-          try {
-            w.SAY_OPEN = function () { open(k); };
-            if (w.GFSay && w.GFSay.show) { var cm = w.document.getElementById("cm"); if (cm) cm.classList.add("said"); w.GFSay.show(R[k].line); }
-          } catch (e) {}
-        }, 1600);
-      });
-    });
   });
   /* a framed Move screen waits to be told it is on show before it draws its score */
   addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
