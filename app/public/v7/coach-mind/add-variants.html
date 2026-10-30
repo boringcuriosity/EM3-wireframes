@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Adding a timed item</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Onest:wght@400;500;600;700&display=swap">
+<style>
+  /* Four ways for a coach to add a timed item (wind-down shown; breathing, me-time and mood reuse the winner).
+     Each variant is live: pick, type, set the time, remove. Data from data.js (MP.WINDDOWN). */
+  :root { --c: #444CE7; --t: #EEF4FF; --g: #299D6B; --line: #E4E7EC; --ink: #101828; --body: #475467; --mute: #667085; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; font: 400 14px/20px Onest, system-ui, sans-serif; color: var(--body); }
+  main { max-width: 1240px; margin: 0 auto; padding: 40px 24px 120px; }
+  h1 { margin: 0; font: 800 28px/36px Montserrat, sans-serif; color: #1D4D38; }
+  .lede { margin: 8px 0 0; max-width: 760px; font-size: 15px; line-height: 22px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(540px, 1fr)); gap: 32px 28px; margin-top: 32px; align-items: start; }
+  @media (max-width: 620px) { .grid { grid-template-columns: 1fr; } }
+  .v { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .vh { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .vk { font: 800 13px/18px Montserrat, sans-serif; color: #fff; background: #1D4D38; border-radius: 7px; padding: 2px 8px; }
+  .vn { font: 800 18px/24px Montserrat, sans-serif; color: #1D4D38; }
+  .rec { font: 700 11px/16px Onest, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--g); background: #E6FAF1; border-radius: 999px; padding: 3px 9px; }
+  .vd { margin: 0; }
+  .pros { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 13px; line-height: 19px; }
+  .pros li::before { content: "+"; display: inline-block; width: 16px; font-weight: 700; color: var(--g); }
+  .pros li.con::before { content: "−"; color: #B54708; }
+
+  /* the card, as in the portal */
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 20px 22px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 1px 2px rgba(16,24,40,.04); }
+  .ch { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .ch h3 { margin: 0; display: flex; align-items: center; gap: 10px; font: 800 16px/24px Montserrat, sans-serif; color: #1D4D38; }
+  .ic { width: 32px; height: 32px; border-radius: 10px; background: var(--t); color: var(--c); display: grid; place-items: center; }
+  .ic svg { width: 18px; height: 18px; }
+  .pts { font: 700 12px/16px Onest, sans-serif; color: var(--c); background: var(--t); border-radius: 999px; padding: 4px 10px; }
+  .hint { margin: -8px 0 0; }
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .row { display: flex; align-items: center; gap: 10px; padding: 6px 6px 6px 16px; border: 1px solid var(--line); border-radius: 12px; background: #fff; min-height: 50px; }
+  .rt { flex: 1; min-width: 0; font: 600 14px/20px Onest, sans-serif; color: var(--ink); }
+  .in { height: 36px; border: 1px solid var(--line); border-radius: 10px; background: #F3FCF8; padding: 0 10px; font: 600 14px Onest, sans-serif; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .in:focus { outline: none; border-color: var(--g); box-shadow: 0 0 0 3px rgba(41,157,107,.18); }
+  .in::placeholder { color: #98A2B3; font-weight: 500; }
+  .tm { width: 128px; flex: none; }
+  .tm.need { border-color: #F79009; background: #FFFAEB; }
+  .x { width: 32px; height: 32px; flex: none; border: 0; border-radius: 50%; background: transparent; color: var(--mute); font: 400 20px/1 Onest, sans-serif; cursor: pointer; }
+  .x:hover { background: #F2F4F7; color: var(--ink); }
+  .btn { height: 36px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--g); background: #fff; color: var(--g); font: 600 13.5px Onest, sans-serif; cursor: pointer; white-space: nowrap; }
+  .btn.pri { background: var(--g); color: #fff; }
+  .btn:disabled { border-color: var(--line); color: #98A2B3; background: #fff; cursor: not-allowed; }
+  .link { border: 0; background: none; padding: 0; color: var(--g); font: 600 13.5px Onest, sans-serif; cursor: pointer; }
+  .note { font-size: 12.5px; color: var(--mute); }
+  :focus-visible { outline: 2px solid var(--g); outline-offset: 2px; }
+  .usual { font: 500 12.5px Onest, sans-serif; color: var(--mute); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  /* A: one smart field */
+  .cb { position: relative; }
+  .cb .in { width: 100%; height: 44px; padding-left: 40px; background: #fff; }
+  .cb .plus { position: absolute; left: 14px; top: 12px; width: 20px; height: 20px; color: var(--g); font: 600 20px/20px Onest, sans-serif; pointer-events: none; }
+  .pop { position: absolute; z-index: 5; left: 0; right: 0; top: calc(100% + 6px); background: #fff; border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 12px 32px rgba(16,24,40,.12); padding: 6px; max-height: 300px; overflow: auto; }
+  .opt { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px 12px; border: 0; border-radius: 10px; background: none; text-align: left; font: 500 14px/20px Onest, sans-serif; color: var(--ink); cursor: pointer; }
+  .opt[aria-selected=true], .opt:hover { background: #F3FCF8; }
+  .opt .ot { flex: 1; min-width: 0; }
+  .opt mark { background: none; color: var(--g); font-weight: 700; }
+  .grp { padding: 8px 12px 4px; font: 700 11px/16px Onest, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--body); }
+  .own { border-top: 1px solid #F2F4F7; margin-top: 4px; padding-top: 4px; }
+
+  /* B: Add opens a picker with the time */
+  .pk { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+  .pk .s { padding: 10px; border-bottom: 1px solid #F2F4F7; }
+  .pk .s .in { width: 100%; height: 40px; background: #fff; }
+  .pk .ls { max-height: 232px; overflow: auto; padding: 6px; }
+  .pk label.opt input { accent-color: var(--g); width: 16px; height: 16px; margin: 0; }
+  .pk .f { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #F9FAFB; border-top: 1px solid #F2F4F7; flex-wrap: wrap; }
+  .pk .f .lab { font: 700 11px/16px Onest, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+  .pk .f .sp { flex: 1; }
+
+  /* C: suggestions as ready rows */
+  .ghost { border-style: dashed; background: #FCFCFD; }
+  .ghost .rt { color: var(--body); font-weight: 500; }
+  .sec { font: 700 11px/16px Onest, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--body); margin-top: 4px; }
+  .more { display: flex; gap: 16px; align-items: center; }
+
+  /* D: the next row is always waiting */
+  .draft { border-color: var(--g); border-style: dashed; background: #FAFFFD; position: relative; }
+  .draft .in.t { flex: 1; min-width: 0; background: transparent; border-color: transparent; padding-left: 0; height: 36px; }
+  .draft .in.t:focus { box-shadow: none; }
+  .draft .pop { top: calc(100% + 4px); }
+  .kbd { font: 600 11px/16px Onest, sans-serif; color: var(--mute); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 0 6px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Adding a timed item</h1>
+  <p class="lede">Four ways for a coach to add a wind-down task with its time. Each card is live: pick a suggestion, type your own, change a time, remove a row. Breathing, me-time and mood check-in will reuse the one you pick. Breathing has only its five exercises, me-time replaces its one activity, and mood has a single "Add a second check-in".</p>
+  <div class="grid" id="grid"></div>
+</main>
+<script src="/v7/coach-mind/data.js"></script>
+<script>
+(function () {
+  var SUG = MP.WINDDOWN.map(function (s) { return { l: s[0], at: s[1] }; }), MAX = 6;
+  var MOON = '<svg viewBox="0 0 256 256" fill="currentColor"><path d="M235.54,150.21a104.84,104.84,0,0,1-37,52.91A104,104,0,0,1,32,120,103.09,103.09,0,0,1,52.88,57.48a104.84,104.84,0,0,1,52.91-37,8,8,0,0,1,10,10,88.08,88.08,0,0,0,109.8,109.8,8,8,0,0,1,10,10Z"/></svg>';
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var t12 = function (v) { if (!v) return ""; var h = +v.slice(0, 2), m = v.slice(3, 5); return ((h % 12) || 12) + (m === "00" ? "" : ":" + m) + " " + (h < 12 ? "AM" : "PM"); };
+  var same = function (a, b) { return a.trim().toLowerCase() === b.trim().toLowerCase(); };
+  var hl = function (l, q) { if (!q) return esc(l); var i = l.toLowerCase().indexOf(q.toLowerCase()); return i < 0 ? esc(l) : esc(l.slice(0, i)) + "<mark>" + esc(l.slice(i, i + q.length)) + "</mark>" + esc(l.slice(i + q.length)); };
+
+  var V = [
+    { k: "A", n: "One smart field", rec: true,
+      d: "A single field under the list. Click it and the suggestions drop down with their usual times; type to filter, or keep typing to add your own. Choosing adds the row at once with its time set, and the cursor lands on that time.",
+      pros: ["One place to look and one action to add", "Works by mouse or keyboard alone (arrows, Enter)", "Nothing on screen until it is needed", "-A task typed by the coach still needs its time after adding"] },
+    { k: "B", n: "Add, then choose with its time",
+      d: "An Add Task button opens a small picker: a search, the suggestions as a list, and the time at the bottom, already filled from the suggestion. The coach confirms both together.",
+      pros: ["Task and time are settled before anything changes", "A clear start and finish, good for new coaches", "-One extra click to open, one to confirm"] },
+    { k: "C", n: "Suggestions as ready rows",
+      d: "The best three suggestions sit under the list as dashed rows that look exactly like added ones, time included. Add turns a dashed row solid. More suggestions and Write Your Own sit behind one link each.",
+      pros: ["What they see is what they get, time and all", "Recognition over recall: no list to scan", "-Takes vertical room even when the list is complete"] },
+    { k: "D", n: "The next row is waiting",
+      d: "The list always ends in an empty dashed row. Type in it (suggestions appear as you type), set its time in the same row, press Enter. Like adding a line to a sheet.",
+      pros: ["Task and time typed in one row, in place", "Fastest for coaches who build many plans", "-Less obvious that suggestions exist until they type"] }
+  ];
+
+  function rowsHTML(st, need) {
+    return '<div class="list">' + st.items.map(function (x, i) {
+      return '<div class="row"><span class="rt">' + esc(x.l) + '</span><input class="in tm' + (need === i && !x.at ? " need" : "") + '" type="time" step="900" data-at="' + i + '" value="' + esc(x.at) + '" aria-label="Time for ' + esc(x.l) + '"><button class="x" data-del="' + i + '" aria-label="Remove ' + esc(x.l) + '">×</button></div>';
+    }).join("") + "</div>";
+  }
+  function left(st, q) { return SUG.filter(function (s) { return !st.items.some(function (x) { return same(x.l, s.l); }) && (!q || s.l.toLowerCase().indexOf(q.toLowerCase()) >= 0); }); }
+  function optsHTML(st, q, sel) {
+    var L = left(st, q), own = q.trim() && !SUG.concat(st.items.map(function (x) { return { l: x.l }; })).some(function (s) { return same(s.l, q); });
+    var h = (L.length ? '<div class="grp">' + (q ? "Matching suggestions" : "Suggested") + "</div>" : "") + L.map(function (s, i) {
+      return '<button type="button" class="opt" role="option" aria-selected="' + (i === sel) + '" data-pick="' + esc(s.l) + '"><span class="ot">' + hl(s.l, q) + '</span><span class="usual">usually ' + t12(s.at) + "</span></button>";
+    }).join("");
+    if (own) h += '<div class="own"><button type="button" class="opt" role="option" aria-selected="' + (sel === L.length) + '" data-own="1"><span class="ot">Add “' + esc(q.trim()) + '” as your own task</span><span class="usual">you set the time</span></button></div>';
+    if (!h) h = '<div class="grp">Nothing matches</div>';
+    return h;
+  }
+
+  var grid = document.getElementById("grid");
+  V.forEach(function (v) {
+    var box = document.createElement("section"); box.className = "v";
+    box.innerHTML = '<div class="vh"><span class="vk">' + v.k + '</span><span class="vn">' + v.n + "</span>" + (v.rec ? '<span class="rec">Recommended</span>' : "") + "</div>" +
+      '<p class="vd">' + v.d + '</p><ul class="pros">' + v.pros.map(function (p) { return p[0] === "-" ? '<li class="con">' + p.slice(1) + "</li>" : "<li>" + p + "</li>"; }).join("") + "</ul>" +
+      '<div class="card"></div>';
+    grid.appendChild(box);
+    var card = box.querySelector(".card");
+    var st = { items: [{ l: "Last tea or coffee before 2 PM", at: "14:00" }, { l: "Phone away, lights low", at: "22:00" }], q: "", open: false, sel: 0, more: false, pick: "", at: "", need: -1 };
+    var head = function () {
+      return '<div class="ch"><h3><span class="ic">' + MOON + '</span>Wind-down tasks</h3><span class="pts">23 of 100</span></div>' +
+        '<p class="hint">Up to ' + MAX + " small steps, each at its own time. Each one done earns its share.</p>";
+    };
+    var add = function (l, at) { st.items.push({ l: l, at: at || "" }); st.need = at ? -1 : st.items.length - 1; };
+    var focusTime = function () { var i = card.querySelector('[data-at="' + (st.items.length - 1) + '"]'); if (i) i.focus(); };
+    var full = function () { return st.items.length >= MAX; };
+
+    function draw(focus) {
+      var body = rowsHTML(st, st.need);
+      if (v.k === "A") body += full() ? '<span class="note">Up to ' + MAX + " tasks. Remove one to add another.</span>" :
+        '<div class="cb"><span class="plus">+</span><input class="in" id="q' + v.k + '" placeholder="Add a task: pick a suggestion or type your own" value="' + esc(st.q) + '" role="combobox" aria-expanded="' + st.open + '" autocomplete="off">' +
+        (st.open ? '<div class="pop" role="listbox">' + optsHTML(st, st.q, st.sel) + "</div>" : "") + "</div>";
+      if (v.k === "B") body += full() ? '<span class="note">Up to ' + MAX + " tasks.</span>" : !st.open ? '<div><button class="btn" data-openb="1">+ Add Task</button></div>' :
+        '<div class="pk"><div class="s"><input class="in" id="q' + v.k + '" placeholder="Search, or type your own task" value="' + esc(st.q) + '" autocomplete="off"></div><div class="ls" role="radiogroup">' +
+        left(st, st.q).map(function (s) { return '<label class="opt"><input type="radio" name="b" value="' + esc(s.l) + '"' + (st.pick === s.l ? " checked" : "") + '><span class="ot">' + hl(s.l, st.q) + '</span><span class="usual">' + t12(s.at) + "</span></label>"; }).join("") +
+        (st.q.trim() && !SUG.some(function (s) { return same(s.l, st.q); }) ? '<label class="opt"><input type="radio" name="b" value="__own"' + (st.pick === "__own" ? " checked" : "") + '><span class="ot">Use “' + esc(st.q.trim()) + '”</span><span class="usual">your own</span></label>' : "") +
+        '</div><div class="f"><span class="lab">Time</span><input class="in tm" type="time" step="900" id="bt" value="' + esc(st.at) + '"><span class="sp"></span><button class="link" data-cancel="1">Cancel</button><button class="btn pri" data-addb="1"' + (st.pick && st.at ? "" : " disabled") + ">Add Task</button></div></div>";
+      if (v.k === "C") {
+        var L = left(st, ""), show = st.more ? L : L.slice(0, 3);
+        body += full() ? '<span class="note">Up to ' + MAX + " tasks.</span>" : '<span class="sec">Suggested, add with one click</span><div class="list">' + show.map(function (s) {
+          return '<div class="row ghost"><span class="rt">' + esc(s.l) + '</span><span class="usual">' + t12(s.at) + '</span><button class="btn" data-addc="' + esc(s.l) + '">Add</button></div>';
+        }).join("") + (st.ownC ? '<div class="row ghost" style="border-color:var(--g)"><input class="in" id="oc" style="flex:1;min-width:0;background:#fff" placeholder="Type your own task" value="' + esc(st.q) + '"><input class="in tm" type="time" step="900" id="ot" value="' + esc(st.at) + '"><button class="btn pri" data-addo="1">Add</button></div>' : "") +
+          '</div><div class="more">' + (L.length > 3 ? '<button class="link" data-more="1">' + (st.more ? "Show fewer" : "Show " + (L.length - 3) + " more") + "</button>" : "") + (st.ownC ? "" : '<button class="link" data-ownc="1">Write your own</button>') + "</div>";
+      }
+      if (v.k === "D") body = body.replace(/<\/div>$/, "") + (full() ? "</div>" :
+        '<div class="row draft"><input class="in t" id="q' + v.k + '" placeholder="Next task: type, or pick from the list" value="' + esc(st.q) + '" autocomplete="off"><input class="in tm" type="time" step="900" id="dt" value="' + esc(st.at) + '" aria-label="Time"><span class="kbd">Enter</span>' +
+        (st.open ? '<div class="pop" role="listbox">' + optsHTML(st, st.q, st.sel).replace(/usually /g, "").replace(/ as your own task/, "") + "</div>" : "") + "</div></div>");
+      card.innerHTML = head() + body;
+      bind();
+      if (focus) { var f = card.querySelector(focus); if (f) { f.focus(); if (f.setSelectionRange && f.type === "text") f.setSelectionRange(f.value.length, f.value.length); } }
+    }
+
+    function bind() {
+      card.querySelectorAll("[data-at]").forEach(function (i) { i.onchange = function () { st.items[+i.dataset.at].at = i.value; if (i.value) { i.classList.remove("need"); st.need = -1; } }; });
+      card.querySelectorAll("[data-del]").forEach(function (b) { b.onclick = function () { st.items.splice(+b.dataset.del, 1); st.need = -1; draw(); }; });
+      var q = card.querySelector("#q" + v.k);
+      if (v.k === "A" || v.k === "D") {
+        if (!q) return;
+        var choose = function (el) {
+          if (!el) return;
+          var l = el.dataset.own ? st.q.trim() : el.dataset.pick, s = SUG.filter(function (x) { return x.l === l; })[0];
+          var at = v.k === "D" && card.querySelector("#dt").value ? card.querySelector("#dt").value : s ? s.at : "";
+          if (v.k === "D" && !at) { st.q = l; st.open = false; draw("#dt"); return; }   /* D: the time comes before Enter */
+          add(l, at); st.q = ""; st.at = ""; st.open = false; st.sel = 0; draw(); if (v.k === "A") focusTime(); else card.querySelector("#qD") && card.querySelector("#qD").focus();
+        };
+        q.onfocus = function () { if (!st.open) { st.open = true; draw("#q" + v.k); } };
+        q.oninput = function () { st.q = q.value; st.sel = 0; st.open = true; draw("#q" + v.k); };
+        q.onkeydown = function (e) {
+          var opts = card.querySelectorAll(".opt");
+          if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); st.sel = (st.sel + (e.key === "ArrowDown" ? 1 : -1) + opts.length) % Math.max(1, opts.length); draw("#q" + v.k); }
+          else if (e.key === "Enter") { e.preventDefault(); if (v.k === "D" && !st.open && st.q.trim()) choose({ dataset: SUG.some(function (s) { return same(s.l, st.q); }) ? { pick: SUG.filter(function (s) { return same(s.l, st.q); })[0].l } : { own: 1 } }); else choose(opts[st.sel]); }
+          else if (e.key === "Escape") { st.open = false; draw(); }
+          else if (e.key === "Tab") { st.open = false; }
+        };
+        card.querySelectorAll(".opt").forEach(function (o) { o.onmousedown = function (e) { e.preventDefault(); choose(o); }; });
+        var dt = card.querySelector("#dt");
+        if (dt) { dt.onchange = function () { st.at = dt.value; }; dt.onkeydown = function (e) { if (e.key === "Enter" && st.q.trim() && dt.value) { e.preventDefault(); st.at = dt.value; var m = SUG.filter(function (s) { return same(s.l, st.q); })[0]; add(m ? m.l : st.q.trim(), dt.value); st.q = ""; st.at = ""; draw("#qD"); } }; }
+        q.onblur = function () { setTimeout(function () { if (st.open && !card.contains(document.activeElement)) { st.open = false; draw(); } }, 120); };
+      }
+      if (v.k === "B") {
+        var ob = card.querySelector("[data-openb]"); if (ob) ob.onclick = function () { st.open = true; st.q = ""; st.pick = ""; st.at = ""; draw("#qB"); };
+        if (!q) return;
+        q.oninput = function () { st.q = q.value; if (st.pick === "__own" && !q.value.trim()) st.pick = ""; draw("#qB"); };
+        card.querySelectorAll("input[name=b]").forEach(function (r) { r.onchange = function () { st.pick = r.value; var s = SUG.filter(function (x) { return x.l === r.value; })[0]; if (s) st.at = s.at; draw("#bt"); }; });
+        var bt = card.querySelector("#bt"); bt.oninput = bt.onchange = function () { st.at = bt.value; card.querySelector("[data-addb]").disabled = !(st.pick && st.at); };
+        card.querySelector("[data-cancel]").onclick = function () { st.open = false; draw(); };
+        card.querySelector("[data-addb]").onclick = function () { add(st.pick === "__own" ? st.q.trim() : st.pick, st.at); st.open = false; draw(); };
+      }
+      if (v.k === "C") {
+        card.querySelectorAll("[data-addc]").forEach(function (b) { b.onclick = function () { var s = SUG.filter(function (x) { return x.l === b.dataset.addc; })[0]; add(s.l, s.at); draw(); }; });
+        var m = card.querySelector("[data-more]"); if (m) m.onclick = function () { st.more = !st.more; draw(); };
+        var o = card.querySelector("[data-ownc]"); if (o) o.onclick = function () { st.ownC = true; st.q = ""; st.at = ""; draw("#oc"); };
+        var oc = card.querySelector("#oc"), ot = card.querySelector("#ot");
+        if (oc) {
+          oc.oninput = function () { st.q = oc.value; }; ot.onchange = ot.oninput = function () { st.at = ot.value; };
+          var go = function () { if (!st.q.trim()) return oc.focus(); if (!st.at) return ot.focus(); add(st.q.trim(), st.at); st.ownC = false; st.q = ""; st.at = ""; draw(); };
+          card.querySelector("[data-addo]").onclick = go;
+          oc.onkeydown = ot.onkeydown = function (e) { if (e.key === "Enter") { e.preventDefault(); go(); } if (e.key === "Escape") { st.ownC = false; draw(); } };
+        }
+      }
+    }
+    draw();
+  });
+})();
+</script>
+</body>
+</html>

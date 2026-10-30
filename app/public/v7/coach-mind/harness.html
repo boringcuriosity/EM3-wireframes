@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mind plan step harness</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Onest:wght@400;500;600;700&display=swap">
+<style>
+  /* one step module alone: ?step=sleep|selfcare|practices|review&t=<template id>&mode=plan|template */
+  body { margin: 0; background: #F9FAFB; font: 400 14px/20px Onest, system-ui, sans-serif; color: #475467; }
+  main { max-width: 964px; margin: 0 auto; padding: 32px 24px 120px; }
+  pre { position: fixed; right: 12px; bottom: 12px; max-width: 360px; max-height: 40vh; overflow: auto; margin: 0; padding: 10px 12px; border-radius: 10px; background: #101828; color: #D0D5DD; font: 11px/16px ui-monospace, monospace; opacity: .9; }
+</style>
+</head>
+<body>
+<main id="el"></main>
+<pre id="out"></pre>
+<script src="/v7/coach-mind/data.js"></script>
+<script>
+  var Q = new URLSearchParams(location.search), KEY = Q.get("step") || "sleep";
+  var FILE = { sleep: "rhythm", selfcare: "rhythm", practices: "practices", review: "review" }[KEY];
+  var s = document.createElement("script"); s.src = "/v7/coach-mind/" + FILE + ".js?t=" + Date.now();
+  s.onload = function () {
+    var t = MP.TEMPLATES.filter(function (x) { return x.id === Q.get("t"); })[0];
+    var plan = t ? MP.clone(t) : MP.blankPlan(); plan.id = null; if (!plan.name) plan.name = "Mind plan, November";
+    var out = document.getElementById("out"), st = MP.steps[KEY];
+    MP.changed = function () { out.textContent = st.title + " | " + st.sub(plan) + " | valid: " + (st.valid(plan) || "ok") + "\n" + JSON.stringify(plan, null, 1); };
+    st.render(document.getElementById("el"), plan, { mode: Q.get("mode") || "plan", go: function (k) { console.log("go", k); } });
+    MP.changed();
+  };
+  document.head.appendChild(s);
+</script>
+</body>
+</html>

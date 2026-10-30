@@ -26,6 +26,23 @@
     moodAt: "20:30"
   };
 
+  /* ?coach=1: the coach portal's review step (v7/coach-mind/review.js) hands over the plan it is building.
+     Wind-down has no set times there, so it sits before bed; one breathing exercise; me-time options as given. */
+  var CP = null, ACT = [], COACHN = "", NOTE = "";
+  try { if (Q.get("coach") && window.parent !== window) CP = window.parent.MP && window.parent.MP.previewPlan; } catch (e) {}
+  if (CP) {
+    var cr = CP.rhythm, BR = window.parent.MP.BREATHS || [];
+    window.MDCOACH = true;
+    P.hours = cr.hours; P.bed = cr.bedtime; P.wake = cr.wake;
+    P.wd = cr.winddown.filter(function (w) { return String(w.label || "").trim(); }).map(function (w, i) { return { t: w.label, at: w.at || "21:" + ("0" + i).slice(-2), d: "Before bed" }; });
+    P.br = cr.breathing.slice(0, 3).map(function (b) { var x = BR.filter(function (y) { return y[0] === b.name; })[0]; return { n: b.name, min: b.mins, how: x ? x[1] : "", at: b.at }; });
+    P.me = cr.metime.filter(function (m) { return String(m.label || "").trim(); }).slice(0, 1).map(function (m) { return { t: m.label, d: "", at: m.at }; });
+    P.moodAt = cr.mood.checks[0].at; P.moodAt2 = (cr.mood.checks[1] || {}).at;   /* ponytail: one mood row, the first time; a second row needs a second mood sheet */
+    var PH = window.parent.MP.helpers;
+    ACT = (CP.practices || []).map(function (x) { var p = PH.practice(x.id) || { name: x.id, desc: "" }; return { n: p.name, d: p.desc, times: x.times || 1, habits: x.habits || [], habit: p.kind === "habit" }; });
+    COACHN = window.parent.MP.COACH.name; NOTE = String(CP.note || "").trim();
+  }
+
   /* minutes from 00:00 yesterday: 1350 is 10:30 PM yesterday, 1485 is 12:45 AM today, 1800 is 6:00 AM today */
   function mins(s) { var p = s.split(":"); return +p[0] * 60 + +p[1]; }
   function bedM(s) { var m = mins(s); return m < 720 ? m + 1440 : m; }
@@ -108,8 +125,9 @@
     L.push({ m: 360, sheet: "sleep", on: logged(), t: "Last night’s sleep", at: "Morning",
       d: logged() ? hm(h) + " · " + nice(S.bed) + " to " + nice(S.wake) : "Planned " + niceS(P.bed) + " to " + niceS(P.wake) });
     P.wd.forEach(function (w, i) { L.push({ m: mins(w.at), key: "wd:" + i, on: !!S.wd[i], t: w.t, d: w.d, at: niceS(w.at) }); });
-    P.br.forEach(function (b, i) { var ps = PL && PL.i === i && PL.el > 0 && !S.br[i]; L.push({ m: 13 * 60 + i, sheet: "br:" + i, on: !!S.br[i], t: b.n + ", " + b.min + " min", d: S.br[i] ? "Done today" : ps ? "Paused at " + clockS(PL.el) + ". Tap to resume." : b.how, at: "Any time" }); });
-    L.push({ m: 18 * 60, sheet: "me", on: !!meOn, t: "Something for you", d: meOn ? meOn.t : "Pick any one of " + P.me.length + ". One is enough.", at: "Any time" });
+    P.br.forEach(function (b, i) { var ps = PL && PL.i === i && PL.el > 0 && !S.br[i]; L.push({ m: b.at ? mins(b.at) : 13 * 60 + i, sheet: "br:" + i, on: !!S.br[i], t: b.n + ", " + b.min + " min", d: S.br[i] ? "Done today" : ps ? "Paused at " + clockS(PL.el) + ". Tap to resume." : b.how, at: b.at ? niceS(b.at) : "Any time" }); });
+    var me1 = P.me.length === 1 && P.me[0].at;   /* the coach portal sets one activity at one time */
+    L.push({ m: me1 ? mins(P.me[0].at) : 18 * 60, sheet: "me", on: !!meOn, t: "Something for you", d: meOn ? meOn.t : me1 ? P.me[0].t : "Pick any one of " + P.me.length + ". One is enough.", at: me1 ? niceS(P.me[0].at) : "Any time" });
     L.push({ m: mins(P.moodAt) + 1, sheet: "mood", on: S.mood >= 0, t: "How was today?", d: S.mood >= 0 ? FACES[S.mood][1] + " " + FACES[S.mood][0] + (S.tags && S.tags.length ? " · " + S.tags.join(", ") : "") : "A quick check-in. The answer is never scored.", at: niceS(P.moodAt) });
     return L;
   }
@@ -125,6 +143,38 @@
         return rows.length ? '<div class="md-grp"><div class="lab">' + g[0] + '</div><div class="mv-tiplist">' + rows.map(rowHTML).join("") + '</div></div>' : "";
       }).join("") + '</div></section>';
   }
+
+  /* ---------- Coach suggested for you: the coach's own activities, outside the score (coach portal preview, ?coach=1) ---------- */
+  var DONE = {};   /* fills so far, per activity */
+  var ACTIC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>';
+  function coachCard() {
+    if (!window.MDCOACH || !ACT.length) return "";
+    var full = function (i) { return (DONE[i] || 0) >= ACT[i].times; }, n = ACT.filter(function (x, i) { return full(i); }).length;
+    var ini = COACHN.split(" ").map(function (w) { return w[0]; }).join("").slice(0, 2);
+    return '<div class="sec"><h2>Coach suggested for you</h2></div><section class="mv-card md-cc"><div class="mv-mh"><span class="md-cav">' + ini + '</span><div class="t"><div class="n">From ' + COACHN + '</div>' +
+      '<div class="s">' + (n === ACT.length ? "All done. Lovely work." : ACT.length + (ACT.length === 1 ? " activity" : " activities") + ", " + n + " done") + '</div></div></div>' +
+      (NOTE ? '<p class="md-cnote">“' + NOTE.replace(/[&<>]/g, "") + '”</p>' : "") +
+      '<div class="mv-mbi"><div class="mv-tiplist">' + ACT.map(function (x, i) {
+        var on = full(i), f = DONE[i] || 0;
+        return '<div class="mv-tip tip ly-row md-ar' + (on ? " done" : "") + '"><button class="mv-tb tickbtn" data-act="' + i + '" aria-label="' + x.n + '"><span class="md-ai">' + (on ? IC.check : ACTIC) + '</span></button>' +
+          '<button class="ly-rb" data-act="' + i + '"><span class="tt">' + x.n + '</span><span class="td">' + (x.habit ? x.habits.length + " habits, every day" : x.times > 1 ? f + " of " + x.times + " filled" : on ? "Filled" : x.d) + '</span></button>' +
+          '<span class="ly-tm">' + IC.chev + '</span></div>';
+      }).join("") + '</div></div></section>';
+  }
+  function actSheet(i) {
+    var x = ACT[i], f = DONE[i] || 0, left = Math.max(0, x.times - f);
+    window.GFOpenSheet("mdAct", x.n, '<div class="msub">' + x.d + '. ' + COACHN + ' suggested this for you.</div>' +
+      (x.habit ? '<div class="md-opts">' + x.habits.map(function (h) { return '<div class="md-opt"><span class="tmark"></span><span><b>' + h + '</b><small>Every day</small></span></div>'; }).join("") + '</div>' : "") +
+      '<div class="md-fill"><b>' + f + ' of ' + x.times + '</b> filled' + (left ? ", " + left + " to go" : ". All done") + '</div>' +
+      '<button class="md-save" data-actgo="' + i + '" style="margin-top:16px"' + (left ? "" : " disabled") + '>' + (left ? (f ? "Fill It Again" : "Start") : "All Done") + '</button>');
+  }
+  var ccss = document.createElement("style");
+  ccss.textContent = ".md-cc{background:linear-gradient(180deg,#F4F3FF 0%,#fff 42%,#fff 100%) padding-box,conic-gradient(from 0deg,#7A5AF8 0deg,#E4E7EC 43deg,#E4E7EC 317deg,#7A5AF8 360deg) border-box}" +
+    ".md-cc .mv-mh{display:flex;align-items:center;gap:12px}.md-cav{flex:none;width:40px;height:40px;border-radius:9999px;display:grid;place-items:center;background:#7A5AF8;color:#fff;font:600 14px/1 Roboto,sans-serif;box-shadow:0 0 0 4px #EBE9FE}" +
+    ".md-cnote{margin:0 16px 4px;padding:10px 12px;border-radius:12px;background:#F4F3FF;font:400 13px/19px Roboto,sans-serif;color:#5925DC}" +
+    ".md-ai{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:#F4F3FF;color:#7A5AF8}.md-ai svg{width:18px;height:18px}" +
+    ".md-ar.done .md-ai{background:#7A5AF8;color:#fff}.md-fill{margin-top:14px;font:400 14px/20px Roboto,sans-serif;color:#475467}.md-fill b{color:#101828}";
+  document.head.appendChild(ccss);
 
   /* ---------- the sheets an item opens ---------- */
   function meSheet() {
@@ -246,7 +296,7 @@
   function render() {
     if (NOPLAN) {
       root.innerHTML = '<div class="sec"><h2>Your mind plan</h2></div><section class="mv-card"><div class="mv-mh"><div class="t"><div class="n">Your plan is on its way</div><div class="s">Your Mind Coach sets your sleep times, wind-down and calm minutes after your first consultation.</div></div></div></section>';
-    } else root.innerHTML = '<div class="sec"><h2>Your mind plan</h2></div>' + (LY ? LY({ P: P, S: S, items: items, practices: practices, rowHTML: rowHTML, nice: nice, niceS: niceS, hm: hm, mins: mins, now: NOW, I: I, IC: IC, FACES: FACES, logged: logged }) : V === "b" ? upNextCard() : V === "c" ? nightDayCards() : V === "d" ? tilesCard() : V === "e" ? stackCards() : V === "f" ? gridCards() : V === "g" ? swipeCards() : todayCard());
+    } else root.innerHTML = '<div class="sec"><h2>Your mind plan</h2></div>' + (LY ? LY({ P: P, S: S, items: items, practices: practices, rowHTML: rowHTML, nice: nice, niceS: niceS, hm: hm, mins: mins, now: NOW, I: I, IC: IC, FACES: FACES, logged: logged }) : V === "b" ? upNextCard() : V === "c" ? nightDayCards() : V === "d" ? tilesCard() : V === "e" ? stackCards() : V === "f" ? gridCards() : V === "g" ? swipeCards() : todayCard()) + coachCard();
     if (window.MDRHYTHM) window.MDRHYTHM.update();
     kaira();
   }
@@ -344,11 +394,13 @@
 
   /* ---------- taps ---------- */
   document.addEventListener("click", function (ev) {
-    var t = ev.target.closest('[data-x="logsleep"],[data-feel],[data-open],[data-mepick],[data-wdpick],[data-mt],[data-mb],[data-mf],[data-tag],[data-mdone],[data-help],[data-pl],[data-dday],[data-dst],[data-dsave],[data-bplay]');
+    var t = ev.target.closest('[data-x="logsleep"],[data-feel],[data-open],[data-mepick],[data-wdpick],[data-mt],[data-mb],[data-mf],[data-tag],[data-mdone],[data-help],[data-pl],[data-dday],[data-dst],[data-dsave],[data-bplay],[data-act],[data-actgo]');
     if (!t) return;
     var a = t.dataset;
     if (a.open) { ev.preventDefault(); var o = a.open; if (o === "sleep") return sleepSheet(); if (o === "me") return meSheet(); if (o === "mood") return moodSheet(); if (o === "wd") return wdSheet();
       var bi = +o.split(":")[1]; if (S.br[bi]) { S.br[bi] = false; MD.cause = ""; toast("Breathing marked as not done."); return render(); } return player(bi); }
+    if (a.act != null) { ev.preventDefault(); return actSheet(+a.act); }
+    if (a.actgo != null) { var ai = +a.actgo; DONE[ai] = Math.min(ACT[ai].times, (DONE[ai] || 0) + 1); if (window.closeSheets) window.closeSheets(); render(); toast("Done. Thank you for making time for it."); return; }
     if (a.mepick != null) { var mj = +a.mepick, was = !!S.me[mj]; S.me = {}; if (!was) S.me[mj] = true; MD.cause = was ? "" : "me"; if (window.closeSheets) window.closeSheets(); render(); if (!was) toast("Time for yourself, done. Small moments like this add up."); return; }
     if (a.wdpick != null) { var wi = +a.wdpick; S.wd[wi] = !S.wd[wi]; MD.cause = S.wd[wi] ? "wd" : ""; render(); wdSheet(); if (S.wd[wi] && P.wd.every(function (w, i) { return S.wd[i]; })) toast("Nicely wound down. Rest well tonight."); return; }
     if (a.pl) {

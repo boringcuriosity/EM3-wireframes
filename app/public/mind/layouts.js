@@ -47,14 +47,22 @@
     ["Night", "9 PM to bedtime", "bed", ["wd:2"]]
   ];
   var span = function (A, p) { return p[0] === "Night" ? "9 PM to " + A.niceS(A.P.bed) + " bedtime" : p[1]; };
-  var partCards = function (A, parts) { var I = A.items(); return parts.map(function (p) { var rows = pick(I, p[3]); return card(p[0], span(A, p) + " · " + cnt(rows), list(rows), p[2]); }).join(""); };
+  var partCards = function (A, parts) { var I = A.items(); return parts.map(function (p) { var rows = pick(I, p[3]); return !rows.length ? "" : card(p[0], span(A, p) + " · " + cnt(rows), list(rows), p[2]); }).join(""); };
 
   var L = window.MDLAYOUT = {};
 
   /* ----- time of day ----- */
 
   /* 1. Parts of the day: one card per part with its scene, every item a row */
-  L.parts = function (A) { return partCards(A, PARTS); };
+  L.parts = function (A) {
+    if (!window.MDCOACH) return partCards(A, PARTS);
+    /* the coach portal's preview: everything the coach timed sits in the part of the day its time falls in, earliest first */
+    var B = [["sleep"], [], [], []];
+    A.items().filter(function (x) { return id(x) !== "sleep"; }).sort(function (a, b) { return a.m - b.m; }).forEach(function (x) {
+      var m = x.m % 1440; B[m >= 360 && m < 720 ? 0 : m >= 720 && m < 1020 ? 1 : m >= 1020 && m < 1260 ? 2 : 3].push(id(x));
+    });
+    return partCards(A, PARTS.map(function (p, i) { return p.slice(0, 3).concat([B[i]]); }));
+  };
 
   /* 2. Eat and Move's card: "Your coach's plan" with a picture for each practice, the small steps under it as Move's small moves */
   var TH = { sleep: "moon", br: "wind", me: "heart", mood: "smile" };
@@ -133,10 +141,10 @@
       return '<div class="mv-tip tip ly-row' + (on ? " done" : "") + '"><button class="mv-tb tickbtn" data-mepick="' + j + '" aria-pressed="' + on + '" aria-label="' + m.t + '">' + mark(on) + '</button><button class="ly-rb" data-mepick="' + j + '"><span class="tt">' + m.t + '</span><span class="td">' + m.d + '</span></button></div>'; }).join("");
     var plan = "Planned " + A.niceS(A.P.bed) + " to " + A.niceS(A.P.wake);
     return card("Sleep", A.logged() ? plan + " · done" : plan, list(g("sleep"))) +
-      card("Breathing", A.P.br[0].n + ", " + A.P.br[0].min + " min" + (A.S.br[0] ? " · done" : ""), list(g("br"))) +
+      card("Breathing", A.P.br.length > 1 ? A.P.br.length + " a day · " + cnt(g("br")) : A.P.br[0].n + ", " + A.P.br[0].min + " min" + (A.S.br[0] ? " · done" : ""), list(g("br"))) +
       card("Wind-down", "Small steps for a steady night · " + cnt(g("wd")), list(g("wd"))) +
-      card("Something for you", meOn ? "Done for today" : "Any one is enough", '<div class="mv-tiplist">' + me + '</div>') +
-      card("How was today?", "A check-in around " + A.niceS(A.P.moodAt) + ". Never scored.", list(g("mood")));
+      card("Something for you", meOn ? "Done for today" : A.P.me.length === 1 && A.P.me[0].at ? "Around " + A.niceS(A.P.me[0].at) : "Any one is enough", '<div class="mv-tiplist">' + me + '</div>') +
+      card("How was today?", window.MDCOACH ? "A check-in at " + A.niceS(A.P.moodAt) + (A.P.moodAt2 ? " and " + A.niceS(A.P.moodAt2) : "") + ". Never scored." : "A check-in around " + A.niceS(A.P.moodAt) + ". Never scored.", list(g("mood")));
   };
 
   var css = document.createElement("style");
