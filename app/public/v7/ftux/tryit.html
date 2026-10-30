@@ -1,0 +1,474 @@
+<!doctype html>
+<!--
+  FTUX concept: "Try it on one meal".
+  The first-time explainer for Nutrition sufficiency, opened over the Eat screen.
+  The user changes how much of a sample breakfast they ate (drag the slider or tap
+  a portion chip) and watches each of protein, carbs and fat move along its target
+  band, then the meal's mark and its points out of breakfast's 20 update live.
+  One guide line at a time walks them through: a little less, a lot more, just right.
+
+  Flags
+    ?who=new       (default) first-time user, opens straight on the sample breakfast
+    ?who=current   someone who already logs meals, opens with what is new for them
+    ?step=N        open at step N (1-based). new: 1 try, 2 done. current: 1 welcome, 2 try, 3 done
+    ?still=1       no animation, end states shown (also when prefers-reduced-motion)
+-->
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Try It On One Meal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<link rel="stylesheet" href="/v7/icons/glyph-masks.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; overflow: hidden; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; }
+
+  .behind { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; background: #fff; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .42s var(--ease); }
+  .open .scrim { opacity: 1; }
+
+  /* ------------------------------------------------------------ the sheet */
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh;
+    display: flex; flex-direction: column; background: #fff; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    transform: translate(-50%, 100%); transition: transform .42s cubic-bezier(.2,.7,.2,1);
+    box-shadow: 0 -8px 32px rgba(16,24,40,.12); }
+  .open .sheet { transform: translate(-50%, 0); }
+  .closing .sheet { transition-duration: .34s; transition-timing-function: cubic-bezier(.4,0,1,1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 8px; }
+  .shead h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  .x:focus-visible, .ok:focus-visible, .chip:focus-visible, .thumb:focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+  .sbody { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px 8px; }
+  .sfoot { flex-shrink: 0; padding: 8px 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .sfoot[hidden] { display: none; }
+  .ok { width: 100%; height: 48px; margin-bottom: 7px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff;
+    font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; }
+  .ok:active { transform: translateY(3px); box-shadow: 0 4px 0 var(--brand-700); }
+
+  /* steps crossfade in place */
+  .step { display: none; }
+  .step.on { display: block; animation: stepIn .36s var(--ease) both; }
+  @keyframes stepIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .lead { margin: 0 0 16px; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
+  .lead b { color: var(--g-900); font-weight: 600; }
+
+  /* --------------------------------------------- welcome (current users) */
+  .hello { position: relative; margin: 4px 0 20px; padding: 20px 16px 18px; border-radius: var(--r-xl);
+    border: 1px solid transparent; box-shadow: 2px 2px 0 var(--g-200); overflow: hidden; isolation: isolate;
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 46%) padding-box,
+      conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; }
+  .hello h3 { margin: 0 0 8px; font-size: 20px; line-height: 28px; font-weight: 700; max-width: 220px; text-wrap: balance; }
+  .hello p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); max-width: 250px; }
+  .hello .art { position: absolute; right: -18px; top: -10px; width: 132px; height: 132px; z-index: -1; }
+  .hello .art circle { fill: none; stroke-linecap: round; }
+  .hello ul { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .hello li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 20px; color: var(--g-700); }
+  .hello li i { flex-shrink: 0; width: 20px; height: 20px; border-radius: 9999px; background: var(--brand-50); display: grid; place-items: center; margin-top: 0; }
+  .hello li i::after { content: ""; width: 6px; height: 6px; border-radius: 9999px; background: var(--brand-600); }
+
+  /* ------------------------------------------------------- the meal card */
+  .meal { position: relative; isolation: isolate; border-radius: var(--r-xl); border: 1px solid transparent; box-shadow: 2px 2px 0 var(--g-200);
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 29%, #fff 100%) padding-box,
+      conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; }
+  .meal::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 132px; z-index: -1; border-radius: inherit; opacity: .55;
+    background: url(/v7/icons/meals/bg/bf.webp?v=2) right top / auto 100% no-repeat;
+    -webkit-mask: linear-gradient(90deg, transparent 18%, #000 62%), linear-gradient(180deg, #000 45%, transparent);
+    -webkit-mask-composite: source-in; mask-composite: intersect; }
+  .mh { display: flex; align-items: center; gap: 12px; padding: 14px 16px 10px; }
+  .mh .t { flex: 1; min-width: 0; }
+  .mh h3 { margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; }
+  .mh .sub { font-size: 12px; line-height: 16px; color: var(--g-500); }
+  .mh .sub b { color: var(--g-900); font-weight: 600; }
+  .gauge { position: relative; width: 56px; height: 56px; flex-shrink: 0; border-radius: 9999px; background: rgb(255 255 255 / .82);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); box-shadow: 0 1px 2px rgba(16,24,40,.06); }
+  .gauge svg { position: absolute; inset: 0; }
+  .gauge .num { position: absolute; inset: 0; display: grid; place-items: center; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.2px; }
+  .gauge .arc { transition: stroke .3s var(--ease); }
+
+  .rows { padding: 4px 16px 8px; border-top: 1px solid rgb(234 236 240 / .5); }
+  .row { padding: 8px 0 12px; }
+  .row:first-child { padding-bottom: 22px; }
+  .row + .row { border-top: 1px dashed var(--g-100); }
+  .rtop { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .gl { width: 18px; height: 18px; flex-shrink: 0; background: var(--brand-600); -webkit-mask-size: contain; mask-size: contain;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+  .rname { font-size: 14px; line-height: 20px; font-weight: 600; }
+  .ramt { font-size: 13px; line-height: 20px; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .ramt b { color: var(--g-900); font-weight: 600; }
+  .rmark { margin-left: auto; min-width: 52px; text-align: right; font-size: 14px; line-height: 20px; font-weight: 700; font-variant-numeric: tabular-nums;
+    transition: color .3s var(--ease); }
+  .rmark small { font-size: 11px; font-weight: 500; color: var(--g-400); margin-left: 2px; }
+  .full { color: var(--ok-600); } .part { color: var(--gold-800); } .neg { color: var(--red-600); }
+
+  /* the target band: full marks from 80% of the target to the target plus 20% */
+  .track { position: relative; height: 8px; border-radius: 9999px; background: var(--g-100); }
+  .band { position: absolute; top: -2px; bottom: -2px; border-radius: 9999px; background: var(--ok-100); box-shadow: inset 0 0 0 1px var(--ok-300);
+    transition: box-shadow .3s var(--ease), background-color .3s var(--ease); }
+  .row.in .band { background: color-mix(in srgb, var(--ok-100) 60%, var(--ok-300)); }
+  .tick { position: absolute; top: -5px; width: 2px; height: 18px; margin-left: -1px; border-radius: 2px; background: var(--g-400); }
+  .bandlbl { position: absolute; top: 12px; transform: translateX(-50%); white-space: nowrap; font-size: 10px; line-height: 12px; font-weight: 600;
+    color: var(--ok-600); letter-spacing: .2px; }
+  .dot { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 9999px; background: #fff;
+    border: 3px solid var(--ok-500); box-shadow: 0 2px 6px rgba(16,24,40,.18); transition: border-color .3s var(--ease); will-change: left; }
+  .dot.part { border-color: var(--gold-700); } .dot.neg { border-color: var(--red-600); }
+
+  .pts { display: flex; align-items: center; gap: 12px; padding: 10px 16px 12px; border-top: 1px solid var(--g-100);
+    border-radius: 0 0 var(--r-xl) var(--r-xl); background: linear-gradient(180deg, #fff, var(--g-25)); }
+  .pts .lbl { font-size: 13px; line-height: 18px; color: var(--g-600); white-space: nowrap; }
+  .pts .lbl b { font-size: 20px; line-height: 24px; color: var(--g-900); font-weight: 700; font-variant-numeric: tabular-nums; margin-right: 2px; }
+  .cells { flex: 1; display: grid; grid-template-columns: repeat(20, 1fr); gap: 2px; }
+  .cells i { height: 10px; border-radius: 2px; background: var(--g-100); transition: background-color .25s var(--ease); }
+  .cells i.on { background: var(--ok-500); }
+  .cells i.half { background: linear-gradient(90deg, var(--ok-500) var(--f), var(--g-100) var(--f)); }
+
+  /* ------------------------------------------------------------ the guide */
+  .guide { display: flex; align-items: center; gap: 12px; min-height: 48px; margin: 12px 0 0; }
+  .guide .prog { display: flex; gap: 4px; flex-shrink: 0; }
+  .guide .prog i { width: 6px; height: 6px; border-radius: 9999px; background: var(--g-200); transition: background-color .4s var(--ease), width .4s var(--ease); }
+  .guide .prog i.done { background: var(--brand-600); }
+  .guide .prog i.now { width: 16px; background: var(--brand-400); }
+  .say { flex: 1; font-size: 15px; line-height: 22px; font-weight: 500; color: var(--g-800); text-wrap: pretty; }
+  .say b { font-weight: 700; color: var(--g-900); }
+  .say.swap { animation: sayIn .42s var(--ease) both; }
+  @keyframes sayIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* ----------------------------------------------------------- the slider */
+  .ctl { padding: 4px 0 0; }
+  .ctl .top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .ctl .top span { font-size: 13px; line-height: 18px; color: var(--g-500); }
+  .ctl .top b { font-size: 14px; line-height: 18px; font-weight: 600; color: var(--g-900); }
+  .slider { position: relative; height: 40px; touch-action: none; cursor: pointer; }
+  .slider .rail { position: absolute; left: 0; right: 0; top: 50%; height: 6px; margin-top: -3px; border-radius: 9999px; background: var(--g-200); }
+  .slider .fill { position: absolute; left: 0; top: 50%; height: 6px; margin-top: -3px; border-radius: 9999px; background: var(--brand-600); }
+  .slider .mid { position: absolute; top: 50%; width: 2px; height: 12px; margin: -6px 0 0 -1px; border-radius: 2px; background: var(--g-300); }
+  .thumb { position: absolute; top: 50%; width: 36px; height: 36px; margin: -18px 0 0 -18px; border-radius: 9999px; background: #fff;
+    border: 2px solid var(--brand-600); box-shadow: 0 3px 8px rgba(16,24,40,.18); display: grid; place-items: center; outline: none; }
+  .thumb img { width: 24px; height: 24px; object-fit: contain; pointer-events: none; }
+  .thumb .halo { position: absolute; inset: -2px; border-radius: inherit; border: 2px solid var(--brand-400); opacity: 0; pointer-events: none; }
+  .hinting .thumb { animation: nudge 2.4s var(--ease) .2s 2 both; }
+  .hinting .thumb .halo { animation: halo 2.4s var(--ease) .2s 2 both; }
+  @keyframes nudge { 0%, 100% { transform: translateX(0); } 30% { transform: translateX(-22px); } 60% { transform: translateX(0); } }
+  @keyframes halo { 0% { opacity: .7; transform: scale(1); } 60%, 100% { opacity: 0; transform: scale(1.7); } }
+  .chips { display: flex; gap: 8px; margin-top: 8px; }
+  .chip { flex: 1 1 0; height: 36px; padding: 0 4px; border-radius: 9999px; border: 1px solid var(--g-200); background: #fff; color: var(--g-700);
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: background-color .25s var(--ease), border-color .25s var(--ease), color .25s var(--ease); white-space: nowrap; }
+  .chip[aria-pressed="true"] { background: var(--brand-50); border-color: var(--brand-600); color: var(--brand-800); }
+
+  .wrap { margin: 16px 0 0; font-size: 13px; line-height: 19px; color: var(--g-500); text-align: center; text-wrap: balance; }
+
+  .replay { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 9999px; border: 0;
+    background: rgb(255 255 255 / .92); color: var(--brand-700); font-size: 14px; font-weight: 600; box-shadow: 0 2px 10px rgba(16,24,40,.18);
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .closed .replay { opacity: 1; pointer-events: auto; }
+
+  .still *, .still *::before, .still *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<iframe class="behind" tabindex="-1" aria-hidden="true" title=""></iframe><script>/* new users see the day with their plan and nothing logged yet */ document.currentScript.previousElementSibling.src = "/v7/r3/eat.html" + (/who=current/.test(location.search) ? "" : "?state=empty");</script>
+<div class="scrim" aria-hidden="true"></div>
+
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <header class="shead">
+    <h2 id="sheetTitle">Nutrition sufficiency</h2>
+    <button class="x" type="button" aria-label="Close" data-close><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </header>
+
+  <div class="sbody" id="body">
+    <!-- welcome: current users only -->
+    <div class="step" data-step="hello">
+      <div class="hello">
+        <svg class="art" viewBox="0 0 132 132" aria-hidden="true">
+          <circle cx="66" cy="66" r="48" stroke-width="12" style="stroke:var(--ok-50)"/>
+          <circle cx="66" cy="66" r="48" stroke-width="12" style="stroke:var(--ok-300)" pathLength="100" stroke-dasharray="64 100" transform="rotate(-90 66 66)" opacity=".55"/>
+          <circle cx="66" cy="66" r="30" stroke-width="6" style="stroke:var(--in-100)"/>
+        </svg>
+        <h3>Your meals now add up to a score</h3>
+        <p>You already log your meals here. From today, each one also adds to your Nutrition sufficiency, a score out of 100 for the day.</p>
+        <ul>
+          <li><i></i>Your coach sets protein, carbs and fat for every meal.</li>
+          <li><i></i>Meals close to those targets earn full marks.</li>
+          <li><i></i>A day at 80 or more earns a medal.</li>
+        </ul>
+      </div>
+      <p class="lead">Try it on one meal to see how it works. It takes a few seconds.</p>
+    </div>
+
+    <!-- the sample breakfast -->
+    <div class="step" data-step="try">
+
+      <article class="meal" aria-label="Sample breakfast">
+        <div class="mh">
+          <div class="t">
+            <h3>Breakfast</h3>
+            <div class="sub">Targets from your coach</div><div class="sub">Worth <b>20</b> of your 100 today</div>
+          </div>
+          <div class="gauge" role="img" aria-label="Meal mark" id="gauge">
+            <svg viewBox="0 0 56 56" width="56" height="56" aria-hidden="true">
+              <circle cx="28" cy="28" r="23" fill="none" stroke-width="5" style="stroke:var(--g-100)"/>
+              <circle class="arc" id="arc" cx="28" cy="28" r="23" fill="none" stroke-width="5" stroke-linecap="round" pathLength="100"
+                stroke-dasharray="100 100" stroke-dashoffset="0" transform="rotate(-90 28 28)" style="stroke:var(--ok-500)"/>
+            </svg>
+            <span class="num" id="mealMark">100</span>
+          </div>
+        </div>
+        <div class="rows" id="rows"></div>
+        <div class="pts">
+          <div class="lbl">Adds <b id="pts">20</b>of its 20</div>
+          <div class="cells" id="cells" aria-hidden="true"></div>
+        </div>
+      </article>
+
+      <div class="guide" aria-live="polite">
+        <div class="prog" id="prog" aria-hidden="true"><i></i><i></i><i></i></div>
+        <div class="say" id="say"></div>
+      </div>
+
+      <div class="ctl" id="ctl">
+        <div class="top"><span id="ctlLbl">How much you ate</span><b id="word">Just right</b></div>
+        <div class="slider" id="slider">
+          <div class="rail"></div>
+          <div class="fill" id="fill"></div>
+          <div class="mid" id="mid"></div>
+          <div class="thumb" id="thumb" role="slider" tabindex="0" aria-labelledby="ctlLbl" aria-valuemin="0" aria-valuemax="250" aria-valuenow="100">
+            <span class="halo"></span><img src="/v7/icons/meals/gemini/bf.png?v=2" alt="">
+          </div>
+        </div>
+        <div class="chips" role="group" aria-label="Portion">
+          <button class="chip" type="button" data-p="0.5">Half</button>
+          <button class="chip" type="button" data-p="1">Just right</button>
+          <button class="chip" type="button" data-p="1.5">A bit more</button>
+          <button class="chip" type="button" data-p="2.4">A lot more</button>
+        </div>
+      </div>
+
+      <p class="wrap" id="wrap" hidden>Every meal you log is marked this way. Together they make today's score.</p>
+    </div>
+  </div>
+
+  <footer class="sfoot" id="foot" hidden>
+    <button class="ok" type="button" id="cta">Log Your First Meal</button>
+  </footer>
+</section>
+
+<button class="replay" type="button" id="replay">Replay</button>
+
+<script>
+(function () {
+  "use strict";
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  var Q = new URLSearchParams(location.search);
+  var WHO = Q.get("who") === "current" ? "current" : "new";
+  var STILL = Q.get("still") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (STILL) document.documentElement.classList.add("still");
+
+  /* ------------------------------------------------------------- the maths */
+  var WORTH = 20, PMAX = 2.5;
+  /* targets from the coach's plan; the plate at "just right" lands inside every band */
+  var MACROS = [
+    { id: "protein", name: "Protein", glyph: "glyph-protein", t: 15, base: 13 },
+    { id: "carbs",   name: "Carbs",   glyph: "glyph-carbs",   t: 40, base: 42 },
+    { id: "fat",     name: "Fat",     glyph: "glyph-fats",    t: 9,  base: 10 }
+  ];
+  function hiOf(t) { return t + Math.max(.2 * t, 3); }
+  function mark(e, t) {
+    var lo = .8 * t, hi = hiOf(t);
+    if (e < lo) return 100 * e / lo;
+    if (e <= hi) return 100;
+    return Math.max(-50, 100 - 100 * (e - hi) / t);
+  }
+  function cls(m) { return m >= 99.5 ? "full" : m >= 0 ? "part" : "neg"; }
+  function word(p) {
+    return p < .3 ? "A few bites" : p < .65 ? "Half" : p < .86 ? "A little less" : p <= 1.15 ? "Just right"
+      : p < 1.75 ? "A bit more" : "A lot more";
+  }
+
+  /* ------------------------------------------------------------ the rows */
+  var rowsEl = document.getElementById("rows"), R = [];
+  MACROS.forEach(function (m, i) {
+    var scale = m.t * PMAX;
+    var lo = .8 * m.t / scale * 100, hi = Math.min(100, hiOf(m.t) / scale * 100), tk = m.t / scale * 100;
+    var row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML =
+      '<div class="rtop"><span class="gl ' + m.glyph + '" aria-hidden="true"></span><span class="rname">' + m.name + '</span>' +
+      '<span class="ramt"><b></b> of ' + m.t + ' g</span><span class="rmark" aria-label=""></span></div>' +
+      '<div class="track" aria-hidden="true">' +
+        (i === 0 ? '<span class="bandlbl" style="left:' + ((lo + hi) / 2) + '%">Full marks</span>' : "") +
+        '<span class="band" style="left:' + lo + '%;width:' + (hi - lo) + '%"></span>' +
+        '<span class="tick" style="left:' + tk + '%"></span>' +
+        '<span class="dot"></span></div>';
+    rowsEl.appendChild(row);
+    R.push({ m: m, el: row, amt: row.querySelector(".ramt b"), mk: row.querySelector(".rmark"), dot: row.querySelector(".dot"), scale: scale });
+  });
+  var cellsEl = document.getElementById("cells");
+  for (var c = 0; c < WORTH; c++) cellsEl.appendChild(document.createElement("i"));
+  var CELLS = cellsEl.children;
+
+  var arc = document.getElementById("arc"), mealMarkEl = document.getElementById("mealMark"), ptsEl = document.getElementById("pts"),
+      gauge = document.getElementById("gauge"), wordEl = document.getElementById("word");
+  var thumb = document.getElementById("thumb"), fill = document.getElementById("fill"), slider = document.getElementById("slider");
+  document.getElementById("mid").style.left = (1 / PMAX * 100) + "%";
+
+  var portion = 1;
+  function render(p) {
+    portion = p;
+    var sum = 0;
+    R.forEach(function (r) {
+      var e = r.m.base * p, mk = mark(e, r.m.t), k = cls(mk), rm = Math.round(mk);
+      sum += mk;
+      r.amt.textContent = e < 10 ? (Math.round(e * 10) / 10) : Math.round(e);
+      r.mk.className = "rmark " + k;
+      r.mk.innerHTML = rm + "<small>/100</small>";
+      r.mk.setAttribute("aria-label", r.m.name + " " + rm + " out of 100");
+      r.dot.className = "dot " + k;
+      r.dot.style.left = Math.min(100, e / r.scale * 100) + "%";
+      r.el.classList.toggle("in", k === "full");
+    });
+    var meal = Math.max(0, sum / 3), mm = Math.round(meal), pts = WORTH * meal / 100;
+    mealMarkEl.textContent = mm;
+    mealMarkEl.className = "num " + (mm >= 100 ? "full" : mm > 0 ? "part" : "neg");
+    arc.setAttribute("stroke-dashoffset", String(100 - meal));
+    arc.style.stroke = mm >= 100 ? "var(--ok-500)" : mm >= 60 ? "var(--ok-300)" : "var(--gold-600)";
+    gauge.setAttribute("aria-label", "Breakfast marked " + mm + " out of 100");
+    ptsEl.textContent = Math.round(pts);
+    for (var i = 0; i < WORTH; i++) {
+      var f = Math.max(0, Math.min(1, pts - i));
+      CELLS[i].className = f >= .999 ? "on" : f > .02 ? "half" : "";
+      CELLS[i].style.setProperty("--f", (f * 100) + "%");
+    }
+    var x = p / PMAX * 100;
+    thumb.style.left = x + "%"; fill.style.width = x + "%";
+    thumb.setAttribute("aria-valuenow", String(Math.round(p * 100)));
+    thumb.setAttribute("aria-valuetext", word(p) + ", breakfast marked " + mm + ", adds " + Math.round(pts) + " of 20");
+    wordEl.textContent = word(p);
+    document.querySelectorAll(".chip").forEach(function (b) {
+      b.setAttribute("aria-pressed", String(Math.abs(parseFloat(b.dataset.p) - p) < .02));
+    });
+    check(p);
+  }
+
+  /* ------------------------------------------------------------ the guide */
+  var GUIDE = [
+    { say: "This breakfast matches your coach's plan, so it gets full marks. <b>Try a little less.</b>", met: function (p) { return p <= .72; } },
+    { say: "Eating less than planned earns part of the marks. <b>Now try a lot more.</b>", met: function (p) { return p >= 2; } },
+    { say: "Far over the plan takes marks away. <b>Now bring it back to just right.</b>", met: function (p) { return p >= .86 && p <= 1.15; } },
+    { say: "That is it. Close to plan earns full marks, so breakfast adds <b>all 20</b>." }
+  ];
+  var g = 0, sayEl = document.getElementById("say"), progEl = document.getElementById("prog");
+  var lineTimer = null;
+  function showLine(i, quiet) {
+    g = i;
+    sayEl.innerHTML = GUIDE[i].say;
+    if (!quiet && !STILL) { sayEl.classList.remove("swap"); void sayEl.offsetWidth; sayEl.classList.add("swap"); }
+    [].forEach.call(progEl.children, function (d, k) { d.className = k < i ? "done" : k === i ? "now" : ""; });
+    if (i === GUIDE.length - 1) finish(quiet);
+  }
+  function check(p) {
+    if (lineTimer || g >= GUIDE.length - 1 || !GUIDE[g].met(p)) return;
+    /* a short beat so the eye lands on the marks before the next line */
+    lineTimer = setTimeout(function () { lineTimer = null; if (GUIDE[g].met(portion)) showLine(g + 1); }, STILL ? 0 : 650);
+  }
+  function finish(quiet) {
+    document.getElementById("wrap").hidden = false;
+    showFoot(true);
+  }
+
+  /* ------------------------------------------------------------ the input */
+  var anim = null;
+  function stopHint() { slider.classList.remove("hinting"); }
+  function glide(to) {
+    stopHint();
+    if (anim) cancelAnimationFrame(anim);
+    if (STILL) { render(to); return; }
+    var from = portion, t0 = performance.now(), D = 620;
+    (function step(now) {
+      var k = Math.min(1, (now - t0) / D), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      render(from + (to - from) * e);
+      anim = k < 1 ? requestAnimationFrame(step) : null;
+    })(t0);
+  }
+  function fromX(clientX) {
+    var r = slider.getBoundingClientRect();
+    var p = Math.max(0, Math.min(1, (clientX - r.left) / r.width)) * PMAX;
+    return Math.round(p * 20) / 20;
+  }
+  slider.addEventListener("pointerdown", function (e) {
+    stopHint(); if (anim) cancelAnimationFrame(anim);
+    slider.setPointerCapture(e.pointerId); thumb.focus({ preventScroll: true });
+    if (e.target.closest(".thumb")) return;
+    glide(fromX(e.clientX));
+  });
+  slider.addEventListener("pointermove", function (e) {
+    if (!slider.hasPointerCapture(e.pointerId)) return;
+    if (anim) { cancelAnimationFrame(anim); anim = null; }
+    render(fromX(e.clientX));
+  });
+  thumb.addEventListener("keydown", function (e) {
+    var d = { ArrowLeft: -.05, ArrowDown: -.05, ArrowRight: .05, ArrowUp: .05, PageDown: -.25, PageUp: .25 }[e.key];
+    if (e.key === "Home") d = -PMAX; if (e.key === "End") d = PMAX;
+    if (d == null) return;
+    e.preventDefault(); stopHint();
+    render(Math.max(0, Math.min(PMAX, Math.round((portion + d) * 20) / 20)));
+  });
+  document.querySelectorAll(".chip").forEach(function (b) {
+    b.addEventListener("click", function () { glide(parseFloat(b.dataset.p)); });
+  });
+
+  /* ------------------------------------------------------------ the steps */
+  var STEPS = WHO === "current" ? ["hello", "try", "done"] : ["try", "done"];
+  var cta = document.getElementById("cta"), foot = document.getElementById("foot");
+  var FINAL = WHO === "current" ? "See My Score" : "Log Your First Meal";
+  var cur = 0;
+  function showFoot(on, label) { foot.hidden = !on; cta.textContent = label || FINAL; }
+  function go(name) {
+    cur = STEPS.indexOf(name);
+    document.querySelectorAll(".step").forEach(function (s) { s.classList.toggle("on", s.dataset.step === (name === "done" ? "try" : name)); });
+    document.getElementById("body").scrollTop = 0;
+    if (name === "hello") { showFoot(true, "Try It"); return; }
+    if (name === "try") {
+      showFoot(false);
+      document.getElementById("wrap").hidden = true;
+      if (lineTimer) { clearTimeout(lineTimer); lineTimer = null; }
+      render(1); showLine(0, true);
+      if (!STILL) { stopHint(); void slider.offsetWidth; setTimeout(function () { slider.classList.add("hinting"); }, 900); }
+      return;
+    }
+    /* done: the end state, as if every guide line had been followed */
+    render(1); showLine(GUIDE.length - 1, true);
+  }
+  cta.addEventListener("click", function () {
+    if (STEPS[cur] === "hello") go("try"); else close();
+  });
+
+  /* ------------------------------------------------------ open and close */
+  var root = document.documentElement;
+  function open() {
+    root.classList.remove("closed", "closing");
+    var n = parseInt(Q.get("step"), 10);
+    go(STEPS[n >= 1 && n <= STEPS.length ? n - 1 : 0]);
+    if (STILL) { root.classList.add("open"); return; }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("open"); }); });
+  }
+  function close() {
+    stopHint();
+    root.classList.add("closing"); root.classList.remove("open");
+    setTimeout(function () { root.classList.add("closed"); document.getElementById("replay").focus({ preventScroll: true }); }, STILL ? 0 : 360);
+  }
+  document.querySelector("[data-close]").addEventListener("click", close);
+  document.querySelector(".scrim").addEventListener("click", close);
+  addEventListener("keydown", function (e) { if (e.key === "Escape" && root.classList.contains("open")) close(); });
+  document.getElementById("replay").addEventListener("click", function () { Q.delete("step"); open(); });
+  open();
+})();
+</script>
+</body>
+</html>

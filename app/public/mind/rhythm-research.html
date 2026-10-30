@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhythm Score Research</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brand:#299D6B;--brand-700:#2A805A;--brand-100:#E6FAF1;--brand-50:#F3FCF8;
+  --ink:#101828;--text:#344054;--muted:#667085;--line:#E4E7EC;--bg2:#F2F4F7;
+  --indigo:#444CE7;--indigo-50:#EEF4FF;--gold:#B54708;--gold-50:#FFFAEB;--red:#D92D20;--red-50:#FEF3F2;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:64px}
+body{font-family:Roboto,system-ui,sans-serif;color:var(--text);background:#fff;line-height:1.6;letter-spacing:.2px;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:'Playfair Display',Georgia,serif;color:var(--ink);font-weight:600;line-height:1.2}
+h1{font-size:44px;margin-bottom:12px}
+h2{font-size:30px;margin:0 0 12px}
+h3{font-size:20px;margin:28px 0 10px}
+p{margin:0 0 12px}
+b{color:var(--ink)}
+a{color:var(--brand-700)}
+.top{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.top .in{max-width:1080px;margin:auto;padding:10px 16px;display:flex;gap:6px;overflow-x:auto;font-size:13px;font-weight:600}
+.top a{white-space:nowrap;text-decoration:none;color:var(--muted);padding:6px 10px;border-radius:999px}
+.top a:hover{background:var(--brand-50);color:var(--brand-700)}
+main{max-width:1080px;margin:auto;padding:0 16px 80px}
+section{padding:48px 0;border-bottom:1px solid var(--line)}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--brand);margin-bottom:8px}
+.lead{font-size:18px;max-width:780px}
+.small{font-size:13px;color:var(--muted)}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:820px){.g2,.g3{grid-template-columns:1fr}h1{font-size:34px}h2{font-size:25px}}
+.card{border:1px solid var(--line);border-radius:16px;padding:18px;background:#fff}
+.card.soft{background:var(--bg2);border-color:var(--bg2)}
+.card.green{background:var(--brand-50);border-color:var(--brand-100)}
+.card.gold{background:var(--gold-50);border-color:#FEDF89}
+.card.red{background:var(--red-50);border-color:#FECDCA}
+.card.indigo{background:var(--indigo-50);border-color:#C7D7FE}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.4px;padding:3px 9px;border-radius:999px;text-transform:uppercase}
+.tag.rec{background:var(--brand);color:#fff}
+.tag.unv{background:var(--gold-50);color:var(--gold);border:1px solid #FEDF89}
+.tag.ok{background:var(--brand-100);color:var(--brand-700)}
+.tag.no{background:var(--red-50);color:var(--red)}
+.tag.mid{background:var(--bg2);color:var(--text)}
+table{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0 16px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;background:var(--bg2)}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+ul.l{margin:6px 0 12px 20px}ul.l li{margin:4px 0}
+.formula{background:var(--ink);color:#fff;border-radius:14px;padding:16px 18px;font-size:16px;font-family:ui-monospace,Menlo,monospace;line-height:1.7;overflow-x:auto}
+.formula .c{color:#98A2B3}
+.opt{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:10px 0}
+.opt.r{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand) inset}
+.opt h4{font-size:15px;color:var(--ink);margin-bottom:4px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lab{border:1px solid var(--line);border-radius:18px;padding:18px;background:linear-gradient(180deg,var(--brand-50),#fff 120px);margin:16px 0}
+.lab .lh{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.lab .lh b{font-size:15px}
+.lab .lt{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--brand)}
+button,.chip{font-family:inherit;cursor:pointer}
+.btn{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;font-size:13px;font-weight:600;color:var(--text)}
+.btn:hover{border-color:var(--brand);color:var(--brand-700)}
+.btn.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input[type=time],input[type=number],select{font-family:inherit;font-size:14px;border:1px solid var(--line);border-radius:8px;padding:5px 7px;background:#fff;color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--brand)}
+.kpi{font-family:'Playfair Display',serif;font-size:40px;color:var(--ink);line-height:1}
+.kpi small{font-size:16px;color:var(--muted);font-family:Roboto}
+.bar{height:10px;background:var(--bg2);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brand);border-radius:999px;transition:width .35s ease}
+.stack{display:flex;height:22px;border-radius:8px;overflow:hidden;background:var(--bg2)}
+.stack i{display:block;height:100%;transition:width .35s ease}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:6px}
+.legend span:before{content:"";display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+/* phone mock */
+.phone{width:300px;max-width:100%;border:9px solid var(--ink);border-radius:36px;padding:16px 14px 18px;background:#fff;margin:auto;min-height:470px;position:relative}
+.phone .notch{width:80px;height:5px;background:var(--ink);border-radius:999px;margin:0 auto 14px;opacity:.85}
+.ph-t{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+.ph-h{font-family:'Playfair Display',serif;font-size:20px;color:var(--ink);margin:4px 0 12px;line-height:1.25}
+.faces{display:flex;justify-content:space-between;gap:4px;margin:8px 0}
+.face{flex:1;border:1px solid var(--line);border-radius:12px;padding:8px 0;text-align:center;font-size:22px;background:#fff}
+.face small{display:block;font-size:10px;color:var(--muted)}
+.face.on{border-color:var(--brand);background:var(--brand-50)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.chip{border:1px solid var(--line);border-radius:999px;padding:7px 11px;font-size:13px;background:#fff;color:var(--text)}
+.chip.on{border-color:var(--brand);background:var(--brand-50);color:var(--brand-700);font-weight:600}
+.chip[disabled]{opacity:.45;cursor:not-allowed}
+.tick{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:6px 0;cursor:pointer;font-size:14px;background:#fff}
+.tick i{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-style:normal;color:#fff;font-size:13px}
+.tick.on i{background:var(--brand);border-color:var(--brand)}
+.tick small{display:block;color:var(--muted);font-size:12px}
+.cta{display:block;width:100%;text-align:center;background:var(--brand);color:#fff;border:0;border-radius:12px;padding:12px;font-weight:600;font-size:14px;margin-top:12px}
+.note{font-size:12px;color:var(--muted);margin-top:8px}
+.kaira{background:var(--indigo-50);border:1px solid #C7D7FE;border-radius:12px;padding:10px 12px;font-size:13px;margin-top:10px}
+.kaira b{color:var(--indigo)}
+.quad{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0}
+.quad button{border:0;border-radius:12px;padding:16px 6px;font-size:12px;font-weight:600;color:#fff}
+.pace{width:180px;height:180px;margin:12px auto;border-radius:50%;background:radial-gradient(circle,var(--brand-100),var(--brand-50));display:flex;align-items:center;justify-content:center;position:relative}
+.pace .dot{width:60px;height:60px;border-radius:50%;background:var(--brand);transition:transform linear;display:flex;align-items:center;justify-content:center}
+.pace .lbl{position:absolute;bottom:-26px;left:0;right:0;text-align:center;font-weight:600;color:var(--ink);font-size:14px}
+.tl{position:relative;margin:8px 0 4px}
+.tl .step{display:flex;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.tl .tm{width:72px;flex:0 0 auto;font-weight:700;color:var(--brand-700);font-size:13px}
+.nights td,.nights th{padding:6px 6px;font-size:13px}
+.why{font-size:13px;background:var(--bg2);border-radius:10px;padding:10px 12px;margin-top:10px}
+.cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:640px){.cols3{grid-template-columns:1fr}}
+.sc{border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.sc .kpi{font-size:34px}
+.sc.r{border-color:var(--brand)}
+details{border:1px solid var(--line);border-radius:12px;padding:10px 14px;margin:8px 0}
+details summary{cursor:pointer;font-weight:600;color:var(--ink)}
+.srcs li{font-size:13px;margin:3px 0;word-break:break-word}
+.gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin:10px 0 24px}
+.gcard{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#fff;text-decoration:none;color:inherit;display:flex;flex-direction:column}
+.gcard:hover{border-color:var(--brand)}
+.gcard img{width:100%;aspect-ratio:9/16;object-fit:cover;object-position:top;background:var(--bg2);display:block}
+.gcard .gt{padding:10px 12px;font-size:12px;line-height:1.45}
+.gcard .ga{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--brand-700)}
+.gcard .gl{color:var(--ink);font-weight:600;font-size:13px;margin:2px 0 4px}
+.gcard .gk{color:var(--muted);margin-top:6px}
+.flowrow{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;margin:8px 0 22px}
+.flowrow .gcard{flex:0 0 170px}
+.fwd{display:flex;justify-content:space-between;font-size:13px;margin:4px 0}
+</style>
+</head>
+<body>
+
+<div class="top"><div class="in">
+  <a href="#tldr">Summary</a><a href="#now">Today's formula</a><a href="#cons">Consistency</a><a href="#dur">Duration</a><a href="#quality">Other sleep signals</a><a href="#wind">Wind-down</a><a href="#breath">Breathing</a><a href="#mood">Mood</a><a href="#me">Me-time</a><a href="#cbt">CBT adds</a><a href="#apps">Other apps</a><a href="#put">Put together</a><a href="#day">A day</a><a href="#framework">Coach framework</a><a href="#gallery">App screens</a><a href="#open">Open items</a><a href="#src">Sources</a><a href="sandbox.html">Sandbox ↗</a>
+</div></div>
+
+<main>
+
+<!-- ============ SUMMARY ============ -->
+<section id="tldr">
+  <div class="eyebrow">Mind pillar · Rhythm score · research, 28 Oct 2026</div>
+  <h1>Is the Rhythm formula right for the user?</h1>
+  <p class="lead">The idea holds: a steady night plus a calm day is good for metabolism, and the research backs it. The current maths does not yet match how a person lives a day, what a phone can measure, or what the evidence says is worth points.</p>
+
+  <div class="grid g2" style="margin-top:20px">
+    <div class="card green">
+      <b>What the research supports</b>
+      <ul class="l">
+        <li>Sleep <b>regularity</b> predicts mortality and HbA1c more strongly than sleep length (UK Biobank, 60,977 people; MESA).</li>
+        <li>A short <b>morning check-in</b> about last night is the clinical standard (Consensus Sleep Diary).</li>
+        <li>About <b>5 minutes of slow breathing</b> a day reduces stress; the type of breathing matters little.</li>
+        <li>Naming your mood helps, and <b>planned pleasant activities</b> lift wellbeing (behavioural activation).</li>
+      </ul>
+    </div>
+    <div class="card red">
+      <b>What breaks for the user today</b>
+      <ul class="l">
+        <li>Most users have <b>no watch</b>, so a phone records no sleep. Sleep must be entered by hand.</li>
+        <li>The score can start the morning at <b>70 of 100</b>, unlike Eat and Move, which start at 0.</li>
+        <li><b>Duration counts as much as consistency</b>, though the deck itself says "steady beats long".</li>
+        <li><b>Sleep hygiene ticks</b> are the weakest evidence, yet carry a third of sleep.</li>
+        <li>When to tick wind-down, which night belongs to which day, and what happens on a missed night are all <b>undefined</b>.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>Decisions for you</h3>
+  <div class="tw"><table>
+    <tr><th>#</th><th>Decision</th><th>Recommended</th><th>Section</th></tr>
+    <tr><td>1</td><td>How to measure consistency</td><td>Distance from the coach's bed and wake window, over the last 14 nights</td><td><a href="#cons">Consistency</a></td></tr>
+    <tr><td>2</td><td>How to measure duration without a watch</td><td>Estimated sleep from bed and wake times minus time to fall asleep and time awake, against the age band</td><td><a href="#dur">Duration</a></td></tr>
+    <tr><td>3</td><td>When to ask about sleep and wind-down</td><td>Morning card for last night, a 10 second evening card for wind-down, missed evening ticks can be added next morning</td><td><a href="#wind">Wind-down</a></td></tr>
+    <tr><td>4</td><td>Which wind-down tasks</td><td>Three nightly ticks: tea or coffee before 2 PM, dinner 2 hours before bed, phone away and lights low. "Bed only for sleep" moves to coach advice</td><td><a href="#wind">Wind-down</a></td></tr>
+    <tr><td>5</td><td>What counts as breathing</td><td>Any calm session of 5 minutes, any type. Kapalabhati is coach only</td><td><a href="#breath">Breathing</a></td></tr>
+    <tr><td>6</td><td>Does the mood value change the score</td><td>No. Checking in counts, the answer never does</td><td><a href="#mood">Mood</a></td></tr>
+    <tr><td>7</td><td>What me-time is</td><td>One pleasant activity from a list of 12, marked done, enjoyment rated for insight</td><td><a href="#me">Me-time</a></td></tr>
+    <tr><td>8</td><td>New weights</td><td>Option A: Steady nights, small days</td><td><a href="#put">Put together</a></td></tr>
+    <tr><td>9</td><td>How to merge the Mind coach's framework</td><td>Keep Rhythm's core; the coach's weekly CBT tool counts as calm practice, connection counts as joy, triggers ride on the mood check-in, goals go to To-do</td><td><a href="#framework">Coach framework</a></td></tr>
+  </table></div>
+  <p class="small">Every fact below has a source at the end. Anything we could not confirm carries an <span class="tag unv">Unverified</span> tag. Every cut-off we chose ourselves is called a <b>design choice</b>, because no published scale exists for it.</p>
+</section>
+
+<!-- ============ TODAY'S FORMULA ============ -->
+<section id="now">
+  <div class="eyebrow">Step 1</div>
+  <h2>Today's formula, as the user lives it</h2>
+  <div class="formula">Rhythm = 0.7 × Sleep quality + 0.3 × Self-care<br>
+  <span class="c">Sleep quality = (Consistency% + Duration% + Wind-down%) ÷ 3</span><br>
+  <span class="c">Self-care = (Mood check-in + Breathing + Me-time) ÷ 3 × 100, each done or not</span></div>
+
+  <h3>What each action is worth today</h3>
+  <div class="tw"><table>
+    <tr><th>Action</th><th>Points</th><th>What it means for the user</th></tr>
+    <tr><td>Perfect consistency, duration or wind-down</td><td>23.3 each</td><td>A good night alone gives up to 70 before the day has started</td></tr>
+    <tr><td>One wind-down task (of 4)</td><td>5.8</td><td>Skipping late tea is worth about half a mood check-in</td></tr>
+    <tr><td>Mood check-in, breathing, me-time</td><td>10 each</td><td>One 1 minute breath equals moving bedtime 43 percentage points closer to steady</td></tr>
+  </table></div>
+
+  <div class="lab" id="dayLab">
+    <div class="lh"><div><div class="lt">Interactive</div><b>Slide through a day and watch the score build</b></div>
+      <div class="row"><button class="btn on" data-f="cur">Today's formula</button><button class="btn" data-f="a">Option A (recommended)</button></div></div>
+    <input type="range" id="dayT" min="6" max="23.5" step="0.5" value="7">
+    <div class="row" style="justify-content:space-between;margin:10px 0"><b id="dayClock">7:00 AM</b><span class="kpi" id="dayScore">0<small>%</small></span></div>
+    <div class="stack" id="dayStack"></div>
+    <div class="legend" id="dayLeg"></div>
+    <div class="why" id="dayWhy"></div>
+  </div>
+
+  <h3>Eight problems, user first</h3>
+  <div class="tw"><table>
+    <tr><th>Problem</th><th>What the user feels</th><th>Fix</th></tr>
+    <tr><td><b>No data on a phone</b></td><td>"I slept, why is it empty?" Phones write no sleep to Apple Health or Health Connect without a watch or a sleep app</td><td>A 15 second morning entry, pre-filled from the coach's schedule</td></tr>
+    <tr><td><b>Morning starts high</b></td><td>Wakes up to 70%, then the day barely moves it. Eat and Move fill from 0</td><td>Wind-down moves to tonight, so a good night gives at most 55 by morning</td></tr>
+    <tr><td><b>Long beats steady</b></td><td>Sleeping in on Sunday raises the score though the rhythm broke</td><td>Consistency weighs more than duration</td></tr>
+    <tr><td><b>Weak ticks, big weight</b></td><td>Ticking "screens off" counts as much as a whole good night's length</td><td>Wind-down shrinks to 15 points</td></tr>
+    <tr><td><b>Untickable task</b></td><td>"Bed only for sleep" happens during the night; ticking it at 10 PM is a guess</td><td>Becomes coach advice, not a tick</td></tr>
+    <tr><td><b>One night swings it</b></td><td>A wedding or a flight wrecks the score</td><td>Consistency uses 14 nights, so one night moves it a little</td></tr>
+    <tr><td><b>Which day owns a night</b></td><td>Last night's sleep and tonight's wind-down both "today"? Unclear</td><td>Today = last night's sleep + today's day + tonight's wind-down</td></tr>
+    <tr><td><b>Mood could be judged</b></td><td>If a low mood lowered the score, people would log "fine"</td><td>Only the act of checking in counts</td></tr>
+  </table></div>
+</section>
+
+<!-- ============ CONSISTENCY ============ -->
+<section id="cons">
+  <div class="eyebrow">Sleep quality · part 1</div>
+  <h2>Sleep consistency</h2>
+  <p class="lead">How alike your nights are: same bedtime, same wake time. It is the strongest sleep signal for metabolic health, and it needs only two times a night.</p>
+
+  <h3>Why it matters</h3>
+  <ul class="l">
+    <li>The most regular sleepers had <b>20 to 48% lower</b> all-cause mortality than the least regular. Regularity predicted mortality better than duration (Windred 2024, n = 60,977).</li>
+    <li>Irregular sleepers had higher HbA1c (median 6.0 vs 5.7) and fasting glucose (99 vs 94 mg/dl) (MESA, Lunsford-Avery 2018).</li>
+    <li>Irregular sleepers had <b>38% higher</b> risk of type 2 diabetes over 8 years, and sleeping enough hours did not cancel it (Chaput 2024, n = 73,630).</li>
+  </ul>
+
+  <h3>Every way it is measured</h3>
+  <div class="tw"><table>
+    <tr><th>Method</th><th>How</th><th>Needs</th><th>Works with typed times?</th></tr>
+    <tr><td><b>Sleep Regularity Index</b> (Phillips 2017)</td><td>Chance you are in the same state (asleep or awake) at the same minute 24 hours apart. −100 to 100</td><td>Minute-level data, 5+ days</td><td><span class="tag mid">Roughly</span> Can be estimated from diaries</td></tr>
+    <tr><td><b>Spread of times</b></td><td>Standard deviation of bedtime, wake time or sleep midpoint</td><td>Onset and wake each night, 7+ nights to be fair</td><td><span class="tag ok">Yes</span></td></tr>
+    <tr><td><b>Social jetlag</b> (Wittmann 2006)</td><td>Mid-sleep on free days minus mid-sleep on work days</td><td>Times plus a work or free day flag</td><td><span class="tag ok">Yes</span></td></tr>
+    <tr><td><b>Composite phase deviation</b></td><td>Each night's distance from a target and from the night before</td><td>Onset and wake</td><td><span class="tag ok">Yes</span> and can use a coach target</td></tr>
+    <tr><td><b>Nights in window</b> (Samsung)</td><td>Count of nights inside your set bed and wake goals</td><td>Onset and wake plus a goal</td><td><span class="tag ok">Yes</span></td></tr>
+    <tr><td><b>Interdaily stability</b></td><td>How alike each 24 hour pattern is</td><td>Full 24 hour signal</td><td><span class="tag no">No</span></td></tr>
+  </table></div>
+  <p class="small">How apps do it: Apple uses when you fell asleep over the last 13 nights (30 of 100 points). Oura uses about 2 weeks. WHOOP uses 4 days and counts naps. Samsung counts nights within your goal. None publishes a minutes to points curve except Apple's, which is only reported by a third party <span class="tag unv">Unverified</span>.</p>
+
+  <h3>Where the times come from</h3>
+  <div class="tw"><table>
+    <tr><th>Source</th><th>What we get</th><th>Who</th></tr>
+    <tr><td>Apple Health</td><td>Sleep samples with start and end: in bed, awake, core, deep, REM</td><td>Apple Watch or a third party app</td></tr>
+    <tr><td>Health Connect</td><td>Sleep session with start and end, plus stages</td><td>A watch, ring or sleep app. Not the phone alone</td></tr>
+    <tr><td>Typed by the user</td><td>Bedtime and wake time, pre-filled from the coach's schedule</td><td>Everyone, the default for most</td></tr>
+    <tr><td>Phone use at night</td><td>Last touch at night, first in the morning. About 38 minutes off on average</td><td>Good to pre-fill, never to score alone</td></tr>
+  </table></div>
+
+  <div class="lab" id="consLab">
+    <div class="lh"><div><div class="lt">Interactive</div><b>Seven nights, three ways to score them</b></div>
+      <div class="row"><button class="btn" data-p="steady">Steady</button><button class="btn" data-p="weekend">Weekend drift</button><button class="btn" data-p="late">Late but steady</button><button class="btn" data-p="messy">Messy week</button></div></div>
+    <div class="row small" style="margin-bottom:8px">Coach window: bed <input type="time" id="cBed" value="22:30"> wake <input type="time" id="cWake" value="06:30"></div>
+    <div class="tw"><table class="nights" id="nightsT"></table></div>
+    <div class="cols3" id="consOut"></div>
+    <div class="why" id="consWhy"></div>
+  </div>
+
+  <h3>Options</h3>
+  <div class="opt r"><h4>A. Distance from the coach's window <span class="tag rec">Recommended</span></h4>
+    Each night, how far bedtime and wake time were from the coach's times. Full marks within 30 minutes, falling to 0 at 2 hours. Average of the last 14 nights, shown from night 3.<br>
+    <span class="small"><b>For:</b> one clear target to aim for, fits the coach model, works with typed times. <b>Against:</b> a wrong target punishes the user, so the target must be editable, as the calorie target is. The 30 and 120 minute marks are a design choice, set between published risk steps (30, 60, 90 minutes) and Apple's reported curve.</span></div>
+  <div class="opt"><h4>B. Your own steadiness</h4>
+    Spread of your sleep midpoint over 14 nights, with no target. 30 minutes or less is 100, 60 is 60, 90 or more is 0.<br>
+    <span class="small"><b>For:</b> closest to the research, no target needed. <b>Against:</b> hard to explain, needs 7+ nights to be fair, and 2 AM to 10 AM every night scores perfectly.</span></div>
+  <div class="opt"><h4>C. Nights in window</h4>
+    Share of the last 14 nights where both times were within 45 minutes of the window.<br>
+    <span class="small"><b>For:</b> easiest to explain ("10 of 14 nights on time"). <b>Against:</b> a 50 minute miss counts the same as 3 hours. 45 minutes is a design choice.</span></div>
+</section>
+
+<!-- ============ DURATION ============ -->
+<section id="dur">
+  <div class="eyebrow">Sleep quality · part 2</div>
+  <h2>Sleep duration</h2>
+  <div class="grid g2">
+    <div class="card soft"><b>How much is enough</b>
+      <ul class="l">
+        <li>Adults 18 to 64: <b>7 to 9 hours</b>. 65 and over: <b>7 to 8 hours</b> (National Sleep Foundation 2015).</li>
+        <li>"7 or more hours on a regular basis" (AASM 2015).</li>
+        <li>Diabetes risk is lowest at 7 to 8 hours and rises about 9% for each hour below 7.</li>
+        <li>Long sleep is linked to higher risk too, but it is likely a sign of illness, not a cause. So it gets a gentle note, never a penalty.</li>
+      </ul></div>
+    <div class="card gold"><b>Time in bed is not time asleep</b>
+      <p>Typed bedtime and wake time give <b>time in bed</b>. People also over-report: an average of 6.8 hours reported vs 6.0 measured, and short sleepers over-report most (Lauderdale 2008).</p>
+      <p style="margin:0">So we estimate sleep: time in bed minus time to fall asleep minus time awake in the night. These are the core items of the Consensus Sleep Diary.</p></div>
+  </div>
+
+  <div class="lab" id="durLab">
+    <div class="lh"><div><div class="lt">Interactive</div><b>Enter a night the way a user would</b></div>
+      <div class="row"><button class="btn on" data-age="adult">Under 65</button><button class="btn" data-age="old">65 and over</button></div></div>
+    <div class="grid g2">
+      <div>
+        <div class="row" style="margin-bottom:10px">Went to bed <input type="time" id="dBed" value="23:15"> Woke up <input type="time" id="dWake" value="06:15"></div>
+        <div class="small" style="margin-top:4px">How long to fall asleep?</div>
+        <div class="chips" id="dLat"><button class="chip on" data-v="10">Under 15 min</button><button class="chip" data-v="22">15 to 30</button><button class="chip" data-v="45">30 to 60</button><button class="chip" data-v="75">Over an hour</button></div>
+        <div class="small">Woke up in the night?</div>
+        <div class="chips" id="dWaso"><button class="chip" data-v="0">No</button><button class="chip on" data-v="10">Once or twice, briefly</button><button class="chip" data-v="30">Awake a while</button><button class="chip" data-v="60">Over an hour awake</button></div>
+        <p class="note">Minutes per answer are a design choice: the middle of each range.</p>
+      </div>
+      <div>
+        <div class="row" style="justify-content:space-between"><span class="small">Time in bed</span><b id="dTib"></b></div>
+        <div class="row" style="justify-content:space-between"><span class="small">Estimated sleep</span><b id="dTst"></b></div>
+        <div style="margin:14px 0 6px;position:relative;height:34px" id="dScale"></div>
+        <div class="row" style="justify-content:space-between;margin-top:8px"><span class="small">Duration score</span><span class="kpi" id="dScore"></span></div>
+        <div class="why" id="dWhy"></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>Options</h3>
+  <div class="opt r"><h4>A. Estimated sleep against the age band <span class="tag rec">Recommended</span></h4>
+    100 inside the band, falling in a straight line to 0 at 4.5 hours. Above the band: still 100, with a gentle note. With a watch, use its real asleep time.<br>
+    <span class="small"><b>For:</b> honest, uses public guidance, one extra tap each. <b>Against:</b> the 4.5 hour floor is a design choice.</span></div>
+  <div class="opt"><h4>B. Time in bed only</h4>
+    Score the typed times with no questions.<br>
+    <span class="small"><b>For:</b> fewest taps. <b>Against:</b> overstates sleep, most for the people who sleep least.</span></div>
+  <div class="opt"><h4>C. Personal sleep need and sleep debt (Rise, WHOOP)</h4>
+    Learn each person's need and track a 14 night debt.<br>
+    <span class="small"><b>For:</b> personal. <b>Against:</b> needs months of watch data, so it does not work for typed entries.</span></div>
+</section>
+
+<!-- ============ OTHER SLEEP SIGNALS ============ -->
+<section id="quality">
+  <div class="eyebrow">Sleep quality · beyond the two numbers</div>
+  <h2>What else makes a good night, and what a user can tell us</h2>
+  <div class="tw"><table>
+    <tr><th>Signal</th><th>Self-reported?</th><th>Good looks like</th><th>Use in Rhythm</th></tr>
+    <tr><td>How did you sleep, 5 faces</td><td><span class="tag ok">Yes, 1 tap</span></td><td>Core item of the sleep diary and the PSQI</td><td>Ask daily. <b>Do not score</b>, same reason as mood. Use for insight</td></tr>
+    <tr><td>Time to fall asleep</td><td><span class="tag ok">Yes, 4 chips</span></td><td>30 minutes or less <span class="tag unv">Unverified source</span></td><td>Feeds estimated sleep</td></tr>
+    <tr><td>Waking in the night</td><td><span class="tag ok">Yes, 4 chips</span></td><td>2 or fewer wakings, 20 minutes or less awake <span class="tag unv">Unverified source</span></td><td>Feeds estimated sleep. Apple scores it as 20 of 100</td></tr>
+    <tr><td>Up at your set time</td><td><span class="tag ok">Yes, 1 tap</span></td><td>Same wake time daily, weekends too (CBT-I)</td><td>Already inside consistency</td></tr>
+    <tr><td>Sleep efficiency</td><td>Worked out</td><td>85% or more</td><td>Coach view only</td></tr>
+    <tr><td>Snoring, breathing pauses</td><td>Yes, a monthly screen (STOP-Bang)</td><td>Sleep apnoea is very common in type 2 diabetes</td><td>Monthly, to the coach. Never nightly</td></tr>
+    <tr><td>Daytime sleepiness</td><td>Yes (Epworth, 8 items)</td><td>10 or below</td><td>Coach check, occasional</td></tr>
+    <tr><td>Stages, heart rate, HRV, temperature</td><td>No, watch only</td><td>Varies per person</td><td>Show if present, never required</td></tr>
+  </table></div>
+
+  <div class="lab">
+    <div class="lh"><div><div class="lt">Interactive</div><b>The morning check-in, tap through it</b></div>
+      <div class="row"><button class="btn on" data-src="phone">Phone only</button><button class="btn" data-src="watch">With a watch</button></div></div>
+    <div class="grid g2">
+      <div class="phone" id="mPhone"><div class="notch"></div><div id="mBody"></div></div>
+      <div>
+        <p><b>When:</b> about an hour after the usual wake time (Rise uses 1h 30m), open until noon. The sleep diary standard is within an hour of getting up.</p>
+        <p><b>Taps:</b> <span id="mTaps">0</span> so far. Target: under 15 seconds.</p>
+        <p><b>With a watch</b> the times come from Apple Health or Health Connect, so only the face and one confirm remain.</p>
+        <p class="small">A missed morning: the card stays on Home until noon, then "Add last night" is still possible for one day back. After that the night counts as not logged.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ WIND-DOWN ============ -->
+<section id="wind">
+  <div class="eyebrow">Sleep quality · part 3</div>
+  <h2>Wind-down tasks</h2>
+  <div class="card gold" style="margin-bottom:14px"><b>The key finding:</b> the 2021 guideline of the American Academy of Sleep Medicine recommends <b>against</b> sleep hygiene as a treatment on its own. Relaxation and a fixed wake time have stronger evidence. Some hygiene items still matter for GoodFlip for <b>blood sugar</b> reasons, whatever their effect on sleep.</div>
+
+  <div class="tw"><table>
+    <tr><th>Task</th><th>Evidence says</th><th>Strength</th><th>Format</th></tr>
+    <tr><td>Tea or coffee cut-off</td><td>A normal coffee needs at least 8.8 hours before bed. Even 6 hours before cut over 1 hour of sleep</td><td><span class="tag ok">Strong</span></td><td>Nightly tick: "Last tea or coffee before 2 PM"</td></tr>
+    <tr><td>Dinner timing</td><td>Dinner at 10 PM vs 6 PM: about 18% higher glucose peak. No large meal within 2 hours of bed</td><td><span class="tag mid">Moderate</span> one small trial</td><td>Nightly tick: "Dinner 2 hours before bed"</td></tr>
+    <tr><td>Screens and light</td><td>Keep evening light dim for 3 hours before bed. Reading on a tablet delayed sleep about 10 min</td><td><span class="tag mid">Moderate</span> small real effect</td><td>Nightly tick: "Phone away, lights low"</td></tr>
+    <tr><td>Calming activity</td><td>Relaxation has a conditional recommendation. Slow breathing before bed improved reported sleep</td><td><span class="tag ok">Moderate to strong</span></td><td>Counts through breathing, so not a separate tick</td></tr>
+    <tr><td>Bed only for sleep, get up after 20 min awake</td><td>Stimulus control, conditional recommendation</td><td><span class="tag ok">Strong</span> in CBT-I</td><td>Coach advice. Happens in the night, so cannot be ticked at bedtime</td></tr>
+    <tr><td>Alcohol</td><td>Even light drinking shortly before bed harms sleep</td><td><span class="tag ok">Strong</span> near bedtime</td><td>Neutral question for insight, not a goal</td></tr>
+    <tr><td>Dark, quiet room</td><td>Bedroom light 1 lux or less. Noise arousals do not fade with habit</td><td><span class="tag mid">Moderate</span></td><td>One-time setup, re-checked monthly</td></tr>
+    <tr><td>Late exercise</td><td>Evening exercise is fine, except hard exercise ending within 1 hour of bed</td><td><span class="tag mid">Moderate</span></td><td>Coach advice</td></tr>
+    <tr><td>Naps</td><td>Up to about 40 min is fine. 60+ min a day linked to 45% higher diabetes risk</td><td><span class="tag mid">Association</span></td><td>Coach advice</td></tr>
+  </table></div>
+
+  <h3>When to ask</h3>
+  <div class="lab" id="windLab">
+    <div class="lh"><div><div class="lt">Interactive</div><b>The same three ticks, asked at night or next morning</b></div>
+      <div class="row"><button class="btn on" data-w="night">At 9:30 PM</button><button class="btn" data-w="morning">Next morning</button></div></div>
+    <div class="grid g2">
+      <div class="phone"><div class="notch"></div><div id="wBody"></div></div>
+      <div id="wSide"></div>
+    </div>
+  </div>
+  <div class="opt r"><h4>A. Split: wind-down at night, sleep in the morning <span class="tag rec">Recommended</span></h4>
+    A 10 second card at the <b>start</b> of wind-down, 60 to 90 minutes before bed, and the morning card for the night. Missed evening ticks can still be added next morning.<br>
+    <span class="small"><b>For:</b> follows the sleep diary standard, asks while it is happening, avoids the phone at lights out. <b>Against:</b> two touches a day. Morning entries are done more often than evening ones (67% vs 62% in a 90 day study).</span></div>
+  <div class="opt"><h4>B. Morning only, like WHOOP's journal</h4>
+    One morning card: "Yesterday: tea after 2? Dinner late? Phone away?" plus the sleep questions.<br>
+    <span class="small"><b>For:</b> one touch, no screen at night. <b>Against:</b> recall is weaker, and there is no nudge at the moment it matters.</span></div>
+  <div class="opt"><h4>C. Evening reminder, morning log</h4>
+    A gentle 9 PM "Time to wind down" with no logging, and the ticks in the morning card.<br>
+    <span class="small"><b>For:</b> supports the habit with no screen work at night. <b>Against:</b> reminders alone lift logging only about 4%.</span></div>
+</section>
+
+<!-- ============ BREATHING ============ -->
+<section id="breath">
+  <div class="eyebrow">Self-care · part 1</div>
+  <h2>Breathing</h2>
+  <p class="lead">Slow breathing works: across 12 trials, breathwork lowered stress (effect size −0.35). In the best trial, <b>5 minutes a day</b> for 28 days helped, and cyclic sighing did best. A 400 person trial found the exact pace mattered little.</p>
+
+  <div class="tw"><table>
+    <tr><th>Type</th><th>Pattern</th><th>Breaths/min</th><th>Best for</th><th>Evidence</th><th>In the Mind app now</th><th>Safety</th></tr>
+    <tr><td><b>Cyclic sigh</b></td><td>Inhale, short top-up inhale, long exhale</td><td>Slow</td><td>Calm now</td><td><span class="tag ok">Best</span> RCT, 108 people</td><td>No</td><td>No holds, suits older users</td></tr>
+    <tr><td><b>Extended exhale</b> (Zen Flow)</td><td>In 4, out 6</td><td>6</td><td>Calm, sleep</td><td><span class="tag mid">Same family</span></td><td>Yes</td><td>Gentle</td></tr>
+    <tr><td><b>Box</b></td><td>In 4, hold 4, out 4, hold 4</td><td>3.75</td><td>Focus</td><td><span class="tag mid">Helped, did not beat mindfulness</span></td><td>Yes</td><td>Holds can feel hard <span class="tag unv">Unverified</span></td></tr>
+    <tr><td><b>4-7-8</b></td><td>In 4, hold 7, out 8</td><td>3.2</td><td>Sleep (popular claim)</td><td><span class="tag no">Weak</span> one small study, sleep not tested</td><td>Yes</td><td>7 second hold hard for some</td></tr>
+    <tr><td><b>Star</b></td><td>Trace 5 points: in 4, hold 2, out 4</td><td>6</td><td>Visual aid</td><td><span class="tag mid">No trials</span>, works as slow breathing</td><td>Yes</td><td>Low risk</td></tr>
+    <tr><td><b>Five finger</b></td><td>Trace up in 4, down out 4</td><td>7.5</td><td>Visual aid, grounding</td><td><span class="tag mid">No trials</span></td><td>Yes</td><td>Low risk</td></tr>
+    <tr><td><b>Nadi Shodhana</b></td><td>Alternate nostrils</td><td>Slow</td><td>Calm, BP</td><td><span class="tag mid">BP −7 mmHg, very mixed studies</span></td><td>No</td><td>Familiar in India</td></tr>
+    <tr><td><b>Bhramari</b></td><td>Humming exhale</td><td>Slow</td><td>Evening</td><td><span class="tag no">Thin</span></td><td>No</td><td>Gentle</td></tr>
+    <tr><td><b>Kapalabhati</b></td><td>Rapid forceful exhales</td><td>Fast</td><td>Energising</td><td>Not calming</td><td>No</td><td><span class="tag no">Not with high BP, heart issues, pregnancy</span> Coach only</td></tr>
+  </table></div>
+
+  <div class="lab" id="brLab">
+    <div class="lh"><div><div class="lt">Interactive</div><b>Try a pattern and watch it count toward Rhythm</b></div>
+      <div class="row"><label class="small"><input type="checkbox" id="brFast"> Demo speed ×10</label></div></div>
+    <div class="chips" id="brPick"></div>
+    <div class="pace"><div class="dot" id="brDot"></div><div class="lbl" id="brLbl">Tap Start</div></div>
+    <div style="height:28px"></div>
+    <div class="row" style="justify-content:space-between"><span class="small" id="brMeta"></span><span><button class="btn pri" id="brGo">Start</button></span></div>
+    <div style="margin-top:10px" class="bar"><i id="brBar" style="width:0"></i></div>
+    <div class="row" style="justify-content:space-between;margin-top:4px"><span class="small" id="brTime">0:00</span><span class="small">Counts at 5:00</span></div>
+  </div>
+
+  <div class="opt r"><h4>A. Any calm session of 5 minutes counts <span class="tag rec">Recommended</span></h4>
+    In the app, or imported from Apple Health mindful minutes or Health Connect mindfulness. All calming types count the same. Short sessions are saved but do not count.<br>
+    <span class="small"><b>For:</b> matches the trial dose, simple. <b>Against:</b> a 2 minute "calm now" earns nothing. Also: the Mind app never marks a session complete today, so it needs a fix.</span></div>
+  <div class="opt"><h4>B. Partial credit up to 5 minutes</h4>1 minute = 20%, 5 minutes = full.<br><span class="small"><b>For:</b> rewards small moments. <b>Against:</b> 1 minute is below any studied dose.</span></div>
+  <div class="opt"><h4>C. A as the score, plus time of day suggestions</h4>Suggest sighing in the day, 4-7-8 or Bhramari at night.<br><span class="small"><b>For:</b> feels personal. <b>Against:</b> no evidence for the night rule, so suggest only, never score.</span></div>
+</section>
+
+<!-- ============ MOOD ============ -->
+<section id="mood">
+  <div class="eyebrow">Self-care · part 2</div>
+  <h2>Mood check-in</h2>
+  <ul class="l">
+    <li><b>Naming a feeling helps.</b> Putting feelings into words calmed the brain's alarm response (Lieberman 2007). Tracking mood raised emotional self-awareness, which lowered depressive symptoms (Kauer 2012).</li>
+    <li><b>How often:</b> real apps lose most users within weeks (median 30 day retention 3.3%). Once a day is the sustainable default. Apple separates "daily mood" from "momentary emotion".</li>
+    <li><b>Never score the answer.</b> No app we reviewed rewards a good mood. Scoring it would punish honesty.</li>
+    <li><b>The Mind app's 7 emojis</b> (Happy, Calm, Neutral, Sad, Stressed, Irritated, Tired) mix pleasantness with energy, so they cannot be ordered or charted.</li>
+  </ul>
+
+  <div class="lab" id="moodLab">
+    <div class="lh"><div><div class="lt">Interactive</div><b>Three ways to check in</b></div>
+      <div class="row"><button class="btn on" data-m="faces">5 faces + words</button><button class="btn" data-m="grid">Mood Meter grid</button><button class="btn" data-m="low">Three low days</button></div></div>
+    <div class="grid g2">
+      <div class="phone"><div class="notch"></div><div id="moBody"></div></div>
+      <div id="moSide"></div>
+    </div>
+  </div>
+
+  <div class="opt r"><h4>A. One daily tap, 5 faces then optional words <span class="tag rec">Recommended</span></h4>Checking in earns the points; the face never does. Saved as a pleasantness value, so it also writes to Apple State of Mind.<br><span class="small"><b>For:</b> about 5 seconds, honest, older user friendly. <b>Against:</b> less detail than a grid.</span></div>
+  <div class="opt"><h4>B. Mood Meter grid (pleasant × energy)</h4>Pick a colour, then a word, as How We Feel does.<br><span class="small"><b>For:</b> richer, better for naming feelings. <b>Against:</b> an extra step, abstract for older users.</span></div>
+  <div class="opt"><h4>C. A, plus background checks for the coach</h4>Weekly PHQ-4 (4 items) and every few weeks DDS-2 (2 items on diabetes distress), never scored.<br><span class="small"><b>For:</b> catches distress early; ADA asks for distress screening. <b>Against:</b> needs consent and a coach escalation flow. DDS-2 is not validated in Indian populations <span class="tag unv">Unverified</span>.</span></div>
+  <div class="card red" style="margin-top:12px"><b>Safety, always on:</b> any self-harm wording in chat or notes shows <b>Tele-MANAS 14416</b> (free, 24×7, about 20 languages) at once and alerts the coach. A review found 9% of mental health apps listed a wrong crisis number, so the number must be tested regularly. The low-mood thresholds here are a design choice.</div>
+</section>
+
+<!-- ============ ME-TIME ============ -->
+<section id="me">
+  <div class="eyebrow">Self-care · part 3</div>
+  <h2>Me-time, as a pleasant activity</h2>
+  <p class="lead">The science behind me-time is <b>behavioural activation</b>: plan a pleasant or meaningful activity, do it, notice how it felt. It lifted wellbeing in non-clinical groups (effect size 0.52, 20 trials), and lay counsellors used it in Goa primary care.</p>
+  <p>No validated Indian list exists, so the 12 below are a design proposal. What counts: chosen for enjoyment or meaning, about 10 minutes or more, not chores, work or scrolling. Watching TV counts only if it was chosen on purpose (a design choice).</p>
+
+  <div class="lab" id="meLab">
+    <div class="lh"><div><div class="lt">Interactive</div><b>Pick, do, rate</b></div>
+      <div class="row"><button class="btn on" data-t="one">Mark when done</button><button class="btn" data-t="plan">Plan in the morning</button></div></div>
+    <div class="grid g2">
+      <div class="phone"><div class="notch"></div><div id="meBody"></div></div>
+      <div id="meSide"></div>
+    </div>
+  </div>
+  <div class="opt r"><h4>A. Pick one, mark done, rate enjoyment 0 to 10 <span class="tag rec">Recommended</span></h4>Done counts. Enjoyment is for KAIRA's insight, for example "Walks lift you most".<br><span class="small"><b>For:</b> about 10 seconds, matches the method. <b>Against:</b> relies on honest self-report.</span></div>
+  <div class="opt"><h4>B. Plan in the morning, confirm in the evening</h4>Planned gives half, done gives full.<br><span class="small"><b>For:</b> planning raises follow-through. <b>Against:</b> two touches a day.</span></div>
+  <div class="opt"><h4>C. Minutes based, 10 or more</h4><span class="small"><b>For:</b> comparable across days. <b>Against:</b> feels like policing joy, and minutes are hard to recall.</span></div>
+</section>
+
+<!-- ============ CBT ============ -->
+<section id="cbt">
+  <div class="eyebrow">Beyond the six</div>
+  <h2>What CBT and CBT-I could add</h2>
+  <div class="tw"><table>
+    <tr><th>Item</th><th>Evidence</th><th>Effort</th><th>Verdict</th></tr>
+    <tr><td><b>Mind dump before bed</b>: a 2 minute to-do or worry list, typed or spoken</td><td>Sleep lab trial: fell asleep in about 16 vs 25 min. Young adults only</td><td>2 min</td><td><span class="tag rec">Add</span> as a wind-down option</td></tr>
+    <tr><td><b>Fixed wake time</b></td><td>Core of CBT-I, conditional recommendation</td><td>Already in consistency</td><td><span class="tag ok">Covered</span></td></tr>
+    <tr><td><b>Morning daylight</b>, 10 to 15 min outside</td><td>Expert consensus on bright day light. Minutes figure <span class="tag unv">Unverified</span></td><td>1 tap</td><td><span class="tag mid">Optional</span> could be a me-time item or link to Move</td></tr>
+    <tr><td><b>Planned pleasant activity</b></td><td>Behavioural activation, effect size −0.74 on depression</td><td>10 sec</td><td><span class="tag ok">Replaces me-time</span></td></tr>
+    <tr><td><b>Diabetes distress check</b> (DDS-2)</td><td>2 items, 95% sensitive. ADA asks for screening</td><td>Every few weeks</td><td><span class="tag mid">Coach only</span>, never scored</td></tr>
+    <tr><td>Gratitude</td><td>Small effect (about 0.2)</td><td>1 min</td><td><span class="tag mid">Content</span>, not scored</td></tr>
+    <tr><td>Worry postponement</td><td>Small effects, mixed trial</td><td>2 min</td><td><span class="tag mid">Inside the mind dump</span></td></tr>
+    <tr><td>Thought records</td><td>Core CBT, effect sizes not checked <span class="tag unv">Unverified</span></td><td>10 min</td><td><span class="tag no">Too heavy daily</span> KAIRA or coach session</td></tr>
+    <tr><td>Sleep restriction</td><td>Works, but needs clinician steps and an apnoea check</td><td>Weeks</td><td><span class="tag no">Never self-run</span></td></tr>
+  </table></div>
+  <p class="small">Metabolic link, in one line: short or broken sleep and long-running stress both lower insulin sensitivity, and CBT lowered HbA1c by 0.14% across 32 trials.</p>
+</section>
+
+<!-- ============ OTHER APPS ============ -->
+<section id="apps">
+  <div class="eyebrow">Market</div>
+  <h2>How other apps score sleep, recovery and mind</h2>
+  <div class="tw"><table>
+    <tr><th>App</th><th>Score</th><th>Parts and weights</th><th>Needs a wearable</th><th>Idea worth taking</th></tr>
+    <tr><td>Apple</td><td>Sleep Score 0 to 100</td><td>Duration 50, bedtime consistency 30 (13 nights), interruptions 20. Bands: Very Low 0 to 40, Low 41 to 60, OK 61 to 80, High 81 to 95, Very High 96+</td><td>Yes</td><td>The only one that publishes its formula</td></tr>
+    <tr><td>Oura</td><td>Sleep, Readiness</td><td>7 and 9 contributors, no weights. 85+ Optimal, 70 to 84 Good</td><td>Yes</td><td>Contributors as rows with a bar and a word. "No score yet" when empty</td></tr>
+    <tr><td>WHOOP</td><td>Recovery, Sleep performance</td><td>Sufficiency, consistency, efficiency, stress. No weights</td><td>Yes</td><td>Morning journal: yes or no questions about yesterday</td></tr>
+    <tr><td>Fitbit</td><td>Sleep, Daily Readiness</td><td>Age and gender targets. 50/25/25 split <span class="tag unv">Unverified</span></td><td>Yes</td><td>Honest "No score" cards</td></tr>
+    <tr><td>Garmin</td><td>Sleep, Body Battery</td><td>No weights</td><td>Yes</td><td>Number, word and hours side by side</td></tr>
+    <tr><td>Ultrahuman</td><td>Recovery</td><td>5 inputs vs own baseline</td><td>Yes</td><td>"4 of 6 metrics within range"</td></tr>
+    <tr><td>Rise</td><td>Sleep debt in hours</td><td>14 nights, last night 15%</td><td>No, phone taps</td><td>Morning face 1h 30m after waking</td></tr>
+    <tr><td>Calm Sleep</td><td>Tasks done</td><td>"What helped you sleep?" chips: self-care, habits, room</td><td>No</td><td>Wind-down asked next morning as what helped</td></tr>
+    <tr><td>Pokémon Sleep</td><td>Daily points</td><td>Duration only, 100 at 8h 30m. Consistency shown weekly</td><td>No, phone on bed</td><td>Daily length, weekly regularity</td></tr>
+    <tr><td>Finch</td><td>Energy for a pet</td><td>5 energy per tiny goal</td><td>No</td><td>Skip and pause with no penalty</td></tr>
+    <tr><td>How We Feel</td><td>None</td><td>Grid, then word, then context</td><td>No</td><td>Emotion words with definitions</td></tr>
+    <tr><td>Apple State of Mind</td><td>None</td><td>Slider, words, what affected it</td><td>No</td><td>Daily mood vs momentary emotion</td></tr>
+    <tr><td>Headspace</td><td>Run streak</td><td>Resets after 24 hours</td><td>No</td><td>The warning: a hard reset. It can be hidden</td></tr>
+  </table></div>
+  <h3>Lessons for Rhythm</h3>
+  <ul class="l">
+    <li><b>Publish the formula.</b> Only Apple does, and it is the easiest to trust. A typed-in score needs this even more.</li>
+    <li><b>Score actions and steadiness, never feelings.</b> Faces and mood go to insight.</li>
+    <li><b>One morning card</b> covers last night, pre-filled, under 15 seconds.</li>
+    <li><b>Daily length, rolling regularity.</b> Show consistency over 14 nights, so one bad night moves it a little.</li>
+    <li><b>Say "no score yet"</b> honestly until there are 3 nights.</li>
+    <li><b>Insight beats points.</b> After 3 nights with and 3 without a habit, say what it did: "On nights you put the phone away, you fell asleep sooner."</li>
+    <li><b>No streak resets.</b> The 14 night window already forgives a missed night.</li>
+  </ul>
+</section>
+
+<!-- ============ PUT TOGETHER ============ -->
+<section id="put">
+  <div class="eyebrow">Step 2</div>
+  <h2>Putting it together</h2>
+  <div class="grid g2">
+    <div class="opt r" style="margin:0"><h4>Option A. Steady nights, small days <span class="tag rec">Recommended</span></h4>
+      <div class="formula" style="font-size:13px">Night 70 = Consistency 30 + Duration 25 + Wind-down 15<br>Day 30 = Mood 10 + Breathing 10 + Pleasant activity 10</div>
+      <p class="small" style="margin-top:8px">Keeps the deck's 70/30 story. Regularity leads, as the evidence does. Wind-down is 3 ticks of 5. Every day action is the same simple 10.</p></div>
+    <div class="opt" style="margin:0"><h4>Option B. Apple-shaped night</h4>
+      <div class="formula" style="font-size:13px">Night 70 = Duration 35 + Consistency 21 + Interruptions 14<br>Day 30 = Wind-down 10 + Mood 10 + Breathing 5 + Pleasant 5</div>
+      <p class="small" style="margin-top:8px">Apple's 50/30/20 scaled to 70, with wind-down moved into the day half. Familiar to iPhone users, but length leads again.</p></div>
+  </div>
+  <p class="small" style="margin-top:10px">Both: today = last night's sleep + today's day actions + tonight's wind-down. A night not logged counts 0 with a "Log last night" nudge, as an unlogged meal does on Eat. Consistency shows from night 3.</p>
+
+  <div class="lab" id="calcLab">
+    <div class="lh"><div><div class="lt">Interactive</div><b>Same day, three formulas</b></div>
+      <div class="row"><button class="btn" data-c="perfect">Perfect day</button><button class="btn" data-c="sunday">Long Sunday lie-in</button><button class="btn" data-c="phone">Good night, no day</button><button class="btn" data-c="rough">Rough night, calm day</button></div></div>
+    <div class="grid g2">
+      <div>
+        <label class="small">Consistency <b id="vCons"></b></label><input type="range" id="iCons" min="0" max="100" value="80">
+        <label class="small">Duration <b id="vDur"></b></label><input type="range" id="iDur" min="0" max="100" value="90">
+        <div class="small" style="margin-top:6px">Woke in the night</div>
+        <div class="chips" id="iInt"><button class="chip" data-v="1">No</button><button class="chip on" data-v=".75">Briefly</button><button class="chip" data-v=".4">A while</button><button class="chip" data-v=".1">Over an hour</button></div>
+        <div class="small">Wind-down ticks</div>
+        <div class="chips" id="iWd"><button class="chip" data-v="0">0</button><button class="chip" data-v="1">1</button><button class="chip on" data-v="2">2</button><button class="chip" data-v="3">3</button></div>
+        <div class="chips" id="iDay"><button class="chip on" data-k="mood">Mood checked in</button><button class="chip" data-k="br">Breathing 5 min</button><button class="chip on" data-k="pl">Pleasant activity</button></div>
+      </div>
+      <div class="cols3" id="calcOut" style="grid-template-columns:1fr"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ A DAY ============ -->
+<section id="day">
+  <div class="eyebrow">Step 3</div>
+  <h2>A day with Option A, for a phone-only user</h2>
+  <div class="tl">
+    <div class="step"><div class="tm">7:45 AM</div><div><b>Morning card</b> on Home: one face, "Bed 11:15, up 6:15, right?", two chips. About 12 seconds. Consistency and duration land: up to 55.</div></div>
+    <div class="step"><div class="tm">8:00 AM</div><div><b>Mood</b>, one tap. +10. KAIRA can link it to last night later, never judge it.</div></div>
+    <div class="step"><div class="tm">1:00 PM</div><div><b>Breathing</b> after lunch, 5 minutes of cyclic sighing. +10. Or imported from another app via Health Connect.</div></div>
+    <div class="step"><div class="tm">6:30 PM</div><div><b>Pleasant activity</b>: a walk in the park with a friend, enjoyment 8. +10. Can also count toward Move, if that is wanted.</div></div>
+    <div class="step"><div class="tm">9:30 PM</div><div><b>Wind-down card</b>, 10 seconds: three ticks, then the phone goes away. Up to +15. A 2 minute mind dump is offered here too.</div></div>
+    <div class="step"><div class="tm">Next day</div><div>Unticked wind-down items can be added in the morning card. The new night starts the next day's score.</div></div>
+  </div>
+  <p class="small">Effort: about 4 touches and under 1 minute of logging a day, plus the 5 minute breath. With a watch, the morning card drops to one face and one confirm.</p>
+</section>
+
+<!-- ============ COACH FRAMEWORK ============ -->
+<section id="framework">
+  <div class="eyebrow">The Mind coach's framework</div>
+  <h2>GoodFlip Mind Framework, read against Rhythm</h2>
+  <p class="lead">The coach's document builds the Mind score from <b>four domains and 16 daily ticks</b>. It brings in ideas the Rhythm deck lacks: stress in the moment, social connection, and a sense of achievement. But it scores only ticks, so it cannot tell a good night from a bad one.</p>
+
+  <h3>What it says</h3>
+  <div class="tw"><table>
+    <tr><th>Domain</th><th>Weight</th><th>Daily ticks</th></tr>
+    <tr><td><b>Sleep</b></td><td>30%</td><td>Screen-off routine · Caffeine cut-off · Follow planned sleep and wake time · 5 min pre-sleep relaxation · optional sleep rating 1 to 10</td></tr>
+    <tr><td><b>Stress</b></td><td>25%</td><td>2 minute breathing · Stress Pause before reacting once · Notice one trigger · The CBT tool the coach assigns this week</td></tr>
+    <tr><td><b>Pleasure and Mood</b></td><td>20%</td><td>One enjoyable activity · One meaningful social contact · 10 to 15 min fully engaged in something · Mood rated morning and evening</td></tr>
+    <tr><td><b>Motivation and Accomplishment</b></td><td>25%</td><td>Set one realistic goal · One action toward it · Record one thing you achieved · Goal or self-efficacy tool when assigned</td></tr>
+  </table></div>
+  <p class="small">Bands: 70 to 100 Healthy, 40 to 69 Needs Attention, 0 to 39 At Risk. Weekly trend. The lowest domain gets the nudge. Grounded in Self-Determination Theory, Broaden-and-Build, PERMA, CBT, behavioural activation and CBT-I.</p>
+
+  <h3>What is genuinely new, and useful for the user</h3>
+  <div class="tw"><table>
+    <tr><th>Idea</th><th>Why it matters</th><th>Missing from Rhythm?</th><th>Best home</th></tr>
+    <tr><td><b>Coach's weekly CBT tool</b></td><td>The strongest coach link in either document: the coach picks the tool from this person's stress pattern and changes it weekly. Serves goal 1, the user and coach bond</td><td><span class="tag no">Yes</span></td><td>Counts as the day's calm practice, in place of breathing</td></tr>
+    <tr><td><b>Notice a trigger</b></td><td>Self-monitoring is step one of CBT. Gives KAIRA and the coach the "why" behind stress</td><td><span class="tag no">Yes</span></td><td>An optional chip on the mood check-in when mood is low or wound up. No points</td></tr>
+    <tr><td><b>Stress Pause</b></td><td>In the moment regulation, the moment stress hits</td><td><span class="tag no">Yes</span></td><td>An SOS button: 60 seconds of breathing on demand. Hard to tick honestly at night, so no points</td></tr>
+    <tr><td><b>Connection</b></td><td>Strong social ties predicted 50% higher survival across 148 studies (Holt-Lunstad 2010). PERMA's "R"</td><td><span class="tag no">Yes</span></td><td>An item in the pleasant activity list ("Called or met someone"), so either counts</td></tr>
+    <tr><td><b>Positive engagement</b> (flow)</td><td>PERMA's "E": absorbed in something for 10 to 15 minutes</td><td><span class="tag mid">Close to me-time</span></td><td>Merge with pleasant activity, the 10 minute rule already covers it</td></tr>
+    <tr><td><b>Daily goal and achievement</b></td><td>Mastery and self-efficacy, the other half of behavioural activation. Drives Eat and Move adherence</td><td><span class="tag no">Yes</span></td><td>Home To-do, not the Mind score. To-do is adherence, EM3 is motivation. The achievement can be pulled from real logs ("You logged all meals")</td></tr>
+    <tr><td><b>Mood twice a day</b></td><td>Catches the day's swing</td><td><span class="tag mid">Rhythm asks once</span></td><td>Morning counts, evening optional</td></tr>
+    <tr><td><b>Lowest domain gets the nudge</b></td><td>One clear next step, not a list</td><td><span class="tag ok">Same spirit as KAIRA</span></td><td>KAIRA's line under the score</td></tr>
+  </table></div>
+
+  <h3>Where it clashes with the research</h3>
+  <ul class="l">
+    <li><b>Sleep is only ticked, never measured.</b> "Follow planned sleep and wake time" is one tick; duration is absent. A short broken night scores full marks if the four boxes are ticked.</li>
+    <li><b>Sleep is called the foundation but weighs 30%,</b> barely above stress and motivation at 25%. The Rhythm deck gives it 70%.</li>
+    <li><b>16 ticks a day.</b> The document says to keep the count low, yet 16 is more than Eat and Move together ask. Mental health apps lose most users within weeks (median 30 day retention 3.3%).</li>
+    <li><b>Relaxation is counted twice:</b> 5 min before sleep in Sleep, 2 min in Stress.</li>
+    <li><b>2 minutes of breathing</b> is below the 5 minutes used in the best trial.</li>
+    <li><b>"At Risk"</b> for a tick score means a person who skipped the app reads as clinically at risk. Bands should describe habits, not health.</li>
+    <li><b>The 1 to 10 sleep rating and the mood ratings</b> do not say whether the value changes the score. The research says it should not.</li>
+  </ul>
+
+  <div class="lab" id="fwLab">
+    <div class="lh"><div><div class="lt">Interactive</div><b>The framework's 16 ticks, scored as written</b></div>
+      <div class="row"><button class="btn" data-fw="all">All done</button><button class="btn" data-fw="night">Good night only</button><button class="btn" data-fw="busy">Busy day</button><button class="btn" data-fw="none">Clear</button></div></div>
+    <div class="grid g2">
+      <div id="fwTicks"></div>
+      <div>
+        <div class="row" style="justify-content:space-between"><span class="small">Framework Mind score</span><span class="kpi" id="fwScore"></span></div>
+        <div class="small" id="fwBand" style="margin:4px 0 12px"></div>
+        <div id="fwDom"></div>
+        <div class="why" id="fwWhy"></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>How to combine them</h3>
+  <div class="opt r"><h4>A. Rhythm core, framework ideas in the right places <span class="tag rec">Recommended</span></h4>
+    Keep Option A's score (night 70, day 30). The day's three slots widen: <b>Calm</b> = 5 min breathing <i>or</i> the coach's weekly CBT tool. <b>Mood</b> = morning check-in, with an optional trigger chip. <b>Joy</b> = a pleasant activity <i>or</i> a connection. Daily goal and achievement go to Home To-do. Stress Pause becomes an SOS button.<br>
+    <span class="small"><b>For:</b> about 6 touches a day, sleep is measured, the coach's tool is in the score. <b>Against:</b> drops motivation from the Mind score.</span></div>
+  <div class="opt"><h4>B. Four small domains</h4>
+    Sleep 50 (consistency 25, duration 15, wind-down 10) · Calm 20 (breathing or CBT tool) · Joy 15 (mood check-in, pleasant or connection) · Drive 15 (set a goal in the morning, mark it done at night).<br>
+    <span class="small"><b>For:</b> keeps the coach's four domains and names. <b>Against:</b> about 8 touches, and Drive overlaps with To-do.</span></div>
+  <div class="opt"><h4>C. The framework as written</h4>
+    16 ticks, 30/25/20/25.<br>
+    <span class="small"><b>For:</b> clinically complete, already agreed by the coach. <b>Against:</b> heavy daily load, sleep not measured, labels that alarm.</span></div>
+</section>
+
+<!-- ============ GALLERY ============ -->
+<section id="gallery">
+  <div class="eyebrow">Reference</div>
+  <h2>How other apps do it: screens and flows</h2>
+  <p class="lead">Real screens from Mobbin, grouped by topic. Each card says what it shows and one thing we can learn. Tap a card to open it on Mobbin.</p>
+  <div class="row" id="galTabs" style="margin:12px 0"></div>
+  <div id="galBody"><p class="small">Loading screens…</p></div>
+</section>
+
+<!-- ============ OPEN ============ -->
+<section id="open">
+  <div class="eyebrow">Still open</div>
+  <h2>Open items and unverified facts</h2>
+  <ul class="l">
+    <li><b>Name.</b> The app calls this pillar "Wellbeing" and the decks call it "Rhythm".</li>
+    <li><b>Shift workers and people who sleep in two blocks</b> (afternoon nap culture). Does the coach window allow two windows?</li>
+    <li><b>Long sleep</b> above the band is not penalised. Should the coach be alerted after a run of 10 hour nights?</li>
+    <li><b>Pleasant activity and Move</b>: can one walk count in both pillars?</li>
+    <li><b>Chai</b>: its caffeine content was not checked, which matters for the 2 PM rule.</li>
+    <li><b>Unverified:</b> Apple's minutes to points curve, Oura's 2 week regularity window, Fitbit's 50/25/25 split, a minutes figure for morning daylight, a bedroom temperature figure, DDS-2 in Indian populations, the time of day breakdown of reminder effects.</li>
+    <li><b>Design choices, not research:</b> 30 and 120 minute consistency marks, 4.5 hour duration floor, the minutes behind each chip, the 45 minute window in option C, the 12 activity list, the low mood thresholds.</li>
+    <li><b>Mind app fixes</b>: breathing sessions never get marked complete, and the mood emojis need to become an ordered scale.</li>
+  </ul>
+</section>
+
+<!-- ============ SOURCES ============ -->
+<section id="src">
+  <div class="eyebrow">Sources</div>
+  <h2>Sources</h2>
+  <details open><summary>Sleep consistency and duration</summary><ul class="l srcs">
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10782489/">Windred et al. 2024, Sleep: regularity and mortality</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC6154967/">Lunsford-Avery 2018, MESA: regularity, HbA1c, glucose</a></li>
+    <li><a href="https://researchers.westernsydney.edu.au/en/publications/sleep-irregularity-and-the-incidence-of-type-2-diabetes-a-device-/">Chaput 2024, Diabetes Care: irregularity and type 2 diabetes</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8503839/">Fischer 2021: choosing a regularity metric</a></li>
+    <li><a href="https://pubmed.ncbi.nlm.nih.gov/31719053/">Brouwer 2020, Diabetes Care: sleep variability and HbA1c in T2D</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9981680/">Review of regularity and cardiometabolic risk</a></li>
+    <li><a href="https://packages.ropensci.org/mctq/doc/sjl-computation.html">Social jetlag computation (mctq)</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4434546/">AASM/SRS 2015: 7 or more hours</a></li>
+    <li><a href="https://www.thensf.org/how-many-hours-of-sleep-do-you-really-need/">National Sleep Foundation: hours by age</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2864873/">Cappuccio 2010: sleep duration and mortality</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3250369/">Carney 2012: Consensus Sleep Diary</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2785092">Lauderdale 2008: self-reported vs measured sleep</a></li>
+    <li><a href="https://jmir.org/2017/4/e118">Phone use to infer sleep timing</a></li>
+    <li><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC8516327/">STOP-Bang in type 2 diabetes</a></li>
+  </ul></details>
+  <details><summary>Wind-down, CBT-I and CBT</summary><ul class="l srcs">
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7853203/">AASM 2021 guideline: behavioural treatments for insomnia</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3805807/">Drake 2013: caffeine 6 hours before bed</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4400203/">Irish 2015: sleep hygiene review</a></li>
+    <li><a href="https://www.endocrine.org/news-and-advocacy/news-room/2020/people-who-eat-a-late-dinner-may-gain-weight">Gu 2020: late dinner and glucose</a></li>
+    <li><a href="https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.3001571">Brown 2022: light recommendations</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4313797/">Chang 2015: e-readers before bed</a></li>
+    <li><a href="https://pubmed.ncbi.nlm.nih.gov/30374942/">Stutz 2019: evening exercise and sleep</a></li>
+    <li><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5133463/">Yamada 2016: naps and diabetes</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10528147/">Mobile sleep diary completion, 90 days</a></li>
+    <li><a href="https://mhealth.jmir.org/2018/11/e10123">Bidargaddi 2018: push notifications and logging</a></li>
+    <li><a href="https://news.web.baylor.edu/news/story/2018/can-writing-your-dos-help-you-doze-baylor-study-suggests-jotting-down-tasks-can">Scullin 2018: to-do list before bed</a></li>
+    <li><a href="https://pubmed.ncbi.nlm.nih.gov/24936656/">Ekers 2014: behavioural activation</a></li>
+    <li><a href="https://www.annfammed.org/content/6/3/246">Fisher 2008: DDS-2</a></li>
+    <li><a href="https://nice.org.uk/guidance/MTG70/chapter/1-recommendations">NICE MTG70: Sleepio</a></li>
+  </ul></details>
+  <details><summary>Breathing, mood and me-time</summary><ul class="l srcs">
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9873947/">Balban 2023: cyclic sighing</a></li>
+    <li><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9828383/">Fincham 2023: breathwork and stress</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10719279/">Coherent breathing RCT, 400 people</a></li>
+    <li><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9277512/">Vierra 2022: 4-7-8</a></li>
+    <li><a href="https://karger.com/cmr/article/31/5/449/910373/Effectiveness-of-Alternative-Nostril-Breathing-on">Alternate nostril breathing meta-analysis</a></li>
+    <li><a href="https://www.vikaspedia.in/health/ayush/yoga-1/kapalbhati">Kapalabhati cautions (Vikaspedia, AYUSH)</a></li>
+    <li><a href="https://developer.android.com/health-and-fitness/health-connect/features/mindfulness">Health Connect mindfulness sessions</a></li>
+    <li><a href="https://pubmed.ncbi.nlm.nih.gov/17576282/">Lieberman 2007: putting feelings into words</a></li>
+    <li><a href="https://jmir.org/2012/3/e67">Kauer 2012: mood self-monitoring</a></li>
+    <li><a href="https://www.jmir.org/2019/9/e14567">Baumel 2019: mental health app retention</a></li>
+    <li><a href="https://developer.apple.com/videos/play/wwdc2024/10109/">Apple State of Mind (WWDC24)</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC2882847">Mazzucchelli 2010: behavioural activation and wellbeing</a></li>
+    <li><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6921471/">Martinengo 2019: crisis numbers in apps</a></li>
+    <li><a href="https://journals.plos.org/plosmedicine/article?id=10.1371/journal.pmed.1000316">Holt-Lunstad 2010: social relationships and mortality</a></li>
+    <li>GoodFlip Mind Section Framework (Mind coach, docx): four domains, daily tasks, weighted scoring</li>
+    <li><a href="https://en.vikaspedia.in/viewcontent/health/mental-health/national-tele-mental-health-programme?lgn=en">Tele-MANAS 14416</a></li>
+  </ul></details>
+  <details><summary>Other apps</summary><ul class="l srcs">
+    <li><a href="https://support.apple.com/en-us/108906">Apple: Sleep Score parts and 13 nights</a></li>
+    <li><a href="https://support.apple.com/guide/watch/view-your-sleep-score-apded441a669/watchos">Apple: Sleep Score bands</a></li>
+    <li><a href="https://support.ouraring.com/hc/en-us/articles/360025445574-Sleep-Score">Oura Sleep Score</a></li>
+    <li><a href="https://ouraring.com/blog/readiness-score/">Oura Readiness</a></li>
+    <li><a href="https://developer.whoop.com/docs/whoop-101">WHOOP 101</a></li>
+    <li><a href="https://support.google.com/fitbit/answer/14236513?hl=en">Fitbit Sleep Score</a></li>
+    <li><a href="https://www.garmin.com/en-CA/blog/fitness/how-garmin-watches-track-your-sleep-calculate-sleep-score/">Garmin Sleep Score</a></li>
+    <li><a href="https://www.samsung.com/us/support/answer/ANS00090402/">Samsung sleep consistency</a></li>
+    <li><a href="https://help.risescience.com/hc/en-us/articles/40621334445335-How-is-my-sleep-debt-calculated">Rise sleep debt</a></li>
+    <li><a href="https://www.pokemonsleep.net/en/science/support01/">Pokémon Sleep scoring</a></li>
+    <li><a href="https://help.headspace.com/hc/en-us/articles/215730567-How-does-the-run-streak-feature-work">Headspace run streak</a></li>
+    <li>Mobbin screens: <a href="https://mobbin.com/screens/c27c58dd-ace0-4e3c-8085-e0152ea072e4">Rise check-in</a>, <a href="https://mobbin.com/flows/58819ab8-ed53-44de-945e-5a8fd5ac13eb">Calm Sleep check-in</a>, <a href="https://mobbin.com/screens/dd8e85ed-1535-4040-8cc0-9e9a34976288">WHOOP Journal</a>, <a href="https://mobbin.com/screens/ded88fa6-85b6-460f-89b9-9eb71fcd2ef9">Oura sleep detail</a>, <a href="https://mobbin.com/screens/f41c0fde-8db3-4709-bd26-cb47092c3f1e">Ultrahuman home</a>, <a href="https://mobbin.com/flows/d7499ada-fe96-41fc-81e4-2e043f7ef56f">Apple State of Mind</a>, <a href="https://mobbin.com/flows/91038415-4ded-44c2-9342-065adb9e82fb">Finch mood</a>, <a href="https://mobbin.com/screens/f9ceceaf-c436-470d-9631-64654365efda">How We Feel grid</a></li>
+  </ul></details>
+</section>
+</main>
+
+<script>
+(function(){
+var $=function(s,r){return (r||document).querySelector(s)}, $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var clamp=function(v,a,b){return Math.max(a,Math.min(b,v))}, R=Math.round;
+function radio(box,cb){ $$("button",box).forEach(function(b){ b.addEventListener("click",function(){ $$("button",box).forEach(function(x){x.classList.remove("on")}); b.classList.add("on"); cb(b); }); }); }
+function fmtH(m){ m=R(m); return Math.floor(m/60)+"h "+(m%60)+"m"; }
+var C={c:"#299D6B",d:"#79CCA8",w:"#B7E4CC",m:"#444CE7",b:"#8098F9",p:"#C7D7FE"};
+
+/* ---------- day lab ---------- */
+var dayF="cur";
+var dayDef={cur:[["Consistency","c",23.3,6.5],["Duration","d",23.3,6.5],["Wind-down (last night)","w",23.3,6.5],["Mood","m",10,8],["Breathing","b",10,13],["Me-time","p",10,18.5]],
+            a:[["Consistency","c",30,7.75],["Duration","d",25,7.75],["Mood","m",10,8],["Breathing","b",10,13],["Pleasant activity","p",10,18.5],["Wind-down (tonight)","w",15,21.5]]};
+function dayDraw(){
+  var t=+$("#dayT").value, parts=dayDef[dayF], tot=0, h=Math.floor(t), mm=t%1?"30":"00";
+  $("#dayClock").textContent=((h%12)||12)+":"+mm+(h<12?" AM":" PM");
+  $("#dayStack").innerHTML=parts.map(function(p){ var on=t>=p[3]; if(on) tot+=p[2]; return '<i style="width:'+(on?p[2]:0)+'%;background:'+C[p[1]]+'"></i>'; }).join("");
+  $("#dayLeg").innerHTML=parts.map(function(p){return '<span style="--c:'+C[p[1]]+'">'+p[0]+' '+R(p[2])+(t>=p[3]?" ✓":"")+'</span>'}).join("");
+  $("#dayScore").innerHTML=R(tot)+"<small>%</small>";
+  $("#dayWhy").innerHTML=dayF==="cur"
+    ? (t<8?"<b>Today's formula:</b> the user opens the app at 7 AM and already sees 70%. The day can only add 30. Last night's wind-down is counted today, though it was ticked yesterday.":"Sleep set 70 of the score before breakfast. Everything the user does today moves it by at most 30.")
+    : (t<8?"<b>Option A:</b> the morning card lands last night: up to 55. Wind-down waits for tonight, so the score keeps growing all day, as Eat and Move do.":t<21.5?"Each day action adds 10. The score grows through the day.":"Tonight's wind-down closes the day at up to 100.");
+}
+radio($("#dayLab .lh .row"),function(b){dayF=b.dataset.f;dayDraw();});
+$("#dayT").addEventListener("input",dayDraw); dayDraw();
+
+/* ---------- consistency lab ---------- */
+var DAYS=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+var PRE={steady:[["22:35","06:30"],["22:25","06:25"],["22:40","06:35"],["22:30","06:30"],["22:50","06:40"],["22:45","06:50"],["22:30","06:30"]],
+  weekend:[["22:30","06:30"],["22:45","06:30"],["22:30","06:30"],["22:40","06:30"],["00:30","08:30"],["01:15","09:30"],["23:45","07:45"]],
+  late:[["01:30","09:30"],["01:35","09:25"],["01:25","09:35"],["01:30","09:30"],["01:40","09:40"],["01:30","09:30"],["01:30","09:30"]],
+  messy:[["23:00","06:30"],["21:30","05:30"],["00:45","07:00"],["22:15","06:45"],["01:30","09:00"],["23:30","08:00"],["20:45","05:15"]]};
+function toM(s,isBed){ var p=s.split(":"),h=+p[0],m=+p[1]; if(isBed){ if(h<12) h+=24; } else { h+=24; } return h*60+m-720; } /* minutes since noon of the evening's day */
+function consDraw(){
+  var rows=$$("#nightsT tr.n"), cb=toM($("#cBed").value,true), cw=toM($("#cWake").value,false), per=[], mids=[], inW=0;
+  rows.forEach(function(r){
+    var b=toM($("input.b",r).value,true), w=toM($("input.w",r).value,false);
+    var db=Math.abs(b-cb), dw=Math.abs(w-cw), e=function(d){return d<=30?100:d>=120?0:100-(d-30)/90*100;};
+    var s=(e(db)+e(dw))/2; per.push(s); mids.push((b+w)/2); if(db<=45&&dw<=45) inW++;
+    $(".dv",r).innerHTML='<span class="small">bed '+(b>=cb?"+":"−")+Math.abs(b-cb)+' · wake '+(w>=cw?"+":"−")+Math.abs(w-cw)+' min</span>';
+    $(".sv",r).innerHTML='<div class="bar" style="width:80px"><i style="width:'+s+'%"></i></div>';
+  });
+  var A=per.reduce(function(a,b){return a+b},0)/per.length;
+  var mean=mids.reduce(function(a,b){return a+b},0)/mids.length, sd=Math.sqrt(mids.reduce(function(a,m){return a+(m-mean)*(m-mean)},0)/(mids.length-1));
+  var B=sd<=30?100:sd<=60?100-(sd-30)/30*40:sd<=90?60-(sd-60)/30*60:0, Cc=inW/7*100;
+  $("#consOut").innerHTML=
+    '<div class="sc r"><div class="small">A. Distance from coach window</div><div class="kpi">'+R(A)+'</div><div class="small">average of nightly scores</div></div>'+
+    '<div class="sc"><div class="small">B. Own steadiness</div><div class="kpi">'+R(B)+'</div><div class="small">midpoint spread '+R(sd)+' min</div></div>'+
+    '<div class="sc"><div class="small">C. Nights in window</div><div class="kpi">'+R(Cc)+'</div><div class="small">'+inW+' of 7 within 45 min</div></div>';
+  var why = sd<=30 && A<50 ? "<b>Late but steady:</b> B says perfect, A says far from the plan. This is the main choice: do we reward steadiness alone, or steadiness at the time the coach set?"
+    : (Cc<60 && A>=55) ? "<b>Notice C:</b> nights just past 45 minutes count as fully missed, so C drops harder than A for small slips."
+    : A>=85 ? "All three agree when nights are steady and on plan."
+    : "Two late weekend nights pull A down a little, B more, and C by whole nights. A 14 night window would soften all three.";
+  $("#consWhy").innerHTML=why;
+}
+function consLoad(k){
+  var p=PRE[k];
+  $("#nightsT").innerHTML='<tr><th>Night</th><th>Bed</th><th>Wake</th><th>Off the window</th><th>A per night</th></tr>'+p.map(function(n,i){return '<tr class="n"><td>'+DAYS[i]+'</td><td><input type="time" class="b" value="'+n[0]+'"></td><td><input type="time" class="w" value="'+n[1]+'"></td><td class="dv"></td><td class="sv"></td></tr>'}).join("");
+  $$("#nightsT input,#cBed,#cWake").forEach(function(i){i.addEventListener("input",consDraw)});
+  consDraw();
+}
+radio($("#consLab .lh .row"),function(b){consLoad(b.dataset.p)});
+$("#consLab .lh .row button").classList.add("on"); consLoad("steady");
+
+/* ---------- duration lab ---------- */
+var age="adult";
+function durDraw(){
+  var b=toM($("#dBed").value,true), w=toM($("#dWake").value,false), tib=w-b;
+  var lat=+$("#dLat .on").dataset.v, waso=+$("#dWaso .on").dataset.v, tst=Math.max(0,tib-lat-waso);
+  var lo=420, hi=age==="adult"?540:480, floor=270, h=tst;
+  var s=h>=lo?100:h<=floor?0:(h-floor)/(lo-floor)*100;
+  $("#dTib").textContent=fmtH(tib); $("#dTst").textContent=fmtH(tst);
+  $("#dScore").innerHTML=R(s)+"<small>/100</small>";
+  var X=function(m){return clamp((m-240)/(660-240)*100,0,100)};
+  $("#dScale").innerHTML='<div style="position:absolute;top:12px;left:0;right:0;height:10px;background:var(--bg2);border-radius:999px"></div>'+
+    '<div style="position:absolute;top:12px;height:10px;left:'+X(lo)+'%;width:'+(X(hi)-X(lo))+'%;background:var(--brand-100);border-radius:999px"></div>'+
+    '<div style="position:absolute;top:4px;left:calc('+X(tst)+'% - 2px);width:4px;height:26px;background:var(--brand);border-radius:2px"></div>'+
+    '<div class="small" style="position:absolute;top:24px;left:'+X(lo)+'%">'+(lo/60)+'h</div><div class="small" style="position:absolute;top:24px;left:'+X(hi)+'%">'+(hi/60)+'h</div><div class="small" style="position:absolute;top:24px;left:0">4h</div>';
+  $("#dWhy").innerHTML= tst<lo ? "Below the "+(lo/60)+" to "+(hi/60)+" hour band. Without the two questions this night would read <b>"+fmtH(tib)+"</b>, "+fmtH(tib-tst)+" more than the estimate."
+    : tst>hi ? "Above the band. No penalty: long sleep is more often a sign of being unwell than a habit to fix. KAIRA can ask gently if it repeats."
+    : "Inside the band: full marks. "+(tib-tst>30?"Note the gap between time in bed and sleep: "+fmtH(tib-tst)+".":"");
+}
+radio($("#dLat"),durDraw); radio($("#dWaso"),durDraw);
+radio($("#durLab .lh .row"),function(b){age=b.dataset.age;durDraw()});
+$$("#dBed,#dWake").forEach(function(i){i.addEventListener("input",durDraw)}); durDraw();
+
+/* ---------- morning check-in ---------- */
+var mSrc="phone", mStep=0, mTaps=0;
+var FACES=[["😣","Awful"],["😕","Poor"],["😐","Okay"],["🙂","Good"],["😄","Great"]];
+function mDraw(){
+  var steps = mSrc==="phone" ? ["face","times","lat","wake","done"] : ["face","confirm","done"];
+  var s=steps[mStep], h="";
+  if(s==="face") h='<div class="ph-t">Good morning · Thu</div><div class="ph-h">How did you sleep?</div><div class="faces">'+FACES.map(function(f,i){return '<button class="face" data-i="'+i+'">'+f[0]+'<small>'+f[1]+'</small></button>'}).join("")+'</div><p class="note">Saved for insight. It does not change your score.</p>';
+  if(s==="times") h='<div class="ph-t">Last night</div><div class="ph-h">Bed 11:15 PM, up 6:15 AM?</div><p class="note">Filled from your coach\'s schedule.</p><button class="cta nx">Yes, that\'s right</button><button class="btn" style="width:100%;margin-top:8px">Change times</button>';
+  if(s==="lat") h='<div class="ph-t">Last night</div><div class="ph-h">How long to fall asleep?</div><div class="chips">'+["Under 15 min","15 to 30","30 to 60","Over an hour"].map(function(c){return '<button class="chip nx">'+c+'</button>'}).join("")+'</div>';
+  if(s==="wake") h='<div class="ph-t">Last night</div><div class="ph-h">Woke up in the night?</div><div class="chips">'+["No","Once or twice, briefly","Awake a while","Over an hour awake"].map(function(c){return '<button class="chip nx">'+c+'</button>'}).join("")+'</div>';
+  if(s==="confirm") h='<div class="ph-t">From Health Connect · Pixel Watch</div><div class="ph-h">11:22 PM to 6:08 AM<br>6h 31m asleep</div><p class="note">Woke 2 times. Times and wakings come from the watch.</p><button class="cta nx">Looks right</button>';
+  if(s==="done") h='<div class="ph-t">Last night</div><div class="ph-h">Night logged</div><div class="kaira"><b>KAIRA</b><br>Your bedtime was 15 minutes from your plan. Steady nights like this one keep your sugar steadier the next day.</div><p class="note">Consistency and duration are now in today\'s Rhythm.</p><button class="btn" id="mAgain" style="width:100%;margin-top:12px">Start again</button>';
+  $("#mBody").innerHTML=h; $("#mTaps").textContent=mTaps;
+  $$("#mBody .face,#mBody .nx").forEach(function(b){b.addEventListener("click",function(){mTaps++;mStep++;mDraw();})});
+  var ag=$("#mAgain"); if(ag) ag.addEventListener("click",function(){mStep=0;mTaps=0;mDraw();});
+}
+radio($$(".lab")[3].querySelector(".lh .row"),function(b){mSrc=b.dataset.src;mStep=0;mTaps=0;mDraw();}); mDraw();
+
+/* ---------- wind-down ---------- */
+var wMode="night", wOn=[false,false,false];
+var WT=[["Last tea or coffee before 2 PM","Caffeine stays in the body for hours"],["Dinner 2 hours before bed","A late meal raises the sugar peak"],["Phone away, lights low","Dim light helps you feel sleepy"]];
+function wDraw(){
+  var night=wMode==="night";
+  $("#wBody").innerHTML='<div class="ph-t">'+(night?"9:30 PM · Wind-down":"7:45 AM · Morning card")+'</div><div class="ph-h">'+(night?"Getting ready for bed":"Yesterday evening")+'</div>'+
+    WT.map(function(t,i){ var lbl=night?t[0]:t[0].replace("Phone away, lights low","Phone away by 10:30 PM"); return '<div class="tick'+(wOn[i]?" on":"")+'" data-i="'+i+'"><i>'+(wOn[i]?"✓":"")+'</i><div>'+lbl+'<small>'+t[1]+'</small></div></div>'}).join("")+
+    (night?'<div class="tick" style="border-style:dashed"><i></i><div>2 minute mind dump<small>Write or say what is on your mind for tomorrow</small></div></div><button class="cta">Done, phone away</button>':'<button class="cta">Next: last night\'s sleep</button>');
+  var n=wOn.filter(Boolean).length;
+  $("#wSide").innerHTML='<div class="kpi">+'+(n*5)+'<small> of 15 points</small></div><p style="margin-top:10px">'+(night
+    ? "<b>Asked at the start of wind-down,</b> about 60 to 90 minutes before bed. One screen, about 10 seconds, then the phone goes away. Matches the evening half of the sleep diary."
+    : "<b>Asked next morning,</b> joined to the sleep card. One touch a day and no screen at night, but recalling last night's phone use is less reliable than ticking it at the time.")+'</p><p class="small">"Bed only for sleep" is gone from the ticks: it happens in the night, so the coach teaches it instead.</p>';
+  $$("#wBody .tick[data-i]").forEach(function(t){t.addEventListener("click",function(){var i=+t.dataset.i;wOn[i]=!wOn[i];wDraw();})});
+}
+radio($("#windLab .lh .row"),function(b){wMode=b.dataset.w;wDraw()}); wDraw();
+
+/* ---------- breathing ---------- */
+var BR=[
+  {k:"sigh",n:"Cyclic sigh",ph:[["Breathe in",2.5,1],["Top up",1,1.1],["Long breath out",6,0]]},
+  {k:"ext",n:"Extended exhale",ph:[["Breathe in",4,1],["Breathe out",6,0]]},
+  {k:"box",n:"Box",ph:[["Breathe in",4,1],["Hold",4,1],["Breathe out",4,0],["Hold",4,0]]},
+  {k:"478",n:"4-7-8",ph:[["Breathe in",4,1],["Hold",7,1],["Breathe out",8,0]]},
+  {k:"star",n:"Star",ph:[["Breathe in",4,1],["Hold",2,1],["Breathe out",4,0]]},
+  {k:"five",n:"Five finger",ph:[["Trace up, breathe in",4,1],["Trace down, breathe out",4,0]]},
+  {k:"nadi",n:"Nadi Shodhana",ph:[["In, left nostril",4,1],["Out, right nostril",6,0],["In, right nostril",4,1],["Out, left nostril",6,0]]},
+  {k:"kap",n:"Kapalabhati",ph:[],lock:1}];
+var brSel=BR[0], brT=null, brEl=0, brI=0, brLeft=0, brRun=false;
+$("#brPick").innerHTML=BR.map(function(b,i){return '<button class="chip'+(i?"":" on")+'" data-i="'+i+'"'+(b.lock?" disabled title=\"Coach only\"":"")+'>'+b.n+(b.lock?" · coach only":"")+'</button>'}).join("");
+function brMeta(){ var cyc=brSel.ph.reduce(function(a,p){return a+p[1]},0); $("#brMeta").textContent=brSel.ph.map(function(p){return p[0].split(",")[0]+" "+p[1]+"s"}).join(", ")+" · about "+(60/cyc*(brSel.k==="nadi"?2:1)).toFixed(1)+" breaths a minute"; }
+$$("#brPick .chip").forEach(function(c){c.addEventListener("click",function(){ if(c.disabled) return; $$("#brPick .chip").forEach(function(x){x.classList.remove("on")}); c.classList.add("on"); brSel=BR[+c.dataset.i]; brStop(); brMeta(); })});
+function brPhase(){ var p=brSel.ph[brI%brSel.ph.length], sp=$("#brFast").checked?10:1, dur=p[1]/sp;
+  $("#brLbl").textContent=p[0]; var d=$("#brDot"); d.style.transitionDuration=dur+"s"; d.style.transform="scale("+(p[2]?2.6:1)*(p[2]===1.1?1.1:1)+")"; brLeft=dur; }
+function brTick(){ var sp=$("#brFast").checked?10:1; brEl+=0.1*sp; brLeft-=0.1; if(brLeft<=0){brI++;brPhase();}
+  var pct=clamp(brEl/300*100,0,100); $("#brBar").style.width=pct+"%"; var s=Math.floor(brEl); $("#brTime").textContent=Math.floor(s/60)+":"+("0"+s%60).slice(-2)+(brEl>=300?"  ·  Counted toward Rhythm, +10":""); }
+function brStop(){ clearInterval(brT); brRun=false; brEl=0; brI=0; $("#brGo").textContent="Start"; $("#brBar").style.width="0"; $("#brTime").textContent="0:00"; $("#brLbl").textContent="Tap Start"; var d=$("#brDot"); d.style.transitionDuration=".4s"; d.style.transform="scale(1)"; }
+$("#brGo").addEventListener("click",function(){ if(brRun) return brStop(); brRun=true; $("#brGo").textContent="Stop"; brPhase(); brT=setInterval(brTick,100); });
+brMeta();
+
+/* ---------- mood ---------- */
+var moMode="faces", moFace=-1, moWords=[];
+var WORDS=[["Calm","Grateful","Hopeful","Content","Proud"],["Tired","Low","Lonely","Bored","Okay"],["Stressed","Worried","Irritated","Anxious","Restless"]];
+function moDraw(){
+  var h="", side="";
+  if(moMode==="faces"){
+    h='<div class="ph-t">Today · 8:00 AM</div><div class="ph-h">How are you feeling today?</div><div class="faces">'+FACES.map(function(f,i){return '<button class="face'+(moFace===i?" on":"")+'" data-i="'+i+'">'+f[0]+'<small>'+f[1]+'</small></button>'}).join("")+'</div>';
+    if(moFace>=0){ var set=moFace>=3?WORDS[0]:moFace===2?WORDS[1]:WORDS[1].concat(WORDS[2]).slice(0,7);
+      h+='<div class="small">Want to name it? Optional</div><div class="chips">'+set.map(function(w){return '<button class="chip'+(moWords.indexOf(w)>=0?" on":"")+'" data-w="'+w+'">'+w+'</button>'}).join("")+'</div><button class="cta">Save</button><p class="note">Checked in: +10. The face does not change the score.</p>'; }
+    side='<p><b>One tap counts.</b> Words are optional and help KAIRA spot patterns, like low days after short nights.</p><p class="small">Stored as pleasantness from −1 to 1, so it can also go to Apple State of Mind.</p>';
+  } else if(moMode==="grid"){
+    h='<div class="ph-t">Today · 8:00 AM</div><div class="ph-h">How are you feeling right now?</div><div class="quad">'+
+      '<button style="background:#F04438">Wound up<br><small>high energy, unpleasant</small></button><button style="background:#F79009">Bright<br><small>high energy, pleasant</small></button>'+
+      '<button style="background:#6172F3">Low<br><small>low energy, unpleasant</small></button><button style="background:#12B76A">At ease<br><small>low energy, pleasant</small></button></div><p class="note">Next: pick a word from that colour.</p>';
+    side='<p><b>The Mood Meter</b> adds energy to pleasantness. Richer for naming feelings, but one more step and more abstract for older users.</p>';
+  } else {
+    h='<div class="ph-t">Thu · after 3 low days</div><div class="ph-h">It has been a heavy few days</div><div class="kaira"><b>KAIRA</b><br>You have felt low three days in a row. That is worth talking about. Your coach Sahana can call you today.</div><button class="cta">Ask Sahana to call me</button><div class="card red" style="margin-top:10px;padding:10px 12px;font-size:13px"><b>Need to talk now?</b><br>Tele-MANAS · <b>14416</b><br>Free, any time, in your language</div>';
+    side='<p><b>Low mood never lowers the score.</b> It opens care: a gentle card, a coach flag, and the helpline always one tap away.</p><p class="small">Three low days is a design choice. Self-harm words in chat show the helpline at once.</p>';
+  }
+  $("#moBody").innerHTML=h; $("#moSide").innerHTML=side;
+  $$("#moBody .face").forEach(function(b){b.addEventListener("click",function(){moFace=+b.dataset.i;moWords=[];moDraw();})});
+  $$("#moBody .chip").forEach(function(b){b.addEventListener("click",function(){var w=b.dataset.w,i=moWords.indexOf(w); if(i>=0) moWords.splice(i,1); else moWords.push(w); moDraw();})});
+}
+radio($("#moodLab .lh .row"),function(b){moMode=b.dataset.m;moDraw()}); moDraw();
+
+/* ---------- me-time ---------- */
+var ACTS=["Music or bhajans","Prayer or puja","Gardening","Time with family","Walk in a park","Chai with a friend","Reading","A hobby","A show, chosen on purpose","Sitting in the sun","Helping someone","A small outing"];
+var meMode="one", mePick=-1, meDone=false, meJoy=7;
+function meDraw(){
+  var h='<div class="ph-t">'+(meMode==="plan"&&!meDone?"Morning · plan":"Today")+'</div><div class="ph-h">'+(meMode==="plan"&&!meDone?"Something nice for yourself today?":"Did something you enjoy?")+'</div>'+
+    '<div class="chips">'+ACTS.map(function(a,i){return '<button class="chip'+(mePick===i?" on":"")+'" data-i="'+i+'">'+a+'</button>'}).join("")+'</div>';
+  var pts=0;
+  if(mePick>=0){
+    if(meMode==="plan"&&!meDone){ h+='<button class="cta" id="meDo">Planned. Remind me at 6 PM</button>'; pts=5; }
+    else { h+='<div class="small" style="margin-top:6px">How much did you enjoy it? <b id="meJ">'+meJoy+'</b>/10</div><input type="range" id="meR" min="0" max="10" value="'+meJoy+'"><button class="cta">Done</button>'; pts=10; }
+  }
+  $("#meBody").innerHTML=h;
+  $("#meSide").innerHTML='<div class="kpi">+'+pts+'<small> of 10</small></div><p style="margin-top:10px">'+(meMode==="one"?"<b>Mark when done.</b> One tap on the activity, one on Done. Enjoyment never changes points; after a few weeks KAIRA can say which activities lift this person most.":"<b>Plan, then confirm.</b> Planning in the morning gives half, doing it gives full. Planning makes doing more likely, at the cost of a second touch.")+'</p>';
+  $$("#meBody .chip").forEach(function(c){c.addEventListener("click",function(){mePick=+c.dataset.i;meDraw();})});
+  var r=$("#meR"); if(r) r.addEventListener("input",function(){meJoy=+r.value;$("#meJ").textContent=meJoy;});
+  var d=$("#meDo"); if(d) d.addEventListener("click",function(){meDone=true;meDraw();});
+}
+radio($("#meLab .lh .row"),function(b){meMode=b.dataset.t;mePick=-1;meDone=false;meDraw()}); meDraw();
+
+/* ---------- calculator ---------- */
+var CP={perfect:[100,100,"1",3,["mood","br","pl"]],sunday:[45,100,"1",1,["mood"]],phone:[90,95,".75",3,[]],rough:[70,40,".1",2,["mood","br","pl"]]};
+function setChips(box,val){ $$("button",box).forEach(function(b){b.classList.toggle("on",b.dataset.v===String(val))}); }
+function calc(){
+  var cons=+$("#iCons").value, dur=+$("#iDur").value, it=+$("#iInt .on").dataset.v, wd=+$("#iWd .on").dataset.v;
+  var on=function(k){return $('#iDay [data-k="'+k+'"]').classList.contains("on")}, n=["mood","br","pl"].filter(on).length;
+  $("#vCons").textContent=cons; $("#vDur").textContent=dur;
+  var cur=0.7*((cons+dur+wd/3*100)/3)+0.3*(n/3*100);
+  var a=0.30*cons+0.25*dur+5*wd+(on("mood")?10:0)+(on("br")?10:0)+(on("pl")?10:0);
+  var b=0.35*dur+0.21*cons+14*it+wd/3*10+(on("mood")?10:0)+(on("br")?5:0)+(on("pl")?5:0);
+  var card=function(t,v,r,sub){return '<div class="sc'+(r?" r":"")+'" style="display:flex;align-items:center;justify-content:space-between;text-align:left"><div><div class="small">'+t+'</div><div class="small" style="max-width:260px">'+sub+'</div></div><div class="kpi">'+R(v)+'</div></div>'};
+  $("#calcOut").innerHTML=card("Today's formula",cur,0,"Duration and consistency weigh the same; wind-down is a third of sleep")+card("Option A · recommended",a,1,"Regularity leads; each day action is 10")+card("Option B · Apple-shaped",b,0,"Length leads; waking in the night counts");
+}
+$$("#iCons,#iDur").forEach(function(i){i.addEventListener("input",calc)});
+radio($("#iInt"),calc); radio($("#iWd"),calc);
+$$("#iDay .chip").forEach(function(c){c.addEventListener("click",function(){c.classList.toggle("on");calc();})});
+radio($("#calcLab .lh .row"),function(btn){ var p=CP[btn.dataset.c]; $("#iCons").value=p[0]; $("#iDur").value=p[1]; setChips($("#iInt"),p[2]); setChips($("#iWd"),p[3]); $$("#iDay .chip").forEach(function(c){c.classList.toggle("on",p[4].indexOf(c.dataset.k)>=0)}); calc(); });
+calc();
+
+/* ---------- coach framework ---------- */
+var FW=[["Sleep",30,["Screens off before bed","Caffeine cut-off","Planned sleep and wake time","5 min pre-sleep relaxation"]],
+  ["Stress",25,["2 min breathing","Stress Pause once","Noticed one trigger","This week's CBT tool"]],
+  ["Pleasure and Mood",20,["One enjoyable activity","One meaningful contact","10 to 15 min fully engaged","Mood morning and evening"]],
+  ["Motivation",25,["Set one goal","One action toward it","Recorded one achievement","Goal or self-efficacy tool"]]];
+var fwOn=FW.map(function(d){return d[2].map(function(){return false})});
+function fwDraw(){
+  $("#fwTicks").innerHTML=FW.map(function(d,i){return '<div class="small" style="margin:8px 0 2px;font-weight:700;color:var(--ink)">'+d[0]+' · '+d[1]+'%</div>'+d[2].map(function(t,j){return '<div class="tick'+(fwOn[i][j]?" on":"")+'" data-i="'+i+'" data-j="'+j+'" style="padding:7px 10px;margin:4px 0"><i>'+(fwOn[i][j]?"✓":"")+'</i><div>'+t+'</div></div>'}).join("")}).join("");
+  var tot=0, n=0, low=null;
+  var dom=FW.map(function(d,i){ var c=fwOn[i].filter(Boolean).length; n+=c; var s=c/4*100; tot+=s*d[1]/100; if(low===null||s<low[1]) low=[d[0],s]; return '<div class="fwd"><span>'+d[0]+'</span><b>'+R(s)+'</b></div><div class="bar"><i style="width:'+s+'%"></i></div>'; });
+  $("#fwDom").innerHTML=dom.join("");
+  $("#fwScore").innerHTML=R(tot)+"<small>/100</small>";
+  $("#fwBand").innerHTML=tot>=70?'<span class="tag ok">Healthy</span>':tot>=40?'<span class="tag unv">Needs Attention</span>':'<span class="tag no">At Risk</span>';
+  $("#fwWhy").innerHTML="<b>"+n+" of 16</b> ticks. "+(n===0?"An untouched day reads as <b>At Risk</b>, though nothing is known about this person's health.":fwOn[0].every(Boolean)&&n===4?"A perfect night with nothing else scores 30, <b>At Risk</b>. Under Rhythm Option A the same night is worth up to 70.":"The nudge goes to "+low[0]+", the lowest domain.");
+  $$("#fwTicks .tick").forEach(function(t){t.addEventListener("click",function(){var i=+t.dataset.i,j=+t.dataset.j;fwOn[i][j]=!fwOn[i][j];fwDraw();})});
+}
+radio($("#fwLab .lh .row"),function(b){ var k=b.dataset.fw; fwOn=FW.map(function(d,i){return d[2].map(function(t,j){ return k==="all"||(k==="night"&&i===0)||(k==="busy"&&((i===0&&j<2)||(i===2&&j===3)||(i===1&&j===0))); })}); fwDraw(); });
+fwDraw();
+
+/* ---------- gallery ---------- */
+var GT=[["sleep-log","Sleep logging and check-in"],["sleep-score","Sleep scores"],["stress","Stress and CBT"],["selfcare","Breathing, mood, joy"],["motivation","Goals and wins"]];
+var GAL={};
+var GP={
+  "sleep-log":["<b>Two rows are enough:</b> bedtime and wake time, each a time chip (Fitbit, Bevel, Apple Health). Eight Sleep adds in bed, fell asleep, woke, out of bed, which gives time to fall asleep without a separate question.","<b>Quality first, one tap:</b> faces (Calm), Good, OK, Bad (Pillow), big tiles (Visible).","<b>Factors as chips:</b> Calm Sleep asks \"What helped you sleep?\" under Self-care, Habits and Environment. Our wind-down ticks fit there.","<b>Paired reminders:</b> wind-down 30 min before, then bedtime (Headspace).","<b>When a day starts:</b> Finch lets the day roll over at 4 AM, so a late log lands on the right day. Rhythm needs this rule."],
+  "sleep-score":["<b>A word before the number:</b> Apple shows \"High\" then 84; Oura \"73 GOOD\".","<b>Parts that add up:</b> Apple shows Duration 40/50, Bedtime 24/30, Interruptions 20/20, each with a short note.","<b>Consistency as in range or out:</b> Eight Sleep uses a 30 minute band, Oura marks each bedtime hit or miss.","<b>Your own normal:</b> WHOOP and Bevel shade the user's usual range behind the line.","<b>Empty states that teach:</b> Oura lists every part with empty bars under \"No Sleep Score yet\"."],
+  "stress":["<b>A plain verdict before the chart:</b> Garmin, WHOOP and Ultrahuman open with one sentence.","<b>Works without a watch:</b> Fitbit keeps a one tap \"how stressed\" check-in beside \"No score\".","<b>Triggers are picked, not typed:</b> a grid of life areas (Insight Timer) or a tag on the chart (Oura).","<b>Small named CBT tools:</b> How We Feel's Bright Spots and Lens Shift, Ahead's one question cards.","<b>Calm action next to the reading, SOS always one tap away</b> (WHOOP, Wysa)."],
+  "selfcare":["<b>Breathing player = one shape + one word</b> (Breathwrk, Calm Sleep, Finch).","<b>Pick a technique by purpose:</b> Rest, Balance, Energy (Open), with minutes shown.","<b>Done screen = one number + a light rating</b> (Breathwrk, Stoic).","<b>Mood: faces or slider, then words for that level</b> (Apple Health, Insight Timer).","<b>One context screen covers activity and people:</b> How We Feel's What doing, Who with, Where. Pleasant activity and connection can ride on the mood check-in."],
+  "motivation":["<b>Pick a goal, don't type one</b> (Finch, stoic.).","<b>Two fixed slots:</b> a morning card and an evening card (stoic., 5 Minute Journal).","<b>Wins logged automatically</b> from what the user did (Noom: \"4 meals logged today\"). GoodFlip can pull achievements from Eat and Move.","<b>Forgiveness is normal:</b> Skip and Streak Repair (Finch), Pause (Numo), Days Off (Todoist), weekly targets (WHOOP).","<b>Named bands with gaps kept:</b> Noom leaves unlogged days empty, not zero."]};
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function gcard(x,dir){return '<a class="gcard" href="'+esc(x.mobbin_url)+'" target="_blank" rel="noopener"><img loading="lazy" src="ref/'+dir+'/'+esc(x.file)+'" alt="'+esc(x.app+" "+x.title)+'"><div class="gt"><div class="ga">'+esc(x.app)+(x.step?" · step "+esc(x.step):"")+'</div><div class="gl">'+esc(x.title)+'</div>'+esc(x.what)+'<div class="gk"><b>Learn:</b> '+esc(x.takeaway)+'</div></div></a>'}
+function galShow(dir){
+  $$("#galTabs .btn").forEach(function(b){b.classList.toggle("on",b.dataset.g===dir)});
+  var L=GAL[dir]; if(!L){ $("#galBody").innerHTML='<p class="small">No screens collected for this topic yet.</p>'; return; }
+  var screens=L.filter(function(x){return x.kind!=="flow"}), flows={};
+  L.filter(function(x){return x.kind==="flow"}).forEach(function(x){(flows[x.flow||x.app]=flows[x.flow||x.app]||[]).push(x)});
+  var h=(GP[dir]?'<div class="card green" style="margin:6px 0 14px"><b>What these screens teach</b><ul class="l">'+GP[dir].map(function(p){return "<li>"+p+"</li>"}).join("")+'</ul></div>':"")+'<div class="gal">'+screens.map(function(x){return gcard(x,dir)}).join("")+'</div>';
+  Object.keys(flows).forEach(function(f){ var st=flows[f].sort(function(a,b){return (a.step||0)-(b.step||0)}); h+='<h3>Flow: '+esc(f)+' <span class="small">('+esc(st[0].app)+', '+st.length+' steps)</span></h3><div class="flowrow">'+st.map(function(x){return gcard(x,dir)}).join("")+'</div>'; });
+  $("#galBody").innerHTML=h;
+}
+Promise.all(GT.map(function(g){ return fetch("ref/"+g[0]+"/manifest.json").then(function(r){return r.ok?r.json():null}).catch(function(){return null}).then(function(j){ if(j&&j.length) GAL[g[0]]=j; }); })).then(function(){
+  var have=GT.filter(function(g){return GAL[g[0]]});
+  $("#galTabs").innerHTML=GT.map(function(g){return '<button class="btn" data-g="'+g[0]+'">'+g[1]+(GAL[g[0]]?" · "+GAL[g[0]].length:"")+'</button>'}).join("");
+  $$("#galTabs .btn").forEach(function(b){b.addEventListener("click",function(){galShow(b.dataset.g)})});
+  galShow((have[0]||GT[0])[0]);
+});
+})();
+</script>
+</body>
+</html>

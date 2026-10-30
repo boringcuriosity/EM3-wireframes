@@ -1,0 +1,531 @@
+<!doctype html>
+<!--
+  FTUX concept: "Your day, around the clock".
+  The first-time explainer for Nutrition sufficiency, opened over the Eat screen.
+  A 24 hour clock face: each meal sits at its time as an arc, and the arc's length is
+  how much that meal counts (Breakfast 20, Lunch 35, Snack 10, Dinner 35). A hand sweeps
+  through the day on its own; as it reaches each meal, the arc fills by how close the meal
+  was to plan and the score in the centre counts up. The medal lights gold at 80.
+  Drag the hand on the dial, or the scrub bar under it, to move through the day.
+  Tap a meal's arc to see its protein, carbs and fat marks in a small card.
+
+  Flags
+    ?who=new       (default) a sample day, played from midnight to midnight, ending at 90 with a medal
+    ?who=current   their real day: the hand stops at now (between 5:30 PM and 7:45 PM) at 58, dinner ahead
+    ?step=N        1 the day plays from midnight, 2 the end state
+    ?still=1       no animation, end state shown (also when prefers-reduced-motion)
+-->
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Day Clock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<link rel="stylesheet" href="/v7/icons/glyph-masks.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; overflow: hidden; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; }
+
+  .behind { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; background: #fff; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .42s var(--ease); }
+  .open .scrim { opacity: 1; }
+
+  /* ------------------------------------------------------------ the sheet */
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh;
+    display: flex; flex-direction: column; background: #fff; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    transform: translate(-50%, 100%); transition: transform .42s cubic-bezier(.2,.7,.2,1);
+    box-shadow: 0 -8px 32px rgba(16,24,40,.12); }
+  .open .sheet { transform: translate(-50%, 0); }
+  .closing .sheet { transition-duration: .34s; transition-timing-function: cubic-bezier(.4,0,1,1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 8px; }
+  .shead h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  button:focus-visible, .knobhit:focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+  .sbody { flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding: 0 16px 8px; }
+  .sfoot { flex-shrink: 0; padding: 8px 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .ok { width: 100%; height: 48px; margin-bottom: 7px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff;
+    font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; }
+  .ok:active { transform: translateY(3px); box-shadow: 0 4px 0 var(--brand-700); }
+
+  .lead { margin: 0 0 4px; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
+  .lead b { color: var(--g-900); font-weight: 600; }
+
+  /* ------------------------------------------------------------ the clock */
+  .clock { position: relative; width: 100%; max-width: 358px; margin: 0 auto; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .clock svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .face { fill: var(--g-25); }
+  .wedge { fill: var(--brand-50); }
+  .tick { stroke: var(--g-200); stroke-width: 1.2; stroke-linecap: round; }
+  .tick.maj { stroke: var(--g-300); stroke-width: 1.6; }
+  .hr { font: 500 9.5px Roboto, sans-serif; fill: var(--g-400); letter-spacing: .2px; }
+  .fresh { font: 600 10px Roboto, sans-serif; fill: var(--in-600); letter-spacing: .3px; }
+  .track { fill: none; stroke: var(--g-100); stroke-width: 14; stroke-linecap: round; transition: stroke .4s var(--ease); }
+  .track.ahead { stroke: var(--brand-300); stroke-dasharray: 2 3.5; stroke-width: 14; stroke-linecap: butt; }
+  .fill { fill: none; stroke: var(--brand-600); stroke-width: 14; stroke-linecap: round; opacity: 0;
+    transition: stroke-dasharray .9s var(--ease), opacity .25s var(--ease); }
+  .fill.on { opacity: 1; }
+  .hit { fill: none; stroke: transparent; stroke-width: 38; cursor: pointer; pointer-events: stroke; }
+  .sel .track { stroke: var(--g-200); }
+  .lbl { font: 600 11.5px Roboto, sans-serif; fill: var(--g-800); transition: fill .4s var(--ease); }
+  .lbl .w { font-weight: 400; font-size: 10.5px; fill: var(--g-500); }
+  .lbl.got .w { fill: var(--brand-700); font-weight: 600; }
+  .hand { stroke: var(--g-900); stroke-width: 2; stroke-linecap: round; }
+  .knob { fill: #fff; stroke: var(--g-900); stroke-width: 2; }
+  .knobhit { fill: transparent; cursor: grab; outline: none; }
+  .dragging .knobhit { cursor: grabbing; }
+
+  /* the centre: the score, and the medal waiting at 80 */
+  .mid { position: absolute; left: 50%; top: 51.6%; transform: translate(-50%, -50%); width: 128px; text-align: center; pointer-events: none; }
+  .mid .t { font-size: 12px; line-height: 16px; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .mid .sc { font-size: 44px; line-height: 48px; font-weight: 700; letter-spacing: -1px; font-variant-numeric: tabular-nums; color: var(--g-900); }
+  .mid .of { font-size: 12px; line-height: 16px; color: var(--g-500); margin-top: -2px; }
+  .medal { margin-top: 6px; display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px 0 4px; border-radius: 9999px;
+    font-size: 11px; font-weight: 600; color: var(--g-400); background: var(--g-50); transition: background-color .7s var(--ease), color .7s var(--ease), box-shadow .7s var(--ease); }
+  .medal img { width: 17px; height: 20px; filter: grayscale(1); opacity: .45; transition: filter .7s var(--ease), opacity .7s var(--ease); }
+  .medal.lit { background: var(--gold-50); color: var(--gold-800); box-shadow: inset 0 0 0 1px var(--gold-200), 0 0 0 6px rgb(253 232 164 / .35); }
+  .medal.lit img { filter: none; opacity: 1; }
+
+  /* ------------------------------------------- caption, scrub, meal card */
+  .lower { position: relative; }
+  .deck { min-height: 136px; }
+  .say { min-height: 44px; margin: 2px 0 6px; font-size: 15px; line-height: 22px; font-weight: 500; color: var(--g-800); text-wrap: pretty; text-align: center; }
+  .say.swap { animation: sayIn .45s var(--ease) both; }
+  @keyframes sayIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+  .scrub { display: flex; align-items: center; gap: 12px; }
+  .play { width: 40px; height: 40px; flex-shrink: 0; border-radius: 9999px; border: 0; background: var(--g-100); color: var(--g-800);
+    display: grid; place-items: center; cursor: pointer; transition: background-color .25s var(--ease); }
+  .play:active { background: var(--g-200); }
+  .bar { position: relative; flex: 1; height: 40px; margin: 0 14px 0 6px; cursor: pointer; touch-action: none; }
+  .rail { position: absolute; left: 0; right: 0; top: 13px; height: 6px; border-radius: 9999px; background: var(--g-100); overflow: hidden; }
+  .rail .later { position: absolute; top: 0; bottom: 0; right: 0; background: repeating-linear-gradient(135deg, var(--g-200) 0 3px, transparent 3px 6px); }
+  .rail .done { position: absolute; left: 0; top: 0; bottom: 0; background: var(--brand-600); border-radius: 9999px; }
+  .pip { position: absolute; top: 12px; width: 8px; height: 8px; margin-left: -4px; border-radius: 9999px; background: #fff; box-shadow: inset 0 0 0 2px var(--g-300);
+    transition: box-shadow .4s var(--ease); }
+  .pip.got { box-shadow: inset 0 0 0 2px var(--brand-700); }
+  .thumb { position: absolute; top: 6px; width: 20px; height: 20px; margin-left: -10px; border-radius: 9999px; background: #fff;
+    border: 2px solid var(--g-900); box-shadow: 0 2px 6px rgba(16,24,40,.18); outline: none; }
+  .thumb:focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+  .ticks { position: absolute; left: 0; right: 0; top: 26px; display: flex; justify-content: space-between; font-size: 10px; line-height: 12px; color: var(--g-400); pointer-events: none; }
+  .ticks span { width: 0; display: flex; justify-content: center; white-space: nowrap; }
+
+  .foot { margin: 8px 0 0; font-size: 12px; line-height: 17px; color: var(--g-500); text-align: center; }
+
+  .card { position: absolute; inset: 0 0 auto 0; min-height: 100%; padding: 10px 14px; border-radius: var(--r-lg); background: #fff;
+    border: 1px solid var(--g-100); box-shadow: 0 8px 24px -10px rgba(16,24,40,.22), 0 1px 2px rgba(16,24,40,.05);
+    opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity .32s var(--ease), transform .32s var(--ease); }
+  .card.on { opacity: 1; transform: none; pointer-events: auto; }
+  .ch { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .ch h3 { margin: 0; font-size: 15px; line-height: 20px; font-weight: 600; }
+  .ch .wt { font-size: 12px; line-height: 16px; color: var(--g-500); }
+  .ch .cx { margin: -8px -8px -8px auto; width: 36px; height: 36px; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; border-radius: 9999px; }
+  .marks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .mk { padding: 7px 8px 8px; border-radius: var(--r-sm); background: var(--g-25); box-shadow: inset 0 0 0 1px var(--g-100); }
+  .mk .top { display: flex; align-items: center; gap: 5px; font-size: 12px; line-height: 16px; color: var(--g-600); }
+  .gl { width: 14px; height: 14px; flex-shrink: 0; background: var(--brand-600); -webkit-mask-size: contain; mask-size: contain;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+  .mk b { display: block; margin: 2px 0 0; font-size: 18px; line-height: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .mk b small { font-size: 11px; font-weight: 500; color: var(--g-400); margin-left: 2px; }
+  .mk i { display: block; height: 4px; border-radius: 9999px; background: var(--g-100); overflow: hidden; }
+  .mk i::after { content: ""; display: block; height: 100%; width: var(--v); border-radius: inherit; background: var(--brand-600); }
+  .mk.part b { color: var(--gold-800); }
+  .mk.full b { color: var(--brand-700); }
+  .sum { margin: 8px 0 0; font-size: 13px; line-height: 19px; color: var(--g-600); text-wrap: pretty; }
+  .sum b { color: var(--g-900); font-weight: 600; }
+  .ahead-box { padding: 12px; border-radius: var(--r-sm); background: var(--brand-25); box-shadow: inset 0 0 0 1px var(--brand-100);
+    font-size: 13px; line-height: 19px; color: var(--g-700); }
+  .ahead-box b { color: var(--g-900); font-weight: 600; }
+
+  .replay { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 9999px; border: 0;
+    background: rgb(255 255 255 / .92); color: var(--brand-700); font-size: 14px; font-weight: 600; box-shadow: 0 2px 10px rgba(16,24,40,.18);
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .closed .replay { opacity: 1; pointer-events: auto; }
+
+  .still *, .still *::before, .still *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<iframe class="behind" tabindex="-1" aria-hidden="true" title=""></iframe><script>document.currentScript.previousElementSibling.src = "/v7/r3/eat.html" + (/who=current/.test(location.search) ? "" : "?state=empty");</script>
+<div class="scrim" aria-hidden="true"></div>
+
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <header class="shead">
+    <h2 id="sheetTitle">Your day, around the clock</h2>
+    <button class="x" type="button" aria-label="Close" data-close><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </header>
+
+  <div class="sbody" id="body">
+    <p class="lead" id="lead"></p>
+
+    <div class="clock" id="clock">
+      <svg id="dial" viewBox="0 0 360 312" role="img" aria-labelledby="dialLbl">
+        <title id="dialLbl">A 24 hour clock with your meals as arcs</title>
+        <g id="base"></g>
+        <path class="wedge" id="wedge" d=""/>
+        <g id="ticks"></g>
+        <g id="arcs"></g>
+        <g id="handG">
+          <line class="hand" id="hand" x1="0" y1="0" x2="0" y2="0"/>
+          <circle class="knob" id="knob" r="6"/>
+          <circle class="knobhit" id="knobhit" r="22" tabindex="0" role="slider" aria-label="Time of day" aria-valuemin="0" aria-valuemax="24" aria-valuenow="0"/>
+        </g>
+      </svg>
+      <div class="mid" aria-live="polite">
+        <div class="t" id="time">12:00 AM</div>
+        <div class="sc" id="score">0</div>
+        <div class="of">of 100</div>
+        <div class="medal" id="medal"><img src="/v7/icons/badge/simple/heart-apple.svg" alt=""><span id="medalTxt">Medal at 80</span></div>
+      </div>
+    </div>
+
+    <div class="lower">
+    <div class="deck">
+      <p class="say" id="say" aria-live="polite"></p>
+      <div class="scrub">
+        <button class="play" type="button" id="play" aria-label="Pause"></button>
+        <div class="bar" id="bar">
+          <div class="rail"><span class="later" id="later"></span><span class="done" id="done"></span></div>
+          <div id="pips"></div>
+          <div class="thumb" id="thumb" aria-hidden="true"></div>
+          <div class="ticks" aria-hidden="true"><span>12 AM</span><span>6 AM</span><span>12 PM</span><span>6 PM</span><span>12 AM</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="foot">Tap a meal to see its marks. Each day starts fresh at midnight.</p>
+    <div class="card" id="card" role="region" aria-live="polite" aria-label="Meal marks"></div>
+    </div>
+  </div>
+
+  <footer class="sfoot">
+    <button class="ok" type="button" id="cta"></button>
+  </footer>
+</section>
+
+<button class="replay" type="button" id="replay">Replay</button>
+
+<script>
+(function () {
+  "use strict";
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  var Q = new URLSearchParams(location.search);
+  var WHO = Q.get("who") === "current" ? "current" : "new";
+  var STILL = Q.get("still") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var root = document.documentElement;
+  if (STILL) root.classList.add("still");
+  var NS = "http://www.w3.org/2000/svg";
+
+  /* ------------------------------------------------------------- the day */
+  /* marks are protein, carbs, fat; the meal score is their average; "got" is what it adds to the day */
+  var MEALS = [
+    { id: "bf",  name: "Breakfast", h: 8,  worth: 20, marks: [75, 75, 100],  meal: 83, got: 17,
+      why: "Fat was right on plan. Protein came in under and carbs went over." },
+    { id: "lu",  name: "Lunch",     h: 13, worth: 35, marks: [100, 75, 100], meal: 92, got: 32,
+      why: "Protein and fat were on plan. Carbs went a little over." },
+    { id: "sn",  name: "Snack",     h: 17, worth: 10, marks: [100, 70, 100], meal: 90, got: 9,
+      why: "Protein and fat were on plan. Carbs came in a little under." },
+    { id: "di",  name: "Dinner",    h: 20, worth: 35, marks: [100, 75, 100], meal: 92, got: 32,
+      why: "Protein and fat were on plan. Carbs went a little over." }
+  ];
+  var MACROS = [["Protein", "glyph-protein"], ["Carbs", "glyph-carbs"], ["Fat", "glyph-fats"]];
+
+  /* current users: the hand rests at now, kept between their snack and dinner */
+  var d = new Date(), nowH = d.getHours() + d.getMinutes() / 60;
+  var NOW = Math.min(19.75, Math.max(17.5, nowH));
+  NOW = Math.round(NOW * 4) / 4;
+  var END = WHO === "current" ? NOW : 24;
+  if (WHO === "current") MEALS[3].ahead = true;
+
+  var COPY = WHO === "current" ? {
+    lead: "Your meals now add up to a score. Each arc is a meal, and <b>the longer the arc, the more it counts</b>.",
+    start: "Here is your day so far.",
+    bf: "Breakfast added 17 of its 20.",
+    lu: "Lunch added 32 of its 35.",
+    sn: "Your snack added 9 of its 10. You are at 58.",
+    end: "Dinner is worth 35. Land close to plan and you pass 80 for a medal.",
+    cta: "See My Score"
+  } : {
+    lead: "Here is a sample day. Each arc is a meal, and <b>the longer the arc, the more it counts</b>.",
+    start: "Watch the meals add up as the day goes by.",
+    bf: "Breakfast lands close to plan and adds 17 of its 20.",
+    lu: "Lunch is a bigger meal, so it adds more: 32 of its 35.",
+    sn: "The snack adds 9 of its 10. That makes 58.",
+    di: "Dinner adds 32. The day reaches 90 and earns a medal.",
+    end: "A medal day. Tomorrow starts fresh at midnight.",
+    cta: "Log Your First Meal"
+  };
+  document.getElementById("lead").innerHTML = COPY.lead;
+  document.getElementById("cta").textContent = COPY.cta;
+
+  /* ------------------------------------------------------- the geometry */
+  var CX = 180, CY = 156, R = 104, SW = 14, K = 1.6;   /* K: degrees of arc per point the meal is worth */
+  var CAP = (SW / 2) / R * 180 / Math.PI;               /* round caps add this much at each end */
+  function P(a, r) { var t = a * Math.PI / 180; return [+(CX + r * Math.sin(t)).toFixed(2), +(CY - r * Math.cos(t)).toFixed(2)]; }
+  function arc(a1, a2, r) {
+    var p1 = P(a1, r), p2 = P(a2, r);
+    return "M" + p1 + " A" + r + " " + r + " 0 " + (a2 - a1 > 180 ? 1 : 0) + " 1 " + p2;
+  }
+  function el(tag, attrs, parent) {
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+
+  var base = document.getElementById("base"), ticks = document.getElementById("ticks"), arcs = document.getElementById("arcs");
+  el("circle", { class: "face", cx: CX, cy: CY, r: R - SW / 2 - 1 }, base);
+  for (var i = 0; i < 24; i++) {
+    var maj = i % 6 === 0, a = i * 15;
+    var p1 = P(a, maj ? 84 : 87), p2 = P(a, 92);
+    el("line", { class: "tick" + (maj ? " maj" : ""), x1: p1[0], y1: p1[1], x2: p2[0], y2: p2[1] }, ticks);
+  }
+  [["12 AM", 0], ["6 AM", 90], ["12 PM", 180], ["6 PM", 270]].forEach(function (h) {
+    var p = P(h[1], 74);
+    var t = el("text", { class: "hr", x: p[0], y: p[1] + 3.5, "text-anchor": h[1] === 90 ? "end" : h[1] === 270 ? "start" : "middle" }, ticks);
+    t.textContent = h[0];
+  });
+  var fp = P(0, R + 18);
+  el("text", { class: "fresh", x: fp[0], y: fp[1], "text-anchor": "middle" }, ticks).textContent = "Fresh start";
+
+  MEALS.forEach(function (m) {
+    var c = m.h * 15, half = m.worth * K / 2;
+    var g = el("g", { "data-meal": m.id }, arcs);
+    var dpath = arc(c - half + CAP, c + half - CAP, R);
+    m.track = el("path", { class: "track" + (m.ahead ? " ahead" : ""), d: m.ahead ? arc(c - half, c + half, R) : dpath }, g);
+    m.fill = el("path", { class: "fill", d: dpath, pathLength: 100, "stroke-dasharray": "0 100" }, g);
+    m.hit = el("path", { class: "hit", d: arc(c - half - 3, c + half + 3, R), "data-meal": m.id }, g);
+    m.g = g;
+    /* the label sits outside the ring, on the side it faces */
+    var lp = P(c, R + 24), s = Math.sin(c * Math.PI / 180);
+    var anchor = s > .3 ? "start" : s < -.3 ? "end" : "middle";
+    var lbl = el("text", { class: "lbl", x: lp[0], y: lp[1] + (Math.cos(c * Math.PI / 180) < -.5 ? 6 : -2), "text-anchor": anchor }, arcs);
+    lbl.textContent = m.name;
+    m.wt = el("tspan", { class: "w", x: lp[0], dy: 13 }, lbl);
+    m.wt.textContent = "worth " + m.worth;
+    m.lbl = lbl;
+  });
+
+  /* --------------------------------------------------------------- state */
+  var hour = 0, shown = 0, scoreFrom = 0, scoreTo = 0, scoreT0 = 0, scoreRaf = null, lastKey = "";
+  var hand = document.getElementById("hand"), knob = document.getElementById("knob"), knobhit = document.getElementById("knobhit");
+  var wedge = document.getElementById("wedge"), timeEl = document.getElementById("time"), scoreEl = document.getElementById("score");
+  var medal = document.getElementById("medal"), medalTxt = document.getElementById("medalTxt"), say = document.getElementById("say");
+  var bar = document.getElementById("bar"), thumb = document.getElementById("thumb"), done = document.getElementById("done");
+  var later = document.getElementById("later"), pips = document.getElementById("pips");
+  later.style.width = (100 - END / 24 * 100) + "%";
+  MEALS.forEach(function (m) {
+    m.pip = document.createElement("span"); m.pip.className = "pip"; m.pip.style.left = (m.h / 24 * 100) + "%"; pips.appendChild(m.pip);
+  });
+
+  function fmt(h) {
+    var mins = Math.round(h * 60 / 15) * 15; if (mins >= 1440) mins = 1439;
+    var hh = Math.floor(mins / 60), mm = mins % 60, ap = hh < 12 ? "AM" : "PM", h12 = hh % 12 || 12;
+    return h12 + ":" + (mm < 10 ? "0" : "") + mm + " " + ap;
+  }
+  function ease(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+
+  function drawScore() {
+    var t = Math.min(1, (performance.now() - scoreT0) / 900);
+    shown = scoreFrom + (scoreTo - scoreFrom) * ease(t);
+    scoreEl.textContent = Math.round(shown);
+    var lit = Math.round(shown) >= 80;
+    medal.classList.toggle("lit", lit);
+    medalTxt.textContent = lit ? "Medal earned" : "Medal at 80";
+    scoreRaf = t < 1 ? requestAnimationFrame(drawScore) : null;
+  }
+  function setScore(v) {
+    if (v === scoreTo && (scoreRaf || Math.round(shown) === v)) return;
+    scoreTo = v;
+    if (STILL) { scoreFrom = shown = v; scoreT0 = 0; drawScore(); return; }
+    scoreFrom = shown; scoreT0 = performance.now();
+    if (!scoreRaf) scoreRaf = requestAnimationFrame(drawScore);
+  }
+
+  function render(h) {
+    hour = Math.max(0, Math.min(END, h));
+    var a = Math.min(359.99, hour * 15);
+    var p0 = P(a, 82), p1 = P(a, R + 12), pk = P(a, R);
+    hand.setAttribute("x1", p0[0]); hand.setAttribute("y1", p0[1]); hand.setAttribute("x2", p1[0]); hand.setAttribute("y2", p1[1]);
+    knob.setAttribute("cx", pk[0]); knob.setAttribute("cy", pk[1]);
+    knobhit.setAttribute("cx", pk[0]); knobhit.setAttribute("cy", pk[1]);
+    knobhit.setAttribute("aria-valuenow", hour.toFixed(2)); knobhit.setAttribute("aria-valuetext", fmt(hour));
+    var rw = R - SW / 2 - 1, w0 = P(0, rw), w1 = P(a, rw);
+    wedge.setAttribute("d", a < .5 ? "" : "M" + CX + "," + CY + " L" + w0 + " A" + rw + " " + rw + " 0 " + (a > 180 ? 1 : 0) + " 1 " + w1 + " Z");
+    timeEl.textContent = WHO === "current" && hour >= END - .01 ? "Now, " + fmt(hour) : fmt(hour);
+    thumb.style.left = (hour / 24 * 100) + "%"; done.style.width = (hour / 24 * 100) + "%";
+
+    /* each meal the hand has reached fills by how close it was to plan */
+    var sum = 0, key = "start";
+    MEALS.forEach(function (m) {
+      var got = !m.ahead && hour >= m.h - .001;
+      m.fill.setAttribute("stroke-dasharray", (got ? m.meal : 0) + " 100");
+      m.fill.classList.toggle("on", got);
+      m.lbl.classList.toggle("got", got);
+      m.wt.textContent = got ? "added " + m.got : m.ahead ? "worth " + m.worth + ", ahead" : "worth " + m.worth;
+      m.pip.classList.toggle("got", got);
+      if (got) { sum += m.got; key = m.id; }
+    });
+    if (hour >= END - .001) key = "end";
+    setScore(sum);
+    if (key !== lastKey) {
+      lastKey = key;
+      say.innerHTML = COPY[key] || COPY.start;
+      if (!STILL) { say.classList.remove("swap"); void say.offsetWidth; say.classList.add("swap"); }
+    }
+  }
+
+  /* ----------------------------------------------------------- auto-play */
+  var playing = false, raf = null, segs = [], segI = 0, segT0 = 0;
+  var playBtn = document.getElementById("play");
+  var ICON_PAUSE = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="3.5" y="2.5" width="3" height="11" rx="1" fill="currentColor"/><rect x="9.5" y="2.5" width="3" height="11" rx="1" fill="currentColor"/></svg>';
+  var ICON_PLAY = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2.8v10.4a.8.8 0 0 0 1.2.7l8.2-5.2a.8.8 0 0 0 0-1.4L6.2 2.1A.8.8 0 0 0 5 2.8z" fill="currentColor"/></svg>';
+  function setPlaying(on) {
+    playing = on;
+    playBtn.innerHTML = on ? ICON_PAUSE : ICON_PLAY;
+    playBtn.setAttribute("aria-label", on ? "Pause" : "Play the day");
+    if (!on && raf) { cancelAnimationFrame(raf); raf = null; }
+  }
+  /* the hand eases into each meal, rests a moment as it fills, then moves on */
+  function buildSegs(from) {
+    var stops = MEALS.filter(function (m) { return !m.ahead && m.h > from + .001; }).map(function (m) { return m.h; });
+    stops.push(END);
+    var s = [], at = from;
+    stops.forEach(function (h) {
+      if (h <= at) return;
+      s.push({ a: at, b: h, dur: 420 + (h - at) * 190 });
+      if (h < END) s.push({ a: h, b: h, dur: 1150 });
+      at = h;
+    });
+    return s;
+  }
+  function tick(now) {
+    var sg = segs[segI];
+    if (!sg) { setPlaying(false); return; }
+    var t = Math.min(1, (now - segT0) / sg.dur);
+    render(sg.a + (sg.b - sg.a) * ease(t));
+    if (t >= 1) { segI++; segT0 = now; }
+    raf = requestAnimationFrame(tick);
+  }
+  function play(from) {
+    closeCard();
+    if (from == null) from = hour >= END - .001 ? 0 : hour;
+    render(from);
+    segs = buildSegs(from); segI = 0; segT0 = performance.now();
+    setPlaying(true);
+    raf = requestAnimationFrame(tick);
+  }
+  playBtn.addEventListener("click", function () { if (playing) setPlaying(false); else play(); });
+
+  /* --------------------------------------------------- dragging the time */
+  var dial = document.getElementById("dial"), clock = document.getElementById("clock");
+  function hourFromDial(e) {
+    var r = dial.getBoundingClientRect(), sx = 360 / r.width;
+    var x = (e.clientX - r.left) * sx - CX, y = (e.clientY - r.top) * sx - CY;
+    var a = Math.atan2(x, -y) * 180 / Math.PI; if (a < 0) a += 360;
+    var h = a / 15;
+    /* no wrapping across midnight: the day runs one way */
+    if (Math.abs(h - hour) > 12) h = hour > 12 ? END : 0;
+    return h;
+  }
+  var drag = null;
+  dial.addEventListener("pointerdown", function (e) {
+    drag = { x: e.clientX, y: e.clientY, moved: false, id: e.pointerId, meal: e.target.getAttribute("data-meal"), onKnob: e.target === knobhit };
+    dial.setPointerCapture(e.pointerId);
+  });
+  dial.addEventListener("pointermove", function (e) {
+    if (!drag || drag.id !== e.pointerId) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return;
+    if (!drag.moved) { drag.moved = true; setPlaying(false); closeCard(); clock.classList.add("dragging"); }
+    render(hourFromDial(e));
+  });
+  function endDrag(e) {
+    if (!drag || drag.id !== e.pointerId) return;
+    var d0 = drag; drag = null; clock.classList.remove("dragging");
+    if (!d0.moved && d0.meal) toggleCard(d0.meal);
+    else if (!d0.moved && !d0.onKnob) { setPlaying(false); closeCard(); render(hourFromDial(e)); }
+  }
+  dial.addEventListener("pointerup", endDrag);
+  dial.addEventListener("pointercancel", function (e) { drag = null; clock.classList.remove("dragging"); });
+  knobhit.addEventListener("keydown", function (e) {
+    var st = { ArrowRight: .25, ArrowUp: .25, ArrowLeft: -.25, ArrowDown: -.25, PageUp: 1, PageDown: -1 }[e.key];
+    if (e.key === "Home") st = -24; if (e.key === "End") st = 24;
+    if (st == null) return;
+    e.preventDefault(); setPlaying(false); closeCard(); render(hour + st);
+  });
+
+  function hourFromBar(e) { var r = bar.getBoundingClientRect(); return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * 24; }
+  bar.addEventListener("pointerdown", function (e) { bar.setPointerCapture(e.pointerId); setPlaying(false); closeCard(); render(hourFromBar(e)); });
+  bar.addEventListener("pointermove", function (e) { if (bar.hasPointerCapture(e.pointerId)) render(hourFromBar(e)); });
+
+  /* ------------------------------------------------------- the meal card */
+  var card = document.getElementById("card"), openId = null;
+  var CX_ICON = '<svg width="24" height="24" viewBox="0 0 32 32" aria-hidden="true"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg>';
+  function fmtH(h) { return (h % 12 || 12) + " " + (h < 12 ? "AM" : "PM"); }
+  function toggleCard(id) { if (openId === id) closeCard(); else openCard(id); }
+  function openCard(id) {
+    var m = MEALS.filter(function (x) { return x.id === id; })[0];
+    setPlaying(false);
+    openId = id;
+    MEALS.forEach(function (x) { x.g.classList.toggle("sel", x.id === id); });
+    var head = '<div class="ch"><div><h3>' + m.name + '</h3><div class="wt">' + fmtH(m.h) + ', worth ' + m.worth + ' of 100</div></div>' +
+      '<button class="cx" type="button" aria-label="Close meal marks">' + CX_ICON + '</button></div>';
+    var body;
+    if (m.ahead) {
+      body = '<div class="ahead-box">Your dinner is still ahead, worth <b>35</b>. Land close to plan and your day passes <b>80</b> for a medal.</div>';
+    } else {
+      body = '<div class="marks">' + MACROS.map(function (mc, i) {
+        var v = m.marks[i];
+        return '<div class="mk' + (v < 100 ? " part" : " full") + '"><div class="top"><span class="gl ' + mc[1] + '" aria-hidden="true"></span>' + mc[0] + '</div>' +
+          '<b>' + v + '<small>of 100</small></b></div>';
+      }).join("") + '</div>' +
+      '<p class="sum">' + m.why + ' The meal scores <b>' + m.meal + '</b>, so it adds <b>' + m.got + '</b> of its ' + m.worth + '.</p>';
+    }
+    card.innerHTML = head + body;
+    card.classList.add("on");
+    card.querySelector(".cx").addEventListener("click", closeCard);
+    /* the hand moves to the meal, so the clock and the card agree */
+    if (!m.ahead && hour < m.h) render(m.h);
+    var sb = document.getElementById("body");
+    requestAnimationFrame(function () { var r = card.getBoundingClientRect(), b = sb.getBoundingClientRect(); if (r.bottom > b.bottom) sb.scrollTop += r.bottom - b.bottom + 8; });
+  }
+  function closeCard() {
+    if (!openId) return;
+    openId = null; card.classList.remove("on");
+    MEALS.forEach(function (x) { x.g.classList.remove("sel"); });
+  }
+
+  /* ------------------------------------------------------ open and close */
+  var startTimer = null;
+  function open() {
+    root.classList.remove("closed", "closing");
+    closeCard(); setPlaying(false); if (startTimer) clearTimeout(startTimer);
+    lastKey = ""; shown = scoreFrom = scoreTo = 0;
+    var n = parseInt(Q.get("step"), 10);
+    if (STILL || n === 2) { STILLSCORE(); render(END); }
+    else { render(0); startTimer = setTimeout(function () { play(0); }, 650); playBtn.innerHTML = ICON_PAUSE; }
+    if (STILL) { root.classList.add("open"); return; }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("open"); }); });
+  }
+  /* the end state lands at once, without counting up */
+  function STILLSCORE() { var keep = STILL; STILL = true; render(END); STILL = keep; }
+  function close() {
+    setPlaying(false); if (startTimer) clearTimeout(startTimer);
+    root.classList.add("closing"); root.classList.remove("open");
+    setTimeout(function () { root.classList.add("closed"); document.getElementById("replay").focus({ preventScroll: true }); }, STILL ? 0 : 360);
+  }
+  document.querySelector("[data-close]").addEventListener("click", close);
+  document.getElementById("cta").addEventListener("click", close);
+  document.querySelector(".scrim").addEventListener("click", close);
+  addEventListener("keydown", function (e) { if (e.key === "Escape" && root.classList.contains("open")) { if (openId) closeCard(); else close(); } });
+  document.getElementById("replay").addEventListener("click", function () { Q.delete("step"); open(); });
+  playBtn.innerHTML = ICON_PLAY;
+  open();
+})();
+</script>
+</body>
+</html>

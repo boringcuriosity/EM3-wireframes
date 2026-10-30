@@ -1,0 +1,523 @@
+<!doctype html>
+<!--
+  FTUX concept: "Every meal is a drop".
+  The score is a glass bubble that fills to 100. Each meal you log falls in as a
+  drop sized by how much it counts (Breakfast 20, Lunch 35, Snack 10, Dinner 35).
+  How full the drop is (how close the meal came to plan) decides how much water it
+  adds. One breakfast drop is filled by three streams, protein, carbs and fat: two
+  earn part marks, one earns full marks, so it adds 17 of its 20. The level then
+  rises towards the gold line at 80, where the day earns a medal.
+
+  Flags
+    ?who=new       (default) first-time user, empty glass, breakfast as the example
+    ?who=current   already logs meals: glass at 58, the dinner drop waiting above it
+    ?step=N        open at step N (1 the glass, 2 inside one drop, 3 the level)
+    ?still=1       no animation, end states shown (also when prefers-reduced-motion)
+  Tap a drop on step 1 to hear what it counts for; tap breakfast to look inside.
+-->
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Every Meal Is A Drop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<link rel="stylesheet" href="/v7/icons/glyph-masks.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; overflow: hidden; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; }
+  :root { --io: cubic-bezier(.65,0,.35,1); }
+
+  .behind { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; background: #fff; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .42s var(--ease); }
+  .open .scrim { opacity: 1; }
+
+  /* ------------------------------------------------------------ the sheet */
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh;
+    display: flex; flex-direction: column; background: #fff; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    transform: translate(-50%, 100%); transition: transform .42s cubic-bezier(.2,.7,.2,1);
+    box-shadow: 0 -8px 32px rgba(16,24,40,.12); }
+  .open .sheet { transform: translate(-50%, 0); }
+  .closing .sheet { transition-duration: .34s; transition-timing-function: cubic-bezier(.4,0,1,1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 4px; }
+  .shead h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  .x:focus-visible, .ok:focus-visible, .dots button:focus-visible, .drop:focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+  .sbody { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px 4px; }
+  .sfoot { flex-shrink: 0; padding: 4px 16px calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 12px; }
+  .ok { width: 100%; height: 48px; margin-bottom: 7px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff;
+    font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; }
+  .ok:active { transform: translateY(3px); box-shadow: 0 4px 0 var(--brand-700); }
+  .dots { display: flex; justify-content: center; gap: 4px; }
+  .dots button { width: 24px; height: 24px; border: 0; padding: 0; background: none; display: grid; place-items: center; cursor: pointer; border-radius: 9999px; }
+  .dots i { display: block; width: 6px; height: 6px; border-radius: 9999px; background: var(--g-200); transition: width .4s var(--ease), background-color .4s var(--ease); }
+  .dots button[aria-current="step"] i { width: 18px; background: var(--brand-600); }
+
+  /* ------------------------------------------------------------ the stage */
+  .stage { position: relative; width: 100%; max-width: 358px; margin: 0 auto; aspect-ratio: 358 / 330; }
+  .stage svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .fade { transition: opacity .6s var(--ease); }
+  .off { opacity: 0; pointer-events: none; }
+  .lvl { transition: transform 1.4s var(--io); }
+  .sheen { animation: sheen 7s var(--io) infinite alternate; }
+  @keyframes sheen { from { transform: translateX(-16px); } to { transform: translateX(16px); } }
+  .drop { cursor: pointer; outline: none; }
+  .mv { transition: transform .9s var(--io), opacity .5s var(--ease); }
+  .mv.fall { transition: transform .65s cubic-bezier(.55,0,1,.45), opacity .25s var(--ease) .5s; }
+  .layer { transform-box: fill-box; transform-origin: 50% 100%; transform: scaleY(0); transition: transform .9s var(--io); }
+  .layer.on { transform: none; }
+  .stream { fill: none; stroke-linecap: round; opacity: 0; transition: opacity .5s var(--ease); stroke-dasharray: 5 7; }
+  .stream.pour { opacity: 1; animation: flow .9s linear infinite; }
+  .stream.rest { opacity: .28; }
+  @keyframes flow { to { stroke-dashoffset: -24; } }
+  .ripple { opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .ripple.go { animation: ripple 1.1s var(--ease) both; }
+  @keyframes ripple { from { opacity: .7; transform: scale(.15); } to { opacity: 0; transform: scale(1); } }
+  .medal.lit .mhalo { animation: mhalo 2.6s var(--io) infinite; }
+  @keyframes mhalo { 0% { opacity: .6; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(1.9); } }
+  .mhalo { opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .gold { transition: stroke .6s var(--ease), stroke-width .6s var(--ease); }
+  .wait .dhalo { animation: dhalo 2.6s var(--io) infinite; }
+  .hint .dhalo { animation: dhalo 2.6s var(--io) infinite; }
+  @keyframes dhalo { 0% { opacity: .55; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(1.35); } }
+  .dhalo { opacity: 0; transform-box: fill-box; transform-origin: center; }
+
+  /* the three sources above the breakfast drop */
+  .src { position: absolute; width: 96px; margin-left: -48px; text-align: center; opacity: 0; transform: translateY(4px);
+    transition: opacity .5s var(--ease), transform .5s var(--ease); pointer-events: none; }
+  .src.on { opacity: 1; transform: none; }
+  .src .n { font-size: 12px; line-height: 16px; font-weight: 600; }
+  .src .g { font-size: 12px; line-height: 16px; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .src .m { font-size: 12px; line-height: 16px; font-weight: 600; color: var(--g-600); }
+  .src.full .m { color: var(--ok-600); }
+  .src .chip { width: 36px; height: 36px; margin: 6px auto 0; border-radius: 9999px; background: var(--brand-50); box-shadow: inset 0 0 0 1px var(--brand-200); display: grid; place-items: center; }
+  .src .chip i { width: 20px; height: 20px; background: var(--brand-600); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+  .crumb { position: absolute; top: 0; left: 0; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--g-500); }
+
+  /* ------------------------------------------------------------- the copy */
+  .copy { min-height: 140px; padding-top: 8px; }
+  .copy h3 { margin: 0 0 6px; font-size: 20px; line-height: 28px; font-weight: 700; text-wrap: balance; }
+  .copy p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
+  .copy p + p { margin-top: 8px; }
+  .copy .note { font-size: 13px; line-height: 19px; color: var(--g-500); }
+  .copy .tip { margin-top: 10px; font-size: 13px; line-height: 19px; font-weight: 600; color: var(--brand-700); min-height: 19px; }
+  .copy > div { display: none; }
+  .copy > div.on { display: block; animation: rise .4s var(--ease) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .tip.swap { animation: rise .4s var(--ease) both; }
+  .res { opacity: 0; transition: opacity .5s var(--ease); }
+  .res.on { opacity: 1; }
+  .copy b { color: var(--g-900); }
+
+  .replay { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 9999px; border: 0;
+    background: rgb(255 255 255 / .92); color: var(--brand-700); font-size: 14px; font-weight: 600; box-shadow: 0 2px 10px rgba(16,24,40,.18);
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .closed .replay { opacity: 1; pointer-events: auto; }
+
+  .still *, .still *::before, .still *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<iframe class="behind" tabindex="-1" aria-hidden="true" title=""></iframe><script>document.currentScript.previousElementSibling.src = "/v7/r3/eat.html" + (/who=current/.test(location.search) ? "" : "?state=empty");</script>
+<div class="scrim" aria-hidden="true"></div>
+
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <header class="shead">
+    <h2 id="sheetTitle">Every meal is a drop</h2>
+    <button class="x" type="button" aria-label="Close" data-close><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </header>
+
+  <div class="sbody" id="body">
+    <div class="stage" id="stage">
+      <svg viewBox="0 0 358 330" role="img" aria-labelledby="stageDesc" id="svg">
+        <desc id="stageDesc">A glass bubble that fills with water as meals are logged, with a gold line at 80 for the medal.</desc>
+        <defs>
+          <linearGradient id="water" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" style="stop-color:var(--brand-300)"/><stop offset=".5" style="stop-color:var(--brand-400)"/><stop offset="1" style="stop-color:var(--brand-500)"/>
+          </linearGradient>
+          <linearGradient id="dropWater" gradientUnits="userSpaceOnUse" x1="0" y1="-1.45" x2="0" y2="1.25">
+            <stop offset="0" style="stop-color:var(--brand-300)"/><stop offset="1" style="stop-color:var(--brand-500)"/>
+          </linearGradient>
+          <radialGradient id="glass" cx="38%" cy="30%" r="75%">
+            <stop offset="0" stop-color="#fff"/><stop offset=".7" style="stop-color:var(--g-25)"/><stop offset="1" style="stop-color:var(--teal-100)"/>
+          </radialGradient>
+          <radialGradient id="sheenG" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+          </radialGradient>
+          <clipPath id="inside"><circle cx="179" cy="228" r="88"/></clipPath>
+          <clipPath id="dropClip" clipPathUnits="userSpaceOnUse"><path id="dropPathC" d=""/></clipPath>
+        </defs>
+
+        <!-- the glass bubble: the day's score -->
+        <g id="vessel" class="fade">
+          <circle cx="179" cy="228" r="88" fill="url(#glass)"/>
+          <g clip-path="url(#inside)">
+            <g id="ghostG" class="lvl" style="transform:translateY(330px)">
+              <rect x="80" y="0" width="200" height="200" style="fill:var(--brand-100)" opacity=".6"/>
+              <line x1="80" x2="280" y1=".5" y2=".5" style="stroke:var(--brand-400)" stroke-width="1.2" stroke-dasharray="3 3"/>
+            </g>
+            <g id="waterG" class="lvl" style="transform:translateY(330px)">
+              <rect x="80" y="0" width="200" height="200" fill="url(#water)"/>
+              <rect x="80" y="0" width="200" height="2.5" style="fill:var(--brand-100)"/>
+              <ellipse class="sheen" cx="160" cy="7" rx="46" ry="5" fill="url(#sheenG)"/>
+            </g>
+            <g id="strata" class="fade"></g>
+            <ellipse id="ripple" class="ripple" cx="179" cy="0" rx="56" ry="6" fill="none" stroke="#fff" stroke-width="1.5"/>
+          </g>
+          <line id="goldLine" class="gold" x1="0" x2="0" y1="0" y2="0" style="stroke:var(--gold-700)" stroke-width="1.2" stroke-dasharray="4 3"/>
+          <g class="medal" id="medal"></g>
+          <!-- glass outline with an opening at the top -->
+          <path d="M214.2 128 L214.2 140.8 A94 94 0 1 1 143.8 140.8 L143.8 128" fill="none" style="stroke:var(--g-300)" stroke-width="1.4" stroke-linecap="round"/>
+          <path d="M108 190 A80 80 0 0 1 140 152" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".9"/>
+          <path d="M252 270 A80 80 0 0 1 236 290" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".7"/>
+          <text id="scoreN" x="179" y="236" text-anchor="middle" font-size="40" font-weight="700" style="fill:var(--g-900);font-variant-numeric:tabular-nums;letter-spacing:-.6px">0</text>
+          <text x="179" y="256" text-anchor="middle" font-size="12" style="fill:var(--g-600)">of 100 today</text>
+          <text id="ghostLbl" class="fade off" x="78" y="0" text-anchor="end" font-size="11" font-weight="500" style="fill:var(--g-500)"></text>
+        </g>
+
+        <!-- step 2: the streams into one drop -->
+        <g id="streams" aria-hidden="true"></g>
+        <!-- the meal drops -->
+        <g id="drops"></g>
+      </svg>
+      <div id="srcs"></div>
+      <div class="crumb fade off" id="crumb">Breakfast, worth 20</div>
+    </div>
+
+    <div class="copy" id="copy">
+      <div data-s="1">
+        <h3 id="h1"></h3>
+        <p id="p1"></p>
+        <div class="tip" id="tip" aria-live="polite"></div>
+      </div>
+      <div data-s="2">
+        <h3>What fills a drop</h3>
+        <p id="p2"></p>
+        <p class="res" id="res"></p>
+      </div>
+      <div data-s="3">
+        <h3 id="h3"></h3>
+        <p id="p3"></p>
+        <p class="note" id="n3"></p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="sfoot">
+    <div class="dots" id="dots" role="group" aria-label="Steps"></div>
+    <button class="ok" type="button" id="cta">Next</button>
+  </footer>
+</section>
+
+<button class="replay" type="button" id="replay">Replay</button>
+
+<script>
+(function () {
+  "use strict";
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  var Q = new URLSearchParams(location.search);
+  var CUR = Q.get("who") === "current";
+  var STILL = Q.get("still") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var root = document.documentElement;
+  if (STILL) root.classList.add("still");
+  var NS = "http://www.w3.org/2000/svg";
+  var VX = 179, VY = 228, R = 88;
+
+  function el(tag, attrs, parent) {
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function $(id) { return document.getElementById(id); }
+
+  /* score (share of the bubble's area) to a water line y */
+  function levelY(score) {
+    var f = Math.max(0, Math.min(1, score / 100)), lo = 0, hi = 2 * R;
+    for (var i = 0; i < 40; i++) {
+      var h = (lo + hi) / 2, d = R - h;
+      var a = (R * R * Math.acos(d / R) - d * Math.sqrt(Math.max(0, 2 * R * h - h * h))) / (Math.PI * R * R);
+      if (a < f) lo = h; else hi = h;
+    }
+    return VY + R - (lo + hi) / 2;
+  }
+
+  /* gold line and medal at 80 */
+  (function () {
+    var y = levelY(80), half = Math.sqrt(R * R - (y - VY) * (y - VY));
+    var g = $("goldLine");
+    g.setAttribute("x1", (VX - half).toFixed(1)); g.setAttribute("x2", (VX + half + 8).toFixed(1));
+    g.setAttribute("y1", y.toFixed(1)); g.setAttribute("y2", y.toFixed(1));
+    var m = $("medal");
+    m.setAttribute("transform", "translate(" + (VX + half + 20).toFixed(1) + " " + y.toFixed(1) + ")");
+    el("circle", { "class": "mhalo", r: 10, fill: "none", "stroke-width": "1.5", style: "stroke:var(--gold-600)" }, m);
+    el("circle", { id: "medalDisc", r: 10, "stroke-width": "1.2", style: "fill:var(--gold-200);stroke:var(--gold-700)" }, m);
+    el("text", { y: 3.3, "text-anchor": "middle", "font-size": "9", "font-weight": "700", style: "fill:var(--olive-700)" }, m).textContent = "80";
+  })();
+
+  /* a unit drop: tip at y -1.4, round base of radius 1 centred at 0.25 */
+  var DROP = "M0 -1.45 C .3 -.95 1 -.35 1 .25 A1 1 0 0 1 -1 .25 C -1 -.35 -.3 -.95 0 -1.45 Z";
+  $("dropPathC").setAttribute("d", DROP);
+  var TOP = -1.45, BOT = 1.25, H = BOT - TOP;
+  function rad(w) { return 4.2 * Math.sqrt(w); }
+
+  var MEALS = [
+    { id: "bf", name: "Breakfast", w: 20, x: 60,  pts: 17 },
+    { id: "lu", name: "Lunch",     w: 35, x: 138, pts: 32 },
+    { id: "sn", name: "Snack",     w: 10, x: 214, pts: 9 },
+    { id: "di", name: "Dinner",    w: 35, x: 290, pts: 0 }
+  ];
+  var ROWY = 58;
+  /* breakfast example: marks 75, 75, 100; each macro is a third of the meal */
+  var MAC = [
+    { name: "Protein", glyph: "glyph-protein", eat: 9,  t: 15, mark: 75,  sx: 66 },
+    { name: "Carbs",   glyph: "glyph-carbs",   eat: 58, t: 40, mark: 75,  sx: 179 },
+    { name: "Fat",     glyph: "glyph-fats",    eat: 9,  t: 9,  mark: 100, sx: 292 }
+  ];
+  var BIG = { x: 179, y: 212, s: 54 };
+
+  /* build the drops */
+  var dropsG = $("drops"), D = {};
+  MEALS.forEach(function (m) {
+    var mv = el("g", { "class": "mv" }, dropsG);
+    var g = el("g", { "class": "drop", tabindex: "0", role: "button", "aria-label": m.name + ", counts for " + m.w + " of 100" }, mv);
+    var body = el("g", {}, g);
+    el("path", { "class": "dhalo", d: DROP, fill: "none", "stroke-width": "1.5", "vector-effect": "non-scaling-stroke", style: "stroke:var(--brand-400)" }, body);
+    el("path", { d: DROP, fill: "url(#glass)" }, body);
+    var inner = el("g", { "clip-path": "url(#dropClip)" }, body);
+    var layers = [];
+    if (m.id === "bf") {
+      var acc = 0;
+      MAC.forEach(function (c) {
+        var hgt = H * (c.mark / 300);
+        layers.push(el("rect", { "class": "layer", x: -1.2, y: (BOT - acc - hgt).toFixed(3), width: 2.4, height: (hgt + .01).toFixed(3), fill: "url(#dropWater)" }, inner));
+        acc += hgt;
+      });
+      var mk = el("text", { "class": "fade off", y: ".5", "text-anchor": "middle", "font-size": ".62", "font-weight": "700", fill: "#fff" }, body);
+      mk.textContent = "83"; D.mark = mk;
+    } else {
+      var lv = el("rect", { "class": "layer", x: -1.2, y: (BOT - H * (m.pts / m.w)).toFixed(3), width: 2.4, height: (H * (m.pts / m.w)).toFixed(3), fill: "url(#dropWater)" }, inner);
+      layers.push(lv);
+    }
+    var outline = el("path", { d: DROP, fill: "none", "stroke-width": "1.2", "vector-effect": "non-scaling-stroke", style: "stroke:var(--g-300)" }, body);
+    el("path", { d: "M-.62 .05 A .7 .7 0 0 1 -.35 -.45", fill: "none", stroke: "#fff", "stroke-width": "2.2", "stroke-linecap": "round", "vector-effect": "non-scaling-stroke", opacity: ".9" }, body);
+    var lbl = el("g", { "class": "fade" }, mv);
+    el("text", { y: 0, "text-anchor": "middle", "font-size": "11", "font-weight": "500", style: "fill:var(--g-600)" }, lbl).textContent = m.name;
+    el("text", { y: 15, "text-anchor": "middle", "font-size": "13", "font-weight": "700", style: "fill:var(--g-900)" }, lbl).textContent = m.w;
+    D[m.id] = { mv: mv, g: g, body: body, layers: layers, outline: outline, lbl: lbl, m: m };
+    g.addEventListener("click", function () { tapDrop(m); });
+    g.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); tapDrop(m); } });
+  });
+
+  /* place a drop: centre x, y and size s, label placement */
+  function place(id, x, y, s, lblSide) {
+    var d = D[id];
+    d.mv.style.transform = "translate(" + x + "px," + y + "px)";
+    d.body.style.transform = "scale(" + s + ")";
+    d.body.style.transition = "transform .9s var(--io)";
+    if (lblSide === "right") d.lbl.setAttribute("transform", "translate(" + (s + 26) + " -2)");
+    else d.lbl.setAttribute("transform", "translate(0 46)");
+    d.lbl.classList.toggle("off", !lblSide);
+  }
+  function show(id, on) { D[id].mv.style.opacity = on ? "1" : "0"; D[id].mv.style.pointerEvents = on ? "" : "none"; }
+  function fillDrop(id, on, stagger) {
+    D[id].layers.forEach(function (l, i) {
+      if (stagger) later(function () { l.classList.add("on"); }, stagger + i * 1000);
+      else l.classList.toggle("on", on);
+    });
+  }
+  function dashed(id, on) { D[id].outline.setAttribute("stroke-dasharray", on ? "4 3" : "none"); D[id].outline.style.stroke = on ? "var(--brand-500)" : "var(--g-300)"; }
+
+  /* streams and their sources */
+  var streamsG = $("streams"), srcs = $("srcs");
+  MAC.forEach(function (c) {
+    var sy = 104, ty = BIG.y + TOP * BIG.s + 6;
+    c.path = el("path", { "class": "stream", d: "M" + c.sx + " " + sy + " C " + c.sx + " " + (sy + 24) + ", 179 " + (ty - 26) + ", 179 " + ty,
+      "stroke-width": c.mark === 100 ? 6 : 4, style: "stroke:var(--brand-500)" }, streamsG);
+    var d = document.createElement("div");
+    d.className = "src" + (c.mark === 100 ? " full" : "");
+    d.style.left = (c.sx / 358 * 100) + "%"; d.style.top = (22 / 330 * 100) + "%";
+    d.innerHTML = '<div class="n">' + c.name + '</div><div class="g">' + c.eat + " of " + c.t + ' g</div><div class="chip"><i class="' + c.glyph + '"></i></div>';
+    d.querySelector(".g").insertAdjacentHTML("afterend", '<div class="m">' + (c.mark === 100 ? "Full marks" : "Part marks") + "</div>");
+    srcs.appendChild(d); c.src = d;
+  });
+
+  /* strata for meals already in the glass */
+  function strata(on) {
+    var g = $("strata"); g.innerHTML = "";
+    if (!on) return;
+    [17, 49].forEach(function (v) {
+      var y = levelY(v), half = Math.sqrt(R * R - (y - VY) * (y - VY));
+      el("line", { x1: VX - half, x2: VX + half, y1: y, y2: y, stroke: "#fff", "stroke-width": "1", opacity: ".6" }, g);
+    });
+  }
+
+  /* ------------------------------------------------------------- state */
+  var timers = [];
+  function later(fn, ms) { timers.push(setTimeout(fn, STILL ? 0 : ms)); }
+  function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+  var shown = 0, raf = null;
+  function setLevel(v) { $("waterG").style.transform = "translateY(" + levelY(v).toFixed(1) + "px)"; }
+  function setGhost(v, label) {
+    $("ghostG").style.transform = "translateY(" + levelY(v).toFixed(1) + "px)";
+    var l = $("ghostLbl");
+    l.classList.toggle("off", !label);
+    if (label) {
+      var y = levelY(v), words = label.split("|");
+      l.textContent = "";
+      words.forEach(function (w, i) { var t = el("tspan", { x: 82, y: (y - 3 + i * 14 - (words.length - 1) * 4).toFixed(1) }, l); t.textContent = w; });
+    }
+  }
+  function setScore(v) {
+    var t = $("scoreN");
+    if (raf) cancelAnimationFrame(raf);
+    if (STILL) { shown = v; t.textContent = v; return; }
+    var from = shown, t0 = performance.now(), DUR = 1400;
+    (function tick(now) {
+      var k = Math.min(1, (now - t0) / DUR), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      shown = Math.round(from + (v - from) * e); t.textContent = shown;
+      raf = k < 1 ? requestAnimationFrame(tick) : null;
+    })(t0);
+  }
+  function medal(on) {
+    $("medal").classList.toggle("lit", on);
+    $("medalDisc").style.fill = on ? "var(--gold-300)" : "var(--gold-200)";
+    $("goldLine").setAttribute("stroke-width", on ? "1.8" : "1.2");
+  }
+  function ripple(v) {
+    var r = $("ripple"); r.setAttribute("cy", levelY(v).toFixed(1));
+    r.classList.remove("go"); void r.getBoundingClientRect(); r.classList.add("go");
+  }
+  function streams(state) { MAC.forEach(function (c) { c.path.classList.remove("pour", "rest"); if (state) c.path.classList.add(state); c.src.classList.toggle("on", !!state); }); }
+
+  /* --------------------------------------------------------------- copy */
+  var COPY = {
+    h1: CUR ? "Your meals now add up to a score" : "Your score is a glass",
+    p1: CUR ? "Every meal you log now falls into this glass as a drop. Your breakfast, lunch and snack have filled it to 58 today."
+            : "It fills up to 100 through the day. Every meal you log falls in as a drop. Bigger meals make bigger drops, because they count for more.",
+    tip: CUR ? "Your dinner drop is waiting." : "Tap breakfast to look inside.",
+    p2: "Your coach sets protein, carbs and fat for each meal. Each one pours into the drop. Landing close to plan pours in full, further away pours in part.",
+    res: (CUR ? "Your breakfast" : "This breakfast") + " fills to <b>83</b>, so it adds <b>17</b> of its 20.",
+    h3: CUR ? "Dinner can take you past 80" : "Fill past the gold line",
+    p3: CUR ? "Dinner counts for 35. Land it close to plan and it lifts you past the gold line, and today earns a medal."
+            : "Each drop adds its points to the glass. This breakfast adds 17. A day close to plan rises past the gold line at 80 and earns a medal.",
+    n3: (CUR ? "" : "A meal adds once you log it. ") + "Eating much more than planned can take marks away. The glass starts fresh every morning."
+  };
+  ["h1", "p1", "p2", "h3", "p3", "n3"].forEach(function (k) { $(k).textContent = COPY[k]; });
+  $("res").innerHTML = COPY.res;
+  var tip = $("tip");
+  function say(t) { tip.textContent = t; tip.classList.remove("swap"); void tip.offsetWidth; tip.classList.add("swap"); }
+
+  /* --------------------------------------------------------------- steps */
+  var cur = 1, N = 3;
+  var FINAL = CUR ? "See My Score" : "Log Your First Meal";
+  var dots = $("dots"), cta = $("cta");
+  for (var i = 1; i <= N; i++) (function (n) {
+    var b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-label", "Step " + n); b.innerHTML = "<i></i>";
+    b.addEventListener("click", function () { go(n); }); dots.appendChild(b);
+  })(i);
+
+  function reset() {
+    clearTimers();
+    streams(null); medal(false); setGhost(0, ""); strata(false);
+    $("vessel").classList.remove("off"); $("crumb").classList.add("off"); D.mark.classList.add("off");
+    MEALS.forEach(function (m) { D[m.id].mv.classList.remove("fall"); D[m.id].g.classList.remove("wait", "hint"); dashed(m.id, false); fillDrop(m.id, false); show(m.id, false); });
+  }
+
+  function go(n) {
+    reset(); cur = n;
+    document.querySelectorAll(".copy > div").forEach(function (d) { d.classList.toggle("on", +d.dataset.s === n); });
+    dots.querySelectorAll("button").forEach(function (b, i) { if (i + 1 === n) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
+    cta.textContent = n === N ? FINAL : "Next";
+    $("body").scrollTop = 0;
+    $("res").classList.remove("on");
+
+    if (n === 1) {
+      tip.textContent = "";
+      if (CUR) {
+        setLevel(0); setScore(0); strata(true);
+        later(function () { setLevel(58); setScore(58); }, 400);
+        place("di", 179, 72, rad(35), "right"); dashed("di", true); show("di", true);
+        later(function () { D.di.g.classList.add("wait"); say(COPY.tip); }, 1900);
+      } else {
+        setLevel(0); setScore(0);
+        MEALS.forEach(function (m, i) { place(m.id, m.x, ROWY, rad(m.w), "below"); later(function () { show(m.id, true); }, 200 + i * 160); });
+        later(function () { D.bf.g.classList.add("hint"); say(COPY.tip); }, 1300);
+      }
+      return;
+    }
+    if (n === 2) {
+      setLevel(CUR ? 58 : 0); setScore(CUR ? 58 : 0); strata(CUR);
+      $("vessel").classList.add("off");
+      $("crumb").classList.remove("off");
+      place("bf", BIG.x, BIG.y, BIG.s, null); show("bf", true);
+      MAC.forEach(function (c, i) {
+        later(function () { c.src.classList.add("on"); }, 400 + i * 120);
+        later(function () { c.path.classList.add("pour"); }, 900 + i * 1000);
+        later(function () { c.path.classList.remove("pour"); c.path.classList.add("rest"); }, 1900 + i * 1000);
+      });
+      fillDrop("bf", true, STILL ? 0 : 1000);
+      if (STILL) { fillDrop("bf", true); MAC.forEach(function (c) { c.src.classList.add("on"); c.path.classList.add("rest"); }); }
+      later(function () { D.mark.classList.remove("off"); $("res").classList.add("on"); }, 4100);
+      return;
+    }
+    /* step 3: the drop joins the glass, the level rises past the gold line */
+    if (CUR) {
+      setLevel(58); setScore(58); strata(true);
+      place("di", 179, 72, rad(35), "right"); dashed("di", true); show("di", true);
+      later(function () { D.di.g.classList.add("wait"); setGhost(93, "With|dinner"); }, 700);
+      later(function () { medal(true); }, 2000);
+      return;
+    }
+    setLevel(0); setScore(0);
+    ["lu", "sn", "di"].forEach(function (id) { var m = D[id].m; place(id, m.x, ROWY, rad(m.w), "below"); dashed(id, true); later(function () { show(id, true); }, 300); });
+    fillDrop("bf", true); show("bf", true);
+    if (STILL) {
+      show("bf", false); setLevel(17); setScore(17); setGhost(86, "A day close|to plan"); medal(true); return;
+    }
+    place("bf", BIG.x, BIG.y, BIG.s, null);
+    requestAnimationFrame(function () { requestAnimationFrame(function () { place("bf", 179, 96, rad(20), null); }); });
+    later(function () {
+      var d = D.bf; d.mv.classList.add("fall");
+      d.mv.style.transform = "translate(179px," + (levelY(0) - 10) + "px)"; d.mv.style.opacity = "0";
+    }, 1000);
+    later(function () { ripple(0); setLevel(17); setScore(17); }, 1600);
+    later(function () { setGhost(86, "A day close|to plan"); }, 3300);
+    later(function () { medal(true); }, 4600);
+  }
+
+  function tapDrop(m) {
+    if (cur !== 1) return;
+    if (m.id === "bf") { go(2); return; }
+    say(m.name + " counts for " + m.w + " of your 100." + (m.id === "di" && CUR ? " It is still to come." : ""));
+  }
+
+  cta.addEventListener("click", function () { if (cur < N) go(cur + 1); else close(); });
+
+  /* ------------------------------------------------------ open and close */
+  function open() {
+    root.classList.remove("closed", "closing");
+    var n = parseInt(Q.get("step"), 10);
+    go(n >= 1 && n <= N ? n : 1);
+    if (STILL) { root.classList.add("open"); return; }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("open"); }); });
+  }
+  function close() {
+    clearTimers();
+    root.classList.add("closing"); root.classList.remove("open");
+    setTimeout(function () { root.classList.add("closed"); $("replay").focus({ preventScroll: true }); }, STILL ? 0 : 360);
+  }
+  document.querySelector("[data-close]").addEventListener("click", close);
+  document.querySelector(".scrim").addEventListener("click", close);
+  addEventListener("keydown", function (e) { if (e.key === "Escape" && root.classList.contains("open")) close(); });
+  $("replay").addEventListener("click", function () { Q.delete("step"); open(); });
+  open();
+})();
+</script>
+</body>
+</html>

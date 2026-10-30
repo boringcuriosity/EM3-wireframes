@@ -1,0 +1,520 @@
+<!doctype html>
+<!--
+  FTUX concept: "Your thali".
+  The day is an Indian thali seen from above. Each katori is one meal, sized by how
+  much it counts (Breakfast 20, Lunch 35, Snack 10, Dinner 35). Breakfast opens to
+  show three small bowls (protein, carbs, fat) filling up to the coach's fine line:
+  near the line glows full green, further away fills partly. Back on the plate, the
+  rim gathers the meal's points into the day's score, with the medal mark at 80.
+
+  Flags
+    ?who=new       (default) first-time user, empty thali, breakfast as the example
+    ?who=current   already logs meals: katoris at 17, 32, 9, dinner empty, rim at 58
+    ?step=N        open at step N (1 the day, 2 inside one katori, 3 the rim)
+    ?still=1       no animation, end states shown (also when prefers-reduced-motion)
+  Tap any katori on step 1 to hear what it counts for; tap breakfast to open it.
+-->
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Your Thali</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<link rel="stylesheet" href="/v7/icons/glyph-masks.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; overflow: hidden; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; }
+  :root { --io: cubic-bezier(.65,0,.35,1); }
+
+  .behind { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; background: #fff; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .42s var(--ease); }
+  .open .scrim { opacity: 1; }
+
+  /* ------------------------------------------------------------ the sheet */
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh;
+    display: flex; flex-direction: column; background: #fff; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    transform: translate(-50%, 100%); transition: transform .42s cubic-bezier(.2,.7,.2,1);
+    box-shadow: 0 -8px 32px rgba(16,24,40,.12); }
+  .open .sheet { transform: translate(-50%, 0); }
+  .closing .sheet { transition-duration: .34s; transition-timing-function: cubic-bezier(.4,0,1,1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 4px; }
+  .shead h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  .x:focus-visible, .ok:focus-visible, .dots button:focus-visible, .kat:focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+  .sbody { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px 4px; }
+  .sfoot { flex-shrink: 0; padding: 4px 16px calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 12px; }
+  .ok { width: 100%; height: 48px; margin-bottom: 7px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff;
+    font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; }
+  .ok:active { transform: translateY(3px); box-shadow: 0 4px 0 var(--brand-700); }
+  .dots { display: flex; justify-content: center; gap: 4px; }
+  .dots button { width: 24px; height: 24px; border: 0; padding: 0; background: none; display: grid; place-items: center; cursor: pointer; border-radius: 9999px; }
+  .dots i { display: block; width: 6px; height: 6px; border-radius: 9999px; background: var(--g-200); transition: width .4s var(--ease), background-color .4s var(--ease); }
+  .dots button[aria-current="step"] i { width: 18px; background: var(--brand-600); }
+
+  /* ------------------------------------------------------------ the stage */
+  .stage { position: relative; width: 100%; max-width: 358px; margin: 0 auto; aspect-ratio: 358 / 290; overflow: hidden; }
+  .stage svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+  #world { transform-box: view-box; transform-origin: 0 0; transition: transform 1s var(--io); }
+  .kat { cursor: pointer; outline: none; }
+  .kat .in { transition: opacity .5s var(--ease); }
+  .kat .lbl { transition: opacity .4s var(--ease); pointer-events: none; }
+  .zoom .kat .lbl, .zoom .garnish, .zoom #rimG { opacity: 0; }
+  .garnish, #rimG { transition: opacity .5s var(--ease); }
+  .fill, .bfill { transform-box: fill-box; transform-origin: center; transition: transform .9s var(--io), fill .5s var(--ease); }
+  .glow { transition: opacity .6s var(--ease); opacity: 0; }
+  .glow.on { opacity: 1; }
+  .kat .ring { transition: stroke .4s var(--ease), stroke-width .4s var(--ease); }
+  .kat.hint .halo { animation: halo 2.6s var(--io) infinite; }
+  @keyframes halo { 0% { opacity: .55; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(1.22); } }
+  .halo { opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .bowls { opacity: 0; transition: opacity .6s var(--ease); }
+  .zoom .bowls { opacity: 1; transition-delay: .55s; }
+  .zoom #bfMeal { opacity: 0; }
+  #bfMeal { transition: opacity .4s var(--ease); }
+  .seg { transition: stroke-dasharray 1s var(--io), stroke-dashoffset 1s var(--io); }
+  .ghost { transition: opacity .6s var(--ease); }
+  .medal circle { transition: fill .6s var(--ease); }
+  .medal.lit .mhalo { animation: mhalo 2.6s var(--io) infinite; }
+  @keyframes mhalo { 0% { opacity: .6; transform: scale(1); } 70%, 100% { opacity: 0; transform: scale(1.9); } }
+  .mhalo { opacity: 0; transform-box: fill-box; transform-origin: center; }
+
+  /* glyphs for the three small bowls, laid over the svg */
+  .gly { position: absolute; width: 20px; height: 20px; margin: -10px 0 0 -10px; background: var(--brand-800); opacity: 0;
+    -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center;
+    transition: opacity .5s var(--ease); pointer-events: none; }
+  .zoom .gly { opacity: .9; transition-delay: .8s; }
+
+  /* the day's score, top right of the stage */
+  .score { position: absolute; top: 2px; right: 0; text-align: right; pointer-events: none; transition: opacity .4s var(--ease); }
+  .score b { display: block; font-size: 28px; line-height: 32px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -.4px; }
+  .score span { font-size: 12px; line-height: 16px; color: var(--g-500); }
+  .zoom .score { opacity: 0; }
+  .crumb { position: absolute; top: 4px; left: 0; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--g-500); opacity: 0; transition: opacity .4s var(--ease); }
+  .zoom .crumb { opacity: 1; transition-delay: .6s; }
+
+  /* ------------------------------------------------------------- the copy */
+  .copy { min-height: 150px; padding-top: 8px; }
+  .copy h3 { margin: 0 0 6px; font-size: 20px; line-height: 28px; font-weight: 700; text-wrap: balance; }
+  .copy p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
+  .copy p + p { margin-top: 8px; }
+  .copy .note { font-size: 13px; line-height: 19px; color: var(--g-500); }
+  .copy .tip { margin-top: 10px; font-size: 13px; line-height: 19px; font-weight: 600; color: var(--brand-700); min-height: 19px; }
+  .copy > div { display: none; }
+  .copy > div.on { display: block; animation: rise .4s var(--ease) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .tip.swap { animation: rise .4s var(--ease) both; }
+
+  .marks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 12px 0 10px; }
+  .mk { padding: 8px 10px; border-radius: var(--r-md); background: var(--g-25); border: 1px solid var(--g-100); opacity: 0; transform: translateY(4px);
+    transition: opacity .45s var(--ease), transform .45s var(--ease), background-color .45s var(--ease), border-color .45s var(--ease); }
+  .mk.on { opacity: 1; transform: none; }
+  .mk.full { background: var(--ok-50); border-color: var(--ok-100); }
+  .mk .n { display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 18px; font-weight: 600; }
+  .mk .n i { width: 14px; height: 14px; background: var(--brand-600); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+  .mk .g { font-size: 12px; line-height: 16px; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .mk .m { margin-top: 2px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--g-600); }
+  .mk.full .m { color: var(--ok-600); }
+  .res { font-size: 14px; line-height: 21px; color: var(--g-700); opacity: 0; transition: opacity .5s var(--ease); }
+  .res.on { opacity: 1; }
+  .res b { color: var(--g-900); }
+
+  .replay { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 9999px; border: 0;
+    background: rgb(255 255 255 / .92); color: var(--brand-700); font-size: 14px; font-weight: 600; box-shadow: 0 2px 10px rgba(16,24,40,.18);
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .closed .replay { opacity: 1; pointer-events: auto; }
+
+  .still *, .still *::before, .still *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<iframe class="behind" tabindex="-1" aria-hidden="true" title=""></iframe><script>document.currentScript.previousElementSibling.src = "/v7/r3/eat.html" + (/who=current/.test(location.search) ? "" : "?state=empty");</script>
+<div class="scrim" aria-hidden="true"></div>
+
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <header class="shead">
+    <h2 id="sheetTitle">Your thali</h2>
+    <button class="x" type="button" aria-label="Close" data-close><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </header>
+
+  <div class="sbody" id="body">
+    <div class="stage" id="stage">
+      <svg viewBox="0 0 358 290" role="img" aria-labelledby="stageDesc" id="svg">
+        <desc id="stageDesc">A thali seen from above with one katori per meal, and a ring around the plate that adds up the day's score.</desc>
+        <defs>
+          <radialGradient id="plate" cx="50%" cy="46%" r="60%">
+            <stop offset="0" stop-color="#fff"/><stop offset=".72" style="stop-color:var(--g-25)"/><stop offset="1" style="stop-color:var(--g-100)"/>
+          </radialGradient>
+          <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" style="stop-color:var(--g-25)"/><stop offset=".55" style="stop-color:var(--g-100)"/><stop offset="1" style="stop-color:var(--g-200)"/>
+          </linearGradient>
+          <radialGradient id="bowl" cx="44%" cy="40%" r="65%">
+            <stop offset="0" stop-color="#fff"/><stop offset=".8" style="stop-color:var(--g-25)"/><stop offset="1" style="stop-color:var(--g-100)"/>
+          </radialGradient>
+          <radialGradient id="liqFull" cx="42%" cy="38%" r="70%">
+            <stop offset="0" style="stop-color:var(--ok-100)"/><stop offset="1" style="stop-color:var(--ok-300)"/>
+          </radialGradient>
+          <radialGradient id="liqPart" cx="42%" cy="38%" r="70%">
+            <stop offset="0" style="stop-color:var(--brand-50)"/><stop offset="1" style="stop-color:var(--brand-600)" stop-opacity=".35"/>
+          </radialGradient>
+          <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2.4"/></filter>
+          <filter id="softS" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation=".8"/></filter>
+        </defs>
+        <g id="world">
+          <!-- rim: the day's score -->
+          <g id="rimG">
+            <circle cx="179" cy="145" r="136" fill="none" stroke-width="7" style="stroke:var(--g-100)"/>
+            <g id="segs"></g>
+            <g class="medal" id="medal"></g>
+          </g>
+          <!-- plate -->
+          <circle cx="179" cy="145" r="128" fill="url(#plate)" style="stroke:var(--g-200)" stroke-width="1"/>
+          <circle cx="179" cy="145" r="118" fill="none" style="stroke:var(--g-100)" stroke-width="1.2"/>
+          <!-- garnish: a curry leaf and a lemon wedge -->
+          <g class="garnish" aria-hidden="true">
+            <g transform="translate(173 52) rotate(-28)">
+              <path d="M-11 0 C -5 -6, 5 -6, 11 0 C 5 6, -5 6, -11 0 Z" style="fill:var(--brand-300)"/>
+              <path d="M-10 0 H 10" style="stroke:var(--brand-500)" stroke-width=".7" fill="none"/>
+            </g>
+            <g transform="translate(190 246) rotate(18)">
+              <path d="M-11 0 A 11 11 0 0 0 11 0 Z" style="fill:var(--gold-300);stroke:var(--gold-600)" stroke-width="1"/>
+              <path d="M0 0 L -6 7 M0 0 L 0 9 M0 0 L 6 7" style="stroke:var(--gold-100)" stroke-width="1" fill="none"/>
+            </g>
+          </g>
+          <g id="kats"></g>
+        </g>
+      </svg>
+      <div id="glys"></div>
+      <div class="score" aria-live="polite"><b id="scoreN">0</b><span>of 100 today</span></div>
+      <div class="crumb">Breakfast, worth 20</div>
+    </div>
+
+    <div class="copy" id="copy">
+      <div data-s="1">
+        <h3 id="h1"></h3>
+        <p id="p1"></p>
+        <div class="tip" id="tip" aria-live="polite"></div>
+      </div>
+      <div data-s="2">
+        <h3>Inside one katori</h3>
+        <p id="p2"></p>
+        <div class="marks" id="marks"></div>
+        <div class="res" id="res"></div>
+      </div>
+      <div data-s="3">
+        <h3 id="h3"></h3>
+        <p id="p3"></p>
+        <p class="note" id="n3"></p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="sfoot">
+    <div class="dots" id="dots" role="group" aria-label="Steps"></div>
+    <button class="ok" type="button" id="cta">Next</button>
+  </footer>
+</section>
+
+<button class="replay" type="button" id="replay">Replay</button>
+
+<script>
+(function () {
+  "use strict";
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  var Q = new URLSearchParams(location.search);
+  var WHO = Q.get("who") === "current" ? "current" : "new";
+  var STILL = Q.get("still") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var root = document.documentElement;
+  if (STILL) root.classList.add("still");
+  var NS = "http://www.w3.org/2000/svg";
+  var CX = 179, CY = 145, RIM = 136;
+
+  /* ------------------------------------------------------------ the day */
+  var MEALS = [
+    { id: "bf", name: "Breakfast", w: 20, x: 58,  y: -52, pts: 17 },
+    { id: "lu", name: "Lunch",     w: 35, x: -50, y: -38, pts: 32 },
+    { id: "sn", name: "Snack",     w: 10, x: -58, y: 60,  pts: 9 },
+    { id: "di", name: "Dinner",    w: 35, x: 50,  y: 44,  pts: 0 }
+  ];
+  /* breakfast example: marks 75, 75, 100, meal 83, adds 17 of 20 */
+  var BOWLS = [
+    { id: "protein", name: "Protein", glyph: "glyph-protein", eat: 9,  t: 15, mark: 75,  lx: -12, ly: -6.5 },
+    { id: "carbs",   name: "Carbs",   glyph: "glyph-carbs",   eat: 58, t: 40, mark: 75,  lx: 12,  ly: -6.5 },
+    { id: "fat",     name: "Fat",     glyph: "glyph-fats",    eat: 9,  t: 9,  mark: 100, lx: 0,   ly: 13.5 }
+  ];
+  var BR = 10.5, BL = 5.4;              /* small bowl radius, target line radius */
+  var ZS = 3.3;                         /* zoom scale onto breakfast */
+  var BF = MEALS[0], BFX = CX + BF.x, BFY = CY + BF.y;
+  var ZX = 179 - BFX * ZS, ZY = 132 - BFY * ZS;
+
+  function el(tag, attrs, parent) {
+    var n = document.createElementNS(NS, tag);
+    for (var k in attrs) n.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(n);
+    return n;
+  }
+  function rad(w) { return 7.8 * Math.sqrt(w); }
+
+  /* build the katoris */
+  var kats = document.getElementById("kats"), K = {};
+  MEALS.forEach(function (m) {
+    var r = rad(m.w), ri = r * .82, L = r * .7;
+    var g = el("g", { "class": "kat", transform: "translate(" + (CX + m.x) + " " + (CY + m.y) + ")", tabindex: "0", role: "button",
+      "aria-label": m.name + ", counts for " + m.w + " of 100" }, kats);
+    el("circle", { "class": "halo", r: r, fill: "none", "stroke-width": "2", style: "stroke:var(--brand-400)" }, g);
+    el("circle", { r: r + 1.2, cx: 1.2, cy: 1.8, style: "fill:var(--g-200)", opacity: ".5", filter: "url(#softS)" }, g);
+    el("circle", { "class": "ring", r: r, fill: "url(#steel)", "stroke-width": ".8", style: "stroke:var(--g-300)" }, g);
+    el("circle", { r: ri, fill: "url(#bowl)", "stroke-width": ".6", style: "stroke:var(--g-200)" }, g);
+    var meal = el("g", { id: m.id + "Meal" }, g);
+    var glow = el("circle", { "class": "glow", r: L * 1.08, style: "fill:var(--ok-300)", filter: "url(#soft)" }, meal);
+    var fill = el("circle", { "class": "fill", r: L, fill: "url(#liqPart)", opacity: ".72", style: "transform:scale(0)" }, meal);
+    var line = el("circle", { r: L, fill: "none", "stroke-width": ".8", "stroke-dasharray": "1.6 1.6", style: "stroke:var(--g-400)" }, meal);
+    var lbl = el("g", { "class": "lbl" }, g);
+    var t1 = el("text", { y: m.w > 10 ? -3 : -2, "text-anchor": "middle", "font-size": m.w > 20 ? 10 : m.w > 10 ? 8.6 : 8, "font-weight": "500", style: "fill:var(--g-600)" }, lbl);
+    t1.textContent = m.name;
+    var t2 = el("text", { y: m.w > 10 ? 11 : 9, "text-anchor": "middle", "font-size": m.w > 10 ? 13 : 10.5, "font-weight": "700", style: "fill:var(--g-900);font-variant-numeric:tabular-nums" }, lbl);
+    K[m.id] = { g: g, fill: fill, glow: glow, line: line, val: t2, r: r, L: L, m: m };
+    g.addEventListener("click", function () { tapKat(m); });
+    g.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); tapKat(m); } });
+  });
+
+  /* three small bowls inside breakfast */
+  var bowlsG = el("g", { "class": "bowls", "aria-hidden": "true" }, K.bf.g);
+  var glys = document.getElementById("glys");
+  BOWLS.forEach(function (b) {
+    var g = el("g", { transform: "translate(" + b.lx + " " + b.ly + ")" }, bowlsG);
+    el("circle", { r: BR + .5, cx: .4, cy: .6, style: "fill:var(--g-200)", opacity: ".55", filter: "url(#softS)" }, g);
+    el("circle", { r: BR, fill: "url(#steel)", "stroke-width": ".3", style: "stroke:var(--g-300)" }, g);
+    el("circle", { r: BR * .84, fill: "url(#bowl)", "stroke-width": ".2", style: "stroke:var(--g-200)" }, g);
+    /* the full-marks band: from a little under to a little over */
+    el("circle", { r: BL, fill: "none", "stroke-width": BL * .4, style: "stroke:var(--ok-50)" }, g);
+    b.glowEl = el("circle", { "class": "glow", r: BL * 1.15, style: "fill:var(--ok-300)", filter: "url(#softS)" }, g);
+    b.fillEl = el("circle", { "class": "bfill", r: BL, fill: "url(#liqPart)", opacity: ".7", style: "transform:scale(0)" }, g);
+    el("circle", { r: BL, fill: "none", "stroke-width": ".28", "stroke-dasharray": ".6 .6", style: "stroke:var(--g-500)" }, g);
+    var d = document.createElement("i");
+    d.className = "gly " + b.glyph;
+    d.style.left = ((ZX + ZS * (BFX + b.lx)) / 358 * 100) + "%";
+    d.style.top = ((ZY + ZS * (BFY + b.ly)) / 290 * 100) + "%";
+    glys.appendChild(d);
+  });
+
+  /* rim segments, one per meal, plus a ghost for what dinner could add */
+  var segs = document.getElementById("segs"), SEG = {};
+  function ringCircle(cls, extra) {
+    var a = { "class": cls, cx: CX, cy: CY, r: RIM, fill: "none", "stroke-width": "7", pathLength: "100",
+      transform: "rotate(-90 " + CX + " " + CY + ")", "stroke-dasharray": "0 100" };
+    for (var k in extra) a[k] = extra[k];
+    return el("circle", a, segs);
+  }
+  var ghost = ringCircle("ghost", { "stroke-dasharray": "0 100", style: "stroke:var(--ok-300)", opacity: "0", "stroke-linecap": "butt" });
+  MEALS.forEach(function (m) { SEG[m.id] = ringCircle("seg", { style: "stroke:var(--ok-500)" }); });
+
+  /* medal mark at 80 on the rim */
+  (function () {
+    var a = (-90 + 288) * Math.PI / 180, mx = CX + RIM * Math.cos(a), my = CY + RIM * Math.sin(a);
+    var g = document.getElementById("medal");
+    g.setAttribute("transform", "translate(" + mx.toFixed(1) + " " + my.toFixed(1) + ")");
+    el("circle", { "class": "mhalo", r: 10, fill: "none", "stroke-width": "1.5", style: "stroke:var(--gold-600)" }, g);
+    el("circle", { r: 11, fill: "#fff" }, g);
+    el("circle", { r: 9.5, style: "fill:var(--gold-200);stroke:var(--gold-700)", "stroke-width": "1.2", id: "medalDisc" }, g);
+    var t = el("text", { y: 3.2, "text-anchor": "middle", "font-size": "8.5", "font-weight": "700", style: "fill:var(--olive-700)" }, g);
+    t.textContent = "80";
+  })();
+
+  /* ------------------------------------------------------------- state */
+  var timers = [];
+  function later(fn, ms) { timers.push(setTimeout(fn, STILL ? 0 : ms)); }
+  function clearTimers() { timers.forEach(clearTimeout); timers = []; }
+
+  function setFill(id, frac) {          /* frac = meal points / worth */
+    var k = K[id], s = frac > 0 ? Math.sqrt(frac) : 0;
+    k.fill.style.transform = "scale(" + s.toFixed(3) + ")";
+    var full = frac >= .995;
+    k.fill.setAttribute("fill", full ? "url(#liqFull)" : "url(#liqPart)");
+    k.glow.classList.toggle("on", full);
+    k.val.textContent = frac > 0 ? Math.round(frac * k.m.w) + " of " + k.m.w : k.m.w;
+    var big = k.m.w > 20 ? 13 : k.m.w > 10 ? 11.5 : 10.5;
+    k.val.setAttribute("font-size", frac > 0 ? (k.m.w > 20 ? 12 : k.m.w > 10 ? 9.5 : 8) : big);
+  }
+  function setBowl(b, on) {
+    var f = on ? b.eat / b.t : 0, full = on && b.mark === 100;
+    b.fillEl.style.transform = "scale(" + f.toFixed(3) + ")";
+    b.fillEl.setAttribute("fill", full ? "url(#liqFull)" : "url(#liqPart)");
+    b.glowEl.classList.toggle("on", full);
+  }
+  function setSegs(list) {              /* list of [id, points] in order around the rim */
+    var at = 0;
+    MEALS.forEach(function (m) { SEG[m.id].setAttribute("stroke-dasharray", "0 100"); SEG[m.id].setAttribute("stroke-dashoffset", -at); });
+    list.forEach(function (p) {
+      var s = SEG[p[0]];
+      s.setAttribute("stroke-dashoffset", (-at).toFixed(2));
+      s.setAttribute("stroke-dasharray", Math.max(0, p[1] - .6).toFixed(2) + " 100");
+      at += p[1];
+    });
+  }
+  function setGhost(from, len) {
+    ghost.setAttribute("stroke-dashoffset", -from);
+    ghost.setAttribute("stroke-dasharray", len ? "1.2 .8" : "0 100");
+    if (len) { /* a dashed run from `from` to `from + len` */
+      var parts = [], n = Math.floor(len / 2);
+      for (var i = 0; i < n; i++) parts.push(".7", "1.3");
+      parts.push("0", "100");
+      ghost.setAttribute("stroke-dasharray", parts.join(" "));
+    }
+    ghost.setAttribute("opacity", len ? ".85" : "0");
+  }
+  var shown = 0, raf = null;
+  function setScore(v) {
+    var el2 = document.getElementById("scoreN");
+    if (raf) cancelAnimationFrame(raf);
+    if (STILL) { shown = v; el2.textContent = v; return; }
+    var from = shown, t0 = performance.now(), D = 1000;
+    (function tick(now) {
+      var k = Math.min(1, (now - t0) / D), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      shown = Math.round(from + (v - from) * e); el2.textContent = shown;
+      raf = k < 1 ? requestAnimationFrame(tick) : null;
+    })(t0);
+  }
+  function zoom(on) {
+    document.getElementById("world").style.transform = on ? "translate(" + ZX.toFixed(1) + "px," + ZY.toFixed(1) + "px) scale(" + ZS + ")" : "none";
+    document.getElementById("stage").classList.toggle("zoom", on);
+    MEALS.forEach(function (m) { K[m.id].g.setAttribute("tabindex", on ? "-1" : "0"); });
+  }
+  function hint(on) { K.bf.g.classList.toggle("hint", on); }
+  function medalLit(on) {
+    document.getElementById("medal").classList.toggle("lit", on);
+    document.getElementById("medalDisc").style.fill = on ? "var(--gold-300)" : "var(--gold-200)";
+  }
+  function resetBowls() {
+    BOWLS.forEach(function (b) { setBowl(b, false); });
+    document.querySelectorAll(".mk").forEach(function (m) { m.classList.remove("on"); });
+    document.getElementById("res").classList.remove("on");
+  }
+
+  /* --------------------------------------------------------------- copy */
+  var CUR = WHO === "current";
+  var COPY = {
+    h1: CUR ? "Your meals now add up to a score" : "Your day is a thali",
+    p1: CUR ? "Each katori is one of your meals, sized by how much it counts. The meals you have logged today already come to 58 of 100."
+            : "Your coach plans every meal of your day. Each katori is one meal. Bigger meals get bigger katoris, because they count for more of your 100.",
+    tip: "Tap breakfast to look inside.",
+    p2: (CUR ? "Your breakfast" : "Every meal") + " holds three small bowls: protein, carbs and fat. Your coach draws a fine line in each. Landing near the line counts as full.",
+    res: (CUR ? "Your breakfast" : "This breakfast") + " scores <b>83</b>, so it adds <b>17</b> of its 20.",
+    h3: CUR ? "Dinner can take you past 80" : "The rim adds up your day",
+    p3: CUR ? "Your rim holds 58 so far. Dinner counts for 35. Land it close to plan and today earns a medal."
+            : "Every meal you log pours its points into the rim. This breakfast adds 17. Reach 80 and the day earns a medal.",
+    n3: CUR ? "Eating much more than planned can take marks away. Your thali starts fresh every morning."
+            : "A meal adds once you log it. Eating much more than planned can take marks away. Your thali starts fresh every morning."
+  };
+  ["h1", "p1", "p2", "h3", "p3", "n3"].forEach(function (k) { document.getElementById(k).textContent = COPY[k]; });
+  document.getElementById("res").innerHTML = COPY.res;
+  var marks = document.getElementById("marks");
+  BOWLS.forEach(function (b) {
+    var d = document.createElement("div");
+    d.className = "mk" + (b.mark === 100 ? " full" : "");
+    d.innerHTML = '<div class="n"><i class="' + b.glyph + '"></i>' + b.name + '</div><div class="g">' + b.eat + " of " + b.t + ' g</div><div class="m">' +
+      (b.mark === 100 ? "Full marks" : "Part marks, " + b.mark) + "</div>";
+    marks.appendChild(d); b.mk = d;
+  });
+  var tip = document.getElementById("tip");
+  function say(t) { tip.textContent = t; tip.classList.remove("swap"); void tip.offsetWidth; tip.classList.add("swap"); }
+
+  /* --------------------------------------------------------------- steps */
+  var cur = 1, N = 3;
+  var FINAL = CUR ? "See My Score" : "Log Your First Meal";
+  var dots = document.getElementById("dots"), cta = document.getElementById("cta");
+  for (var i = 1; i <= N; i++) (function (n) {
+    var b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-label", "Step " + n); b.innerHTML = "<i></i>";
+    b.addEventListener("click", function () { go(n); }); dots.appendChild(b);
+  })(i);
+
+  function dayFills() { MEALS.forEach(function (m) { setFill(m.id, CUR ? m.pts / m.w : 0); }); }
+  function daySegs() { setSegs(CUR ? [["bf", 17], ["lu", 32], ["sn", 9]] : []); }
+
+  function go(n) {
+    clearTimers(); cur = n;
+    document.querySelectorAll(".copy > div").forEach(function (d) { d.classList.toggle("on", +d.dataset.s === n); });
+    dots.querySelectorAll("button").forEach(function (b, i) { if (i + 1 === n) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current"); });
+    cta.textContent = n === N ? FINAL : "Next";
+    document.getElementById("body").scrollTop = 0;
+    hint(false); medalLit(false); setGhost(0, 0);
+
+    if (n === 1) {
+      zoom(false); resetBowls();
+      tip.textContent = "";
+      MEALS.forEach(function (m) { setFill(m.id, 0); });
+      setSegs([]); setScore(0);
+      if (CUR) {
+        later(function () { setFill("bf", .85); setSegs([["bf", 17]]); }, 500);
+        later(function () { setFill("lu", 32 / 35); setSegs([["bf", 17], ["lu", 32]]); }, 900);
+        later(function () { setFill("sn", .9); setSegs([["bf", 17], ["lu", 32], ["sn", 9]]); }, 1300);
+        later(function () { setScore(58); }, 600);
+      }
+      later(function () { hint(true); say(COPY.tip); }, CUR ? 2300 : 1100);
+      return;
+    }
+    if (n === 2) {
+      dayFills(); daySegs(); setScore(CUR ? 58 : 0);
+      setFill("bf", 0); resetBowls(); zoom(true);
+      BOWLS.forEach(function (b, i) {
+        later(function () { setBowl(b, true); }, 1300 + i * 650);
+        later(function () { b.mk.classList.add("on"); }, 1900 + i * 650);
+      });
+      later(function () { document.getElementById("res").classList.add("on"); }, 3600);
+      return;
+    }
+    /* step 3: back to the plate, the rim gathers the points */
+    zoom(false);
+    BOWLS.forEach(function (b) { setBowl(b, true); });
+    if (CUR) {
+      dayFills(); daySegs(); setScore(58);
+      later(function () { setGhost(58, 35); K.di.line.style.stroke = "var(--ok-500)"; }, 1100);
+      later(function () { medalLit(true); }, 1700);
+    } else {
+      MEALS.forEach(function (m) { setFill(m.id, 0); }); setSegs([]); setScore(0);
+      later(function () { setFill("bf", .85); }, 1000);
+      later(function () { setSegs([["bf", 17]]); setScore(17); }, 1700);
+      later(function () { medalLit(true); }, 2900);
+    }
+  }
+  function leaveStep3() { K.di.line.style.stroke = ""; }
+
+  function tapKat(m) {
+    if (cur !== 1 && cur !== 3) return;
+    if (m.id === "bf" && cur === 1) { go(2); return; }
+    if (cur === 1) {
+      var done = CUR && m.pts ? " It has added " + m.pts + " so far." : "";
+      say(m.name + " counts for " + m.w + " of your 100." + done + (m.id === "di" && CUR ? " It is still to come." : ""));
+    }
+  }
+
+  cta.addEventListener("click", function () { if (cur < N) { leaveStep3(); go(cur + 1); } else close(); });
+
+  /* ------------------------------------------------------ open and close */
+  function open() {
+    root.classList.remove("closed", "closing");
+    leaveStep3();
+    var n = parseInt(Q.get("step"), 10);
+    go(n >= 1 && n <= N ? n : 1);
+    if (STILL) { root.classList.add("open"); return; }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("open"); }); });
+  }
+  function close() {
+    clearTimers(); hint(false);
+    root.classList.add("closing"); root.classList.remove("open");
+    setTimeout(function () { root.classList.add("closed"); document.getElementById("replay").focus({ preventScroll: true }); }, STILL ? 0 : 360);
+  }
+  document.querySelector("[data-close]").addEventListener("click", close);
+  document.querySelector(".scrim").addEventListener("click", close);
+  addEventListener("keydown", function (e) { if (e.key === "Escape" && root.classList.contains("open")) close(); });
+  document.getElementById("replay").addEventListener("click", function () { Q.delete("step"); open(); });
+  open();
+})();
+</script>
+</body>
+</html>

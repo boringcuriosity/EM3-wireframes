@@ -1,0 +1,231 @@
+<!doctype html>
+<!--
+  FTUX round 3, variant "Short and light" (x-compact).
+  The three-step Nutrition sufficiency explainer, opened over the Eat screen, in a compact sheet.
+  A 168px round lens sits centred at the top for step 1; for steps 2 and 3 it widens into a full-width rounded
+  panel (220px tall) that holds kit.js in its compact size. A short headline and body sit below.
+    1  the live Cloud Drop inside the lens on a soft green glow
+    2  one lunch card against the coach's plan (FTUX.meal), then "Full points"
+    3  sun rays, the medal on its ribbon and the FlipCoin counter (FTUX.reward)
+  Steps change with a soft iris: the next visual opens as a circle from the panel's centre.
+
+  Flags
+    ?who=new       (default) first-time user, Eat behind shows the empty day
+    ?who=current   someone who already logs meals, Eat behind shows the live day
+    ?step=N        open at step N (1 to 3)
+    ?still=1       no animation, end states shown (also when prefers-reduced-motion)
+-->
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Short And Light</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<link rel="stylesheet" href="/v7/icons/glyph-masks.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; overflow: hidden; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; }
+  :root { --io: cubic-bezier(.65,0,.35,1); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .behind { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; background: #fff; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .42s var(--ease); }
+  .open .scrim { opacity: 1; }
+
+  /* ------------------------------------------------------------ the sheet */
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh;
+    display: flex; flex-direction: column; background: #fff; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    transform: translate(-50%, 100%); transition: transform .42s cubic-bezier(.2,.7,.2,1);
+    box-shadow: 0 -8px 32px rgba(16,24,40,.12); }
+  .open .sheet { transform: translate(-50%, 0); }
+  .closing .sheet { transition-duration: .34s; transition-timing-function: cubic-bezier(.4,0,1,1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px 0; }
+  .shead h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  .x:focus-visible, .ok:focus-visible, .back:focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+  .sbody { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 24px; }
+
+  /* ------------------------------------------------------------- the lens */
+  /* step 1: a 168px circle centred in the 206px row; steps 2 and 3: the full width, 220px tall, 20px corners */
+  .vis { position: relative; height: 206px; margin-bottom: 10px; transition: height .6s var(--io); }
+  .lens { position: absolute; left: 50%; top: 19px; width: 168px; height: 168px; border-radius: 84px; overflow: hidden; isolation: isolate;
+    transform: translateX(-50%); box-shadow: 0 6px 20px rgb(16 24 40 / .10), 0 0 0 1px var(--g-100); background: #fff;
+    transition: width .6s var(--io), height .6s var(--io), top .6s var(--io), border-radius .6s var(--io); }
+  .wide .vis { height: 228px; }
+  .wide .lens { top: 8px; width: 100%; height: 220px; border-radius: 20px; }
+  .ln { position: absolute; inset: 0; overflow: hidden; visibility: hidden; z-index: 0; }
+  .ln.on { visibility: visible; z-index: 1; }
+  .ln.iris { visibility: visible; z-index: 2; animation: iris .7s cubic-bezier(.4,0,.2,1) both; }
+  @keyframes iris { from { clip-path: circle(0% at 50% 50%); } to { clip-path: circle(71% at 50% 50%); } }
+
+  /* 1: the score on a soft green glow, centred so it stays put while the lens changes size */
+  .ln1 { background: radial-gradient(84px 84px at 50% 50%, var(--brand-50) 0%, var(--brand-25) 70%, #fff 100%); }
+  .ln1 svg { position: absolute; left: 50%; top: 50%; width: 168px; height: 168px; margin: -84px 0 0 -84px; }
+  .ln1 circle { fill: none; stroke: var(--brand-100); stroke-width: 1; }
+  .cloud { position: absolute; left: 50%; top: 50%; width: 240px; height: 240px; margin: -120px 0 0 -120px; border: 0; background: transparent; pointer-events: none; }
+
+  /* --------------------------------------------------------------- words */
+  .copy { display: grid; text-align: center; overflow: hidden; }
+  .txt { grid-area: 1 / 1; opacity: 0; visibility: hidden; transform: translateY(6px);
+    transition: opacity .2s var(--ease), transform .2s var(--ease), visibility 0s .2s; }
+  .txt.on { opacity: 1; visibility: visible; transform: none; transition: opacity .45s var(--ease) .2s, transform .45s var(--ease) .2s, visibility 0s; }
+  .eyebrow { margin: 0 0 2px; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--brand-700); }
+  .txt h3 { margin: 0 0 6px; font-size: 24px; line-height: 32px; font-weight: 600; text-wrap: balance; }
+  .txt p { margin: 0; font-size: 16px; line-height: 24px; color: var(--g-600); text-wrap: balance; }
+
+  /* -------------------------------------------------------------- footer */
+  .sfoot { flex-shrink: 0; padding: 4px 16px calc(16px + env(safe-area-inset-bottom, 0px)); }
+  .nav { position: relative; display: flex; align-items: center; height: 28px; margin-bottom: 8px; }
+  .back { height: 44px; padding: 0 8px; margin: -8px 0 -8px -8px; border: 0; background: none; color: var(--brand-700); font-size: 15px; font-weight: 600; cursor: pointer; border-radius: var(--r-sm);
+    transition: opacity .3s var(--ease); }
+  .back[aria-hidden="true"] { opacity: 0; pointer-events: none; }
+  .dots { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; gap: 6px; }
+  .dots i { width: 6px; height: 6px; border-radius: 9999px; background: var(--g-200); transition: width .4s var(--ease), background-color .4s var(--ease); }
+  .dots i.now { width: 18px; background: var(--brand-600); }
+  .ok { width: 100%; height: 48px; margin-bottom: 7px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff;
+    font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; }
+  .ok:active { transform: translateY(3px); box-shadow: 0 4px 0 var(--brand-700); }
+
+  .replay { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 9999px; border: 0;
+    background: rgb(255 255 255 / .92); color: var(--brand-700); font-size: 14px; font-weight: 600; box-shadow: 0 2px 10px rgba(16,24,40,.18);
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .closed .replay { opacity: 1; pointer-events: auto; }
+
+  .still *, .still *::before, .still *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<iframe class="behind" tabindex="-1" aria-hidden="true" title=""></iframe><script>document.currentScript.previousElementSibling.src = "/v7/r3/eat.html" + (/who=current/.test(location.search) ? "" : "?state=empty");</script>
+<div class="scrim" aria-hidden="true"></div>
+
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <header class="shead">
+    <h2 id="sheetTitle">Nutrition sufficiency</h2>
+    <button class="x" type="button" aria-label="Close" data-close><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </header>
+
+  <div class="sbody">
+    <div class="vis" aria-hidden="true">
+      <div class="lens">
+        <div class="ln ln1" data-ln="1">
+          <svg viewBox="0 0 168 168"><circle cx="84" cy="84" r="46"/><circle cx="84" cy="84" r="64" opacity=".6"/><circle cx="84" cy="84" r="82" opacity=".35"/></svg>
+          <iframe class="cloud" id="cloud" tabindex="-1" title=""></iframe>
+        </div>
+        <!-- 2: one meal against the coach's plan, and 3: the medal and FlipCoins, both from kit.js -->
+        <div class="ln" data-ln="2" id="k2"></div>
+        <div class="ln" data-ln="3" id="k3"></div>
+      </div>
+    </div>
+
+    <div class="copy">
+      <div class="txt" data-txt="1">
+        <p class="eyebrow">Introducing</p>
+        <h3>Nutrition sufficiency</h3>
+        <p data-who="new">From today, every meal you log adds to a score out of 100. It shows how close your meals come to the protein, carbs and fat your body needs. Eating close to that keeps your energy steady and supports your long-term health.</p>
+        <p data-who="current">The meals you log now add up to a score out of 100. It shows how close your meals come to the protein, carbs and fat your body needs. Eating close to that keeps your energy steady and supports your long-term health.</p>
+      </div>
+      <div class="txt" data-txt="2">
+        <h3>Your coach sets your targets</h3>
+        <p>For every meal, your coach plans how much protein, carbs and fat you need. Eat close to those amounts and the meal earns its full share of your sufficiency score.</p>
+      </div>
+      <div class="txt" data-txt="3">
+        <h3>Earn a medal and FlipCoins</h3>
+        <p>Reach a sufficiency of 80% in a day to earn a Medal. Keep logging your meals to earn FlipCoins to spend on your favourite brands ❤️</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="sfoot">
+    <div class="nav">
+      <button class="back" type="button" id="back">Back</button>
+      <div class="dots" id="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+      <span class="sr" id="live" aria-live="polite"></span>
+    </div>
+    <button class="ok" type="button" id="cta">Next</button>
+  </footer>
+</section>
+
+<script src="/v7/ftux/kit.js"></script>
+<button class="replay" type="button" id="replay">Replay</button>
+
+<script>
+(function () {
+  "use strict";
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  var Q = new URLSearchParams(location.search);
+  var WHO = Q.get("who") === "current" ? "current" : "new";
+  var STILL = Q.get("still") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var root = document.documentElement;
+  if (STILL) root.classList.add("still");
+  document.querySelectorAll("[data-who]").forEach(function (el) { if (el.dataset.who !== WHO) el.remove(); });
+  var FINAL = WHO === "current" ? "See My Score" : "Log Your First Meal";
+
+  /* ------------------------------------------------ step 1: the live score */
+  var CLOUD = "/v7/r3/heroes/cloud/index.html?build=34&embed=1&k=.56&er=.102&ey=-.095&y=.03&v=Cloud%20Drop&intro=murmuration&score=85" + (STILL ? "&still=1" : "");
+  var cloud = document.getElementById("cloud");
+  /* the score's info mark means "tap for more" on Eat; here the sheet already is the explanation */
+  cloud.addEventListener("load", function () {
+    try { var st = cloud.contentDocument.createElement("style"); st.textContent = "html .score .word .wi{display:none !important}"; cloud.contentDocument.head.appendChild(st); } catch (e) {}
+  });
+
+  /* ------------------------------------------------ steps 2 and 3: the kit */
+  var K2 = FTUX.meal(document.getElementById("k2"), { compact: true }), K3 = FTUX.reward(document.getElementById("k3"), { compact: true });
+  var parkT = [];
+  function park(k) { parkT.push(setTimeout(function () { k.reset(); }, 760)); }
+
+  /* ------------------------------------------------------------ the steps */
+  var lns = document.querySelectorAll(".ln"), txts = document.querySelectorAll(".txt");
+  var dots = document.getElementById("dots").children, back = document.getElementById("back"), cta = document.getElementById("cta"), live = document.getElementById("live");
+  var cur = 0, seen1 = false, irisT = null;
+  function go(n) {
+    var prev = cur; cur = n;
+    var next = lns[n - 1];
+    clearTimeout(irisT);
+    lns.forEach(function (l) { l.classList.remove("iris", "play"); if (l !== next && l !== lns[prev - 1]) l.classList.remove("on"); });
+    if (!prev || STILL) { lns.forEach(function (l) { l.classList.toggle("on", l === next); }); }
+    else {
+      void next.offsetWidth; next.classList.add("iris");
+      irisT = setTimeout(function () { lns.forEach(function (l) { l.classList.toggle("on", l === next); }); next.classList.remove("iris"); }, 720);
+    }
+    root.classList.toggle("wide", n > 1);
+    txts.forEach(function (t) { var on = +t.dataset.txt === n; t.classList.toggle("on", on); t.setAttribute("aria-hidden", String(!on)); });
+    [].forEach.call(dots, function (d, i) { d.className = i === n - 1 ? "now" : ""; });
+    back.setAttribute("aria-hidden", String(n === 1)); back.tabIndex = n === 1 ? -1 : 0;
+    cta.textContent = n === 3 ? FINAL : "Next";
+    live.textContent = "Step " + n + " of 3";
+    if (n === 1 && !seen1) { seen1 = true; cloud.src = CLOUD; }
+    parkT.forEach(clearTimeout); parkT = [];
+    if (n === 2) { if (STILL) K2.still(); else K2.play(); } else park(K2);
+    if (n === 3) { if (STILL) K3.still(); else K3.play(); } else park(K3);
+  }
+  cta.addEventListener("click", function () { if (cur < 3) go(cur + 1); else close(); });
+  back.addEventListener("click", function () { if (cur > 1) go(cur - 1); });
+
+  /* ------------------------------------------------------ open and close */
+  function open() {
+    root.classList.remove("closed", "closing");
+    cur = 0;
+    var n = parseInt(Q.get("step"), 10);
+    go(n >= 1 && n <= 3 ? n : 1);
+    if (STILL) { root.classList.add("open"); return; }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("open"); }); });
+  }
+  function close() {
+    root.classList.add("closing"); root.classList.remove("open");
+    setTimeout(function () { root.classList.add("closed"); document.getElementById("replay").focus({ preventScroll: true }); }, STILL ? 0 : 360);
+  }
+  document.querySelector("[data-close]").addEventListener("click", close);
+  document.querySelector(".scrim").addEventListener("click", close);
+  addEventListener("keydown", function (e) { if (e.key === "Escape" && root.classList.contains("open")) close(); });
+  document.getElementById("replay").addEventListener("click", function () { Q.delete("step"); seen1 = false; cloud.removeAttribute("src"); K2.reset(); K3.reset(); open(); });
+  open();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,534 @@
+<!doctype html>
+<!--
+  FTUX concept: "Find your sweet spot".
+  An analogue tuning knob for one sample breakfast. Turning it moves through "A little",
+  "Close", "Just right" and "A lot more". Inside the wide green sweet zone the meal picture
+  comes into sharp focus and colour (full marks); outside it, the picture gently blurs and
+  fades. Close to plan is clear. Then the same knob becomes the day's score dial, 80 marked gold.
+  The knob demos itself first, then the user can drag it, tap the arrows, or use arrow keys.
+
+  Flags
+    ?who=new       (default) first-time user: meal, day
+    ?who=current   already logs meals: hello, meal, day (the day dial shows their 58)
+    ?step=N        open at step N (1-based)
+    ?still=1       no animation, end states shown (also when prefers-reduced-motion)
+-->
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Find Your Sweet Spot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; overflow: hidden; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; }
+
+  .behind { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; background: #fff; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .42s var(--ease); }
+  .open .scrim { opacity: 1; }
+
+  /* ------------------------------------------------------------ the sheet */
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh;
+    display: flex; flex-direction: column; background: #fff; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    transform: translate(-50%, 100%); transition: transform .42s cubic-bezier(.2,.7,.2,1);
+    box-shadow: 0 -8px 32px rgba(16,24,40,.12); }
+  .open .sheet { transform: translate(-50%, 0); }
+  .closing .sheet { transition-duration: .34s; transition-timing-function: cubic-bezier(.4,0,1,1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 8px; }
+  .shead h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  .x:focus-visible, .ok:focus-visible, .back:focus-visible, .arw:focus-visible, .knob:focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+  .sbody { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px 8px; }
+  .sfoot { flex-shrink: 0; padding: 8px 16px calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 12px; }
+  .nav { display: flex; align-items: center; justify-content: center; position: relative; height: 20px; }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 6px; height: 6px; border-radius: 9999px; background: var(--g-200); transition: width .4s var(--ease), background-color .4s var(--ease); }
+  .dots i.on { width: 18px; background: var(--brand-600); }
+  .back { position: absolute; left: -8px; top: 50%; transform: translateY(-50%); border: 0; background: none; padding: 8px; color: var(--g-500);
+    font-size: 14px; font-weight: 500; cursor: pointer; border-radius: var(--r-sm); }
+  .back[hidden] { display: none; }
+  .ok { width: 100%; height: 48px; margin-bottom: 7px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff;
+    font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; }
+  .ok:active { transform: translateY(3px); box-shadow: 0 4px 0 var(--brand-700); }
+
+  .step { display: none; }
+  .step.on { display: block; animation: stepIn .4s var(--ease) both; }
+  @keyframes stepIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  h3.t { margin: 4px 0 6px; font-size: 22px; line-height: 28px; font-weight: 700; letter-spacing: -.2px; text-wrap: balance; }
+  .lead { margin: 0 0 12px; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
+  .lead b { color: var(--g-900); font-weight: 600; }
+
+  /* ------------------------------------------------- the picture (viewfinder) */
+  .finder { position: relative; height: 128px; border-radius: var(--r-xl); overflow: hidden; isolation: isolate; background: var(--in-25);
+    box-shadow: inset 0 0 0 1px var(--g-100); transition: height .6s var(--ease), opacity .5s var(--ease), margin .6s var(--ease); }
+  .finder .pic { position: absolute; inset: -12px; background: url(/v7/icons/meals/bg/bf.webp?v=2) 90% 62% / auto 200% no-repeat;
+    will-change: filter; }
+  .finder .af { position: absolute; inset: 22px 30%; pointer-events: none; transition: inset .6s var(--ease); }
+  .finder .af i { position: absolute; width: 16px; height: 16px; border: 0 solid rgb(255 255 255 / .9); transition: border-color .5s var(--ease); }
+  .finder .af i:nth-child(1) { left: 0; top: 0; border-width: 2px 0 0 2px; border-radius: 4px 0 0 0; }
+  .finder .af i:nth-child(2) { right: 0; top: 0; border-width: 2px 2px 0 0; border-radius: 0 4px 0 0; }
+  .finder .af i:nth-child(3) { left: 0; bottom: 0; border-width: 0 0 2px 2px; border-radius: 0 0 0 4px; }
+  .finder .af i:nth-child(4) { right: 0; bottom: 0; border-width: 0 2px 2px 0; border-radius: 0 0 4px 0; }
+  .finder.sharp .af { inset: 30px 33%; }
+  .finder.sharp .af i { border-color: var(--brand-500); }
+  .finder .tag { position: absolute; left: 12px; bottom: 12px; display: flex; align-items: center; gap: 8px; padding: 6px 12px 6px 8px; border-radius: 9999px;
+    background: rgb(255 255 255 / .9); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: 0 1px 3px rgba(16,24,40,.1);
+    font-size: 13px; line-height: 18px; font-weight: 600; color: var(--g-800); }
+  .finder .tag .lamp { width: 10px; height: 10px; border-radius: 9999px; background: var(--g-300); transition: background-color .4s var(--ease), box-shadow .4s var(--ease); }
+  .finder.sharp .tag .lamp { background: var(--brand-500); box-shadow: 0 0 0 3px var(--brand-100); }
+  .finder .meal { position: absolute; left: 12px; top: 10px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--in-700); letter-spacing: .3px; }
+  .finder.gone { height: 0; opacity: 0; margin: 0; }
+
+  .say { min-height: 44px; margin: 6px 0 0; font-size: 15px; line-height: 22px; font-weight: 500; color: var(--g-800); text-wrap: pretty; text-align: center; }
+  .say b { font-weight: 700; color: var(--brand-700); }
+  .say.swap { animation: sayIn .42s var(--ease) both; }
+  @keyframes sayIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+  /* --------------------------------------------------------------- the dial */
+  .dial { position: relative; width: 300px; height: 226px; margin: 6px auto 0; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .dial > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .dial text { font-family: Roboto, system-ui, sans-serif; }
+  .scale-meal, .scale-day { transition: opacity .6s var(--ease); }
+  .day .scale-meal { opacity: 0; }
+  .scale-day { opacity: 0; }
+  .day .scale-day { opacity: 1; }
+  .zl { font-size: 11px; font-weight: 600; letter-spacing: .2px; fill: var(--g-500); transition: fill .4s var(--ease); }
+  .zl.on { fill: var(--g-900); }
+  .zl.g.on { fill: var(--brand-700); }
+  .zone-g { transition: stroke .5s var(--ease); }
+  .sweet .zone-g { stroke: var(--brand-500); }
+
+  .knob { position: absolute; left: 66px; top: 56px; width: 168px; height: 168px; border-radius: 9999px; cursor: grab; outline: none;
+    box-shadow: 0 10px 22px rgba(16,24,40,.16), 0 2px 4px rgba(16,24,40,.08); }
+  .knob:active { cursor: grabbing; }
+  .knob .rot { position: absolute; inset: 0; border-radius: inherit; will-change: transform;
+    background: repeating-conic-gradient(from 0deg, var(--g-100) 0deg 2.5deg, #fff 2.5deg 5deg); }
+  .knob .rot::before { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 1px var(--g-200), inset 0 -6px 10px rgba(16,24,40,.06); }
+  .knob .face { position: absolute; inset: 16px; border-radius: inherit;
+    background: radial-gradient(circle at 38% 30%, #fff 0%, var(--g-25) 45%, var(--g-100) 100%);
+    box-shadow: 0 2px 6px rgba(16,24,40,.14), inset 0 1px 0 #fff; }
+  .knob .notch { position: absolute; left: 50%; top: 21px; width: 6px; height: 16px; margin-left: -3px; border-radius: 3px; background: var(--g-300);
+    transition: background-color .4s var(--ease); }
+  .sweet .knob .notch, .day .knob .notch { background: var(--brand-600); }
+  .knob .mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; padding-top: 10px; }
+  .knob .w { font-size: 16px; line-height: 22px; font-weight: 700; color: var(--g-800); transition: color .4s var(--ease); white-space: nowrap; }
+  .sweet .knob .w { color: var(--brand-700); }
+  .knob .m { margin-top: 2px; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--g-500); white-space: nowrap; }
+  .knob .n { display: none; font-size: 40px; line-height: 42px; font-weight: 800; letter-spacing: -1px; font-variant-numeric: tabular-nums; color: var(--g-900); }
+  .day .knob .w, .day .knob .m.meal-only { display: none; }
+  .day .knob .n { display: block; }
+  .day .knob { cursor: default; }
+
+  .arw { position: absolute; bottom: 0; width: 48px; height: 48px; border-radius: 9999px; border: 1px solid var(--g-200); background: #fff; color: var(--g-700);
+    display: grid; place-items: center; cursor: pointer; box-shadow: 0 1px 2px rgba(16,24,40,.06); transition: opacity .5s var(--ease), border-color .3s var(--ease); }
+  .arw:active { border-color: var(--brand-600); }
+  .arw.l { left: 4px; } .arw.r { right: 4px; }
+  .day .arw { opacity: 0; pointer-events: none; }
+
+  /* --------------------------------------------- the day list under the dial */
+  .meals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 14px 0 0; }
+  .meals div { padding: 10px 4px 9px; border-radius: var(--r-md); background: var(--g-25); border: 1px solid var(--g-100); text-align: center; }
+  .meals b { display: block; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--g-800); }
+  .meals span { display: block; margin-top: 2px; font-size: 12px; line-height: 16px; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .meals span strong { color: var(--brand-700); font-weight: 700; }
+  .meals div.wait span { color: var(--g-400); }
+  .foot2 { margin: 12px 0 0; font-size: 13px; line-height: 19px; color: var(--g-500); text-align: center; }
+
+  /* ---------------------------------------------- hello (current users) */
+  .hello { position: relative; margin: 4px 0 4px; padding: 20px 16px 18px; border-radius: var(--r-xl);
+    border: 1px solid transparent; box-shadow: 2px 2px 0 var(--g-200); overflow: hidden; isolation: isolate;
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 50%) padding-box,
+      conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; }
+  .hello h3 { margin: 0 0 8px; font-size: 22px; line-height: 28px; font-weight: 700; text-wrap: balance; }
+  .hello p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
+  .hello .now { display: flex; align-items: baseline; gap: 10px; margin-top: 16px; }
+  .hello .now b { font-size: 44px; line-height: 44px; font-weight: 800; color: var(--brand-700); letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+  .hello .now span { font-size: 13px; line-height: 18px; color: var(--g-600); }
+
+  /* the dial wraps the whole tune step; in the hello step it waits out of view */
+  .tunebox[hidden] { display: none; }
+
+  .replay { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 9999px; border: 0;
+    background: rgb(255 255 255 / .92); color: var(--brand-700); font-size: 14px; font-weight: 600; box-shadow: 0 2px 10px rgba(16,24,40,.18);
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .closed .replay { opacity: 1; pointer-events: auto; }
+
+  .still *, .still *::before, .still *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<iframe class="behind" tabindex="-1" aria-hidden="true" title=""></iframe><script>document.currentScript.previousElementSibling.src = "/v7/r3/eat.html" + (/who=current/.test(location.search) ? "" : "?state=empty");</script>
+<div class="scrim" aria-hidden="true"></div>
+
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <header class="shead">
+    <h2 id="sheetTitle">Nutrition sufficiency</h2>
+    <button class="x" type="button" aria-label="Close" data-close><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </header>
+
+  <div class="sbody" id="body">
+    <!-- hello: current users only -->
+    <div class="step" data-step="hello">
+      <div class="hello">
+        <h3>Your meals now add up to a score</h3>
+        <p>You already log your meals here. From today, each one is checked against your coach's plan and adds to a score out of 100.</p>
+        <div class="now"><b id="helloN">58</b><span>so far today</span></div>
+      </div>
+    </div>
+
+    <!-- the tune box carries the meal step and the day step; the dial stays put between them -->
+    <div class="tunebox" id="tunebox">
+      <h3 class="t" id="tH">Find your sweet spot</h3>
+      <p class="lead" id="tP">Your coach plans every meal. Turn the dial to how much you ate and watch the picture.</p>
+
+      <div class="finder" id="finder" aria-hidden="true">
+        <div class="pic" id="pic"></div>
+        <div class="af"><i></i><i></i><i></i><i></i></div>
+        <div class="meal">BREAKFAST</div>
+        <div class="tag"><span class="lamp"></span><span id="tagTxt">Full marks</span></div>
+      </div>
+
+      <div class="dial" id="dial">
+        <svg viewBox="0 0 300 232" aria-hidden="true" id="dsvg"></svg>
+        <button class="arw l" type="button" id="less" aria-label="Less"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M12.5 4.5 7 10l5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="arw r" type="button" id="more" aria-label="More"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><path d="M7.5 4.5 13 10l-5.5 5.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div class="knob" id="knob" role="slider" tabindex="0" aria-label="How much you ate" aria-valuemin="0" aria-valuemax="100">
+          <div class="rot" id="rot"><div class="face"></div><div class="notch"></div></div>
+          <div class="mid"><div class="w" id="kW">Just right</div><div class="m meal-only" id="kM">Full marks</div><div class="n" id="kN">0</div><div class="m" id="kOf" hidden>of 100 today</div></div>
+        </div>
+      </div>
+
+      <p class="say" id="say" aria-live="polite"></p>
+
+      <div id="dayBits" hidden>
+        <div class="meals" id="meals"></div>
+        <p class="foot2">It starts fresh every morning.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="sfoot">
+    <div class="nav"><button class="back" type="button" id="back" hidden>Back</button><div class="dots" id="dots" aria-hidden="true"></div></div>
+    <button class="ok" type="button" id="cta">Next</button>
+  </footer>
+</section>
+
+<button class="replay" type="button" id="replay">Replay</button>
+
+<script>
+(function () {
+  "use strict";
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  var Q = new URLSearchParams(location.search);
+  var WHO = Q.get("who") === "current" ? "current" : "new";
+  var STILL = Q.get("still") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (STILL) document.documentElement.classList.add("still");
+
+  function ease(k) { return k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; }
+  var timers = [], raf = null;
+  function later(fn, ms) { var id = setTimeout(fn, STILL ? 0 : ms); timers.push(id); }
+  function stopAll() { timers.forEach(clearTimeout); timers = []; if (raf) cancelAnimationFrame(raf); raf = null; }
+
+  /* ------------------------------------------------------------- the maths */
+  /* p is how much was eaten against the plan (1 = exactly the plan).
+     Full marks from 0.8 to 1.2; under earns part; far over takes marks away. */
+  function mark(p) { return p < .8 ? 100 * p / .8 : p <= 1.2 ? 100 : 100 - 100 * (p - 1.2); }
+  function word(p) {
+    return p < .8 ? "A little" : p < .95 ? "Close" : p <= 1.05 ? "Just right" : p <= 1.2 ? "Close" : p < 1.6 ? "A bit more" : "A lot more";
+  }
+  /* the knob's travel: the sweet zone gets a generous 70 degrees around the top */
+  var MAP = [[.2, -120], [.8, -35], [1, 0], [1.2, 35], [2.2, 85], [2.8, 120]];
+  function lerpMap(v, a, b) {
+    for (var i = 0; i < MAP.length - 1; i++) {
+      var x0 = MAP[i][a], x1 = MAP[i + 1][a];
+      if (v <= x1 || i === MAP.length - 2) { var k = Math.max(0, Math.min(1, (v - x0) / (x1 - x0))); return MAP[i][b] + k * (MAP[i + 1][b] - MAP[i][b]); }
+    }
+  }
+  function angOf(p) { return lerpMap(p, 0, 1); }
+  function pOf(a) { return lerpMap(a, 1, 0); }
+
+  /* ----------------------------------------------------------- the scale */
+  var CX = 150, CY = 140, RS = 104;
+  function pt(r, a) { var t = a * Math.PI / 180; return [CX + r * Math.sin(t), CY - r * Math.cos(t)]; }
+  function arc(r, a1, a2) {
+    var s = pt(r, a1), e = pt(r, a2);
+    return "M" + s[0].toFixed(1) + " " + s[1].toFixed(1) + " A" + r + " " + r + " 0 " + (a2 - a1 > 180 ? 1 : 0) + " 1 " + e[0].toFixed(1) + " " + e[1].toFixed(1);
+  }
+  var svg = document.getElementById("dsvg"), h = "";
+  /* meal scale */
+  h += '<g class="scale-meal">' +
+    '<path d="' + arc(RS, -120, -36) + '" fill="none" stroke-width="8" stroke-linecap="round" style="stroke:var(--gold-100)"/>' +
+    '<path d="' + arc(RS, 36, 84) + '" fill="none" stroke-width="8" stroke-linecap="round" style="stroke:var(--gold-100)"/>' +
+    '<path d="' + arc(RS, 86, 120) + '" fill="none" stroke-width="8" stroke-linecap="round" style="stroke:var(--red-100)"/>' +
+    '<path class="zone-g" d="' + arc(RS, -35, 35) + '" fill="none" stroke-width="12" stroke-linecap="round" style="stroke:var(--brand-300)"/>';
+  for (var a = -120; a <= 120; a += 7.5) {
+    var big = Math.abs(a % 30) < .01, p1 = pt(RS + 9, a), p2 = pt(RS + (big ? 16 : 13), a);
+    h += '<line x1="' + p1[0].toFixed(1) + '" y1="' + p1[1].toFixed(1) + '" x2="' + p2[0].toFixed(1) + '" y2="' + p2[1].toFixed(1) + '" stroke-width="' + (big ? 1.6 : 1) + '" style="stroke:var(--g-300)"/>';
+  }
+  [["A little", -78, "zl-little", ""], ["Close", -40, "zl-close1", "g"], ["Just right", 0, "zl-just", "g"], ["Close", 40, "zl-close2", "g"], ["A lot more", 102, "zl-lot", ""]].forEach(function (l) {
+    var q = pt(RS + 28, l[1]);
+    h += '<text class="zl ' + l[3] + '" id="' + l[2] + '" x="' + q[0].toFixed(1) + '" y="' + (q[1] + 4).toFixed(1) + '" text-anchor="middle">' + l[0] + '</text>';
+  });
+  h += '</g>';
+  /* day scale */
+  var A80 = -120 + 240 * .8;
+  h += '<g class="scale-day">' +
+    '<path d="' + arc(RS, -120, 120) + '" fill="none" stroke-width="8" stroke-linecap="round" style="stroke:var(--g-100)"/>' +
+    '<path id="dayArc" d="' + arc(RS, -120, 120) + '" fill="none" stroke-width="8" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" style="stroke:var(--brand-500)"/>';
+  for (var s = 0; s <= 100; s += 10) {
+    var aa = -120 + 2.4 * s, t1 = pt(RS + 9, aa), t2 = pt(RS + 15, aa);
+    h += '<line x1="' + t1[0].toFixed(1) + '" y1="' + t1[1].toFixed(1) + '" x2="' + t2[0].toFixed(1) + '" y2="' + t2[1].toFixed(1) + '" stroke-width="1.2" style="stroke:var(--g-300)"/>';
+  }
+  [[0, "0"], [50, "50"], [100, "100"]].forEach(function (l) {
+    var q = pt(RS + 26, -120 + 2.4 * l[0]);
+    h += '<text class="zl" x="' + q[0].toFixed(1) + '" y="' + (q[1] + 4).toFixed(1) + '" text-anchor="middle">' + l[1] + '</text>';
+  });
+  var g1 = pt(RS - 8, A80), g2 = pt(RS + 18, A80), gm = pt(RS + 34, A80);
+  h += '<line x1="' + g1[0].toFixed(1) + '" y1="' + g1[1].toFixed(1) + '" x2="' + g2[0].toFixed(1) + '" y2="' + g2[1].toFixed(1) + '" stroke-width="3" stroke-linecap="round" style="stroke:var(--gold-600)"/>' +
+    '<g transform="translate(' + (gm[0] - 7).toFixed(1) + ' ' + (gm[1] - 10).toFixed(1) + ')"><path d="M3 0h3l1 4H4zM8 0h3L10 4H7z" style="fill:var(--gold-600)"/><circle cx="7" cy="10" r="5.2" style="fill:var(--gold-300);stroke:var(--gold-700)" stroke-width="1.2"/></g>' +
+    '<text class="zl" x="' + gm[0].toFixed(1) + '" y="' + (gm[1] + 20).toFixed(1) + '" text-anchor="middle" style="fill:var(--gold-800)">Medal at 80</text>';
+  h += '</g>';
+  svg.innerHTML = h;
+
+  /* ---------------------------------------------------------- the render */
+  var dial = document.getElementById("dial"), rot = document.getElementById("rot"), knob = document.getElementById("knob");
+  var pic = document.getElementById("pic"), finder = document.getElementById("finder"), tagTxt = document.getElementById("tagTxt");
+  var kW = document.getElementById("kW"), kM = document.getElementById("kM"), kN = document.getElementById("kN");
+  var LBL = { little: document.getElementById("zl-little"), c1: document.getElementById("zl-close1"), just: document.getElementById("zl-just"), c2: document.getElementById("zl-close2"), lot: document.getElementById("zl-lot") };
+  var P = 1, mode = "meal", dayV = 0;
+
+  function renderMeal(p) {
+    P = Math.max(.2, Math.min(2.8, p));
+    var a = angOf(P), m = mark(P), w = word(P);
+    rot.style.transform = "rotate(" + a + "deg)";
+    /* focus: sharp and in full colour across the whole sweet zone, softer the further away */
+    var f = Math.max(0, Math.min(1, m / 100)), off = 1 - f;
+    var blur = (off * 7 + (m < 0 ? Math.min(3, -m / 15) : 0)).toFixed(2);
+    var sat = (m >= 100 ? 1.45 : .1 + 1.1 * f * f).toFixed(2);
+    pic.style.filter = "blur(" + blur + "px) saturate(" + sat + ") contrast(" + (m >= 100 ? 1.06 : .9 + .1 * f).toFixed(2) + ") brightness(" + (1 + off * .06).toFixed(2) + ")";
+    var sweet = m >= 99.5;
+    finder.classList.toggle("sharp", sweet);
+    dial.classList.toggle("sweet", sweet);
+    tagTxt.textContent = sweet ? "In focus, full marks" : m >= 0 ? "Part of the marks" : "Takes marks away";
+    kW.textContent = w;
+    kM.textContent = sweet ? "Full marks" : m >= 0 ? Math.round(m) + " of 100" : "Takes marks away";
+    LBL.little.classList.toggle("on", w === "A little");
+    LBL.c1.classList.toggle("on", w === "Close" && P < 1);
+    LBL.c2.classList.toggle("on", w === "Close" && P > 1);
+    LBL.just.classList.toggle("on", w === "Just right");
+    LBL.lot.classList.toggle("on", w === "A lot more");
+    knob.setAttribute("aria-valuenow", String(Math.round(P * 100)));
+    knob.setAttribute("aria-valuetext", w + ", " + (sweet ? "full marks" : m >= 0 ? Math.round(m) + " of 100" : "takes marks away"));
+    if (userTurned) sayLive(m, w);
+  }
+  function renderDay(v) {
+    dayV = v;
+    rot.style.transform = "rotate(" + (-120 + 2.4 * v) + "deg)";
+    document.getElementById("dayArc").setAttribute("stroke-dasharray", v.toFixed(2) + " 100");
+    kN.textContent = Math.round(v);
+  }
+
+  /* glide the knob, calm cubic ease, no overshoot */
+  function glide(to, d, done) {
+    if (raf) cancelAnimationFrame(raf);
+    var from = mode === "meal" ? P : dayV, R = mode === "meal" ? renderMeal : renderDay;
+    if (STILL) { R(to); if (done) done(); return; }
+    var t0 = performance.now();
+    (function f(now) {
+      var k = Math.min(1, (now - t0) / d);
+      R(from + (to - from) * ease(k));
+      if (k < 1) raf = requestAnimationFrame(f); else { raf = null; if (done) done(); }
+    })(t0);
+  }
+
+  /* --------------------------------------------------------- the words */
+  var sayEl = document.getElementById("say");
+  function say(html) {
+    if (sayEl.innerHTML === html) return;
+    sayEl.innerHTML = html;
+    if (!STILL) { sayEl.classList.remove("swap"); void sayEl.offsetWidth; sayEl.classList.add("swap"); }
+  }
+  var LINES = {
+    little: "Eating only a little earns <b>part of the marks</b>.",
+    close: "Close to plan is already in focus. <b>Full marks.</b>",
+    just: "Just right is in focus too. <b>Full marks.</b>",
+    bit: "A bit more than planned earns <b>part of the marks</b>.",
+    lot: "Eating a lot more than planned can <b>take marks away</b>.",
+    end: "Anywhere in the green is clear and earns <b>full marks</b>. Give it a turn."
+  };
+  function sayLive(m, w) {
+    say(m >= 99.5 ? (w === "Just right" ? LINES.just : LINES.close) : m >= 0 ? (P < 1 ? LINES.little : LINES.bit) : LINES.lot);
+  }
+
+  /* ---------------------------------------------------- the self demo */
+  var userTurned = false;
+  function demo() {
+    userTurned = false;
+    renderMeal(.45); say(LINES.little);
+    if (STILL) { renderMeal(1); say(LINES.end); return; }
+    var seq = [
+      [600, .86, 1300, LINES.close],
+      [1500, 1, 900, LINES.just],
+      [1300, 2.3, 1500, LINES.lot],
+      [1500, 1, 1400, LINES.end]
+    ], t = 0;
+    seq.forEach(function (s) {
+      t += s[0];
+      later(function () { glide(s[1], s[2], function () { say(s[3]); }); }, t);
+      t += s[2];
+    });
+  }
+  function takeOver() { if (mode !== "meal") return; stopAll(); userTurned = true; }
+
+  /* ------------------------------------------------------------ input */
+  function angleAt(e) {
+    var r = knob.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    var a = Math.atan2(e.clientX - cx, cy - e.clientY) * 180 / Math.PI;
+    if (a > 120) a = a > 150 ? -120 : 120;
+    if (a < -120) a = a < -150 ? 120 : -120;
+    return a;
+  }
+  var grab = null;
+  dial.addEventListener("pointerdown", function (e) {
+    if (mode !== "meal" || e.target.closest(".arw")) return;
+    takeOver();
+    dial.setPointerCapture(e.pointerId);
+    grab = { a: angleAt(e), base: angOf(P) };
+    knob.focus({ preventScroll: true });
+  });
+  dial.addEventListener("pointermove", function (e) {
+    if (!grab || !dial.hasPointerCapture(e.pointerId)) return;
+    var a = angleAt(e), d = a - grab.a;
+    if (d > 180) d -= 360; if (d < -180) d += 360;
+    grab.a = a; grab.base = Math.max(-120, Math.min(120, grab.base + d));
+    renderMeal(pOf(grab.base));
+  });
+  dial.addEventListener("pointerup", function () { grab = null; });
+  dial.addEventListener("pointercancel", function () { grab = null; });
+  function nudge(dir) {
+    takeOver();
+    /* one tap moves to the next stop on the scale */
+    var stops = [.45, .86, 1, 1.14, 1.5, 2.3];
+    var i = 0, best = 1e9;
+    stops.forEach(function (s, k) { var d = Math.abs(s - P); if (d < best) { best = d; i = k; } });
+    if (dir > 0 && stops[i] <= P + .01) i++; if (dir < 0 && stops[i] >= P - .01) i--;
+    i = Math.max(0, Math.min(stops.length - 1, i));
+    glide(stops[i], 520);
+  }
+  document.getElementById("less").addEventListener("click", function () { nudge(-1); });
+  document.getElementById("more").addEventListener("click", function () { nudge(1); });
+  knob.addEventListener("keydown", function (e) {
+    if (mode !== "meal") return;
+    var d = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[e.key];
+    if (!d) return;
+    e.preventDefault(); nudge(d);
+  });
+
+  /* ------------------------------------------------------------ the day */
+  var MEALS = WHO === "current"
+    ? [["Breakfast", 20, 17], ["Lunch", 35, 32], ["Snack", 10, 9], ["Dinner", 35, null]]
+    : [["Breakfast", 20, null], ["Lunch", 35, null], ["Snack", 10, null], ["Dinner", 35, null]];
+  var mealsEl = document.getElementById("meals");
+  MEALS.forEach(function (m) {
+    var d = document.createElement("div");
+    if (m[2] == null) d.className = "wait";
+    d.innerHTML = "<b>" + m[0] + "</b><span>" + (m[2] == null ? "Up to " + m[1] : "<strong>" + m[2] + "</strong> of " + m[1]) + "</span>";
+    mealsEl.appendChild(d);
+  });
+  var DAY = WHO === "current" ? 58 : 0;
+
+  function setMode(m) {
+    mode = m;
+    dial.classList.toggle("day", m === "day");
+    finder.classList.toggle("gone", m === "day");
+    document.getElementById("dayBits").hidden = m !== "day";
+    document.getElementById("kOf").hidden = m !== "day";
+    if (m === "day") {
+      document.getElementById("tH").textContent = WHO === "current" ? "Your day is at 58" : "Now the dial shows your day";
+      document.getElementById("tP").textContent = WHO === "current"
+        ? "Breakfast, lunch and your snack have turned it to 58. Dinner can add up to 35, enough to pass 80 and earn a medal."
+        : "Each meal you log turns today's dial up by its share. Reach 80 in a day to earn a medal.";
+      knob.setAttribute("role", "img");
+      knob.setAttribute("aria-label", "Today's score, " + DAY + " out of 100. A medal at 80.");
+      knob.removeAttribute("aria-valuenow"); knob.removeAttribute("aria-valuetext");
+      sayEl.innerHTML = "";
+    } else {
+      document.getElementById("tH").textContent = "Find your sweet spot";
+      document.getElementById("tP").textContent = "Your coach plans every meal. Turn the dial to how much you ate and watch the picture.";
+      knob.setAttribute("role", "slider");
+      knob.setAttribute("aria-label", "How much you ate at breakfast");
+    }
+  }
+  function playDay() {
+    setMode("day");
+    renderDay(0);
+    dial.classList.remove("sweet");
+    if (STILL) renderDay(DAY); else if (DAY) later(function () { glide(DAY, 1400); }, 650);
+  }
+
+  /* ------------------------------------------------------------ the steps */
+  var STEPS = WHO === "current" ? ["hello", "meal", "day"] : ["meal", "day"];
+  var FINAL = WHO === "current" ? "See My Score" : "Log Your First Meal";
+  var cta = document.getElementById("cta"), back = document.getElementById("back"), dots = document.getElementById("dots");
+  STEPS.forEach(function () { dots.appendChild(document.createElement("i")); });
+  var cur = 0;
+  function show(i) {
+    var name = STEPS[i];
+    document.querySelector('[data-step="hello"]').classList.toggle("on", name === "hello");
+    var tb = document.getElementById("tunebox");
+    tb.hidden = name === "hello";
+    return name;
+  }
+  function go(i) {
+    stopAll();
+    cur = i;
+    var name = show(i);
+    document.getElementById("body").scrollTop = 0;
+    [].forEach.call(dots.children, function (d, k) { d.className = k === i ? "on" : ""; });
+    back.hidden = i === 0;
+    cta.textContent = i === STEPS.length - 1 ? FINAL : name === "hello" ? "Show Me How" : "Next";
+    if (name === "hello") {
+      var n = document.getElementById("helloN");
+      if (STILL) n.textContent = "58";
+      else { n.textContent = "0"; var t0 = performance.now(); (function f(now) { var k = Math.min(1, (now - t0) / 1000); n.textContent = Math.round(58 * ease(k)); if (k < 1) raf = requestAnimationFrame(f); })(t0); }
+    } else if (name === "meal") { setMode("meal"); demo(); }
+    else if (name === "day") {
+      if (mode === "meal" && !STILL) { glide(.2, 500, function () { playDay(); }); }
+      else playDay();
+    }
+  }
+  cta.addEventListener("click", function () { if (cur < STEPS.length - 1) go(cur + 1); else close(); });
+  back.addEventListener("click", function () { if (cur > 0) go(cur - 1); });
+
+  /* ------------------------------------------------------ open and close */
+  var root = document.documentElement;
+  function open() {
+    root.classList.remove("closed", "closing");
+    var n = parseInt(Q.get("step"), 10);
+    var i = n >= 1 && n <= STEPS.length ? n - 1 : 0;
+    setMode(STEPS[i] === "day" ? "day" : "meal");
+    show(i);
+    renderMeal(STEPS[i] === "meal" ? .45 : 1);
+    if (STILL) { root.classList.add("open"); go(i); return; }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("open"); setTimeout(function () { go(i); }, 320); }); });
+  }
+  function close() {
+    stopAll();
+    root.classList.add("closing"); root.classList.remove("open");
+    setTimeout(function () { root.classList.add("closed"); document.getElementById("replay").focus({ preventScroll: true }); }, STILL ? 0 : 360);
+  }
+  document.querySelector("[data-close]").addEventListener("click", close);
+  document.querySelector(".scrim").addEventListener("click", close);
+  addEventListener("keydown", function (e) { if (e.key === "Escape" && root.classList.contains("open")) close(); });
+  document.getElementById("replay").addEventListener("click", function () { Q.delete("step"); open(); });
+  open();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,304 @@
+<!doctype html>
+<!--
+  FTUX round 3, variant "One stage that changes" (x-morph).
+  The three-step Nutrition sufficiency explainer on one persistent visual stage.
+  Elements carry across steps as shared elements:
+    1  the live Cloud Drop sits centre on a soft green glow
+    2  the Cloud Drop shrinks into a small score chip at the top left and one lunch card (FTUX.meal from kit.js)
+       rises in below it; when the card shows "Full points", a "+35" flies into the chip, which counts 0 to 35
+    3  the chip fades and the reward (FTUX.reward from kit.js) fills the stage: sun rays, the medal, the FlipCoin counter
+  The text below changes by crossfade. Transitions run 500 to 700 ms on a smooth ease, no bounce.
+
+  Flags
+    ?who=new       (default) first-time user, Eat behind shows the empty day
+    ?who=current   someone who already logs meals, Eat behind shows the live day
+    ?step=N        open at step N (1 to 3)
+    ?still=1       no animation, end states shown (also when prefers-reduced-motion)
+-->
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One Stage That Changes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<link rel="stylesheet" href="/v7/icons/glyph-masks.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; overflow: hidden; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; }
+  :root { --io: cubic-bezier(.65,0,.35,1); }
+
+  .behind { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; background: #fff; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .42s var(--ease); }
+  .open .scrim { opacity: 1; }
+
+  /* ------------------------------------------------------------ the sheet */
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh;
+    display: flex; flex-direction: column; background: #fff; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    transform: translate(-50%, 100%); transition: transform .42s cubic-bezier(.2,.7,.2,1);
+    box-shadow: 0 -8px 32px rgba(16,24,40,.12); }
+  .open .sheet { transform: translate(-50%, 0); }
+  .closing .sheet { transition-duration: .34s; transition-timing-function: cubic-bezier(.4,0,1,1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 8px; }
+  .shead h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  .x:focus-visible, .ok:focus-visible, .back:focus-visible, .replay:focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+  .sbody { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px; }
+  .sfoot { flex-shrink: 0; padding: 0 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .nav { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; height: 44px; margin-bottom: 8px; }
+  .back { justify-self: start; height: 44px; padding: 0 8px; margin-left: -8px; border: 0; background: none; border-radius: var(--r-sm);
+    color: var(--brand-700); font-size: 14px; font-weight: 600; cursor: pointer; transition: opacity .3s var(--ease); }
+  .back[aria-hidden="true"] { opacity: 0; pointer-events: none; }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 6px; height: 6px; border-radius: 9999px; background: var(--g-200); transition: width .5s var(--io), background-color .5s var(--io); }
+  .dots i.on { width: 20px; background: var(--brand-600); }
+  .ok { width: 100%; height: 48px; margin-bottom: 7px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff;
+    font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; }
+  .ok:active { transform: translateY(3px); box-shadow: 0 4px 0 var(--brand-700); }
+
+  /* ------------------------------------------------------------ the stage */
+  .stage { position: relative; width: 358px; height: 272px; margin: 0 auto; transition: height .6s var(--io); }
+  /* steps 2 and 3 take 40px more so the lunch scene shows above the card */
+  .stage:not([data-s="1"]) { height: 312px; }
+
+  /* the Cloud Drop, in a wrapper that scales and moves. Its centre sits at 179, 128 */
+  .cw { position: absolute; left: 0; top: 0; width: 358px; height: 272px; transform-origin: 179px 128px;
+    transition: transform .65s var(--io); will-change: transform; }
+  .cw .glow { position: absolute; inset: 0; transition: opacity .4s var(--ease);
+    background: radial-gradient(circle at 179px 128px, rgb(203 240 224 / .55) 0, rgb(230 250 241 / .35) 92px, rgb(255 255 255 / 0) 150px); }
+  .cw .glow svg { position: absolute; left: 0; top: 0; }
+  .cw .glow circle { fill: none; stroke: var(--brand-200); }
+  .cw iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; pointer-events: none;
+    transition: opacity .3s var(--ease); }
+  [data-s="2"] .cw { transform: translate(-153px, -102px) scale(.25); }
+  [data-s="2"] .cw iframe, [data-s="2"] .cw .glow { opacity: 0; transition: opacity .3s var(--ease) .3s; }
+  [data-s="3"] .cw { transform: translate(-153px, -102px) scale(.25); }
+  [data-s="3"] .cw iframe, [data-s="3"] .cw .glow { opacity: 0; }
+
+  /* the score chip: the same score, small, at the top left */
+  .chip { position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 10px; pointer-events: none; }
+  .chip .ring { position: relative; width: 52px; height: 52px; flex-shrink: 0; transform-origin: 26px 26px; opacity: 0;
+    transform: translate(153px, 102px) scale(4); transition: transform .65s var(--io), opacity .3s var(--ease); }
+  .chip .ring svg { position: absolute; inset: 0; }
+  .chip .ring .arc { transition: stroke-dashoffset .5s var(--io); }
+  .chip .num { position: absolute; inset: 0; display: grid; place-items: center; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .chip .lbl { opacity: 0; transform: translateX(-6px); transition: opacity .3s var(--ease), transform .3s var(--ease); }
+  .chip .lbl b { display: block; font-size: 14px; line-height: 20px; font-weight: 600; }
+  .chip .lbl span { display: block; font-size: 12px; line-height: 16px; color: var(--g-500); }
+  [data-s="2"] .chip .ring { opacity: 1; transform: none; transition: transform .65s var(--io), opacity .3s var(--ease) .3s; }
+  [data-s="2"] .chip .lbl { opacity: 1; transform: none; transition: opacity .4s var(--ease) .5s, transform .4s var(--ease) .5s; }
+  /* step 3: the chip stays where it is and fades */
+  [data-s="3"] .chip .ring { transform: none; transition: opacity .35s var(--ease); }
+  [data-s="3"] .chip .lbl { transform: none; }
+  .chip .ring.pulse { animation: pulse .5s var(--ease); }
+  @keyframes pulse { 50% { transform: scale(1.06); } }
+  .fly { position: absolute; z-index: 3; font-size: 13px; font-weight: 700; color: var(--brand-700); background: var(--brand-50); border-radius: 9999px; padding: 2px 8px;
+    box-shadow: inset 0 0 0 1px var(--brand-200); pointer-events: none; white-space: nowrap; }
+
+  /* the kit panels: one lunch card below the chip (step 2), the reward over the whole stage (step 3) */
+  .kit { position: absolute; left: 0; right: 0; bottom: 0; border-radius: 20px; overflow: hidden; isolation: isolate; pointer-events: none;
+    opacity: 0; visibility: hidden; transition: opacity .35s var(--ease), transform .45s var(--io), visibility 0s .45s; }
+  #k2 { top: 64px; transform: translateY(20px); }
+  #k3 { top: 0; transform: scale(.97); }
+  [data-s="2"] #k2, [data-s="3"] #k3 { opacity: 1; visibility: visible; transform: none;
+    transition: opacity .55s var(--io) .3s, transform .6s var(--io) .3s, visibility 0s; }
+
+  /* ------------------------------------------------------------ the text */
+  .txt { display: grid; margin: 16px 0 8px; }
+  .t { grid-area: 1 / 1; opacity: 0; visibility: hidden; transition: opacity .22s var(--ease), visibility 0s .22s; }
+  .t.on { opacity: 1; visibility: visible; transition: opacity .4s var(--ease) .24s, visibility 0s; }
+  .eye { margin: 0 0 4px; font-size: 13px; line-height: 20px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; color: var(--brand-700); }
+  .t h3 { margin: 0 0 8px; font-size: 24px; line-height: 32px; font-weight: 600; text-wrap: balance; }
+  .t p { margin: 0; font-size: 16px; line-height: 24px; color: var(--g-600); text-wrap: pretty; }
+  .t p.small { margin-top: 8px; font-size: 14px; line-height: 20px; color: var(--g-500); }
+
+  .replay { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 9999px; border: 0;
+    background: rgb(255 255 255 / .92); color: var(--brand-700); font-size: 14px; font-weight: 600; box-shadow: 0 2px 10px rgba(16,24,40,.18);
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .closed .replay { opacity: 1; pointer-events: auto; }
+
+  .still *, .still *::before, .still *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<iframe class="behind" tabindex="-1" aria-hidden="true" title=""></iframe><script>document.currentScript.previousElementSibling.src = "/v7/r3/eat.html" + (/who=current/.test(location.search) ? "" : "?state=empty");</script>
+<div class="scrim" aria-hidden="true"></div>
+
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <header class="shead">
+    <h2 id="sheetTitle">Nutrition sufficiency</h2>
+    <button class="x" type="button" aria-label="Close" data-close><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </header>
+
+  <div class="sbody">
+    <div class="stage" id="stage" data-s="1" aria-hidden="true">
+      <div class="cw" id="cw">
+        <div class="glow"><svg width="358" height="272" viewBox="0 0 358 272"><circle cx="179" cy="128" r="126" stroke-width="1" opacity=".5"/><circle cx="179" cy="128" r="148" stroke-width="1" opacity=".28"/></svg></div>
+        <iframe id="cloud" tabindex="-1" title=""></iframe>
+      </div>
+      <div class="chip">
+        <div class="ring" id="ring">
+          <svg viewBox="0 0 52 52" width="52" height="52">
+            <circle cx="26" cy="26" r="24" fill="#fff"/>
+            <circle cx="26" cy="26" r="21" fill="none" stroke-width="4" style="stroke:var(--g-100)"/>
+            <circle class="arc" id="arc" cx="26" cy="26" r="21" fill="none" stroke-width="4" stroke-linecap="round" pathLength="100"
+              stroke-dasharray="100 100" stroke-dashoffset="100" transform="rotate(-90 26 26)" style="stroke:var(--brand-600)"/>
+          </svg>
+          <span class="num" id="num">0</span>
+        </div>
+        <div class="lbl"><b>Today's score</b><span>out of 100</span></div>
+      </div>
+      <!-- 2: one meal against the coach's plan, and 3: the medal and FlipCoins, both from kit.js -->
+      <div class="kit" id="k2"></div>
+      <div class="kit" id="k3"></div>
+    </div>
+
+    <div class="txt" aria-live="polite">
+      <div class="t" data-t="1">
+        <p class="eye">Introducing</p>
+        <h3>Nutrition sufficiency</h3>
+        <p data-who="new">From today, every meal you log adds to a score out of 100. It shows how close your meals come to the protein, carbs and fat your body needs. Eating close to that keeps your energy steady and supports your long-term health.</p>
+        <p data-who="current">The meals you log now add up to a score out of 100. It shows how close your meals come to the protein, carbs and fat your body needs. Eating close to that keeps your energy steady and supports your long-term health.</p>
+      </div>
+      <div class="t" data-t="2">
+        <h3>Your coach sets your targets</h3>
+        <p>For every meal, your coach plans how much protein, carbs and fat you need. Eat close to those amounts and the meal earns its full share of your sufficiency score.</p>
+      </div>
+      <div class="t" data-t="3">
+        <h3>Earn a medal and FlipCoins</h3>
+        <p>Reach a sufficiency of 80% in a day to earn a Medal. Keep logging your meals to earn FlipCoins to spend on your favourite brands ❤️</p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="sfoot">
+    <div class="nav">
+      <button class="back" type="button" id="back" aria-hidden="true" tabindex="-1">Back</button>
+      <div class="dots" id="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+      <span></span>
+    </div>
+    <button class="ok" type="button" id="cta">Next</button>
+  </footer>
+</section>
+
+<script src="/v7/ftux/kit.js"></script>
+<button class="replay" type="button" id="replay">Replay</button>
+
+<script>
+(function () {
+  "use strict";
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  var Q = new URLSearchParams(location.search);
+  var WHO = Q.get("who") === "current" ? "current" : "new";
+  var STILL = Q.get("still") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var root = document.documentElement;
+  if (STILL) root.classList.add("still");
+  document.querySelectorAll("[data-who]").forEach(function (el) { if (el.dataset.who !== WHO) el.remove(); });
+  var FINAL = WHO === "current" ? "See My Score" : "Log Your First Meal";
+
+  /* ------------------------------------------------------------- the Cloud Drop */
+  var SCORE = 90;
+  var CLOUD = "/v7/r3/heroes/cloud/index.html?build=34&embed=1&k=.8&er=.102&ey=-.095&y=.03&v=Cloud%20Drop&intro=murmuration&score=" + SCORE + (STILL ? "&still=1" : "");
+  var cloud = document.getElementById("cloud");
+  cloud.addEventListener("load", function () {
+    /* inside the explainer the score is the explanation, so its info mark goes */
+    try { var d = cloud.contentDocument; d.head.appendChild(Object.assign(d.createElement("style"), { textContent: ".score .word .wi{display:none!important}" })); } catch (e) {}
+  });
+
+  /* ------------------------------------------------------------- the kit */
+  var MEAL_PTS = 35;   /* the lunch is worth 35 of the day */
+  var K2 = FTUX.meal(document.getElementById("k2")), K3 = FTUX.reward(document.getElementById("k3"));
+  var pill = document.querySelector("#k2 .fk-pill");
+
+  var stage = document.getElementById("stage"), ring = document.getElementById("ring"), arc = document.getElementById("arc"), numEl = document.getElementById("num");
+  var shown = 0;
+  function setScore(v) { shown = v; numEl.textContent = Math.round(v); arc.setAttribute("stroke-dashoffset", String(100 - v)); }
+  function countTo(to, ms) {
+    var from = shown, t0 = performance.now();
+    (function f(now) {
+      var k = Math.min(1, (now - t0) / ms), e = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      numEl.textContent = Math.round(from + (to - from) * e); shown = from + (to - from) * e;
+      if (k < 1) raf.push(requestAnimationFrame(f)); else setScore(to);
+    })(t0);
+    arc.setAttribute("stroke-dashoffset", String(100 - to));
+  }
+
+  /* one-shot choreography: every timer and animation is kept so a step change can stop it */
+  var timers = [], raf = [], anims = [], armed = false;
+  function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+  function stopAll() {
+    armed = false;
+    timers.forEach(clearTimeout); raf.forEach(cancelAnimationFrame); anims.forEach(function (a) { a.cancel(); });
+    timers = []; raf = []; anims = [];
+    stage.querySelectorAll(".fly").forEach(function (n) { n.remove(); });
+  }
+  function rel(el) { var a = el.getBoundingClientRect(), s = stage.getBoundingClientRect(); return { x: a.left - s.left, y: a.top - s.top, w: a.width, h: a.height }; }
+
+  /* step 2: when the kit's "Full points" shows, the meal's points fly from it into the chip */
+  function flyPoints() {
+    var from = rel(pill), to = rel(ring);
+    var f = document.createElement("span"); f.className = "fly"; f.textContent = "+" + MEAL_PTS; stage.appendChild(f);
+    var x = from.x + from.w / 2 - f.offsetWidth / 2, y = from.y + from.h / 2 - f.offsetHeight / 2;
+    f.style.left = x + "px"; f.style.top = y + "px";
+    var dx = to.x + to.w / 2 - (x + f.offsetWidth / 2), dy = to.y + to.h / 2 - (y + f.offsetHeight / 2);
+    var a = f.animate([
+      { transform: "none", opacity: 0 },
+      { transform: "translateY(-8px)", opacity: 1, offset: .2 },
+      { transform: "translate(" + dx + "px," + dy + "px) scale(.6)", opacity: 0 }
+    ], { duration: 800, easing: "cubic-bezier(.65,0,.35,1)", fill: "forwards" });
+    anims.push(a);
+    a.onfinish = function () { f.remove(); countTo(MEAL_PTS, 600); ring.classList.remove("pulse"); void ring.offsetWidth; ring.classList.add("pulse"); };
+  }
+  new MutationObserver(function () {
+    if (armed && pill.classList.contains("on")) { armed = false; later(flyPoints, 250); }
+  }).observe(pill, { attributes: true, attributeFilter: ["class"] });
+
+  /* the kit not on show resets once it has faded away */
+  function park(k) { later(function () { k.reset(); }, 500); }
+
+  /* ------------------------------------------------------------- the steps */
+  var cur = 0;
+  var cta = document.getElementById("cta"), back = document.getElementById("back"), dots = document.getElementById("dots").children;
+  function go(n, from) {
+    stopAll();
+    cur = n;
+    stage.dataset.s = String(n);
+    document.querySelectorAll(".t").forEach(function (t) { t.classList.toggle("on", t.dataset.t === String(n)); });
+    [].forEach.call(dots, function (d, i) { d.className = i === n - 1 ? "on" : ""; });
+    back.setAttribute("aria-hidden", String(n === 1)); back.tabIndex = n === 1 ? -1 : 0;
+    cta.textContent = n === 3 ? FINAL : "Next";
+    if (n !== 3) setScore(n === 2 && STILL ? MEAL_PTS : 0);   /* on step 3 the chip keeps its number while it fades */
+    if (n === 2) { if (STILL) K2.still(); else { armed = true; K2.play(); } } else park(K2);
+    if (n === 3) { if (STILL) K3.still(); else K3.play(); } else park(K3);
+  }
+  cta.addEventListener("click", function () { if (cur < 3) go(cur + 1, cur); else close(); });
+  back.addEventListener("click", function () { if (cur > 1) go(cur - 1, cur); });
+
+  /* ------------------------------------------------------ open and close */
+  function open() {
+    root.classList.remove("closed", "closing");
+    cloud.src = CLOUD;
+    var n = parseInt(Q.get("step"), 10);
+    go(n >= 1 && n <= 3 ? n : 1);
+    if (STILL) { root.classList.add("open"); return; }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("open"); }); });
+  }
+  function close() {
+    stopAll();
+    root.classList.add("closing"); root.classList.remove("open");
+    setTimeout(function () { root.classList.add("closed"); document.getElementById("replay").focus({ preventScroll: true }); }, STILL ? 0 : 360);
+  }
+  document.querySelector("[data-close]").addEventListener("click", close);
+  document.querySelector(".scrim").addEventListener("click", close);
+  addEventListener("keydown", function (e) { if (e.key === "Escape" && root.classList.contains("open")) close(); });
+  document.getElementById("replay").addEventListener("click", function () { Q.delete("step"); K2.reset(); K3.reset(); open(); });
+  open();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!doctype html>
+<!--
+  FTUX round 3, variant "All three at a glance": the three-step explainer for Nutrition
+  sufficiency as one vertical list of three rows (thumbnail, headline). The active row opens
+  smoothly to show its full visual and words; the others stay one-line rows with their
+  thumbnails. Next closes the open row with a tick and opens the next one, so the user always
+  sees where they are and what is left. The final CTA appears when the third row is open.
+  A row already done can be tapped to open it again.
+
+  Steps: 1 Introducing Nutrition sufficiency (live Cloud Drop), 2 Your coach sets your targets
+  (one meal, lunch, each amount lands inside its range, full points), 3 Earn a medal and FlipCoins.
+  Steps 2 and 3 are drawn by the shared kit.js (compact), so every variant shows the same visuals.
+
+  Flags
+    ?who=new       (default) first-time user, empty day behind, ends on "Log Your First Meal"
+    ?who=current   someone who already logs meals, live day behind, ends on "See My Score"
+    ?step=N        open at step 1, 2 or 3 (earlier rows show as done)
+    ?still=1       no animation, end states shown (also when prefers-reduced-motion)
+-->
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Steps At A Glance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<link rel="stylesheet" href="/v7/icons/glyph-masks.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; overflow: hidden; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; }
+
+  .behind { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; background: #fff; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .42s var(--ease); }
+  .open .scrim { opacity: 1; }
+
+  /* ------------------------------------------------------------ the sheet */
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh;
+    display: flex; flex-direction: column; background: #fff; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    transform: translate(-50%, 100%); transition: transform .42s cubic-bezier(.2,.7,.2,1);
+    box-shadow: 0 -8px 32px rgba(16,24,40,.12); }
+  .open .sheet { transform: translate(-50%, 0); }
+  .closing .sheet { transition-duration: .34s; transition-timing-function: cubic-bezier(.4,0,1,1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 8px; }
+  .shead h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  .x:focus-visible, .ok:focus-visible, .back:focus-visible, .rh:focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+  .sbody { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px; }
+  .sfoot { flex-shrink: 0; padding: 4px 16px calc(20px + env(safe-area-inset-bottom, 0px)); }
+  .ok { width: 100%; height: 48px; margin-bottom: 7px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff;
+    font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; }
+  .ok:active { transform: translateY(3px); box-shadow: 0 4px 0 var(--brand-700); }
+  .navrow { height: 36px; display: flex; align-items: center; margin-bottom: 4px; }
+  .back { height: 36px; padding: 0 8px; margin-left: -8px; border: 0; background: none; color: var(--g-600); font-size: 14px; font-weight: 500;
+    display: inline-flex; align-items: center; gap: 4px; cursor: pointer; border-radius: var(--r-sm); transition: opacity .3s var(--ease), visibility .3s; }
+  .back svg { width: 18px; height: 18px; }
+  .back[aria-hidden="true"] { opacity: 0; visibility: hidden; }
+
+  /* ------------------------------------------------------------ the list */
+  .list { list-style: none; margin: 0; padding: 0; }
+  .row + .row { border-top: 1px solid var(--g-100); }
+  .rh { width: 100%; display: flex; align-items: center; padding: 10px 0; border: 0; background: none; text-align: left; cursor: default; }
+  .row.done .rh { cursor: pointer; }
+  .row.on .rh { padding: 12px 0 4px; }
+  .th { flex-shrink: 0; width: 36px; height: 36px; margin-right: 12px; border-radius: var(--r-md); overflow: hidden; display: grid; place-items: center;
+    transition: width .55s var(--ease), margin-right .55s var(--ease), opacity .35s var(--ease); }
+  .row.on .th { width: 0; margin-right: 0; opacity: 0; }
+  .th img { display: block; }
+  .th.t1 { background: var(--brand-50); } .th.t1 img { width: 22px; height: 22px; }
+  .th.t2 img { width: 100%; height: 100%; object-fit: cover; object-position: 72% 50%; }
+  .th.t3 { background: var(--gold-50); } .th.t3 img { width: 24px; height: auto; }
+  .rt { flex: 1; min-width: 0; }
+  .eb { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .55s var(--ease); }
+  .eb > span { overflow: hidden; font-size: 13px; line-height: 20px; font-weight: 600; color: var(--brand-700); }
+  .row.on .eb { grid-template-rows: 1fr; }
+  .rt .h { display: block; font-size: 16px; line-height: 24px; font-weight: 500; color: var(--g-600); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: font-size .55s var(--ease), line-height .55s var(--ease), color .4s var(--ease); }
+  .row.done .rt .h { color: var(--g-900); }
+  .row.on .rt .h { font-size: 24px; line-height: 32px; font-weight: 600; color: var(--g-900); white-space: normal; }
+  /* status: the step number while it is waiting, a green tick once it is done */
+  .st { flex-shrink: 0; position: relative; width: 24px; height: 24px; margin-left: 12px; transition: opacity .3s var(--ease); }
+  .st span { position: absolute; inset: 0; border-radius: 9999px; display: grid; place-items: center; transition: opacity .4s var(--ease) .15s, transform .5s var(--ease) .15s; }
+  .st .n { background: var(--g-100); color: var(--g-500); font-size: 12px; font-weight: 600; }
+  .st .k { background: var(--brand-600); opacity: 0; transform: scale(.6); }
+  .st .k svg { width: 14px; height: 14px; }
+  .row.done .st .n { opacity: 0; }
+  .row.done .st .k { opacity: 1; transform: none; }
+  .row.on .st { opacity: 0; }
+
+  .more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .6s var(--ease); }
+  .row.on .more { grid-template-rows: 1fr; }
+  .more > div { overflow: hidden; min-height: 0; }
+  .inner { padding: 8px 0 16px; opacity: 0; transition: opacity .3s var(--ease); }
+  .row.on .inner { opacity: 1; transition: opacity .5s var(--ease) .2s; }
+  .inner p { margin: 0; font-size: 16px; line-height: 24px; color: var(--g-600); text-wrap: pretty; }
+  .inner p.small { margin-top: 8px; font-size: 14px; line-height: 20px; color: var(--g-500); }
+  .txt { min-height: 100px; margin-top: 12px; }
+
+  /* ------------------------------------------- the visual: one fixed height in every row */
+  .vis { position: relative; height: 192px; }
+
+  /* step 1: the live Cloud Drop on a soft glow */
+  .p1 { overflow: hidden; }
+  .p1 .bg { position: absolute; inset: 0; -webkit-mask: radial-gradient(closest-side, #000 60%, transparent); mask: radial-gradient(closest-side, #000 60%, transparent); }
+  .glow { position: absolute; inset: 0; background: radial-gradient(closest-side, var(--brand-100), rgb(230 250 241 / .5) 55%, rgb(255 255 255 / 0)); }
+  .rings { position: absolute; left: 50%; top: 50%; width: 300px; height: 300px; margin: -150px 0 0 -150px; }
+  .rings circle { fill: none; stroke: var(--brand-100); }
+  .grain { position: absolute; inset: 0; opacity: .06; mix-blend-mode: multiply; }
+  .cloud { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; background: transparent; pointer-events: none; }
+
+  /* steps 2 and 3: the shared kit (kit.js, compact) fills a slightly taller pane, on rounded corners */
+  .row[data-i="1"] .vis, .row[data-i="2"] .vis { height: 212px; }
+  .p2, .p3 { position: absolute; inset: 0; border-radius: 20px; overflow: hidden; isolation: isolate; }
+
+  .replay { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 9999px; border: 0;
+    background: rgb(255 255 255 / .92); color: var(--brand-700); font-size: 14px; font-weight: 600; box-shadow: 0 2px 10px rgba(16,24,40,.18);
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .closed .replay { opacity: 1; pointer-events: auto; }
+
+  .still *, .still *::before, .still *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<iframe class="behind" tabindex="-1" aria-hidden="true" title=""></iframe><script>document.currentScript.previousElementSibling.src = "/v7/r3/eat.html" + (/who=current/.test(location.search) ? "" : "?state=empty");</script>
+<div class="scrim" aria-hidden="true"></div>
+
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <header class="shead">
+    <h2 id="sheetTitle">Something new for you 🎉</h2>
+    <button class="x" type="button" aria-label="Close" data-close><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </header>
+
+  <div class="sbody">
+    <ol class="list" id="list">
+      <li class="row" data-i="0">
+        <button class="rh" type="button" aria-expanded="false" aria-controls="m0">
+          <span class="th t1"><img src="/v7/r3/heroes/cloud/orb.svg" alt=""></span>
+          <span class="rt"><span class="eb"><span>Introducing</span></span><span class="h">Nutrition sufficiency</span></span>
+          <span class="st" aria-hidden="true"><span class="n">1</span><span class="k" data-tick></span></span>
+        </button>
+        <div class="more" id="m0"><div><div class="inner">
+          <div class="vis" aria-hidden="true"><div class="pane p1">
+            <div class="bg"><div class="glow"></div>
+              <svg class="rings" viewBox="0 0 300 300"><circle cx="150" cy="150" r="92"/><circle cx="150" cy="150" r="122" opacity=".6"/><circle cx="150" cy="150" r="148" opacity=".35"/></svg>
+              <svg class="grain" width="100%" height="100%"><filter id="gn"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(#gn)"/></svg></div>
+            <iframe class="cloud" id="cloud" tabindex="-1" title=""></iframe>
+          </div></div>
+          <div class="txt">
+            <p data-who="new">From today, every meal you log adds to a score out of 100. It shows how close your meals come to the protein, carbs and fat your body needs. Eating close to that keeps your energy steady and supports your long-term health.</p>
+            <p data-who="current">The meals you log now add up to a score out of 100. It shows how close your meals come to the protein, carbs and fat your body needs. Eating close to that keeps your energy steady and supports your long-term health.</p>
+          </div>
+        </div></div></div>
+      </li>
+      <li class="row" data-i="1">
+        <button class="rh" type="button" aria-expanded="false" aria-controls="m1">
+          <span class="th t2"><img src="/v7/icons/meals/bg/lunch.webp" alt=""></span>
+          <span class="rt"><span class="h">Your coach sets your targets</span></span>
+          <span class="st" aria-hidden="true"><span class="n">2</span><span class="k" data-tick></span></span>
+        </button>
+        <div class="more" id="m1"><div><div class="inner">
+          <div class="vis" aria-hidden="true"><div class="pane p2" id="k2"></div></div>
+          <div class="txt">
+            <p>For every meal, your coach plans how much protein, carbs and fat you need. Eat close to those amounts and the meal earns its full share of your sufficiency score.</p>
+          </div>
+        </div></div></div>
+      </li>
+      <li class="row" data-i="2">
+        <button class="rh" type="button" aria-expanded="false" aria-controls="m2">
+          <span class="th t3"><img src="/v7/icons/badge/simple/heart-apple.svg" alt=""></span>
+          <span class="rt"><span class="h">Earn a medal and FlipCoins</span></span>
+          <span class="st" aria-hidden="true"><span class="n">3</span><span class="k" data-tick></span></span>
+        </button>
+        <div class="more" id="m2"><div><div class="inner">
+          <div class="vis" aria-hidden="true"><div class="pane p3" id="k3"></div></div>
+          <div class="txt">
+            <p>Reach a sufficiency of 80% in a day to earn a Medal. Keep logging your meals to earn FlipCoins to spend on your favourite brands ❤️</p>
+          </div>
+        </div></div></div>
+      </li>
+    </ol>
+  </div>
+
+  <footer class="sfoot">
+    <div class="navrow">
+      <button class="back" type="button" id="back" aria-hidden="true" tabindex="-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Back</button>
+    </div>
+    <button class="ok" type="button" id="cta">Next</button>
+  </footer>
+</section>
+
+<button class="replay" type="button" id="replay">Replay</button>
+
+<script src="/v7/ftux/kit.js"></script>
+
+<script>
+(function () {
+  "use strict";
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  var Q = new URLSearchParams(location.search);
+  var WHO = Q.get("who") === "current" ? "current" : "new";
+  var STILL = Q.get("still") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var root = document.documentElement;
+  if (STILL) root.classList.add("still");
+  document.querySelectorAll("[data-who]").forEach(function (el) { if (el.dataset.who !== WHO) el.remove(); });
+  var FINAL = WHO === "current" ? "See My Score" : "Log Your First Meal";
+  document.querySelectorAll("[data-tick]").forEach(function (k) { k.innerHTML = '<svg viewBox="0 0 16 16"><path d="M4.4 8.3l2.4 2.4 4.8-5" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'; });
+
+  /* ------------------------------------------------ the live Cloud Drop */
+  var cloud = document.getElementById("cloud");
+  /* the score's info mark means "tap for more" on Eat; here the sheet already is the explanation */
+  cloud.addEventListener("load", function () {
+    try { var st = cloud.contentDocument.createElement("style"); st.textContent = "html .score .word .wi{display:none !important}"; cloud.contentDocument.head.appendChild(st); } catch (e) {}
+  });
+  var CLOUD = "/v7/r3/heroes/cloud/index.html?build=34&embed=1&k=.62&er=.102&ey=-.095&y=.03&v=Cloud%20Drop&intro=murmuration&score=85" + (STILL ? "&still=1" : "");
+  function loadCloud() { cloud.src = CLOUD + "&r=" + Date.now(); }
+
+  /* ------------------------------------------- steps 2 and 3: the shared kit */
+  var K = [null, FTUX.meal(document.getElementById("k2"), { compact: true }), FTUX.reward(document.getElementById("k3"), { compact: true })];
+
+  /* ------------------------------------------------------------ the rows */
+  var rows = document.querySelectorAll(".row");
+  var back = document.getElementById("back"), cta = document.getElementById("cta");
+  var cur = 0, played = [true, false, false], playTimer = null;
+  var OPEN_LEAD = 380;   /* the row opens first, then its visual plays */
+  function play(i) {
+    clearTimeout(playTimer);
+    if (!K[i]) return;
+    if (STILL) { K[i].still(); return; }
+    if (played[i]) return;
+    played[i] = true;
+    K[i].reset();
+    playTimer = setTimeout(function () { K[i].play(); }, OPEN_LEAD);
+  }
+  function go(i) {
+    cur = i;
+    rows.forEach(function (r, k) {
+      r.classList.toggle("on", k === i);
+      r.classList.toggle("done", k < i || (r.classList.contains("done") && k !== i && k < maxSeen));
+      var h = r.querySelector(".rh");
+      h.setAttribute("aria-expanded", k === i ? "true" : "false");
+      h.disabled = !r.classList.contains("done");
+    });
+    var b = i > 0; back.setAttribute("aria-hidden", b ? "false" : "true"); back.tabIndex = b ? 0 : -1;
+    cta.textContent = i === 2 ? FINAL : "Next";
+    play(i);
+  }
+  var maxSeen = 0;
+  function goTo(i) { maxSeen = Math.max(maxSeen, i); go(i); }
+  rows.forEach(function (r, k) { r.querySelector(".rh").addEventListener("click", function () { if (r.classList.contains("done")) goTo(k); }); });
+  cta.addEventListener("click", function () { if (cur < 2) goTo(cur + 1); else close(); });
+  back.addEventListener("click", function () { if (cur > 0) goTo(cur - 1); });
+
+  /* ------------------------------------------------------ open and close */
+  function open() {
+    root.classList.remove("closed", "closing");
+    played = [true, false, false]; maxSeen = 0;
+    rows.forEach(function (r) { r.classList.remove("done"); });
+    clearTimeout(playTimer); K[1].reset(); K[2].reset();
+    loadCloud();
+    var n = parseInt(Q.get("step"), 10);
+    goTo(n >= 1 && n <= 3 ? n - 1 : 0);
+    if (STILL) { root.classList.add("open"); return; }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("open"); }); });
+  }
+  function close() {
+    root.classList.add("closing"); root.classList.remove("open");
+    setTimeout(function () { root.classList.add("closed"); document.getElementById("replay").focus({ preventScroll: true }); }, STILL ? 0 : 360);
+  }
+  document.querySelector("[data-close]").addEventListener("click", close);
+  document.querySelector(".scrim").addEventListener("click", close);
+  addEventListener("keydown", function (e) { if (e.key === "Escape" && root.classList.contains("open")) close(); });
+  document.getElementById("replay").addEventListener("click", function () { Q.delete("step"); open(); });
+  open();
+})();
+</script>
+</body>
+</html>

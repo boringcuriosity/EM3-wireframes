@@ -1,0 +1,606 @@
+<!doctype html>
+<!--
+  FTUX concept: "Aim for the green".
+  Each macro target is a soft target seen from above. The wide green centre is full marks
+  (from 80% of the target to the target plus 20%), the two rings around it earn part of the
+  marks, and a crescent on the "more" side shows that much more can take marks away.
+  1 aim    one target: a pin glides into the green, then the user taps anywhere to place what they ate
+  2 meal   breakfast's three targets (protein, carbs, fat) get pins at 75, 75, 100 and combine into 83, adding 17 of 20
+  3 day    four meal targets feed the day bar, with the medal line at 80
+  Current users first see "Your meals now add up to a score" and their 58.
+
+  Flags
+    ?who=new       (default) first-time user: aim, meal, day
+    ?who=current   already logs meals: hello, aim, meal, day
+    ?step=N        open at step N (1-based)
+    ?still=1       no animation, end states shown (also when prefers-reduced-motion)
+-->
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aim For The Green</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<link rel="stylesheet" href="/v7/icons/glyph-masks.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; overflow: hidden; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; }
+
+  .behind { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; background: #fff; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .42s var(--ease); }
+  .open .scrim { opacity: 1; }
+
+  /* ------------------------------------------------------------ the sheet */
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh;
+    display: flex; flex-direction: column; background: #fff; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    transform: translate(-50%, 100%); transition: transform .42s cubic-bezier(.2,.7,.2,1);
+    box-shadow: 0 -8px 32px rgba(16,24,40,.12); }
+  .open .sheet { transform: translate(-50%, 0); }
+  .closing .sheet { transition-duration: .34s; transition-timing-function: cubic-bezier(.4,0,1,1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 8px; }
+  .shead h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  .x:focus-visible, .ok:focus-visible, .back:focus-visible, .board:focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+  .sbody { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px 8px; }
+  .sfoot { flex-shrink: 0; padding: 8px 16px calc(24px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 12px; }
+  .nav { display: flex; align-items: center; justify-content: center; position: relative; height: 20px; }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 6px; height: 6px; border-radius: 9999px; background: var(--g-200); transition: width .4s var(--ease), background-color .4s var(--ease); }
+  .dots i.on { width: 18px; background: var(--brand-600); }
+  .back { position: absolute; left: -8px; top: 50%; transform: translateY(-50%); border: 0; background: none; padding: 8px; color: var(--g-500);
+    font-size: 14px; font-weight: 500; cursor: pointer; border-radius: var(--r-sm); }
+  .back[hidden] { display: none; }
+  .ok { width: 100%; height: 48px; margin-bottom: 7px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff;
+    font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; transition: opacity .3s var(--ease); }
+  .ok:active { transform: translateY(3px); box-shadow: 0 4px 0 var(--brand-700); }
+
+  .step { display: none; }
+  .step.on { display: block; animation: stepIn .4s var(--ease) both; }
+  @keyframes stepIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  h3.t { margin: 4px 0 6px; font-size: 22px; line-height: 28px; font-weight: 700; letter-spacing: -.2px; text-wrap: balance; }
+  .lead { margin: 0 0 12px; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
+  .lead b { color: var(--g-900); font-weight: 600; }
+
+  /* ---------------------------------------------------------- the target */
+  .board { display: block; width: 100%; max-width: 268px; margin: 0 auto; cursor: crosshair; touch-action: manipulation; border-radius: 9999px; -webkit-tap-highlight-color: transparent; }
+  .board:focus:not(:focus-visible) { outline: none; }
+  .board text { font-family: Roboto, system-ui, sans-serif; pointer-events: none; }
+  .z { transition: fill .5s var(--ease), stroke .5s var(--ease), opacity .5s var(--ease); }
+  .z-out  { fill: var(--in-25);  stroke: var(--in-100); }
+  .z-mid  { fill: var(--in-50);  stroke: var(--in-100); }
+  .z-much { fill: var(--red-50); stroke: var(--red-200); stroke-dasharray: 3 4; }
+  .z-out.lit  { fill: color-mix(in srgb, var(--gold-50) 70%, var(--in-25)); }
+  .z-mid.lit  { fill: color-mix(in srgb, var(--gold-100) 60%, var(--in-50)); }
+  .z-much.lit { fill: var(--red-100); }
+  .z-green { stroke: var(--ok-300); }
+  .z-green.lit { stroke: var(--ok-500); }
+  .green-glow { opacity: 0; transition: opacity .6s var(--ease); }
+  .lit + .green-glow, .green-glow.lit { opacity: 1; }
+  .lbl { font-size: 11px; font-weight: 600; letter-spacing: .3px; }
+  .lbl-g { fill: var(--brand-800); font-size: 13px; font-weight: 700; letter-spacing: .2px; }
+  .lbl-m { fill: var(--in-400); }
+  .lbl-r { fill: var(--red-600); font-size: 10.5px; }
+  .lbl-c { fill: var(--brand-700); font-size: 10px; font-weight: 500; }
+  .sides { display: flex; justify-content: space-between; max-width: 300px; margin: 2px auto 0; font-size: 12px; line-height: 16px; color: var(--g-500); font-weight: 500; }
+  .sides span { display: flex; align-items: center; gap: 4px; }
+
+  /* the pin, seen from above */
+  .pin .sh { fill: rgba(16,24,40,.28); }
+  .pin .head { fill: #fff; stroke-width: 3; transition: stroke .45s var(--ease); }
+  .pin .core { transition: fill .45s var(--ease); }
+  .pin.full .head { stroke: var(--brand-600); } .pin.full .core { fill: var(--brand-600); }
+  .pin.part .head { stroke: var(--gold-700); }  .pin.part .core { fill: var(--gold-700); }
+  .pin.neg  .head { stroke: var(--red-600); }   .pin.neg  .core { fill: var(--red-600); }
+  .ripple { fill: none; stroke-width: 2; opacity: 0; }
+  .ripple.go { animation: rip .9s var(--ease) both; }
+  @keyframes rip { from { opacity: .55; transform: scale(.4); } to { opacity: 0; transform: scale(2.2); } }
+  .ripple { transform-box: fill-box; transform-origin: center; }
+
+  /* the live readout under the big target */
+  .read { display: flex; align-items: center; gap: 12px; margin: 12px 0 0; padding: 12px 14px; border-radius: var(--r-lg); background: var(--g-25);
+    border: 1px solid var(--g-100); min-height: 64px; transition: background-color .5s var(--ease), border-color .5s var(--ease); }
+  .read.full { background: var(--brand-25); border-color: var(--brand-100); }
+  .read .gl { width: 22px; height: 22px; }
+  .read .what { flex: 1; min-width: 0; }
+  .read .amt { font-size: 13px; line-height: 18px; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .read .amt b { color: var(--g-900); font-weight: 600; }
+  .read .say { font-size: 15px; line-height: 21px; font-weight: 600; color: var(--g-800); text-wrap: pretty; }
+  .read .mk { flex-shrink: 0; text-align: right; font-size: 24px; line-height: 26px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.4px; }
+  .read .mk small { display: block; font-size: 11px; line-height: 14px; font-weight: 600; color: var(--g-400); letter-spacing: 0; }
+  .read .mk.txt { font-size: 13px; line-height: 16px; font-weight: 700; max-width: 84px; }
+  .full .mk, .mk.full { color: var(--brand-700); } .mk.part { color: var(--gold-800); } .mk.neg { color: var(--red-600); }
+  .swap { animation: swapIn .4s var(--ease) both; }
+  @keyframes swapIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  .hint { margin: 10px 0 0; text-align: center; font-size: 13px; line-height: 18px; color: var(--g-500); transition: opacity .4s var(--ease); }
+
+  .gl { display: inline-block; flex-shrink: 0; background: var(--brand-600); -webkit-mask-size: contain; mask-size: contain;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+
+  /* ------------------------------------------------- three targets, one meal */
+  .trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 4px 0 0; }
+  .mini { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .mini .nm { display: flex; align-items: center; gap: 4px; font-size: 13px; line-height: 18px; font-weight: 600; }
+  .mini .nm .gl { width: 16px; height: 16px; }
+  .mini svg { width: 100%; max-width: 108px; display: block; }
+  .mini .g { font-size: 12px; line-height: 16px; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .mini .g b { color: var(--g-900); font-weight: 600; }
+  .mini .m { font-size: 18px; line-height: 22px; font-weight: 800; font-variant-numeric: tabular-nums; opacity: 0; transition: opacity .4s var(--ease); }
+  .mini .m.on { opacity: 1; }
+  .mini .m.full { color: var(--brand-700); } .mini .m.part { color: var(--gold-800); }
+  .flow { position: relative; height: 28px; }
+  .flow svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .flow path { fill: none; stroke: var(--g-200); stroke-width: 1.5; stroke-dasharray: 3 4; }
+  .flow circle { fill: var(--brand-500); opacity: 0; }
+
+  .sum { position: relative; isolation: isolate; border-radius: var(--r-xl); border: 1px solid transparent; box-shadow: 2px 2px 0 var(--g-200); padding: 14px 16px;
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 55%) padding-box,
+      conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; overflow: hidden; }
+  .sum::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 100%; z-index: -1; opacity: .5;
+    background: url(/v7/icons/meals/bg/bf.webp?v=2) right top / auto 100% no-repeat;
+    -webkit-mask: linear-gradient(90deg, transparent 35%, #000 80%); mask: linear-gradient(90deg, transparent 35%, #000 80%); }
+  .sum .row1 { display: flex; align-items: baseline; gap: 8px; }
+  .sum .row1 span { font-size: 15px; line-height: 20px; font-weight: 600; }
+  .sum .row1 b { font-size: 28px; line-height: 32px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ok-600); letter-spacing: -.5px; }
+  .sum .row1 small { font-size: 12px; color: var(--g-400); font-weight: 600; }
+  .bar { position: relative; height: 10px; margin: 10px 0 6px; border-radius: 9999px; background: var(--g-100); overflow: hidden; }
+  .bar i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: inherit; background: var(--brand-500); }
+  .sum .cap { font-size: 13px; line-height: 18px; color: var(--g-600); }
+  .sum .cap b { color: var(--g-900); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .note { margin: 12px 0 0; font-size: 13px; line-height: 19px; color: var(--g-500); text-wrap: pretty; }
+
+  /* ------------------------------------------------------- the day board */
+  .four { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 6px 0 0; }
+  .four .mini svg { max-width: 76px; }
+  .four .mini .nm { font-size: 12px; }
+  .four .w { font-size: 11px; line-height: 14px; color: var(--g-500); text-align: center; font-variant-numeric: tabular-nums; }
+  .four .w b { color: var(--g-900); font-weight: 600; }
+  .four .w.wait { color: var(--g-400); }
+  .daycard { margin: 14px 0 0; padding: 14px 16px 16px; border-radius: var(--r-xl); background: var(--g-25); border: 1px solid var(--g-100); }
+  .daytop { display: flex; align-items: baseline; justify-content: space-between; }
+  .daytop > span { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--g-700); }
+  .daytop b { font-size: 30px; line-height: 34px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.6px; }
+  .daytop b small { font-size: 13px; font-weight: 600; color: var(--g-400); letter-spacing: 0; margin-left: 2px; }
+  .dbar { position: relative; height: 14px; margin: 30px 0 6px; border-radius: 9999px; background: #fff; box-shadow: inset 0 0 0 1px var(--g-200); }
+  .dbar .seg { position: absolute; top: 0; bottom: 0; width: 0; background: var(--brand-500); }
+  .dbar .seg:first-child { border-radius: 9999px 0 0 9999px; }
+  .dbar .seg + .seg { box-shadow: inset 1px 0 0 rgb(255 255 255 / .8); }
+  .dbar .seg.ghost { background: repeating-linear-gradient(135deg, var(--g-100) 0 3px, transparent 3px 7px); box-shadow: inset 1px 0 0 var(--g-200); opacity: 0; transition: opacity .6s var(--ease); }
+  .dbar .seg.ghost.on { opacity: 1; }
+  .dbar .seg:last-of-type { border-radius: 0 9999px 9999px 0; }
+  .dbar .line { position: absolute; left: 80%; top: -6px; bottom: -6px; width: 2px; margin-left: -1px; border-radius: 2px; background: var(--gold-600); }
+  .dbar .medal { position: absolute; left: 80%; bottom: calc(100% + 6px); transform: translateX(-50%); display: flex; align-items: center; gap: 4px;
+    white-space: nowrap; font-size: 11px; line-height: 14px; font-weight: 700; color: var(--gold-800); }
+  .dscale { display: flex; justify-content: space-between; font-size: 11px; color: var(--g-400); font-variant-numeric: tabular-nums; }
+
+  /* ---------------------------------------------- hello (current users) */
+  .hello { position: relative; margin: 4px 0 4px; padding: 20px 16px 18px; border-radius: var(--r-xl);
+    border: 1px solid transparent; box-shadow: 2px 2px 0 var(--g-200); overflow: hidden; isolation: isolate;
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 50%) padding-box,
+      conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; }
+  .hello h3 { margin: 0 0 8px; font-size: 22px; line-height: 28px; font-weight: 700; text-wrap: balance; }
+  .hello p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
+  .hello .now { display: flex; align-items: center; gap: 14px; margin-top: 18px; }
+  .hello .now svg { width: 112px; flex-shrink: 0; }
+  .hello .now .n { font-size: 44px; line-height: 44px; font-weight: 800; color: var(--ok-600); letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+  .hello .now .s { font-size: 13px; line-height: 18px; color: var(--g-600); margin-top: 4px; }
+
+  .replay { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 9999px; border: 0;
+    background: rgb(255 255 255 / .92); color: var(--brand-700); font-size: 14px; font-weight: 600; box-shadow: 0 2px 10px rgba(16,24,40,.18);
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .closed .replay { opacity: 1; pointer-events: auto; }
+
+  .still *, .still *::before, .still *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<iframe class="behind" tabindex="-1" aria-hidden="true" title=""></iframe><script>document.currentScript.previousElementSibling.src = "/v7/r3/eat.html" + (/who=current/.test(location.search) ? "" : "?state=empty");</script>
+<div class="scrim" aria-hidden="true"></div>
+
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <header class="shead">
+    <h2 id="sheetTitle">Nutrition sufficiency</h2>
+    <button class="x" type="button" aria-label="Close" data-close><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </header>
+
+  <div class="sbody" id="body">
+
+    <!-- hello: current users only -->
+    <div class="step" data-step="hello">
+      <div class="hello">
+        <h3>Your meals now add up to a score</h3>
+        <p>You already log your meals here. From today, each one is checked against your coach's plan and adds to a score out of 100.</p>
+        <div class="now">
+          <span id="helloBoard"></span>
+          <div><div class="n" id="helloN">58</div><div class="s">so far today, from breakfast, lunch and your snack</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- aim: one big target -->
+    <div class="step" data-step="aim">
+      <h3 class="t">Aim for the green</h3>
+      <p class="lead">Your coach sets a target for each meal. Anywhere in the wide green ring gets <b>full marks</b>, so close is enough.</p>
+      <div id="bigWrap"></div>
+      <div class="sides" aria-hidden="true"><span>&larr; Less than planned</span><span>More than planned &rarr;</span></div>
+      <div class="read full" id="read" aria-live="polite">
+        <span class="gl glyph-protein" aria-hidden="true"></span>
+        <div class="what"><div class="amt" id="rAmt">Protein <b>13 g</b> of 15 g</div><div class="say" id="rSay">Close is enough. Full marks.</div></div>
+        <div class="mk full" id="rMk">100<small>of 100</small></div>
+      </div>
+      <p class="hint" id="hint">Tap anywhere on the target to see what it earns.</p>
+    </div>
+
+    <!-- meal: three targets make breakfast -->
+    <div class="step" data-step="meal">
+      <h3 class="t">Breakfast has three targets</h3>
+      <p class="lead">Protein, carbs and fat each get a mark. Together they make the meal's score.</p>
+      <div class="trio" id="trio"></div>
+      <div class="flow" aria-hidden="true"><svg viewBox="0 0 358 28" preserveAspectRatio="none" id="flowSvg">
+        <path d="M60 0 C60 16 179 12 179 28"/><path d="M179 0 L179 28"/><path d="M298 0 C298 16 179 12 179 28"/>
+        <circle r="3.5" cx="60" cy="0"/><circle r="3.5" cx="179" cy="0"/><circle r="3.5" cx="298" cy="0"/>
+      </svg></div>
+      <div class="sum" aria-live="polite">
+        <div class="row1"><span>Breakfast scores</span><b id="mealN">83</b><small>of 100</small></div>
+        <div class="bar" aria-hidden="true"><i id="mealBar"></i></div>
+        <div class="cap">It adds <b id="mealPts">17</b> of its <b>20</b> to today.</div>
+      </div>
+      <p class="note">Breakfast is worth 20 of today's 100, because bigger meals count for more of the day.</p>
+    </div>
+
+    <!-- day: four meal targets feed the day -->
+    <div class="step" data-step="day">
+      <h3 class="t" id="dayH">Your meals fill the day</h3>
+      <p class="lead" id="dayP"></p>
+      <div class="four" id="four"></div>
+      <div class="daycard">
+        <div class="daytop"><span>Today</span><b><span id="dayN">0</span><small>of 100</small></b></div>
+        <div class="dbar" aria-hidden="true">
+          <i class="seg" id="seg0"></i><i class="seg" id="seg1"></i><i class="seg" id="seg2"></i><i class="seg" id="seg3"></i>
+          <span class="line"></span>
+          <span class="medal"><svg width="14" height="16" viewBox="0 0 14 16" aria-hidden="true"><path d="M3 0h3l1 4H4zM8 0h3L10 4H7z" style="fill:var(--gold-600)"/><circle cx="7" cy="10" r="5.2" style="fill:var(--gold-300);stroke:var(--gold-700)" stroke-width="1.2"/><path d="m7 7.4.8 1.6 1.7.2-1.3 1.2.3 1.7L7 11.3l-1.5.8.3-1.7-1.3-1.2 1.7-.2z" style="fill:var(--gold-800)"/></svg>Medal at 80</span>
+        </div>
+        <div class="dscale"><span>0</span><span>100</span></div>
+      </div>
+      <p class="note" id="dayNote">It starts fresh every morning.</p>
+    </div>
+  </div>
+
+  <footer class="sfoot">
+    <div class="nav"><button class="back" type="button" id="back" hidden>Back</button><div class="dots" id="dots" aria-hidden="true"></div></div>
+    <button class="ok" type="button" id="cta">Next</button>
+  </footer>
+</section>
+
+<button class="replay" type="button" id="replay">Replay</button>
+
+<script>
+(function () {
+  "use strict";
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  var Q = new URLSearchParams(location.search);
+  var WHO = Q.get("who") === "current" ? "current" : "new";
+  var STILL = Q.get("still") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (STILL) document.documentElement.classList.add("still");
+  var NS = "http://www.w3.org/2000/svg";
+
+  /* ------------------------------------------------------------- motion */
+  function ease(k) { return k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; }
+  var timers = [];
+  function later(fn, ms) { var id = setTimeout(fn, STILL ? 0 : ms); timers.push(id); return id; }
+  function clearAll() { timers.forEach(clearTimeout); timers = []; }
+  function tween(d, fn, done) {
+    if (STILL) { fn(1); if (done) done(); return; }
+    var t0 = performance.now();
+    (function f(now) { var k = Math.min(1, (now - t0) / d); fn(ease(k)); if (k < 1) requestAnimationFrame(f); else if (done) done(); })(t0);
+  }
+  function count(el, from, to, d) { tween(d, function (e) { el.textContent = Math.round(from + (to - from) * e); }); }
+
+  /* ------------------------------------------------- the target geometry */
+  /* rings by mark: green centre = full marks, then most, then some, then the crescent on the more side */
+  var C = 150, RG = 62, R2 = 90, R3 = 118, R4 = 142;
+  function rFromMark(m) { return m >= 100 ? 0 : m >= 0 ? RG + (1 - m / 100) * (R3 - RG) : R3 + (-m / 50) * (R4 - R3); }
+  function markFromR(r) { return r <= RG ? 100 : r <= R3 ? 100 * (1 - (r - RG) / (R3 - RG)) : -50 * (r - R3) / (R4 - R3); }
+  function zone(m) { return m >= 99.5 ? "full" : m >= 0 ? "part" : "neg"; }
+  function pt(r, deg) { var a = deg * Math.PI / 180; return [C + r * Math.cos(a), C + r * Math.sin(a)]; }
+
+  function board(opts) {
+    var s = document.createElementNS(NS, "svg");
+    s.setAttribute("viewBox", "0 0 300 300");
+    var gid = "gg" + Math.random().toString(36).slice(2, 7);
+    var much = "M" + C + " " + (C - R4) + " A" + R4 + " " + R4 + " 0 0 1 " + C + " " + (C + R4) +
+      " L" + C + " " + (C + R3) + " A" + R3 + " " + R3 + " 0 0 0 " + C + " " + (C - R3) + " Z";
+    var html =
+      '<defs><radialGradient id="' + gid + '" cx="50%" cy="45%" r="55%">' +
+        '<stop offset="0" stop-color="var(--brand-50)"/><stop offset=".7" stop-color="var(--brand-100)"/><stop offset="1" stop-color="var(--brand-200)"/></radialGradient>' +
+        '<radialGradient id="' + gid + 'h" cx="50%" cy="50%" r="50%"><stop offset=".55" stop-color="var(--brand-200)" stop-opacity="0"/><stop offset="1" stop-color="var(--brand-300)" stop-opacity=".9"/></radialGradient>' +
+        '<path id="' + gid + 'p" d="M' + pt(130, -62).join(" ") + ' A130 130 0 0 1 ' + pt(130, 62).join(" ") + '"/></defs>' +
+      '<path class="z z-much" data-z="neg" d="' + much + '" stroke-width="1.2"/>' +
+      '<circle class="z z-out" data-z="some" cx="' + C + '" cy="' + C + '" r="' + R3 + '" stroke-width="1"/>' +
+      '<circle class="z z-mid" data-z="most" cx="' + C + '" cy="' + C + '" r="' + R2 + '" stroke-width="1"/>' +
+      '<circle class="z z-green" data-z="full" cx="' + C + '" cy="' + C + '" r="' + RG + '" fill="url(#' + gid + ')" stroke-width="2"/>' +
+      '<circle class="green-glow" cx="' + C + '" cy="' + C + '" r="' + RG + '" fill="url(#' + gid + 'h)"/>' +
+      '<circle cx="' + C + '" cy="' + C + '" r="5" style="fill:#fff;stroke:var(--brand-600)" stroke-width="2"/>' +
+      '<circle cx="' + C + '" cy="' + C + '" r="1.6" style="fill:var(--brand-600)"/>';
+    if (opts.labels) html +=
+      '<text class="lbl lbl-g" x="' + C + '" y="' + (C - 26) + '" text-anchor="middle">Full marks</text>' +
+      '<text class="lbl lbl-c" x="' + C + '" y="' + (C + 20) + '" text-anchor="middle">' + opts.centre + '</text>' +
+      '<text class="lbl lbl-m" x="' + C + '" y="' + (C - RG - 10) + '" text-anchor="middle">Most marks</text>' +
+      '<text class="lbl lbl-m" x="' + C + '" y="' + (C - R2 - 10) + '" text-anchor="middle">Some marks</text>' +
+      '<text class="lbl lbl-r"><textPath href="#' + gid + 'p" startOffset="50%" text-anchor="middle">Much more can take marks away</textPath></text>';
+    html += '<g class="pins"></g>';
+    s.innerHTML = html;
+    s.setAttribute("aria-hidden", "true");
+    return s;
+  }
+  function light(svg, m) {
+    var key = m == null ? "" : m >= 99.5 ? "full" : m >= 50 ? "most" : m >= 0 ? "some" : "neg";
+    svg.querySelectorAll(".z").forEach(function (z) { z.classList.toggle("lit", z.dataset.z === key); });
+    svg.querySelector(".green-glow").classList.toggle("lit", key === "full");
+  }
+
+  /* a pin that glides in from above and settles, its shadow closing in as it lands */
+  function makePin(svg, scale) {
+    var g = document.createElementNS(NS, "g");
+    g.setAttribute("class", "pin full");
+    var k = scale || 1;
+    g.innerHTML = '<circle class="ripple" r="' + (10 * k) + '" style="stroke:var(--brand-500)"/>' +
+      '<ellipse class="sh" rx="' + (9 * k) + '" ry="' + (7 * k) + '"/>' +
+      '<circle class="head" r="' + (9 * k) + '" style="stroke-width:' + (3 * k) + '"/><circle class="core" r="' + (3.2 * k) + '"/>';
+    svg.querySelector(".pins").appendChild(g);
+    var p = { g: g, x: C, y: -30, sh: g.querySelector(".sh"), heads: g.querySelectorAll(".head,.core"), rip: g.querySelector(".ripple"), k: k };
+    place(p, C, -30, 1);
+    return p;
+  }
+  function place(p, x, y, air) {
+    p.x = x; p.y = y;
+    var lift = air * 12 * p.k;
+    p.heads.forEach(function (h) { h.setAttribute("cx", x); h.setAttribute("cy", y - lift); });
+    p.heads[0].setAttribute("transform", "");
+    p.sh.setAttribute("cx", x + lift * .5); p.sh.setAttribute("cy", y + 2 * p.k + lift * .3);
+    p.sh.style.opacity = String(.15 + .25 * (1 - air));
+    p.rip.setAttribute("cx", x); p.rip.setAttribute("cy", y);
+  }
+  function fly(p, x, y, m, d, done) {
+    var x0 = p.x, y0 = p.y;
+    p.g.setAttribute("class", "pin " + zone(p.lastM == null ? 100 : p.lastM));
+    tween(d || 720, function (e) {
+      var air = Math.sin(Math.PI * e) * .9 + (1 - e) * .1 * (y0 < 0 ? 1 : 0);
+      place(p, x0 + (x - x0) * e, y0 + (y - y0) * e, Math.max(0, air));
+    }, function () {
+      p.lastM = m;
+      p.g.setAttribute("class", "pin " + zone(m));
+      p.rip.style.stroke = m >= 99.5 ? "var(--brand-500)" : m >= 0 ? "var(--gold-600)" : "var(--red-600)";
+      if (!STILL) { p.rip.classList.remove("go"); void p.rip.getBBox(); p.rip.classList.add("go"); }
+      if (done) done();
+    });
+  }
+
+  /* ----------------------------------------------- step: aim (big target) */
+  var T = 15, LO = 12, HI = 18; /* protein at breakfast: full marks from 12 g to 18 g */
+  var big = board({ labels: true, centre: "15 g target" });
+  big.classList.add("board");
+  big.removeAttribute("aria-hidden");
+  big.setAttribute("role", "img");
+  big.setAttribute("aria-label", "Protein target. Tap anywhere to place what you ate.");
+  big.setAttribute("tabindex", "0");
+  document.getElementById("bigWrap").appendChild(big);
+  var bigPin = null;
+  var read = document.getElementById("read"), rAmt = document.getElementById("rAmt"), rSay = document.getElementById("rSay"), rMk = document.getElementById("rMk");
+
+  function gramsFrom(r, more, m) {
+    if (r <= RG) return more ? T + (HI - T) * r / RG : T - (T - LO) * r / RG;
+    return more ? HI + T * (1 - m / 100) : LO * m / 100;
+  }
+  function sayFor(m, more) {
+    if (m >= 99.5) return "Close is enough. Full marks.";
+    if (m >= 50) return more ? "A little over. Most of the marks." : "A little under. Most of the marks.";
+    if (m >= 0) return more ? "Well over. Some of the marks." : "Well under. Some of the marks.";
+    return "Much more than planned.";
+  }
+  function showRead(g, m, more) {
+    var mm = Math.round(m), k = zone(m);
+    read.className = "read" + (k === "full" ? " full" : "");
+    rAmt.innerHTML = "Protein <b>" + Math.round(g) + " g</b> of 15 g";
+    rSay.textContent = sayFor(m, more);
+    if (k === "neg") { rMk.className = "mk txt neg"; rMk.textContent = "Takes marks away"; }
+    else { rMk.className = "mk " + k; rMk.innerHTML = mm + "<small>of 100</small>"; }
+    if (!STILL) [rSay, rMk].forEach(function (el) { el.classList.remove("swap"); void el.offsetWidth; el.classList.add("swap"); });
+  }
+  function aimAt(x, y) {
+    var dx = x - C, dy = y - C, r = Math.sqrt(dx * dx + dy * dy), more = dx >= 0;
+    var max = more ? R4 - 3 : R3 - 2;
+    if (r > max) { dx *= max / r; dy *= max / r; r = max; }
+    var m = markFromR(r), g = gramsFrom(r, more, m);
+    if (!bigPin) bigPin = makePin(big, 1.3);
+    light(big, null);
+    fly(bigPin, C + dx, C + dy, m, 640, function () { light(big, m); showRead(g, m, more); });
+  }
+  big.addEventListener("click", function (e) {
+    clearAll();
+    document.getElementById("hint").style.opacity = ".0";
+    var pt0 = big.createSVGPoint(); pt0.x = e.clientX; pt0.y = e.clientY;
+    var p = pt0.matrixTransform(big.getScreenCTM().inverse());
+    aimAt(p.x, p.y);
+  });
+  big.addEventListener("keydown", function (e) {
+    /* keyboard: cycle through a few telling spots */
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    var spots = [[C - 40, C + 20], [C - 80, C - 30], [C + 70, C + 40], [C + 128, C - 10], [C + 6, C - 4]];
+    big._k = ((big._k || 0) + 1) % spots.length;
+    aimAt(spots[big._k][0], spots[big._k][1]);
+  });
+  function playAim() {
+    if (bigPin) { bigPin.g.remove(); bigPin = null; }
+    light(big, null);
+    document.getElementById("hint").style.opacity = "1";
+    /* the first pin lands a little off centre, still in the green */
+    var first = pt(46, 180);
+    later(function () { aimAt(first[0], first[1]); }, 520);
+    if (STILL) { light(big, 100); }
+  }
+
+  /* --------------------------------------------- step: meal (three targets) */
+  var MAC = [
+    { n: "Protein", gl: "glyph-protein", e: 9,  t: 15, m: 75,  a: 200 },
+    { n: "Carbs",   gl: "glyph-carbs",   e: 58, t: 40, m: 75,  a: -28 },
+    { n: "Fat",     gl: "glyph-fats",    e: 9,  t: 9,  m: 100, a: 0 }
+  ];
+  var trio = document.getElementById("trio"), MINI = [];
+  MAC.forEach(function (c) {
+    var d = document.createElement("div");
+    d.className = "mini";
+    d.innerHTML = '<div class="nm"><span class="gl ' + c.gl + '" aria-hidden="true"></span>' + c.n + '</div>';
+    var s = board({}); d.appendChild(s);
+    var g = document.createElement("div"); g.className = "g"; g.innerHTML = "<b>" + c.e + "</b> of " + c.t + " g"; d.appendChild(g);
+    var m = document.createElement("div"); m.className = "m " + zone(c.m); m.textContent = c.m;
+    m.setAttribute("aria-label", c.n + " " + c.e + " of " + c.t + " grams, " + c.m + " out of 100"); d.appendChild(m);
+    trio.appendChild(d);
+    MINI.push({ c: c, svg: s, m: m, pin: null });
+  });
+  var mealN = document.getElementById("mealN"), mealBar = document.getElementById("mealBar"), mealPts = document.getElementById("mealPts");
+  var flowDots = document.querySelectorAll("#flowSvg circle");
+  function playMeal() {
+    MINI.forEach(function (o) { if (o.pin) o.pin.g.remove(); o.pin = null; o.m.classList.remove("on"); light(o.svg, null); });
+    mealN.textContent = "0"; mealPts.textContent = "0"; mealBar.style.width = "0%";
+    flowDots.forEach(function (c) { c.style.opacity = "0"; });
+    MINI.forEach(function (o, i) {
+      later(function () {
+        o.pin = makePin(o.svg, 1.6);
+        var p = pt(rFromMark(o.c.m), o.c.a);
+        fly(o.pin, p[0], p[1], o.c.m, 680, function () { light(o.svg, o.c.m); o.m.classList.add("on"); });
+      }, 380 + i * 520);
+    });
+    /* the three marks travel down and meet in the meal's score */
+    later(function () {
+      var paths = document.querySelectorAll("#flowSvg path");
+      flowDots.forEach(function (c, i) {
+        var path = paths[i], L = path.getTotalLength();
+        c.style.opacity = "1";
+        tween(620, function (e) { var q = path.getPointAtLength(L * e); c.setAttribute("cx", q.x); c.setAttribute("cy", q.y); c.style.opacity = String(1 - e * .7); },
+          function () { c.style.opacity = "0"; });
+      });
+    }, 2300);
+    later(function () {
+      count(mealN, 0, 83, 900);
+      tween(900, function (e) { mealBar.style.width = (83 * e) + "%"; });
+      count(mealPts, 0, 17, 900);
+    }, 2850);
+  }
+
+  /* ------------------------------------------------- step: day (four meals) */
+  var MEALS = WHO === "current"
+    ? [{ n: "Breakfast", w: 20, got: 17 }, { n: "Lunch", w: 35, got: 32 }, { n: "Snack", w: 10, got: 9 }, { n: "Dinner", w: 35, got: null }]
+    : [{ n: "Breakfast", w: 20, got: null }, { n: "Lunch", w: 35, got: null }, { n: "Snack", w: 10, got: null }, { n: "Dinner", w: 35, got: null }];
+  var four = document.getElementById("four"), FOUR = [];
+  MEALS.forEach(function (ml, i) {
+    var d = document.createElement("div"); d.className = "mini";
+    d.innerHTML = '<div class="nm">' + ml.n + '</div>';
+    var s = board({}); d.appendChild(s);
+    var w = document.createElement("div");
+    w.className = "w" + (ml.got == null ? " wait" : "");
+    w.innerHTML = ml.got == null ? (WHO === "current" ? "Still to come<br>worth " + ml.w : "Worth <b>" + ml.w + "</b>") : "Added <b>" + ml.got + "</b><br>of " + ml.w;
+    d.appendChild(w);
+    four.appendChild(d);
+    FOUR.push({ ml: ml, svg: s, pin: null, seg: document.getElementById("seg" + i) });
+  });
+  var dayN = document.getElementById("dayN");
+  if (WHO === "current") {
+    document.getElementById("dayH").textContent = "58 so far today";
+    document.getElementById("dayP").textContent = "Breakfast, lunch and your snack have added 58. Dinner can add up to 35, enough to reach your medal.";
+  } else {
+    document.getElementById("dayP").textContent = "Each meal you log adds its share to today's score. Reach 80 in a day to earn a medal.";
+  }
+  function playDay() {
+    var start = 0;
+    FOUR.forEach(function (o) {
+      if (o.pin) o.pin.g.remove(); o.pin = null; light(o.svg, null);
+      o.seg.style.left = start + "%"; start += o.ml.got == null ? o.ml.w : o.ml.got;
+      var ghost = o.ml.got == null;
+      o.seg.classList.toggle("ghost", ghost); o.seg.classList.remove("on");
+      o.seg.style.width = ghost ? o.ml.w + "%" : "0%";
+      if (ghost) later(function () { o.seg.classList.add("on"); }, 300);
+    });
+    dayN.textContent = "0";
+    var sum = 0, t = 400;
+    FOUR.forEach(function (o) {
+      if (o.ml.got == null) return;
+      var m = 100 * o.ml.got / o.ml.w, from = sum;
+      sum += o.ml.got;
+      later(function () {
+        o.pin = makePin(o.svg, 2.6);
+        var p = pt(rFromMark(m), [215, -35, 100, 0][FOUR.indexOf(o)]);
+        fly(o.pin, p[0], p[1], m, 620, function () {
+          light(o.svg, m);
+          tween(620, function (e) { o.seg.style.width = (o.ml.got * e) + "%"; dayN.textContent = Math.round(from + o.ml.got * e); });
+        });
+      }, t);
+      t += 900;
+    });
+  }
+
+  /* hello board: three pins already landed */
+  var hb = board({});
+  document.getElementById("helloBoard").appendChild(hb);
+  function playHello() {
+    hb.querySelector(".pins").innerHTML = ""; light(hb, null);
+    var n = document.getElementById("helloN");
+    n.textContent = "0";
+    [[85, 215], [91, -30], [90, 100]].forEach(function (s, i) {
+      later(function () { var p = makePin(hb, 2.2), q = pt(rFromMark(s[0]), s[1]); fly(p, q[0], q[1], s[0], 640); }, 420 + i * 380);
+    });
+    later(function () { count(n, 0, 58, 900); }, 700);
+  }
+
+  /* ------------------------------------------------------------ the steps */
+  var STEPS = WHO === "current" ? ["hello", "aim", "meal", "day"] : ["aim", "meal", "day"];
+  var PLAY = { hello: playHello, aim: playAim, meal: playMeal, day: playDay };
+  var FINAL = WHO === "current" ? "See My Score" : "Log Your First Meal";
+  var cta = document.getElementById("cta"), back = document.getElementById("back"), dots = document.getElementById("dots");
+  STEPS.forEach(function () { dots.appendChild(document.createElement("i")); });
+  var cur = 0;
+  function go(i) {
+    clearAll();
+    cur = i;
+    var name = STEPS[i];
+    document.querySelectorAll(".step").forEach(function (s) { s.classList.toggle("on", s.dataset.step === name); });
+    document.getElementById("body").scrollTop = 0;
+    [].forEach.call(dots.children, function (d, k) { d.className = k === i ? "on" : ""; });
+    back.hidden = i === 0;
+    cta.textContent = i === STEPS.length - 1 ? FINAL : name === "hello" ? "Show Me How" : "Next";
+    PLAY[name]();
+  }
+  cta.addEventListener("click", function () { if (cur < STEPS.length - 1) go(cur + 1); else close(); });
+  back.addEventListener("click", function () { if (cur > 0) go(cur - 1); });
+
+  /* ------------------------------------------------------ open and close */
+  var root = document.documentElement;
+  function open() {
+    root.classList.remove("closed", "closing");
+    var n = parseInt(Q.get("step"), 10);
+    var i = n >= 1 && n <= STEPS.length ? n - 1 : 0;
+    if (STILL) { root.classList.add("open"); go(i); return; }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("open"); setTimeout(function () { go(i); }, 300); }); });
+    document.querySelectorAll(".step").forEach(function (s) { s.classList.toggle("on", s.dataset.step === STEPS[i]); });
+  }
+  function close() {
+    clearAll();
+    root.classList.add("closing"); root.classList.remove("open");
+    setTimeout(function () { root.classList.add("closed"); document.getElementById("replay").focus({ preventScroll: true }); }, STILL ? 0 : 360);
+  }
+  document.querySelector("[data-close]").addEventListener("click", close);
+  document.querySelector(".scrim").addEventListener("click", close);
+  addEventListener("keydown", function (e) { if (e.key === "Escape" && root.classList.contains("open")) close(); });
+  document.getElementById("replay").addEventListener("click", function () { Q.delete("step"); open(); });
+  open();
+})();
+</script>
+</body>
+</html>

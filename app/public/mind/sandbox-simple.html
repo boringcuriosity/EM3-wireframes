@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rhythm Simple Sandbox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* Rhythm, the simple version. Two halves:
+     1. the coach's plan: hours of sleep, the sleep window, wind-down tasks, breathing exercises, me-time tasks
+     2. the day: what the person actually did
+     Rhythm = Sleep hours + Sleep window + Wind-down + Breathing + Me-time, each a share of its weight */
+  :root{
+    --brand:#299D6B;--brand-700:#2A805A;--brand-100:#E6FAF1;--brand-50:#F3FCF8;--brand-200:#CBF0E0;
+    --text:#344054;--ink:#101828;--muted:#667085;--faint:#98A2B3;--bg:#F9FAFB;--bg2:#F2F4F7;--border:#E4E7EC;
+    --red:#D92D20;--shadow:0 1px 3px rgba(16,24,40,.08),0 1px 2px -1px rgba(16,24,40,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Roboto,system-ui,sans-serif;color:var(--text);background:#fff;letter-spacing:.25px;-webkit-font-smoothing:antialiased}
+  h1,h2{font-family:'Playfair Display',Georgia,serif;color:var(--ink);font-weight:600}
+  button,input{font:inherit;letter-spacing:inherit}
+  button{cursor:pointer;color:inherit}
+  .topbar{position:sticky;top:0;z-index:50;display:flex;justify-content:space-between;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:14px 40px;font-size:12px;font-weight:600;letter-spacing:1px;color:var(--muted)}
+  .topbar b{color:var(--brand)} .topbar a{color:var(--muted);text-decoration:none} .topbar a:hover{color:var(--brand)}
+  .wrap{max-width:1180px;margin:0 auto;padding:40px 40px 64px}
+  @media(max-width:700px){.wrap{padding:24px 16px 48px}.topbar{padding:12px 16px}}
+  .eyebrow{font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--brand);margin-bottom:10px}
+  h1{font-size:40px;line-height:1.1}
+  .lead{margin-top:10px;max-width:720px;font-size:16px;line-height:1.6;color:var(--muted)}
+  .formula{display:inline-flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:16px;padding:10px 14px;border:1px solid var(--border);border-radius:12px;background:#fff;font-size:14px;font-weight:600;color:var(--ink)}
+  .formula i{font-style:normal;color:var(--faint)}
+  .grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:24px;align-items:start;margin-top:28px}
+  @media(max-width:980px){.grid{grid-template-columns:1fr}}
+  .sh{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin:0 0 12px}
+  .sh h2{font-size:22px} .sh p{font-size:13px;color:var(--muted)}
+  .num{display:inline-grid;place-items:center;width:22px;height:22px;margin-right:8px;border-radius:50%;background:var(--ink);color:#fff;font:700 12px/1 Roboto,sans-serif;vertical-align:3px}
+  .card{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:18px 20px;margin-bottom:14px}
+  .card h3{font-size:15px;color:var(--ink);font-weight:700;margin-bottom:4px;display:flex;justify-content:space-between;align-items:center}
+  .card h3 .wt{font-size:12px;font-weight:600;color:var(--muted)}
+  .hint{font-size:12px;color:var(--muted);margin-bottom:10px}
+  .row{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:8px 0}
+  .f{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text)}
+  .stp{display:inline-flex;align-items:center;height:34px;border:1px solid var(--border);border-radius:10px;background:#fff}
+  .stp button{width:32px;height:32px;border:0;background:none;color:var(--brand);font-size:18px;line-height:1;display:grid;place-items:center}
+  .stp b{min-width:58px;text-align:center;font-size:14px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .stp b small{font-size:11px;font-weight:500;color:var(--muted);margin-left:2px}
+  input[type=time]{height:34px;border:1px solid var(--border);border-radius:10px;padding:0 8px;color:var(--ink);background:#fff;font-size:14px}
+  input[type=text]{height:34px;border:1px solid var(--border);border-radius:10px;padding:0 10px;color:var(--ink);background:#fff;font-size:13px;flex:1;min-width:120px}
+  .item{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--bg2);font-size:13px}
+  .item:first-of-type{border-top:0}
+  .item .t{flex:1;color:var(--ink)}
+  .x{border:0;background:none;color:var(--faint);font-size:18px;width:28px;height:28px;border-radius:8px}
+  .x:hover{background:var(--bg2);color:var(--red)}
+  .add{display:flex;gap:8px;margin-top:8px}
+  .btn{height:34px;padding:0 14px;border:1px solid var(--border);border-radius:999px;background:#fff;font-size:13px;font-weight:600;color:var(--ink)}
+  .btn:hover{border-color:var(--brand-200)}
+  .tog{display:inline-flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+  .tog input{accent-color:var(--brand);width:16px;height:16px}
+  /* the day */
+  .tick{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--border);border-radius:12px;margin:6px 0;background:#fff;cursor:pointer;font-size:14px;color:var(--ink);width:100%;text-align:left}
+  .tick i{width:22px;height:22px;border-radius:7px;border:2px solid var(--border);flex:0 0 auto;display:grid;place-items:center;font-style:normal;color:#fff;font-size:13px}
+  .tick.on{border-color:var(--brand-200);background:var(--brand-50)}
+  .tick.on i{background:var(--brand);border-color:var(--brand)}
+  .tick small{margin-left:auto;color:var(--muted);font-size:12px}
+  .notif{border:1px solid var(--border);border-radius:14px;padding:10px 12px;margin:4px 0 10px;font-size:13px;background:var(--bg);color:var(--text)}
+  .notif b{display:block;font-size:11px;letter-spacing:.6px;text-transform:uppercase;color:var(--brand-700);margin-bottom:2px}
+  .item input[type=time]{height:30px;font-size:13px}
+  select{height:34px;border:1px solid var(--border);border-radius:10px;padding:0 8px;color:var(--ink);background:#fff;font-size:13px;max-width:100%}
+  .seg{display:inline-flex;gap:6px;flex-wrap:wrap}
+  .dseg button{height:28px;padding:0 12px;border:1px solid var(--border);border-radius:999px;background:#fff;font-size:12px;font-weight:600;color:var(--muted)}
+  .dseg button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .btn.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .faces{display:flex;gap:6px}
+  .face{flex:1;max-width:76px;border:1px solid var(--border);border-radius:12px;padding:8px 0;background:#fff;font-size:22px;text-align:center}
+  .face small{display:block;font-size:11px;color:var(--muted)}
+  .face.on{border-color:var(--brand);background:var(--brand-50)}
+  .term{display:inline-flex;align-items:center;gap:6px}
+  .win{width:56px;height:30px;border:1px solid var(--border);border-radius:8px;padding:0 6px;text-align:center;font-weight:600;color:var(--brand-700);background:var(--brand-50)}
+  .formula .ok{color:var(--brand-700)} .formula .off{color:var(--red)}
+  .pre{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:12px;font-size:13px;color:var(--muted)}
+  .pre button,.smp{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 14px;border:1px solid var(--border);border-radius:999px;background:#fff;font-size:13px;font-weight:600;color:var(--ink)}
+  .pre button:hover,.smp:hover{border-color:var(--brand-200)}
+  .pre button.on,.smp[aria-pressed=true]{border-color:var(--brand);background:var(--brand-50);color:var(--brand-700)}
+  .samples{display:flex;flex-wrap:wrap;gap:8px}
+  .smp{padding:0 6px 0 14px}
+  .smp .pill{min-width:32px;height:24px;padding:0 8px;border-radius:999px;display:grid;place-items:center;font-size:12px;font-weight:700;background:var(--bg2);color:var(--text);font-variant-numeric:tabular-nums}
+  .smp[aria-pressed=true] .pill{background:var(--brand);color:#fff}
+  .smp.clear{padding:0 14px;color:var(--muted);font-weight:500}
+  .night{display:flex;align-items:stretch;gap:12px;margin:12px 0 14px;flex-wrap:wrap}
+  .nt{flex:1;min-width:170px;display:flex;flex-direction:column;gap:2px;border:1px solid var(--border);border-radius:12px;padding:10px 12px;cursor:pointer}
+  .nt:focus-within{border-color:var(--brand)}
+  .nt span{font-size:12px;color:var(--muted)}
+  .nt b{font-size:13px;color:var(--ink);font-weight:600}
+  .nt{gap:8px;cursor:default}
+  .nt .pl{font-size:12px;color:var(--muted);font-weight:600}
+  .dseg{align-self:flex-start}
+  .tp{display:flex;align-items:center;gap:10px}
+  .tp button{width:36px;height:36px;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--brand-700);font-size:18px}
+  .tp button:hover{border-color:var(--brand-200);background:var(--brand-50)}
+  .tv{display:flex;align-items:baseline;gap:4px;min-width:96px;justify-content:center}
+  .nt .clk{font-family:'Playfair Display',serif;font-size:30px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1}
+  .tv small{font-size:13px;color:var(--muted);font-weight:600}
+  .quick{display:flex;gap:6px}
+  .quick button{height:26px;padding:0 10px;border:1px solid var(--border);border-radius:999px;background:#fff;font-size:12px;color:var(--text)}
+  .quick button:hover{border-color:var(--brand-200)}
+  .pd{font-size:12px;color:var(--muted)}
+  .setbtn{height:40px;border:1px dashed var(--brand-200);border-radius:10px;background:var(--brand-50);color:var(--brand-700);font-weight:600;font-size:14px}
+  .setbtn:hover{border-style:solid}
+  .hdl{position:absolute;top:3px;width:24px;height:24px;margin-left:-12px;border-radius:50%;background:#fff;border:2px solid var(--brand);box-shadow:0 1px 3px rgba(16,24,40,.2);cursor:grab;touch-action:none}
+  .hdl:active{cursor:grabbing}
+  .track{position:relative;height:30px;margin:4px 0 22px}
+  .track .rail{position:absolute;top:10px;left:0;right:0;height:10px;border-radius:999px;background:var(--bg2)}
+  .track .plan{position:absolute;top:10px;height:10px;border-radius:999px;background:var(--brand-100)}
+  .track .slp{position:absolute;top:7px;height:16px;border-radius:999px;background:var(--brand);transition:left .35s,width .35s}
+  .track .tl{position:absolute;top:30px;font-size:11px;color:var(--faint);transform:translateX(-50%);white-space:nowrap}
+  .slept{font-size:13px;color:var(--muted)}
+  .slept b{color:var(--ink)}
+  .empty{font-size:13px;color:var(--faint);padding:6px 0}
+  /* score */
+  .score{position:sticky;top:72px}
+  .big{font-family:'Playfair Display',serif;font-size:72px;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+  .big small{font-size:24px;color:var(--muted)}
+  .pt{margin:12px 0}
+  .pt .l{display:flex;justify-content:space-between;font-size:13px}
+  .pt .l span{color:var(--muted);font-variant-numeric:tabular-nums}
+  .bar{height:8px;background:var(--bg2);border-radius:999px;overflow:hidden;margin-top:4px}
+  .bar i{display:block;height:100%;background:var(--brand);border-radius:999px;transition:width .35s cubic-bezier(.22,1,.36,1)}
+  .why{font-size:12px;color:var(--muted);margin-top:3px}
+  .why.neg{color:var(--red)}
+
+  /* tones: each part of the score keeps one hue, from the plan card to the score row. Night indigo for sleep,
+     dusk violet for wind-down, teal for breathing, warm gold for me-time, rose for mood. The page stays white. */
+  [data-tone=sleep]{--acc:#444CE7;--ink2:#3538CD;--tint:#F5F8FF;--soft:#E0EAFF}
+  [data-tone=wind]{--acc:#7A5AF8;--ink2:#6938EF;--tint:#F7F5FF;--soft:#EBE9FE}
+  [data-tone=breath]{--acc:#0E9384;--ink2:#107569;--tint:#F2FBF8;--soft:#CCFBEF}
+  [data-tone=me]{--acc:#E28B00;--ink2:#B54708;--tint:#FFFBF0;--soft:#FEF0C7}
+  [data-tone=mood]{--acc:#DD2590;--ink2:#C11574;--tint:#FEF6FB;--soft:#FCE7F6}
+  .card[data-tone]{border-color:var(--soft);background:linear-gradient(180deg,var(--tint) 0,#fff 120px);box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 20px -12px var(--soft)}
+  .card h3 .ttl{display:inline-flex;align-items:center;gap:10px}
+  .ico{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--soft);color:var(--ink2);flex:0 0 auto}
+  .card[data-tone] h3 .wt{color:var(--ink2);background:#fff;border:1px solid var(--soft);border-radius:999px;padding:2px 9px;font-size:11px}
+  .card[data-tone] .stp{border-color:var(--soft);background:#fff}
+  .card[data-tone] .stp button{color:var(--ink2)}
+  .card[data-tone] .tick{border-color:var(--soft)}
+  .card[data-tone] .tick:hover{border-color:var(--acc)}
+  .card[data-tone] .tick.on{background:var(--tint);border-color:var(--soft)}
+  .card[data-tone] .tick.on i{background:var(--acc);border-color:var(--acc)}
+  .card[data-tone] .face{border-color:var(--soft)}
+  .card[data-tone] .face.on{background:var(--tint);border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+  .card[data-tone] .dseg button.on,.card[data-tone] .btn.on{background:var(--acc);border-color:var(--acc);color:#fff}
+  .card[data-tone] .notif{background:var(--tint);border-color:var(--soft)}
+  .card[data-tone] .notif b{color:var(--ink2)}
+  .card[data-tone] .item{border-color:var(--soft)}
+  .card[data-tone] .tog input{accent-color:var(--acc)}
+  .card[data-tone] .nt{border-color:var(--soft);background:#fff}
+  .card[data-tone] .tp button{border-color:var(--soft);color:var(--ink2)}
+  .card[data-tone] .tp button:hover{background:var(--tint)}
+  .card[data-tone] .setbtn{border-color:var(--acc);background:var(--tint);color:var(--ink2)}
+  .card[data-tone] .track .plan{background:var(--soft)}
+  .card[data-tone] .track .slp{background:linear-gradient(90deg,#2D3282,var(--acc) 55%,#8098F9)}
+  .card[data-tone] .hdl{border-color:var(--acc)}
+  .card[data-tone] .slept b{color:var(--ink2)}
+  /* the score card and formula pick up the same hues */
+  .score{background:linear-gradient(180deg,var(--brand-50),#fff 160px);border-color:var(--brand-200)}
+  .score .big{background:none}
+  .pt[data-tone] .l b:before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--acc);margin-right:7px;vertical-align:1px}
+  .pt[data-tone] .bar{background:var(--soft)}
+  .pt[data-tone] .bar i{background:var(--acc)}
+  .term[data-tone] .win{background:var(--tint);border-color:var(--soft);color:var(--ink2)}
+  .formula{box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .num{background:var(--brand)}
+
+</style>
+</head>
+<body>
+<div class="topbar"><span><b>GoodFlip</b> · Mind · Rhythm, simple sandbox</span><span><a href="sandbox.html">Full sandbox</a> · <a href="rhythm-research.html">Research doc</a></span></div>
+<div class="wrap">
+  <div class="eyebrow">Rhythm</div>
+  <h1>The coach plans. The person does. The score answers.</h1>
+  <p class="lead">Set the coach's plan on the left, then tick off the day. Every part scores out of its weight, and the score adds them up.</p>
+  <div class="formula" id="formula"></div>
+  <div class="hint" id="wsum" style="margin:8px 0 0"></div>
+  <div class="pre" id="pre"></div>
+
+  <div class="grid">
+    <div>
+      <div class="sh"><h2><span class="num">1</span>The coach's plan</h2><p>Weights add up to 100</p></div>
+
+      <div class="card">
+        <h3>Hours of sleep <span class="wt" id="w-hours"></span></h3>
+        <div class="hint">Full marks at the target. Less sleep drops steadily. More sleep can lose marks too.</div>
+        <div class="row">
+          <span class="f">Target <span class="stp" data-s="hours"></span></span>
+          <span class="f">Zero when short by <span class="stp" data-s="short"></span></span>
+        </div>
+        <div class="row">
+          <label class="tog"><input type="checkbox" id="exOn"> Penalise excess sleep</label>
+        </div>
+        <div class="row" id="exRow">
+          <span class="f">Allowed over target <span class="stp" data-s="grace"></span></span>
+          <span class="f">Then lose <span class="stp" data-s="exPen"></span> per extra hour</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Sleep window <span class="wt" id="w-window"></span></h3>
+        <div class="hint">How close bedtime and wake time were to the plan. Full marks inside the allowance, zero past the limit.</div>
+        <div class="row">
+          <span class="f">Bedtime <input type="time" id="pBed"></span>
+          <span class="f">Wake time <input type="time" id="pWake"></span>
+        </div>
+        <div class="row">
+          <span class="f">Allowance <span class="stp" data-s="tol"></span></span>
+          <span class="f">Zero at <span class="stp" data-s="zero"></span> off</span>
+        </div>
+      </div>
+
+      <div class="card" id="sqCard" hidden></div>   <!-- hidden for now: the sleep quality question -->
+
+      <div class="card"><h3>Wind-down tasks <span class="wt" id="w-wd"></span></h3><div class="hint">Each task done earns its share. Each has a suggested time, and the app sends a reminder then.</div><div id="l-wd"></div><div class="add" style="flex-wrap:wrap"><select id="a-wd-pick" title="Suggested tasks">
+          <option value="">Pick a suggested task…</option>
+          <optgroup label="From the Mind coach's framework">
+            <option data-at="22:00">Screen-off routine: reduce screens before bedtime</option>
+            <option data-at="14:00">Caffeine cut-off: no caffeine late in the day</option>
+            <option data-at="22:30">Consistent sleep timing: go to bed at the planned time</option>
+            <option data-at="22:15">Pre-sleep relaxation: 5 minutes of breathing or relaxation</option>
+          </optgroup>
+          <optgroup label="From the research doc">
+            <option data-at="20:30">Dinner 2 hours before bed</option>
+            <option data-at="21:45">2 minute mind dump</option>
+            <option data-at="20:00">No alcohol near bedtime</option>
+            <option data-at="21:00">Lights low in the last hours before bed</option>
+          </optgroup>
+        </select><input type="text" id="a-wd" placeholder="or write your own"><input type="time" id="a-wd-at" value="21:30" title="Suggested time"><button class="btn" data-add="wd">Add</button></div></div>
+      <div class="card"><h3>Breathing exercises <span class="wt" id="w-br"></span></h3><div class="hint">One by default, up to 2. Each exercise done earns its share.</div><div id="l-br"></div><div class="add" id="add-br"><select id="a-br-pick" aria-label="Breathing exercise"></select><select id="a-br-min" aria-label="Minutes"></select><input type="hidden" id="a-br"><button class="btn" data-add="br">Add</button></div></div>
+      <div class="card"><h3>Me-time tasks <span class="wt" id="w-me"></span></h3><div class="hint">The coach offers a few. Logging any one of them earns the full marks.</div><div id="l-me"></div><div class="add" style="flex-wrap:wrap"><select id="a-me-pick" title="Suggested tasks">
+          <option value="">Pick a suggested task…</option>
+          <optgroup label="From the Mind coach's framework">
+            <option>Do one enjoyable activity</option>
+            <option>Have one meaningful social interaction</option>
+            <option>Spend 10 to 15 minutes fully engaged in something</option>
+          </optgroup>
+          <optgroup label="From the research doc">
+            <option>Music or bhajans</option><option>Prayer or puja</option><option>Gardening</option><option>Time with family</option>
+            <option>A walk in the park</option><option>Chai with a friend</option><option>Reading</option><option>A hobby</option>
+            <option>A show, chosen on purpose</option><option>Sitting in the sun</option><option>Helping someone</option><option>A small outing</option>
+          </optgroup>
+        </select><input type="text" id="a-me" placeholder="or write your own"><button class="btn" data-add="me">Add</button></div></div>
+
+      <div class="card">
+        <h3>Mood check-in <span class="wt" id="w-mood"></span></h3>
+        <div class="hint">Once a day, in the evening: how was today? Checking in earns the marks. The face the person picks never changes the score.</div>
+                <div class="row" id="moodAts"></div>
+      </div>
+
+
+
+      <div class="sh" style="margin-top:28px"><h2><span class="num">2</span>The day</h2><p>What the person did</p></div>
+      <div class="card">
+        <h3>Last night <button class="btn" id="asPlan" style="height:30px;font-size:12px">Same as the coach's plan</button></h3>
+        <div class="night">
+          <div class="nt" id="pk-bed"></div>
+          <div class="nt" id="pk-wake"></div>
+        </div>
+        <div class="track" id="track"></div>
+        <div class="slept" id="slept"></div>
+        <div id="d-sq"></div>
+      </div>
+      <div class="card"><h3>Wind-down</h3><div id="d-wd"></div></div>
+      <div class="card"><h3>Breathing</h3><div id="d-br"></div></div>
+      <div class="card"><h3>Mood</h3><div id="d-mood"></div></div>
+      <div class="card"><h3>Me-time <span class="wt">Log any one</span></h3><div id="d-me"></div></div>
+    </div>
+
+    <div class="card score" id="score"></div>
+  </div>
+
+  <div class="sh" style="margin-top:32px"><h2>Sample days</h2><p>Each fills in the day on the plan above. The pill is that day's score.</p></div>
+  <div class="samples" id="samples"></div>
+</div>
+
+<script>
+(function(){
+var $=function(s){return document.querySelector(s)}, $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var R=Math.round, clamp=function(v,a,b){return Math.max(a,Math.min(b,v))};
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})};
+
+/* the coach's plan */
+var P={hours:7.5,short:3,exOn:true,grace:1,exPen:20,bed:"22:30",wake:"06:00",tol:30,zero:120,
+  w:{hours:23,window:24,sq:5,wd:23,br:10,me:10,mood:10},   /* starts on the Mind deck weights: sleep 70, self-care 30 */
+  sq:{on:false,text:"How did you sleep?",scale:"faces",mode:"answer"},   /* the optional sleep quality question; its weight counts only while it is on and scored */
+  moodN:1, moodAt:["20:30"],   /* one check-in, in the evening: how the day felt */
+  wd:["Last tea or coffee before 2 PM","Dinner 2 hours before bed","Phone away, lights low"],
+  wdAt:["14:00","20:30","22:00"],   /* suggested time per wind-down task, when its reminder goes out */
+  br:["Cyclic sighing, 5 min"],   /* one by default, the coach can assign up to BRMAX */
+  me:["Do one enjoyable activity","Have one meaningful social interaction","Spend 10 to 15 minutes fully engaged in something"]};
+/* what the person did */
+var D={bed:null,wake:null,   /* minutes from 00:00 yesterday: 1410 is 11:30 PM yesterday, 1485 is 12:45 AM today */
+  wd:{},br:{},me:{},mood:[-1,-1],sq:-1};
+
+/* steppers: [field, step, min, max, unit] */
+var STP={hours:[.5,4,12,"h"],short:[.5,1,6,"h"],grace:[.5,0,4,"h"],exPen:[5,0,100,"%"],tol:[5,0,120,"min"],zero:[15,30,300,"min"]};
+function fmt(k,v){var u=STP[k][3];return (u==="h"?(+v).toString():v)+"<small>"+u+"</small>"}
+function stepper(el){var k=el.dataset.s,c=STP[k];el.innerHTML='<button data-d="-1">−</button><b>'+fmt(k,P[k])+'</b><button data-d="1">+</button>';
+  $$('[data-s="'+k+'"] button').forEach(function(b){b.onclick=function(){P[k]=+clamp(+(P[k]+c[0]*+b.dataset.d).toFixed(2),c[1],c[2]);
+    if(k==="tol"&&P.zero<=P.tol)P.zero=P.tol+15; if(k==="zero"&&P.zero<=P.tol)P.zero=P.tol+15; draw();}})}
+
+function mins(s){var p=s.split(":");return +p[0]*60+ +p[1]}
+function bedM(s){var m=mins(s);return m<720?m+1440:m}      /* evening clock, after-midnight bedtimes count as late */
+function wakeM(s){return mins(s)+1440}
+function hm(m){m=R(m);var h=Math.floor(m/60),x=m%60;return h+"h"+(x?" "+x+"m":"")}
+
+function score(){
+  var slept=(D.wake-D.bed)/60, T=P.hours, s, why;
+  if(slept<T){ s=clamp(1-(T-slept)/P.short,0,1); why="Slept "+hm(slept*60)+", "+hm((T-slept)*60)+" short of "+T+"h"; }
+  else if(P.exOn&&slept>T+P.grace){ var ex=slept-T-P.grace; s=clamp(1-ex*P.exPen/100,0,1); why="Slept "+hm(slept*60)+", "+hm(ex*60)+" past the allowed "+(T+P.grace)+"h"; }
+  else { s=1; why="Slept "+hm(slept*60)+", on target"; }
+  var e=function(d){return d<=P.tol?1:d>=P.zero?0:1-(d-P.tol)/(P.zero-P.tol)};
+  var db=D.bed-bedM(P.bed), dw=D.wake-wakeM(P.wake), ws=(e(Math.abs(db))+e(Math.abs(dw)))/2;
+  var off=function(d,n){return d===0?n+" on time":n+" "+Math.abs(d)+" min "+(d>0?"late":"early")};
+  var mDone=D.mood.slice(0,P.moodN).filter(function(f){return f>=0}).length;
+  var meN=P.me.filter(function(x,i){return D.me[i]}).length;   /* any one me-time task is enough */
+  var share=function(list,done){return list.length?list.filter(function(x,i){return done[i]}).length/list.length:0};
+  var cnt=function(list,done){return list.filter(function(x,i){return done[i]}).length+" of "+list.length};
+  var night=D.bed!=null&&D.wake!=null&&D.wake>D.bed;   /* last night counts only once both times are in */
+  return [["hours","Sleep hours",night?s:0,night?why:"Last night not logged yet",night&&slept>T+P.grace&&P.exOn],["window","Sleep window",night?ws:0,night?off(db,"Bed")+" · "+off(dw,"wake"):"Last night not logged yet"],
+    ["wd","Wind-down",share(P.wd,D.wd),cnt(P.wd,D.wd)+" done"],["br","Breathing",share(P.br,D.br),cnt(P.br,D.br)+" done"],["me","Me-time",meN?1:0,meN?meN+" logged, one is enough":"Log any one of "+P.me.length+" tasks"],
+    ["sq","Sleep quality",D.sq<0?0:(P.sq.mode==="value"?D.sq/(P.sq.scale==="ten"?10:4):1),D.sq<0?"Not answered yet":P.sq.mode==="value"?"Rated "+(P.sq.scale==="ten"?D.sq+" of 10":["Awful","Low","Okay","Good","Great"][D.sq])+", the rating is scored":"Answered · the rating is not scored"],
+    ["mood","Mood check-in",mDone/P.moodN,(mDone?"Checked in":"Not yet")+" · the face is not scored"]];
+}
+
+function nice(s){var m=mins(s),h=Math.floor(m/60);return ((h%12)||12)+":"+("0"+m%60).slice(-2)+(h<12?" AM":" PM")}
+var BRMAX=2;
+/* breathing exercises the coach can pick, with what each one is (the research doc's list); Kapalabhati stays out, it is coach-guided only */
+var BREATHS=[["Cyclic sighing","Two breaths in, one long breath out"],["Extended exhale","In 4, out 6"],["Box breathing","In 4, hold 4, out 4, hold 4"],["4-7-8 breathing","In 4, hold 7, out 8"],
+  ["Star breathing","Trace a star: in 4, hold 2, out 4"],["Five finger breathing","Trace each finger: in 4, out 4"],["Nadi Shodhana","Alternate nostrils, slow"],["Bhramari","Humming breath out"],["Pursed lip breathing","In 2 through the nose, out 4 through pursed lips"]];
+var BMIN=[2,3,5,10,15];
+var brName=function(s){return s.split(",")[0]}, brMin=function(s){var m=s.match(/(\d+)\s*min/);return m?+m[1]:5};
+function brAdd(){
+  var used=P.br.map(brName), pk=$("#a-br-pick");
+  pk.innerHTML=BREATHS.map(function(b){return '<option value="'+esc(b[0])+'"'+(used.indexOf(b[0])>=0?" disabled":"")+'>'+esc(b[0])+' · '+esc(b[1])+'</option>'}).join("");
+  var free=BREATHS.filter(function(b){return used.indexOf(b[0])<0})[0]; if(free) pk.value=free[0];
+  var mn=$("#a-br-min"); if(!mn.options.length) mn.innerHTML=BMIN.map(function(m){return '<option value="'+m+'"'+(m===5?" selected":"")+'>'+m+' min</option>'}).join("");
+  $("#a-br").value=pk.value+", "+mn.value+" min";
+  pk.onchange=mn.onchange=function(){$("#a-br").value=pk.value+", "+mn.value+" min";};
+}
+function list(k){
+  if(k==="br"){ var full=P.br.length>=BRMAX, a=$("#add-br"); a.style.display=full?"none":"flex"; var n=$("#br-full"); if(!n){n=document.createElement("div");n.id="br-full";n.className="hint";n.style.margin="8px 0 0";a.parentNode.appendChild(n);} n.textContent=full?"Two exercises assigned, the most allowed. Remove one to add another.":""; }
+  if(k==="wd") return listWd();
+  if(k==="br"){ brAdd();
+    $("#l-br").innerHTML=P.br.length?P.br.map(function(t,i){return '<div class="item"><span class="t">'+esc(brName(t))+'</span><select data-brmin="'+i+'" aria-label="Minutes">'+BMIN.concat(BMIN.indexOf(brMin(t))<0?[brMin(t)]:[]).map(function(m){return '<option value="'+m+'"'+(m===brMin(t)?" selected":"")+'>'+m+' min</option>'}).join("")+'</select><button class="x" data-del="br" data-i="'+i+'" title="Remove">×</button></div>'}).join(""):'<div class="empty">Nothing assigned</div>';
+    $$("[data-brmin]").forEach(function(s){s.onchange=function(){var i=+s.dataset.brmin;P.br[i]=brName(P.br[i])+", "+s.value+" min";draw();}});
+    $("#d-br").innerHTML=P.br.length?P.br.map(function(t,i){return '<button class="tick'+(D.br[i]?" on":"")+'" data-tk="br" data-i="'+i+'"><i>'+(D.br[i]?"✓":"")+'</i>'+esc(brName(t))+'<small>'+brMin(t)+' min</small></button>'}).join(""):'<div class="empty">The coach has not assigned any</div>';
+    return; }
+  $("#l-"+k).innerHTML=P[k].length?P[k].map(function(t,i){return '<div class="item"><span class="t">'+esc(t)+'</span><button class="x" data-del="'+k+'" data-i="'+i+'" title="Remove">×</button></div>'}).join(""):'<div class="empty">Nothing assigned</div>';
+  $("#d-"+k).innerHTML=P[k].length?P[k].map(function(t,i){return '<button class="tick'+(D[k][i]?" on":"")+'" data-tk="'+k+'" data-i="'+i+'"><i>'+(D[k][i]?"✓":"")+'</i>'+esc(t)+'</button>'}).join(""):'<div class="empty">The coach has not assigned any</div>';
+}
+
+/* wind-down: each task carries a suggested time; the day lists them in time order with their reminder */
+function listWd(){
+  $("#l-wd").innerHTML=P.wd.length?P.wd.map(function(t,i){return '<div class="item"><span class="t">'+esc(t)+'</span><input type="time" data-at="'+i+'" value="'+P.wdAt[i]+'" title="Suggested time"><button class="x" data-del="wd" data-i="'+i+'" title="Remove">×</button></div>'}).join(""):'<div class="empty">Nothing assigned</div>';
+  var order=P.wd.map(function(t,i){return i}).sort(function(a,b){return mins(P.wdAt[a])-mins(P.wdAt[b])});
+  var next=order.filter(function(i){return !D.wd[i]})[0];
+  $("#d-wd").innerHTML=P.wd.length?
+    order.map(function(i){return '<button class="tick'+(D.wd[i]?" on":"")+'" data-tk="wd" data-i="'+i+'"><i>'+(D.wd[i]?"✓":"")+'</i>'+esc(P.wd[i])+'<small>'+nice(P.wdAt[i])+'</small></button>'}).join(""):'<div class="empty">The coach has not assigned any</div>';
+  $$("[data-at]").forEach(function(x){x.onchange=function(){P.wdAt[+x.dataset.at]=x.value;draw();}});
+}
+var FACES=[["😣","Awful"],["😕","Low"],["😐","Okay"],["🙂","Good"],["😄","Great"]];
+function drawMood(){
+  $("#moodAts").innerHTML=["Evening reminder"].map(function(l,i){return '<span class="f">'+l+' <input type="time" data-mat="'+i+'" value="'+P.moodAt[i]+'"></span>'}).join("");
+  $$("[data-mat]").forEach(function(x){x.onchange=function(){P.moodAt[+x.dataset.mat]=x.value;draw();}});
+  $("#d-mood").innerHTML=[0,1].slice(0,P.moodN).map(function(i){return '<div class="hint" style="margin:6px 0 4px">'+"How was today?"+' · reminder '+nice(P.moodAt[i])+'</div><div class="faces">'+FACES.map(function(f,j){return '<button class="face'+(D.mood[i]===j?" on":"")+'" data-mi="'+i+'" data-mf="'+j+'">'+f[0]+'<small>'+f[1]+'</small></button>'}).join("")+'</div>'}).join("");
+  $$("[data-mi]").forEach(function(b){b.onclick=function(){var i=+b.dataset.mi,j=+b.dataset.mf;D.mood[i]=D.mood[i]===j?-1:j;SMP=null;draw();}});
+}
+function drawSq(){
+  var c=$("#sqCard"), q=P.sq;
+  if(!q.on){ c.innerHTML='<h3>Sleep quality question</h3><div class="hint">Optional. Asked with last night\'s sleep, for example "How did you sleep?"</div><button class="btn" id="sqAdd">+ Add a sleep quality question</button>'; $("#sqAdd").onclick=function(){q.on=true;draw();}; $("#d-sq").innerHTML=""; return; }
+  c.innerHTML='<h3>Sleep quality question <span class="wt" id="w-sq">'+(q.mode==="none"?"not scored":"")+'</span></h3><div class="hint">Asked with last night\'s sleep.</div>'+
+    '<div class="row"><span class="f" style="flex:1">Question <input type="text" id="sqText" value="'+esc(q.text)+'"></span></div>'+
+    '<div class="row"><span class="f">Answer as</span><span class="seg"><button class="btn'+(q.scale==="faces"?" on":"")+'" data-sqs="faces">5 faces</button><button class="btn'+(q.scale==="ten"?" on":"")+'" data-sqs="ten">1 to 10</button></span></div>'+
+    '<div class="row"><span class="f">In the score</span><span class="seg"><button class="btn'+(q.mode==="answer"?" on":"")+'" data-sqm="answer">Answering counts</button><button class="btn'+(q.mode==="value"?" on":"")+'" data-sqm="value">The rating counts</button><button class="btn'+(q.mode==="none"?" on":"")+'" data-sqm="none">Not scored</button></span></div>'+
+    (q.mode==="value"?'<div class="hint" style="color:var(--red);margin:4px 0 0">A poor night now lowers the score twice, and people learn to answer "Good". The research doc recommends against it.</div>':'')+
+    '<div class="row"><button class="btn" id="sqDel">Remove the question</button></div>';
+  $("#sqText").onchange=function(){q.text=this.value.trim()||"How did you sleep?";draw();};
+  $$("[data-sqs]").forEach(function(b){b.onclick=function(){q.scale=b.dataset.sqs;D.sq=-1;draw();}});
+  $$("[data-sqm]").forEach(function(b){b.onclick=function(){q.mode=b.dataset.sqm;draw();}});
+  $("#sqDel").onclick=function(){q.on=false;D.sq=-1;draw();};
+  var opts=q.scale==="ten"?[1,2,3,4,5,6,7,8,9,10].map(function(n){return [n,String(n),""]}):FACES.map(function(f,i){return [i,f[0],f[1]]});
+  $("#d-sq").innerHTML='<div class="hint" style="margin:12px 0 4px;color:var(--ink);font-weight:600">'+esc(q.text)+'</div><div class="faces"'+(q.scale==="ten"?' style="gap:4px"':'')+'>'+opts.map(function(o){return '<button class="face'+(D.sq===o[0]?" on":"")+'" data-sqv="'+o[0]+'"'+(q.scale==="ten"?' style="font-size:15px;padding:8px 0"':'')+'>'+o[1]+(o[2]?'<small>'+o[2]+'</small>':'')+'</button>'}).join("")+'</div>';
+  $$("[data-sqv]").forEach(function(b){b.onclick=function(){var v=+b.dataset.sqv;D.sq=D.sq===v?-1:v;SMP=null;draw();}});
+}
+var LBL={hours:"Sleep hours",window:"Sleep window",wd:"Wind-down",br:"Breathing",me:"Me-time",mood:"Mood check-in",sq:"Sleep quality"};
+/* weight variants; sleep quality keeps its own weight, used only while the question is on */
+var PRESETS=[
+  ["deck","Mind deck, 70 / 30",{hours:23,window:24,wd:23,br:10,me:10,mood:10}],
+  ["a","Option A",{hours:25,window:30,wd:15,br:10,me:10,mood:10}],
+  ["apple","Apple-shaped",{hours:44,window:26,wd:10,br:5,me:5,mood:10}],
+  ["coach","Coach framework",{hours:15,window:25,wd:10,br:20,me:8,mood:7}],
+  ["even","Even day",{hours:25,window:20,wd:15,br:15,me:15,mood:10}]];
+function presetOn(){var hit=PRESETS.filter(function(x){return Object.keys(x[2]).every(function(k){return P.w[k]===x[2][k]})})[0];return hit?hit[0]:null}
+/* sample days: what the person did */
+var all=function(k){var o={};P[k].forEach(function(x,i){o[i]=true});return o}, first=function(k,n){var o={};P[k].slice(0,n).forEach(function(x,i){o[i]=true});return o};
+var SAMPLES=[
+  ["perfect","Perfect day",function(){return {bed:bedM(P.bed),wake:wakeM(P.wake),wd:all("wd"),br:all("br"),me:first("me",1),mood:[3,-1],sq:P.sq.scale==="ten"?8:3}}],
+  ["night","Good night only",function(){return {bed:bedM(P.bed),wake:wakeM(P.wake),wd:{},br:{},me:{},mood:[-1,-1],sq:-1}}],
+  ["late","Late night",function(){return {bed:bedM("00:45"),wake:wakeM(P.wake),wd:first("wd",1),br:first("br",1),me:{},mood:[2,-1],sq:P.sq.scale==="ten"?4:1}}],
+  ["lie","Long lie-in",function(){return {bed:bedM(P.bed),wake:wakeM("09:45"),wd:all("wd"),br:first("br",1),me:first("me",1),mood:[3,-1],sq:P.sq.scale==="ten"?7:3}}],
+  ["busy","Busy day",function(){return {bed:bedM("23:30"),wake:wakeM("05:45"),wd:first("wd",1),br:{},me:{},mood:[1,-1],sq:-1}}],
+  ["calm","Short night, calm day",function(){return {bed:bedM("23:45"),wake:wakeM("05:30"),wd:all("wd"),br:all("br"),me:first("me",1),mood:[3,-1],sq:P.sq.scale==="ten"?5:2}}]];
+var SMP=null;
+function totalOf(d){var keep=D; if(d) D=d; var keys=K(), sum=keys.reduce(function(a,k){return a+P.w[k]},0)||1, tot=score().filter(function(p){return keys.indexOf(p[0])>=0}).reduce(function(a,p){return a+P.w[p[0]]/sum*100*p[2]},0); D=keep; return R(tot);}
+function drawExtras(){
+  var cur=presetOn();
+  $("#pre").innerHTML='Weights from'+PRESETS.map(function(x){return ' <button data-pre="'+x[0]+'" class="'+(cur===x[0]?"on":"")+'">'+x[1]+'</button>'}).join("")+(cur?'':' <button class="on" disabled>Custom</button>');
+  $$("[data-pre]").forEach(function(b){b.onclick=function(){var x=PRESETS.filter(function(y){return y[0]===b.dataset.pre})[0]; Object.keys(x[2]).forEach(function(k){P.w[k]=x[2][k]}); draw();}});
+  $("#samples").innerHTML=SAMPLES.map(function(s){return '<button class="smp" data-smp="'+s[0]+'" aria-pressed="'+(SMP===s[0])+'">'+s[1]+'<span class="pill">'+totalOf(s[2]())+'</span></button>'}).join("")+'<button class="smp clear" id="clear">Clear</button>';
+  $$("[data-smp]").forEach(function(b){b.onclick=function(){var s=SAMPLES.filter(function(x){return x[0]===b.dataset.smp})[0]; D=s[2](); SMP=s[0]; draw();}});
+  $("#clear").onclick=function(){D={bed:null,wake:null,wd:{},br:{},me:{},mood:[-1,-1],sq:-1};SMP=null;draw();};
+}
+/* last night: a picker per time (day, then the clock in 15 minute steps) and a track whose ends can be dragged */
+var S=1200, E=2160;   /* the track: 8 PM yesterday to 12 PM today */
+function dayName(abs){var td=new Date(),d=abs>=1440?td:new Date(td-864e5);return (abs>=1440?"Today, ":"Yesterday, ")+d.toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short"})}
+function clock(abs){var m=((abs%1440)+1440)%1440,h=Math.floor(m/60);return '<b class="clk">'+(((h%12)||12)+":"+("0"+m%60).slice(-2))+'</b><small>'+(h<12?"AM":"PM")+'</small>'}
+function picker(k){
+  var v=D[k], lbl=k==="bed"?"Went to sleep":"Woke up", def=k==="bed"?bedM(P.bed):wakeM(P.wake);
+  var day=v==null?(k==="bed"?0:1):(v>=1440?1:0);
+  return '<span class="pl">'+lbl+'</span>'+
+    '<span class="seg dseg"><button data-day="'+k+'" data-v="0" class="'+(v!=null&&day===0?"on":"")+'">Yesterday</button><button data-day="'+k+'" data-v="1" class="'+(v!=null&&day===1?"on":"")+'">Today</button></span>'+
+    (v==null?'<button class="setbtn" data-set="'+k+'">Set time</button><span class="pd">Usually '+nice(k==="bed"?P.bed:P.wake)+'</span>'
+      :'<span class="tp"><button data-st="'+k+'" data-d="-15" aria-label="15 minutes earlier">−</button><span class="tv">'+clock(v)+'</span><button data-st="'+k+'" data-d="15" aria-label="15 minutes later">+</button></span>'+
+       '<span class="quick"><button data-st="'+k+'" data-d="-60">−1 h</button><button data-st="'+k+'" data-d="60">+1 h</button></span><span class="pd">'+dayName(v)+'</span>');
+}
+function drawNight(slept){
+  $("#pk-bed").innerHTML=picker("bed"); $("#pk-wake").innerHTML=picker("wake");
+  var X=function(m){return clamp((m-S)/(E-S)*100,0,100)};
+  var h='<div class="rail"></div><div class="plan" style="left:'+X(bedM(P.bed))+'%;width:'+(X(wakeM(P.wake))-X(bedM(P.bed)))+'%" title="The coach\'s window"></div>';
+  if(slept!=null) h+='<div class="slp" style="left:'+X(D.bed)+'%;width:'+Math.max(1,X(D.wake)-X(D.bed))+'%"></div><span class="hdl" data-h="bed" style="left:'+X(D.bed)+'%" title="Drag bedtime"></span><span class="hdl" data-h="wake" style="left:'+X(D.wake)+'%" title="Drag wake-up"></span>';
+  h+=[1200,1440,1680,1920,2160].map(function(m,i){return '<span class="tl" style="left:'+X(m)+'%">'+["8 PM","12 AM","4 AM","8 AM","12 PM"][i]+'</span>'}).join("");
+  $("#track").innerHTML=h;
+  var bad=D.bed!=null&&D.wake!=null&&D.wake<=D.bed;
+  $("#slept").innerHTML=bad?'<span style="color:var(--red)">Wake-up is before bedtime. Check Yesterday and Today.</span>':slept==null?"Set both times to log last night, or drag on the bar once they are set. The light band is the coach's window.":"Slept <b>"+hm(slept*60)+"</b>, from "+dayName(D.bed).split(",")[0].toLowerCase()+" "+nice(String(Math.floor(D.bed%1440/60)).padStart(2,"0")+":"+String(D.bed%60).padStart(2,"0"))+". Drag the ends of the bar to adjust.";
+  var set=function(k,v){D[k]=clamp(v,0,2880-15);SMP=null;draw();};
+  $$("[data-set]").forEach(function(b){b.onclick=function(){var k=b.dataset.set;set(k,k==="bed"?bedM(P.bed):wakeM(P.wake));}});
+  $$("[data-st]").forEach(function(b){b.onclick=function(){var k=b.dataset.st;set(k,D[k]+ +b.dataset.d);}});
+  $$("[data-day]").forEach(function(b){b.onclick=function(){var k=b.dataset.day,v=D[k]; if(v==null) v=k==="bed"?bedM(P.bed):wakeM(P.wake); var m=((v%1440)+1440)%1440; set(k,m+(+b.dataset.v?1440:0));}});
+  $$(".hdl").forEach(function(hd){hd.onpointerdown=function(ev){ev.preventDefault();var k=hd.dataset.h,tr=$("#track"),r=tr.getBoundingClientRect();hd.setPointerCapture(ev.pointerId);
+    var mv=function(e){var v=S+clamp((e.clientX-r.left)/r.width,0,1)*(E-S);v=Math.round(v/15)*15; if(k==="bed")v=Math.min(v,D.wake-15); else v=Math.max(v,D.bed+15); if(v!==D[k]){D[k]=v;SMP=null;draw();}};
+    var up=function(){document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",up);};
+    document.addEventListener("pointermove",mv);document.addEventListener("pointerup",up);}});
+}
+$("#asPlan").onclick=function(){D.bed=bedM(P.bed);D.wake=wakeM(P.wake);SMP=null;draw();};
+function K(){return Object.keys(P.w).filter(function(k){return k!=="sq"||(P.sq.on&&P.sq.mode!=="none")})}
+/* card hues and icons, decided by the card's title */
+var TONE={hours:"sleep",window:"sleep",sq:"sleep",wd:"wind",br:"breath",me:"me",mood:"mood"};
+var SVG=function(d){return '<span class="ico" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+d+'</svg></span>'};
+var ICONS=[
+  [/^Hours of sleep/,"sleep",'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>'],
+  [/^Sleep window/,"sleep",'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'],
+  [/^Sleep quality/,"sleep",'<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9Z"/>'],
+  [/^Last night/,"sleep",'<path d="M2 5v14"/><path d="M2 9h17a3 3 0 0 1 3 3v7"/><path d="M2 16h20"/><path d="M6 9v7"/>'],
+  [/^Wind-down/,"wind",'<path d="M12 10V3"/><path d="m4.9 10.9 1.4 1.4"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.1 10.9-1.4 1.4"/><path d="M22 22H2"/><path d="M16 18a4 4 0 0 0-8 0"/>'],
+  [/^Breathing/,"breath",'<path d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/><path d="M9.8 4.4A2 2 0 1 1 11 8H2"/>'],
+  [/^Me-time/,"me",'<path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z"/>'],
+  [/^Mood/,"mood",'<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01"/><path d="M15 9h.01"/>']];
+function decorate(){
+  $$(".card").forEach(function(c){ var h=c.querySelector("h3"); if(!h||h.querySelector(".ttl")) return;
+    var n=h.firstChild; if(!n||n.nodeType!==3) return; var txt=n.textContent.trim();
+    var m=ICONS.filter(function(x){return x[0].test(txt)})[0]; if(!m) return;
+    c.dataset.tone=m[1]; var s=document.createElement("span"); s.className="ttl"; s.innerHTML=SVG(m[2]); s.appendChild(document.createTextNode(txt)); h.replaceChild(s,n); });
+}
+function draw(){
+  $$(".stp[data-s]").forEach(stepper);
+  $("#exOn").checked=P.exOn; $("#exRow").style.display=P.exOn?"flex":"none";
+  $("#pBed").value=P.bed; $("#pWake").value=P.wake;
+
+  ["wd","br","me"].forEach(list); drawMood();
+  drawSq();
+  var sum=K().reduce(function(a,k){return a+P.w[k]},0)||1;
+  K().forEach(function(k){var e=$("#w-"+k); if(e) e.textContent=R(P.w[k]/sum*100)+" of 100"});
+  /* the formula is the weights: each term carries its own input */
+  $("#formula").innerHTML='Rhythm <i>=</i> '+K().map(function(k){return '<span class="term" data-tone="'+TONE[k]+'">'+LBL[k]+' <input type="number" class="win" data-w="'+k+'" value="'+P.w[k]+'" min="0" max="100" step="5"></span>'}).join(' <i>+</i> ')+' <i>=</i> <span class="'+(sum===100?"ok":"off")+'">'+sum+'</span>';
+  $$("[data-w]").forEach(function(x){x.onchange=function(){P.w[x.dataset.w]=clamp(+x.value||0,0,100);draw();}});
+  $("#wsum").textContent=sum===100?"Adds up to 100.":"Adds up to "+sum+", so each part is scaled to fit 100.";
+  var parts=score(), tot=0;
+  var slept=(D.bed!=null&&D.wake!=null&&D.wake>D.bed)?(D.wake-D.bed)/60:null; drawNight(slept);
+  var h=parts.filter(function(p){return K().indexOf(p[0])>=0}).map(function(p){var max=P.w[p[0]]/sum*100, got=max*p[2]; tot+=got;
+    return '<div class="pt" data-tone="'+TONE[p[0]]+'"><div class="l"><b>'+p[1]+'</b><span>'+R(got)+' of '+R(max)+'</span></div><div class="bar"><i style="width:'+(p[2]*100)+'%"></i></div><div class="why'+(p[4]?" neg":"")+'">'+esc(p[3])+'</div></div>'}).join("");
+  $("#score").innerHTML='<div class="eyebrow" style="margin-bottom:6px">Today\'s Rhythm</div><div class="big">'+R(tot)+'<small>%</small></div>'+h;
+  $$("[data-del]").forEach(function(b){b.onclick=function(){var k=b.dataset.del,i=+b.dataset.i;P[k].splice(i,1);if(k==="wd")P.wdAt.splice(i,1);
+    var o={};Object.keys(D[k]).forEach(function(j){j=+j;if(j<i)o[j]=D[k][j];if(j>i)o[j-1]=D[k][j]});D[k]=o;draw();}});
+  $$("[data-tk]").forEach(function(b){b.onclick=function(){var k=b.dataset.tk,i=+b.dataset.i;D[k][i]=!D[k][i];SMP=null;draw();}});
+  drawExtras();
+  decorate();
+}
+$$("[data-add]").forEach(function(b){var k=b.dataset.add,inp=$("#a-"+k);
+  var add=function(){var v=inp.value.trim();if(!v)return; if(k==="br"&&P.br.length>=BRMAX)return;P[k].push(v);if(k==="wd"){P.wdAt.push($("#a-wd-at").value||"21:30");$("#a-wd-pick").value="";} if(k==="me")$("#a-me-pick").value="";inp.value="";draw();};
+  b.onclick=add; inp.onkeydown=function(e){if(e.key==="Enter")add();};});
+$("#a-me-pick").onchange=function(){if(this.value)$("#a-me").value=this.value;};
+$("#a-wd-pick").onchange=function(){var o=this.options[this.selectedIndex]; if(!o.value)return; $("#a-wd").value=o.value; $("#a-wd-at").value=o.dataset.at; };
+$("#pBed").onchange=function(){P.bed=this.value;draw();}; $("#pWake").onchange=function(){P.wake=this.value;draw();};
+$("#exOn").onchange=function(){P.exOn=this.checked;draw();};
+
+
+draw();
+})();
+</script>
+</body>
+</html>

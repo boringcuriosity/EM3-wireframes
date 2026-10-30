@@ -1,0 +1,469 @@
+<!doctype html>
+<!--
+  FTUX sheet: "Your plan, explained with your own day" (myplan)
+  The coach's plan is shown as the user's own day: four meal chips sized by how much
+  each one counts. Tap a chip to see its protein, carbs and fat targets. Next carries
+  that chip into step 2 (how one meal is checked) and step 2 carries the meal card
+  into its slot in the day (step 3, how meals add up). Shared element transitions.
+
+  Flags:
+    ?who=new (default) | current   first-time user, or someone who already logs meals
+    ?step=1|2|3                    open at a step
+    ?meal=bf|lunch|snack|dinner    which meal is picked (default bf, the worked example)
+    ?still=1                       skip animations, show end states
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Your Plan Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<link rel="stylesheet" href="/v7/icons/glyph-masks.css">
+<style>
+  html, body { margin: 0; height: 100%; background: #fff; font-family: Roboto, system-ui, sans-serif; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  * { box-sizing: border-box; }
+  button { font: inherit; color: inherit; }
+  .bg { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .42s var(--ease); z-index: 10; }
+  .open .scrim { opacity: 1; }
+
+  /* sheet: title top left, filled close circle top right, no handle, 90% max, header fixed */
+  .sheet:focus { outline: none; }
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh; display: flex; flex-direction: column; z-index: 11;
+    background: #fff; border-radius: var(--r-xl) var(--r-xl) 0 0; box-shadow: var(--shadow-sheet);
+    transform: translate(-50%, 100%); transition: transform .42s cubic-bezier(0,0,.2,1); }
+  .open .sheet { transform: translate(-50%, 0); }
+  .closing .sheet { transition: transform .36s cubic-bezier(.4,0,1,1); }
+  .shead { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 8px; }
+  .shead h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .x { width: 44px; height: 44px; margin-right: -6px; border: 0; padding: 0; background: none; display: grid; place-items: center; border-radius: 9999px; cursor: pointer; flex: none; }
+  .sbody { position: relative; flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 4px 16px 8px; }
+  .sfoot { flex: none; padding: 12px 16px calc(20px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 16px; }
+
+  /* steps share one grid cell, so the sheet keeps one calm height */
+  .steps { display: grid; }
+  .step { grid-area: 1 / 1; display: flex; flex-direction: column; gap: 16px; visibility: hidden; }
+  .step.on { visibility: visible; }
+  .step [data-in] { opacity: 0; transform: translateY(8px); }
+  .step.shown [data-in] { opacity: 1; transform: none; transition: opacity .42s var(--ease), transform .42s var(--ease); transition-delay: calc(var(--i, 0) * 70ms); }
+  .step.leaving [data-in] { opacity: 0; transform: translateY(-6px); transition: opacity .22s var(--ease), transform .22s var(--ease); }
+
+  .lede { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .lede b { color: var(--g-900); font-weight: 600; }
+  .kicker { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--g-500); }
+
+  /* what is new, for someone who already logs */
+  .newline { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--r-md); background: var(--gold-50); border: 1px solid var(--gold-200); font-size: 14px; line-height: 20px; color: var(--g-800); }
+  .newline .tag { flex: none; padding: 2px 8px; border-radius: 9999px; background: var(--gold-600); color: var(--g-900); font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: .03em; text-transform: uppercase; }
+
+  /* coach */
+  .coach { display: flex; align-items: center; gap: 12px; }
+  .av { position: relative; flex: none; width: 48px; height: 48px; border-radius: 9999px; display: grid; place-items: center; background: var(--in-100); color: var(--in-700); font-size: 18px; font-weight: 700; }
+  .av::after { content: ""; position: absolute; inset: -3px; border-radius: inherit; border: 2px solid var(--in-200); }
+  .coach .t { min-width: 0; }
+  .coach .n { font-size: 16px; line-height: 22px; font-weight: 600; }
+  .coach .s { font-size: 13px; line-height: 18px; color: var(--g-500); margin-top: 2px; }
+
+  /* the day: chips sized by how much each meal counts */
+  .day { display: flex; gap: 6px; }
+  .chip { position: relative; flex: var(--w) 1 0; min-width: 56px; height: 72px; padding: 10px 10px 8px; border: 1px solid var(--g-200); border-radius: var(--r-md);
+    background: var(--g-25); display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; text-align: left; cursor: pointer; overflow: hidden;
+    transition: background-color .32s var(--ease), border-color .32s var(--ease), box-shadow .32s var(--ease); }
+  .chip .w { font-size: 20px; line-height: 24px; font-weight: 700; color: var(--g-700); font-variant-numeric: tabular-nums; transition: color .32s var(--ease); }
+  .chip .nm { font-size: 12px; line-height: 16px; color: var(--g-500); white-space: nowrap; }
+  .chip[aria-pressed="true"] { background: var(--brand-50); border-color: var(--brand-600); box-shadow: 0 3px 0 var(--brand-200); }
+  .chip[aria-pressed="true"] .w { color: var(--brand-700); }
+  .chip:focus-visible, .btn:focus-visible, .x:focus-visible, .link:focus-visible { outline: 2px solid var(--brand-600); outline-offset: 2px; }
+  .hint { margin: -8px 0 0; font-size: 12px; line-height: 16px; color: var(--g-500); }
+
+  /* a meal's targets, opened under the chips */
+  .targets { padding: 14px; border-radius: var(--r-lg); background: linear-gradient(180deg, var(--brand-50), #fff 80%); border: 1px solid var(--brand-100); }
+  .targets .hd { font-size: 14px; line-height: 20px; color: var(--g-700); margin-bottom: 12px; }
+  .targets .hd b { font-weight: 600; color: var(--g-900); }
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .tile { padding: 10px; border-radius: var(--r-md); background: rgba(255,255,255,.8); border: 1px solid var(--brand-100); display: flex; flex-direction: column; gap: 6px; }
+  .tile .gl { width: 20px; height: 20px; background: var(--brand-600); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+  .tile .v { font-size: 18px; line-height: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .tile .l { font-size: 12px; line-height: 16px; color: var(--g-500); }
+  .targets.swap .tile .v, .targets.swap .hd b { animation: swap .36s var(--ease); }
+  @keyframes swap { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  /* step 2: the meal card, in the house style */
+  .focus { position: relative; isolation: isolate; height: 76px; padding: 14px 16px; border-radius: var(--r-xl); border: 1px solid transparent; box-shadow: 2px 2px 0 var(--g-200);
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 60%) padding-box, conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box;
+    display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+  .focus::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .6; background: var(--scene) right top / auto 100% no-repeat;
+    -webkit-mask: linear-gradient(90deg, transparent 30%, #000 75%); mask: linear-gradient(90deg, transparent 30%, #000 75%); }
+  .focus .n { font-size: 16px; line-height: 22px; font-weight: 600; }
+  .focus .s { font-size: 13px; line-height: 18px; color: var(--g-500); margin-top: 2px; }
+  .focus.hold { opacity: 0; }
+
+  .bands { display: flex; flex-direction: column; gap: 14px; }
+  .band .top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .band .gl { width: 18px; height: 18px; flex: none; background: var(--brand-600); -webkit-mask-size: contain; mask-size: contain; -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+  .band .nm { font-size: 14px; line-height: 20px; font-weight: 600; }
+  .band .ate { font-size: 13px; line-height: 18px; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .band .mk { margin-left: auto; padding: 2px 8px; border-radius: 9999px; font-size: 12px; line-height: 16px; font-weight: 600; background: var(--g-100); color: var(--g-600); font-variant-numeric: tabular-nums; transition: background-color .4s var(--ease), color .4s var(--ease); }
+  .band .mk.full { background: var(--brand-100); color: var(--brand-800); }
+  .rail { position: relative; height: 10px; border-radius: 9999px; background: var(--g-100); }
+  .rail .zone { position: absolute; top: 0; bottom: 0; border-radius: 9999px; background: var(--brand-200); }
+  .rail .tick { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--brand-800); }
+  .rail .dot { position: absolute; top: 50%; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 9999px; background: var(--brand-600); box-shadow: 0 0 0 3px #fff, 0 2px 6px rgba(16,24,40,.2); left: 0; }
+  .legend { display: flex; gap: 16px; font-size: 12px; line-height: 16px; color: var(--g-500); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { display: inline-block; width: 14px; height: 8px; border-radius: 9999px; background: var(--brand-200); }
+  .legend i.t { width: 2px; height: 12px; border-radius: 1px; background: var(--brand-800); }
+  .legend i.d { width: 10px; height: 10px; background: var(--brand-600); }
+  .result { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: var(--r-md); background: var(--brand-50); }
+  .result .l { font-size: 14px; line-height: 20px; color: var(--g-700); }
+  .result .v { font-size: 22px; line-height: 26px; font-weight: 700; color: var(--brand-700); font-variant-numeric: tabular-nums; }
+  .result .v small { font-size: 13px; font-weight: 500; color: var(--g-500); }
+
+  /* step 3: the day, the same chips, now filling */
+  .slot { position: relative; flex: var(--w) 1 0; min-width: 56px; height: 72px; padding: 10px 10px 8px; border-radius: var(--r-md); overflow: hidden;
+    border: 1px dashed var(--g-300); background: #fff; display: flex; flex-direction: column; justify-content: space-between; }
+  .slot .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--brand-100); }
+  .slot .w, .slot .nm { position: relative; }
+  .slot .w { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--g-400); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .slot .nm { font-size: 12px; line-height: 16px; color: var(--g-500); white-space: nowrap; }
+  .slot.got { border: 1px solid var(--brand-600); }
+  .slot.got .w { color: var(--brand-800); }
+  .total { padding: 16px; border-radius: var(--r-lg); border: 1px solid var(--g-200); background: #fff; }
+  .total .row { display: flex; align-items: baseline; gap: 6px; }
+  .total .big { font-size: 40px; line-height: 44px; font-weight: 700; color: var(--brand-700); font-variant-numeric: tabular-nums; }
+  .total .of { font-size: 14px; color: var(--g-500); }
+  .total .lab { margin-left: auto; font-size: 13px; color: var(--g-500); }
+  .meter { position: relative; height: 12px; margin: 26px 0 8px; border-radius: 9999px; background: var(--g-100); }
+  .meter .f { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: inherit; background: var(--brand-600); }
+  .meter .m80 { position: absolute; left: 80%; top: -24px; bottom: -2px; width: 2px; margin-left: -1px; background: var(--gold-700); border-radius: 1px; }
+  .meter .m80 img { position: absolute; left: 50%; top: -6px; width: 26px; height: 26px; transform: translateX(-50%); filter: drop-shadow(0 2px 3px rgba(29,77,56,.25)); }
+  .total .cap { display: flex; justify-content: space-between; font-size: 12px; line-height: 16px; color: var(--g-500); }
+  .total .cap b { color: var(--olive-700); font-weight: 600; }
+
+  .facts { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .facts li { position: relative; padding-left: 24px; }
+  .facts li::before { content: ""; position: absolute; left: 0; top: 2.5px; width: 16px; height: 16px; background: url(/v7/r3/assets/trend-bullet.svg) no-repeat center / 16px; }
+
+  /* footer: back, dots, one button */
+  .nav { display: flex; align-items: center; justify-content: space-between; min-height: 24px; }
+  .link { border: 0; background: none; padding: 4px 0; font-size: 14px; font-weight: 600; color: var(--brand-600); cursor: pointer; min-width: 44px; text-align: left; }
+  .link[hidden] { display: block; visibility: hidden; }
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 6px; height: 6px; border-radius: 9999px; background: var(--g-200); transition: width .42s var(--ease), background-color .42s var(--ease); }
+  .dots i.on { width: 20px; background: var(--brand-600); }
+  .btn { width: 100%; height: 48px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff; font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; margin-bottom: 7px; transition: transform .12s var(--ease), box-shadow .12s var(--ease); }
+  .btn:active { transform: translateY(3px); box-shadow: 0 4px 0 var(--brand-700); }
+
+  /* the travelling chip */
+  .ghost { position: absolute; z-index: 5; pointer-events: none; overflow: hidden; display: flex; flex-direction: column; justify-content: center; padding: 0 12px; border: 1px solid var(--brand-600); }
+  .ghost span { font-size: 14px; font-weight: 600; color: var(--brand-800); white-space: nowrap; }
+
+  .replay { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 12; padding: 10px 18px; border: 1px solid var(--g-200); border-radius: 9999px; background: #fff; box-shadow: var(--shadow-card); font-size: 14px; font-weight: 600; color: var(--brand-600); cursor: pointer; }
+  .replay[hidden] { display: none; }
+
+  .still *, .still *::before, .still *::after { transition: none !important; animation: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<iframe class="bg" tabindex="-1" aria-hidden="true" title=""></iframe><script>/* new users see the day with their plan and nothing logged yet */ document.currentScript.previousElementSibling.src = "/v7/r3/eat.html" + (/who=current/.test(location.search) ? "" : "?state=empty");</script>
+<div class="scrim" id="scrim"></div>
+
+<section class="sheet" id="sheet" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="sTitle">
+  <header class="shead">
+    <h2 id="sTitle">Your plan, your score</h2>
+    <button class="x" id="close" aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </header>
+
+  <div class="sbody" id="body">
+    <div class="steps">
+      <!-- 1: your day -->
+      <div class="step" data-step="1">
+        <div class="newline" data-in data-who="current" style="--i:0"><span class="tag">New</span><span>Your meals now add up to a score each day.</span></div>
+        <div class="coach" data-in style="--i:1">
+          <div class="av" aria-hidden="true">S</div>
+          <div class="t">
+            <div class="n">Sahana, your coach, has planned your meals</div>
+            <div class="s">Each meal has its own protein, carbs and fat.</div>
+          </div>
+        </div>
+        <div data-in style="--i:2"><div class="kicker">Your day, out of 100</div></div>
+        <div class="day" id="chips" data-in style="--i:3" role="group" aria-label="Your meals and how much each counts"></div>
+        <p class="hint" data-in style="--i:3" id="hint">Bigger meals count for more. Tap a meal to see its targets.</p>
+        <div class="targets" id="targets" data-in style="--i:4" aria-live="polite"></div>
+      </div>
+
+      <!-- 2: one meal, checked -->
+      <div class="step" data-step="2">
+        <div class="focus" id="focus"><div class="n" id="fName"></div><div class="s" id="fSub"></div></div>
+        <p class="lede" data-in style="--i:1" id="s2lede"></p>
+        <div class="bands" id="bands" data-in style="--i:2"></div>
+        <div class="legend" data-in style="--i:3" aria-hidden="true"><span><i></i>Full marks</span><span><i class="t"></i>Target</span><span><i class="d"></i>What you ate</span></div>
+        <p class="lede" data-in style="--i:3" id="s2note"></p>
+        <div class="result" data-in style="--i:4"><span class="l" id="rLab"></span><span class="v"><span id="rVal">0</span> <small>of 100</small></span></div>
+      </div>
+
+      <!-- 3: the day adds up -->
+      <div class="step" data-step="3">
+        <p class="lede" data-in style="--i:0" id="s3lede"></p>
+        <div class="day" id="slots" aria-label="Your day"></div>
+        <div class="total" data-in style="--i:1">
+          <div class="row"><span class="big" id="tVal">0</span><span class="of">of 100</span><span class="lab">Today</span></div>
+          <div class="meter" aria-hidden="true"><div class="f" id="tBar"></div><div class="m80"><img src="/v7/icons/badge/simple/heart-apple.svg" alt=""></div></div>
+          <div class="cap"><span>0</span><span><b>80 or more earns a medal</b></span></div>
+        </div>
+        <ul class="facts" data-in style="--i:2" id="s3facts"></ul>
+      </div>
+    </div>
+  </div>
+
+  <footer class="sfoot">
+    <div class="nav">
+      <button class="link" id="back">Back</button>
+      <div class="dots" id="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+      <span style="min-width:44px"></span>
+    </div>
+    <button class="btn" id="next">Next</button>
+  </footer>
+</section>
+<button class="replay" id="replay" hidden>Replay</button>
+
+<script>
+(function () {
+  /* the Eat page's hero waits for this handshake */
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  var Q = new URLSearchParams(location.search);
+  var WHO = Q.get("who") === "current" ? "current" : "new";
+  var STILL = Q.get("still") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (STILL) document.documentElement.classList.add("still");
+  var EASE = "cubic-bezier(.65,0,.35,1)";
+
+  /* the plan. Breakfast is the brief's worked example; the others follow the same marks */
+  var MEALS = [
+    { id: "bf", name: "Breakfast", w: 20, scene: "bf", t: [15, 40, 9], ate: [9, 58, 9], mk: [75, 75, 100] },
+    { id: "lunch", name: "Lunch", w: 35, scene: "lunch", t: [25, 70, 15], ate: [24, 66, 9], mk: [100, 100, 75] },
+    { id: "snack", name: "Snack", w: 10, scene: "snack", t: [8, 20, 5], ate: [8, 29, 5], mk: [100, 75, 100] },
+    { id: "dinner", name: "Dinner", w: 35, scene: "dinner", t: [25, 65, 15], ate: [15, 62, 14], mk: [75, 100, 100] }
+  ];
+  var MAC = [{ k: "protein", n: "Protein" }, { k: "carbs", n: "Carbs" }, { k: "fats", n: "Fat" }];
+  var sel = MEALS.findIndex(function (m) { return m.id === Q.get("meal"); }); if (sel < 0) sel = 0;
+  function meal() { return MEALS[sel]; }
+  function score(m) { return Math.round((m.mk[0] + m.mk[1] + m.mk[2]) / 3); }
+  function adds(m) { return Math.round(m.w * (m.mk[0] + m.mk[1] + m.mk[2]) / 300); }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var steps = [].slice.call(document.querySelectorAll(".step"));
+  var cur = 0, busy = false;
+
+  /* copy */
+  var C = {
+    new: {
+      s2: "Each meal is checked against its own targets. Land in the green and that one gets full marks.",
+      s2note: "Further away earns part of the marks. Eating much more than the target can take marks away.",
+      s3: "Every meal you log adds its share to today's score.",
+      facts: ["Each meal adds its share once you log it.", "A day at 80 or more earns a medal.", "Your score starts fresh every day."],
+      cta: "Log Your First Meal"
+    },
+    current: {
+      s2: "Each meal you log is checked against its own targets. Land in the green for full marks.",
+      s2note: "Further away earns part of the marks.",
+      s3: "Your meals add up to today's score.",
+      facts: ["A day at 80 or more earns a medal.", "Your score starts fresh every day."],
+      cta: "See My Score"
+    }
+  }[WHO];
+  document.querySelectorAll("[data-who]").forEach(function (el) { if (el.dataset.who !== WHO) el.remove(); });
+  $("s2lede").textContent = C.s2; $("s2note").textContent = C.s2note; $("s3lede").textContent = C.s3;
+  $("s3facts").innerHTML = C.facts.map(function (f) { return "<li>" + f + "</li>"; }).join("");
+
+  /* step 1: chips and the opened meal */
+  $("chips").innerHTML = MEALS.map(function (m, i) {
+    return '<button class="chip" style="--w:' + m.w + '" data-i="' + i + '" aria-pressed="false" aria-label="' + m.name + ', counts for ' + m.w + ' of 100">' +
+      '<span class="w">' + m.w + '</span><span class="nm">' + m.name + '</span></button>';
+  }).join("");
+  $("slots").innerHTML = MEALS.map(function (m, i) {
+    return '<div class="slot" style="--w:' + m.w + '" data-i="' + i + '"><div class="fill"></div><span class="w">0 of ' + m.w + '</span><span class="nm">' + m.name + '</span></div>';
+  }).join("");
+
+  function paintTargets(anim) {
+    var m = meal();
+    document.querySelectorAll(".chip").forEach(function (c, i) { c.setAttribute("aria-pressed", i === sel ? "true" : "false"); });
+    var t = $("targets");
+    t.innerHTML = '<div class="hd"><b>' + m.name + '</b> counts for <b>' + m.w + ' of 100</b>. Sahana set these targets for it.</div><div class="tiles">' +
+      MAC.map(function (x, j) { return '<div class="tile"><i class="gl glyph-' + x.k + '"></i><span class="v">' + m.t[j] + ' g</span><span class="l">' + x.n + '</span></div>'; }).join("") + "</div>";
+    if (anim && !STILL) { t.classList.remove("swap"); void t.offsetWidth; t.classList.add("swap"); }
+  }
+  $("chips").addEventListener("click", function (e) {
+    var c = e.target.closest(".chip"); if (!c || busy) return;
+    sel = +c.dataset.i; paintTargets(true);
+  });
+
+  /* step 2: bands for the chosen meal */
+  function paintBands() {
+    var m = meal();
+    $("fName").textContent = m.name;
+    $("fSub").textContent = "Counts for " + m.w + " of 100 · say you ate this";
+    $("focus").style.setProperty("--scene", "url(/v7/icons/meals/bg/" + m.scene + ".webp)");
+    $("bands").innerHTML = MAC.map(function (x, j) {
+      var t = m.t[j], max = t * 1.6, lo = t * .8, hi = Math.max(t * 1.2, t + 3);
+      var pct = function (v) { return Math.min(100, v / max * 100).toFixed(1) + "%"; };
+      return '<div class="band"><div class="top"><i class="gl glyph-' + x.k + '"></i><span class="nm">' + x.n + '</span><span class="ate">' + m.ate[j] + ' g of ' + t + ' g</span>' +
+        '<span class="mk" data-mk="' + m.mk[j] + '">0 marks</span></div>' +
+        '<div class="rail"><div class="zone" style="left:' + pct(lo) + ';width:calc(' + pct(hi) + ' - ' + pct(lo) + ')"></div><div class="tick" style="left:' + pct(t) + '"></div>' +
+        '<div class="dot" data-to="' + pct(m.ate[j]) + '"></div></div></div>';
+    }).join("");
+    $("rLab").textContent = m.name + " scores";
+    $("rVal").textContent = "0";
+  }
+  function playBands() {
+    document.querySelectorAll("#bands .band").forEach(function (b, j) {
+      var dot = b.querySelector(".dot"), mk = b.querySelector(".mk"), to = dot.dataset.to, v = +mk.dataset.mk;
+      var done = function () { dot.style.left = to; mk.textContent = v + " marks"; mk.classList.toggle("full", v === 100); };
+      if (STILL) return done();
+      dot.animate([{ left: "0%" }, { left: to }], { duration: 900, delay: 360 + j * 160, easing: EASE, fill: "both" }).onfinish = done;
+      setTimeout(function () { count(mk, 0, v, 500, " marks"); mk.classList.toggle("full", v === 100); }, 700 + j * 160);
+    });
+    count($("rVal"), 0, score(meal()), 700, "", STILL ? 0 : 1300);
+  }
+
+  /* step 3: the chosen meal fills its slot */
+  function paintDay(play) {
+    var m = meal(), got = adds(m);
+    document.querySelectorAll(".slot").forEach(function (s, i) {
+      var on = i === sel;
+      s.classList.toggle("got", on);
+      s.querySelector(".fill").style.width = "0%";
+      s.querySelector(".w").textContent = "0 of " + MEALS[i].w;
+      s.style.opacity = on ? "0" : "";
+    });
+    $("tVal").textContent = "0"; $("tBar").style.width = "0%";
+    if (!play) return;
+    var s = document.querySelectorAll(".slot")[sel], f = s.querySelector(".fill"), w = got / m.w * 100;
+    s.style.opacity = "";
+    var fin = function () { f.style.width = w + "%"; $("tBar").style.width = got + "%"; s.querySelector(".w").textContent = got + " of " + m.w; $("tVal").textContent = got; };
+    if (STILL) return fin();
+    f.animate([{ width: "0%" }, { width: w + "%" }], { duration: 900, delay: 120, easing: EASE, fill: "both" });
+    $("tBar").animate([{ width: "0%" }, { width: got + "%" }], { duration: 900, delay: 260, easing: EASE, fill: "both" }).onfinish = fin;
+    count(s.querySelector(".w"), 0, got, 900, " of " + m.w, 120);
+    count($("tVal"), 0, got, 900, "", 260);
+  }
+
+  function count(el, a, b, dur, suf, delay) {
+    suf = suf || "";
+    if (STILL || !dur) { el.textContent = b + suf; return; }
+    setTimeout(function () {
+      var t0 = performance.now();
+      (function tick(now) {
+        var p = Math.min(1, (now - t0) / dur), e = p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+        el.textContent = Math.round(a + (b - a) * e) + suf;
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    }, delay || 0);
+  }
+
+  /* the shared element: whatever stands for the chosen meal on each step */
+  function focusEl(i) {
+    return i === 0 ? document.querySelectorAll(".chip")[sel] : i === 1 ? $("focus") : document.querySelectorAll(".slot")[sel];
+  }
+  var CSSV = getComputedStyle(document.documentElement);
+  var LOOK = [
+    { bg: CSSV.getPropertyValue("--brand-50").trim(), r: 12 },   /* chip */
+    { bg: CSSV.getPropertyValue("--in-25").trim(), r: 24 },      /* meal card */
+    { bg: CSSV.getPropertyValue("--brand-100").trim(), r: 12 }   /* slot */
+  ];
+  function rectIn(el) {
+    var b = $("body").getBoundingClientRect(), r = el.getBoundingClientRect();
+    return { x: r.left - b.left, y: r.top - b.top + $("body").scrollTop, w: r.width, h: r.height };
+  }
+
+  function nav() {
+    document.querySelectorAll("#dots i").forEach(function (d, i) { d.classList.toggle("on", i === cur); });
+    $("back").hidden = cur === 0;
+    $("next").textContent = cur === 2 ? C.cta : "Next";
+  }
+  function show(i) {          /* no travel: first open, or ?step= */
+    steps.forEach(function (s, k) { s.classList.toggle("on", k === i); s.classList.remove("shown", "leaving"); });
+    cur = i; nav();
+    if (i === 1) paintBands();
+    if (i === 2) paintDay(false);
+    $("focus").classList.remove("hold");
+    requestAnimationFrame(function () { steps[i].classList.add("shown"); if (i === 1) playBands(); if (i === 2) paintDay(true); });
+  }
+
+  function go(to) {
+    if (busy || to === cur || to < 0 || to > 2) return;
+    if (STILL) { show(to); return; }
+    busy = true;
+    var from = cur, A = steps[from], B = steps[to];
+    var src = focusEl(from), r0 = rectIn(src);
+    /* lay out the next step out of sight, so its focus can be measured */
+    if (to === 1) paintBands();
+    if (to === 2) paintDay(false);
+    if (to === 1) $("focus").classList.add("hold");
+    B.classList.add("on"); B.classList.remove("shown", "leaving");
+    var dst = focusEl(to); dst.style.visibility = "hidden";
+    var r1 = rectIn(dst);
+    src.style.visibility = "hidden";
+    A.classList.add("leaving"); A.classList.remove("shown");
+
+    var g = document.createElement("div");
+    g.className = "ghost";
+    g.innerHTML = "<span>" + meal().name + "</span>";
+    $("body").appendChild(g);
+    var k = [
+      { left: r0.x + "px", top: r0.y + "px", width: r0.w + "px", height: r0.h + "px", backgroundColor: LOOK[from].bg, borderRadius: LOOK[from].r + "px" },
+      { left: r1.x + "px", top: r1.y + "px", width: r1.w + "px", height: r1.h + "px", backgroundColor: LOOK[to].bg, borderRadius: LOOK[to].r + "px" }
+    ];
+    cur = to; nav();
+    g.animate(k, { duration: 620, delay: 80, easing: EASE, fill: "both" }).onfinish = function () {
+      src.style.visibility = ""; dst.style.visibility = "";
+      $("focus").classList.remove("hold");
+      A.classList.remove("on", "leaving");
+      B.classList.add("shown");
+      if (to === 1) playBands();
+      if (to === 2) paintDay(true);
+      /* the ghost hands over to the real thing, softly */
+      g.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 220, easing: "ease-out", fill: "both" }).onfinish = function () { g.remove(); busy = false; };
+    };
+  }
+
+  /* open, close, replay */
+  function open() {
+    $("replay").hidden = true;
+    document.body.classList.remove("closing");
+    var start = Math.max(1, Math.min(3, parseInt(Q.get("step"), 10) || 1)) - 1;
+    paintTargets(false); paintBands();   /* every step laid out up front, so the sheet height never jumps */
+    steps.forEach(function (s) { s.classList.remove("on", "shown", "leaving"); });
+    steps[start].classList.add("on"); cur = start; nav();
+    if (start === 1) paintBands();
+    if (start === 2) paintDay(false);
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        document.body.classList.add("open");
+        setTimeout(function () {
+          steps[start].classList.add("shown");
+          if (start === 1) playBands();
+          if (start === 2) paintDay(true);
+        }, STILL ? 0 : 300);
+      });
+    });
+    setTimeout(function () { $("sheet").focus({ preventScroll: true }); }, STILL ? 0 : 450);
+  }
+  function close() {
+    document.body.classList.add("closing");
+    document.body.classList.remove("open");
+    setTimeout(function () { $("replay").hidden = false; }, STILL ? 0 : 400);
+  }
+  $("close").onclick = close;
+  $("next").onclick = function () { if (cur === 2) close(); else go(cur + 1); };
+  $("back").onclick = function () { go(cur - 1); };
+  $("replay").onclick = function () { Q.delete("step"); open(); };
+  addEventListener("keydown", function (e) { if (e.key === "Escape" && document.body.classList.contains("open")) close(); });
+  open();
+})();
+</script>
+</body>
+</html>

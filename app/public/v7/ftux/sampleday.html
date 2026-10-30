@@ -1,0 +1,397 @@
+<!doctype html>
+<!--
+  FTUX concept: "Watch a day fill up".
+  The first-time explainer for Nutrition sufficiency, opened over the Eat screen.
+  The user taps Log on four sample meals (Breakfast 20, Lunch 35, Snack 10, Dinner 35)
+  and watches the day's score ring grow by each meal's share. Breakfast is a little off
+  plan, so it adds part of its 20. The medal arrives when the day passes 80. A Reset link
+  empties the day again.
+
+  Flags
+    ?who=new       (default) first-time user, opens on the empty sample day
+    ?who=current   someone who already logs meals, opens with what is new for them
+    ?step=N        open at step N (1-based). new: 1 empty day, 2 full day. current: 1 welcome, 2 empty day, 3 full day
+    ?still=1       no animation, end states shown (also when prefers-reduced-motion)
+-->
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Watch A Day Fill Up</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<link rel="stylesheet" href="/v7/icons/glyph-masks.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; overflow: hidden; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; }
+
+  .behind { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; background: #fff; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .42s var(--ease); }
+  .open .scrim { opacity: 1; }
+
+  /* ------------------------------------------------------------ the sheet */
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh;
+    display: flex; flex-direction: column; background: #fff; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    transform: translate(-50%, 100%); transition: transform .42s cubic-bezier(.2,.7,.2,1);
+    box-shadow: 0 -8px 32px rgba(16,24,40,.12); }
+  .open .sheet { transform: translate(-50%, 0); }
+  .closing .sheet { transition-duration: .34s; transition-timing-function: cubic-bezier(.4,0,1,1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 8px; }
+  .shead h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  .x:focus-visible, .ok:focus-visible, .log:focus-visible, .reset:focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+  .sbody { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px 8px; }
+  .sfoot { flex-shrink: 0; padding: 8px 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .sfoot[hidden] { display: none; }
+  .ok { width: 100%; height: 48px; margin-bottom: 7px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff;
+    font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; }
+  .ok:active { transform: translateY(3px); box-shadow: 0 4px 0 var(--brand-700); }
+  .sfoot.rise { animation: rise .42s var(--ease) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+  .step { display: none; }
+  .step.on { display: block; animation: stepIn .36s var(--ease) both; }
+  @keyframes stepIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .lead { margin: 0 0 12px; font-size: 14px; line-height: 21px; color: var(--g-600); text-wrap: pretty; }
+  .lead b { color: var(--g-900); font-weight: 600; }
+
+  /* --------------------------------------------- welcome (current users) */
+  .hello { position: relative; margin: 4px 0 20px; padding: 20px 16px 18px; border-radius: var(--r-xl);
+    border: 1px solid transparent; box-shadow: 2px 2px 0 var(--g-200); overflow: hidden; isolation: isolate;
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 46%) padding-box,
+      conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; }
+  .hello h3 { margin: 0 0 8px; font-size: 20px; line-height: 28px; font-weight: 700; max-width: 220px; text-wrap: balance; }
+  .hello p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); max-width: 250px; }
+  .hello .art { position: absolute; right: -18px; top: -10px; width: 132px; height: 132px; z-index: -1; }
+  .hello .art circle { fill: none; stroke-linecap: round; }
+  .hello ul { margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .hello li { display: flex; gap: 10px; align-items: flex-start; font-size: 14px; line-height: 20px; color: var(--g-700); }
+  .hello li i { flex-shrink: 0; width: 20px; height: 20px; border-radius: 9999px; background: var(--brand-50); display: grid; place-items: center; }
+  .hello li i::after { content: ""; width: 6px; height: 6px; border-radius: 9999px; background: var(--brand-600); }
+
+  /* ------------------------------------------------------------- the ring */
+  .stage { position: relative; display: flex; align-items: center; gap: 16px; padding: 14px 16px; margin-bottom: 12px; border-radius: var(--r-xl);
+    background: radial-gradient(120% 90% at 20% 0%, var(--ok-50) 0%, #fff 62%); border: 1px solid var(--g-100); }
+  .ring { position: relative; width: 132px; height: 132px; flex-shrink: 0; }
+  .ring svg { position: absolute; inset: 0; overflow: visible; }
+  .ring .seg { fill: none; stroke-width: 12; stroke-linecap: butt; stroke: var(--ok-500); transition: stroke 1s var(--ease); }
+  .ring .seg.fresh { stroke: var(--ok-300); }
+  .ring .mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .ring .n { font-size: 36px; line-height: 40px; font-weight: 800; letter-spacing: -.5px; font-variant-numeric: tabular-nums; color: var(--g-900); }
+  .ring .of { font-size: 12px; line-height: 16px; color: var(--g-500); }
+  .ring .medal { position: absolute; left: 50%; top: -14px; width: 34px; margin-left: -17px; opacity: 0; transform: translateY(6px) scale(.9);
+    transition: opacity .6s var(--ease), transform .6s var(--ease); filter: drop-shadow(0 4px 6px rgba(29,77,56,.28)); }
+  .ring.won .medal { opacity: 1; transform: none; }
+  .ring .t80 { stroke: var(--gold-700); stroke-width: 2; stroke-linecap: round; }
+  .ring .l80 { font: 600 10px/1 Roboto, sans-serif; fill: var(--olive-700); }
+  .story { flex: 1; min-width: 0; }
+  .story .k { font-size: 11px; line-height: 16px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; color: var(--g-500); margin-bottom: 4px; }
+  .story p { margin: 0; font-size: 14px; line-height: 20px; color: var(--g-800); text-wrap: pretty; min-height: 80px; }
+  .story p b { font-weight: 700; color: var(--g-900); }
+  .story p.swap { animation: sayIn .42s var(--ease) both; }
+  @keyframes sayIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  .medalnote { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; padding: 4px 10px 4px 6px; border-radius: 9999px;
+    background: var(--gold-100); color: var(--olive-700); font-size: 12px; line-height: 16px; font-weight: 600; opacity: 0; transition: opacity .5s var(--ease); }
+  .medalnote img { width: 16px; height: 16px; }
+  .won ~ .story .medalnote, .stage.won .medalnote { opacity: 1; }
+
+  /* ----------------------------------------------------------- the meals */
+  .meals { display: flex; flex-direction: column; gap: 8px; }
+  .meal { position: relative; isolation: isolate; display: flex; align-items: center; gap: 12px; padding: 10px 12px; min-height: 64px;
+    border-radius: var(--r-lg); border: 1px solid transparent; box-shadow: 2px 2px 0 var(--g-200);
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 40%, #fff 100%) padding-box,
+      conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; }
+  .meal::before { content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit; opacity: .45;
+    background: var(--scene) right top / auto 100% no-repeat;
+    -webkit-mask: linear-gradient(90deg, transparent 30%, #000 75%); mask: linear-gradient(90deg, transparent 30%, #000 75%); }
+  .meal .pic { width: 40px; height: 40px; flex-shrink: 0; object-fit: contain; }
+  .meal .t { flex: 1; min-width: 0; }
+  .meal h3 { margin: 0; font-size: 15px; line-height: 20px; font-weight: 600; }
+  .meal .w { font-size: 12px; line-height: 16px; color: var(--g-500); }
+  .meal .marks { display: flex; gap: 10px; margin-top: 4px; height: 0; overflow: hidden; opacity: 0; transition: height .4s var(--ease), opacity .4s var(--ease) .1s; }
+  .meal.done .marks { height: 18px; opacity: 1; }
+  .meal .marks span { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; line-height: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .gl { width: 14px; height: 14px; flex-shrink: 0; background: var(--brand-600); -webkit-mask-size: contain; mask-size: contain;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+  .full { color: var(--ok-600); } .part { color: var(--gold-800); }
+  .log { height: 36px; min-width: 72px; padding: 0 16px; border-radius: 9999px; border: 1px solid var(--brand-600); background: rgb(255 255 255 / .9);
+    color: var(--brand-600); font-size: 14px; font-weight: 600; cursor: pointer; flex-shrink: 0; transition: background-color .2s var(--ease); }
+  .log:active { background: var(--brand-50); }
+  .gain { display: none; flex-shrink: 0; min-width: 72px; text-align: right; font-variant-numeric: tabular-nums; }
+  .gain b { display: block; font-size: 18px; line-height: 22px; font-weight: 700; color: var(--ok-600); }
+  .gain small { font-size: 11px; line-height: 14px; color: var(--g-500); }
+  .meal.done .log { display: none; }
+  .meal.done .gain { display: block; animation: sayIn .42s var(--ease) both; }
+  .meal.done { box-shadow: 2px 2px 0 var(--ok-100); }
+
+  .resetrow { display: flex; justify-content: center; margin: 4px 0 0; min-height: 44px; }
+  .reset { height: 44px; padding: 0 12px; border: 0; background: none; color: var(--brand-600); font-size: 14px; font-weight: 600; cursor: pointer; }
+  .reset[hidden] { display: none; }
+  .close-line { margin: 0 0 12px; font-size: 15px; line-height: 22px; font-weight: 500; color: var(--g-800); text-align: center; text-wrap: balance; }
+  .close-line[hidden] { display: none; }
+
+  .replay { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 9999px; border: 0;
+    background: rgb(255 255 255 / .92); color: var(--brand-700); font-size: 14px; font-weight: 600; box-shadow: 0 2px 10px rgba(16,24,40,.18);
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .closed .replay { opacity: 1; pointer-events: auto; }
+
+  .still *, .still *::before, .still *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<iframe class="behind" tabindex="-1" aria-hidden="true" title=""></iframe><script>/* new users see the day with their plan and nothing logged yet */ document.currentScript.previousElementSibling.src = "/v7/r3/eat.html" + (/who=current/.test(location.search) ? "" : "?state=empty");</script>
+<div class="scrim" aria-hidden="true"></div>
+
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <header class="shead">
+    <h2 id="sheetTitle">Nutrition sufficiency</h2>
+    <button class="x" type="button" aria-label="Close" data-close><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </header>
+
+  <div class="sbody" id="body">
+    <div class="step" data-step="hello">
+      <div class="hello">
+        <svg class="art" viewBox="0 0 132 132" aria-hidden="true">
+          <circle cx="66" cy="66" r="48" stroke-width="12" style="stroke:var(--ok-50)"/>
+          <circle cx="66" cy="66" r="48" stroke-width="12" style="stroke:var(--ok-300)" pathLength="100" stroke-dasharray="64 100" transform="rotate(-90 66 66)" opacity=".55"/>
+          <circle cx="66" cy="66" r="30" stroke-width="6" style="stroke:var(--in-100)"/>
+        </svg>
+        <h3>Your meals now add up to a score</h3>
+        <p>You already log your meals here. From today, each one also adds to your Nutrition sufficiency, a score out of 100 for the day.</p>
+        <ul>
+          <li><i></i>Your coach sets protein, carbs and fat for every meal.</li>
+          <li><i></i>Bigger meals count for more of the day.</li>
+          <li><i></i>A day at 80 or more earns a medal.</li>
+        </ul>
+      </div>
+      <p class="lead">Here is a sample day to show how it fills up.</p>
+    </div>
+
+    <div class="step" data-step="day">
+      <p class="lead" id="dayLead">Each meal is checked against <b>its own targets</b> for protein, carbs and fat. Bigger meals are worth more of your 100.</p>
+
+      <div class="stage" id="stage">
+        <div class="ring" id="ring" role="img" aria-label="Sample day score 0 out of 100">
+          <svg viewBox="0 0 132 132" width="132" height="132" aria-hidden="true">
+            <circle cx="66" cy="66" r="56" fill="none" stroke-width="12" style="stroke:var(--g-100)"/>
+            <g id="segs" transform="rotate(-90 66 66)"></g>
+            <!-- the medal line at 80 -->
+            <line class="t80" id="t80" x1="0" y1="0" x2="0" y2="0"/>
+            <text class="l80" id="l80" text-anchor="middle">80</text>
+          </svg>
+          <img class="medal" src="/v7/icons/badge/simple/heart-apple.svg" alt="">
+          <div class="mid"><span class="n" id="n">0</span><span class="of">of 100</span></div>
+        </div>
+        <div class="story">
+          <div class="k" id="kick">Sample day</div>
+          <p id="say" aria-live="polite">Tap <b>Log</b> on each meal and watch your day fill up.</p>
+          <span class="medalnote" aria-hidden="true"><img src="/v7/icons/badge/simple/heart-apple.svg" alt="">Medal earned</span>
+        </div>
+      </div>
+
+      <div class="meals" id="meals"></div>
+
+      <div class="resetrow"><button class="reset" type="button" id="reset" hidden>Reset</button></div>
+    </div>
+  </div>
+
+  <footer class="sfoot" id="foot" hidden>
+    <p class="close-line" id="closeLine" hidden>Your real day starts at 0 and grows with every meal you log.</p>
+    <button class="ok" type="button" id="cta">Log Your First Meal</button>
+  </footer>
+</section>
+
+<button class="replay" type="button" id="replay">Replay</button>
+
+<script>
+(function () {
+  "use strict";
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  var Q = new URLSearchParams(location.search);
+  var WHO = Q.get("who") === "current" ? "current" : "new";
+  var STILL = Q.get("still") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (STILL) document.documentElement.classList.add("still");
+
+  /* ------------------------------------------------------------ the day
+     marks are out of 100 per macro; the meal's mark is their average, and the
+     meal adds that share of what it is worth. Breakfast is the brief's own
+     example: 9 g protein of 15, 58 g carbs of 40, 9 g fat of 9 = 75, 75, 100. */
+  var MEALS = [
+    { id: "bf", bg: "bf", name: "Breakfast", worth: 20, marks: [75, 75, 100],
+      say: "Breakfast was close to plan, so it adds <b>17 of its 20</b>. Protein was a little low and carbs a little high." },
+    { id: "lunch", bg: "lunch", name: "Lunch", worth: 35, marks: [100, 100, 100],
+      say: "Lunch matched all three targets, so it adds <b>all 35</b>." },
+    { id: "snack", bg: "snack", name: "Snack", worth: 10, marks: [100, 100, 100],
+      say: "Your snack was on plan too. It adds <b>all 10</b>." },
+    { id: "dinner", bg: "dinner", name: "Dinner", worth: 35, marks: [100, 100, 100],
+      say: "Dinner matched your plan, so it adds <b>all 35</b>." }
+  ];
+  MEALS.forEach(function (m) {
+    var avg = (m.marks[0] + m.marks[1] + m.marks[2]) / 3;
+    m.gain = m.worth * avg / 100;
+  });
+  var GLYPH = ["glyph-protein", "glyph-carbs", "glyph-fats"], MNAME = ["Protein", "Carbs", "Fat"];
+
+  var mealsEl = document.getElementById("meals");
+  MEALS.forEach(function (m) {
+    var s = document.createElement("section");
+    s.className = "meal"; s.id = "m-" + m.id;
+    s.style.setProperty("--scene", "url(/v7/icons/meals/bg/" + m.bg + ".webp?v=2)");
+    s.innerHTML =
+      '<img class="pic" src="/v7/icons/meals/gemini/' + m.id + '.png?v=2" alt="" aria-hidden="true">' +
+      '<div class="t"><h3>' + m.name + '</h3><div class="w">Worth ' + m.worth + ' of 100</div>' +
+        '<div class="marks">' + m.marks.map(function (k, i) {
+          return '<span class="' + (k >= 100 ? "full" : "part") + '" aria-label="' + MNAME[i] + ' ' + k + ' out of 100"><i class="gl ' + GLYPH[i] + '" aria-hidden="true"></i>' + k + '</span>';
+        }).join("") + '</div></div>' +
+      '<button class="log" type="button" aria-label="Log ' + m.name + '">Log</button>' +
+      '<div class="gain"><b>+' + Math.round(m.gain) + '</b><small>of ' + m.worth + '</small></div>';
+    s.querySelector(".log").addEventListener("click", function () { log(m); });
+    mealsEl.appendChild(s);
+  });
+
+  /* --------------------------------------------------------- ring drawing */
+  var R = 56, C = 2 * Math.PI * R, GAP = .6;   /* GAP in score points, a hairline between meals */
+  var segsEl = document.getElementById("segs"), ring = document.getElementById("ring"), nEl = document.getElementById("n");
+  var stage = document.getElementById("stage");
+  (function placeTick() {
+    var a = (.8 * 360 - 90) * Math.PI / 180;
+    var t = document.getElementById("t80"), l = document.getElementById("l80");
+    t.setAttribute("x1", 66 + Math.cos(a) * 47); t.setAttribute("y1", 66 + Math.sin(a) * 47);
+    t.setAttribute("x2", 66 + Math.cos(a) * 65); t.setAttribute("y2", 66 + Math.sin(a) * 65);
+    l.setAttribute("x", 66 + Math.cos(a) * 40); l.setAttribute("y", 66 + Math.sin(a) * 40 + 3.5);
+  })();
+
+  var total = 0, shown = 0, logged = [], numAnim = null;
+  function arcFor(start, len) {
+    var c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    c.setAttribute("cx", 66); c.setAttribute("cy", 66); c.setAttribute("r", R);
+    c.setAttribute("class", "seg");
+    var L = Math.max(0, len - GAP) / 100 * C;
+    c.setAttribute("stroke-dasharray", L + " " + C);
+    c.setAttribute("stroke-dashoffset", String(-start / 100 * C));
+    c.dataset.len = L;
+    return c;
+  }
+  function ease(k) { return k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2; }
+  function countTo(to, D) {
+    if (numAnim) cancelAnimationFrame(numAnim);
+    if (STILL) { shown = to; nEl.textContent = Math.round(to); return; }
+    var from = shown, t0 = performance.now();
+    (function step(now) {
+      var k = Math.min(1, (now - t0) / D);
+      shown = from + (to - from) * ease(k);
+      nEl.textContent = Math.round(shown);
+      numAnim = k < 1 ? requestAnimationFrame(step) : null;
+    })(t0);
+  }
+
+  var sayEl = document.getElementById("say"), kick = document.getElementById("kick");
+  function say(html) {
+    sayEl.innerHTML = html;
+    if (!STILL) { sayEl.classList.remove("swap"); void sayEl.offsetWidth; sayEl.classList.add("swap"); }
+  }
+
+  function log(m, quiet) {
+    if (logged.indexOf(m) > -1) return;
+    var before = total;
+    logged.push(m);
+    total += m.gain;
+    var seg = arcFor(before, m.gain);
+    segsEl.appendChild(seg);
+    var D = 900;
+    if (!STILL && !quiet) {
+      /* the new share draws in from where the day stood, in a light green that resolves into the score's own */
+      var L = parseFloat(seg.dataset.len);
+      seg.classList.add("fresh");
+      seg.style.strokeDasharray = "0 " + C;
+      seg.getBoundingClientRect();
+      seg.style.transition = "stroke-dasharray " + D + "ms cubic-bezier(.4,0,.2,1), stroke 1s cubic-bezier(.4,0,.2,1) " + (D - 200) + "ms";
+      requestAnimationFrame(function () { seg.style.strokeDasharray = L + " " + C; seg.classList.remove("fresh"); });
+    }
+    countTo(total, quiet ? 0 : D);
+    var el = document.getElementById("m-" + m.id);
+    el.classList.add("done");
+    var t = Math.round(total);
+    ring.setAttribute("aria-label", "Sample day score " + t + " out of 100");
+    var crossed = before < 80 && total >= 80;
+    var text = m.say;
+    if (crossed) text += " Your day is past 80, and that <b>earns a medal</b>.";
+    if (logged.length === MEALS.length && !crossed) text += " Your day ends on <b>" + t + "</b>.";
+    kick.textContent = logged.length === MEALS.length ? "Day complete" : logged.length + " of " + MEALS.length + " meals logged";
+    if (!quiet) say(text); else sayEl.innerHTML = text;
+    if (total >= 80) setTimeout(function () { if (total < 80) return; ring.classList.add("won"); stage.classList.add("won"); }, quiet || STILL ? 0 : D - 100);
+    document.getElementById("reset").hidden = false;
+    if (logged.length === MEALS.length) {
+      setTimeout(function () {
+        if (logged.length < MEALS.length) return;
+        document.getElementById("closeLine").hidden = false;
+        showFoot(true, FINAL, !quiet && !STILL);
+      }, quiet || STILL ? 0 : D + 200);
+    }
+  }
+
+  function reset() {
+    logged = []; total = 0;
+    segsEl.innerHTML = "";
+    countTo(0, STILL ? 0 : 500);
+    ring.classList.remove("won"); stage.classList.remove("won");
+    ring.setAttribute("aria-label", "Sample day score 0 out of 100");
+    document.querySelectorAll(".meal").forEach(function (e) { e.classList.remove("done"); });
+    kick.textContent = "Sample day";
+    say("Tap <b>Log</b> on each meal and watch your day fill up.");
+    document.getElementById("reset").hidden = true;
+    document.getElementById("closeLine").hidden = true;
+    showFoot(false);
+  }
+  document.getElementById("reset").addEventListener("click", function () {
+    reset();
+    var first = document.querySelector(".meal .log"); if (first) first.focus({ preventScroll: true });
+  });
+
+  /* ------------------------------------------------------------ the steps */
+  var STEPS = WHO === "current" ? ["hello", "day", "full"] : ["day", "full"];
+  var FINAL = WHO === "current" ? "See My Score" : "Log Your First Meal";
+  if (WHO === "current") document.getElementById("dayLead").innerHTML = "Every meal you log is checked against <b>its own targets</b>. Bigger meals are worth more of your 100.";
+  var cta = document.getElementById("cta"), foot = document.getElementById("foot"), cur = 0;
+  function showFoot(on, label, rise) {
+    foot.hidden = !on; cta.textContent = label || FINAL;
+    foot.classList.remove("rise"); if (on && rise) { void foot.offsetWidth; foot.classList.add("rise"); }
+  }
+  function go(name) {
+    cur = STEPS.indexOf(name);
+    document.querySelectorAll(".step").forEach(function (s) { s.classList.toggle("on", s.dataset.step === (name === "full" ? "day" : name)); });
+    document.getElementById("body").scrollTop = 0;
+    if (name === "hello") { showFoot(true, "Show Me"); return; }
+    reset();
+    if (name === "full") MEALS.forEach(function (m) { log(m, true); });
+  }
+  cta.addEventListener("click", function () { if (STEPS[cur] === "hello") go("day"); else close(); });
+
+  /* ------------------------------------------------------ open and close */
+  var root = document.documentElement;
+  function open() {
+    root.classList.remove("closed", "closing");
+    var n = parseInt(Q.get("step"), 10);
+    go(STEPS[n >= 1 && n <= STEPS.length ? n - 1 : 0]);
+    if (STILL) { root.classList.add("open"); return; }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("open"); }); });
+  }
+  function close() {
+    root.classList.add("closing"); root.classList.remove("open");
+    setTimeout(function () { root.classList.add("closed"); document.getElementById("replay").focus({ preventScroll: true }); }, STILL ? 0 : 360);
+  }
+  document.querySelector("[data-close]").addEventListener("click", close);
+  document.querySelector(".scrim").addEventListener("click", close);
+  addEventListener("keydown", function (e) { if (e.key === "Escape" && root.classList.contains("open")) close(); });
+  document.getElementById("replay").addEventListener("click", function () { Q.delete("step"); open(); });
+  open();
+})();
+</script>
+</body>
+</html>

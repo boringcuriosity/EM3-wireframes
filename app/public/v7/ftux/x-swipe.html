@@ -1,0 +1,327 @@
+<!doctype html>
+<!--
+  FTUX round 3, variant "Swipe through".
+  The three-step Nutrition sufficiency explainer, opened over the Eat screen.
+  The three steps sit side by side in a carousel: swipe or drag them, tap Next or Back, or use the arrow keys.
+  A soft parallax: inside each tinted panel the visual travels slower than the text, so the art seems to sit further back.
+  Release snaps to the nearest step on a smooth ease-out, with no overshoot. The pagination pill stretches to the step you are on,
+  and follows your finger while you drag.
+  Each visual plays once, the first time its step settles:
+    1 the live Cloud Drop score pours, 2 lunch's protein, carbs and fat land inside their ranges and the meal earns full points,
+    3 the medal swings in on its ribbon under slow sun rays and the FlipCoins count up to 8.
+  Steps 2 and 3 are drawn by the shared kit.js, so every variant shows the same visuals.
+
+  Flags
+    ?who=new       (default) first-time user, empty day behind, ends on "Log Your First Meal"
+    ?who=current   someone who already logs meals, live day behind, ends on "See My Score"
+    ?step=N        open at step N (1 to 3)
+    ?still=1       no animation, end states shown (also when prefers-reduced-motion)
+-->
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swipe Through</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<link rel="stylesheet" href="/v7/icons/glyph-masks.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; overflow: hidden; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; }
+
+  .behind { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; background: #fff; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .42s var(--ease); }
+  .open .scrim { opacity: 1; }
+
+  /* ------------------------------------------------------------ the sheet */
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh;
+    display: flex; flex-direction: column; background: #fff; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    transform: translate(-50%, 100%); transition: transform .42s cubic-bezier(.2,.7,.2,1);
+    box-shadow: 0 -8px 32px rgba(16,24,40,.12); }
+  .open .sheet { transform: translate(-50%, 0); }
+  .closing .sheet { transition-duration: .34s; transition-timing-function: cubic-bezier(.4,0,1,1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 8px; }
+  .shead h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  .x:focus-visible, .ok:focus-visible, .back:focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+  .sbody { flex: 1 1 auto; min-height: 0; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 8px 0 0; }
+  .sfoot { flex-shrink: 0; padding: 0 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .ok { width: 100%; height: 48px; margin-bottom: 7px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff;
+    font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; }
+  .ok:active { transform: translateY(3px); box-shadow: 0 4px 0 var(--brand-700); }
+
+  /* dots, with Back on the left from step 2 */
+  .nav { position: relative; height: 44px; display: flex; align-items: center; justify-content: center; margin: 8px 0 12px; }
+  .back { position: absolute; left: -8px; top: 0; height: 44px; padding: 0 8px; border: 0; background: none; color: var(--g-600);
+    font-size: 14px; font-weight: 600; cursor: pointer; border-radius: var(--r-sm); transition: opacity .32s var(--ease); }
+  .back[aria-hidden="true"] { opacity: 0; pointer-events: none; }
+  /* the pill stretches to the step you are on; its width is set from the carousel's position, so it follows a drag */
+  .dots { display: flex; gap: 6px; }
+  .dots i { width: 8px; height: 8px; border-radius: 9999px; background: var(--g-200); }
+
+  /* --------------------------------------------------------- the carousel */
+  .view { overflow: hidden; touch-action: pan-y; cursor: grab; user-select: none; -webkit-user-select: none; outline: none; }
+  .view.drag { cursor: grabbing; }
+  .track { display: flex; will-change: transform; }
+  .slide { flex: 0 0 100%; padding: 0 16px; }
+  .slide img { -webkit-user-drag: none; }
+  /* every panel shares one fixed height, so the text below starts on the same line on every step */
+  .art { position: relative; height: 252px; border-radius: 20px; overflow: hidden; isolation: isolate; }
+  /* the parallax: everything inside the panel trails the panel by --px */
+  .art > * { transform: translateX(var(--px, 0px)); }
+  .a1 .rings { transform: translateX(calc(var(--px, 0px) * .6)); }
+  /* a light grain over each tint, so the panels feel printed rather than flat */
+  .art::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .32; mix-blend-mode: multiply; z-index: 3;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+  /* step 1: the live score on a soft green glow with faint rings */
+  .a1 { background: radial-gradient(closest-side at 50% 48%, var(--brand-100) 0%, var(--brand-50) 55%, #fff 100%); }
+  /* the score's glow fades into the sheet, so the panel has no edge (a hard cut against the white otherwise) */
+  .a1::after { -webkit-mask: radial-gradient(closest-side at 50% 48%, #000 50%, transparent 100%); mask: radial-gradient(closest-side at 50% 48%, #000 50%, transparent 100%); }
+  .a1 .rings { position: absolute; inset: 0; z-index: 0;
+    background: repeating-radial-gradient(circle at 50% 48%, transparent 0 43px, rgb(41 157 107 / .08) 44px, transparent 45.5px);
+    -webkit-mask: radial-gradient(closest-side at 50% 48%, #000 40%, transparent 100%); mask: radial-gradient(closest-side at 50% 48%, #000 40%, transparent 100%); }
+  .a1 iframe { position: absolute; left: 0; top: -24px; width: 100%; height: 300px; border: 0; background: transparent; pointer-events: none; z-index: 1;
+    -webkit-mask: radial-gradient(50% 50% at 50% 50%, #000 72%, transparent 100%); mask: radial-gradient(50% 50% at 50% 50%, #000 72%, transparent 100%); }
+
+  /* steps 2 and 3: the shared kit (kit.js) fills the panel, clipped to its radius; the parallax moves it like any panel content */
+  .kit { position: absolute; inset: 0; }
+
+  /* --------------------------------------------------------------- the text */
+  .txt { margin-top: 24px; }
+  .txt .eyebrow { margin: 0 0 4px; font-size: 14px; line-height: 20px; font-weight: 600; color: var(--brand-600); }
+  .txt h3 { margin: 0 0 8px; font-size: 24px; line-height: 32px; font-weight: 600; text-wrap: balance; }
+  .txt p { margin: 0; font-size: 16px; line-height: 24px; color: var(--g-600); text-wrap: pretty; }
+  .txt p.small { margin-top: 8px; font-size: 14px; line-height: 20px; color: var(--g-500); }
+
+  .replay { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 9999px; border: 0;
+    background: rgb(255 255 255 / .92); color: var(--brand-700); font-size: 14px; font-weight: 600; box-shadow: 0 2px 10px rgba(16,24,40,.18);
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .closed .replay { opacity: 1; pointer-events: auto; }
+
+  .still *, .still *::before, .still *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<iframe class="behind" tabindex="-1" aria-hidden="true" title=""></iframe><script>document.currentScript.previousElementSibling.src = "/v7/r3/eat.html" + (/who=current/.test(location.search) ? "" : "?state=empty");</script>
+<div class="scrim" aria-hidden="true"></div>
+
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <header class="shead">
+    <h2 id="sheetTitle">Something new for you 🎉</h2>
+    <button class="x" type="button" aria-label="Close" data-close><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </header>
+
+  <div class="sbody">
+    <div class="view" id="view" tabindex="0" role="region" aria-roledescription="carousel" aria-label="How Nutrition sufficiency works">
+      <div class="track" id="track">
+        <!-- 1: the live score -->
+        <div class="slide" role="group" aria-roledescription="step" aria-label="1 of 3">
+          <div class="art a1" aria-hidden="true">
+            <div class="rings"></div>
+            <iframe id="cloud" tabindex="-1" title=""></iframe>
+          </div>
+          <div class="txt">
+            <p class="eyebrow">Introducing</p>
+            <h3>Nutrition sufficiency</h3>
+            <p id="intro"></p>
+          </div>
+        </div>
+        <!-- 2: one meal against the coach's plan, from kit.js -->
+        <div class="slide" role="group" aria-roledescription="step" aria-label="2 of 3">
+          <div class="art a2" role="img" aria-label="Lunch, with protein, carbs and fat each landing inside the range the coach set. The meal earns its full share of your sufficiency score.">
+            <div class="kit" id="k2"></div>
+          </div>
+          <div class="txt">
+            <p class="eyebrow">How it works</p>
+            <h3>Your coach sets your targets</h3>
+            <p>For every meal, your coach plans how much protein, carbs and fat you need. Eat close to those amounts and the meal earns its full share of your sufficiency score.</p>
+          </div>
+        </div>
+        <!-- 3: the medal and FlipCoins, from kit.js -->
+        <div class="slide" role="group" aria-roledescription="step" aria-label="3 of 3">
+          <div class="art a3" role="img" aria-label="A medal for a day at 80 or more, and FlipCoins counting up to 8 for today.">
+            <div class="kit" id="k3"></div>
+          </div>
+          <div class="txt">
+            <p class="eyebrow">Your rewards</p>
+            <h3>Earn a medal and FlipCoins</h3>
+            <p>Reach a sufficiency of 80% in a day to earn a Medal. Keep logging your meals to earn FlipCoins to spend on your favourite brands ❤️</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="sfoot">
+    <div class="nav">
+      <button class="back" type="button" id="back">Back</button>
+      <div class="dots" id="dots" aria-hidden="true"><i></i><i></i><i></i></div>
+    </div>
+    <button class="ok" type="button" id="cta">Next</button>
+  </footer>
+</section>
+
+<button class="replay" type="button" id="replay">Replay</button>
+
+<script src="/v7/ftux/kit.js"></script>
+
+<script>
+(function () {
+  "use strict";
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  var Q = new URLSearchParams(location.search);
+  var WHO = Q.get("who") === "current" ? "current" : "new";
+  var STILL = Q.get("still") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var root = document.documentElement;
+  if (STILL) root.classList.add("still");
+
+  var FINAL = WHO === "current" ? "See My Score" : "Log Your First Meal";
+  document.getElementById("intro").textContent = WHO === "current"
+    ? "The meals you log now add up to a score out of 100. It shows how close your meals come to the protein, carbs and fat your body needs. Eating close to that keeps your energy steady and supports your long-term health."
+    : "From today, every meal you log adds to a score out of 100. It shows how close your meals come to the protein, carbs and fat your body needs. Eating close to that keeps your energy steady and supports your long-term health.";
+
+  /* the live Cloud Drop; current users see their day so far (58), new users a full day to aim for */
+  var CLOUD = "/v7/r3/heroes/cloud/index.html?build=34&embed=1&k=.8&er=.102&ey=-.095&y=.03&v=Cloud%20Drop&intro=murmuration&score=" +
+    85 + (STILL ? "&still=1" : "");
+  var cloud = document.getElementById("cloud");
+  /* the score's info mark means "tap for more" on Eat; here the sheet already is the explanation */
+  cloud.addEventListener("load", function () {
+    try { var st = cloud.contentDocument.createElement("style"); st.textContent = "html .score .word .wi{display:none !important}"; cloud.contentDocument.head.appendChild(st); } catch (e) {}
+  });
+
+  /* ------------------------------------------------- steps 2 and 3: the shared kit */
+  var K = [null, FTUX.meal(document.getElementById("k2")), FTUX.reward(document.getElementById("k3"))];
+
+  /* --------------------------------------------------------- the carousel */
+  var view = document.getElementById("view"), track = document.getElementById("track");
+  var arts = document.querySelectorAll(".art"), slides = document.querySelectorAll(".slide"), dots = document.getElementById("dots").children;
+  var back = document.getElementById("back"), cta = document.getElementById("cta");
+  var PAR = .4;            /* the visual moves at 60% of the text's speed */
+  var W = 390, pos = 0, cur = -1, played = {}, anim = null;
+
+  function width() { return view.clientWidth || 390; }
+  /* pos is in steps (0 to 2); everything visual is derived from it */
+  function render() {
+    W = width();
+    track.style.transform = "translate3d(" + (-pos * W) + "px,0,0)";
+    for (var k = 0; k < 3; k++) {
+      var off = k - pos;                       /* this slide's distance from the centre, in steps */
+      arts[k].style.setProperty("--px", (-off * W * PAR).toFixed(1) + "px");
+      var near = Math.max(0, 1 - Math.abs(off));
+      dots[k].style.width = (8 + 16 * near) + "px";
+      dots[k].style.backgroundColor = near > .5 ? "var(--brand-600)" : "var(--g-200)";
+    }
+  }
+  function settle(i) {
+    if (i !== cur) {
+      cur = i;
+      back.setAttribute("aria-hidden", String(i === 0));
+      back.tabIndex = i === 0 ? -1 : 0;
+      cta.textContent = i === 2 ? FINAL : "Next";
+      for (var k = 0; k < 3; k++) slides[k].setAttribute("aria-hidden", String(k !== i));
+    }
+    play(i);
+  }
+  function play(i) {
+    if (played[i]) return;
+    played[i] = true;
+    if (i === 0) { cloud.src = CLOUD; return; }
+    STILL ? K[i].still() : K[i].play();
+  }
+  /* glide to a step: ease-out for a release (it is already moving), ease-in-out for Next and Back */
+  function glide(to, fromRest) {
+    if (anim) cancelAnimationFrame(anim);
+    anim = null;
+    if (STILL) { pos = to; render(); settle(to); return; }
+    var from = pos, dist = Math.abs(to - from);
+    if (dist < .001) { pos = to; render(); settle(to); return; }
+    var D = fromRest ? 520 : Math.max(240, 460 * dist), t0 = performance.now();
+    /* the labels change as soon as the move is decided, so Next and Back never lag behind */
+    settleLabels(to);
+    (function step(now) {
+      var k = Math.min(1, (now - t0) / D);
+      var e = fromRest ? (k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2) : 1 - Math.pow(1 - k, 3);
+      pos = from + (to - from) * e; render();
+      if (k < 1) anim = requestAnimationFrame(step); else { anim = null; settle(to); }
+    })(t0);
+  }
+  function settleLabels(i) {
+    back.setAttribute("aria-hidden", String(i === 0));
+    back.tabIndex = i === 0 ? -1 : 0;
+    cta.textContent = i === 2 ? FINAL : "Next";
+  }
+
+  /* dragging: the track follows the finger; past either end it gives a little, then eases back on release */
+  var drag = null;
+  view.addEventListener("pointerdown", function (e) {
+    if (e.button !== 0) return;
+    if (anim) { cancelAnimationFrame(anim); anim = null; }
+    drag = { id: e.pointerId, x: e.clientX, y: e.clientY, p: pos, on: false, t: performance.now(), lx: e.clientX, v: 0 };
+  });
+  view.addEventListener("pointermove", function (e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+    if (!drag.on) {
+      if (Math.abs(dx) < 6 || Math.abs(dx) < Math.abs(dy)) { if (Math.abs(dy) > 10) drag = null; return; }
+      drag.on = true; try { view.setPointerCapture(e.pointerId); } catch (err) {} view.classList.add("drag");
+    }
+    var now = performance.now(), dt = Math.max(1, now - drag.t);
+    drag.v = .8 * ((e.clientX - drag.lx) / dt) + .2 * drag.v; drag.t = now; drag.lx = e.clientX;
+    var p = drag.p - dx / W;
+    if (p < 0) p = p * .3; else if (p > 2) p = 2 + (p - 2) * .3;
+    pos = p; render();
+  });
+  function release(e) {
+    if (!drag || e.pointerId !== drag.id) return;
+    var d = drag; drag = null; view.classList.remove("drag");
+    if (!d.on) return;
+    var moved = pos - d.p, base = Math.round(d.p), to = base;
+    /* a flick or a drag past a fifth of the width moves one step */
+    if (moved > .2 || d.v < -.35) to = base + 1; else if (moved < -.2 || d.v > .35) to = base - 1;
+    glide(Math.max(0, Math.min(2, to)), false);
+  }
+  view.addEventListener("pointerup", release);
+  view.addEventListener("pointercancel", release);
+  view.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowRight" && cur < 2) { e.preventDefault(); glide(cur + 1, true); }
+    if (e.key === "ArrowLeft" && cur > 0) { e.preventDefault(); glide(cur - 1, true); }
+  });
+  addEventListener("resize", render);
+
+  cta.addEventListener("click", function () { var at = Math.round(pos); if (at < 2) glide(at + 1, true); else close(); });
+  back.addEventListener("click", function () { var at = Math.round(pos); if (at > 0) glide(at - 1, true); });
+
+  /* ------------------------------------------------------ open and close */
+  function reset() {
+    played = {}; cur = -1;
+    cloud.removeAttribute("src");
+    K[1].reset(); K[2].reset();
+  }
+  function open(at) {
+    root.classList.remove("closed", "closing");
+    if (anim) { cancelAnimationFrame(anim); anim = null; }
+    pos = at; render(); settleLabels(at); settle(at);
+    if (STILL) { root.classList.add("open"); return; }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("open"); }); });
+  }
+  function close() {
+    root.classList.add("closing"); root.classList.remove("open");
+    setTimeout(function () { root.classList.add("closed"); document.getElementById("replay").focus({ preventScroll: true }); }, STILL ? 0 : 360);
+  }
+  document.querySelector("[data-close]").addEventListener("click", close);
+  document.querySelector(".scrim").addEventListener("click", close);
+  addEventListener("keydown", function (e) { if (e.key === "Escape" && root.classList.contains("open")) close(); });
+  document.getElementById("replay").addEventListener("click", function () { reset(); open(0); });
+
+  var n = parseInt(Q.get("step"), 10);
+  open(n >= 1 && n <= 3 ? n - 1 : 0);
+})();
+</script>
+</body>
+</html>

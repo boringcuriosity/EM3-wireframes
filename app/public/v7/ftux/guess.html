@@ -1,0 +1,539 @@
+<!doctype html>
+<!--
+  FTUX concept: "Guess the score".
+  A tiny friendly game of three rounds, opened over the Eat screen. Each round shows one
+  sample meal (its scene plus protein, carbs and fat as planned and eaten) and asks one light
+  question with tappable answers. Every answer, right or a good try, gets a warm one-line
+  explanation and a small animated visual. The game ends on the three things learnt and the CTA.
+    Round 1  close counts as full marks     (a dot lands inside the full-marks band)
+    Round 2  bigger meals count for more    (100 squares, the bigger meal fills more of them)
+    Round 3  eating a lot more costs a few  (a dot runs past the band, the meal ring dips a little)
+  Current users play on their own day: 58 so far, lunch already logged, dinner next.
+
+  Flags
+    ?who=new       (default) first-time user, sample day, nothing logged yet
+    ?who=current   someone who already logs meals, rounds use their own day
+    ?step=N        open at step N (1-based): 1 intro, 2 round 1, 3 round 2, 4 round 3, 5 what you learnt
+    ?pick=N        with a round step, open with answer N (1-based) already tapped (2 shows a good try)
+    ?still=1       no animation, end states shown (also when prefers-reduced-motion);
+                   a round step opened with ?still=1 shows the right answer already picked
+-->
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guess The Score</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<link rel="stylesheet" href="/v7/icons/glyph-masks.css">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; overflow: hidden; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; }
+
+  .behind { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; background: #fff; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .42s var(--ease); }
+  .open .scrim { opacity: 1; }
+
+  /* ------------------------------------------------------------ the sheet */
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; max-height: 90vh;
+    display: flex; flex-direction: column; background: #fff; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    transform: translate(-50%, 100%); transition: transform .42s cubic-bezier(.2,.7,.2,1);
+    box-shadow: 0 -8px 32px rgba(16,24,40,.12); }
+  .open .sheet { transform: translate(-50%, 0); }
+  .closing .sheet { transition-duration: .34s; transition-timing-function: cubic-bezier(.4,0,1,1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 8px; }
+  .shead h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  button:focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+  .sbody { flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 16px 8px; scroll-behavior: smooth; }
+  .sfoot { flex-shrink: 0; padding: 8px 16px calc(24px + env(safe-area-inset-bottom, 0px)); }
+  .sfoot[hidden] { display: none; }
+  .ok { width: 100%; height: 48px; margin-bottom: 7px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff;
+    font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; }
+  .ok:active { transform: translateY(3px); box-shadow: 0 4px 0 var(--brand-700); }
+  .sfoot.rise { animation: footIn .36s var(--ease) both; }
+  @keyframes footIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .step { display: none; }
+  .step.on { display: block; animation: stepIn .4s var(--ease) both; }
+  @keyframes stepIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+
+  /* ------------------------------------------------------------ the intro */
+  .fan { position: relative; height: 150px; margin: 8px 0 20px; }
+  .fan .card { position: absolute; top: 14px; left: 50%; width: 112px; height: 124px; margin-left: -56px; border-radius: var(--r-lg);
+    background: var(--scene) 72% center / cover no-repeat, var(--in-25); border: 3px solid #fff;
+    box-shadow: 0 1px 0 var(--g-200), 0 10px 24px rgba(45,49,166,.14); opacity: 0; animation: deal .7s var(--ease) both; }
+  .fan .card:nth-child(1) { --tx: -104px; --r: -8deg; animation-delay: .25s; }
+  .fan .card:nth-child(2) { --tx: 0px; --r: 0deg; top: 0; animation-delay: .4s; z-index: 2; }
+  .fan .card:nth-child(3) { --tx: 104px; --r: 8deg; animation-delay: .55s; }
+  .fan .card { transform: translateX(var(--tx)) rotate(var(--r)); }
+  @keyframes deal { from { opacity: 0; transform: translateX(0) translateY(24px) rotate(0); } to { opacity: 1; transform: translateX(var(--tx)) rotate(var(--r)); } }
+  .fan .card span { position: absolute; left: 8px; bottom: 8px; padding: 2px 8px; border-radius: 9999px; background: rgb(255 255 255 / .9);
+    font-size: 11px; line-height: 16px; font-weight: 600; color: var(--g-700); }
+  .fan .card b { position: absolute; right: -10px; top: -10px; width: 36px; height: 36px; border-radius: 9999px; display: grid; place-items: center;
+    background: var(--in-600); color: #fff; font-size: 17px; font-weight: 700; box-shadow: 0 0 0 3px #fff; font-variant-numeric: tabular-nums; }
+  .fan .card b.got { background: var(--brand-600); font-size: 14px; }
+  .fan .card b.next { background: var(--gold-600); color: var(--g-900); }
+  .intro h3 { margin: 0 0 8px; font-size: 24px; line-height: 30px; font-weight: 800; letter-spacing: -.3px; text-align: center; text-wrap: balance; }
+  .intro p { margin: 0 auto 8px; max-width: 300px; font-size: 15px; line-height: 22px; color: var(--g-600); text-align: center; text-wrap: pretty; }
+  .sofar { display: flex; justify-content: center; margin: 0 0 12px; }
+  .sofar span { display: inline-flex; align-items: baseline; gap: 4px; padding: 4px 12px; border-radius: 9999px; background: var(--brand-50);
+    box-shadow: inset 0 0 0 1px var(--brand-200); font-size: 13px; color: var(--brand-800); }
+  .sofar b { font-size: 18px; font-weight: 800; }
+
+  /* -------------------------------------------------------- the round top */
+  .rtop { display: flex; align-items: center; justify-content: space-between; margin: 0 0 12px; }
+  .rtop .lbl { font-size: 12px; line-height: 16px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--in-600); }
+  .pips { display: flex; gap: 4px; }
+  .pips i { width: 8px; height: 8px; border-radius: 9999px; background: var(--g-200); transition: width .4s var(--ease), background-color .4s var(--ease); }
+  .pips i.done { background: var(--brand-600); }
+  .pips i.now { width: 20px; background: var(--in-600); }
+
+  /* ------------------------------------------------------- the meal card */
+  .meal { position: relative; isolation: isolate; border-radius: var(--r-xl); border: 1px solid transparent; box-shadow: 2px 2px 0 var(--g-200); overflow: hidden;
+    background: linear-gradient(180deg, var(--in-25) 0%, #fff 34%, #fff 100%) padding-box,
+      conic-gradient(from 0deg, var(--in-600) 0deg, var(--g-200) 43deg, var(--g-200) 317deg, var(--in-600) 360deg) border-box; }
+  .meal::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 96px; z-index: -1; opacity: .7;
+    background: var(--scene) right center / auto 100% no-repeat;
+    -webkit-mask: linear-gradient(90deg, transparent 50%, #000 85%), linear-gradient(180deg, #000 40%, transparent);
+    -webkit-mask-composite: source-in; mask-composite: intersect; }
+  .mh { padding: 12px 16px 12px; }
+  .mh h3 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 700; }
+  .mh .sub { margin-top: 2px; font-size: 12px; line-height: 16px; color: var(--g-600); }
+  .mh .sub b { color: var(--g-900); font-weight: 600; }
+  .tbl { margin: 0 8px 8px; padding: 4px 8px; border-radius: var(--r-md); background: rgb(255 255 255 / .86); box-shadow: inset 0 0 0 1px var(--g-100); }
+  .tr { display: grid; grid-template-columns: 20px 1fr 64px 64px; align-items: center; gap: 8px; height: 32px; padding: 0 4px; border-radius: var(--r-sm); overflow: hidden;
+    font-size: 13px; color: var(--g-500); font-variant-numeric: tabular-nums; transition: background-color .3s var(--ease), color .3s var(--ease), height .42s var(--ease), opacity .3s var(--ease); }
+  /* once answered, only the row in question stays, so the answer fits under it */
+  .answered .tr:not(.ask):not(.hd) { height: 0; opacity: 0; }
+  .tr.hd { height: 22px; font-size: 11px; line-height: 14px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; color: var(--g-400); }
+  .tr .n { color: var(--g-700); font-weight: 500; }
+  .tr span:nth-child(3), .tr span:nth-child(4) { text-align: right; }
+  .tr.ask { background: var(--in-50); color: var(--g-900); }
+  .tr.ask .n, .tr.ask b { font-weight: 700; color: var(--g-900); }
+  .tr b { font-weight: 600; color: var(--g-800); }
+  .gl { width: 18px; height: 18px; background: var(--brand-600); -webkit-mask-size: contain; mask-size: contain;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+
+  /* two meals side by side, for round 2 */
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mini { position: relative; height: 108px; border-radius: var(--r-lg); overflow: hidden; isolation: isolate; padding: 12px;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    background: linear-gradient(180deg, rgb(255 255 255 / 0) 30%, rgb(255 255 255 / .94) 78%), var(--scene) 75% center / cover no-repeat, var(--in-25);
+    box-shadow: inset 0 0 0 1px var(--g-200), 2px 2px 0 var(--g-200); }
+  .mini h3 { margin: 0; font-size: 16px; line-height: 20px; font-weight: 700; }
+  .mini .sub { font-size: 12px; line-height: 16px; color: var(--g-600); }
+  .mini .tag { position: absolute; top: 8px; left: 8px; padding: 2px 8px; border-radius: 9999px; font-size: 11px; line-height: 16px; font-weight: 600;
+    background: rgb(255 255 255 / .92); color: var(--g-700); }
+  .mini .tag.next { background: var(--gold-100); color: var(--gold-800); }
+  .mini .tag.done { background: var(--brand-50); color: var(--brand-800); }
+
+  /* ------------------------------------------------------- the question */
+  .q { margin: 14px 0 12px; font-size: 17px; line-height: 24px; font-weight: 600; text-wrap: pretty; }
+  .q em { font-style: normal; color: var(--in-700); }
+  .answers { display: flex; flex-direction: column; }
+  .aw { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .42s var(--ease), opacity .3s var(--ease), margin .42s var(--ease); margin-bottom: 8px; }
+  .aw > div { min-height: 0; overflow: hidden; }
+  .aw.gone { grid-template-rows: 0fr; opacity: 0; margin-bottom: 0; }
+  .ans { width: 100%; min-height: 48px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; text-align: left; cursor: pointer;
+    border: 0; border-radius: var(--r-md); background: #fff; box-shadow: inset 0 0 0 1.5px var(--g-200), 0 2px 0 var(--g-200);
+    font-size: 15px; line-height: 20px; font-weight: 500; color: var(--g-800);
+    transition: background-color .3s var(--ease), box-shadow .3s var(--ease), color .3s var(--ease), transform .12s var(--ease); }
+  .ans:active:not([disabled]) { transform: translateY(1px); }
+  .ans .k { flex-shrink: 0; width: 24px; height: 24px; border-radius: 9999px; display: grid; place-items: center; font-size: 12px; font-weight: 700;
+    background: var(--g-100); color: var(--g-500); transition: background-color .3s var(--ease), color .3s var(--ease); }
+  .ans .k svg { display: none; }
+  .ans[disabled] { cursor: default; }
+  .ans.right { background: var(--brand-50); box-shadow: inset 0 0 0 1.5px var(--brand-600), 0 2px 0 var(--brand-200); color: var(--brand-900); font-weight: 600; }
+  .ans.right .k { background: var(--brand-600); color: #fff; }
+  .ans.right .k svg { display: block; }
+  .ans.right .k i { display: none; }
+  .ans.try { background: var(--g-50); box-shadow: inset 0 0 0 1.5px var(--in-200), 0 2px 0 var(--g-100); color: var(--g-600); }
+  .ans.try .k { background: var(--in-100); color: var(--in-700); }
+  .ans .yours { margin-left: auto; font-size: 11px; line-height: 16px; font-weight: 600; color: var(--g-500); white-space: nowrap; }
+
+  /* ------------------------------------------------------- the reveal */
+  .reveal { margin: 4px 0 8px; padding: 16px; border-radius: var(--r-xl); background: var(--tint, var(--brand-50));
+    box-shadow: inset 0 0 0 1px rgb(16 24 40 / .04); animation: revIn .5s var(--ease) both; }
+  .reveal[hidden] { display: none; }
+  @keyframes revIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  .reveal .pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 9999px; margin-bottom: 8px;
+    font-size: 12px; font-weight: 700; background: #fff; color: var(--brand-800); }
+  .reveal .pill.try { color: var(--in-700); }
+  .reveal .line { margin: 0; font-size: 15px; line-height: 22px; font-weight: 500; color: var(--g-800); text-wrap: pretty; }
+  .reveal .line b { font-weight: 700; color: var(--g-900); }
+  .vis { margin: 12px 0 0; padding: 8px 12px; border-radius: var(--r-lg); background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.05); }
+
+  /* visual: a band with a dot landing in it */
+  .bv { display: flex; align-items: center; gap: 12px; }
+  .bv .trk { position: relative; flex: 1; height: 10px; margin: 22px 0 22px; border-radius: 9999px; background: var(--g-100); }
+  .bv .band { position: absolute; top: -3px; bottom: -3px; border-radius: 9999px; background: var(--ok-50); box-shadow: inset 0 0 0 1.5px var(--ok-300);
+    transition: background-color .5s var(--ease), box-shadow .5s var(--ease); }
+  .bv.landed .band { background: var(--ok-100); box-shadow: inset 0 0 0 1.5px var(--ok-500); }
+  .bv .over { position: absolute; top: 0; bottom: 0; border-radius: 0 9999px 9999px 0; background: var(--gold-300); width: 0; }
+  .bv .blbl { position: absolute; bottom: 16px; transform: translateX(-50%); white-space: nowrap; font-size: 11px; line-height: 14px; font-weight: 600; color: var(--ok-600); }
+  .bv .tick { position: absolute; top: -6px; width: 2px; height: 22px; margin-left: -1px; border-radius: 2px; background: var(--g-400); }
+  .bv .tlbl { position: absolute; top: 18px; transform: translateX(-50%); white-space: nowrap; font-size: 11px; line-height: 14px; color: var(--g-500); }
+  .bv .dot { position: absolute; top: 50%; left: 0; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 9999px; background: #fff;
+    border: 4px solid var(--in-600); box-shadow: 0 2px 6px rgba(16,24,40,.2); transition: border-color .4s var(--ease); }
+  .bv.landed .dot { border-color: var(--ok-500); }
+  .bv.past .dot { border-color: var(--gold-700); }
+  .bv .score { flex-shrink: 0; width: 64px; text-align: center; }
+  .bv .score b { display: block; font-size: 24px; line-height: 28px; font-weight: 800; color: var(--g-300); font-variant-numeric: tabular-nums; transition: color .4s var(--ease); }
+  .bv .score span { font-size: 11px; line-height: 14px; color: var(--g-500); }
+  .bv.landed .score b { color: var(--ok-600); }
+
+  /* visual: a meal ring that dips a little */
+  .ring { position: relative; flex-shrink: 0; width: 64px; height: 64px; }
+  .ring svg { position: absolute; inset: 0; }
+  .ring .arc { transition: stroke-dashoffset 1.1s cubic-bezier(.65,0,.35,1); }
+  .ring > span { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 2px; font-size: 11px; line-height: 14px; color: var(--g-500); white-space: nowrap; }
+  .ring { margin-bottom: 16px; }
+  .ring b { position: absolute; inset: 0; display: grid; place-items: center; font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--ok-600); }
+
+  /* visual: 100 squares */
+  .grid { display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px; }
+  .grid i { aspect-ratio: 1; border-radius: 3px; background: var(--g-100); transition: background-color .35s var(--ease); }
+  .grid i.a { background: var(--brand-600); } .grid i.b { background: var(--teal-800); } .grid i.c { background: var(--brand-200); }
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 12px; font-size: 12px; line-height: 16px; color: var(--g-600); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; }
+  .legend b { font-weight: 700; color: var(--g-900); font-variant-numeric: tabular-nums; }
+
+  /* ---------------------------------------------------- what you learnt */
+  .done-hd { text-align: center; margin: 4px 0 16px; }
+  .done-hd .stamp { width: 72px; height: 72px; margin: 0 auto 12px; border-radius: 9999px; display: grid; place-items: center;
+    background: radial-gradient(circle at 50% 40%, var(--brand-100), var(--brand-50) 70%); box-shadow: inset 0 0 0 1.5px var(--brand-200); }
+  .done-hd .stamp svg { width: 36px; height: 36px; }
+  .done-hd .stamp path { stroke-dasharray: 40; stroke-dashoffset: 40; animation: draw .6s var(--ease) .35s forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  .done-hd h3 { margin: 0 0 4px; font-size: 22px; line-height: 28px; font-weight: 800; letter-spacing: -.2px; }
+  .done-hd p { margin: 0; font-size: 14px; line-height: 20px; color: var(--g-600); }
+  .learnt { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+  .learnt li { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: var(--r-lg); background: var(--c, var(--brand-50));
+    font-size: 15px; line-height: 21px; font-weight: 500; color: var(--g-800); opacity: 0; animation: liIn .45s var(--ease) both; }
+  .learnt li:nth-child(1) { animation-delay: .2s; } .learnt li:nth-child(2) { animation-delay: .32s; }
+  .learnt li:nth-child(3) { animation-delay: .44s; } .learnt li:nth-child(4) { animation-delay: .56s; }
+  @keyframes liIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  .learnt .ic { flex-shrink: 0; width: 44px; height: 44px; border-radius: var(--r-md); background: #fff; display: grid; place-items: center; }
+  .learnt .ic img { width: 30px; height: auto; }
+  .learnt b { font-weight: 700; color: var(--g-900); }
+  .nudge { margin: 16px 0 4px; font-size: 14px; line-height: 20px; color: var(--g-600); text-align: center; text-wrap: balance; }
+  .nudge b { color: var(--g-900); }
+
+  .replay { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 9999px; border: 0;
+    background: rgb(255 255 255 / .92); color: var(--brand-700); font-size: 14px; font-weight: 600; box-shadow: 0 2px 10px rgba(16,24,40,.18);
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .closed .replay { opacity: 1; pointer-events: auto; }
+
+  .still *, .still *::before, .still *::after { animation: none !important; transition: none !important; }
+  .still .fan .card, .still .learnt li { opacity: 1; }
+  .still .done-hd .stamp path { stroke-dashoffset: 0; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; }
+    .fan .card, .learnt li { opacity: 1 !important; } .done-hd .stamp path { stroke-dashoffset: 0 !important; } }
+</style>
+</head>
+<body>
+<iframe class="behind" tabindex="-1" aria-hidden="true" title=""></iframe><script>document.currentScript.previousElementSibling.src = "/v7/r3/eat.html" + (/who=current/.test(location.search) ? "" : "?state=empty");</script>
+<div class="scrim" aria-hidden="true"></div>
+
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <header class="shead">
+    <h2 id="sheetTitle">Something new for you 🎉</h2>
+    <button class="x" type="button" aria-label="Close" data-close><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </header>
+  <div class="sbody" id="body"></div>
+  <footer class="sfoot" id="foot" hidden><button class="ok" type="button" id="cta"></button></footer>
+</section>
+
+<button class="replay" type="button" id="replay">Replay</button>
+
+<script>
+(function () {
+  "use strict";
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  var Q = new URLSearchParams(location.search);
+  var WHO = Q.get("who") === "current" ? "current" : "new";
+  var CUR = WHO === "current";
+  var STILL = Q.get("still") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (STILL) document.documentElement.classList.add("still");
+  var SC = function (k) { return "url(/v7/icons/meals/bg/" + k + ".webp)"; };
+  var GLYPH = { Protein: "glyph-protein", Carbs: "glyph-carbs", Fat: "glyph-fats" };
+  var TICK = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M3 7.4l2.6 2.6L11 4.6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  /* the marking rule: full marks from 80% of the target to the target plus 20% (at least 3 g) */
+  function hiOf(t) { return t + Math.max(.2 * t, 3); }
+  function mark(e, t) { var lo = .8 * t, hi = hiOf(t); return e < lo ? 100 * e / lo : e <= hi ? 100 : Math.max(0, 100 - 100 * (e - hi) / t); }
+
+  /* ------------------------------------------------------------ the rounds */
+  var R1 = CUR ? {
+      kind: "band", scene: "lunch", name: "Your lunch", sub: "Logged today. Worth <b>35</b> of your 100",
+      rows: [["Protein", 25, 15], ["Carbs", 60, 66], ["Fat", 15, 17]], ask: 1,
+      q: "Your lunch plan said <em>60 g carbs</em>. You had <em>66 g</em>. How many marks for carbs?",
+      a: ["Full marks", "Most of them", "About half"], right: 0, tint: "var(--brand-50)",
+      line: "<b>Close counts.</b> Anything from 48 g to 72 g earns full marks for carbs.",
+      learnt: "<b>Close to plan</b> earns full marks."
+    } : {
+      kind: "band", scene: "bf", name: "Breakfast", sub: "From your coach's plan. Worth <b>20</b> of your 100",
+      rows: [["Protein", 15, 13], ["Carbs", 40, 42], ["Fat", 9, 10]], ask: 0,
+      q: "Your plan says <em>15 g protein</em>. You ate <em>13 g</em>. How many marks for protein?",
+      a: ["Full marks", "Most of them", "About half"], right: 0, tint: "var(--brand-50)",
+      line: "<b>Close counts.</b> Anything from 12 g to 18 g earns full marks for protein.",
+      learnt: "<b>Close to plan</b> earns full marks."
+    };
+  var R2 = CUR ? {
+      kind: "grid", pair: [["dinner", "Dinner", "Planned 525 kcal", "Next", "next"], ["snack", "Snack", "Planned 150 kcal", "Logged", "done"]],
+      q: "Dinner is next. Which counts more for your day?",
+      a: ["Dinner", "Snack", "Both the same"], right: 0, tint: "color-mix(in srgb, var(--teal-100) 55%, #fff)",
+      line: "<b>Bigger meals count for more.</b> Dinner is worth 35 of your 100. Your snack was worth 10.",
+      learnt: "<b>Bigger meals</b> count for more of your 100."
+    } : {
+      kind: "grid", pair: [["lunch", "Lunch", "Planned 525 kcal"], ["snack", "Snack", "Planned 150 kcal"]],
+      q: "Lunch is planned bigger than your snack. Which counts more for your day?",
+      a: ["Lunch", "Snack", "Both the same"], right: 0, tint: "color-mix(in srgb, var(--teal-100) 55%, #fff)",
+      line: "<b>Bigger meals count for more.</b> Lunch is worth 35 of your 100. A snack is worth 10.",
+      learnt: "<b>Bigger meals</b> count for more of your 100."
+    };
+  var R3 = {
+      kind: "over", scene: "dinner", name: CUR ? "Your dinner" : "Dinner", sub: (CUR ? "Next up. " : "From your coach's plan. ") + "Worth <b>35</b> of your 100",
+      rows: [["Protein", 20, 20], ["Carbs", 55, 85], ["Fat", 14, 14]], ask: 1,
+      q: CUR ? "Say dinner has <em>a lot more carbs</em> than planned. What happens?" : "At dinner you ate <em>a lot more carbs</em> than planned. What happens?",
+      a: ["A few marks go away", "Nothing changes", "Dinner scores 0"], right: 0, tint: "var(--gold-50)",
+      line: CUR ? "<b>A few marks go away.</b> Dinner would still add 31 of its 35, taking you to 89."
+                : "<b>A few marks go away.</b> Dinner still scores 88, because protein and fat stayed on plan.",
+      learnt: "<b>Eating much more</b> than planned takes a few marks away."
+    };
+  var ROUNDS = [R1, R2, R3];
+
+  /* ------------------------------------------------------------ building */
+  var body = document.getElementById("body"), foot = document.getElementById("foot"), cta = document.getElementById("cta");
+  function el(html) { var d = document.createElement("div"); d.innerHTML = html.trim(); return d.firstChild; }
+
+  function introHTML() {
+    var cards = CUR
+      ? [["bf", "Breakfast", "+17", "got"], ["lunch", "Lunch", "+32", "got"], ["dinner", "Dinner", "?", "next"]]
+      : [["bf", "Breakfast", "?"], ["lunch", "Lunch", "?"], ["dinner", "Dinner", "?"]];
+    return '<div class="step intro" data-step="intro">' +
+      '<div class="fan" aria-hidden="true">' + cards.map(function (c) {
+        return '<div class="card" style="--scene:' + SC(c[0]) + '"><b class="' + (c[3] || "") + '">' + c[2] + '</b><span>' + c[1] + '</span></div>';
+      }).join("") + '</div>' +
+      (CUR
+        ? '<div class="sofar"><span><b>58</b> so far today</span></div><h3>Your meals now add up to a score</h3>' +
+          '<p>Every meal you log adds to today\'s score, out of 100. Three quick guesses on your own day show how.</p>'
+        : '<h3>Guess the score</h3><p>Three quick rounds, one tap each. You will see how your meals earn today\'s score.</p>') +
+      '</div>';
+  }
+
+  function tableHTML(r) {
+    return '<div class="tbl" role="table" aria-label="Planned and eaten">' +
+      '<div class="tr hd" role="row"><span></span><span role="columnheader"></span><span role="columnheader">Plan</span><span role="columnheader">' + (CUR && r.kind === "over" ? "If you eat" : CUR ? "You had" : "You ate") + '</span></div>' +
+      r.rows.map(function (m, i) {
+        return '<div class="tr' + (i === r.ask ? " ask" : "") + '" role="row"><span class="gl ' + GLYPH[m[0]] + '" aria-hidden="true"></span>' +
+          '<span class="n" role="cell">' + m[0] + '</span><span role="cell">' + m[1] + ' g</span><span role="cell"><b>' + m[2] + ' g</b></span></div>';
+      }).join("") + '</div>';
+  }
+
+  function roundHTML(r, n) {
+    var top = '<div class="rtop"><span class="lbl">Round ' + (n + 1) + ' of 3</span><span class="pips" aria-hidden="true">' +
+      [0, 1, 2].map(function (k) { return '<i class="' + (k < n ? "done" : k === n ? "now" : "") + '"></i>'; }).join("") + '</span></div>';
+    var card = r.pair
+      ? '<div class="pair">' + r.pair.map(function (p) {
+          return '<div class="mini" style="--scene:' + SC(p[0]) + '">' + (p[3] ? '<span class="tag ' + p[4] + '">' + p[3] + '</span>' : "") +
+            '<h3>' + p[1] + '</h3><div class="sub">' + p[2] + '</div></div>';
+        }).join("") + '</div>'
+      : '<article class="meal" style="--scene:' + SC(r.scene) + '"><div class="mh"><h3>' + r.name + '</h3><div class="sub">' + r.sub + '</div></div>' + tableHTML(r) + '</article>';
+    var answers = '<div class="answers" role="group" aria-label="Your guess">' + r.a.map(function (t, i) {
+      return '<div class="aw"><div><button class="ans" type="button" data-i="' + i + '"><span class="k"><i>' + String.fromCharCode(65 + i) + '</i>' + TICK + '</span><span>' + t + '</span></button></div></div>';
+    }).join("") + '</div>';
+    return '<div class="step" data-step="r' + (n + 1) + '">' + top + card + '<p class="q">' + r.q + '</p>' + answers +
+      '<div class="reveal" hidden aria-live="polite" style="--tint:' + r.tint + '"></div></div>';
+  }
+
+  function doneHTML() {
+    var items = ROUNDS.map(function (r, i) {
+      var c = ["var(--brand-50)", "color-mix(in srgb, var(--teal-100) 55%, #fff)", "var(--gold-50)"][i];
+      return '<li style="--c:' + c + '"><span class="ic" aria-hidden="true">' + miniIcon(i) + '</span><span>' + r.learnt + '</span></li>';
+    }).join("") +
+      '<li style="--c:var(--in-50)"><span class="ic" aria-hidden="true"><img src="/v7/icons/badge/simple/heart-apple.svg" alt=""></span><span>A day at <b>80 or more</b> earns a medal.</span></li>';
+    return '<div class="step" data-step="done"><div class="done-hd"><div class="stamp" aria-hidden="true"><svg viewBox="0 0 36 36" fill="none">' +
+      '<path d="M9 18.5l6 6L27 12" stroke="var(--brand-600)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>' +
+      '<h3>You know how it works</h3><p>Four things to keep in mind.</p></div><ul class="learnt">' + items + '</ul>' +
+      '<p class="nudge">' + (CUR ? "You are at <b>58</b>. Dinner is next and is worth <b>35</b>." : "Your coach has planned your meals. Log one to start your score.") + '</p></div>';
+  }
+  function miniIcon(i) {
+    if (i === 0) return '<svg width="28" height="14" viewBox="0 0 28 14"><rect x="1" y="5" width="26" height="4" rx="2" fill="var(--g-200)"/><rect x="8" y="3" width="12" height="8" rx="4" fill="var(--ok-100)" stroke="var(--ok-500)" stroke-width="1.2"/><circle cx="13" cy="7" r="3.4" fill="#fff" stroke="var(--ok-500)" stroke-width="2"/></svg>';
+    if (i === 1) return '<svg width="26" height="26" viewBox="0 0 26 26">' + [0,1,2,3].map(function (y) { return [0,1,2,3].map(function (x) {
+      var k = y * 4 + x, f = k < 7 ? "var(--brand-600)" : k < 9 ? "var(--teal-800)" : "var(--g-100)";
+      return '<rect x="' + (x * 6.5 + .5) + '" y="' + (y * 6.5 + .5) + '" width="5" height="5" rx="1.4" fill="' + f + '"/>'; }).join(""); }).join("") + '</svg>';
+    return '<svg width="28" height="14" viewBox="0 0 28 14"><rect x="1" y="5" width="26" height="4" rx="2" fill="var(--g-200)"/><rect x="4" y="3" width="10" height="8" rx="4" fill="var(--ok-100)" stroke="var(--ok-500)" stroke-width="1.2"/><rect x="14" y="5" width="8" height="4" fill="var(--gold-300)"/><circle cx="22" cy="7" r="3.4" fill="#fff" stroke="var(--gold-700)" stroke-width="2"/></svg>';
+  }
+
+  body.innerHTML = introHTML() + ROUNDS.map(roundHTML).join("") + doneHTML();
+
+  /* ------------------------------------------------------------ visuals */
+  function bandVis(r) {
+    var m = r.rows[r.ask], t = m[1], e = m[2], over = r.kind === "over";
+    var max = over ? t * 1.9 : t * 2, lo = .8 * t, hi = hiOf(t), P = function (v) { return Math.min(100, v / max * 100); };
+    var v = el('<div class="vis"><div class="bv" role="img" aria-label="' + m[0] + ': plan ' + t + ' g, full marks from ' + Math.round(lo) + ' g to ' + Math.round(hi) + ' g, ' + (over ? "you ate " : "you had ") + e + ' g">' +
+      '<div class="trk"><span class="band" style="left:' + P(lo) + '%;width:' + (P(hi) - P(lo)) + '%"></span>' +
+      '<span class="blbl" style="left:' + ((P(lo) + P(hi)) / 2) + '%">Full marks</span>' +
+      (over ? '<span class="over" style="left:' + P(hi) + '%"></span>' : "") +
+      '<span class="tick" style="left:' + P(t) + '%"></span><span class="tlbl" style="left:' + P(t) + '%">Plan ' + t + ' g</span>' +
+      '<span class="dot"></span></div>' +
+      (over ? '<div class="ring"><svg viewBox="0 0 64 64" width="64" height="64"><circle cx="32" cy="32" r="26" fill="none" stroke-width="6" style="stroke:var(--gold-200)"/>' +
+              '<circle class="arc" cx="32" cy="32" r="26" fill="none" stroke-width="6" stroke-linecap="round" pathLength="100" stroke-dasharray="100 100" stroke-dashoffset="0" transform="rotate(-90 32 32)" style="stroke:var(--ok-500)"/></svg><b>100</b><span>dinner marks</span></div>'
+            : '<div class="score"><b>0</b><span>marks</span></div>') +
+      '</div></div>');
+    var bv = v.firstChild, dot = v.querySelector(".dot"), fill = v.querySelector(".over");
+    var meal = over ? Math.round(r.rows.reduce(function (s, x) { return s + mark(x[2], x[1]); }, 0) / 3) : 100;
+    function end() {
+      if (over) {
+        bv.classList.add("past"); dot.style.left = P(e) + "%"; fill.style.width = (P(e) - P(hi)) + "%";
+        v.querySelector(".arc").setAttribute("stroke-dashoffset", String(100 - meal)); v.querySelector(".ring b").textContent = meal;
+      } else { bv.classList.add("landed"); dot.style.left = P(e) + "%"; v.querySelector(".score b").textContent = "100"; }
+    }
+    return { node: v, play: function () {
+      if (STILL) { end(); return; }
+      var D = 1100, from = over ? t : 0, t0 = null, num = over ? v.querySelector(".ring b") : v.querySelector(".score b"), arc = over && v.querySelector(".arc");
+      dot.style.left = P(from) + "%";
+      if (over) { bv.classList.add("landed"); }
+      setTimeout(function () {
+        (function step(now) {
+          if (t0 === null) t0 = now;
+          var k = Math.min(1, (now - t0) / D), q = k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2, x = from + (e - from) * q;
+          dot.style.left = P(x) + "%";
+          if (over) {
+            var past = x > hi; bv.classList.toggle("past", past); bv.classList.toggle("landed", !past);
+            fill.style.width = Math.max(0, P(x) - P(hi)) + "%";
+            var mk = Math.round((mark(x, t) + 200) / 3); num.textContent = mk; arc.setAttribute("stroke-dashoffset", String(100 - mk));
+          }
+          if (k < 1) requestAnimationFrame(step); else end();
+        })(performance.now());
+      }, 280);
+      setTimeout(end, 1700); /* lands even if frames were throttled */
+    } };
+  }
+
+  function gridVis() {
+    /* new: lunch 35, snack 10. current: breakfast and lunch 49, snack 9, dinner 35 still to come */
+    var parts = CUR ? [["c", 49, "Breakfast and lunch", 49], ["b", 9, "Snack", 9], ["a", 35, "Dinner, up to", 35]]
+                    : [["a", 35, "Lunch", 35], ["b", 10, "Snack", 10]];
+    var cells = "", k = 0;
+    for (var i = 0; i < 100; i++) cells += "<i></i>";
+    var v = el('<div class="vis"><div class="grid" role="img" aria-label="' + parts.map(function (p) { return p[2] + " " + p[3]; }).join(", ") + ', out of 100">' + cells + '</div>' +
+      '<div class="legend">' + parts.map(function (p) {
+        var c = { a: "var(--brand-600)", b: "var(--teal-800)", c: "var(--brand-200)" }[p[0]];
+        return '<span><i style="background:' + c + '"></i>' + p[2] + ' <b>' + p[3] + '</b></span>';
+      }).join("") + '<span><i style="background:var(--g-100)"></i>Rest of your 100</span></div></div>');
+    var I = v.querySelectorAll(".grid i");
+    function paint(anim) {
+      k = 0;
+      parts.forEach(function (p, pi) {
+        for (var j = 0; j < p[1]; j++, k++) {
+          var c = I[k], instant = CUR && pi < 2;
+          c.style.transitionDelay = anim && !instant ? ((CUR ? j : k) * 14 + 200) + "ms" : "0ms";
+          c.className = p[0];
+        }
+      });
+    }
+    return { node: v, play: function () {
+      if (STILL) { paint(false); return; }
+      if (CUR) { for (var j = 0; j < 58; j++) { I[j].style.transitionDelay = "0ms"; I[j].className = j < 49 ? "c" : "b"; } }
+      requestAnimationFrame(function () { requestAnimationFrame(function () { paint(true); }); });
+    } };
+  }
+
+  /* ------------------------------------------------------------ answering */
+  var picked = [null, null, null];
+  function answer(n, i) {
+    var r = ROUNDS[n], step = body.querySelector('[data-step="r' + (n + 1) + '"]');
+    if (picked[n] !== null) return;
+    picked[n] = i;
+    var ok = i === r.right;
+    step.querySelectorAll(".ans").forEach(function (b) {
+      var j = +b.dataset.i;
+      b.disabled = true;
+      if (j === r.right) b.classList.add("right");
+      if (j === i && !ok) { b.classList.add("try"); b.insertAdjacentHTML("beforeend", '<span class="yours">Your guess</span>'); }
+      if (j !== r.right && j !== i) b.closest(".aw").classList.add("gone");
+      b.setAttribute("aria-label", b.textContent + (j === r.right ? ", the answer" : "") + (j === i ? ", your guess" : ""));
+    });
+    step.classList.add("answered");
+    var rev = step.querySelector(".reveal");
+    rev.innerHTML = '<span class="pill' + (ok ? "" : " try") + '">' + (ok ? "Spot on" : "Good try") + '</span><p class="line">' + r.line + '</p>';
+    var vis = r.kind === "grid" ? gridVis() : bandVis(r);
+    rev.appendChild(vis.node);
+    rev.hidden = false;
+    showFoot(n < 2 ? "Next Round" : "See What You Learnt");
+    vis.play();
+    if (!STILL) setTimeout(function () {
+      var bR = body.getBoundingClientRect(), rR = rev.getBoundingClientRect();
+      if (rR.bottom > bR.bottom) body.scrollTop += rR.bottom - bR.bottom + 8;
+    }, 460);
+  }
+  body.addEventListener("click", function (e) {
+    var b = e.target.closest(".ans"); if (!b || b.disabled) return;
+    answer(+b.closest(".step").dataset.step.slice(1) - 1, +b.dataset.i);
+  });
+
+  /* ------------------------------------------------------------ the steps */
+  var STEPS = ["intro", "r1", "r2", "r3", "done"], cur = 0;
+  var FINAL = CUR ? "See My Score" : "Log Your First Meal";
+  function showFoot(label) {
+    var was = foot.hidden; foot.hidden = false; cta.textContent = label;
+    if (was && !STILL) { foot.classList.remove("rise"); void foot.offsetWidth; foot.classList.add("rise"); }
+  }
+  function resetRound(n) {
+    var step = body.querySelector('[data-step="r' + (n + 1) + '"]');
+    picked[n] = null;
+    step.classList.remove("answered");
+    step.querySelectorAll(".aw").forEach(function (w) { w.classList.remove("gone"); });
+    step.querySelectorAll(".ans").forEach(function (b) { b.disabled = false; b.className = "ans"; b.removeAttribute("aria-label"); var y = b.querySelector(".yours"); if (y) y.remove(); });
+    var rev = step.querySelector(".reveal"); rev.hidden = true; rev.innerHTML = "";
+  }
+  function go(name, pre) {
+    cur = STEPS.indexOf(name);
+    body.querySelectorAll(".step").forEach(function (s) { s.classList.toggle("on", s.dataset.step === name); });
+    body.scrollTop = 0;
+    if (name === "intro") { showFoot("Start Round 1"); return; }
+    if (name === "done") { showFoot(FINAL); return; }
+    var n = cur - 1;
+    resetRound(n);
+    foot.hidden = true;
+    if (pre != null) answer(n, pre);
+  }
+  cta.addEventListener("click", function () {
+    if (STEPS[cur] === "done") close(); else go(STEPS[cur + 1]);
+  });
+
+  /* ------------------------------------------------------ open and close */
+  var root = document.documentElement;
+  function open(fresh) {
+    root.classList.remove("closed", "closing");
+    var n = fresh ? 1 : parseInt(Q.get("step"), 10), name = STEPS[n >= 1 && n <= STEPS.length ? n - 1 : 0];
+    var pk = parseInt(Q.get("pick"), 10), pre = null;
+    if (!fresh && name.charAt(0) === "r") {
+      var r = ROUNDS[+name.slice(1) - 1];
+      if (pk >= 1 && pk <= r.a.length) pre = pk - 1; else if (STILL) pre = r.right;
+    }
+    go(name, pre);
+    if (STILL) { root.classList.add("open"); return; }
+    requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.add("open"); }); });
+  }
+  function close() {
+    root.classList.add("closing"); root.classList.remove("open");
+    setTimeout(function () { root.classList.add("closed"); document.getElementById("replay").focus({ preventScroll: true }); }, STILL ? 0 : 360);
+  }
+  document.querySelector("[data-close]").addEventListener("click", close);
+  document.querySelector(".scrim").addEventListener("click", close);
+  addEventListener("keydown", function (e) { if (e.key === "Escape" && root.classList.contains("open")) close(); });
+  document.getElementById("replay").addEventListener("click", function () { open(true); });
+  open(false);
+})();
+</script>
+</body>
+</html>

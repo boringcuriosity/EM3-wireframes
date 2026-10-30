@@ -1,0 +1,453 @@
+<!doctype html>
+<!--
+  FTUX concept: "Stories".
+  Full-bleed stories inside the bottom sheet, opened over the Eat screen. Segmented progress
+  bars sit under the title row; each story is one big bold idea on a tinted colour field with a
+  full-width animated visual and one short line. Stories auto-advance after about 4 s.
+  Tap the right side to go on, the left side to go back, press and hold anywhere to pause.
+  The last story carries the CTA.
+    new:     coach plans every meal, each meal against its own plan, close counts, bigger meals count more, 80 earns a medal
+    current: your meals now add up to a score (58), then the same four, ending on "a medal is in reach today"
+
+  Flags
+    ?who=new       (default) first-time user, sample day, nothing logged yet
+    ?who=current   someone who already logs meals, opens on their 58
+    ?step=N        open at story N (1-based, 1 to 5)
+    ?still=1       no animation and no auto-advance, end states shown (also when prefers-reduced-motion);
+                   tap or arrow keys still move between stories
+    Keyboard: Left / Right arrows move, Space pauses, Escape closes.
+-->
+<html lang="en-IN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score Stories</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800;900&display=swap">
+<link rel="stylesheet" href="/v7/r3/goodflip-ui.css">
+<link rel="stylesheet" href="/v7/icons/glyph-masks.css">
+<style>
+  @property --n { syntax: "<integer>"; inherits: false; initial-value: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #fff; overflow: hidden; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--g-900); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; }
+
+  .behind { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; background: #fff; }
+  .scrim { position: fixed; inset: 0; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .42s var(--ease); }
+  .open .scrim { opacity: 1; }
+
+  /* ------------------------------------------------------------ the sheet */
+  .sheet { position: fixed; left: 50%; bottom: 0; width: 100%; max-width: 390px; height: 90vh; max-height: 90vh;
+    display: flex; flex-direction: column; background: #fff; border-radius: var(--r-xl) var(--r-xl) 0 0;
+    transform: translate(-50%, 100%); transition: transform .42s cubic-bezier(.2,.7,.2,1);
+    box-shadow: 0 -8px 32px rgba(16,24,40,.12); }
+  .open .sheet { transform: translate(-50%, 0); }
+  .closing .sheet { transition-duration: .34s; transition-timing-function: cubic-bezier(.4,0,1,1); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 4px; }
+  .shead h2 { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; }
+  .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; border-radius: 9999px; }
+  button:focus-visible, .stage:focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+
+  /* the segmented progress bars */
+  .bars { flex-shrink: 0; display: flex; gap: 4px; padding: 4px 16px 12px; }
+  .bars i { position: relative; flex: 1; height: 4px; border-radius: 9999px; background: var(--g-100); overflow: hidden; }
+  .bars i b { position: absolute; inset: 0; width: 0; border-radius: inherit; background: var(--g-800); }
+  .bars i.full b { width: 100%; }
+  .paused .bars i b { background: var(--g-400); transition: background-color .2s var(--ease); }
+
+  /* the stage: stories stack and crossfade */
+  .stage { position: relative; flex: 1 1 auto; min-height: 0; margin: 0 16px; touch-action: manipulation; user-select: none; -webkit-user-select: none;
+    cursor: pointer; -webkit-tap-highlight-color: transparent; border-radius: var(--r-xl); }
+  .story { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 20px 20px 24px; border-radius: var(--r-xl); overflow: hidden; isolation: isolate;
+    background: linear-gradient(180deg, var(--f1) 0%, var(--f2) 62%, #fff 100%);
+    box-shadow: inset 0 0 0 1px rgb(16 24 40 / .04);
+    opacity: 0; visibility: hidden; transition: opacity .34s var(--ease), visibility 0s linear .34s; }
+  .story.on { opacity: 1; visibility: visible; transition: opacity .34s var(--ease), visibility 0s; }
+  .story.indigo { --f1: var(--in-100); --f2: var(--in-25); --ink: var(--in-700); }
+  .story.teal   { --f1: color-mix(in srgb, var(--teal-200) 70%, #fff); --f2: color-mix(in srgb, var(--teal-100) 45%, #fff); --ink: var(--teal-800); }
+  .story.green  { --f1: var(--brand-200); --f2: var(--brand-50); --ink: var(--brand-700); }
+  .story.gold   { --f1: var(--gold-200); --f2: var(--gold-50); --ink: var(--gold-800); }
+  .story.medal  { --f1: var(--gold-100); --f2: var(--brand-50); --ink: var(--brand-700); }
+  .story .vis { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; justify-content: center; }
+  .story .txt { flex-shrink: 0; padding-top: 16px; }
+  .story h3 { margin: 0 0 8px; font-size: 30px; line-height: 35px; font-weight: 800; letter-spacing: -.6px; text-wrap: balance; }
+  .story h3 em { font-style: normal; color: var(--ink); }
+  .story p { margin: 0; font-size: 16px; line-height: 23px; color: var(--g-700); text-wrap: pretty; }
+  .story p b { color: var(--g-900); font-weight: 700; }
+  .on .txt { animation: up .5s var(--ease) .12s backwards; }
+  @keyframes up { from { opacity: 0; transform: translateY(14px); } }
+  @keyframes fade { from { opacity: 0; } }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(28px); } }
+
+  /* pause everything inside the story while held */
+  .paused .story.on, .paused .story.on * { animation-play-state: paused !important; }
+
+  .sfoot { flex-shrink: 0; height: 88px; padding: 12px 16px calc(16px + env(safe-area-inset-bottom, 0px)); position: relative; }
+  .ok { width: 100%; height: 48px; border: 0; border-radius: var(--r-sm); background: var(--brand-600); color: #fff;
+    font-size: 16px; font-weight: 600; box-shadow: 0 7px 0 var(--brand-700); cursor: pointer; transition: opacity .34s var(--ease), transform .34s var(--ease); }
+  .ok:active { transform: translateY(3px); box-shadow: 0 4px 0 var(--brand-700); }
+  .hint { position: absolute; inset: 12px 16px auto; height: 48px; display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-size: 13px; color: var(--g-500); transition: opacity .34s var(--ease); }
+  .hint svg { flex-shrink: 0; }
+  .sfoot:not(.last) .ok { opacity: 0; pointer-events: none; transform: translateY(8px); }
+  .sfoot.last .hint { opacity: 0; }
+
+  /* ------------------------------------------------- visual: your 58 */
+  .v-now { align-items: center; gap: 20px; }
+  .bigring { position: relative; width: 176px; height: 176px; }
+  .bigring svg { position: absolute; inset: 0; overflow: visible; }
+  .bigring .num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .bigring .num b { font-size: 52px; line-height: 56px; font-weight: 900; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; counter-reset: n var(--n); --n: 58; }
+  .bigring .num b::after { content: counter(n); }
+  .bigring .num span { font-size: 13px; line-height: 16px; color: var(--g-600); }
+  .on .v-now .arc { animation: nowArc 1.9s var(--ease) .3s backwards; }
+  .on .v-now .num b { animation: nowNum 1.9s var(--ease) .3s backwards; }
+  @keyframes nowArc { 0%, 8% { stroke-dasharray: 0 100; } 32%, 40% { stroke-dasharray: 17 100; } 66%, 74% { stroke-dasharray: 49 100; } 100% { stroke-dasharray: 58 100; } }
+  @keyframes nowNum { 0%, 8% { --n: 0; } 32%, 40% { --n: 17; } 66%, 74% { --n: 49; } 100% { --n: 58; } }
+  .adds { display: flex; gap: 8px; width: 100%; }
+  .add { flex: 1; min-width: 0; border-radius: var(--r-lg); background: #fff; box-shadow: 0 1px 0 var(--g-200), 0 6px 16px rgba(29,77,56,.08); overflow: hidden; }
+  .add .th { height: 52px; background: var(--scene) 75% center / cover no-repeat, var(--in-25); }
+  .add .t { padding: 6px 8px 8px; display: flex; justify-content: space-between; align-items: baseline; gap: 4px; font-size: 12px; color: var(--g-600); }
+  .add .t b { font-size: 15px; font-weight: 800; color: var(--brand-700); }
+  .on .add { animation: up .45s var(--ease) backwards; }
+  .on .add:nth-child(1) { animation-delay: .3s; } .on .add:nth-child(2) { animation-delay: .86s; } .on .add:nth-child(3) { animation-delay: 1.4s; }
+
+  /* --------------------------------------------- visual: coach's plan */
+  .v-plan { gap: 8px; }
+  .chip { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 12px 0 4px; margin-bottom: 4px; border-radius: 9999px;
+    background: #fff; font-size: 13px; font-weight: 600; color: var(--in-700); box-shadow: 0 1px 0 var(--in-200); }
+  .chip i { width: 20px; height: 20px; border-radius: 9999px; background: var(--in-600); display: grid; place-items: center; }
+  .prow { display: flex; align-items: center; gap: 12px; padding: 8px; border-radius: var(--r-lg); background: #fff; box-shadow: 0 1px 0 var(--in-100), 0 6px 14px rgba(45,49,166,.07); }
+  .prow .th { width: 60px; height: 44px; flex-shrink: 0; border-radius: var(--r-md); background: var(--scene) 75% center / cover no-repeat, var(--in-25); }
+  .prow .t { flex: 1; min-width: 0; }
+  .prow .t b { display: block; font-size: 15px; line-height: 20px; font-weight: 700; }
+  .mac { display: flex; gap: 10px; margin-top: 2px; font-size: 12px; line-height: 16px; color: var(--g-600); font-variant-numeric: tabular-nums; }
+  .mac span { display: inline-flex; align-items: center; gap: 3px; }
+  .gl { display: inline-block; width: 14px; height: 14px; flex-shrink: 0; background: var(--brand-600); -webkit-mask-size: contain; mask-size: contain;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: center; mask-position: center; }
+  .on .prow { animation: slideIn .5s var(--ease) backwards; }
+  .on .prow .mac { animation: fade .4s var(--ease) backwards; }
+  .on .prow:nth-child(2) { animation-delay: .2s; } .on .prow:nth-child(2) .mac { animation-delay: .6s; }
+  .on .prow:nth-child(3) { animation-delay: .38s; } .on .prow:nth-child(3) .mac { animation-delay: .78s; }
+  .on .prow:nth-child(4) { animation-delay: .56s; } .on .prow:nth-child(4) .mac { animation-delay: .96s; }
+  .on .prow:nth-child(5) { animation-delay: .74s; } .on .prow:nth-child(5) .mac { animation-delay: 1.14s; }
+
+  /* ------------------------------------------ visual: its own plan */
+  .v-own { gap: 10px; }
+  .oc { border-radius: var(--r-lg); background: #fff; overflow: hidden; box-shadow: 0 1px 0 rgb(45 166 166 / .25), 0 6px 16px rgba(45,166,166,.10); }
+  .oc .hd { height: 44px; display: flex; align-items: center; padding: 0 12px; font-size: 15px; font-weight: 700;
+    background: linear-gradient(90deg, #fff 25%, rgb(255 255 255 / 0) 75%), var(--scene) right 35% / cover no-repeat, var(--in-25); }
+  .oc .rows { padding: 6px 12px 10px; display: flex; flex-direction: column; gap: 8px; }
+  .orow { display: grid; grid-template-columns: 14px 1fr 18px; align-items: center; gap: 8px; }
+  .otr { position: relative; height: 8px; border-radius: 9999px; background: var(--g-100); }
+  .otr .f { position: absolute; left: 0; top: 0; bottom: 0; border-radius: inherit; background: var(--teal-800); }
+  .otr .tk { position: absolute; top: -4px; width: 2px; height: 16px; margin-left: -1px; border-radius: 2px; background: var(--g-800); }
+  .otr .tl { position: absolute; top: -17px; transform: translateX(-50%); font-size: 10px; line-height: 12px; font-weight: 600; color: var(--g-600); white-space: nowrap; }
+  .oc .rows { padding-top: 18px; gap: 20px; }
+  .ok-ic { width: 18px; height: 18px; border-radius: 9999px; background: var(--ok-500); display: grid; place-items: center; }
+  .on .otr .f { animation: grow .9s var(--ease) backwards; }
+  @keyframes grow { from { width: 0; } }
+  .on .ok-ic { animation: pop .35s var(--ease) backwards; }
+  @keyframes pop { from { opacity: 0; transform: scale(.6); } }
+  .on .oc:nth-child(1) .orow:nth-child(1) .f { animation-delay: .3s; }  .on .oc:nth-child(1) .orow:nth-child(1) .ok-ic { animation-delay: 1.15s; }
+  .on .oc:nth-child(1) .orow:nth-child(2) .f { animation-delay: .4s; }  .on .oc:nth-child(1) .orow:nth-child(2) .ok-ic { animation-delay: 1.25s; }
+  .on .oc:nth-child(1) .orow:nth-child(3) .f { animation-delay: .5s; }  .on .oc:nth-child(1) .orow:nth-child(3) .ok-ic { animation-delay: 1.35s; }
+  .on .oc:nth-child(2) { animation: up .5s var(--ease) .9s backwards; }
+  .on .oc:nth-child(2) .orow:nth-child(1) .f { animation-delay: 1.3s; } .on .oc:nth-child(2) .orow:nth-child(1) .ok-ic { animation-delay: 2.15s; }
+  .on .oc:nth-child(2) .orow:nth-child(2) .f { animation-delay: 1.4s; } .on .oc:nth-child(2) .orow:nth-child(2) .ok-ic { animation-delay: 2.25s; }
+  .on .oc:nth-child(2) .orow:nth-child(3) .f { animation-delay: 1.5s; } .on .oc:nth-child(2) .orow:nth-child(3) .ok-ic { animation-delay: 2.35s; }
+
+  /* ------------------------------------------------ visual: close counts */
+  .v-close { align-items: stretch; }
+  .marks { text-align: center; margin-bottom: 28px; }
+  .marks b { display: block; font-size: 72px; line-height: 72px; font-weight: 900; letter-spacing: -2px; color: var(--ok-600); font-variant-numeric: tabular-nums; }
+  .marks span { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--brand-800); }
+  .on .marks { animation: up .5s var(--ease) 1.45s backwards; }
+  .ctrk { position: relative; height: 14px; margin: 44px 6px 52px; border-radius: 9999px; background: rgb(255 255 255 / .9); box-shadow: inset 0 0 0 1px var(--g-200); }
+  .cband { position: absolute; top: -10px; bottom: -10px; left: 30%; width: 30%; border-radius: 9999px; background: var(--ok-100); box-shadow: inset 0 0 0 2px var(--ok-500); }
+  .on .cband { animation: bandOn 1.4s var(--ease) backwards; }
+  @keyframes bandOn { 0%, 70% { background: #fff; box-shadow: inset 0 0 0 2px var(--ok-300); } }
+  .cband em { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); font-style: normal; white-space: nowrap;
+    font-size: 12px; line-height: 16px; font-weight: 700; color: var(--ok-600); }
+  .cedge { position: absolute; top: calc(100% + 16px); transform: translateX(-50%); font-size: 11px; line-height: 14px; color: var(--g-600); white-space: nowrap; }
+  .ctick { position: absolute; top: -10px; width: 2px; height: 34px; margin-left: -1px; border-radius: 2px; background: var(--g-800); }
+  .ctick span { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); font-size: 11px; line-height: 14px; font-weight: 700; color: var(--g-800); white-space: nowrap; }
+  .cdot { position: absolute; top: 50%; left: 32.5%; width: 28px; height: 28px; margin: -14px 0 0 -14px; border-radius: 9999px; background: #fff;
+    border: 5px solid var(--ok-500); box-shadow: 0 4px 10px rgba(16,24,40,.2); }
+  .cdot span { position: absolute; bottom: calc(100% + 14px); left: 50%; transform: translateX(-50%); padding: 3px 8px; border-radius: 9999px;
+    background: var(--g-900); color: #fff; font-size: 12px; line-height: 16px; font-weight: 600; white-space: nowrap; }
+  .on .cdot { animation: dotIn 1.2s cubic-bezier(.65,0,.35,1) .25s backwards; }
+  @keyframes dotIn { from { left: 0%; border-color: var(--in-600); } 80% { border-color: var(--in-600); } }
+
+  /* ------------------------------------------------ visual: bigger meals */
+  .v-big { flex-direction: row !important; align-items: stretch; gap: 12px; }
+  .stack { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .blk { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-radius: var(--r-md); overflow: hidden;
+    background: linear-gradient(90deg, var(--c) 35%, rgb(255 255 255 / 0) 85%), var(--scene) right center / cover no-repeat, var(--c);
+    box-shadow: inset 0 0 0 1px rgb(16 24 40 / .05); }
+  .blk b { font-size: 15px; font-weight: 700; }
+  .blk span { font-size: 22px; font-weight: 900; letter-spacing: -.5px; font-variant-numeric: tabular-nums; padding: 0 8px; border-radius: var(--r-sm); background: rgb(255 255 255 / .86); }
+  .blk.sm b { font-size: 13px; } .blk.sm span { font-size: 15px; }
+  .on .blk { animation: blkIn .55s var(--ease) backwards; transform-origin: left center; }
+  @keyframes blkIn { from { opacity: 0; transform: scaleX(.6); } }
+  .on .blk:nth-child(1) { animation-delay: .2s; } .on .blk:nth-child(2) { animation-delay: .45s; }
+  .on .blk:nth-child(3) { animation-delay: .7s; } .on .blk:nth-child(4) { animation-delay: .95s; }
+  .brace { width: 28px; display: flex; flex-direction: column; align-items: center; }
+  .brace i { flex: 1; width: 2px; background: var(--gold-700); border-radius: 2px; }
+  .brace b { writing-mode: vertical-rl; transform: rotate(180deg); padding: 8px 0; font-size: 13px; font-weight: 700; color: var(--gold-800); letter-spacing: .3px; }
+  .on .brace { animation: fade .5s var(--ease) 1.3s backwards; }
+
+  /* ------------------------------------------------------ visual: medal */
+  .v-medal { align-items: center; }
+  .mring { position: relative; width: 196px; height: 196px; }
+  .mring svg { position: absolute; inset: 0; overflow: visible; }
+  .mring .num { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .mring .num b { font-size: 56px; line-height: 60px; font-weight: 900; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; counter-reset: n var(--n); }
+  .mring .num b::after { content: counter(n); }
+  .mring .num span { font-size: 13px; line-height: 16px; color: var(--g-600); }
+  .mring .flag { position: absolute; font-size: 11px; line-height: 14px; font-weight: 700; color: var(--gold-800); white-space: nowrap; }
+  .medalwrap { display: flex; flex-direction: column; align-items: center; margin-top: -8px; }
+  .medalwrap .rb { width: 18px; height: 30px; margin-bottom: -14px; background: linear-gradient(90deg, var(--gold-700) 0 33%, var(--brand-600) 33% 67%, var(--gold-700) 67%); }
+  .medalwrap img { position: relative; width: 60px; height: auto; filter: drop-shadow(0 8px 10px rgba(29,77,56,.3)); }
+  .on .medalwrap { animation: medalIn .7s var(--ease) 1.75s backwards; }
+  @keyframes medalIn { from { opacity: 0; transform: translateY(-18px); } }
+  .on .v-medal .arc { animation: mArc 1.5s var(--ease) .3s backwards; }
+  .on .v-medal .num b { animation: mNum 1.5s var(--ease) .3s backwards; }
+  @keyframes mArc { from { stroke-dasharray: 0 100; } }
+  @keyframes mNum { from { --n: var(--n0); } }
+
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .replay { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 9999px; border: 0;
+    background: rgb(255 255 255 / .92); color: var(--brand-700); font-size: 14px; font-weight: 600; box-shadow: 0 2px 10px rgba(16,24,40,.18);
+    cursor: pointer; opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); }
+  .closed .replay { opacity: 1; pointer-events: auto; }
+
+  .still *, .still *::before, .still *::after { animation: none !important; transition: none !important; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<iframe class="behind" tabindex="-1" aria-hidden="true" title=""></iframe><script>document.currentScript.previousElementSibling.src = "/v7/r3/eat.html" + (/who=current/.test(location.search) ? "" : "?state=empty");</script>
+<div class="scrim" aria-hidden="true"></div>
+
+<section class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <header class="shead">
+    <h2 id="sheetTitle">Nutrition sufficiency</h2>
+    <button class="x" type="button" aria-label="Close" data-close><svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path style="fill:var(--g-400)" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg></button>
+  </header>
+  <div class="bars" id="bars" aria-hidden="true"></div>
+  <div class="stage" id="stage" tabindex="0" role="group" aria-roledescription="stories" aria-label="How your score works. Use the arrow keys to move between stories."></div>
+  <p class="sr" id="live" aria-live="polite"></p>
+  <footer class="sfoot" id="foot">
+    <div class="hint" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 3.5L10.5 8 6 12.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Tap to go on. Hold to pause.</div>
+    <button class="ok" type="button" id="cta"></button>
+  </footer>
+</section>
+
+<button class="replay" type="button" id="replay">Replay</button>
+
+<script>
+(function () {
+  "use strict";
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  var Q = new URLSearchParams(location.search);
+  var CUR = Q.get("who") === "current";
+  var STILL = Q.get("still") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (STILL) document.documentElement.classList.add("still");
+  var SC = function (k) { return "url(/v7/icons/meals/bg/" + k + ".webp)"; };
+  var G = { p: "glyph-protein", c: "glyph-carbs", f: "glyph-fats" };
+  var CHECK = '<svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true"><path d="M2 5.2l2 2L8 3" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  /* a ring of pathLength 100; segments are drawn with stroke-dasharray "L 100" from a start angle */
+  function ringSVG(size, r, w, segs, track) {
+    var c = size / 2;
+    return '<svg viewBox="0 0 ' + size + ' ' + size + '" width="' + size + '" height="' + size + '" aria-hidden="true">' +
+      '<circle cx="' + c + '" cy="' + c + '" r="' + r + '" fill="none" stroke-width="' + w + '" style="stroke:' + track + '"/>' +
+      segs.map(function (s) {
+        return '<circle class="' + (s.cls || "") + '" cx="' + c + '" cy="' + c + '" r="' + r + '" fill="none" stroke-width="' + w + '" stroke-linecap="round" pathLength="100"' +
+          ' stroke-dasharray="' + s.len + ' 100" transform="rotate(' + (-90 + s.from * 3.6) + ' ' + c + ' ' + c + ')" style="stroke:' + s.col + (s.style ? ";" + s.style : "") + '"/>';
+      }).join("") + (segs.extra || "") + '</svg>';
+  }
+  function marker80(size, r) {
+    var c = size / 2, a = (-90 + 80 * 3.6) * Math.PI / 180, x = c + r * Math.cos(a), y = c + r * Math.sin(a);
+    var lx = c + (r + 22) * Math.cos(a), ly = c + (r + 22) * Math.sin(a);
+    return { svg: '<circle cx="' + x + '" cy="' + y + '" r="7" fill="#fff" style="stroke:var(--gold-700)" stroke-width="3"/>', lx: lx, ly: ly };
+  }
+
+  /* ------------------------------------------------------------ the stories */
+  var S = [];
+  if (CUR) S.push({
+    tone: "green", dur: 4500,
+    title: "Your meals now add up to <em>a score</em>",
+    line: "Breakfast, lunch and your snack add up to <b>58</b> so far today, out of 100.",
+    vis: '<div class="vis v-now"><div class="bigring">' +
+      ringSVG(176, 76, 16, [{ cls: "arc", from: 0, len: 58, col: "var(--brand-600)" }], "rgb(255 255 255 / .9)") +
+      '<div class="num"><b></b><span>out of 100</span></div></div>' +
+      '<div class="adds">' + [["bf", "Breakfast", 17], ["lunch", "Lunch", 32], ["snack", "Snack", 9]].map(function (m) {
+        return '<div class="add"><div class="th" style="--scene:' + SC(m[0]) + '"></div><div class="t"><span>' + m[1] + '</span><b>+' + m[2] + '</b></div></div>';
+      }).join("") + '</div></div>'
+  });
+  else S.push({
+    tone: "indigo", dur: 4500,
+    title: "Your coach plans <em>every meal</em>",
+    line: "For each meal of your day, your coach sets how much protein, carbs and fat to eat.",
+    vis: '<div class="vis v-plan"><span class="chip"><i>' + CHECK + '</i>Planned by your coach</span>' +
+      [["bf", "Breakfast", 15, 40, 9], ["lunch", "Lunch", 25, 60, 15], ["snack", "Evening snack", 6, 18, 5], ["dinner", "Dinner", 20, 55, 14]].map(function (m) {
+        return '<div class="prow"><div class="th" style="--scene:' + SC(m[0]) + '"></div><div class="t"><b>' + m[1] + '</b><div class="mac">' +
+          '<span><i class="gl ' + G.p + '"></i>' + m[2] + ' g</span><span><i class="gl ' + G.c + '"></i>' + m[3] + ' g</span><span><i class="gl ' + G.f + '"></i>' + m[4] + ' g</span>' +
+          '</div></div></div>';
+      }).join("") + '</div>'
+  });
+
+  /* common scale per macro, so lunch's bigger targets sit further along than breakfast's */
+  var MAX = { p: 40, c: 90, f: 24 };
+  function oc(scene, name, rows) {
+    return '<div class="oc"><div class="hd" style="--scene:' + SC(scene) + '">' + name + '</div><div class="rows">' + rows.map(function (r) {
+      var t = r[1] / MAX[r[0]] * 100, e = r[2] / MAX[r[0]] * 100;
+      return '<div class="orow"><i class="gl ' + G[r[0]] + '" aria-hidden="true"></i><div class="otr"><span class="f" style="width:' + e + '%"></span>' +
+        '<span class="tk" style="left:' + t + '%"></span><span class="tl" style="left:' + t + '%">' + r[1] + ' g</span></div><span class="ok-ic">' + CHECK + '</span></div>';
+    }).join("") + '</div></div>';
+  }
+  S.push({
+    tone: "teal", dur: 4500,
+    title: "Each meal is checked against <em>its own plan</em>",
+    line: "Breakfast is checked against breakfast's plan, and lunch against lunch's.",
+    vis: '<div class="vis v-own">' + oc("bf", "Breakfast", [["p", 15, 13], ["c", 40, 42], ["f", 9, 10]]) + oc("lunch", "Lunch", [["p", 25, 24], ["c", 60, 58], ["f", 15, 14]]) + '</div>'
+  });
+
+  /* track runs 9 to 21 g: band 12 to 18 g (25% to 75%), plan 15 g at 50%, eaten 13 g at 33% */
+  S.push({
+    tone: "green", dur: 4000,
+    title: "Close counts as <em>full marks</em>",
+    line: "A little under or a little over your plan still earns every mark.",
+    vis: '<div class="vis v-close"><div class="marks"><b>100</b><span>marks for protein</span></div>' +
+      '<div class="ctrk" role="img" aria-label="Protein plan 15 g. Full marks from 12 g to 18 g. You ate 13 g.">' +
+      '<span class="cband" style="left:25%;width:50%"><em>Full marks</em></span>' +
+      '<span class="cedge" style="left:25%">12 g</span><span class="cedge" style="left:75%">18 g</span>' +
+      '<span class="ctick" style="left:50%"><span>Plan 15 g</span></span>' +
+      '<span class="cdot" style="left:33.3%"><span>You ate 13 g</span></span></div></div>'
+  });
+
+  S.push({
+    tone: "gold", dur: 4000,
+    title: "Bigger meals <em>count for more</em>",
+    line: "Each meal's share of your 100 follows its size. Lunch is worth <b>35</b>, a snack <b>10</b>.",
+    vis: '<div class="vis v-big"><div class="stack">' + [["bf", "Breakfast", 20, "var(--in-100)"], ["lunch", "Lunch", 35, "var(--brand-100)"], ["snack", "Snack", 10, "var(--teal-100)"], ["dinner", "Dinner", 35, "var(--gold-100)"]].map(function (m) {
+        return '<div class="blk' + (m[2] <= 10 ? " sm" : "") + '" style="flex:' + m[2] + ' 1 0;--scene:' + SC(m[0]) + ';--c:' + m[3] + '"><b>' + m[1] + '</b><span>' + m[2] + '</span></div>';
+      }).join("") + '</div><div class="brace" aria-hidden="true"><i></i><b>Your day, 100</b><i></i></div></div>'
+  });
+
+  /* the medal: new users watch a day fill to 80; current users see dinner carry their 58 past 80 */
+  var mk = marker80(196, 84);
+  var medalRing = CUR
+    ? ringSVG(196, 84, 16, Object.assign([
+        { from: 0, len: 58, col: "var(--brand-600)" },
+        { cls: "arc", from: 58, len: 35, col: "var(--brand-300)", style: "--a0:0" }], { extra: mk.svg }), "rgb(255 255 255 / .9)")
+    : ringSVG(196, 84, 16, Object.assign([{ cls: "arc", from: 0, len: 80, col: "var(--brand-600)", style: "--a0:0" }], { extra: mk.svg }), "rgb(255 255 255 / .9)");
+  S.push({
+    tone: "medal", dur: 4500, last: true,
+    title: "80 earns <em>a medal</em>",
+    line: CUR ? "You are at <b>58</b>. Dinner is worth 35, so a medal is in reach today."
+              : "Your meals add up to a score out of 100. Reach <b>80</b> in a day for a medal.",
+    vis: '<div class="vis v-medal"><div class="mring">' + medalRing +
+      '<span class="flag" style="left:' + (mk.lx - 8) + 'px;top:' + (mk.ly - 7) + 'px">80</span>' +
+      '<div class="num"><b style="--n:' + (CUR ? 93 : 80) + ';--n0:' + (CUR ? 58 : 0) + '"></b><span>' + (CUR ? "with dinner" : "out of 100") + '</span></div></div>' +
+      '<div class="medalwrap" aria-hidden="true"><span class="rb"></span><img src="/v7/icons/badge/simple/heart-apple.svg" alt=""></div></div>'
+  });
+
+  /* ------------------------------------------------------------ building */
+  var stage = document.getElementById("stage"), barsEl = document.getElementById("bars"), live = document.getElementById("live");
+  var foot = document.getElementById("foot"), cta = document.getElementById("cta");
+  cta.textContent = CUR ? "See My Score" : "Log Your First Meal";
+  stage.innerHTML = S.map(function (s, i) {
+    return '<article class="story ' + s.tone + '" aria-hidden="true" aria-label="Story ' + (i + 1) + ' of ' + S.length + '">' + s.vis +
+      '<div class="txt"><h3>' + s.title + '</h3><p>' + s.line + '</p></div></article>';
+  }).join("");
+  barsEl.innerHTML = S.map(function () { return "<i><b></b></i>"; }).join("");
+  var STORIES = stage.children, BARS = barsEl.children;
+
+  /* ------------------------------------------------------------ playback */
+  var cur = 0, elapsed = 0, paused = false, last = 0, raf = null, root = document.documentElement;
+  function show(i) {
+    cur = Math.max(0, Math.min(S.length - 1, i)); elapsed = 0;
+    for (var k = 0; k < S.length; k++) {
+      var on = k === cur;
+      STORIES[k].classList.remove("on");
+      STORIES[k].setAttribute("aria-hidden", String(!on));
+      BARS[k].className = k < cur ? "full" : "";
+      BARS[k].firstChild.style.width = "";
+    }
+    void STORIES[cur].offsetWidth;
+    STORIES[cur].classList.add("on");
+    if (STILL) BARS[cur].className = "full";
+    foot.classList.toggle("last", !!S[cur].last);
+    live.textContent = "Story " + (cur + 1) + " of " + S.length + ". " + STORIES[cur].querySelector(".txt").textContent;
+  }
+  function tick(now) {
+    raf = requestAnimationFrame(tick);
+    var dt = Math.min(64, now - last); last = now;
+    if (paused || STILL || !root.classList.contains("open")) return;
+    var d = S[cur].dur;
+    if (elapsed >= d) return;
+    elapsed = Math.min(d, elapsed + dt);
+    BARS[cur].firstChild.style.width = (elapsed / d * 100) + "%";
+    if (elapsed >= d && cur < S.length - 1) show(cur + 1);
+  }
+  function setPaused(p) { paused = p; root.classList.toggle("paused", p); }
+
+  /* tap left third to go back, anywhere else to go on; press and hold to pause */
+  var holdT = null, held = false, downX = 0;
+  stage.addEventListener("pointerdown", function (e) {
+    if (e.button > 0) return;
+    held = false; downX = e.clientX;
+    holdT = setTimeout(function () { held = true; setPaused(true); }, 220);
+  });
+  function release(e, nav) {
+    if (holdT) { clearTimeout(holdT); holdT = null; }
+    if (held) { held = false; setPaused(false); return; }
+    if (!nav) return;
+    var r = stage.getBoundingClientRect();
+    if (downX - r.left < r.width * .3) show(cur - 1); else if (cur < S.length - 1) show(cur + 1);
+  }
+  stage.addEventListener("pointerup", function (e) { release(e, true); });
+  stage.addEventListener("pointercancel", function (e) { release(e, false); });
+  stage.addEventListener("pointerleave", function (e) { if (held || holdT) release(e, false); });
+  stage.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+  document.addEventListener("visibilitychange", function () { if (document.hidden) setPaused(true); else if (!held) setPaused(false); });
+  addEventListener("keydown", function (e) {
+    if (!root.classList.contains("open")) return;
+    if (e.key === "Escape") close();
+    else if (e.key === "ArrowRight") { e.preventDefault(); if (cur < S.length - 1) show(cur + 1); }
+    else if (e.key === "ArrowLeft") { e.preventDefault(); show(cur - 1); }
+    else if (e.key === " " && document.activeElement === stage) { e.preventDefault(); setPaused(!paused); }
+  });
+
+  /* ------------------------------------------------------ open and close */
+  function open(fresh) {
+    root.classList.remove("closed", "closing");
+    setPaused(false);
+    var n = fresh ? 1 : parseInt(Q.get("step"), 10);
+    show(n >= 1 && n <= S.length ? n - 1 : 0);
+    if (!raf) { last = performance.now(); raf = requestAnimationFrame(tick); }
+    if (STILL) { root.classList.add("open"); return; }
+    STORIES[cur].classList.remove("on");
+    setTimeout(function () { root.classList.add("open"); }, 30);
+    /* the first story starts once the sheet has risen */
+    setTimeout(function () { STORIES[cur].classList.add("on"); elapsed = 0; }, 290);
+  }
+  function close() {
+    root.classList.add("closing"); root.classList.remove("open");
+    setTimeout(function () { root.classList.add("closed"); document.getElementById("replay").focus({ preventScroll: true }); }, STILL ? 0 : 360);
+  }
+  document.querySelector("[data-close]").addEventListener("click", close);
+  document.querySelector(".scrim").addEventListener("click", close);
+  cta.addEventListener("click", close);
+  document.getElementById("replay").addEventListener("click", function () { open(true); });
+  open(false);
+})();
+</script>
+</body>
+</html>
