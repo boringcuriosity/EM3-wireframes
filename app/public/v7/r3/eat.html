@@ -2663,18 +2663,14 @@ function speak() {
 }
 
 /* ---------- the KAIRA highlight: hidden on arrival; after 8 seconds on the screen, if meals from the coach's plan are
-   still to log today, the card opens and names the next one. It closes again once every meal is logged.
+   still to log today, the card opens with the same one line. It closes again once every meal is logged.
    Only on today's scored plan: never on a past day, a free user, or before a plan (that card teaches and stays).
    ?kwait=ms changes the 8 seconds, for the doc (v7/nutrition-sufficiency.html, The KAIRA highlight) */
 window.KHL = (function () {
   var sect = document.querySelector(".ksect"), on = false;
   var live = sect && S.hero.score !== null && S.day === "Today" && !S.kaira.edu && S.diary.mode === "plan";   /* a scored plan today */
   var left = function () { return MEALS.filter(function (m) { return !(mealCal(m) > 0); }); };
-  function line(L) {
-    var next = L[0].name;
-    return L.length === 1 ? "<strong>" + next + " is still to log.</strong> Snap a photo or say what you ate."
-      : "<strong>" + L.length + " meals still to log today.</strong> Start with " + next.toLowerCase() + ": snap a photo or say what you ate.";
-  }
+  var line = function () { return KSTATIC; };   /* the same one line as everywhere else */
   /* folded at once on arrival, so the page never shows the card closing; only the opening animates */
   if (live) {
     var kc = sect.querySelector(".kaira");
