@@ -148,11 +148,11 @@
   function phone(plan, ctx) {
     var who = ctx.mode === "template" ? "the patient" : esc(MP.PATIENT.name);
     var one = function (layout, name) {
-      return '<figure class="rv-fig"><figcaption class="rv-fcap">' + name + '</figcaption><div class="rv-phone"><iframe class="rv-app" title="The Mind screen with this plan, ' + name + '" src="/mind/screen.html?coach=1&layout=' + layout + '&day=start&now=15&tiles=0&t=' + Date.now() + '"></iframe></div></figure>';
+      return '<figure class="rv-fig"><div class="rv-phone"><iframe class="rv-app" title="The Mind screen with this plan, ' + name + '" src="/mind/screen.html?coach=1&layout=' + layout + '&day=start&now=15&tiles=0&t=' + Date.now() + '"></iframe></div></figure>';
     };
     return '<aside class="rv-side" aria-label="Preview of the app"><div class="rv-cap rv-sidecap">What ' + who + ' will see</div>' +
-      '<p class="rv-try">The app itself, with this plan, in two layouts. Tick things off and log last night to watch the score grow. Nothing here is saved.</p>' +
-      '<div class="rv-phones">' + one("parts", "Parts of the day") + one("cards", "A card for each practice") + '</div>' +
+      '<p class="rv-try">The app itself, with this plan. Tick things off and log last night to watch the score grow. Nothing here is saved.</p>' +
+      '<div class="rv-phones">' + one("parts", "Parts of the day") + '</div>' +
       '<button type="button" class="rv-reset" data-reload="1">Start the day again</button></aside>';
   }
 
