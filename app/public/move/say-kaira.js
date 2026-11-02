@@ -45,16 +45,18 @@
       { k: "parts", v: part * open.length, open: open },
       { k: "workout", v: kc > 0 ? W.E * kc / K : 0, kc: kc },
       { k: "gone", v: part * gone.length, gone: gone },
-      { k: "steps", v: st > 0 ? W.S * st / G : 0, st: st },
+      { k: "steps", v: st > 0 && !NOSTEPS() ? W.S * st / G : 0, st: st },
       { k: "tips", v: tips > 0 ? W.N * tips / M : 0, n: tips }
     ].filter(function (x) { return x.v > .5; }).sort(function (a, b) { return b.v - a.v; });
   }
+  /* steps that do not count today (a no-steps day) or at all (walking off for good) are never suggested */
+  function NOSTEPS() { return (window.MVOFF && window.MVOFF.s) || (window.MVABLE && !window.MVABLE.walk); }
   function next(p) {
     var x = left(p)[0], up = x && tg("+" + Math.round(x.v) + "%", "up");
     if (!x) return "Every part of today has counted. Anything more you do is for your body, not your score.";
     if (x.k === "parts") return x.open.length === 1 && x.open[0] === "night"
-      ? "Moving tonight still adds " + up + ". A short walk, logged, is enough for the night to count."
-      : "Moving in the " + and(x.open) + " still adds up to " + up + ". A short walk or one small move in each is enough.";
+      ? "Moving tonight still adds " + up + ". " + (window.MVABLE && !window.MVABLE.walk ? "A short workout" : "A short walk") + ", logged, is enough for the night to count."
+      : "Moving in the " + and(x.open) + " still adds up to " + up + ". " + (window.MVABLE && !window.MVABLE.walk ? "A short workout" : "A short walk") + " or one small move in each is enough.";
     if (x.k === "workout") return "Your coach's workout still has " + fmt(x.kc) + " kcal to go, worth up to " + up + ".";
     if (x.k === "gone") return "The " + and(x.gone) + (x.gone.length > 1 ? " have" : " has") + " not counted yet. If you moved then, log it at the time it happened for up to " + up + ".";
     if (x.k === "steps") return "About " + fmt(x.st) + " more steps reach your goal, worth up to " + up + ".";

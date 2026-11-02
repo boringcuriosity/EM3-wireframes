@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Move rest day combinations</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="r3/goodflip-ui.css">
+<style>
+  /* Every rest day the coach can set, one or two parts at a time, on the real screen with the picked A1.4 strip
+     (/move/index.html?off=...&vrest=r5, move/rest-variants.js). All three off is the full rest day: no score, the cloud and sun on the plate and in the Momentum sheet. */
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, Arial, sans-serif; letter-spacing: .25px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 56px 24px 80px; }
+  .top { display: flex; gap: 16px; margin-bottom: 24px; font-size: 14px; }
+  .top a { color: var(--brand-700); text-decoration: none; font-weight: 500; }
+  h1 { font-weight: 600; font-size: 40px; line-height: 48px; margin: 0 0 12px; }
+  .lede { max-width: 800px; margin: 0 0 12px; font-size: 16px; line-height: 26px; color: var(--g-600); }
+  .lede b { color: var(--g-900); font-weight: 600; }
+  .gh { margin: 48px 0 0; font-size: 24px; line-height: 32px; font-weight: 600; }
+  .opt { margin-top: 32px; border: 1px solid var(--g-200); border-radius: 20px; box-shadow: 2px 3px 0 0 rgba(152,162,179,.35); overflow: hidden; }
+  .opt.rec { border-color: var(--brand-300); box-shadow: 2px 3px 0 0 var(--brand-100); }
+  .meta { padding: 20px 24px; border-bottom: 1px solid var(--g-200); display: flex; flex-direction: column; gap: 6px; }
+  .meta h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 18px; line-height: 26px; font-weight: 600; }
+  .tag { font-size: 12px; font-weight: 500; border-radius: 8px; padding: 2px 8px; color: var(--g-600); background: var(--g-100); }
+  .tag.rec { color: var(--brand-800); background: var(--brand-50); }
+  .meta p { margin: 0; max-width: 820px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .meta p b { color: var(--g-800); font-weight: 600; }
+  .meta p.why { color: var(--brand-800); }
+  .panels { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; padding: 24px 16px; background: var(--g-50); }
+  .panel { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .panel > span { font: 600 12px/16px Roboto, sans-serif; letter-spacing: .6px; text-transform: uppercase; color: var(--g-500); }
+  .panel a { font: 500 13px/18px Roboto, sans-serif; color: var(--brand-700); text-decoration: none; }
+  .phone { --z: .72; width: calc(390px * var(--z)); height: calc(860px * var(--z)); border-radius: 24px; overflow: hidden; background: #fff; box-shadow: 0 0 0 1px var(--g-200), 0 18px 40px -20px rgba(16,24,40,.3); }
+  .phone iframe { width: 390px; height: 860px; border: 0; display: block; transform: scale(var(--z)); transform-origin: 0 0; }
+  @media (max-width: 640px) { .wrap { padding: 32px 16px 56px; } h1 { font-size: 30px; line-height: 38px; } .phone { --z: .8; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="move-rest-options.html">Rest day options</a><a href="move-momentum.html#notarget">Move doc, No target today</a></div>
+  <h1>Rest day combinations</h1>
+  <p class="lede">The coach can rest one or two of the three parts on a day. Every case uses the picked strip, A1.4: <b>Take it easy today, it&rsquo;s your rest day</b> on a soft gold glow under the tiles. Each tile that rests reads <b>No target</b> with <b>Rest day</b> under it, the parts left share the 100, and the sheet names what rests and what still counts. All three resting is a full rest day with no score, at the end.</p>
+  <div id="opts"></div>
+</div>
+<script>
+  /* [?off=, name, what the score is made of, the sheet's own words, group, also show the Momentum sheet] */
+  var O = [
+    ["e", "Workouts rest", "Small moves and steps share the score with moving through the day: steps 45, small moves 27, through the day 27, rounded.", "A day off from workouts, so your muscles recover. Worked out anyway? Log it.", "One part resting"],
+    ["n", "Small moves rest", "Workout, steps and moving through the day share it: workout 53, steps 29, through the day 18.", "A day off from small moves. Do your coach&rsquo;s workout and walk as usual.", ""],
+    ["s", "Steps rest", "Workout, small moves and moving through the day share it: workout 60, small moves 20, through the day 20.", "A day off from steps. Walked anyway? Your steps still show.", ""],
+    ["e,n", "Workouts and small moves rest", "Steps are the whole score. Moving through the day sits out too, as it comes from workouts and small moves.", "Your score comes from your steps alone today.", "Two parts resting"],
+    ["e,s", "Workouts and steps rest", "Small moves and moving through the day share it: 50 each.", "Tick off your small moves; worked out anyway, log it.", ""],
+    ["n,s", "Small moves and steps rest", "Workout and moving through the day share it: workout 75, through the day 25.", "Do your coach&rsquo;s workout. Walked anyway? Your steps still show.", ""],
+    ["e,n,s", "A full rest day", "No score. The plate shows the cloud and sun with Momentum and its info mark. What you did today shows at once: calories burned, then Workout and Steps, each with Rest day, and the gold strip under them. No small moves are set, and the user can&rsquo;t add their own, so that tile stays away.", "A full day off, no score today, and anything you log still shows.", "All three resting", "info"]
+  ];
+  var phone = function (q, label) {
+    var src = "/move/index.html?off=" + q;
+    return '<div class="panel"><span>' + label + '</span><div class="phone"><iframe title="' + label + '" data-src="' + src + '"></iframe></div><a href="' + src + '" target="_blank">Open full size</a></div>';
+  };
+  document.getElementById("opts").innerHTML = O.map(function (o) {
+    return (o[4] ? '<h2 class="gh">' + o[4] + '</h2>' : "") +
+      '<section class="opt"><div class="meta"><h3>' + o[1] + ' <span class="tag">off=' + o[0] + '</span></h3>' +
+      '<p><b>The score.</b> ' + o[2] + '</p><p><b>The sheet.</b> ' + o[3] + '</p></div>' +
+      '<div class="panels">' + phone(o[0] + "&vrest=r5", "The screen") + phone(o[0] + "&vrest=r5&sheet=rest", "The rest day sheet") +
+      (o[5] ? phone(o[0] + "&sheet=info", "Tap the score") : "") + '</div></section>';
+  }).join("");
+  /* a phone loads when it comes on screen and unloads when it leaves, so its motion plays where it is seen
+     and Chrome keeps no more WebGL scores alive than it can hold */
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) { var f = e.target; if (e.isIntersecting) { if (!f.dataset.on) { f.dataset.on = 1; f.src = f.dataset.src; } } else if (f.dataset.on) { delete f.dataset.on; f.src = "about:blank"; } });
+  }, { rootMargin: "100px 0px" });
+  document.querySelectorAll(".phone iframe").forEach(function (f) { io.observe(f); });
+  /* the Move screen's score waits for this handshake before it mounts, as on every Move doc */
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+</script>
+</body>
+</html>

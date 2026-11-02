@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Breakdown chip</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="r3/goodflip-ui.css">
+<style>
+  /* The Movement breakdown chip on Move's part-of-day cards, in finishes built like the score's chip (.gf-verdict):
+     a soft linear fill and a 1px conic edge. Each window is the real screen (/move/index.html?vchip=), scrolled to the Morning card. */
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 56px 24px 80px; }
+  h1 { font-weight: 600; font-size: 40px; line-height: 48px; margin: 0 0 12px; }
+  .lede { max-width: 760px; margin: 0 0 32px; font-size: 16px; line-height: 26px; color: var(--g-600); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 24px; }
+  .gh { grid-column: 1 / -1; margin: 24px 0 0; font-size: 22px; line-height: 30px; font-weight: 600; }
+  .v { border: 1px solid var(--g-200); border-radius: 20px; overflow: hidden; }
+  .v.rec { border-color: var(--brand-300); box-shadow: 2px 3px 0 0 var(--brand-100); }
+  .hd { padding: 16px 20px; border-bottom: 1px solid var(--g-200); }
+  .hd h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 17px; line-height: 24px; font-weight: 600; }
+  .hd p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .tag { font-size: 12px; font-weight: 500; border-radius: 8px; padding: 2px 8px; color: var(--brand-800); background: var(--brand-50); }
+  .win { height: 150px; overflow: hidden; background: var(--g-50); }
+  .win iframe { width: 390px; height: 844px; border: 0; display: block; transform: scale(1.5); transform-origin: 0 0; }
+  .ft { padding: 10px 20px; font-size: 13px; }
+  .ft a { color: var(--brand-700); text-decoration: none; font-weight: 500; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>The breakdown chip</h1>
+  <p class="lede">The <b>Movement breakdown</b> chip on each part-of-day card, in finishes built like the score's gold Coming soon chip: a soft fill and a thin edge that turns light to dark around it. Each window is the real Move screen at one and a half times its size, moved to the Morning card. Shine and Holo move, so watch them for a few seconds.</p>
+  <div class="grid" id="g"></div>
+</div>
+<script>
+  /* [?vchip=, name, note, recommended] */
+  /* [?vchip=, name, note, recommended] ; a string alone starts a group */
+  var V = [
+    "Glass, taken further",
+    ["glass", "Glass", "The one you liked: clear frosted glass, a bright top lip, a soft shade below.", false],
+    ["g-liquid", "Liquid glass", "Thicker glass: light caught along the top left rim, a soft indigo glow pooled at the bottom right.", false],
+    ["g-bead", "Glass with an indigo bead", "The info mark sits in its own small indigo glass bead, like a button inside the chip.", false],
+    ["g-orb", "Glass with an orb", "The info mark becomes one of the score&rsquo;s indigo orbs, breathing very slowly.", false],
+    ["g-arrow", "Glass with an arrow", "A small chevron at the end, so it reads as a way into more.", false],
+    ["g-rim", "Glass with an indigo rim", "Ringed in Move&rsquo;s indigo, brighter where the light catches it; indigo words.", false],
+    ["g-shine", "Glass with a shine", "The pick, now on Move, Eat and Mind: the glass, with the soft light sweeping across it every few seconds.", true],
+    ["g-frost", "Deep frost", "Heavier frost, bolder words, a crisp line of light above and below.", false],
+    ["iglass", "Indigo glass", "The glass, tinted with Move&rsquo;s indigo.", false],
+    "Earlier finishes",
+    ["silver", "Silver", "White in the middle, pale grey at the ends, a silver edge that turns.", false],
+    ["shine", "Silver shine", "Silver, with a soft light that sweeps across it every few seconds.", false],
+    ["chrome", "Chrome", "A mirror: bright above, a darker horizon line through the middle.", false],
+    ["metal", "Brushed metal", "A white to grey top light, a bright and dark edge, a faint lift.", false],
+    ["titanium", "Titanium", "Cool blue grey, brushed in fine lines.", false],
+    ["graphite", "Graphite", "The dark metal: deep grey with a bright edge, white words.", false],
+    ["satin", "Satin", "Matte, no shine, a plain hairline.", false],
+    ["pearl", "Pearl", "White with an edge that shifts indigo, mint and white.", false],
+    ["holo", "Holo", "White, with an edge of indigo, mint, gold and pink that slowly turns.", false],
+    ["emboss", "Pressed in", "Pressed into the card, lit from the top left.", false],
+    ["indigo", "Indigo", "The Coming soon chip in Move&rsquo;s indigo.", false]
+  ];
+  var g = document.getElementById("g");
+  g.innerHTML = V.map(function (v) {
+    if (typeof v === "string") return '<h2 class="gh">' + v + '</h2>';
+    var src = "/move/index.html" + (v[0] ? "?vchip=" + v[0] : "");
+    return '<div class="v' + (v[3] ? " rec" : "") + '"><div class="hd"><h2>' + v[1] + (v[3] ? ' <span class="tag">Picked</span>' : "") + '</h2><p>' + v[2] + '</p></div>' +
+      '<div class="win"><iframe title="' + v[1] + '" data-src="' + src + '"></iframe></div><div class="ft"><a href="' + src + '" target="_blank">Open full size</a></div></div>';
+  }).join("");
+  /* the screen does not scroll inside a frame, so each frame is as tall as the screen and slides up to its first chip */
+  g.querySelectorAll("iframe").forEach(function (f) {
+    f.addEventListener("load", function () {
+      var n = 0, t = setInterval(function () {
+        try {
+          var d = f.contentDocument, c = d.querySelector(".mv-card .minfo");
+          if (c) { f.style.height = d.documentElement.scrollHeight + "px"; f.style.marginTop = -Math.max(0, c.getBoundingClientRect().top - 40) * 1.5 + "px"; }
+        } catch (e) { clearInterval(t); }
+        if (++n > 40) clearInterval(t);   /* the screen settles in a few seconds: the score, the cards and the art all land */
+      }, 400);
+    });
+  });
+  /* each screen holds a WebGL score and Chrome keeps about sixteen, so a window loads near the view and empties when it leaves */
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) { var f = e.target.firstChild; if (e.isIntersecting) { if (!f.dataset.on) { f.dataset.on = 1; f.style.marginTop = ""; f.src = f.dataset.src; } } else if (f.dataset.on) { delete f.dataset.on; f.src = "about:blank"; } });
+  }, { rootMargin: "200px 0px" });
+  g.querySelectorAll(".win").forEach(function (w) { io.observe(w); });
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+</script>
+</body>
+</html>

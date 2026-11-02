@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mind, every case</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* GoodFlip tokens, only the ones this document uses.
+     The rule this file follows: green marks the score, the verdict and the one
+     primary action. Indigo carries anything actionable, gold carries insight,
+     teal is a calm edge, and the neutrals are the real ground of the page. */
+  :root {
+    /* the interactive green, and the different green that scores and verdicts use */
+    --brand-200: #CBF0E0; --brand-600: #299D6B; --brand-700: #2A805A;
+    --ok-50: #ECFDF3; --ok-100: #D1FADF; --ok-300: #32D583; --ok-600: #039855;
+
+    --indigo-25: #F5F8FF; --indigo-100: #E0EAFF; --indigo-200: #C7D7FE; --indigo-600: #444CE7; --indigo-900: #2D3282;
+    --gold-50: #FFFBEE; --gold-200: #FEF1C7; --gold-800: #A68A2D;
+    --teal-200: #C7FEFE; --teal-800: #2DA6A6;
+
+    --gray-50: #F9FAFB; --gray-100: #F2F4F7; --gray-200: #E4E7EC; --gray-300: #D0D5DD;
+    --gray-400: #98A2B3; --gray-500: #667085; --gray-600: #475467; --gray-700: #344054; --gray-900: #101828;
+
+    /* the house shadow is a hard letterpress offset, no blur */
+    --shadow-card: 2px 3px 0 0 rgba(152,162,179,.35);
+    --shadow-card-lift: 3px 4px 0 0 rgba(152,162,179,.45);
+    --shadow-phone: 3px 4px 0 0 rgba(152,162,179,.30);
+    --ease: cubic-bezier(.4, 0, .2, 1);
+    --z: .78;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #FFFFFF; color: var(--gray-900);
+    font-family: Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .25px;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--brand-600); text-decoration: underline; text-underline-offset: 2px;
+      text-decoration-thickness: 1px; text-decoration-color: var(--brand-200); }
+  a:hover { text-decoration-color: var(--brand-600); }
+
+  /* ---------- shell ---------- */
+  .shell { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 48px; max-width: 1560px; margin: 0 auto; padding: 0 40px 24px; }
+  @media (max-width: 1080px) { .shell { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 20px 24px; } }
+
+  /* ---------- masthead ---------- */
+  .top { position: relative; grid-column: 1 / -1; padding: 64px 0 32px; border-bottom: 1px solid var(--gray-200); margin-bottom: 40px; }
+  /* the quiet radial bloom GoodFlip puts behind a hero, at a document's volume */
+  .top::before {
+    content: ""; position: absolute; z-index: -1; pointer-events: none;
+    left: -140px; top: -200px; width: 620px; height: 460px;
+    background: radial-gradient(closest-side, rgba(79,200,146,.16), rgba(255,255,255,0));
+  }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 14px;
+    font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-700);
+    border-radius: 9999px; border: 1px solid transparent;
+    background: linear-gradient(#fff, #fff) padding-box,
+                conic-gradient(from 210deg, var(--gray-300), var(--teal-800) 50%, var(--gray-300)) border-box;
+  }
+  /* the single green mark the header is allowed */
+  .eyebrow::before { content: ""; width: 8px; height: 8px; border-radius: 9999px; background: var(--brand-600); }
+  h1 { font-family: Roboto, Arial, sans-serif; font-weight: 600; font-size: 48px; line-height: 56px; letter-spacing: -.2px; margin: 20px 0 12px; }
+  .lede { max-width: 720px; margin: 0; font-size: 18px; line-height: 28px; color: var(--gray-600); }
+  .meta { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 10px 24px; font-size: 14px; line-height: 20px; color: var(--gray-500); }
+  .meta b { color: var(--gray-700); font-weight: 600; }
+  @media (max-width: 1080px) { .top::before { left: -60px; top: -140px; width: 320px; height: 300px; } }
+  @media (max-width: 640px) { h1 { font-size: 32px; line-height: 40px; } .lede { font-size: 16px; line-height: 26px; } }
+
+  /* ---------- contents rail ---------- */
+  nav.rail { align-self: start; position: sticky; top: 24px; padding: 4px 0 24px; max-height: calc(100vh - 48px); overflow-y: auto; scrollbar-width: none; }
+  nav.rail::-webkit-scrollbar { display: none; }
+  /* Home sits outside the story: off the page and the numbering until its rail link opens it */
+  section.aside:not(.shown) { display: none; }
+  /* lines that belong to one plan-logging variant only (the Plan logging switch) */
+  body.plog-card [data-only="logger"], body:not(.plog-card) [data-only="card"] { display: none !important; }
+  .railhead { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); margin-bottom: 8px; }
+  nav.rail ol { list-style: none; margin: 0; padding: 0; }
+  nav.rail a { position: relative; display: flex; align-items: center; min-height: 44px; padding: 4px 12px; border-radius: 8px; font-size: 14px; line-height: 20px; color: var(--gray-600); text-decoration: none; white-space: nowrap; }
+  nav.rail a:hover { background: var(--gray-50); color: var(--gray-900); }
+  nav.rail a.on { background: var(--indigo-25); color: var(--indigo-900); font-weight: 600; }
+  nav.rail a.on::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 2px; border-radius: 2px; background: var(--indigo-600); }
+  .zoom { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+  /* the variant switch sits above the size control and wears the same clothes,
+     because both do the same kind of job: they change how the page is read
+     without changing what it says */
+  .zoom .zlab { width: 100%; font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); }
+  .zoom button { min-width: 44px; min-height: 44px; padding: 0 12px; font: 600 14px/20px Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .25px; border: 1px solid var(--gray-200); background: #fff; color: var(--gray-600); border-radius: 9999px; cursor: pointer; }
+  .zoom button:hover { border-color: var(--gray-300); color: var(--gray-900); }
+  .zoom button.on { border-color: var(--indigo-600); background: var(--indigo-25); color: var(--indigo-900); }
+  @media (max-width: 1080px) {
+    nav.rail { position: sticky; top: 0; z-index: 20; max-height: none; overflow: visible; background: rgba(255,255,255,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--gray-200); margin: 0 -20px 24px; padding: 4px 20px; }
+    nav.rail ol { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+    nav.rail ol::-webkit-scrollbar { display: none; }
+    nav.rail li { flex-shrink: 0; }
+    nav.rail .railhead { display: none; }
+    nav.rail a.on::before { left: 10px; right: 10px; top: auto; bottom: 4px; width: auto; height: 2px; }
+    .zoom { display: none; }
+  }
+
+  /* ---------- sections ---------- */
+  section { scroll-margin-top: 80px; padding-bottom: 64px; }
+  section + section { border-top: 1px solid var(--gray-200); padding-top: 48px; }
+  .snum { display: inline-flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); }
+  /* out of scope: kept for reference, visibly parked */
+  section.oos .snum { color: #B54708; }
+  .oosnote { margin: 4px 0 20px; padding: 12px 16px; border-radius: 12px; background: #FFFAEB; border: 1px solid #FEDF89; color: #93370D; font-size: 14px; line-height: 21px; max-width: 760px; }
+  .oosnote b { font-weight: 600; }
+  section.oos .cases { opacity: .55; filter: grayscale(.35); transition: opacity .2s, filter .2s; }
+  section.oos .cases:hover { opacity: 1; filter: none; }
+  .snum::after { content: ""; width: 28px; height: 1px; background: var(--gray-200); }
+  h2 { font-size: 24px; line-height: 32px; font-weight: 600; letter-spacing: 0; margin: 12px 0 12px; }
+  h3 { font-size: 16px; line-height: 24px; font-weight: 600; margin: 32px 0 12px; }
+  section > p, .prose p { max-width: 720px; font-size: 16px; line-height: 26px; color: var(--gray-600); margin: 0 0 16px; }
+  ul.plain { max-width: 760px; margin: 0 0 16px; padding-left: 20px; }
+  ul.plain li { font-size: 16px; line-height: 26px; color: var(--gray-600); margin-bottom: 8px; }
+  ul.plain li b, .prose b { color: var(--gray-900); font-weight: 600; }
+
+  /* ---------- the document is the screens ----------
+     Everything that explained them is still in the markup and switched off
+     here in one place: tables, notes, lists, sub-headings, the legend panels
+     and the paragraph under each section headline. Delete this block to read
+     the long version. What survives is the section headline, the phones, and
+     each shot's own headline, state chip and one line.
+     Six sections were nothing but explanation, so they go with it. The rail
+     reads the page, so their entries disappear on their own. */
+
+  /* the verdict pill, the one device that earns the pillar colour */
+  .verdict {
+    display: inline-flex; align-items: center; height: 22px; padding: 0 8px; margin-left: 12px;
+    vertical-align: 4px; border-radius: 8px; border: 1px solid transparent;
+    font-size: 12px; line-height: 14px; font-weight: 600; letter-spacing: .25px; color: var(--ok-600);
+    background: linear-gradient(90deg, var(--ok-100), var(--ok-50) 30%, var(--ok-50) 70%, var(--ok-100)) padding-box,
+                conic-gradient(from 180deg, var(--ok-600), var(--ok-300) 25%, var(--ok-300) 50%, var(--ok-600) 75%, var(--ok-300)) border-box;
+  }
+
+  /* ---------- tables ---------- */
+  .tablewrap { overflow-x: auto; margin: 0 0 8px; }
+  table { border-collapse: collapse; width: 100%; min-width: 620px; font-size: 14px; }
+  th, td { text-align: left; padding: 12px 16px; vertical-align: top; line-height: 20px; }
+  th { font-size: 12px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--gray-500); background: var(--gray-50); border-bottom: 1px solid var(--gray-200); }
+  td { color: var(--gray-600); border-bottom: 1px dashed var(--gray-200); }
+  td:first-child { font-weight: 600; color: var(--gray-900); }
+  tbody tr:last-child td { border-bottom: 1px solid var(--gray-200); }
+  tbody tr:hover td { background: var(--gray-50); }
+
+  /* ---------- callouts ---------- */
+  .note { display: flex; gap: 12px; max-width: 760px; margin: 20px 0; padding: 16px; border-radius: 16px; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+  .note b { display: block; margin-bottom: 4px; font-weight: 600; color: var(--gray-900); }
+  .note .dot { flex-shrink: 0; width: 8px; height: 8px; border-radius: 9999px; margin-top: 7px; }
+  .note.teal { background: var(--gray-50); border: 1px solid var(--teal-200); }
+  .note.teal .dot { background: var(--teal-800); }
+  .note.indigo { background: var(--indigo-25); border: 1px solid var(--indigo-100); }
+  .note.indigo .dot { background: var(--indigo-600); }
+  .note.gold { background: var(--gold-50); border: 1px solid var(--gold-200); }
+  .note.gold .dot { background: var(--gold-800); }
+
+  /* ---------- phones, the subject of the page ---------- */
+  /* the date sheet's key, beside its phones: every mark, drawn as the sheet draws it */
+  [data-cases="date"] { align-items: flex-start; }
+  .dkey { width: 300px; margin-top: 0; padding: 20px 20px 8px; border-radius: 16px; box-shadow: inset 0 0 0 1px var(--g-200); }
+  .dkey h4 { margin: 0 0 12px; font: 600 13px/18px Roboto, sans-serif; letter-spacing: .4px; text-transform: uppercase; color: var(--g-500); }
+  .dkey .r { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-top: 1px solid var(--g-100); }
+  .dkey .r:first-of-type { border-top: 0; }
+  .dkey .m { flex: none; width: 46px; height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-radius: 12px; }
+  .dkey .m b { font: 600 12px/16px Roboto, sans-serif; color: #344054; }
+  .dkey .m.sel { background: #F3FCF8; box-shadow: inset 0 0 0 1.5px #299D6B; }
+  .dkey .m.today b { color: #101828; font-weight: 700; }
+  .dkey .m.off b { color: #D0D5DD; }
+  .dkey .m i { width: 8px; height: 8px; border-radius: 9999px; background: #8098F9; margin: 12px 0; }
+  .dkey .m img { width: 28px; height: 32px; object-fit: contain; }
+  .dkey .t { font: 400 14px/20px Roboto, sans-serif; color: var(--g-600); }
+  .dkey .t strong { display: block; color: var(--g-900); font-weight: 600; }
+  .cases { display: flex; flex-wrap: wrap; gap: 36px 28px; margin-top: 24px; }
+  figure { margin: 0; width: calc(390px * var(--z)); display: flex; flex-direction: column; }
+  /* captions sit at the bottom of their slot, so the phones in a row line up */
+  figcaption { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: flex-end; margin-bottom: 12px; min-height: 76px; }
+  figcaption b { display: block; font-size: 16px; line-height: 24px; font-weight: 600; }
+  figcaption .id { font-family: Roboto, sans-serif; font-size: 12px; font-weight: 400; color: var(--gray-400); }
+  figcaption p { margin: 4px 0 0; font-size: 14px; line-height: 20px; color: var(--gray-600); }
+  .phone {
+    width: calc(390px * var(--z)); height: calc(780px * var(--z)); overflow: hidden;
+    border-radius: calc(16px * var(--z)); background: #fff; border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-phone);
+  }
+  .phone iframe { width: 390px; height: 780px; border: 0; display: block; transform: scale(var(--z)); transform-origin: 0 0; }
+  .open { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 14px; font-weight: 600; color: var(--gray-500); text-decoration: none; }
+  .open::after { content: "\2192"; }
+  .open:hover { color: var(--gray-900); }
+
+  /* the prototype card, the one place the reader is sent to play,
+     so it carries the page's one primary action */
+  .protorow { display: flex; flex-wrap: wrap; gap: 28px; align-items: flex-start; margin-top: 24px; }
+  .protocard {
+    flex: 0 0 340px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+    padding: 24px; border-radius: 16px; border: 1px solid transparent; text-decoration: none; color: inherit;
+    background: linear-gradient(#fff, #fff) padding-box,
+                conic-gradient(from 210deg, var(--gray-300), var(--brand-600) 50%, var(--gray-300)) border-box;
+    box-shadow: var(--shadow-card);
+    transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  .protocard:hover { transform: translate(-1px, -1px); box-shadow: var(--shadow-card-lift); }
+  .pc-eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gray-400); }
+  .pc-title { font-family: Roboto, sans-serif; font-size: 20px; line-height: 28px; color: var(--gray-900); }
+  .pc-line { font-size: 14px; line-height: 21px; color: var(--gray-500); }
+  .pc-go {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px;
+    min-height: 44px; padding: 0 20px; border-radius: 8px;
+    background: var(--brand-600); color: #fff; font-size: 14px; font-weight: 600;
+    box-shadow: 0 3px 0 0 var(--brand-700);
+    transition: transform .2s var(--ease), box-shadow .2s var(--ease);
+  }
+  .protocard:hover .pc-go { transform: translateY(1px); box-shadow: 0 2px 0 0 var(--brand-700); }
+  @media (max-width: 1080px) { .protocard { flex: 1 1 100%; } }
+
+  /* section groups inside a long section */
+  .grouphead { display: flex; align-items: baseline; gap: 12px; margin: 40px 0 4px; }
+  .grouphead h3 { margin: 0; }
+  .grouphead span { font-size: 14px; color: var(--gray-500); }
+  .grouphead::after { content: ""; flex: 1; height: 1px; background: var(--gray-200); }
+
+  /* section 2 pairs the screen with a short guide to the document */
+  .introrow { display: flex; flex-wrap: wrap; gap: 32px; align-items: flex-start; }
+  .introrow .cases { margin-top: 24px; }
+  .legend {
+    position: relative; overflow: hidden; flex: 1 1 320px; min-width: 300px; max-width: 560px; margin-top: 24px;
+    padding: 24px; border-radius: 16px; border: 1px solid transparent;
+    background: linear-gradient(#fff, #fff) padding-box,
+                conic-gradient(from 210deg, var(--gray-300), var(--indigo-600) 50%, var(--gray-300)) border-box;
+    box-shadow: var(--shadow-card);
+  }
+  /* the blurred indigo glow GoodFlip puts behind its glass cards */
+  .legend::before { content: ""; position: absolute; left: -48px; top: -64px; width: 240px; height: 110px; background: var(--indigo-100); filter: blur(52px); opacity: .55; pointer-events: none; }
+  .legend > * { position: relative; }
+  .legend ul.plain { margin-bottom: 16px; }
+  .legend li { font-size: 14px; line-height: 22px; }
+  .legend p { font-size: 14px; line-height: 22px; color: var(--gray-500); }
+  .mono { font-family: Roboto, sans-serif; font-size: 12px; background: var(--gray-100); border-radius: 4px; padding: 1px 6px; color: var(--gray-700); }
+
+  footer { grid-column: 1 / -1; border-top: 1px solid var(--gray-200); padding-top: 24px; font-size: 14px; line-height: 20px; color: var(--gray-500); display: flex; flex-wrap: wrap; gap: 10px 24px; }
+
+  /* the page's full stop: a bloom and a period, nothing clickable */
+  .fullstop { grid-column: 1 / -1; position: relative; height: 200px; overflow: hidden; pointer-events: none; }
+  .fullstop::before { content: ""; position: absolute; left: 50%; top: -40px; width: 460px; height: 280px; transform: translateX(-50%); background: radial-gradient(closest-side, rgba(79,200,146,.15), rgba(255,255,255,0)); }
+  .fullstop::after { content: ""; position: absolute; left: 50%; top: 95px; width: 10px; height: 10px; margin-left: -5px; border-radius: 9999px; background: var(--gray-900); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: .001ms !important; animation-duration: .001ms !important; }
+  }
+
+  /* ---------- Mind's additions ---------- */
+  /* Mind's score is teal, so the masthead's bloom is too */
+  .top::before { background: radial-gradient(closest-side, rgba(45,166,166,.14), rgba(255,255,255,0)); }
+  .fullstop::before { background: radial-gradient(closest-side, rgba(45,166,166,.13), rgba(255,255,255,0)); }
+
+  /* open questions: the options side by side */
+  .q { margin: 32px 0 0; max-width: 1100px; }
+  .q h3 { margin: 0 0 4px; }
+  .q > p { max-width: 760px; font-size: 15px; line-height: 24px; color: var(--gray-600); margin: 0 0 12px; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+  .opt { padding: 16px; border-radius: 12px; border: 1px solid var(--gray-200); background: #fff; font-size: 14px; line-height: 21px; color: var(--gray-600); }
+  .opt b { display: block; margin-bottom: 4px; color: var(--gray-900); font-weight: 600; }
+  .opt.rec { border-color: var(--brand-600); background: #F6FEF9; }
+  .opt .rt { display: inline-block; margin-bottom: 6px; padding: 0 8px; height: 20px; line-height: 20px; border-radius: 6px; font-size: 11px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; background: var(--ok-100); color: var(--ok-600); }
+  .opt .catch { display: block; margin-top: 6px; color: var(--gray-500); font-size: 13px; line-height: 19px; }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="top">
+    <span class="eyebrow">Mind pillar · GoodFlip</span>
+    <h1>Mind, every case</h1>
+    <p class="lede">The whole Mind screen, written down and running: the Rhythm score, last night's sleep, the coach's mind plan, the mood check-in and the breathing player. Every case below is a live phone: scroll it, tick a row, open a sheet, breathe along.</p>
+    <div class="meta">
+      <span><b>For</b> design, dev and product</span>
+      <span><b>Prototype</b> <a href="/v7/mind/index.html" target="_blank">mind/index.html</a></span>
+      <span><b>Sandbox</b> <a href="/mind/sandbox-simple.html" target="_blank">mind/sandbox-simple.html</a></span>
+      <span><b>Deck</b> <a href="/mind/deck.html" target="_blank">mind/deck.html</a></span>
+      <span><b>Coach portal</b> <a href="coach-mind-plan.html" target="_blank">coach-mind-plan.html</a></span>
+      <span><b id="caseCount">0</b> live cases</span>
+    </div>
+  </div>
+
+  <nav class="rail" id="rail">
+    <div class="railhead">Contents</div>
+    <ol id="raillist"></ol>
+    <div class="zoom">
+      <span class="zlab">Phone size</span>
+      <button data-z=".6">S</button><button data-z=".78" class="on">M</button><button data-z="1">L</button>
+    </div>
+  </nav>
+
+  <main>
+
+    <section id="screen">
+      <div class="snum">Section</div>
+      <h2>What the screen is</h2>
+      <div class="cases" data-cases="screen"></div>
+    </section>
+
+    <section id="sandbox">
+      <div class="snum">Section</div>
+      <h2>Score sandbox</h2>
+      <div class="protorow">
+        <a class="protocard" href="/mind/sandbox-simple.html" target="_blank">
+          <span class="pc-eyebrow">The sandbox</span>
+          <span class="pc-title">mind/sandbox-simple.html</span>
+          <span class="pc-line">Set a coach plan, play a night and a day on it, and watch every part of the Rhythm score.</span>
+          <span class="pc-go">Open the sandbox</span>
+        </a>
+        <a class="protocard" href="coach-mind-plan.html" target="_blank">
+          <span class="pc-eyebrow">For the coach</span>
+          <span class="pc-title">Coach portal changes</span>
+          <span class="pc-line">The Mind plan: sleep hours and window, wind-down tasks, breathing, me-time and mood check-ins, each with its time.</span>
+          <span class="pc-go">Open the coach portal</span>
+        </a>
+        <a class="protocard" href="/mind/deck.html" target="_blank">
+          <span class="pc-eyebrow">The concept</span>
+          <span class="pc-title">The Mind deck</span>
+          <span class="pc-line">Why Rhythm: a steady night and a calm day, and the research behind it.</span>
+          <span class="pc-go">Open the deck</span>
+        </a>
+      </div>
+    </section>
+
+    <section id="health">
+      <div class="snum">Section</div>
+      <h2>Apple Health and Health Connect</h2>
+      <div class="grouphead"><h3>iPhone · Apple Health</h3><span></span></div>
+      <div class="cases" data-cases="health_ios"></div>
+      <div class="grouphead"><h3>Android · Health Connect</h3><span></span></div>
+      <div class="cases" data-cases="health_android"></div>
+    </section>
+
+    <section id="states">
+      <div class="snum">Section</div>
+      <h2>One day, in order</h2>
+      <div class="grouphead"><h3>Act 1 · Before a plan</h3><span></span></div>
+      <div class="cases" data-cases="act0"></div>
+      <div class="grouphead"><h3>Act 2 · The morning</h3><span></span></div>
+      <div class="cases" data-cases="act1"></div>
+      <div class="grouphead"><h3>Act 3 · The day fills up</h3><span></span></div>
+      <div class="cases" data-cases="act2"></div>
+      <div class="grouphead"><h3>Act 4 · Other kinds of days</h3><span></span></div>
+      <div class="cases" data-cases="act3"></div>
+    </section>
+
+    <section id="say">
+      <div class="snum">Section</div>
+      <h2>The line under the score</h2>
+      <p>One fixed sentence under the score; only the % changes. Before last night is in, it asks for it; after that, it says to keep going. After a tick the score steps up first, then the line names the gain and what it did.</p>
+      <div class="cases" data-cases="say"></div>
+    </section>
+
+    <section id="tiles">
+      <div class="snum">Section</div>
+      <h2>What shaped your score?</h2>
+      <div class="cases" data-cases="tiles"></div>
+    </section>
+
+    <section id="sleep">
+      <div class="snum">Section</div>
+      <h2>Last night, the sleep card</h2>
+      <div class="cases" data-cases="sleep"></div>
+      <div class="grouphead"><h3>The Edit sheet</h3><span></span></div>
+      <div class="cases" data-cases="sleepsheet"></div>
+    </section>
+
+    <section id="plan">
+      <div class="snum">Section</div>
+      <h2>Your mind plan</h2>
+      <p>The coach's plan in parts of the day, each item in the part its time falls in; an empty part is hidden. Every row is ticked or unticked, with the time the coach set on the right: before the chevron on rows that open something (breathing, mood), plain on wind-down and me-time. A breathing row shows only its minutes, "3 min".</p>
+      <div class="cases" data-cases="plan"></div>
+    </section>
+
+    <section id="mood">
+      <div class="snum">Section</div>
+      <h2>Mood check-in</h2>
+      <p>One question, five faces. A pick is a draft: KAIRA's card shimmers in, then replies. Only Log Mood logs and scores it, the same for any face. After that only the face can change, and the first time is kept.</p>
+      <div class="grouphead"><h3>The check-in</h3><span></span></div>
+      <div class="cases" data-cases="mood1"></div>
+      <div class="grouphead"><h3>Low and very low</h3><span></span></div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Face</th><th>KAIRA replies</th></tr></thead>
+        <tbody>
+          <tr><td>😣 Awful</td><td>"I'm sorry today has been this hard, and thank you for telling me. You don't have to fix it all at once. When you're ready, five minutes of slow breathing settles your body first, and the mind often follows."</td></tr>
+          <tr><td>😕 Low</td><td>"Thank you for being honest with me. Low days come to everyone, and they do pass. Something small you enjoy, a song, a short walk or a call with someone you love, can lift a low day sooner than waiting it out."</td></tr>
+          <tr><td>😐 Okay</td><td>"Okay is a fair answer. Most days are like this, and they still tell us a lot over a few weeks."</td></tr>
+          <tr><td>🙂 Good</td><td>"Good to hear. What made today good? Noticing it makes it easier to have more days like this."</td></tr>
+          <tr><td>😄 Great</td><td>"That's lovely to hear. Hold on to what went right today, it's worth doing again."</td></tr>
+        </tbody>
+      </table></div>
+      <div class="cases" data-cases="mood2"></div>
+      <div class="grouphead"><h3>Two check-ins, a missed slot, a past day</h3><span></span></div>
+      <div class="cases" data-cases="mood3"></div>
+    </section>
+
+    <section id="breath">
+      <div class="snum">Section</div>
+      <h2>Breathing</h2>
+      <p>Tapping a breathing row opens the full-screen player, in the Line look. Tapping its circle opens "Mark as done?" for anyone who breathed on their own. The row ticks only when the coach's minutes are reached.</p>
+      <div class="grouphead"><h3>A session, start to finish</h3><span></span></div>
+      <div class="cases" data-cases="br1"></div>
+      <div class="grouphead"><h3>All five exercises</h3><span></span></div>
+      <div class="cases" data-cases="br2"></div>
+      <div class="grouphead"><h3>The row</h3><span></span></div>
+      <div class="cases" data-cases="br3"></div>
+    </section>
+
+    <section id="rows">
+      <div class="snum">Section</div>
+      <h2>Wind-down and Me-time</h2>
+      <div class="cases" data-cases="rows"></div>
+    </section>
+
+    <section id="practices">
+      <div class="snum">Section</div>
+      <h2>The Practices tab</h2>
+      <div class="cases" data-cases="practices"></div>
+    </section>
+
+    <section id="date">
+      <div class="snum">Section</div>
+      <h2>Past days and the date sheet</h2>
+      <div class="cases" data-cases="date"></div>
+    </section>
+
+    <section id="rsheet">
+      <div class="snum">Section</div>
+      <h2>The Rhythm sheet</h2>
+      <div class="oosnote"><b>Still to update.</b> Tapping the score opens this sheet. Its words are Mind's, but its header is still Move's: "49% Momentum", tiles that read Sleep 3 of 7.5 h and Wind-down 2 of 3 on every day, and "Your Move coach". It should show the table below.</div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Part</th><th>Points</th><th>How it counts</th></tr></thead>
+        <tbody>
+          <tr><td>Sleep hours</td><td>23</td><td>Full at the coach's hours, up to an hour over. Falls to 0 at 3 h short; past an hour over, loses 20% an hour. A split night counts time asleep only.</td></tr>
+          <tr><td>Sleep window</td><td>24</td><td>Bedtime and wake-up, half each. Full within 30 min of the plan, 0 at 2 h off, early or late alike. A split night reads the first bedtime and the last wake-up.</td></tr>
+          <tr><td>Wind-down</td><td>23</td><td>Each task ticked earns its share.</td></tr>
+          <tr><td>Breathing</td><td>10</td><td>Each exercise done in full earns its share.</td></tr>
+          <tr><td>Me-time</td><td>10</td><td>The activity done earns all 10.</td></tr>
+          <tr><td>Mood</td><td>10</td><td>Checking in counts; the face never does. With two check-ins, each earns 5.</td></tr>
+        </tbody>
+      </table></div>
+      <ul class="plain">
+        <li><b>Sleep is 70, self-care 30.</b> The coach sets the plan; the weights stay fixed.</li>
+        <li><b>Only what the plan has counts.</b> A part the coach left empty (no wind-down, no breathing or no me-time) is left out of the points and the total, so every plan can reach 100.</li>
+        <li><b>The day starts at 0</b>, and last night counts once it is in.</li>
+        <li><b>The header</b> should read today's Rhythm, the three tiles from the screen, and the Mind coach.</li>
+      </ul>
+      <div class="cases" data-cases="rsheet"></div>
+    </section>
+
+    <section id="open">
+      <div class="snum">Section</div>
+      <h2>Open questions</h2>
+
+      <div class="q"><h3>1. Should saved breathing minutes count before the plan is reached?</h3>
+        <p>A 3 min plan done as 2 min, saved, scores nothing until the last minute, though the player says "Minutes add up through the day".</p>
+        <div class="opts">
+          <div class="opt rec"><span class="rt">Recommended</span><b>A. Count minutes pro rata</b>2 of 3 min earns two thirds of that exercise's share.<span class="catch">Catch: points rise while the row stays unticked.</span></div>
+          <div class="opt"><b>B. Keep it all or nothing</b>As built: the row and the score move together.<span class="catch">Catch: "Minutes add up" shows nowhere until the end.</span></div>
+          <div class="opt"><b>C. Any minute or more counts in full</b>Simple and generous.<span class="catch">Catch: the coach's minutes stop meaning anything.</span></div>
+        </div>
+      </div>
+
+      <div class="q"><h3>2. The templates leave me-time blank</h3>
+        <p>Left blank, the patient sees no me-time row and self-care leans on breathing and mood alone.</p>
+        <div class="opts">
+          <div class="opt rec"><span class="rt">Recommended</span><b>A. Assign waits for an activity</b>The coach portal asks for it before Assign.<span class="catch">Catch: one more required field.</span></div>
+          <div class="opt"><b>B. A general row when blank</b>"Do one thing you enjoy".<span class="catch">Catch: less personal.</span></div>
+          <div class="opt"><b>C. Leave it empty</b>As built: the score rescales over the parts left.<span class="catch">Catch: less self-care in the day.</span></div>
+        </div>
+      </div>
+
+      <div class="q"><h3>3. Past days show today's plan and today's night</h3>
+        <p>Only the mood row knows it is a past day.</p>
+        <div class="opts">
+          <div class="opt rec"><span class="rt">Recommended</span><b>A. Read the day's own record</b>That day's plan, night and ticks, with mood still addable.<span class="catch">Catch: needs per-day records from the backend.</span></div>
+          <div class="opt"><b>B. A read-only summary</b>The score, the tiles and the mood.<span class="catch">Catch: past mood still needs its row.</span></div>
+        </div>
+      </div>
+
+      <div class="q"><h3>4. Before a plan, the tiles show a sleep window</h3>
+        <div class="opts">
+          <div class="opt rec"><span class="rt">Recommended</span><b>A. Hide What shaped your score?</b>As Eat and Move do before a plan.<span class="catch">Catch: nothing hints at what the coach will set.</span></div>
+          <div class="opt"><b>B. Sleep hours only</b>Hours with no target.<span class="catch">Catch: a number with no meaning yet.</span></div>
+        </div>
+      </div>
+
+      <div class="q"><h3>5. Learn more under the line</h3>
+        <div class="opts">
+          <div class="opt rec"><span class="rt">Recommended</span><b>A. Add Learn more</b>KAIRA analysis for the night and the day, as Move has.<span class="catch">Catch: sleep notes need care with health claims.</span></div>
+          <div class="opt"><b>B. Keep the line plain</b>As built.<span class="catch">Catch: Mind reads thinner than Eat and Move.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hidden at Shaheer's request (Decisions settled, What the backend needs, Rules that hold everywhere, the offline mood case).
+         The offline case: /v7/mind/index.html?mstate=offline&sheet=mood&mpick=3&merr=1
+         Backend, per day and person: the plan version in force; sleep segments (1 to 3) with source health, manual or edited, and Health's
+         originals when edited; Health permission per platform; the short-sync ribbon dismissed; wind-down ticks with times; breathing seconds
+         saved per exercise and sessions; me-time done; mood per slot with face, first logged at, changed at, added later; the day's Rhythm and
+         its six parts for the date sheet; the night belongs to the morning it ends in. -->
+
+  </main>
+
+  <footer>
+    <span>Every screen above runs the same prototype: <a href="/v7/mind/index.html" target="_blank">mind/index.html</a></span>
+    <span><a href="/mind/sandbox-simple.html" target="_blank">Rhythm sandbox</a></span>
+    <span><a href="coach-mind-plan.html" target="_blank">Coach portal, Mind plan</a></span>
+    <span><a href="move-momentum.html">Momentum, every case</a></span>
+    <span><a href="nutrition-sufficiency.html">Nutrition sufficiency, every case</a></span>
+  </footer>
+
+  <div class="fullstop" aria-hidden="true"></div>
+
+</div>
+
+<script>
+/* ============================================================
+   The cases. Each one is a live phone running /v7/mind/index.html,
+   parked by its URL. The screen's own flags: ?t= the coach template
+   (t-motivation by default, t-sleep, t-calm), ?now= the clock in hours,
+   ?state=noplan|past&date=y-m-d, ?sheet=info|1|mood|me|sleep|sleepperm|breath,
+   ?tab=practices, ?os=android. The finals' flags: ?sstate= (sleep),
+   ?mstate= (mood), ?bx= ?bstate= ?rm= (breathing). Doc-only hooks, added
+   for this page and inert without them: ?me= ?done= ?act= ?mpick= ?mwait=
+   ?merr= (variants/mood.js), ?serr= ?sstate=manual-noperm ?act=sleep
+   (variants/sleep.js), ?bfstate= ?bfel= (variants/breath.js).
+   Steady motivation: Zen Flow 3 min at 8 AM, mood at 8:30 PM, one
+   wind-down at 10:30 PM, bed 10:30 PM to 6 AM, 7.5 h.
+   ============================================================ */
+const ME = "me=Evening+walk+with+family&meat=18:00";
+const CASES = {
+  screen: [
+    ["", "The screen", "default", "Today at 3 PM: last night in from Apple Health, the plan in Morning, Evening and Night, nothing ticked yet."],
+  ],
+  health_ios: [
+    ["sstate=noperm&now=7", "Not connected", "sstate=noperm", "Add last night, with Log sleep. The strip under the card asks to connect Apple Health."],
+    ["sstate=noperm&now=7&sheet=sleepperm", "Let your phone fill in your sleep", "sheet=sleepperm", "Move's Health sheet turned to sleep: the real Health Access screen as a picture, Sleep first, every row on. Connect Apple Health, or I will enter my sleep myself."],
+    ["sstate=manual-noperm", "Typed in, still not connected", "sstate=manual-noperm", "The night they entered, and the Connect strip stays under it."],
+    ["", "Connected", "default", "Last night came in by itself: From Apple Health, updated 7:22 AM."],
+    ["sstate=short", "A short sync", "sstate=short", "The gold ribbon: “Apple Health shows 2h 05m. If you slept more, fix it.” Fix opens the sheet; X keeps these times."],
+  ],
+  health_android: [
+    ["os=android&sstate=noperm&now=7", "Not connected", "os=android", "The strip reads Turn on Health Connect, with its own icon."],
+    ["os=android&sstate=noperm&now=7&sheet=sleepperm", "Let your phone fill in your sleep", "sheet=sleepperm", "The real Health Connect screen in a small Android phone, Sleep first. The button reads Allow Health Connect."],
+    ["os=android", "Connected", "os=android", "From Health Connect."],
+    ["os=android&sstate=short", "A short sync", "os=android", "“Health Connect shows 2h 05m. If you slept more, fix it.”"],
+  ],
+  act0: [
+    ["state=noplan", "Before a plan", "state=noplan", "No consultation yet. The plan card says it is on its way; last night still comes in from Health."],
+  ],
+  act1: [
+    ["now=6.5&sstate=wait&" + ME, "Waiting for last night", "sstate=wait", "6:30 AM. Last night is on its way from the watch; Log sleep is there for anyone who would rather not wait."],
+    ["now=7.5&" + ME, "Last night is in", "now=7.5", "7:30 AM. 7h 20m from Apple Health. The plan is all still to do."],
+    ["now=9&" + ME + "&done=br:0", "Breathing done", "done=br:0", "9 AM. Zen Flow ticked in Morning."],
+  ],
+  act2: [
+    ["now=19&" + ME + "&done=br:0,me:0", "The evening walk", "done=me:0", "7 PM. Me-time ticked in Evening."],
+    ["now=21&" + ME + "&done=br:0,me:0,mood", "Mood logged", "done=mood", "9 PM. Good, at 9:00 PM. Only the wind-down is left."],
+    ["now=22.5&" + ME + "&done=br:0,me:0,mood&act=wd:0", "Wind-down ticked", "act=wd:0", "10:30 PM. The last row ticks, the score steps up, and the medal line arrives."],
+    ["now=22.5&sstate=manual&" + ME + "&done=br:0,me:0,mood,wd:0", "Everything done", "sstate=manual", "A night on time and every row ticked: 100% Rhythm."],
+  ],
+  act3: [
+    ["sstate=short&now=12", "A short night", "sstate=short", "Health caught only part of the night. The ribbon offers to fix it."],
+    ["sstate=split&now=12", "A broken night", "sstate=split", "Awake 40 min at 2:30 AM. Only the time asleep counts."],
+    ["sstate=none&now=20", "Nothing logged by evening", "sstate=none", "No night from Health and nothing typed in. Log sleep waits on the card."],
+    ["t=t-calm&mstate=two&now=21", "Calmer days", "t=t-calm", "Two breathing exercises and two check-ins, both logged."],
+    ["t=t-sleep&now=21", "Sleep reset", "t=t-sleep", "An earlier bedtime and three wind-down tasks, all at night."],
+  ],
+  say: [
+    ["sstate=none&now=7", "Before last night", "sstate=none", "“Log last night’s sleep to start today’s Rhythm.”"],
+    ["", "Last night in", "default", "“Keep going through your day to grow your Rhythm.”"],
+    ["sstate=none&now=7.5&act=sleep", "Sleep came in", "act=sleep", "“A steady night is the base of your Rhythm.”"],
+    ["act=br:0", "Breathing done", "act=br:0", "“A few slow breaths help your body settle.”"],
+    [ME + "&act=me:0", "Me-time done", "act=me:0", "“Time for yourself keeps stress low.”"],
+    ["act=mood", "Mood logged", "act=mood", "“Naming how you feel helps you understand your day.”"],
+    ["act=wd:0", "Wind-down ticked", "act=wd:0", "“Small steps in the evening help you sleep steady.”"],
+    ["now=22.5&" + ME + "&done=br:0,me:0,mood&act=wd:0", "The medal", "medal", "“You’ve earned today’s medal! Your Rhythm went up by N%. Well done.”"],
+    ["now=22.5&sstate=manual&" + ME + "&done=br:0,me:0,mood&act=wd:0", "100% Rhythm", "hundred", "“You reached 100% Rhythm! You looked after your night and your day.”"],
+  ],
+  tiles: [
+    ["", "On time", "default", "Sleep hours against the coach's hours, the window in words with the plan under it, and self-care done of planned."],
+    ["sstate=edited", "Late", "sstate=edited", "The later of bedtime and wake-up, in words: 45 min late."],
+    ["sstate=none&now=7", "Not logged", "sstate=none", "The window reads Not logged, the plan still under it."],
+    ["now=22.5&" + ME + "&done=br:0,me:0,mood,wd:0", "Self-care, all done", "done=…", "Self-care counts wind-down, breathing, me-time and mood."],
+  ],
+  sleep: [
+    ["", "Synced", "default", "7h 20m of sleep. Slept and Woke up side by side, the night against the sleep window."],
+    ["sstate=none&now=7", "Nothing yet", "sstate=none", "Log sleep at the top right, as Move's Log steps, over an empty window."],
+    ["sstate=wait&now=6.5", "On its way", "sstate=wait", "Waiting for Apple Health, the window shimmering."],
+    ["sstate=manual", "Typed in", "sstate=manual", "Health is connected, so the times need no label."],
+    ["sstate=edited", "Edited after sync", "sstate=edited", "From Apple Health, edited by you."],
+    ["sstate=split", "Split night, typed in", "sstate=split", "The bar shows the gap; Awake 40 min at 2:30 AM."],
+    ["sstate=split-synced", "Split night, from Health", "sstate=split-synced", "Two sessions from Apple Health, drawn the same way."],
+  ],
+  sleepsheet: [
+    ["sheet=sleep", "The sheet", "sheet=sleep", "Drag the bar's ends or the whole night. Slept and Woke up, the active one outlined green, the wheel under it."],
+    ["sstate=split&sheet=sleep", "Add another sleep", "sstate=split", "Sleep 1 and Sleep 2, each with Remove. Up to three."],
+    ["serr=order", "Woke up before Slept", "serr=order", "“Woke up has to come after Slept.” Save is off."],
+    ["sstate=split&serr=overlap", "Two sleeps overlap", "serr=overlap", "“Sleep 2 starts before sleep 1 ends. Move it later.”"],
+    ["now=6&sheet=sleep", "Wake-up after now", "now=6", "“It is 6:00 AM now. Pick a wake-up time before that.”"],
+    ["serr=long", "Over 14 hours", "serr=long", "“That is over 14 hours from first to last. Check AM and PM.”"],
+    ["sstate=short&sheet=sleep", "A short night", "sstate=short", "A warning only: “That is a short night. Save it if it is right.”"],
+    ["sstate=edited&sheet=sleep", "Back to Health's times", "sstate=edited", "Use Apple Health’s times, under Save."],
+  ],
+  plan: [
+    ["scroll=plan", "Steady motivation", "default", "Morning, Evening and Night. Afternoon has nothing, so it is hidden."],
+    ["t=t-sleep&scroll=plan", "Sleep reset", "t=t-sleep", "Afternoon, Evening and Night. Morning is hidden."],
+    ["t=t-calm&scroll=plan", "Calmer days", "t=t-calm", "All four parts."],
+    ["scroll=plan&now=21&" + ME + "&done=br:0,me:0,mood", "Rows ticked", "done=…", "A ticked row greys under the green check; a part reads All done."],
+  ],
+  mood1: [
+    ["sheet=mood", "Five faces", "sheet=mood", "Evening check-in, 8:30 PM. Log Mood waits for a face."],
+    ["sheet=mood&mpick=3&mwait=1", "KAIRA reading it", "mwait=1", "Good picked. KAIRA's card shimmers in for under a second."],
+    ["mstate=happy&sheet=mood", "A pick is a draft", "mstate=happy", "KAIRA replies. Nothing is logged until Log Mood."],
+    ["now=13&done=mood&scroll=plan", "Logged", "done=mood", "“🙂 Good, at 1:00 PM” on the row."],
+    ["mstate=change&sheet=mood", "Reopened", "mstate=change", "Good still picked; the button reads Done."],
+    ["mstate=change&sheet=mood&mpick=4", "Changing the face", "mpick=4", "Log Mood comes back. Mood updated, and the first time, 1:06 PM, is kept."],
+  ],
+  mood2: [
+    ["mstate=low&sheet=mood", "Low", "mstate=low", "KAIRA suggests something small they enjoy."],
+    ["mstate=vlow&sheet=mood", "Very low", "mstate=vlow", "KAIRA suggests five minutes of slow breathing when they are ready."],
+  ],
+  mood3: [
+    ["t=t-calm&mstate=two&now=21&scroll=plan", "Two check-ins", "mstate=two", "One row each, 1 PM and 8:30 PM, each worth half."],
+    ["t=t-calm&now=17&scroll=plan", "A missed slot", "now=17", "“You can still check in today”. It still counts."],
+    ["state=past&date=2026-9-10&scroll=plan", "A past day", "state=past", "“Not logged. You can still add it”."],
+    ["state=past&date=2026-9-10&sheet=mood&mpick=3", "How did you feel?", "state=past", "It counts for that day, and reads “added later”."],
+  ],
+  br1: [
+    ["sheet=breath", "Ready", "sheet=breath", "Zen Flow: the orb, In 4, out 6, 3 min session, Start."],
+    ["bfstate=len", "Session length", "bfstate=len", "1, 2, 3, 5 or 10 min; the coach's marked Recommended by your coach."],
+    ["bx=box&bfstate=run&bfel=20", "Running", "bfstate=run", "The pearl walks the square; the phase word and its count. End and Pause."],
+    ["bx=box&bfstate=paused", "Paused", "bfstate=paused", "The time is locked once a session begins. End and Resume."],
+    ["bx=box&bfstate=ask", "The X while running", "bfstate=ask", "Stop breathing? Keep Breathing or Leave."],
+    ["bx=box&bfstate=early", "Ended early", "bfstate=early", "You breathed for 2 min 10 s. Keep Breathing, or Save 2 Min."],
+    ["bx=box&bfstate=short", "Under a minute", "bfstate=short", "A session needs a minute to save. End Here."],
+    ["bx=box&bfstate=done", "Done", "bfstate=done", "3 calm minutes. Do It Again, or Back to Mind."],
+  ],
+  br2: [
+    ["bx=box&bfstate=run&bfel=20", "Box Breathing", "bx=box", "In 4, hold 4, out 4, hold 4, traced on a square."],
+    ["bx=star&bfstate=run&bfel=20", "Star Breathing", "bx=star", "Up 4, pause 2, down 6, traced on a star."],
+    ["bx=finger&bfstate=run&bfel=20", "5 Finger Breathing", "bx=finger", "Up 4, down 6, finger by finger."],
+    ["bx=478&bfstate=run&bfel=20", "Sleep Breathing", "bx=478", "In 4, hold 7, out 8, as the orb with its glow."],
+    ["bfstate=run&bfel=20", "Zen Flow Breathing", "bx=zen", "In 4, out 6, as the orb with its glow."],
+    ["bx=star&bfstate=run&bfel=20&rm=1", "Reduced motion", "rm=1", "The shape stays still; the word and the count change."],
+  ],
+  br3: [
+    ["t=t-calm&sheet=brask", "Mark as done?", "sheet=brask", "Tapping the circle: “Box Breathing, 5 min. Mark it done if you have already breathed it on your own.” Mark as Done, or Not Now. A ticked circle unticks straight away, with a toast."],
+    ["scroll=plan", "Not done", "default", "Zen Flow Breathing, 3 min under the name, 8:00 AM before the chevron. The row opens the player; the circle asks first."],
+    ["bx=box&bfstate=saved&scroll=plan", "2 of 3 min saved", "bfstate=saved", "Still unticked; saved minutes add up through the day."],
+    ["bstate=donerow&scroll=plan", "Done", "bstate=donerow", "Ticked."],
+  ],
+  rows: [
+    ["t=t-sleep&now=21&scroll=plan", "Wind-down", "t=t-sleep", "Three small evening steps, each with its time."],
+    ["t=t-sleep&now=22&done=wd:0,wd:1&act=wd:2&scroll=plan", "Ticking one", "act=wd:2", "Ticks in place, with a small burst."],
+    [ME + "&now=18&scroll=plan", "Me-time", "me=…", "The coach's one activity, with its time."],
+    [ME + "&now=18&act=me:0&scroll=plan", "Ticking it", "act=me:0", "Ticks in place, like wind-down."],
+  ],
+  practices: [
+    ["tab=practices", "Practices", "tab=practices", "The coach's templates from the reflection app, outside the score."],
+  ],
+  date: [
+    ["sheet=1", "Open on today", "sheet=1", "A ring per day for Rhythm, a medal at 80% or more."],
+    ["state=past&date=2026-9-10", "An earlier day", "date=2026-9-10", "Thursday 10 September."],
+    ["state=past&date=2026-9-10&sheet=1", "Opened from that day", "date=…&sheet=1", "With today still marked."],
+  ],
+  rsheet: [
+    ["sheet=info", "As it is today", "sheet=info", "Mind's words under Move's header."],
+  ],
+};
+
+const SECTIONS = [
+  ["screen", "What the screen is"],
+  ["sandbox", "Score sandbox"],
+  ["health", "Apple Health"],
+  ["states", "One day, in order"],
+  ["say", "The line under the score"],
+  ["tiles", "What shaped your score?"],
+  ["sleep", "Last night"],
+  ["plan", "Your mind plan"],
+  ["mood", "Mood check-in"],
+  ["breath", "Breathing"],
+  ["rows", "Wind-down and Me-time"],
+  ["practices", "The Practices tab"],
+  ["date", "Past days"],
+  ["rsheet", "The Rhythm sheet"],
+  ["open", "Open questions"],
+];
+
+SECTIONS.forEach(([id], i) => {
+  const n = document.querySelector(`#${id} .snum`);
+  if (n) n.textContent = `Section ${i + 1}`;
+});
+document.getElementById("raillist").innerHTML = SECTIONS
+  .map(([id, name]) => `<li><a href="#${id}" data-to="${id}">${name}</a></li>`).join("");
+
+const href = (q) => q.includes(".html") ? q : `/v7/mind/index.html${q ? "?" + q : ""}`;
+const fig = ([q, name, id, line]) => `
+  <figure>
+    <figcaption><b>${name} <span class="id">${id}</span></b><p>${line}</p></figcaption>
+    <div class="phone"><iframe data-src="${href(q)}" title="${name}"></iframe></div>
+    <a class="open" href="${href(q)}" target="_blank">Open full size</a>
+  </figure>`;
+document.querySelectorAll("[data-cases]").forEach((host) => {
+  host.innerHTML = (CASES[host.dataset.cases] || []).map(fig).join("");
+});
+
+document.querySelectorAll(".grouphead").forEach((h) => {
+  const span = h.querySelector("span");
+  let host = h.nextElementSibling;
+  while (host && !host.matches("[data-cases]")) host = host.nextElementSibling;
+  if (!span || !host) return;
+  const n = host.querySelectorAll("figure").length;
+  span.textContent = n + (n === 1 ? " case" : " cases");
+});
+document.getElementById("caseCount").textContent = document.querySelectorAll(".cases figure").length;
+
+/* only the phones near the screen load, and each loads once, so an ?act= runs when it is seen.
+   Chrome drops the oldest WebGL contexts past about sixteen, and each phone's score holds one. */
+const onScreen = new Map();
+const tell = (fr) => { if (fr.contentWindow) fr.contentWindow.postMessage(onScreen.get(fr) ? "hero:mount" : "hero:unmount", "*"); };
+const check = () => {
+  document.querySelectorAll(".phone iframe").forEach((fr) => {
+    const r = fr.getBoundingClientRect();
+    if (r.bottom > -200 && r.top < innerHeight + 200 && !fr.src && fr.dataset.src) fr.src = fr.dataset.src;
+    const vis = r.bottom > -100 && r.top < innerHeight + 100;
+    if (onScreen.get(fr) !== vis) { onScreen.set(fr, vis); tell(fr); }
+  });
+  spy();
+};
+let raf = 0;
+const schedule = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(check); };
+addEventListener("scroll", schedule, { passive: true });
+addEventListener("resize", schedule);
+addEventListener("message", (e) => {
+  if (e.data !== "hero:ready") return;
+  const fr = [...document.querySelectorAll(".phone iframe")].find((x) => x.contentWindow === e.source);
+  if (fr) tell(fr);
+});
+
+const links = [...document.querySelectorAll("nav.rail a")];
+function spy() {
+  let cur = SECTIONS[0][0];
+  for (const [id] of SECTIONS) { const el = document.getElementById(id); if (el && el.getBoundingClientRect().top <= 120) cur = id; }
+  links.forEach((a) => a.classList.toggle("on", a.dataset.to === cur));
+}
+
+document.querySelectorAll(".zoom button").forEach((b) => {
+  b.onclick = () => {
+    document.documentElement.style.setProperty("--z", b.dataset.z);
+    document.querySelectorAll(".zoom button").forEach((x) => x.classList.toggle("on", x === b));
+    setTimeout(check, 60);
+  };
+});
+
+check();
+</script>
+<script src="frame.js" defer></script>
+</body>
+</html>

@@ -16,7 +16,9 @@
      reachable. Moving through the day comes from workouts and small moves, so with both off it sits out too.
      All three off: a full rest day, no score */
   var OFF = window.MVOFF || {};
-  var ON = { E: OFF.e ? 0 : W.E, S: OFF.s ? 0 : W.S, N: OFF.n ? 0 : W.N, SP: OFF.e && OFF.n ? 0 : W.SP };
+  /* walking off for good (index.html MVABLE) takes steps out the same way, without the day's "no target" words */
+  var NOWALK = window.MVABLE && !window.MVABLE.walk;
+  var ON = { E: OFF.e ? 0 : W.E, S: OFF.s || NOWALK ? 0 : W.S, N: OFF.n ? 0 : W.N, SP: OFF.e && OFF.n ? 0 : W.SP };
   var SCALE = ON.E + ON.S + ON.N + ON.SP ? 100 / (ON.E + ON.S + ON.N + ON.SP) : 0;
   var sum = function (a, f) { return a.reduce(function (n, x) { return n + f(x); }, 0); };
 
@@ -56,15 +58,10 @@
     })(0);
     window.MVSHEET = function (sheet) {
     };
-    /* the section under the score shows only once something is done: calories burned, then Workout and Steps (no small moves
-       exist today), under a title that names no score. Nothing done, nothing to show */
-    var sect = document.getElementById("railSect"), title = document.getElementById("railTitle");
+    /* the section under the score always shows, under a title that names no score: calories burned, then Workout and Steps (no small moves are set, so that tile stands down),
+       each reading Rest day, and the gold rest strip under them (rest-variants.js) */
+    var title = document.getElementById("railTitle");
     if (title) title.textContent = "What you did today";
-    /* Workout and Steps always side by side once either has something; the empty one reads No target, never a 0 */
-    var showDone = function () { var p = parts(); if (sect) sect.hidden = !(p.raw[0][0] > 0 || p.raw[2][0] > 0); };
-    showDone();
-    var pm0 = window.paintMacros;
-    window.paintMacros = function () { if (pm0) pm0.apply(this, arguments); showDone(); };
     window.MVMOM = { score: function () { return null; }, gain: function () { return null; }, logged: function () {} };
     return;
   }

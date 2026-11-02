@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Move rest day</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="r3/goodflip-ui.css">
+<style>
+  /* A rest day from workouts: how the Move screen says so. Three options, each running on the real screen
+     (/move/index.html?off=e&vrest=b|a1|a2|a3, move/rest-variants.js), shown as it opens and with the rest day sheet open. */
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, Arial, sans-serif; letter-spacing: .25px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 56px 24px 80px; }
+  .top { display: flex; gap: 16px; margin-bottom: 24px; font-size: 14px; }
+  .top a { color: var(--brand-700); text-decoration: none; font-weight: 500; }
+  h1 { font-weight: 600; font-size: 40px; line-height: 48px; margin: 0 0 12px; }
+  .lede { max-width: 800px; margin: 0 0 12px; font-size: 16px; line-height: 26px; color: var(--g-600); }
+  .lede b { color: var(--g-900); font-weight: 600; }
+  .opt { margin-top: 32px; border: 1px solid var(--g-200); border-radius: 20px; box-shadow: 2px 3px 0 0 rgba(152,162,179,.35); overflow: hidden; }
+  .opt.rec { border-color: var(--brand-300); box-shadow: 2px 3px 0 0 var(--brand-100); }
+  .meta { padding: 20px 24px; border-bottom: 1px solid var(--g-200); display: flex; flex-direction: column; gap: 6px; }
+  .meta h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 18px; line-height: 26px; font-weight: 600; }
+  .tag { font-size: 12px; font-weight: 500; border-radius: 8px; padding: 2px 8px; color: var(--g-600); background: var(--g-100); }
+  .tag.rec { color: var(--brand-800); background: var(--brand-50); }
+  .meta p { margin: 0; max-width: 820px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .meta p b { color: var(--g-800); font-weight: 600; }
+  .meta p.why { color: var(--brand-800); }
+  .panels { display: flex; flex-wrap: wrap; justify-content: center; gap: 24px; padding: 24px 16px; background: var(--g-50); }
+  .panel { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .panel > span { font: 600 12px/16px Roboto, sans-serif; letter-spacing: .6px; text-transform: uppercase; color: var(--g-500); }
+  .panel a { font: 500 13px/18px Roboto, sans-serif; color: var(--brand-700); text-decoration: none; }
+  .phone { --z: .72; width: calc(390px * var(--z)); height: calc(860px * var(--z)); border-radius: 24px; overflow: hidden; background: #fff; box-shadow: 0 0 0 1px var(--g-200), 0 18px 40px -20px rgba(16,24,40,.3); }
+  .phone iframe { width: 390px; height: 860px; border: 0; display: block; transform: scale(var(--z)); transform-origin: 0 0; }
+  @media (max-width: 640px) { .wrap { padding: 32px 16px 56px; } h1 { font-size: 30px; line-height: 38px; } .phone { --z: .8; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="move-momentum.html#notarget">Move doc, No target today</a><a href="/move/index.html?off=e">Move screen, rest day</a></div>
+  <h1>Saying it is a rest day</h1>
+  <p class="lede">A1 first, in five finishes, then a rest day with a workout logged, then the other options. On a <b>rest day from workouts</b>, often for recovery, the Workout tile reads <b>No target</b> with <b>Rest day</b> under it, a label in every option. Each option adds one way into the same sheet that explains a rest day in the simplest words. Every phone is the real Move screen: tap the rest day part to open the sheet.</p>
+  <div id="opts"></div>
+</div>
+<script>
+  /* [letter, name, how, why, recommended] */
+  /* [letter, name, how, why, recommended, show the sheet too] */
+  var O = [
+    ["r1", "A1.1 Gold fade", "The strip as it was, with the clearer line <b>Today is your rest day from workouts</b>: gold fading to pale gold, left to right, a bed icon and an info icon.", "The plainest of the five.", false, true],
+    ["r6", "A1.1b Gold fade with an indigo edge", "A1.1 made quieter: the same line in a faint gold fade, inside the tiles' own indigo hairline, so it sits in the card like a fourth tile.", "Seamless with the tiles above it, with just enough gold to read as a rest day.", false, false],
+    ["r2", "A1.2 The card glows gold at its foot", "No box: the bottom of the section's card turns gold edge to edge, rising into its blue, with the same line.", "Feels part of the card rather than added to it.", false, false],
+    ["r3", "A1.3 Tucked behind the tiles", "The strip slides up behind the tiles and shows below them, so the gold seems to come from the back of the card.", "Layered, and the tiles stay on top.", false, false],
+    ["r5", "A1.4 A glow from the centre", "No edges: a soft gold glow behind one centred line that works for any part: <b>Take it easy today, it&rsquo;s your rest day</b>. Every tile that is off reads <b>Rest day</b>, so the tiles say which part rests.", "The pick. One line for a rest from workouts, small moves, steps or any two of them.", true, true],
+
+    ["r1&log=walk", "A workout logged on a rest day", "A1.1 on a day with a 30 minute walk logged. The Workout tile shows <b>129 kcal</b> with <b>Rest day</b> under it, and calories burned counts it. Workout sits out of the score today, so the walk counts only towards moving in the morning.", "No target, so no bar to fill: the number stands on its own.", false, false],
+    ["b", "B. A gold tag under the score", "Under the dial, clear of its 0 and 100: the gold chip Trend uses for Coming soon, with a bed icon, <b>Rest day</b> and an info icon. Tapping it opens the sheet.",
+      "Seen first, before any tile, and small enough to leave the score the stage.", false],
+    ["a2", "A2. Two lines with a bed tile", "Under the tiles, a gold strip with a white bed tile: <b>Today is your rest day</b> over <b>Your coach planned it for recovery</b>, and an info icon.",
+      "The clearest: what it is, then who set it and why. A little taller.", false],
+  ];
+  var phone = function (q, label) {
+    var src = "/move/index.html?off=e&vrest=" + q;
+    return '<div class="panel"><span>' + label + '</span><div class="phone"><iframe title="' + label + '" data-src="' + src + '"></iframe></div><a href="' + src + '" target="_blank">Open full size</a></div>';
+  };
+  document.getElementById("opts").innerHTML = O.map(function (o) {
+    return '<section class="opt' + (o[4] ? " rec" : "") + '"><div class="meta"><h3>' + o[1] + (o[4] ? ' <span class="tag rec">Recommended</span>' : "") + '</h3>' +
+      '<p>' + o[2] + '</p><p class="why">' + o[3] + '</p></div>' +
+      '<div class="panels">' + phone(o[0], "The screen") + (o[5] === false ? "" : phone(o[0] + "&sheet=rest", "The rest day sheet")) + '</div></section>';
+  }).join("");
+  /* a phone loads when it comes on screen and unloads when it leaves, so its motion plays where it is seen
+     and Chrome keeps no more WebGL scores alive than it can hold */
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) { var f = e.target; if (e.isIntersecting) { if (!f.dataset.on) { f.dataset.on = 1; f.src = f.dataset.src; } } else if (f.dataset.on) { delete f.dataset.on; f.src = "about:blank"; } });
+  }, { rootMargin: "100px 0px" });
+  document.querySelectorAll(".phone iframe").forEach(function (f) { io.observe(f); });
+  /* the Move screen's score waits for this handshake before it mounts, as on every Move doc */
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+</script>
+</body>
+</html>

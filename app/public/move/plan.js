@@ -34,6 +34,14 @@
              { t: "Stand up in every TV break", d: "A minute on your feet between shows breaks a long evening sit." }] },
     { name: "Night", part: "Night", win: "8 PM to 11 PM", ic: "moon-outline", tone: "in", ex: [], tips: [] }
   ];
+  /* walking off for good (index.html MVABLE): the sample coach plans seated small moves in place of walks and stairs */
+  if (window.MVABLE && !window.MVABLE.walk) [
+    [{ t: "Stretch your arms overhead", d: "Reach up and hold for a few breaths. It wakes your shoulders and back." },
+     { t: "Roll your shoulders", d: "Ten slow rolls each way ease a stiff upper back." }],
+    [{ t: "Twist gently in your seat", d: "Turn to each side and hold. It breaks a long sit without getting up." }],
+    [{ t: "Lift a water bottle ten times", d: "Slow lifts with each arm keep your arms working after dinner." },
+     { t: "Clap and reach in every TV break", d: "A minute of arm moves between shows breaks a long evening sit." }]
+  ].forEach(function (t, i) { RT[i].tips = t; });
   /* the whole day, midnight to midnight, marked every six hours as Apple Health and Health Connect do. The coach's parts of the
      day live on the cards above; steps count toward the day whenever they fall, so the chart only needs the clock. */
   var TICKS = ["12 AM", "6 AM", "12 PM", "6 PM"];
@@ -166,10 +174,11 @@
   }
   /* while Health is not connected, the log card offers steps beside the workout, as a secondary button; it goes once
      Health brings the steps in by itself */
+  var NOWALK = window.MVABLE && !window.MVABLE.walk;
   function stepsDoor() {
     var row = document.querySelector(".kaira .btns"); if (!row) return;
     var b = row.querySelector('[data-x="logsteps"]');
-    if (HEALTH) { if (b) b.remove(); return; }
+    if (HEALTH || NOWALK) { if (b) b.remove(); return; }
     if (!b) row.insertAdjacentHTML("beforeend", '<button class="kbtn out" data-x="logsteps"><span>' + IC.steps + '<b>Log steps</b></span></button>');
   }
   document.addEventListener("click", function (e) { if (e.target.closest('[data-x="logsteps"]')) stepsSheet(); });
@@ -183,6 +192,7 @@
       '<span class="at">' + (ago < 1 ? "Updated just now" : "Updated " + ago + " min ago") + '</span></div>';
   }
   function stepsHTML() {
+    if (NOWALK) return "";   /* walking is off for good: no steps card */
     var tot = 0, max = 0;
     for (var k = 0; k <= NOW; k++) { var v = S.steps[k] || 0; tot += v; if (v > max) max = v; }
     var top = Math.max(max, 1000), left = GOAL - tot, bars = "";
@@ -213,17 +223,8 @@
 '</div>' + syncHTML() + '</section>';
   }
 
-  /* one quiet card over the plan when the coach planned a rest: what is off today, in a line, and that moving is still welcome */
-  function restHTML() {
-    if (!OFF.e && !OFF.n) return "";
-    var t = OFF.all ? ["Nothing planned today", "Your coach planned no workout, small moves or steps today. Anything you do, you can still log."]
-      : OFF.e && OFF.n ? ["No workout target or small moves today", "Your coach set neither for today. If you feel like moving, you can still log it."]
-      : OFF.e ? ["No workout target today", "Your coach set no workout for today. Anything you do, you can still log, and your small moves are still here."]
-      : ["No small moves today", "Your coach planned no small moves for today."];
-    return '<div class="mv-rest"><i class="bed" aria-hidden="true"></i><div><b>' + t[0] + '</b><span>' + t[1] + '</span></div></div>';
-  }
   function render() {
-    root.innerHTML = '<div class="sec"><h2>' + (NOPLAN ? "Your day" : "Your move plan") + '</h2></div>' + restHTML() +
+    root.innerHTML = '<div class="sec"><h2>' + (NOPLAN ? "Your day" : "Your move plan") + '</h2></div>' +
       RT.map(card).join("") + stepsHTML();
     stepsDoor();
     if (!window.paintMacros) return;

@@ -1572,6 +1572,7 @@ Yoga for Back Pain -2|P|27|min`;
     }
     else if (x === "cgo") doCopy();
     else if (x === "noff") { var nk = dkey(S.nw, S.nd); if (NOFF[nk]) delete NOFF[nk]; else NOFF[nk] = 1; drawNeat(); drawBar(); }
+    else if (x === "nowalk") { S.nowalk = !S.nowalk; drawSteps(); drawBar(); }
     else if (x === "soff") { var ok = dkey(S.sw, S.sd); if (STEPS[ok] === "off") delete STEPS[ok]; else STEPS[ok] = "off"; drawSteps(); drawBar(); }
     else if (x === "sminus" || x === "splus") {
       var sk = dkey(S.sw, S.sd), v = (parseInt(STEPS[sk], 10) || 0) + (x === "splus" ? 500 : -500);
@@ -1698,6 +1699,7 @@ Yoga for Back Pain -2|P|27|min`;
   function setDays(test) { var n = 0, all = PLAN.length * 7; PLAN.forEach(function (w, wi) { for (var di = 0; di < 7; di++) if (test(dkey(wi, di))) n++; }); return [n, all]; }
   function neatSummary() { var c = setDays(function (k) { return NOFF[k] || neatN(NEAT[k]) > 0; }); return !c[0] ? "None yet" : c[0] === c[1] ? "Set every day" : c[0] + " of " + c[1] + " days"; }
   function stepsSummary() {
+    if (S.nowalk) return "Off, user can’t walk";
     var vals = {}, c = setDays(function (k) { if (STEPS[k]) vals[STEPS[k]] = 1; return !!STEPS[k]; }), u = Object.keys(vals);
     if (!c[0]) return "Not set";
     return c[0] === c[1] && u.length === 1 ? (u[0] === "off" ? "No steps days" : (+u[0]).toLocaleString("en-IN") + " a day") : c[0] + " of " + c[1] + " days";
@@ -1850,7 +1852,16 @@ Yoga for Back Pain -2|P|27|min`;
   function drawSteps() {
     if (S.sw >= PLAN.length) S.sw = 0;
     var v = STEPS[dkey(S.sw, S.sd)] || "";
-    $("step3").innerHTML = '<div class="s-head"><div><h2>Steps goal</h2><p>The daily steps target. Every step the user walks counts toward it, wherever it comes from. Set a day, then copy it ' + (S.cm === "smart" ? "across the plan." : "to another day or week.") + '</p></div></div>' +
+    /* walking off for good, for a permanent disability: one switch for the whole plan, above the days. On, the days go away:
+       the user's Move screen has no Steps tile and no steps card, and Workout and Small moves share the score */
+    var walk = '<div class="advbox"><button class="sw" role="switch" data-x="nowalk" aria-checked="' + !!S.nowalk + '" aria-labelledby="nwT"><span></span></button>' +
+      '<div><b id="nwT">User can&rsquo;t walk</b><small>For a permanent disability. Steps leave their Move screen for good, and their workouts and small moves make up the whole score.</small></div></div>';
+    if (S.nowalk) {
+      $("step3").innerHTML = '<div class="s-head"><div><h2>Steps goal</h2><p>The daily steps target. Every step the user walks counts toward it, wherever it comes from.</p></div></div>' + walk +
+        '<div class="rest">' + ico("accessibility-outline") + '<b>No steps for this user</b><span>Turn the switch off to set a steps goal again.</span></div>';
+      return saveNext("step3");
+    }
+    $("step3").innerHTML = '<div class="s-head"><div><h2>Steps goal</h2><p>The daily steps target. Every step the user walks counts toward it, wherever it comes from. Set a day, then copy it ' + (S.cm === "smart" ? "across the plan." : "to another day or week.") + '</p></div></div>' + walk +
       '<div class="box nbox">' + gridNav("s", S.sw, S.sd, function (wi, di) { var x = STEPS[dkey(wi, di)]; return x ? fmtS(x) : ""; }) +
       '<div class="gbar"><div class="gwhere">' + ico("calendar-clear-outline") + '<b>Week ' + PLAN[S.sw].week_no + ', Day ' + (S.sd + 1) + '</b></div>' + '<span class="sofft">' + (v === "off" ? '<button class="b pink" data-x="soff">' + ico("footsteps-outline") + 'Unmark as No Steps Day</button>' : '<button class="b teal" data-x="soff">' + ico("bed-outline") + 'Mark as No Steps Day</button>') +
       copyBtns("s", !!v) + '</span></div>' +

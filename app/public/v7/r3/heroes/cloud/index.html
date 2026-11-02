@@ -165,6 +165,8 @@
     /* the art's clouds end in a flat white edge, so its foot fades into the plate */
     -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent); mask-image: linear-gradient(to bottom, #000 72%, transparent); }
   .blank.rest .rest-anim { display: block; }
+  /* Move's full rest day keeps its word (Momentum, with the info mark) under the cloud and sun, so the plate still names the score it opens */
+  .blank.rest .score .word { display: inline-flex; margin-top: 4px; }
   .locked .lock { display: block; }
 </style>
 </head>
@@ -570,7 +572,7 @@ const BLANK = EMBED && !LOCK && QS.has('blank');
 if (BLANK) {
   document.documentElement.classList.add('blank');
   /* a full rest day (Move, ?tag=rest): no number to pour, so the plate says so in its middle */
-  if (QS.get('tag') === 'rest') document.documentElement.classList.add('rest');
+  if (QS.get('tag') === 'rest') { document.documentElement.classList.add('rest'); $('restAnim').after(document.querySelector('.score .word')); }
   Object.assign(VARIANTS.find(v => v.name === 'Cloud Drop'), { introSky: ['mist', 'mist'], sky: ['mist', 'cloud'], lift: .72, glow: [.93, .95, .94], glowS: .3, aura: 0 });
 }
 if (LOCK) {
