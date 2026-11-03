@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Steps, every case</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="r3/goodflip-ui.css">
+<style>
+  /* Steps on Move: manual logs beside Apple Health and Health Connect. Questions with options, every case, the platform
+     facts behind them. Live phones are the real /move/index.html with flags, loaded only while on screen. */
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, Arial, sans-serif; letter-spacing: .25px; -webkit-font-smoothing: antialiased; }
+  a { color: var(--brand-700); text-underline-offset: 2px; text-decoration-color: var(--brand-200); }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 56px 24px 96px; }
+  .top { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; font-size: 14px; }
+  .top a { text-decoration: none; font-weight: 500; }
+  h1 { font-weight: 600; font-size: 40px; line-height: 48px; margin: 0 0 12px; }
+  h2 { margin: 64px 0 8px; font-size: 28px; line-height: 36px; font-weight: 600; scroll-margin-top: 24px; }
+  h3 { margin: 32px 0 8px; font-size: 18px; line-height: 26px; font-weight: 600; }
+  p, li { font-size: 15px; line-height: 24px; color: var(--g-700); }
+  .lede { max-width: 820px; margin: 0 0 12px; font-size: 17px; line-height: 28px; color: var(--g-600); }
+  .lede b, p b, li b { color: var(--g-900); font-weight: 600; }
+  .sub { max-width: 820px; color: var(--g-600); margin: 0 0 16px; }
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 24px 0 0; padding: 0; list-style: none; }
+  .toc a { display: inline-block; padding: 6px 12px; border: 1px solid var(--g-200); border-radius: 999px; font-size: 13px; text-decoration: none; color: var(--g-700); }
+  .call { margin: 24px 0; padding: 16px 20px; border-radius: 16px; background: var(--g-50); border: 1px solid var(--g-200); max-width: 900px; }
+  .call.gold { background: var(--gold-50); border-color: var(--gold-200); }
+  .call h4 { margin: 0 0 6px; font-size: 14px; font-weight: 600; letter-spacing: .4px; text-transform: uppercase; color: var(--g-600); }
+  .call ul { margin: 0; padding-left: 20px; }
+  .call li { margin: 4px 0; }
+
+  /* scenario groups */
+  .groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 16px; }
+  .grp { border: 1px solid var(--g-200); border-radius: 16px; padding: 16px 18px; box-shadow: 2px 3px 0 0 rgba(152,162,179,.25); }
+  .grp h4 { margin: 0 0 8px; font-size: 15px; font-weight: 600; }
+  .grp ol { margin: 0; padding-left: 0; list-style: none; }
+  .grp li { font-size: 14px; line-height: 21px; margin: 6px 0; display: flex; gap: 8px; }
+  .id { flex: none; font: 600 11px/20px Roboto, sans-serif; color: var(--g-500); background: var(--g-100); border-radius: 6px; padding: 0 6px; height: 20px; }
+
+  /* facts */
+  .facts { margin: 16px 0 0; padding: 0; list-style: none; counter-reset: f; display: grid; gap: 12px; }
+  .facts li { counter-increment: f; position: relative; padding: 14px 18px 14px 52px; border: 1px solid var(--g-200); border-radius: 14px; margin: 0; }
+  .facts li::before { content: counter(f); position: absolute; left: 16px; top: 14px; width: 24px; height: 24px; border-radius: 50%; background: var(--teal-100); color: var(--teal-800); font: 600 12px/24px Roboto, sans-serif; text-align: center; }
+  .facts .so { display: block; font-size: 13px; color: var(--g-500); margin-top: 4px; }
+  .plat { display: inline-block; font: 600 11px/18px Roboto, sans-serif; padding: 0 6px; border-radius: 6px; margin-right: 6px; vertical-align: 1px; }
+  .plat.ios { background: var(--g-100); color: var(--g-700); }
+  .plat.and { background: var(--ok-50); color: var(--ok-600); }
+  .plat.both { background: var(--teal-100); color: var(--teal-800); }
+
+  /* questions */
+  .q { margin-top: 28px; border: 1px solid var(--g-200); border-radius: 20px; overflow: hidden; box-shadow: 2px 3px 0 0 rgba(152,162,179,.35); }
+  .q > header { padding: 18px 22px; border-bottom: 1px solid var(--g-200); }
+  .q > header h3 { margin: 0; display: flex; gap: 10px; align-items: baseline; }
+  .q > header h3 span { font: 600 12px/16px Roboto, sans-serif; color: var(--g-500); }
+  .q > header p { margin: 6px 0 0; font-size: 14px; color: var(--g-600); max-width: 860px; }
+  .opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0; background: var(--g-50); }
+  .op { padding: 16px 18px; border-right: 1px solid var(--g-200); border-bottom: 1px solid var(--g-200); background: #fff; }
+  .op.rec { background: var(--brand-25, #F6FEF9); box-shadow: inset 0 3px 0 0 var(--brand-400); }
+  .op h5 { margin: 0 0 6px; font-size: 15px; font-weight: 600; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .op h5 i { font-style: normal; font: 600 11px/18px Roboto, sans-serif; padding: 0 7px; border-radius: 6px; background: var(--brand-50); color: var(--brand-800); }
+  .op p { margin: 4px 0 0; font-size: 13.5px; line-height: 20px; }
+  .op .g::before { content: "Gives: "; font-weight: 600; color: var(--ok-600); }
+  .op .c::before { content: "Costs: "; font-weight: 600; color: var(--gold-800); }
+  .why { margin: 0; padding: 14px 22px; font-size: 14px; line-height: 22px; color: var(--brand-800); background: #fff; }
+  .why b { color: var(--brand-800); }
+  .copy { margin: 0; padding: 0 22px 16px; font-size: 13.5px; color: var(--g-600); background: #fff; }
+  .copy q { color: var(--g-900); font-weight: 500; }
+
+  /* cases */
+  .case { margin-top: 20px; border: 1px solid var(--g-200); border-radius: 20px; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .case.nophone { grid-template-columns: minmax(0, 1fr); }
+  .case .info { padding: 18px 22px; }
+  .case h4 { margin: 0 0 4px; font-size: 17px; font-weight: 600; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .case h4 .id { font-size: 11px; }
+  .tag { font: 500 12px/18px Roboto, sans-serif; border-radius: 8px; padding: 1px 8px; color: var(--g-600); background: var(--g-100); }
+  .tag.new { color: var(--gold-800); background: var(--gold-50); }
+  .tag.live { color: var(--brand-800); background: var(--brand-50); }
+  .case dl { margin: 10px 0 0; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 6px 12px; }
+  .case dt { font: 600 12px/21px Roboto, sans-serif; letter-spacing: .4px; text-transform: uppercase; color: var(--g-500); }
+  .case dd { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-700); }
+  .case dd q { color: var(--g-900); font-weight: 500; }
+  .case .ph { background: var(--g-50); border-left: 1px solid var(--g-200); padding: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .case .ph a { font-size: 13px; font-weight: 500; text-decoration: none; }
+  .phone { --z: .62; width: calc(390px * var(--z)); height: calc(844px * var(--z)); border-radius: 22px; overflow: hidden; background: #fff; box-shadow: 0 0 0 1px var(--g-200), 0 18px 40px -20px rgba(16,24,40,.3); }
+  .phone iframe { width: 390px; height: 844px; border: 0; display: block; transform: scale(var(--z)); transform-origin: 0 0; }
+  .gh { margin: 40px 0 0; font-size: 20px; line-height: 28px; font-weight: 600; color: var(--g-800); }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 14px; line-height: 20px; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--g-200); }
+  th { font-size: 12px; letter-spacing: .4px; text-transform: uppercase; color: var(--g-500); font-weight: 600; background: var(--g-50); }
+  td:first-child { font-weight: 600; color: var(--g-900); white-space: nowrap; }
+  .tw { overflow-x: auto; border: 1px solid var(--g-200); border-radius: 14px; }
+  .tw table { margin: 0; }
+  .shots { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .shots a { font-size: 13px; padding: 6px 10px; border: 1px solid var(--g-200); border-radius: 10px; text-decoration: none; }
+  .src { font-size: 13px; line-height: 20px; color: var(--g-600); columns: 2 360px; padding-left: 18px; }
+  .src li { font-size: 13px; line-height: 20px; break-inside: avoid; margin-bottom: 4px; }
+  @media (max-width: 760px) {
+    .wrap { padding: 32px 16px 56px; } h1 { font-size: 30px; line-height: 38px; } h2 { font-size: 24px; line-height: 32px; }
+    .case { grid-template-columns: minmax(0, 1fr); } .case .ph { border-left: 0; border-top: 1px solid var(--g-200); }
+    .case dl { grid-template-columns: minmax(0, 1fr); gap: 0 0; } .case dd { margin-bottom: 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="move-momentum.html">Move doc, every case</a><a href="move-rest-combos.html">Rest day combinations</a><a href="/move/index.html" target="_blank">Open the Move screen</a></div>
+  <h1>Steps, every case</h1>
+  <p class="lede">Today a person can log steps by hand on Move, several times in one go, each at its own time. Their phone may also be sending steps from <b>Apple Health</b> or <b>Health Connect</b>. This page works out what happens when the two meet: can a log be seen, changed or removed, which number counts when both cover the same hour, and what the person, the score and the coach see in every state the connection can be in.</p>
+  <ul class="toc">
+    <li><a href="#problem">The problem</a></li><li><a href="#scenarios">Every scenario</a></li><li><a href="#facts">Platform facts</a></li>
+    <li><a href="#questions">Questions and answers</a></li><li><a href="#cases">Every case</a></li><li><a href="#platforms">Apple Health and Health Connect, case by case</a></li>
+    <li><a href="#others">What others do</a></li><li><a href="#open">Open questions</a></li><li><a href="#sources">Sources</a></li>
+  </ul>
+
+  <h2 id="problem">The problem</h2>
+  <p class="sub">Steps are 25 of the 100 Momentum points, capped at the coach's goal (10,000 by default). Most people will connect their phone and never think about steps again. A smaller group logs by hand because the phone missed real walking: it sat on a desk during a treadmill walk, it was charging, it was in a bag on a pram, or they have no wearable and forget the phone at home. The research backs this up: iPhones undercount by about 900 steps a day for people who almost always carry them and about 3,000 for people who seldom do. A manual log is a correction to a count the phone got wrong, and the screen should treat it as one. That means three things. Logs must be visible and fixable. They must sit beside the phone's count in a way that never double counts by surprise. And the coach must be able to tell the two apart, because self-reported activity runs higher than measured activity.</p>
+  <div class="call">
+    <h4>What the prototype does today</h4>
+    <ul>
+      <li><b>Log steps</b> on the card opens a sheet with rows of <b>Steps</b> and <b>Around</b> (a time). <b>Add another time</b> adds a row, up to 6. Save says <b>Save 2 logs</b> and so on. Up to 5 digits per row (99,999). A time later than now is blocked: <q>That's later than now. Pick a time up to 3:40 PM.</q></li>
+      <li>Each row is <b>added on top of</b> whatever the hour already had. Logging 1,200 and 800 at 3:40 PM over Apple Health's 230 made that bar read <b>2,230 steps, 3 PM to 4 PM, so far</b>, and the total went from 5,080 to 7,080.</li>
+      <li>After a log, the strip still reads <b>From Apple Health, Updated 2 min ago</b>. The card, the bar tip and the strip give no sign that 2,000 of those steps were typed in.</li>
+      <li>A saved log cannot be seen as a log, changed or removed. Tapping a bar shows only the hour's total.</li>
+      <li>With <code>?health=off</code>, connecting adds Health's whole day on top of anything already logged, so a walk logged by hand and also counted by the phone counts twice.</li>
+      <li>Logged workouts already have a menu with <b>Edit</b> and <b>Remove</b> (it says the kcal will leave the score). Step logs have nothing like it yet.</li>
+    </ul>
+  </div>
+
+  <h2 id="scenarios">Every scenario</h2>
+  <p class="sub">Listed before any answer. The ids are used in the cases further down.</p>
+  <div class="groups" id="groups"></div>
+
+  <h2 id="facts">Platform facts that decide the answers</h2>
+  <p class="sub">Checked against Apple's and Google's developer documentation and help pages on 3 Nov 2026. Each answer below leans on these.</p>
+  <ol class="facts" id="facts"></ol>
+
+  <h2 id="questions">Questions and answers</h2>
+  <p class="sub">The three you raised come first: edit, view, and whether a manual log overrides the phone. The rest came up while working through the cases. Each has two to four options, the cost of every one, and one marked Recommended.</p>
+  <div id="qs"></div>
+
+  <h2 id="cases">Every case</h2>
+  <p class="sub">What the person sees on the card, the graph, the sheet and the score, and which rule from the answers above applies. Cases marked <span class="tag live">On screen today</span> carry the real Move screen; the phone scrolls to the steps card on its own. Cases marked <span class="tag new">To build</span> are described in words.</p>
+  <div id="cases-list"></div>
+
+  <h2 id="platforms">Apple Health and Health Connect, case by case</h2>
+  <p class="sub">A plain walk through what each platform does in every situation that touches manual steps, and how much room GoodFlip has in each. Read this part on its own if you only want the platform picture.</p>
+  <div class="tw"><table id="plat"></table></div>
+  <div class="call gold">
+    <h4>How much freedom we have</h4>
+    <ul>
+      <li><b>Fully ours:</b> how logs are shown, edited and removed; how a log combines with the phone's count inside GoodFlip; limits; what counts for the score; what the coach sees.</li>
+      <li><b>Shared with the platform:</b> the phone's own total. We read it through the platform's merge, which already follows the order the person set in the Health app or Health Connect. We can read each source on its own if we ever need to show it.</li>
+      <li><b>Outside our reach:</b> another app's steps. Both platforms let an app delete only what it wrote itself. A wrong count from the phone or a watch can only be fixed in Apple Health or Health Connect, by the person.</li>
+      <li><b>Invisible to us on iPhone:</b> whether reading steps was refused. Apple shows a refused read as no data, so a day of zero steps and a refused permission look the same.</li>
+    </ul>
+  </div>
+
+  <h2 id="others">What others do</h2>
+  <p class="sub">The pattern: apps built around their own device (Samsung Health, Garmin, Whoop, StepsApp, Noom) give no way to type steps. Apps built around logging (Apple Health, Google Fit, Pacer, Lose It!, Fitbit) allow it. Every app that allows it marks the log as manual, and challenge or reward features leave manual steps out.</p>
+  <div class="tw"><table id="apps"></table></div>
+  <h3>Take</h3>
+  <ul>
+    <li>Apple Health's <b>Show All Data</b>: every entry as a row with its time and a Delete. The simplest honest view of what was typed in.</li>
+    <li>Pacer's limit of <b>30,000 steps per entry</b>, and its rule that a team admin can see each person's manual steps. Close to our coach.</li>
+    <li>Apple's order of sources, with manual entries first, tells us people expect a typed correction to be respected.</li>
+    <li>Health Connect's per-entry trash icon and delete by time range: removal is normal and expected.</li>
+  </ul>
+  <h3>Avoid</h3>
+  <ul>
+    <li>Garmin and Noom send people off to another app to add steps. It reads as a dead end for a person who walked without their phone.</li>
+    <li>Pacer has no edit, so a typo means delete and log again. Two steps for a one-digit fix.</li>
+    <li>Whoop's lack of any correction is a standing complaint from treadmill-desk users.</li>
+    <li>Apple Health's priority list asks a person to understand data sources. Our people should never need to.</li>
+  </ul>
+  <h3>Real screens on Mobbin</h3>
+  <div class="shots">
+    <a href="https://mobbin.com/screens/e770296d-ec11-41f6-943b-eec32f86c744" target="_blank">Apple Health, add steps</a>
+    <a href="https://mobbin.com/screens/67e38df3-53c7-4749-8057-04be76d5be6d" target="_blank">Apple Health, All Recorded Data with Delete</a>
+    <a href="https://mobbin.com/screens/f6b67179-bcf8-4b31-aaad-62cc10766de7" target="_blank">Apple Health, Data Sources and Access for Steps</a>
+    <a href="https://mobbin.com/screens/7f25274b-ad40-4686-9bad-1ecda5123680" target="_blank">Apple Health, Steps options</a>
+    <a href="https://mobbin.com/screens/c6701e04-13cd-40ee-825f-e98a516ff86d" target="_blank">Apple Health, steps chart</a>
+    <a href="https://mobbin.com/screens/b076c2e9-f4c8-473a-9f7d-a921920474b2" target="_blank">Google Health (Fitbit), log a walk</a>
+    <a href="https://mobbin.com/screens/757c0c7f-1a02-4d8f-821c-6831f9b5d205" target="_blank">Fitbit, steps by year</a>
+    <a href="https://mobbin.com/screens/64cabc54-7c3c-4995-a644-a4554724815b" target="_blank">Garmin Connect, manual activity</a>
+    <a href="https://mobbin.com/screens/9244907f-a9e2-4675-af0d-cda01148dd74" target="_blank">Garmin Connect, steps</a>
+    <a href="https://mobbin.com/screens/fafd08b1-1bd3-4395-add9-f9e9f59bdbba" target="_blank">Gentler Streak, steps by hour</a>
+    <a href="https://mobbin.com/screens/a267c1a6-7a16-46dc-859d-0c85f3586da0" target="_blank">Strava, add activity</a>
+    <a href="https://mobbin.com/screens/010184b9-da45-49df-a98f-e32722b7d3a6" target="_blank">Whoop, steps trend</a>
+  </div>
+
+  <h2 id="open">Open questions for you</h2>
+  <p class="sub">The calls I could not make from research alone.</p>
+  <div id="oq"></div>
+
+  <div class="call">
+    <h4>Copy rules this page follows</h4>
+    <ul>
+      <li>No em dashes anywhere. Commas, full stops or colons instead.</li>
+      <li>Each line says the true thing plainly, with no contrast pairs and no lists of what something lacks.</li>
+      <li>British and Indian English. KAIRA in capitals. Plain, warm, concrete words. No AI jargon.</li>
+    </ul>
+  </div>
+
+  <h2 id="sources">Sources</h2>
+  <ol class="src" id="src"></ol>
+</div>
+
+<script>
+  /* ---------- scenarios, grouped, before any answer ---------- */
+  var G = [
+    ["Connection", [
+      ["C1", "Never connected. Only hand logs, and the strip asks to connect."],
+      ["C2", "Connected on iPhone, Apple Health sending steps."],
+      ["C3", "Connected on Android, Health Connect sending steps."],
+      ["C4", "Asked, and the person said no to steps."],
+      ["C5", "Partly allowed: workouts yes, steps no (Health Connect can tell; iPhone cannot)."],
+      ["C6", "Was connected, then turned off in Settings or Health Connect."],
+      ["C7", "Connected, but the count is behind: a watch app has not synced yet, or the phone has not woken GoodFlip."],
+      ["C8", "Phone and a watch both counting the same walk."],
+      ["C9", "Connected on a new phone or after reinstalling; older days to bring in."]
+    ]],
+    ["Logging by hand", [
+      ["M1", "One entry for now."],
+      ["M2", "Several entries in one go, each at its own time."],
+      ["M3", "An entry for an hour the phone has already counted."],
+      ["M4", "Two entries for the same hour."],
+      ["M5", "An entry with a time later than now."],
+      ["M6", "A very large number (25,000 in one row)."],
+      ["M7", "A typo (12,000 meant as 1,200)."],
+      ["M8", "Removing an entry."],
+      ["M9", "Changing an entry's number or time."]
+    ]],
+    ["Both at once", [
+      ["B1", "A log and the phone's count in the same hour."],
+      ["B2", "The phone's count for that hour arrives after the log."],
+      ["B3", "The log is larger than what the phone counted then."],
+      ["B4", "The log is smaller than what the phone counted then."],
+      ["B5", "Logs made before connecting, then the person connects."],
+      ["B6", "The person corrects the phone's count inside Apple Health (deletes or adds) after GoodFlip has read it."]
+    ]],
+    ["The day", [
+      ["D1", "Zero steps so far."],
+      ["D2", "Goal reached, and more logs after it."],
+      ["D3", "A past day: viewing it, and logging into it."],
+      ["D4", "No step target today (the coach rested steps)."],
+      ["D5", "Walking off for good (cannot walk)."],
+      ["D6", "Free user, or a member before the coach's plan: no score."],
+      ["D7", "Offline when logging."],
+      ["D8", "Day ends at midnight; travel across time zones."]
+    ]],
+    ["Who looks at it", [
+      ["W1", "The person, on the card and the hour tip."],
+      ["W2", "KAIRA, in the line under the score."],
+      ["W3", "The coach, in the portal."]
+    ]]
+  ];
+  document.getElementById("groups").innerHTML = G.map(function (g) {
+    return '<div class="grp"><h4>' + g[0] + '</h4><ol>' + g[1].map(function (s) { return '<li><span class="id">' + s[0] + '</span><span>' + s[1] + '</span></li>'; }).join("") + '</ol></div>';
+  }).join("");
+
+  /* ---------- platform facts ---------- */
+  var F = [
+    ["both", "<b>Both platforms merge overlapping steps for us.</b> Apple's statistics queries <q>automatically merge the data from all of your data sources</q> before adding up. Health Connect's aggregate call <q>accounts for any duplicate data and keeps only the data from the app with the highest priority</q>. Google tells apps to use aggregate for steps <q>to avoid double counting</q>. Reading raw records and adding them up is how a phone and watch get counted twice.", "[1] [5] [6]"],
+    ["both", "<b>The person sets which source wins.</b> Apple Health: Steps, Data Sources and Access, Edit, drag to reorder. Health Connect: Data sources and priority. In both, the higher source wins where two overlap. Apple's default order puts data entered by hand first, then iPhone and Apple Watch, then other apps.", "[3] [8] Mobbin: Data Sources and Access"],
+    ["both", "<b>An app can delete only what it wrote.</b> Apple: <q>Your app can delete only those objects that it has previously saved</q>. Health Connect works the same way. The person can delete anything in the Health app or Health Connect.", "[4] [7]"],
+    ["ios", "<b>A refused read looks like no data.</b> Apple: <q>your app cannot determine whether or not a user has granted permission to read data</q>; it <q>simply appears as if there is no data</q>. On iPhone we cannot tell a refused permission from a quiet day.", "[2]"],
+    ["and", "<b>Health Connect does tell us.</b> An app can check which permissions are granted, and the person can grant or take back each one at any time. Google tells apps to check every time and handle a lost permission.", "[7]"],
+    ["ios", "<b>Background updates for steps come at most once an hour on iPhone.</b> Apple: <q>on iOS, stepCount samples have an hourly maximum frequency</q>. Opening the screen reads fresh at once.", "[9]"],
+    ["and", "<b>Background reads on Android need their own permission</b>, and history before the first grant is limited to 30 days unless the app asks for history access. Android 14 and later can count steps on the phone itself once any app is allowed to read steps, written about once a minute.", "[6]"],
+    ["both", "<b>Apps can write steps and mark them as typed in.</b> Apple has a <q>was user entered</q> flag on samples. Health Connect requires a recording method on every record, with <b>manual entry</b> as one choice. Google also says data an app read from Health Connect <q>shouldn't be written back</q>.", "[10] [7]"],
+    ["both", "<b>Wheelchair users have their own measure.</b> Apple counts pushes instead of steps when the wheelchair setting is on; Health Connect has a wheelchair pushes record.", "[11] [12]"],
+    ["both", "<b>Watches write to the platform only when their own app syncs.</b> A Fitbit, Garmin or Noise watch shows up in Apple Health or Health Connect after its app has run, so a fresh read can still be missing the last few hours from the wrist. (Behaviour of each watch app varies and was not tested.)", "[7]"]
+  ];
+  var PL = { ios: "iPhone", and: "Android", both: "Both" };
+  document.getElementById("facts").innerHTML = F.map(function (f) {
+    return '<li><span class="plat ' + f[0] + '">' + PL[f[0]] + '</span>' + f[1] + '<span class="so">Source ' + f[2] + '</span></li>';
+  }).join("");
+
+  /* ---------- questions: [id, question, context, options [name, gives, costs, rec], why, copy] ---------- */
+  var Q = [
+    ["Q1", "Should a person be able to change a step log?", "You asked this first. Typos are likely: one extra zero turns 1,200 into 12,000 and fills the goal.",
+      [["Remove only", "One simple action. A wrong number is removed and logged again.", "Two steps to fix a typo. Pacer works this way."],
+       ["Change in place", "Tap a log, the same sheet opens filled in, change the number or the time, Save. Remove sits under it. Matches the Edit and Remove menu logged workouts already have.", "One more sheet state to design and build.", 1],
+       ["Change the hour's total", "One number per hour, easy to picture.", "It would overwrite the phone's count for that hour, which we have no right to change and cannot write back."]],
+      "Change in place. It is the fix people reach for, it mirrors workouts on the same screen, and it only ever touches what the person typed.",
+      'Sheet title <q>Your log</q>; buttons <q>Save</q> and <q>Remove this log</q>.'],
+    ["Q2", "Where does a person see their logs?", "You suggested the graph may already cover viewing. Today a bar shows only the hour's total, so a log disappears into it.",
+      [["Bars only", "Nothing new on screen.", "A log can never be found again, so it can never be fixed."],
+       ["Split tip and a short list", "The hour tip names both parts: <q>2,230 steps. 230 from Apple Health, 2,000 you logged.</q> Under the chart, one quiet row: <q>You logged 2,000 steps today</q>, which opens the list of logs.", "One more row on the card on days with logs. Days without logs look as they do now.", 1],
+       ["A full steps screen", "Every source and every entry, like Apple's Show All Data.", "A whole screen for a small group, and it starts to look like a data tool."]],
+      "The split tip and a short list. The graph stays the view, and the list appears only on days that have logs.",
+      'List rows: <q>1,200 steps, around 3:40 PM</q>.'],
+    ["Q3", "What can be removed?", "Both platforms let an app delete only its own records.",
+      [["Own logs only", "Honest and simple. Steps from the phone are read only, with one line on where to fix them.", "A person with a wrong phone count has to go to Apple Health or Health Connect.", 1],
+       ["Hide the phone's steps inside GoodFlip", "A person can clear phantom steps (a bumpy auto ride) here.", "The coach and the platform disagree, and the score could be raised by hiding nothing and lowered by hiding a lot. Trust drops."],
+       ["Nothing", "No new work.", "Typos stay for good."]],
+      "Own logs only. For the phone's steps, the hour tip carries <q>To change these, open Apple Health</q> (or Health Connect).",
+      ''],
+    ["Q4", "When a log and the phone cover the same hour, which wins?", "Your main question: should a hand log override what the phone sent? Apple's own default puts typed entries first, but Apple's entries have a start and end. Ours have only <b>around</b> a time, so an override has to replace a whole hour.",
+      [["Add on top, with a hint", "Fits the real reason people log: steps the phone missed. Never removes a real counted step. When the hour already has steps, the row says so before Save.", "If a person logs a walk the phone did count, it counts twice. The hint and the visible log reduce this.", 1],
+       ["The log replaces the phone's hour", "Matches Apple's order. One clear rule.", "Logging 1,000 for a walk would wipe 1,240 real steps from the same hour. Logs often go in at the end of the day for earlier hours, and those hours lose steps."],
+       ["Higher of the two", "Never double counts.", "A log smaller than the phone's hour does nothing, and the person sees no change after Save."],
+       ["Let the person choose", "Full control.", "Asks people to understand data sources, which Apple's own list already proves is hard."]],
+      "Add on top, with a hint. A log means steps the phone missed, so it adds. The hint keeps doubles rare without stopping anyone.",
+      'Under a row whose hour has phone steps: <q>Your phone counted 1,240 steps around then. Log only the steps it missed.</q>'],
+    ["Q5", "Do we show where steps came from?", "The strip says From Apple Health even when a third of the day was typed.",
+      [["Strip only", "Calm.", "Wrong as soon as there is a log."],
+       ["Strip plus the logged line", "Strip names the platform; the line under the chart names the logged part; the tip splits the hour.", "Two places carry source.", 1],
+       ["Two colours in every bar", "Visible at a glance.", "A second colour on the chart for a minority case, and colour alone cannot carry meaning for everyone."]],
+      "Strip plus the logged line. If you want the bar split too, use the same indigo at a lighter tint for the logged part, with the tip saying it in words.",
+      ''],
+    ["Q6", "Store steps per hour or per entry?", "This is for the backend, and it decides whether Q1 to Q3 are even possible.",
+      [["Per hour totals", "Smallest.", "A log cannot be found, changed or removed once merged."],
+       ["Per entry, shown per hour", "Each log keeps its own id, number, time and when it was made. The phone's steps are kept as the platform's hourly totals. The chart adds them per hour.", "Two kinds of data to keep.", 1],
+       ["Per entry with a start and end", "Could match the platform's own merge more closely.", "Asks the person for a duration they rarely know."]],
+      "Per entry, shown per hour.", ''],
+    ["Q7", "What limits does logging need?", "Today: 5 digits per row (up to 99,999), 6 rows, no time later than now.",
+      [["Keep today's limits", "Nothing to build.", "A 99,999 typo fills the goal and the coach's view."],
+       ["A ceiling per row and a check above 10,000", "Up to 30,000 per row (Pacer uses the same ceiling). Above 10,000 the row asks once. Later than now stays blocked.", "One extra tap for genuine long walks.", 1],
+       ["A daily cap on logs", "Stops gaming.", "Punishes the honest long-walk day, and steps are already capped at the goal for the score."]],
+      "A ceiling per row and a check above 10,000.",
+      'Above 10,000: <q>That is a long walk. Save 12,000 steps?</q> Above 30,000: <q>Up to 30,000 steps in one log.</q>'],
+    ["Q8", "Does a logged step count the same for the score?", "Steps are 25 points, capped at the goal.",
+      [["The same", "Simple, fair to people with no phone in hand, and the cap at the goal already limits the gain.", "Some will over log. The coach sees it (Q10).", 1],
+       ["Counted at a discount", "Reflects that self-report runs high.", "Feels like being called a liar. Hard to explain."],
+       ["Only when not connected", "Pushes people to connect.", "Exactly the people who need logs (treadmill, phone charging) are connected."]],
+      "The same.", ''],
+    ["Q9", "Do we write logs back to Apple Health or Health Connect?", "Both platforms allow it with a typed-in flag.",
+      [["Keep them in GoodFlip", "No write permission to ask for, no risk of reading our own logs back as phone steps, nothing to undo elsewhere.", "Apple Health and GoodFlip show different totals on days with logs.", 1],
+       ["Write them, marked as typed in", "One total everywhere.", "We must leave our own records out of every read or they count twice; edits and removals must be mirrored; one more permission row."],
+       ["A switch for the person", "Choice.", "Both costs at once, for a setting few will touch."]],
+      "Keep them in GoodFlip for now. Revisit when people ask for one total.", ''],
+    ["Q10", "What does the coach see?", "Self-report runs higher than measured steps; Pacer shows team admins each person's manual steps.",
+      [["Total only", "Simple.", "A coach cannot tell a real 12,000 from a typed one."],
+       ["Total with the logged part", "<q>9,400 steps, 2,000 logged by hand</q>, with the list behind it.", "One more figure in the portal.", 1],
+       ["A flag on unusual days", "Draws attention to likely mistakes.", "Feels like surveillance if shown to the person; needs a rule for unusual."]],
+      "Total with the logged part. The coach can talk about it kindly in the next call.", ''],
+    ["Q11", "Can a person log into a past day?", "Recall of steps fades fast, and Momentum for past days would move.",
+      [["Today only", "Clean score history.", "The person who forgot last night's walk cannot add it."],
+       ["Today and yesterday", "Covers the common case of logging the next morning.", "Yesterday's score can change.", 1],
+       ["Any day back to joining", "Most flexible.", "Old scores keep moving, and memory of steps a week ago is poor."]],
+      "Today and yesterday.", 'Past day banner in the sheet: <q>Logging for yesterday</q>.'],
+    ["Q12", "What happens to logs when a person connects later?", "Today the prototype adds Health's whole day on top, so a walk logged and also counted is doubled.",
+      [["Add Health on top", "No logs lost.", "Doubles are likely on the very first day, the moment we most want trust."],
+       ["Keep logs and say so once", "No logs lost, and the person is told where to remove any the phone also counted.", "One line of copy and a link to the list.", 1],
+       ["Drop logs where Health has steps", "No doubles.", "Removes a person's own entries without asking."]],
+      "Keep logs and say so once.", '<q>Your 2,000 logged steps are still here. If your phone counted the same walk, remove the log.</q>'],
+    ["Q13", "How do we handle zero steps on a connected iPhone?", "On iPhone a refused read and a quiet day look the same.",
+      [["Show zero", "Honest about what we know.", "A person who tapped Don't Allow sits at zero for days, confused."],
+       ["A gentle check after midday", "If a connected iPhone shows zero by noon, the strip offers help.", "Shows sometimes for a real rest day.", 1],
+       ["Ask again every day", "Catches it fast.", "Nags."]],
+      "A gentle check after midday.", 'Strip: <q>No steps yet today. Check that GoodFlip can read Steps in Apple Health.</q>'],
+    ["Q14", "How do we read the phone's steps?", "An engineering rule more than a design one, but it decides double counting with a watch.",
+      [["The platform's merged total", "Phone and watch never double; follows the person's own priority order.", "We lose the source of each step unless we also ask for it.", 1],
+       ["Add raw records", "Every record visible.", "Counts a phone and a watch twice for the same walk."],
+       ["Pick one source", "Simple.", "Drops steps from whichever we did not pick."]],
+      "The platform's merged total, per hour. Ask per source only for the tip if we ever show which device.", ''],
+    ["Q15", "When steps are switched off in Settings, what stays?", "Health Connect tells us; iPhone shows it as zero from then on.",
+      [["Keep what was read", "Past days and scores stay as they were.", "Past steps can no longer be checked against the platform.", 1],
+       ["Remove everything read", "Strict.", "Past scores change for the worse after a settings tap."]],
+      "Keep what was read. From then on, the card behaves as never connected (C1) on Android, and as the zero check (Q13) on iPhone.", '']
+  ];
+  document.getElementById("qs").innerHTML = Q.map(function (q) {
+    return '<section class="q" id="' + q[0] + '"><header><h3><span>' + q[0] + '</span>' + q[1] + '</h3><p>' + q[2] + '</p></header>' +
+      '<div class="opts">' + q[3].map(function (o, i) {
+        return '<div class="op' + (o[3] ? " rec" : "") + '"><h5>' + String.fromCharCode(65 + i) + '. ' + o[0] + (o[3] ? ' <i>Recommended</i>' : "") + '</h5><p class="g">' + o[1] + '</p><p class="c">' + o[2] + '</p></div>';
+      }).join("") + '</div><p class="why"><b>Why:</b> ' + q[4] + '</p>' + (q[5] ? '<p class="copy">Copy: ' + q[5] + '</p>' : "") + '</section>';
+  }).join("");
+
+  /* ---------- cases: [id, title, card, graph, sheet, score, rule, phone flags (absent = to build), what to do once loaded]; a one-item row is a group heading ---------- */
+  var C = [
+    ["Connection"],
+    ["C1", "Never connected", "<q>0 of 10,000 steps</q>, Log steps button, and the strip <q>Connect Apple Health. Your steps count by themselves</q>. KAIRA's card adds a Log steps button beside Log workout.", "Empty bars up to now.", "The Connect sheet opens once on arrival; after that only from the strip.", "Logs count in full (Q8).", "Q8", "health=off"],
+    ["C1", "The Connect sheet", "Sheet <q>Let your phone count your steps</q> with a picture of the permission screen that comes next, and <q>I will log steps manually</q>.", "", "This is the sheet.", "Connecting brings in the day the phone kept; the score moves.", "Q12", "health=off", "health"],
+    ["C2", "Connected, iPhone", "<q>5,080 of 10,000 steps</q>, <q>4,920 more to reach today's goal</q>, strip <q>From Apple Health, Updated 2 min ago</q>.", "Hourly bars from the merged total.", "Log steps opens the rows sheet.", "Steps share of 25 by steps over goal.", "Q14", ""],
+    ["C3", "Connected, Android", "The same card; the strip reads From Health Connect.", "As C2.", "As C2.", "As C2.", "Q14", "os=android"],
+    ["C4", "Said no to steps", "Android: the strip goes back to <q>Turn on Health Connect</q>, as C1. iPhone: we cannot tell, so it looks like C2 at zero until the midday check (Q13).", "Empty, or only logs.", "Unchanged.", "Logs only.", "Q13"],
+    ["C5", "Workouts allowed, steps refused", "Android: strip <q>Steps are off for GoodFlip in Health Connect</q> with a link to change it. iPhone: as C4.", "Only logs.", "Unchanged.", "Logs only.", "Q13"],
+    ["C6", "Turned off later", "As C4 from the moment it is turned off; earlier hours keep what was read.", "Past hours keep their bars.", "Unchanged.", "Nothing already counted is taken away.", "Q15"],
+    ["C7", "Behind (a watch not synced yet)", "Strip keeps the time of our last read. After 3 hours without new steps while the screen is open: <q>Wearing a watch? Open its app to bring in its latest steps.</q>", "Recent hours look low until the watch app syncs, then fill in.", "Unchanged. The row hint (Q4) may show the phone's count as low; that is fine.", "Rises when the steps arrive.", "Q14"],
+    ["C8", "Phone and watch on the same walk", "One total, following the person's order in the Health app or Health Connect.", "One bar per hour from the merged total.", "Unchanged.", "Counted once.", "Q14"],
+    ["C9", "New phone or reinstall", "Android brings back up to 30 days before the first grant; iPhone reads whatever is stored on the phone (backed up with iCloud).", "Past days fill in as read.", "Unchanged.", "Past days' scores can rise.", "Q11 and Q15"],
+    ["Logging by hand"],
+    ["M1", "One log for now", "Total goes up by the log; the logged line appears: <q>You logged 1,200 steps today</q>.", "The current bar grows from where it was; its tip opens.", "One row, Around set to now, Save.", "Counts in full.", "Q4 and Q5", "act=steps"],
+    ["M2", "Several logs at once", "Total and logged line go up by the sum.", "Each touched bar grows.", "Rows with Add another time, up to 6; Save says <q>Save 2 logs</q>. The phone in M1 shows this sheet.", "Counts in full.", "Q6", null],
+    ["M3", "A log for an hour the phone counted", "As M1.", "The bar adds both; the tip splits them: <q>2,230 steps. 230 from Apple Health, 2,000 you logged.</q>", "Under the row: <q>Your phone counted 230 steps around then. Log only the steps it missed.</q>", "Counts in full, added.", "Q4", "act=bar"],
+    ["M4", "Two logs in the same hour", "Two rows in the list.", "One bar; the tip lists the logged part as one figure.", "Allowed.", "Both count.", "Q6"],
+    ["M5", "A time later than now", "", "", "The time wheel says <q>That's later than now. Pick a time up to 3:40 PM.</q> and Set time is off.", "", "Built today"],
+    ["M6", "A very large number", "", "", "Above 10,000: <q>That is a long walk. Save 25,000 steps?</q> Above 30,000 the row stops: <q>Up to 30,000 steps in one log.</q>", "Capped at the goal, as always.", "Q7"],
+    ["M7", "A typo", "The logged line shows the wrong total; tap it to see the list.", "One tall bar.", "Tap the log, change 12,000 to 1,200, Save.", "Drops back at once, quietly. The Momentum line names the change: <q>Your steps changed to 6,280.</q>", "Q1"],
+    ["M8", "Removing a log", "Total and logged line go down; the line goes when no logs are left.", "The bar shrinks to the phone's part.", "<q>Remove this log</q> under Save, then a confirm that says the steps leave the score.", "Recomputed.", "Q1 and Q3"],
+    ["M9", "Changing a log's time", "Unchanged total.", "Steps move from one bar to another.", "The same sheet, Around changed.", "Unchanged, unless it moves into yesterday (Q11).", "Q1"],
+    ["Both at once"],
+    ["B1", "Log and phone in the same hour", "As M3.", "Added, tip split.", "Row hint shows the phone's count.", "Added.", "Q4"],
+    ["B2", "The phone's steps arrive after the log", "Total rises on the next read; the log stays as typed.", "The bar grows again.", "Unchanged.", "Added. If it looks like a double, the person can remove the log.", "Q4"],
+    ["B3", "Log larger than the phone's hour", "As M3.", "Added.", "Row hint shows the smaller phone count.", "Added.", "Q4"],
+    ["B4", "Log smaller than the phone's hour", "As M3.", "Added.", "Row hint shows the larger phone count, which is the moment people notice a double.", "Added.", "Q4"],
+    ["B5", "Logs first, then connect", "After connecting: <q>Your 2,000 logged steps are still here. If your phone counted the same walk, remove the log.</q>", "Phone bars fill in under the logs.", "The list of logs opens from the line.", "Rises with the phone's day; logs stay.", "Q12"],
+    ["B6", "Corrected inside Apple Health", "The next read replaces the phone's part; logs untouched.", "Bars follow the platform.", "Unchanged.", "Follows the new total.", "Q14"],
+    ["The day"],
+    ["D1", "Zero so far", "<q>0 of 10,000 steps</q>, <q>10,000 more to reach today's goal</q>.", "Empty bars up to now.", "Unchanged.", "Steps add nothing yet.", "Q13", "steps=0"],
+    ["D2", "Goal reached", "<q>Goal reached. Every step from here is extra.</q>", "Bars keep growing.", "Logging stays open.", "Steps stay at their full share; logs after the goal add nothing to the score.", "Q8", "day=goal"],
+    ["D3", "A past day", "The card shows that day's total, its logs and its strip.", "All 24 hours.", "Yesterday: logging open with <q>Logging for yesterday</q>. Earlier days: read only.", "Yesterday's score can change.", "Q11"],
+    ["D4", "No step target today", "<q>No target set for today, so your steps don’t count toward your score.</q> Total and Log steps stay.", "Bars as usual.", "Logging open.", "Steps sit out; the other parts share the 100.", "Q8", "off=s"],
+    ["D5", "Cannot walk", "No steps card, no Steps tile, no Log steps button.", "", "", "Steps sit out for good.", "Open question 3", "able=nowalk"],
+    ["D6", "Free user", "<q>Counted by your phone.</q> The total and the bars, with the goal and progress bar left off.", "Bars as usual.", "Logging open.", "No score.", "Q8", "state=free"],
+    ["D7", "Offline", "A log shows at once and is marked as waiting until it reaches the server. Phone steps still read, since the platform store is on the phone.", "Bars update at once.", "Save works offline.", "Moves at once on the phone; the coach sees it after it syncs.", "Q6"],
+    ["D8", "Midnight and time zones", "A log belongs to the day of its local time. Platform records carry their own time zone, so a walk at 11:30 PM stays on that day after a flight.", "", "Around cannot cross midnight.", "Each day scored on its own steps.", "Q6"],
+    ["Who looks at it"],
+    ["W1", "The person", "Card total, logged line, split tip, strip.", "", "", "", "Q2 and Q5", "act=bar"],
+    ["W2", "KAIRA", "KAIRA's line speaks to what changed, for example after a log fills the goal: <q>That walk took you past 10,000.</q> KAIRA never questions whether a log is real.", "", "", "", "Q8"],
+    ["W3", "The coach", "Total per day with the logged part beside it, and the list of logs behind it.", "", "", "", "Q10"]
+  ];
+  document.getElementById("cases-list").innerHTML = C.map(function (c) {
+    if (c.length === 1) return '<h3 class="gh">' + c[0] + '</h3>';
+    var url = c[7] != null ? "/move/index.html" + (c[7] ? "?" + c[7] : "") : null;
+    var built = url || c[7] === null || c[6] === "Built today";   /* null: built today, no phone needed */
+    var row = function (k, v) { return v ? '<dt>' + k + '</dt><dd>' + v + '</dd>' : ""; };
+    return '<section class="case' + (url ? "" : " nophone") + '"><div class="info"><h4><span class="id">' + c[0] + '</span>' + c[1] +
+      ' <span class="tag ' + (built ? "live" : "new") + '">' + (built ? "On screen today" : "To build") + '</span></h4>' +
+      (url && /^(M1|M3|W1)$/.test(c[0]) ? '<p style="margin:4px 0 0;font-size:13px;color:var(--g-500)">The phone shows today’s screen; the split tip and hint are the change.</p>' : "") +
+      '<dl>' + row("Card", c[2]) + row("Graph", c[3]) + row("Sheet", c[4]) + row("Score", c[5]) + row("Rule", c[6] && c[6] !== "Built today" ? c[6].replace(/Q(\d+)/g, '<a href="#Q$1">Q$1</a>') : "") + '</dl></div>' +
+      (url ? '<div class="ph"><div class="phone"><iframe title="' + c[1] + '" data-src="' + url + '"' + (c[8] ? ' data-do="' + c[8] + '"' : "") + '></iframe></div><a href="' + url + '" target="_blank">Open full size</a></div>' : "") + '</section>';
+  }).join("");
+
+  /* ---------- the platforms, case by case ---------- */
+  var P = [
+    ["Case", "Apple Health (iPhone)", "Health Connect (Android)", "What GoodFlip does"],
+    ["Where steps come from", "iPhone motion chip, Apple Watch, other apps, and entries typed into the Health app.", "Phone's own counter (Android 14 and later), Samsung Health, Fitbit, other apps.", "Reads the merged total per hour."],
+    ["Two sources, same time", "Merged; the source higher in Data Sources and Access wins.", "Merged by aggregate; the app higher in Data sources and priority wins.", "Never adds raw records."],
+    ["Person types steps in the platform app", "Health app, Steps, Add Data. Default order puts typed entries first.", "No typing of steps inside Health Connect appears in Google's help.", "Arrives as phone steps. Shown with the platform's name."],
+    ["Person types steps in GoodFlip", "Stays in GoodFlip (Q9).", "Stays in GoodFlip (Q9).", "Added per hour on top of the merged total (Q4)."],
+    ["Person deletes a wrong entry", "Health app, Show All Data, Edit, Delete.", "Health Connect, Steps, See all entries, trash icon; or by app or time range.", "Our logs: Remove in GoodFlip. Platform steps: point to the platform."],
+    ["App deletes another app's steps", "Not allowed.", "Not allowed.", "Never tries."],
+    ["Permission refused", "Invisible: looks like no steps.", "Visible: the app can check.", "Android: Connect strip. iPhone: midday check (Q13)."],
+    ["Some types allowed, steps refused", "Invisible for reads.", "Visible per type.", "Android: a strip naming Steps."],
+    ["Permission taken back later", "Invisible; reads return nothing new.", "Visible; reads fail.", "Keep what was read (Q15)."],
+    ["Freshness", "On open, plus background at most hourly for steps.", "On open; background needs its own permission; the phone counter writes about once a minute.", "Strip shows our last read."],
+    ["History on first connect", "Whatever is on the phone.", "30 days before the first grant, more with history permission.", "Fills past days within those limits."],
+    ["Writing steps", "Allowed with write permission; a typed-in flag exists.", "Allowed with write permission; manual entry recording method.", "Not for now (Q9)."],
+    ["Cannot walk", "Wheelchair setting counts pushes.", "Wheelchair pushes record.", "Open question 3."]
+  ];
+  document.getElementById("plat").innerHTML = '<thead><tr>' + P[0].map(function (h) { return '<th>' + h + '</th>'; }).join("") + '</tr></thead><tbody>' +
+    P.slice(1).map(function (r) { return '<tr>' + r.map(function (d) { return '<td>' + d + '</td>'; }).join("") + '</tr>'; }).join("") + '</tbody>';
+
+  /* ---------- other apps ---------- */
+  var A = [
+    ["App", "Type steps in?", "Change or remove a log", "When both exist", "Source"],
+    ["Apple Health", "Yes, Add Data with date, time, steps.", "Remove in Show All Data.", "Order of sources; typed entries first by default.", "[3] Mobbin"],
+    ["Google Fit", "Yes, as an activity with a steps field.", "Activities can be edited.", "Added to the day. Fit is moving to Google Health during 2026.", "[13] [14]"],
+    ["Samsung Health", "No; workouts only.", "", "Phone, watch, or all steps merged.", "[15]"],
+    ["Fitbit / Google Health", "As an activity (a walk).", "Edit or remove activities.", "Logged steps reportedly left out of badges and challenges.", "[16]"],
+    ["Garmin Connect", "No; activities only, and they add no steps.", "", "Device only.", "[17]"],
+    ["MyFitnessPal", "No; steps from a connected source.", "", "", "[18]"],
+    ["HealthifyMe", "Not confirmed.", "", "Reads Google Fit, Samsung Health, Apple Health.", "[19]"],
+    ["Cult.fit", "Not confirmed.", "", "Reads Google Fit, Apple Health, Fitbit.", "[20]"],
+    ["Noom", "No; add them in Apple Health or Google Fit.", "Only exercise logged in Noom.", "", "[21]"],
+    ["Lose It!", "Yes, from the Log tab.", "Not confirmed.", "", "[22]"],
+    ["StepsApp", "No; add in Apple Health and import.", "", "", "[23]"],
+    ["Pacer", "Yes, up to 30,000 per entry with date, time and duration.", "Remove by swiping; no edit.", "Added to the day; left out of challenges; team admins see manual steps.", "[24] [25]"],
+    ["Oura", "Activities for the last 7 days; steps not confirmed.", "Edit added activities.", "", "[26]"],
+    ["Whoop", "No.", "", "A frequent request from treadmill-desk users.", "[27]"],
+    ["Strava", "No daily steps.", "", "", "[28]"]
+  ];
+  document.getElementById("apps").innerHTML = '<thead><tr>' + A[0].map(function (h) { return '<th>' + h + '</th>'; }).join("") + '</tr></thead><tbody>' +
+    A.slice(1).map(function (r) { return '<tr>' + r.map(function (d) { return '<td>' + (d || "Not offered") + '</td>'; }).join("") + '</tr>'; }).join("") + '</tbody>';
+
+  /* ---------- open questions ---------- */
+  var O = [
+    ["OQ1", "How loud should the hint be when a log lands on an hour the phone already counted?", [
+      ["A line under the row", "Quiet, never blocks.", "Easy to skip.", 1],
+      ["A confirm on Save", "Hard to miss.", "A tap for every honest log over a counted hour."],
+      ["No hint, the split tip only", "Cleanest sheet.", "Doubles found only later, if at all."]], "A line under the row. Logs are rare and mostly honest."],
+    ["OQ2", "Should logs ever count towards rewards such as FlipCoins or medals?", [
+      ["Yes, the same as the score", "One rule everywhere.", "Rewards are where gaming shows up.", 1],
+      ["Score only, rewards from the phone's steps", "Matches Pacer, Fitbit and Garmin.", "Two rules to explain, and people without a phone in hand lose out."]], "Yes, while steps stay capped at the goal and the coach sees the logged part. Revisit if logs grow."],
+    ["OQ3", "For people who cannot walk, should Move read wheelchair pushes?", [
+      ["Keep steps off for good", "What is built today.", "Their movement on a chair is never seen.", 1],
+      ["Read pushes in place of steps", "Both platforms support it.", "A new goal for the coach to set and new copy throughout."]], "Keep steps off for now, and add pushes as its own piece of work with the coach portal."],
+    ["OQ4", "Should we check Q4's choice with real people first?", [
+      ["Ship add on top with the hint", "Fast.", "We learn from support tickets.", 1],
+      ["Test add, replace and higher with five users", "Evidence.", "A week of research."]], "Ship it with the hint and watch the share of logs that land on counted hours."]
+  ];
+  document.getElementById("oq").innerHTML = O.map(function (q) {
+    return '<section class="q"><header><h3><span>' + q[0] + '</span>' + q[1] + '</h3></header><div class="opts">' + q[2].map(function (o, i) {
+      return '<div class="op' + (o[3] ? " rec" : "") + '"><h5>' + String.fromCharCode(65 + i) + '. ' + o[0] + (o[3] ? ' <i>Recommended</i>' : "") + '</h5><p class="g">' + o[1] + '</p><p class="c">' + o[2] + '</p></div>';
+    }).join("") + '</div><p class="why"><b>Why:</b> ' + q[3] + '</p></section>';
+  }).join("");
+
+  /* ---------- sources ---------- */
+  var S = [
+    ["Apple, HKStatistics: queries automatically merge data from all sources", "https://developer.apple.com/documentation/healthkit/hkstatistics"],
+    ["Apple, authorizationStatus(for:): read permission cannot be determined", "https://developer.apple.com/documentation/healthkit/hkhealthstore/authorizationstatus(for:)"],
+    ["Apple Support, Health app data sources, priority and manual entries", "https://support.apple.com/en-us/108779"],
+    ["Apple, HKHealthStore delete: only objects your app saved", "https://developer.apple.com/documentation/healthkit/hkhealthstore/delete(_:withcompletion:)-17hzm"],
+    ["Android, Health Connect aggregate data and app priority", "https://developer.android.com/health-and-fitness/guides/health-connect/develop/aggregate-data"],
+    ["Android, Health Connect read data, background reads, 30 days, on-device steps", "https://developer.android.com/health-and-fitness/guides/health-connect/develop/read-data"],
+    ["Android, Health Connect write data, recording method, do not write back read data, permissions", "https://developer.android.com/health-and-fitness/guides/health-connect/develop/write-data"],
+    ["Android Help, Manage Health Connect data and app priority", "https://support.google.com/android/answer/12990553?hl=en"],
+    ["Apple, enableBackgroundDelivery: steps at most hourly on iOS", "https://developer.apple.com/documentation/healthkit/hkhealthstore/enablebackgrounddelivery(for:frequency:withcompletion:)"],
+    ["Apple, HKMetadataKeyWasUserEntered", "https://developer.apple.com/documentation/healthkit/hkmetadatakeywasuserentered"],
+    ["Apple Support, wheelchair pushes", "https://support.apple.com/en-za/102253"],
+    ["Android, WheelchairPushesRecord", "https://developer.android.com/reference/android/health/connect/datatypes/WheelchairPushesRecord"],
+    ["Google Fit Help, add activity", "https://support.google.com/fit/answer/6223934?hl=en"],
+    ["9to5Google, Google Fit moving to Google Health (May 2026)", "https://9to5google.com/2026/05/07/google-fit-shut-down-health-replacement-migration-tool-coming/"],
+    ["Samsung Community, manual steps", "https://us.community.samsung.com/t5/Galaxy-S23/How-to-manually-enter-steps-on-Samsung-health/td-p/2603595"],
+    ["Fitbit Help, log activities", "https://support.google.com/fitbit/answer/14236402?hl=en"],
+    ["Garmin Forums, adding steps manually", "https://forums.garmin.com/apps-software/mobile-apps-web/f/garmin-connect-web/402348/adding-steps-manually"],
+    ["MyFitnessPal Community, manual step count", "https://community.myfitnesspal.com/en/discussion/10043432/manually-enter-step-count"],
+    ["HealthifyMe Support, activity tracking apps", "https://healthifyme.freshdesk.com/support/solutions/articles/17000087207-activity-tracking-applications"],
+    ["Cult.fit Support, devices", "https://support.cure.fit/support/solutions/articles/25000017889-which-fitness-devices-can-i-sync-with-the-cult-fit-app-"],
+    ["Noom, exercise and steps", "https://www.noom.com/support/faqs/using-the-app/logging-and-tracking/exercise-and-steps/2025/10/how-exercise-and-step-count-affect-your-weight-loss-zone/"],
+    ["Lose It!, steps (secondary source)", "https://djst.org/account-billing/how-to-turn-on-steps-in-lose-it/"],
+    ["StepsApp Support, manual steps", "https://steps.app/support/pedometer/ios/data-and-steps/can-i-manually-add-steps-in-stepsapp"],
+    ["Pacer Help, manually input exercise data", "https://support.mypacer.com/hc/en-us/articles/224713887-Manually-Input-Exercise-Data"],
+    ["Pacer blog, add steps and delete activities", "https://www.mypacer.com/blog/add-steps-delete-activities-guide-ios-android"],
+    ["Oura Help, edit or add an activity", "https://support.ouraring.com/hc/en-us/articles/360025577813-Edit-or-Manually-Add-an-Activity"],
+    ["Whoop Community, manual step correction request", "https://www.community.whoop.com/t/feature-suggestion-manual-step-correction-for-treadmill-walking-activities/14047"],
+    ["Strava, steps (secondary source)", "https://fitro.info/how-to-record-steps-in-strava"],
+    ["JMIR mHealth 2019, iPhone undercount by how often the phone is carried", "https://mhealth.jmir.org/2019/1/e10418/"],
+    ["JAMA 2015, phone apps and wearables step accuracy", "https://media.jamanetwork.com/news-item/smartphone-applications-wearable-devices-appear-to-be-accurate-in-tracking-step-counts/"],
+    ["PLOS One 2025, self-report against pedometer", "https://journals.plos.org/plosone/article?id=10.1371%2Fjournal.pone.0319288"],
+    ["WKU IJESAB, wrist devices undercount when pushing a pram or trolley", "https://digitalcommons.wku.edu/ijesab/vol16/iss1/327"],
+    ["JMIR 2023, a lowered step count changed how active people felt", "https://www.jmir.org/2023/1/e40529"]
+  ];
+  document.getElementById("src").innerHTML = S.map(function (s) { return '<li><a href="' + s[1] + '" target="_blank" rel="noopener">' + s[0] + '</a></li>'; }).join("");
+
+  /* ---------- live phones ---------- */
+  /* the Connect sheet opens by itself once per tab; the doc asks for it only where a case wants it */
+  try { sessionStorage.setItem("mvHealthAsked", "1"); } catch (x) {}
+  function settle(f) {
+    var w; try { w = f.contentWindow; } catch (x) { return; }
+    if (!w || !f.dataset.on) return;
+    if (f.dataset.do === "health") { if (w.openHealth) w.openHealth(); return; }
+    /* cases that open their own sheet or tip leave the scroll alone */
+    if (/act=/.test(f.dataset.src)) return;
+    var el = w.document.querySelector(".mv-steps");
+    if (el) w.scrollTo(0, el.getBoundingClientRect().top + w.scrollY - 140);
+  }
+  /* a phone loads when it comes on screen and unloads when it leaves */
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      var f = e.target;
+      if (e.isIntersecting) { if (!f.dataset.on) { f.dataset.on = 1; f.src = f.dataset.src; f.onload = function () { setTimeout(function () { settle(f); }, 1800); }; } }
+      else if (f.dataset.on) { delete f.dataset.on; f.onload = null; f.src = "about:blank"; }
+    });
+  }, { rootMargin: "100px 0px" });
+  document.querySelectorAll(".phone iframe").forEach(function (f) { io.observe(f); });
+  /* the Move screen's score waits for this handshake before it mounts, as on every Move doc */
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+</script>
+</body>
+</html>

@@ -2860,6 +2860,9 @@ function bestLeft(k) {
 var kairaSay = document.getElementById("kairaSay");
 /* KAIRA's card says one thing, in every case: the line under the score carries the insight, so the card is only the way to log */
 var KSTATIC = window.MVABLE && !window.MVABLE.walk ? "<strong>Did a workout, a swim or a game?</strong> Search and log anything you did." : "<strong>Went for a walk, a swim or a game?</strong> Search and log any workout you did.";
+/* ?klog=Headline|Line under it: tries other words on the log card (v7/move-log-card-copy.html); a headline alone drops the second line */
+(function (k) { if (!k) return; var p = k.split("|"), e = function (t) { return t.replace(/[<>&]/g, ""); };
+  KSTATIC = (p[0] ? "<strong>" + e(p[0]) + "</strong>" : "") + (p[1] ? " " + e(p[1]) : ""); })(new URLSearchParams(location.search).get("klog"));
 /* early in a scored day (1 to 3 meals in), every KAIRA line ends on the same
    ask: the score only grows with logging */
 function nudge(html) {

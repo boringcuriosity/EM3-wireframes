@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log card words</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="r3/goodflip-ui.css">
+<style>
+  /* Words for the log card on Move (the drop with Log workout, under "What shaped your score?").
+     Every window is the real screen, /move/index.html?klog=Headline|Line, slid so the card sits in view. */
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, Arial, sans-serif; letter-spacing: .25px; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 56px 24px 80px; }
+  .top { display: flex; gap: 16px; margin-bottom: 24px; font-size: 14px; }
+  .top a { color: var(--brand-700); text-decoration: none; font-weight: 500; }
+  h1 { font-weight: 600; font-size: 40px; line-height: 48px; margin: 0 0 12px; }
+  h2.sec { margin: 48px 0 8px; font-size: 26px; line-height: 34px; font-weight: 600; }
+  .lede, .body { max-width: 800px; margin: 0 0 12px; font-size: 16px; line-height: 26px; color: var(--g-600); }
+  .lede b, .body b { color: var(--g-900); font-weight: 600; }
+  .call { max-width: 800px; margin: 16px 0 0; padding: 16px 20px; border-radius: 16px; background: var(--g-50); font-size: 15px; line-height: 24px; color: var(--g-700); }
+  .call b { color: var(--g-900); font-weight: 600; }
+  .apps { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; margin-top: 16px; }
+  .app { border: 1px solid var(--g-200); border-radius: 16px; padding: 16px 20px; display: flex; flex-direction: column; gap: 6px; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .app h4 { margin: 0; font-size: 16px; line-height: 24px; color: var(--g-900); font-weight: 600; }
+  .app q { color: var(--g-900); quotes: "\201C" "\201D"; }
+  .app .take { color: var(--brand-800); }
+  .app .skip { color: var(--g-500); }
+  .app a { color: var(--brand-700); text-decoration: none; font-weight: 500; }
+  .picks { max-width: 800px; margin: 16px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 15px; line-height: 24px; color: var(--g-700); }
+  .picks b { color: var(--g-900); font-weight: 600; }
+  .gh { margin: 40px 0 4px; font-size: 20px; line-height: 28px; font-weight: 600; }
+  .gp { margin: 0 0 16px; font-size: 14px; line-height: 21px; color: var(--g-600); max-width: 800px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 430px), 1fr)); gap: 24px; }
+  .opt { border: 1px solid var(--g-200); border-radius: 20px; box-shadow: 2px 3px 0 0 rgba(152,162,179,.35); overflow: hidden; display: flex; flex-direction: column; }
+  .opt.rec { border-color: var(--brand-300); box-shadow: 2px 3px 0 0 var(--brand-100); }
+  .meta { padding: 16px 20px; border-bottom: 1px solid var(--g-200); display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .meta h3 { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; font-size: 15px; line-height: 22px; font-weight: 600; color: var(--g-500); }
+  .tag { font-size: 12px; font-weight: 500; border-radius: 8px; padding: 2px 8px; color: var(--g-600); background: var(--g-100); }
+  .tag.rec { color: var(--brand-800); background: var(--brand-50); }
+  .words { margin: 0; font-size: 17px; line-height: 25px; color: var(--g-900); }
+  .words b { font-weight: 600; }
+  .meta p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .meta p.why { color: var(--brand-800); }
+  .meta p.risk b, .meta p.walk b { color: var(--g-800); font-weight: 600; }
+  .band { background: var(--g-50); padding: 16px 0; display: flex; justify-content: center; }
+  .win { width: 390px; max-width: 100%; height: 190px; overflow: hidden; background: #fff; border-radius: 16px; box-shadow: 0 0 0 1px var(--g-200); }
+  .win iframe { width: 390px; height: 844px; border: 0; display: block; }
+  .ft { padding: 10px 20px; font-size: 13px; }
+  .ft a { color: var(--brand-700); text-decoration: none; font-weight: 500; }
+  @media (max-width: 640px) { .wrap { padding: 32px 16px 56px; } h1 { font-size: 30px; line-height: 38px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="/move/index.html">Move screen</a><a href="/move/index.html?able=nowalk">Move screen, walking off</a></div>
+  <h1>Words for the log card</h1>
+  <p class="lede">The card with the green drop and <b>Log workout</b>, under <b>What shaped your score?</b> on Move. It is where a patient adds movement they did <b>outside the coach&rsquo;s plan</b>: a swim, a cricket match, a yoga class, a dance at a wedding, an hour of housework. The coach&rsquo;s own exercises are ticked on the part-of-day cards below it. Whatever is logged here adds to calories burned and grows Momentum.</p>
+  <p class="body">It is read in a glance, by someone on a care program scrolling past their score. So the words have one job: make them think <b>&ldquo;oh, I did something like that&rdquo;</b> and tap.</p>
+  <div class="call"><b>What is weak about today&rsquo;s words.</b> &ldquo;Went for a walk&rdquo; leads with the one thing that already counts on its own through steps, so it invites double counting. &ldquo;A game&rdquo; could mean a phone game. &ldquo;Search and log any workout you did&rdquo; describes the tool and repeats the button, and nothing says this is for movement <b>beyond the plan</b> or what the patient gets back for it.</div>
+
+  <h2 class="sec">What others do</h2>
+  <p class="body">Fitness and health apps on Mobbin, looking at the words on their way into logging an activity. The pattern: most say very little and lean on the button; the good ones say <b>where this fits</b> and <b>what you get</b>.</p>
+  <div class="apps">
+    <div class="app"><h4>Nike Training Club</h4><span><q>Keep your training on track.</q> <q>Tap the plus to add any activities you do outside the app.</q></span><span class="take">Take: it names the scope, &ldquo;outside the app&rdquo;. Ours is &ldquo;outside your plan&rdquo;.</span><span class="skip">Avoid: &ldquo;Tap the plus&rdquo; describes the control.</span><a href="https://mobbin.com/screens/a7070527-0fcb-41b6-8e93-844a9b37a945" target="_blank">On Mobbin</a></div>
+    <div class="app"><h4>Strava</h4><span><q>Start your streak by logging an activity.</q> next to <q>Record now</q>.</span><span class="take">Take: one sentence that names the payoff, the streak.</span><span class="skip">Avoid: a streak at zero can feel like a telling off.</span><a href="https://mobbin.com/screens/62f94127-14d9-4672-8295-6300296dfc8e" target="_blank">On Mobbin</a></div>
+    <div class="app"><h4>Noom</h4><span><q>Completed movement</q>, an illustration and <q>Log movement</q>. No sentence at all.</span><span class="take">Take: &ldquo;movement&rdquo; is softer and wider than &ldquo;workout&rdquo;.</span><span class="skip">Avoid: with no words, the card relies on the picture to explain itself.</span><a href="https://mobbin.com/screens/2d874e17-f4c9-4fd9-82a3-1eaba50dfe50" target="_blank">On Mobbin</a></div>
+    <div class="app"><h4>Fitbit</h4><span>Group composer asks <q>What are you up to?</q>; the log menu says only <q>Manually log: Activity</q>.</span><span class="take">Take: a light, open question invites anything.</span><span class="skip">Avoid: bare labels like &ldquo;Activity&rdquo; give no reason to tap.</span><a href="https://mobbin.com/screens/fdf8e935-f7cb-4fa3-99b5-bef5c773b7a6" target="_blank">On Mobbin</a></div>
+    <div class="app"><h4>Oura</h4><span><q>Add an activity</q> opens on <q>Recent activities</q>: Running, Cardiovascular exercise, Strength training.</span><span class="take">Take: concrete activity names make it feel quick.</span><span class="skip">Avoid: technical names like &ldquo;Cardiovascular exercise&rdquo;.</span><a href="https://mobbin.com/screens/0dcc2793-8474-480d-8bd8-c7027cac211a" target="_blank">On Mobbin</a></div>
+    <div class="app"><h4>Apple Fitness</h4><span><q>Add an Activity</q> as the title, then Day, Activity Type, Time.</span><span class="take">Take: plain and short.</span><span class="skip">Avoid: a verb that only repeats the button.</span><a href="https://mobbin.com/screens/49167da9-2259-42b2-9592-344c58a60154" target="_blank">On Mobbin</a></div>
+    <div class="app"><h4>Hevy</h4><span><q>Get started</q> over <q>Add an exercise to start your workout</q>, above <q>Add Exercise</q>.</span><span class="take">Take: little.</span><span class="skip">Avoid: the line and the button say the same thing twice, which is today&rsquo;s weakness.</span><a href="https://mobbin.com/screens/a96f5ccd-6682-4358-9402-0ae3a70f3ac9" target="_blank">On Mobbin</a></div>
+    <div class="app"><h4>MyFitnessPal</h4><span><q>Once you&rsquo;ve started adding exercises to your diary, your History list will show a summary...</q></span><span class="take">Take: little.</span><span class="skip">Avoid: talks about the app&rsquo;s lists instead of the person.</span><a href="https://mobbin.com/screens/6742fecb-c4a4-4f84-af58-9e48f3fe058d" target="_blank">On Mobbin</a></div>
+    <div class="app"><h4>Runna</h4><span><q>Take your running to the next level</q> ... <q>Let&rsquo;s log some miles!</q></span><span class="take">Take: warmth.</span><span class="skip">Avoid: hype that promises more than a log can give.</span><a href="https://mobbin.com/screens/e5dac960-024d-4cac-bf26-badcbde49768" target="_blank">On Mobbin</a></div>
+    <div class="app"><h4>Strava and Garmin, the form</h4><span><q>How did that activity feel?</q> <q>How did it go?</q> as hints inside the add form.</span><span class="take">Take: past tense, asked like a friend would.</span><span class="skip">Avoid: questions that ask for feelings the card does not collect.</span><a href="https://mobbin.com/screens/44fcb80e-d3bf-4adb-acb0-222fa06afdcb" target="_blank">On Mobbin</a></div>
+  </div>
+  <div class="call"><b>Patterns.</b> Questions and short statements win; imperatives mostly echo the button. Naming two or three concrete activities beats &ldquo;any workout&rdquo;. One line, under about ten words, is the norm. Few apps say why to bother, which is the gap GoodFlip can fill with Momentum.</div>
+
+  <h2 class="sec">The options</h2>
+  <p class="body">Each window is the real Move screen with those words, moved to the card. <b>Walking off</b> notes whether the words also suit someone who cannot walk (<b>?able=nowalk</b>, which today has its own words: &ldquo;Did a workout, a swim or a game? Search and log anything you did.&rdquo;).</p>
+  <div id="opts"></div>
+
+  <h2 class="sec">The pick</h2>
+  <ul class="picks">
+    <li><b>Recommended, B1:</b> &ldquo;Did more than your plan today?&rdquo; with &ldquo;Yoga, cricket, a swim, even housework. It all adds to your Momentum.&rdquo; It says what the card is for, gives familiar examples, and tells them what they get, in two short lines that suit everyone.</li>
+    <li><b>Runner up, E4:</b> &ldquo;Anything beyond your plan?&rdquo; with &ldquo;Your plan&rsquo;s exercises are ticked below. Add everything else here.&rdquo; The clearest about where each kind of movement goes, at the cost of warmth.</li>
+    <li><b>Runner up, A1:</b> &ldquo;Moved outside your plan today?&rdquo; alone. The shortest way to say the card&rsquo;s purpose, if the card should stay light.</li>
+  </ul>
+</div>
+<script>
+  /* [id, headline, line, why, risk, walking off, mark]; a 2 item array starts a group [title, note] */
+  var O = [
+    ["Today", "The words on the screen now"],
+    ["Now", "Went for a walk, a swim or a game?", "Search and log any workout you did.", "Friendly, and the examples are real.", "Leads with walking, which steps already count. &ldquo;Search and log&rdquo; repeats the button. Nothing says this is for movement beyond the plan.", "Changes to its own words when walking is off.", ""],
+
+    ["A. One headline only", "The shortest. The button finishes the thought."],
+    ["A1", "Moved outside your plan today?", "", "Says the purpose in five words and suits every kind of movement.", "Gives no examples, so a patient who cleaned the house may not think it counts.", "Yes.", "run"],
+    ["A2", "Played cricket, did yoga or danced today?", "", "Concrete and familiar, so the reader recognises their day quickly.", "Three verbs is a lot for one line, and anyone who did something else may pass by.", "Yes.", ""],
+    ["A3", "Housework and dancing count too", "", "A small surprise that widens what people think of as a workout.", "Does not say where they count, so it leans on the button to explain itself.", "Yes.", ""],
+
+    ["B. A headline and a line", "The headline says what the card is for, the line gives examples or the reason."],
+    ["B1", "Did more than your plan today?", "Yoga, cricket, a swim, even housework. It all adds to your Momentum.", "Purpose, examples and payoff in two short lines.", "&ldquo;More than your plan&rdquo; could read as if the plan must be finished first.", "Yes.", "rec"],
+    ["B2", "Your extra movement counts", "Add a walk after dinner, a cricket match or a yoga class.", "Warm, and a walk after dinner is a very Indian everyday picture.", "Walking again overlaps with steps, and &ldquo;Add&rdquo; sits close to the button&rsquo;s own verb.", "No: swap the walk for a swim or chair yoga.", ""],
+    ["B3", "Moved on your own today?", "Cycling, a dance class or badminton. Add it and see the calories you burned.", "&ldquo;On your own&rdquo; quietly separates this from the coach&rsquo;s plan.", "&ldquo;On your own&rdquo; could also read as &ldquo;alone&rdquo;, so a group class may feel left out.", "Yes.", ""],
+
+    ["C. Question style", "Asked the way a friend would ask about your day."],
+    ["C1", "What else got you moving today?", "A walk after dinner, a cricket match, sweeping the house. It all counts.", "Open and warm, and &ldquo;else&rdquo; points past the plan without naming it.", "Longest line in the set, and the walk overlaps with steps.", "No: swap the walk for a swim.", ""],
+    ["C2", "Played a sport or went to the gym?", "Pick it from 700+ activities and add how long you did it.", "Plain, and the line tells them how quick it is.", "Sounds sporty, so housework or a gentle walk may feel too small to add.", "Yes.", ""],
+    ["C3", "Did you move more today?", "Find yours among 700+ activities, from yoga to cricket.", "Short and kind, any amount qualifies.", "&ldquo;More&rdquo; than what is left unsaid.", "Yes.", ""],
+
+    ["D. Statement or invitation", "Says a true thing about the patient&rsquo;s movement, then invites them to add it."],
+    ["D1", "Your own workouts count here", "Add the gym, a swim or a yoga class you did on your own.", "Tells them plainly that their own effort is welcome.", "&ldquo;Workouts&rdquo; can sound like the gym, which narrows what people think of.", "Yes.", ""],
+    ["D2", "Every bit of movement counts", "From a morning walk to evening badminton, pick from 700+ activities.", "Generous, any amount is worth adding.", "A general truth more than a prompt, and the walk overlaps with steps.", "No: swap the walk for yoga.", ""],
+    ["D3", "Workouts outside your plan count too", "Swimming, cricket, dancing or housework. Add them here.", "Very clear on scope, with a wide spread of examples.", "A little formal, and &ldquo;Add them here&rdquo; edges towards repeating the button.", "Yes.", ""],
+
+    ["E. Other angles", "Leading with the payoff, a moment from daily life, or where things go."],
+    ["E1", "Grow your Momentum with any workout", "A swim, a cricket match or a dance class all add to your score.", "Ties the card to the score right above it, the reason to bother.", "Score first can feel like a game to some patients.", "Yes.", ""],
+    ["E2", "Burned calories outside your plan?", "Add the activity and watch your calories burned and Momentum go up.", "Names both things that change after logging.", "&ldquo;Burned calories&rdquo; is an odd thing to ask someone, people remember the activity.", "Yes.", ""],
+    ["E3", "Played with the kids in the park?", "That counts too. Add any activity you did today.", "A real moment, it makes everyday movement feel worth adding.", "Only fits people with children, and it implies running about.", "Partly: it suits fewer people.", ""],
+    ["E4", "Anything beyond your plan?", "Your plan&rsquo;s exercises are ticked below. Add everything else here.", "Ends the &ldquo;where do I log this?&rdquo; doubt for good.", "Instructional, with no warmth or examples.", "Yes.", "run"]
+  ];
+  var esc = function (t) { return t.replace(/&rsquo;/g, "’").replace(/&ldquo;|&rdquo;/g, ""); };
+  var html = "", inGrid = false;
+  O.forEach(function (o) {
+    if (o.length === 2) { if (inGrid) html += "</div>"; html += '<h3 class="gh">' + o[0] + '</h3><p class="gp">' + o[1] + '</p><div class="grid">'; inGrid = true; return; }
+    var q = o[0] === "Now" ? "" : "?klog=" + encodeURIComponent(esc(o[1]) + (o[2] ? "|" + esc(o[2]) : ""));
+    var src = "/move/index.html" + q;
+    var tag = o[6] === "rec" ? ' <span class="tag rec">Recommended</span>' : o[6] === "run" ? ' <span class="tag">Runner up</span>' : "";
+    html += '<section class="opt' + (o[6] === "rec" ? " rec" : "") + '"><div class="meta"><h3>' + (o[0] === "Now" ? "Baseline" : o[0]) + tag + '</h3>' +
+      '<p class="words"><b>' + o[1] + '</b>' + (o[2] ? " " + o[2] : "") + '</p>' +
+      '<p class="why">' + o[3] + '</p><p class="risk"><b>Risk:</b> ' + o[4] + '</p><p class="walk"><b>Walking off:</b> ' + o[5] + '</p></div>' +
+      '<div class="band"><div class="win"><iframe title="' + o[0] + '" data-src="' + src + '"></iframe></div></div><div class="ft"><a href="' + src + '" target="_blank">Open full size</a></div></section>';
+  });
+  document.getElementById("opts").innerHTML = html + "</div>";
+  /* the screen does not scroll inside a frame, so each frame is as tall as the screen and slides up to the log card;
+     the card is the KAIRA box holding the Log workout button, re-measured while the score and cards settle */
+  document.querySelectorAll(".win iframe").forEach(function (f) {
+    f.addEventListener("load", function () {
+      if (!f.dataset.on) return;
+      var n = 0, t = setInterval(function () {
+        try {
+          var d = f.contentDocument, a = d.getElementById("kairaAct"), c = a && a.closest(".kaira");
+          if (c && c.offsetHeight) {
+            var r = c.getBoundingClientRect();
+            f.style.height = d.documentElement.scrollHeight + "px";
+            f.style.marginTop = -Math.max(0, r.top - 16) + "px";
+            f.parentNode.style.height = Math.ceil(r.height + 32) + "px";
+          }
+        } catch (e) { clearInterval(t); }
+        if (++n > 15) clearInterval(t);
+      }, 400);
+    });
+  });
+  /* each screen holds a WebGL score and Chrome keeps about sixteen, so a window loads near the view and empties when it leaves */
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) { var f = e.target.firstChild; if (e.isIntersecting) { if (!f.dataset.on) { f.dataset.on = 1; f.style.marginTop = ""; f.src = f.dataset.src; } } else if (f.dataset.on) { delete f.dataset.on; f.src = "about:blank"; } });
+  }, { rootMargin: "200px 0px" });
+  document.querySelectorAll(".win").forEach(function (w) { io.observe(w); });
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+</script>
+</body>
+</html>

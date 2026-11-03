@@ -288,8 +288,9 @@
         '<div class="dial"><div class="mvd-wheel"><span class="band"></span>' + col("d", DUR, DUR.indexOf(D.min), "Minutes") + '<span class="u">min</span></div></div>' +
         /* the settings card, as GoodFlip's Settings draws it (Figma, ring designs, 3900:7479): icon, label, value, chevron */
         '<div class="mvd-rows">' +
-          (ints(D.w).length > 1 ? row("effort", "row-fire", "Intensity", D.eff < 0 ? "Select" : esc(ints(D.w)[D.eff][0]), D.eff < 0 ? "opt" : "") : "") +
-          '<i class="hr"></i>' + row("time", "time", "Time", fmtT(D.at), late() ? "late" : "") +
+          /* the line under Intensity comes with it: without Intensity, Time opens the card */
+          (ints(D.w).length > 1 ? row("effort", "row-fire", "Intensity", D.eff < 0 ? "Select" : esc(ints(D.w)[D.eff][0]), D.eff < 0 ? "opt" : "") + '<i class="hr"></i>' : "") +
+          row("time", "time", "Time", fmtT(D.at), late() ? "late" : "") +
           '<i class="hr"></i>' + row("date", "date", "Date", fmtD(D.date), "") +
         '</div>' +
         (late() ? '<p class="mvd-note">That time has not come yet today. Pick a time that has passed.</p>' : "") +

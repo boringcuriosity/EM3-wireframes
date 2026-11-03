@@ -108,7 +108,8 @@
     if (!S.extra[r].length) return "";
     /* "also" only beside the coach's workouts; on a card with nothing planned it is simply what was logged */
     return '<div class="mv-xtra"><div class="lab">' + (RT[r].ex.length ? "You also logged" : "You logged") + '</div>' + S.extra[r].map(function (x, i) {
-      return '<div class="mv-xr"><span class="ic"><i style="--src:url(' + (x.ic.indexOf("/") > -1 ? "/v7/icons/move/" + x.ic : "/v7/icons/move/log/" + x.ic + ".svg") + ')"></i></span>' +
+      /* the whole row opens the same sheet as its dots */
+      return '<div class="mv-xr" data-xrm="' + r + '|' + i + '"><span class="ic"><i style="--src:url(' + (x.ic.indexOf("/") > -1 ? "/v7/icons/move/" + x.ic : "/v7/icons/move/log/" + x.ic + ".svg") + ')"></i></span>' +
         '<span class="nm">' + x.name + '<span>' + x.min + ' min · ' + x.kcal + ' kcal</span></span>' +
         '<button class="mv-xrm" data-xrm="' + r + '|' + i + '" aria-label="More for ' + x.name + '">' + IC.dots + '</button></div>';
     }).join("") + '</div>';
