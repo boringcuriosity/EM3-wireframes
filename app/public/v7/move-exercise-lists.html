@@ -72,28 +72,33 @@
 <div class="page">
   <span class="eyebrow">Move · Exercise lists</span>
   <h1>Coach plan exercises and the log list</h1>
-  <p>Both lists the person can move with: what their coach assigns, and what they log themselves by search. Each has one icon and its calories per minute for a 70 kg person, taken from the 2024 Adult Compendium of Physical Activities (kcal per minute = MET × 3.5 × 70 ÷ 200). Duplicates are grouped under one name; nothing is deleted.</p>
-  <p style="margin-top:12px">Intensity is picked by the person when they log, never by the coach. Coach exercises get one only where the Compendium lists the same activity at different efforts: bodyweight sessions (general, high intensity), calisthenics (light, moderate, vigorous), video workouts (moderate, vigorous), HIIT (moderate, vigorous) and aerobic dance (low, high impact). Each level is named by the Compendium’s effort word (or its MET band when it gives none: under 3 light, 3 to 5.9 moderate, 6 and over vigorous). The code the exercise already used is the default. Pilates, yoga, stretching, stairs, punching bag, step-ups and weight training keep one value: their other Compendium codes are a different style, pace or load, not the same activity done harder.</p>
-
-  <p style="margin-top:12px">The Search and log tab is the one list people search when they log a workout: every coach exercise and every log activity, with duplicates removed. A numbered series (Lean muscle development 1 to 6, HIIT 1 to 7) is one entry; “- NAFLD” versions join their twin; a coach exercise with a log activity’s name joins that activity.</p>
   <div class="facts">
-    <div class="fact"><h3>Where these come from</h3>Coach list: the live exercise library, 202 videos (<code>content_master</code>, ExerciseVideo), one row each. Log list: the team sheet “Activity logging - exercise_with_intensity”, 286 names and 373 intensity rows; names that are the same activity are merged into 143, with their intensities kept.</div>
-    <div class="fact warn"><h3>Coach exercises earn 0 kcal today</h3>The library has no MET or calorie field, and the calorie total skips plan logs (MyTatvaCore <code>Goal_readings_model.js</code>, plan logs are excluded). The numbers here would be new.</div>
-    <div class="fact warn"><h3>“Duration” is one rep, not the video</h3>In the library, <code>time_duration</code> is the time one rep takes. The coach portal works out the plan’s Duration as (reps × one rep + rest post set) × sets + rest post exercise. So “Neck Pain stretches, 26 min” means one rep is stored as 5 min: a data error to fix.</div>
-    <div class="fact warn"><h3>The log list uses a fixed number</h3><code>exercise_intensity_rel.cal_per_min</code> is one value per intensity, for 70 kg, with no body weight. The numbers here are updated to the 2024 Compendium, so they replace the sheet’s where they differ.</div>
+    <div class="fact"><h3>The formula</h3>kcal per minute = MET &times; 3.5 &times; body weight in kg &divide; 200. Shown here at 70 kg.</div>
+    <div class="fact"><h3>Sources</h3><a href="https://pacompendium.com/adult-compendium/" target="_blank" rel="noopener">2024 Adult Compendium of Physical Activities</a> for MET; <a href="https://app.goodflip.in/exercise" target="_blank" rel="noopener">the live app&rsquo;s exercise list</a> (Add, 111 names); the team sheet &ldquo;Activity logging - exercise_with_intensity&rdquo; for intensities.</div>
   </div>
 
   <div class="bar">
     <div class="tabs" role="group" aria-label="List"><button data-tab="coach" aria-pressed="true">Coach plan<i id="nc"></i></button><button data-tab="log" aria-pressed="false">Log list<i id="nl"></i></button><button data-tab="combined" aria-pressed="false">Search and log<i id="nx"></i></button></div>
     <input id="q" type="search" placeholder="Search exercises" aria-label="Search exercises">
-    <label><input type="checkbox" id="fl"> Only with flags</label>
+    <label><input type="checkbox" id="fl"> Only with flags (Log list: clean-up suggestions, none applied)</label>
   </div>
   <div class="list" id="list"></div>
 </div>
 <script src="/v7/data/exercise-lists.js?v=11"></script>
+<script src="/v7/data/app-exercises.js"></script>
+<script src="/move/all-exercises.js"></script>
 <script>
 (function () {
   var D = window.EXL, tab = "coach", $ = function (id) { return document.getElementById(id); };
+  /* the Log list is the app's exercise master, verbatim; Search and log is what Move's search really holds (move/all-exercises.js).
+     The earlier clean-up stays only as a suggestion on each app name it touched */
+  var KCAL = function (m) { return m * 3.5 * 70 / 200; }, low = function (t) { return t.toLowerCase().trim(); }, SUG = {}, ICN = {};
+  D.log.forEach(function (x) { [x.n].concat(x.s || []).forEach(function (n) {
+    if (!ICN[low(n)]) ICN[low(n)] = x.ic;
+    if (x.a !== "keep" && !SUG[low(n)] && !(x.a === "merge" && low(n) === low(x.n))) SUG[low(n)] = (x.a === "merge" ? "Could join " + x.n + ". " : x.a === "rename" ? "Could be renamed " + x.n + ". " : "Could be reviewed. ") + (x.r || ""); }); });
+  var APPN = {};
+  D.log = window.APPEX.map(function (a) { APPN[low(a.n)] = 1; return { n: a.n, ic: ICN[low(a.n)], app: a.i, sug: SUG[low(a.n)] || "" }; });
+  D.combined = window.MV_ALL.W.map(function (w) { return { n: w[0], ic: w[1], m: w[2], ints: window.MV_ALL.INT[w[0]] || [], from: APPN[low(w[0])] ? "In the app" : "Coach plan" }; });
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); };
   var ico = function (p) { return p ? '<span class="ico"><i style="--src:url(/v7/icons/move/' + p + ')"></i></span>' : '<span class="ico none">?</span>'; };
   var CONF = { exact: ["ok", "Exact match"], close: ["close", "Close match"], none: ["bad", "No Compendium match"], study: ["ok", "Measured in a study"], "study-close": ["close", "Close to a study"], proxy: ["warn", "Nearest stand-in"] };
@@ -112,40 +117,36 @@
       '<div class="tags"><span class="tag ' + CONF[c.cf][0] + '">' + CONF[c.cf][1] + "</span>" + f + "</div></div>" + kc(c.kc) + "</div>";
   }
   function logRow(e) {
-    var ks = e.i.map(function (x) { return x.kc; }).filter(function (v) { return v != null; }), lo = Math.min.apply(null, ks), hi = Math.max.apply(null, ks);
-    return '<div class="row">' + ico(e.ic) + "<div><div class=\"nm\">" + esc(e.n) + "</div>" +
-      (e.s.length ? '<div class="sub">Merges <em>' + e.s.map(esc).join(", ") + "</em></div>" : "") +
-      (e.a !== "keep" ? '<div class="sub">' + esc(e.r) + "</div>" : "") +
-      '<div class="ints">' + e.i.map(function (x) {
-        return '<div class="int" title="' + esc((x.code || "no code") + " " + (x.act || "") + (x.no ? " · " + x.no : "")) + '"><span>' + esc(x.n) + "</span><span>" + "<b>" + (x.kc != null ? x.kc.toFixed(2) : "–") + "</b></span></div>";
+    var ms = e.app.map(function (x) { return x[1]; }).filter(function (v) { return v != null; }), lo = Math.min.apply(null, ms), hi = Math.max.apply(null, ms);
+    return '<div class="row">' + ico(e.ic) + '<div><div class="nm">' + esc(e.n) + "</div>" +
+      '<div class="ints">' + e.app.map(function (x) {
+        return '<div class="int"><span>' + (x[0] === "NULL" ? "No intensity" : esc(x[0])) + "</span><span>" + (x[1] != null ? x[1] + " MET · <b>" + KCAL(x[1]).toFixed(2) + "</b>" : "<b>–</b>") + "</span></div>";
       }).join("") + "</div>" +
-      '<div class="tags">' + (e.a === "hide" ? '<span class="tag warn">Worth reviewing</span>' : e.a === "merge" ? '<span class="tag close">Merged</span>' : e.a === "rename" ? '<span class="tag close">Renamed</span>' : "") +
-(e.ind ? '<span class="tag ok">Common in India</span>' : "") + "</div></div>" +
-      (ks.length ? '<div class="kc"><b>' + (lo === hi ? lo.toFixed(2) : lo.toFixed(1) + " to " + hi.toFixed(1)) + '</b><span>kcal / min</span></div>' : kc(null)) + "</div>";
+      (e.sug && $("fl").checked ? '<div class="sub">Suggestion only, not applied: ' + esc(e.sug) + "</div>" : "") +
+      '<div class="tags"><span class="tag ok">In the app</span></div></div>' +
+      (ms.length ? '<div class="kc"><b>' + (lo === hi ? KCAL(lo).toFixed(2) : KCAL(lo).toFixed(1) + " to " + KCAL(hi).toFixed(1)) + '</b><span>kcal / min</span></div>' : kc(null)) + "</div>";
   }
-  /* the combined list: what Search and log shows, one row per exercise, with what it combines */
+  /* Search and log, as Move's search holds it: the app's names first-class, coach exercises only where the app has none */
   function combRow(x) {
-    var ks = x.i.length ? x.i.map(function (i) { return i.kc; }) : [x.kc], lo = Math.min.apply(null, ks), hi = Math.max.apply(null, ks);
     return '<div class="row">' + ico(x.ic) + '<div><div class="nm">' + esc(x.n) + "</div>" +
-      (x.src.length ? '<div class="sub">Combines <em>' + x.src.map(esc).join(", ") + "</em></div>" : "") +
-      (x.i.length > 1 ? '<div class="sub">Intensity: ' + x.i.map(function (i) { return esc(i.n) + " " + i.m; }).join(", ") + " MET</div>" : "") +
-      '<div class="tags">' + x.from.map(function (f) { return '<span class="tag ' + (f === "Coach plan" ? "close" : "ok") + '">' + f + "</span>"; }).join("") + "</div></div>" +
-      '<div class="kc"><b>' + (lo === hi ? lo.toFixed(2) : lo.toFixed(1) + " to " + hi.toFixed(1)) + "</b><span>kcal / min</span></div></div>";
+      (x.ints.length ? '<div class="sub">Intensity: ' + x.ints.map(function (i) { return esc(i[0]) + " " + i[1]; }).join(", ") + " MET</div>" : "") +
+      '<div class="tags"><span class="tag ' + (x.from === "Coach plan" ? "close" : "ok") + '">' + x.from + "</span></div></div>" +
+      '<div class="kc"><b>' + KCAL(x.m).toFixed(2) + "</b><span>kcal / min</span></div></div>";
   }
-  function flagged(x) { return tab === "combined" ? x.src.length > 0 : tab === "coach" ? (x.fl && x.fl.length) || x.ti || x.cf === "none" : x.a !== "keep"; }
+  function flagged(x) { return tab === "combined" ? x.from === "Coach plan" : tab === "coach" ? (x.fl && x.fl.length) || x.ti || x.cf === "none" : !!x.sug; }
   function draw() {
     var q = $("q").value.trim().toLowerCase(), only = $("fl").checked, rows = D[tab].filter(function (x) {
-      var hay = (x.n + " " + (x.t || x.s || x.src || []).join(" ")).toLowerCase();
+      var hay = (x.n + " " + (x.t || []).join(" ")).toLowerCase();
       return (!q || hay.indexOf(q) > -1) && (!only || flagged(x));
     }), h = "";
     if (tab === "combined") {
-      h = rows.length ? '<div class="grp">One list, no duplicates · ' + rows.length + "</div>" + rows.map(combRow).join("") : "";
+      h = rows.length ? '<div class="grp">The app&rsquo;s list plus coach exercises it lacks · ' + rows.length + "</div>" + rows.map(combRow).join("") : "";
     } else if (tab === "coach") {
       [["single", "Single exercises"], ["session", "Sessions"]].forEach(function (g) {
         var r = rows.filter(function (c) { return c.k === g[0]; }); if (r.length) h += '<div class="grp">' + g[1] + " · " + r.length + "</div>" + r.map(coachRow).join("");
       });
     } else {
-      if (rows.length) h += '<div class="grp">All activities · ' + rows.length + "</div>" + rows.map(logRow).join("");
+      if (rows.length) h += '<div class="grp">The app&rsquo;s list, as it is · ' + rows.length + "</div>" + rows.map(logRow).join("");
     }
     $("list").innerHTML = h || '<div class="empty">Nothing matches.</div>';
   }

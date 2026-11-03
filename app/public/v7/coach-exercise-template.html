@@ -772,6 +772,49 @@
   .cfrom{margin-left:56px}
 
   @media (prefers-reduced-motion: reduce){.sorting .row,.row.settle,.addr > .b .car{transition:none}.row.moved,.rt.fresh{animation:none}}
+  /* small move suggestions */
+  .pcard .ph{position:relative}
+  .sugtip{margin-left:auto;width:32px;height:32px;display:grid;place-items:center;border:1px solid transparent;border-radius:999px;background:rgb(255 255 255 / .7);color:var(--tink,#667085);cursor:pointer}
+  .sugtip .ic{width:18px;height:18px}
+  .sugtip:hover,.sugtip.on{border-color:currentColor;background:#fff}
+  .sugp{border:1px solid #e4e7ec;border-radius:10px;background:#fff;padding:6px 10px;display:flex;flex-direction:column}
+  .sugh{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#667085;padding:6px 0 4px}
+  .sugi{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid #f2f4f7}
+  .sugi>div{flex:1;min-width:0}.sugi b,.sugrow b{display:block;font-size:13px;font-weight:600;color:#101828}.sugi small,.sugrow small{display:block;font-size:12px;color:#667085;margin-top:2px}
+  .sugmust{font-style:normal;font-size:10px;font-weight:600;color:#2A805A;background:#E6FAF1;border-radius:999px;padding:1px 6px;margin-left:4px;vertical-align:1px}
+  .sugadd{display:inline-flex;align-items:center;gap:4px;height:28px;padding:0 10px;border:1px solid #299D6B;border-radius:999px;background:#fff;color:#2A805A;font:600 12px/1 inherit;cursor:pointer}
+  .sugadd .ic,.sugok .ic{width:14px;height:14px}
+  .sugok{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:#667085}
+  .b.sugbarb{background:#fff;border:1px solid #299D6B;color:#2A805A}
+  .sugm{position:fixed;inset:0;z-index:300;background:rgba(16,24,40,.45);display:grid;place-items:center;padding:24px}
+  .sugbox{width:min(640px,100%);max-height:86vh;display:flex;flex-direction:column;background:#fff;border-radius:16px;box-shadow:0 24px 48px -12px rgba(16,24,40,.25)}
+  .sugtop{display:flex;justify-content:space-between;gap:12px;padding:20px 20px 8px}.sugtop h2{margin:0 0 4px;font-size:18px}.sugtop p{margin:0;font-size:13px;color:#667085}
+  .sugx{width:36px;height:36px;border:0;border-radius:999px;background:#f2f4f7;display:grid;place-items:center;cursor:pointer}.sugx .ic{width:18px;height:18px}
+  .sugbody{overflow:auto;padding:0 20px 8px}
+  .suggrp{margin-top:8px}
+  .sugrow{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid #f2f4f7;cursor:pointer}
+  .sugrow input{width:18px;height:18px;margin:1px 0 0;accent-color:#299D6B;flex:none}
+  .sugrow.had{opacity:.6;cursor:default}
+  .sugfoot{display:flex;justify-content:flex-end;gap:8px;padding:12px 20px 16px;border-top:1px solid #e4e7ec}
+  /* the Copy Basic / Smart switch stays in the code for the docs, out of sight here */
+  .cmtog{display:none}
+  .stepper{position:sticky;padding-top:6px;padding-bottom:6px}
+  .stepper .sitem{padding-top:2px;padding-bottom:2px}
+  .stepper .sn{width:24px;height:24px}
+  .stepper .incrumb{position:absolute;left:18px;top:50%;transform:translateY(-50%);padding:0;font-size:13px;white-space:nowrap}
+  @media (max-width:1100px){.stepper .incrumb{display:none}}
+  /* the top bar (settings, notifications, logout) is hidden here; the page takes its row, the logo keeps the side column */
+  .top{display:none}
+  .main{grid-row:1 / 3;padding:0;background:#fff}
+  /* the editor fills the page edge to edge: no inset, no rounded box */
+  .ed-page > .card{border:0;border-radius:0;box-shadow:none;min-height:100%}
+  .ed-page .stepper{border-radius:0;top:0}
+  .addbox{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 12px;border:1px dashed var(--tbd,#d0d5dd);border-radius:10px;background:#fff;color:var(--primary);font:600 14px/20px inherit;cursor:pointer}
+  .addbox:hover{border-style:solid}
+  .addbox svg{width:20px;height:20px}
+  /* a time of day that already has a routine */
+  .opt.taken{opacity:.45;cursor:not-allowed}
+  .opt.taken i{font-style:normal}
 </style>
 </head>
 <body>
@@ -795,7 +838,6 @@
   <main class="main" id="main">
     <!-- the editor -->
     <div class="ed-page">
-      <div class="crumb"><span data-x="home">Home</span><span>&gt;&gt;</span><span data-x="crumbcancel">Create New Exercise</span><span>&gt;&gt;</span><b>Exercise Template</b></div>
       <div class="card">
         <!-- three steps: the exercise plan, small moves, the steps goal -->
         <nav class="stepper" id="stepper" aria-label="Steps"></nav>
@@ -1295,7 +1337,9 @@ Yoga for Back Pain -2|P|27|min`;
       '<div class="acts">' + (rest ? '<button class="b pr" data-x="addroutine">' + ico("add-circle-outline") + 'Add a Routine</button>'
         : '<div class="addr" data-drop="addr"><button class="b pr" aria-haspopup="listbox">' + ico("add-circle-outline") + 'Add a Routine<span class="car"></span></button><div class="panel">' +
           '<div class="phd">Time of day</div>' +
-          PARTS.map(function (p) { return '<div class="opt" data-addrt="' + p.k + '"><span class="todi t-' + PS[p.k].tone + '">' + ico(PS[p.k].ic) + '</span>' + p.label + ' <i>' + span(p) + '</i></div>'; }).join("") +
+          /* one routine per time of day: a part that already has one is shown, but taken */
+          PARTS.map(function (p) { var used = D.routines.some(function (r) { return r.time === p.k; });
+            return '<div class="opt' + (used ? " taken" : "") + '" data-addrt="' + p.k + '"' + (used ? ' aria-disabled="true"' : "") + '><span class="todi t-' + PS[p.k].tone + '">' + ico(PS[p.k].ic) + '</span>' + p.label + ' <i>' + (used ? "Has a routine" : span(p)) + '</i></div>'; }).join("") +
           '<div class="opt edit" data-x="ptimes">' + ico("time-outline") + 'Edit times</div></div></div>') +
         (rest ? '<button class="b pink" data-x="rest">' + ico("barbell-outline") + 'Unmark as Rest Day</button>' : '<button class="b teal" data-x="rest">' + ico("bed-outline") + 'Mark as Rest Day</button>') +
         '<button class="b red" data-x="clear">' + ico("refresh-outline") + 'Clear all Values</button><span class="grow"></span>' +
@@ -1310,7 +1354,7 @@ Yoga for Back Pain -2|P|27|min`;
       var tp = r.time ? part(r.time) : null;
       h += '<div class="rt"><div class="rthd"><div class="n"><span class="rno">' + r.routine_no + '</span>Routine ' + r.routine_no + '<button class="trash" data-rmroutine="' + ri + '" aria-label="Delete routine"><img src="img/coach/icons/trash.svg" alt=""></button>' +
           '<div class="drop tod' + (tp ? " set" : S.flag ? " miss" : "") + '" data-drop="tod' + ri + '" title="Time of day"><span class="v">' + (tp ? '<span class="todi t-' + PS[r.time].tone + '">' + ico(PS[r.time].ic) + '</span>' + tp.label + ' <i>' + span(tp) + '</i>' : ico("time-outline") + "Set time of day") + '</span><span class="car"></span><div class="panel">' +
-            PARTS.map(function (p) { return '<div class="opt' + (r.time === p.k ? " sel" : "") + '" data-rtime="' + ri + '|' + p.k + '"><span class="todi t-' + PS[p.k].tone + '">' + ico(PS[p.k].ic) + '</span>' + p.label + ' <i>' + span(p) + '</i></div>'; }).join("") +
+            PARTS.map(function (p) { var tk = r.time !== p.k && D.routines.some(function (o) { return o.time === p.k; }); return '<div class="opt' + (r.time === p.k ? " sel" : "") + (tk ? " taken" : "") + '" data-rtime="' + ri + '|' + p.k + '"><span class="todi t-' + PS[p.k].tone + '">' + ico(PS[p.k].ic) + '</span>' + p.label + ' <i>' + span(p) + '</i></div>'; }).join("") +
             '<div class="opt edit" data-x="ptimes">' + ico("time-outline") + 'Edit times</div></div></div></div>' +
         (S.cm === "smart" ? '<button class="cbtn" data-copy="e|r' + ri + '">' + ico("copy-outline") + 'Copy routine</button></div>' :
         '<div class="drop cdrop" data-drop="copyr' + ri + '">' + ico("copy-outline") + '<span class="v">Copy Routine To</span><span class="car"></span><div class="panel">' +
@@ -1447,6 +1491,7 @@ Yoga for Back Pain -2|P|27|min`;
     }
     if ((a = t.closest("[data-addrt]"))) {
       var AD = day(); closeAll();
+      if (AD.routines.some(function (r) { return r.time === a.dataset.addrt; })) { toast(part(a.dataset.addrt).label + " already has a routine. Add exercises to it instead."); return; }
       if (AD.routines.length >= 10) { toast("Maximum 10 routines in a day"); return; }
       var mx = AD.routines.reduce(function (m, r) { return Math.max(m, r.routine_no); }, 0);
       S.routineArr.push(mx + 1);
@@ -1456,7 +1501,9 @@ Yoga for Back Pain -2|P|27|min`;
       if (nr) { nr.classList.add("fresh"); nr.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" }); }
       return;
     }
-    if ((a = t.closest("[data-rtime]"))) { var rt = a.dataset.rtime.split("|"); day().routines[+rt[0]].time = rt[1]; closeAll(); drawDay(); return; }
+    if ((a = t.closest("[data-rtime]"))) { var rt = a.dataset.rtime.split("|"), DR = day();
+      if (DR.routines.some(function (r, j) { return j !== +rt[0] && r.time === rt[1]; })) { closeAll(); toast(part(rt[1]).label + " already has a routine. One routine per time of day."); return; }
+      DR.routines[+rt[0]].time = rt[1]; closeAll(); drawDay(); return; }
     if ((a = t.closest('[data-x="ptimes"]'))) { openTimes(); return; }
     if ((a = t.closest("button.sitem[data-step]")) && !a.disabled) { if (+a.dataset.step < S.step || +a.dataset.step <= S.reached) { if (S.step === 1 && +a.dataset.step > 1 && !checkPlan()) return; goStep(+a.dataset.step); } return; }
     if ((a = t.closest("[data-gweek]"))) { var g = a.dataset.gweek.split("|"); S[g[0] + "w"] = +g[1]; g[0] === "n" ? drawNeat() : drawSteps(); return; }
@@ -1561,7 +1608,6 @@ Yoga for Back Pain -2|P|27|min`;
       }, previewOpts($("pname").value.trim()));
     } else if (x === "pclose") $("pscrim").classList.remove("on");
     else if (x === "psave") saveTimes();
-    else if (x === "nex") { S.nEx = !S.nEx; drawNeat(); }
     else if (x === "nclear") { delete NEAT[dkey(S.nw, S.nd)]; drawNeat(); drawBar(); }
     else if (x === "cclose") $("cscrim").classList.remove("on");
     else if (x === "cm-basic" || x === "cm-smart") {
@@ -1707,7 +1753,8 @@ Yoga for Back Pain -2|P|27|min`;
   var STEP_NAMES = ["Exercise plan", "Small moves", "Steps goal"];
   function drawStepper() {
     var subs = [PLAN.length + (PLAN.length === 1 ? " week" : " weeks"), neatSummary(), stepsSummary()];
-    $("stepper").innerHTML = STEP_NAMES.map(function (n, i) {
+    /* the breadcrumbs ride at the stepper's left, so the page keeps the room a row of its own took */
+    $("stepper").innerHTML = '<div class="crumb incrumb"><span data-x="home">Home</span><span>&gt;&gt;</span><span data-x="crumbcancel">Create New Exercise</span><span>&gt;&gt;</span><b>Exercise Template</b></div>' + STEP_NAMES.map(function (n, i) {
       var k = i + 1, cls = k === S.step ? "now" : k < S.step ? "done" : k <= S.reached ? "open" : "";
       return (i ? '<span class="sline"></span>' : "") + '<button class="sitem ' + cls + '" data-step="' + k + '"' + (k > S.reached ? " disabled" : "") + (k === S.step ? ' aria-current="step"' : "") + '>' +
         '<span class="sn">' + (cls === "done" ? "✓" : k) + '</span><span class="st"><b>' + n + '</b><small>' + subs[i] + '</small></span></button>';
@@ -1775,26 +1822,50 @@ Yoga for Back Pain -2|P|27|min`;
     if (forEdit && !NEAT[k]) NEAT[k] = emptyParts();   /* a day gets its own list the first time something is added */
     return NEAT[k] || EMPTY;
   }
-  /* the four small moves the Move screen already shows, as examples for the coach */
-  var NEX = [
-    { part: "Morning", title: "Take the stairs on your way in", sub: "Two or three floors is enough, and it is the cheapest movement of the day." },
-    { part: "Afternoon", title: "Stand through one meeting", sub: "Long sitting quietly undoes a good lunch. One meeting on your feet breaks it up." },
-    { part: "Evening", title: "Walk for ten minutes after your tea", sub: "A walk after a meal does more than the same walk before it." },
-    { part: "Night", title: "Walk for ten minutes after dinner", sub: "This one settles the meal you just had, and your night starts from there." }
-  ];
   function esc(v) { return String(v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+  /* suggested small moves, from Momentum score, Asks (the deck's small moves table): each in the part of the day its time falls in,
+     anytime and weekend ones in every part. "must" marks the ones suggested as must-haves.
+     ?vsug=bar: one "Select from suggestions" button beside Mark as No Moves Day; otherwise a tip on each part card */
+  var SUGS = [
+    { p: "morning", at: "7:00 AM", t: "Step into the sunlight and stretch", s: "10 min outdoor walk and a 5 min stretch", must: 1 },
+    { p: "morning", at: "9:00 AM", t: "Take the stairs instead of the lift", s: "2 to 3 floors", must: 1 },
+    { p: "morning", at: "10:00 AM", t: "Walk while you take calls", s: "Walk during every call over 5 min", must: 1 },
+    { p: "morning", at: "11:00 AM", t: "Walk to refill your water", s: "Refill every hour at the farthest cooler" },
+    { p: "afternoon", at: "12:00 PM", t: "Take a calf raise break", s: "20 calf raises", must: 1 },
+    { p: "afternoon", at: "1:15 PM", t: "Walk after lunch", s: "10 to 15 min", must: 1 },
+    { p: "afternoon", at: "3:00 PM", t: "Climb a quick flight of stairs", s: "Climb 2 floors up and down" },
+    { p: "evening", at: "4:00 PM", t: "Do wall push-ups", s: "15 against a wall" },
+    { p: "evening", at: "5:00 PM", t: "Do 30 squats", s: "30 bodyweight squats", must: 1 },
+    { p: "evening", at: "6:00 PM", t: "Walk part of your commute", s: "Get off one stop early, or park far" },
+    { p: "night", at: "8:15 PM", t: "Walk after dinner", s: "15 to 20 min", must: 1 },
+    { p: "night", at: "9:00 PM", t: "Move at every ad break", s: "March or stand at every ad break" },
+    { p: "any", at: "Anytime", t: "Move while you wait", s: "Calf raises while the lift, kettle or microwave runs" },
+    { p: "any", at: "Weekend", t: "Go on a family walk", s: "30 to 45 min walk and stairs all day", must: 1 }
+  ];
+  var SUGBAR = new URLSearchParams(location.search).get("vsug") === "bar";
+  function sugFor(pk) { return SUGS.filter(function (x) { return x.p === pk || x.p === "any"; }); }
+  function sugHas(pk, x) { return nList(false)[pk].some(function (m) { return m.title === x.t; }); }
+  function sugAdd(pk, x) { if (!sugHas(pk, x)) nList(true)[pk].push({ title: x.t, sub: x.s }); }
+  function sugItem(pk, x, i) {
+    return '<div class="sugi"><div><b>' + esc(x.t) + '</b><small>' + esc(x.s) + '</small></div>' +
+      (sugHas(pk, x) ? '<span class="sugok">' + ico("checkmark-outline") + 'Added</span>' : '<button class="sugadd" data-sugadd="' + pk + '|' + i + '">' + ico("add") + 'Add</button>') + '</div>';
+  }
+  var PLUSQ = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4.5"/><path d="M12 8.5v7M8.5 12h7"/></svg>';   /* Move's square plus */
   function partsHTML(list) {
     return '<div class="parts">' + PARTS.map(function (p) {
       var rows = list[p.k], st = PS[p.k];
       return '<div class="pcard t-' + st.tone + '"><div class="ph"><span class="picon">' + ico(st.ic) + '</span><div class="pt"><b>' + p.label + '</b><small>' + span(p) + '</small></div>' +
-          (rows.length ? '<span class="pcount" aria-label="' + rows.length + ' small moves">' + rows.length + '</span>' : "") + '</div>' +
+          (rows.length ? '<span class="pcount" aria-label="' + rows.length + ' small moves">' + rows.length + '</span>' : "") +
+          (SUGBAR ? "" : '<button class="sugtip' + (S.sugOpen === p.k ? " on" : "") + '" data-sugtip="' + p.k + '" aria-expanded="' + (S.sugOpen === p.k) + '" aria-label="Suggestions for ' + p.label + '" title="Suggestions">' + ico("bulb-outline") + '</button>') + '</div>' +
+        (!SUGBAR && S.sugOpen === p.k ? '<div class="sugp"><div class="sugh">Suggested for the ' + p.label.toLowerCase() + '</div>' + sugFor(p.k).map(function (x, i) { return sugItem(p.k, x, i); }).join("") + '</div>' : "") +
         (rows.length ? '<div class="mlist">' + rows.map(function (m, i) {
           return '<div class="mcard' + (m.bad ? " bad" : "") + '"><div class="mfields">' +
               '<input class="mname" value="' + esc(m.title) + '" placeholder="Headline" data-mname="' + p.k + '|' + i + '" maxlength="60" aria-label="' + p.label + ' small move ' + (i + 1) + ', headline">' +
               '<textarea class="msub2" rows="1" placeholder="A line on why it helps" data-msub="' + p.k + '|' + i + '" maxlength="140" aria-label="' + p.label + ' small move ' + (i + 1) + ', subtext">' + esc(m.sub) + '</textarea></div>' +
             '<button class="mx2" data-mrm="' + p.k + '|' + i + '" aria-label="Remove ' + (m.title ? esc(m.title) : "this small move") + '" title="Remove">' + ico("trash-outline") + '</button></div>';
-        }).join("") + '</div>' : '<div class="pempty">No small moves yet</div>') +
-        '<button class="addm" data-madd="' + p.k + '">' + ico("add-circle-outline") + 'Add small move</button></div>';
+        }).join("") + '</div>' : "") +
+        /* the dashed box is the way to add, under the moves once there are some, so it never jumps */
+        '<button class="addbox" data-madd="' + p.k + '">' + PLUSQ + 'Add small move</button></div>';
     }).join("") + '</div>';
   }
   /* subtext grows with what is typed, so nothing hides behind a scrollbar */
@@ -1836,12 +1907,11 @@ Yoga for Back Pain -2|P|27|min`;
     if (S.nw >= PLAN.length) S.nw = 0;
     var list = nList(false), n = neatN(NEAT[dkey(S.nw, S.nd)]), off = !!NOFF[dkey(S.nw, S.nd)];
     var h = '<div class="s-head"><div><h2>Small moves</h2><p>Short bits of everyday movement, split across the parts of the day. The user ticks the ones you set here; they cannot add their own. Set a day, then copy it to ' + (S.cm === "smart" ? "as many days or weeks as you like." : "another day or week.") + '</p></div>' +
-        '<button class="linkb" data-x="ptimes">' + ico("time-outline") + 'Edit times</button></div>' +
-      '<div class="exbox' + (S.nEx ? " open" : "") + '"><button class="linkb" data-x="nex" aria-expanded="' + !!S.nEx + '">' + ico("bulb-outline") + (S.nEx ? "Hide examples" : "See examples") + '</button>' +
-        (S.nEx ? '<div class="exlist">' + NEX.map(function (e) { var k = e.part.toLowerCase(); return '<div class="exi t-' + PS[k].tone + '"><span class="exp">' + ico(PS[k].ic) + e.part + '</span><b>' + e.title + '</b><small>' + e.sub + '</small></div>'; }).join("") + '</div>' : "") + '</div>';
+        '<button class="linkb" data-x="ptimes">' + ico("time-outline") + 'Edit times</button></div>';
     h += '<div class="box nbox">' + gridNav("n", S.nw, S.nd, function (wi, di) { if (NOFF[dkey(wi, di)]) return "No small moves"; var c = neatN(NEAT[dkey(wi, di)]); return c ? c + (c === 1 ? " move" : " moves") : ""; }) +
       '<div class="gbar"><div class="gwhere">' + ico("calendar-clear-outline") + '<b>Week ' + PLAN[S.nw].week_no + ', Day ' + (S.nd + 1) + '</b><span>' + (off ? "No small moves" : n ? n + (n === 1 ? " small move" : " small moves") : "Nothing set yet") + '</span></div>' +
         '<span class="sofft">' + (off ? '<button class="b pink" data-x="noff">' + ico("barbell-outline") + 'Unmark as No Moves Day</button>' : '<button class="b teal" data-x="noff">' + ico("bed-outline") + 'Mark as No Moves Day</button>') +
+        (SUGBAR && !off ? '<button class="b sugbarb" data-sugall="1">' + ico("bulb-outline") + 'Select from suggestions</button>' : "") +
         (n && !off ? '<button class="cbtn ghost" data-x="nclear">' + ico("refresh-outline") + 'Clear day</button>' : "") + copyBtns("n", off || n > 0) + '</span></div>' +
       (off ? '<div class="rest">' + ico("bed-outline") + '<b>Day ' + (S.nd + 1) + ' has no small moves</b><span>Small moves won’t count in Momentum this day. Unmark it to plan moves.</span></div>' : partsHTML(list)) + '</div></div>';
     $("step2").innerHTML = h; saveNext("step2");
@@ -2066,6 +2136,34 @@ Yoga for Back Pain -2|P|27|min`;
   drawAssess(); draw();
   var STQ = +new URLSearchParams(location.search).get("step");   /* ?step=2 or 3 opens on Small moves or Steps goal */
   if (STQ > 1) { S.reached = STQ; goStep(STQ); } else goStep(1);
+  /* suggestions: add one from a card's tip, or pick several at once from the bar's sheet */
+  document.addEventListener("click", function (e) {
+    var t = e.target, a;
+    if ((a = t.closest("[data-sugtip]"))) { S.sugOpen = S.sugOpen === a.dataset.sugtip ? "" : a.dataset.sugtip; return drawNeat(); }
+    if ((a = t.closest("[data-sugadd]"))) { var q = a.dataset.sugadd.split("|"), x = sugFor(q[0])[+q[1]]; sugAdd(q[0], x); drawNeat(); drawBar(); return toast(x.t + " added"); }
+    if ((a = t.closest("[data-sugall]"))) return sugSheet();
+    if (t.closest("[data-sugclose]") || t.id === "sugm") return $("sugm").remove();
+    if ((a = t.closest("[data-sugdo]"))) {
+      var n = 0; document.querySelectorAll("#sugm input:checked:not(:disabled)").forEach(function (c) { var q = c.value.split("|"); sugAdd(q[0], sugFor(q[0])[+q[1]]); n++; });
+      $("sugm").remove(); drawNeat(); drawBar(); return toast(n + (n === 1 ? " small move" : " small moves") + " added");
+    }
+  });
+  document.addEventListener("change", function (e) {
+    if (!e.target.closest("#sugm")) return;
+    var n = document.querySelectorAll("#sugm input:checked:not(:disabled)").length, b = document.querySelector("[data-sugdo]");
+    b.disabled = !n; b.textContent = n ? "Add " + n + (n === 1 ? " small move" : " small moves") : "Add small moves";
+  });
+  function sugSheet() {
+    var m = document.createElement("div"); m.id = "sugm"; m.className = "sugm";
+    m.innerHTML = '<div class="sugbox" role="dialog" aria-modal="true" aria-labelledby="sugT"><div class="sugtop"><div><h2 id="sugT">Select from suggestions</h2><p>Week ' + PLAN[S.nw].week_no + ', Day ' + (S.nd + 1) + '. Ticked ones go into their part of the day.</p></div><button class="sugx" data-sugclose aria-label="Close">' + ico("close-outline") + '</button></div>' +
+      '<div class="sugbody">' + PARTS.map(function (p) {
+        return '<div class="suggrp"><div class="sugh">' + p.label + '</div>' + sugFor(p.k).map(function (x, i) {
+          var had = sugHas(p.k, x);
+          return '<label class="sugrow' + (had ? " had" : "") + '"><input type="checkbox" value="' + p.k + '|' + i + '"' + (had ? " checked disabled" : "") + '><span><b>' + esc(x.t) + '</b><small>' + esc(x.s) + (had ? " · already added" : "") + '</small></span></label>';
+        }).join("") + '</div>';
+      }).join("") + '</div><div class="sugfoot"><button class="b ol" data-sugclose>Cancel</button><button class="b pr" data-sugdo disabled>Add small moves</button></div></div>';
+    document.body.appendChild(m);
+  }
 })();
 </script>
 </body>
