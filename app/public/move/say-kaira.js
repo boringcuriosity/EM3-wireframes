@@ -62,6 +62,8 @@
     if (x.k === "steps") return "About " + fmt(x.st) + " more steps reach your goal, worth up to " + up + ".";
     return (x.n > 1 ? x.n + " small moves are" : "One small move is") + " still open, worth up to " + up + ".";
   }
+  /* the weights momentum.js set (45 / 25 / 15 / 15), so these lines never quote an old share */
+  function MW() { return window.MVW || { E: 45, S: 25, N: 15, SP: 15, PARTS: 4 }; }
   window.MVKAIRA = {
     /* tapped after a gain: what was logged, what it added, the rule behind it, then what is still open */
     after: function (a, b, d) {
@@ -86,10 +88,10 @@
       A.push("Your Momentum went up by " + tg("+" + d + "%", "up") + what + table("What it added:", rows));
       /* the rule behind it, once, where it explains the number */
       var open = left(b).filter(function (x) { return x.k === "parts"; })[0];
-      if (newly.length) A.push("Each part of the day you move in adds up to " + tg("+10%", "up") + ", once. So moving a little in every part adds more than one long session.");
-      else if (g[0] && open && got.length) A.push("The " + NAMES[got[0].r] + " had already counted, so only the calories added. The same workout in the " + open.open[0] + " would also have added " + tg("+10%", "up") + ".");
-      else if (g[2]) A.push("Steps add up to " + tg("+10%", "up") + " as you walk toward your goal of " + fmt(b.raw[2][1]) + ".");
-      else if (g[3]) A.push("All your small moves together add up to " + tg("+10%", "up") + ", so each one adds its share.");
+      if (newly.length) A.push("Each part of the day you move in adds up to " + tg("+" + Math.round(MW().SP / MW().PARTS) + "%", "up") + ", once. So moving a little in every part adds more than one long session.");
+      else if (g[0] && open && got.length) A.push("The " + NAMES[got[0].r] + " had already counted, so only the calories added. The same workout in the " + open.open[0] + " would also have added " + tg("+" + Math.round(MW().SP / MW().PARTS) + "%", "up") + ".");
+      else if (g[2]) A.push("Steps add up to " + tg("+" + MW().S + "%", "up") + " as you walk toward your goal of " + fmt(b.raw[2][1]) + ".");
+      else if (g[3]) A.push("All your small moves together add up to " + tg("+" + MW().N + "%", "up") + ", so each one adds its share.");
       A.push(tot(b) >= 100 ? "Anything more you do today is for your body, not your score." : OK + " " + next(b));
       return { q: "My Momentum went up by +" + d + "%. What does that mean?", a: A };
     }
