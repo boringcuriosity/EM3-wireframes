@@ -79,7 +79,9 @@
   /* for the case doc (v7/move-rest-days.html): &log=walk adds a morning walk, as noplan's; &steps=0 is a day with no steps yet */
   var QQ = new URLSearchParams(location.search);
   if (QQ.get("log") === "walk") S.extra[0].push({ name: "Walking", ic: "directions_walk", min: 30, kcal: 129, at: "07:30" });
-  if (QQ.get("steps") === "0") S.steps = {};
+  if (QQ.get("steps") === "0" || ST === "freeempty") S.steps = {};   /* freeempty: nothing yet, steps too */
+  /* each step log kept as its own entry, so the hour's tip can open it again to change or remove (the phone's steps stay as hourly totals) */
+  S.logs = [];
 
   var IC = {
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
@@ -93,6 +95,8 @@
     chev: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>',
     plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
     dots: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>',
+    bin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>',
+    pen: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>',
     x: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>',
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg>'
   };
@@ -126,11 +130,11 @@
   meals.parentNode.insertBefore(root, meals.nextSibling);
 
   function card(rt, r) {
-    var d = S.done[r], bare = !rt.ex.length && !rt.tips.length;
-    /* nothing planned (Night): a plain card, logging from the plus in the corner, and what was logged under it */
+    var d = S.done[r], bare = !rt.ex.length && !rt.tips.length && !S.extra[r].length;
+    /* nothing planned and nothing logged (Night): a plain card, logging from the plus in the corner. Once a workout is
+       logged the card has something in it, so it wears its scene and logs from "Search and log exercise" like the rest */
     if (bare) return '<section class="mv-card"><div class="mv-mh"><div class="t"><div class="n">' + rt.name + '</div><div class="s">' + rt.win + '</div></div>' +
-      '<button class="mv-add" data-x="logworkout" aria-label="Log a workout in the ' + rt.name.toLowerCase() + '">' + IC.plusSq + '</button></div>' +
-      (S.extra[r].length ? '<div class="mv-mbi">' + extras(r) + '</div>' : "") + '</section>';
+      '<button class="mv-add" data-x="logworkout" aria-label="Log a workout in the ' + rt.name.toLowerCase() + '">' + IC.plusSq + '</button></div></section>';
     /* a quiet Gemini scene behind the header, one per part of the day, the way Eat's meal cards carry theirs */
     return '<section class="mv-card scene" style="--scene:url(/v7/icons/move/bg/' + rt.part.toLowerCase() + '.webp?v=16)">' +
       '<div class="mv-mh">' +
@@ -192,6 +196,7 @@
     return '<div class="mv-sync"><span class="src"><i class="hk' + (ANDROID ? " hc" : "") + '"></i>From ' + NAME + '</span>' +
       '<span class="at">' + (ago < 1 ? "Updated just now" : "Updated " + ago + " min ago") + '</span></div>';
   }
+  function logsAt(h) { return S.logs.filter(function (l) { return parseInt(l.at, 10) === h; }); }
   function stepsHTML() {
     if (NOWALK) return "";   /* walking is off for good: no steps card */
     var tot = 0, max = 0;
@@ -203,7 +208,10 @@
       bars += '<button class="mv-b ' + cls + (S.sel === b ? " sel" : "") + '" data-sel="' + b + '" style="--h:' + Math.round(val / top * 100) + '%"' +
         ' aria-label="' + hr(b) + ' to ' + hr(b + 1) + ', ' + fmt(val) + ' steps"><i></i>' +
         /* the tapped hour says its count in a small tip over its bar, held inside the card at the two ends */
-        (S.sel === b ? '<span class="mv-htip' + (b < 4 ? " l" : b > 19 ? " r" : "") + '" role="status"><b>' + fmt(val) + ' steps</b>' + hr(b) + ' to ' + hr(b + 1) + (b === NOW ? ", so far" : "") + '</span>' : "") + '</button>';
+        (S.sel === b ? '<span class="mv-htip' + (b < 4 ? " l" : b > 19 ? " r" : "") + '" role="status"><span><b>' + fmt(val) + ' steps</b>' + hr(b) + ' to ' + hr(b + 1) + (b === NOW ? ", so far" : "") + '</span>' +
+          /* an hour with steps the person logged carries a pencil that opens those logs; the phone's steps are not ours to change */
+          (logsAt(b).length ? '<span class="mv-hedit" data-sedit="' + b + '" role="button" aria-label="Edit the steps you logged">' + IC.pen + '</span>' +
+            '<span class="mv-hedit rm" data-sdel="' + b + '" role="button" aria-label="Remove the steps you logged">' + IC.bin + '</span>' : "") + '</span>' : "") + '</button>';
     }
     /* no step target today: the phone still counts and the user can still log, so the card stays whole, with no goal and no bar */
     if (OFF.s) return '<section class="mv-steps"><div class="sec"><h2>Your steps</h2></div><div class="mv-sc">' +
@@ -312,17 +320,20 @@
      evening one go in together; Save logs every row with steps in it, each into its own hour */
   var draft = null;
   function filled() { return draft.rows.filter(function (r) { return +r.n > 0; }).length; }
-  function saveLabel() { var k = filled(); return k > 1 ? "Save " + k + " logs" : "Save"; }
+  function saveLabel() { var k = filled(); return draft.edit == null && k > 1 ? "Save " + k + " logs" : "Save"; }
+  function canSave() { return draft.edit != null || filled(); }   /* editing may remove every log, so Save stays on */
   function stepsSheet(keep) {
     if (!keep) draft = { rows: [{ n: "", at: NOWT }], pick: 0 };
-    var el = window.GFOpenSheet("mvSteps", "Log steps",
+    var ED = draft.edit != null;
+    var el = window.GFOpenSheet("mvSteps", ED ? (draft.rows.length > 1 ? "Your logs" : "Your log") : "Log steps",
+      (ED ? '<p class="mv-snote">Steps from ' + (ANDROID ? "Health Connect" : "Apple Health") + ' in this hour stay as they are.</p>' : "") +
       '<div class="mv-row2 mv-heads"><span class="mv-fl">Steps</span><span class="mv-fl">Around</span><span></span></div>' +
       '<div class="mv-srows">' + draft.rows.map(function (r, i) {
         return '<div class="mv-row2 mv-srow' + (keep === "new" && i === draft.rows.length - 1 ? " new" : "") + '"><input class="mv-in" data-row="' + i + '"' + (i ? "" : ' id="mvN"') + ' inputmode="numeric" placeholder="0" autocomplete="off" aria-label="Steps" value="' + r.n + '">' +
-          timeBtn("steps|" + i, r.at) + (i ? '<button class="mv-srm" data-srm="' + i + '" aria-label="Remove this time">' + IC.x + "</button>" : "<span></span>") + "</div>";
+          timeBtn("steps|" + i, r.at) + (i || ED ? '<button class="mv-srm" data-srm="' + i + '" aria-label="' + (ED ? "Remove this log" : "Remove this time") + '">' + IC.x + "</button>" : "<span></span>") + "</div>";
       }).join("") + "</div>" +
-      (draft.rows.length < 6 ? '<button class="mv-addrow" data-addrow>' + IC.plusSq + "Add another time</button>" : "") +
-      '<button class="ok" data-save' + (filled() ? "" : " disabled") + ">" + saveLabel() + "</button>");
+      (!ED && draft.rows.length < 6 ? '<button class="mv-addrow" data-addrow>' + IC.plusSq + "Add another time</button>" : "") +
+      '<button class="ok" data-save' + (canSave() ? "" : " disabled") + ">" + saveLabel() + "</button>");
     el.setAttribute("data-kb-lift", "");   /* the phone frame's keyboard pushes the sheet up, so the field and Save stay in view */
     var f = el.querySelector('[data-row="' + (keep === "new" ? draft.rows.length - 1 : 0) + '"]');
     if (!keep || keep === "new") setTimeout(function () { f.focus(); }, keep ? 60 : 320);
@@ -405,7 +416,7 @@
   }
 
   document.addEventListener("click", function (ev) {
-    var t = ev.target.closest("[data-xrm],[data-burn],[data-tick],[data-tip],[data-sel],[data-log],[data-vid],[data-feel],[data-done],[data-undo],[data-save],[data-pick],[data-settime],[data-addrow],[data-srm],.mv-wi");
+    var t = ev.target.closest("[data-xrm],[data-burn],[data-tick],[data-tip],[data-sel],[data-log],[data-vid],[data-feel],[data-done],[data-undo],[data-save],[data-pick],[data-settime],[data-addrow],[data-srm],[data-sedit],[data-sdel],.mv-wi");
     if (!t || !(root.contains(t) || t.closest("#mvFeel,#mvSteps,#mvTime"))) return;
     var a = t.dataset;
     if (t.classList.contains("mv-wi")) { var c = t.parentNode; return c.scrollTo({ top: +a.i * ROW, behavior: "smooth" }); }
@@ -420,6 +431,19 @@
       draft.rows[draft.pick].at = v; return stepsSheet(true);
     }
     if ("addrow" in a) { keepRows(); var last = draft.rows[draft.rows.length - 1].at; draft.rows.push({ n: "", at: last }); return stepsSheet("new"); }
+    /* the tip's bin: asks first, as removing a workout does, then the hour's logs come off and the phone's steps stay */
+    if (a.sdel) {
+      var dh = +a.sdel, gone = logsAt(dh), dn = gone.reduce(function (t, l) { return t + l.n; }, 0);
+      return window.MVTRAY && window.MVTRAY.confirm(fmt(dn) + " steps you logged", "They come off today's steps" + (NOPLAN ? "." : ", and your Momentum score updates.") + " Steps from " + (ANDROID ? "Health Connect" : "Apple Health") + " stay as they are.",
+        [gone.length > 1 ? "Remove these logs?" : "Remove this log?", "Remove", "Keep it", IC.bin], function () {
+          gone.forEach(function (l) { S.steps[dh] = Math.max(0, (S.steps[dh] || 0) - l.n); S.logs.splice(S.logs.indexOf(l), 1); });
+        });
+    }
+    if (a.sedit) {
+      var eh = +a.sedit, mine = logsAt(eh);
+      draft = { rows: mine.map(function (l) { return { n: String(l.n), at: l.at }; }), pick: 0, edit: eh, was: mine };
+      return stepsSheet(true);
+    }
     if (a.srm) { keepRows(); draft.rows.splice(+a.srm, 1); return stepsSheet(true); }
     if (a.tick) { var p = a.tick.split("|"); return feelSheet(+p[0], p[1]); }
     if (a.burn) return burnSheet(+a.burn);
@@ -461,11 +485,14 @@
     else if ("save" in a) {
       keepRows();
       var top = Math.max.apply(null, Object.keys(S.steps).map(function (k) { return S.steps[k]; }).concat(1000)), grew = {};
+      /* editing: the hour's old logs come out first, then the rows go back in as logs */
+      if (draft.was) draft.was.forEach(function (l) { var h = parseInt(l.at, 10); S.steps[h] = Math.max(0, (S.steps[h] || 0) - l.n); S.logs.splice(S.logs.indexOf(l), 1); });
       draft.rows.forEach(function (r) {
         var n = +r.n; if (!n) return;
         var at = Math.min(NOW, Math.max(0, parseInt(r.at, 10) || NOW));
         if (!(at in grew)) grew[at] = S.steps[at] || 0;
         S.steps[at] = (S.steps[at] || 0) + n; S.sel = at;
+        S.logs.push({ n: n, at: at === parseInt(r.at, 10) ? r.at : pad(at) + ":00" });
       });
       window.closeSheets(); render();
       /* each bar that got steps grows from where it was */
@@ -483,7 +510,7 @@
     if (!ev.target.closest || !ev.target.closest("#mvSteps [data-row]")) return;
     ev.target.value = ev.target.value.replace(/[^0-9]/g, "").replace(/^0+/, "").slice(0, 5);
     keepRows();
-    var b = document.querySelector("#mvSteps [data-save]"); b.disabled = !filled(); b.textContent = saveLabel();
+    var b = document.querySelector("#mvSteps [data-save]"); b.disabled = !canSave(); b.textContent = saveLabel();
   });
 
   /* for /move/player.js: the same plan, ticks and tick sheet */

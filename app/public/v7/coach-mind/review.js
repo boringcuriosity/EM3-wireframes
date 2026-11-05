@@ -46,7 +46,7 @@
     var d = Math.round((new Date(plan.end + "T00:00") - new Date(plan.start + "T00:00")) / 864e5) + 1;
     if (!(d > 0)) return "";
     var w = Math.floor(d / 7), r = d % 7;
-    return w ? plural(w, "week", "weeks") + (r ? " " + plural(r, "day", "days") : "") : plural(d, "day", "days");
+    return w && !r ? plural(w, "week", "weeks") : plural(d, "day", "days");   /* whole weeks read as weeks, anything else as days: 15 days */
   }
   function hoursText(h) { return (h % 1 ? h : h + "") + " hours"; }
   function minsText(m) { return m >= 60 && m % 60 === 0 ? plural(m / 60, "hour", "hours") : m + " min"; }
@@ -90,12 +90,12 @@
     }).join("") + '</ul>' : empty("No breathing exercise yet.", ctx, "selfcare", "Add Breathing");
     var meBody = me.length ? '<ul class="rv-list">' + me.map(function (m) { return '<li><span class="rv-lt">' + esc(m.label) + '</span><span class="rv-each">' + t12(m.at) + ', 10 pts</span></li>'; }).join("") + '</ul>' : empty("No me-time activity yet.", ctx, "selfcare", "Choose One");
     var mo = r.mood.checks;
-    var moBody = '<ul class="rv-list">' + mo.map(function (c, i) { return '<li><span class="rv-lt">' + (i ? "Second check-in" : "Check-in") + '</span><span class="rv-each">' + t12(c.at) + ', ' + pts(10, mo.length) + ' pts</span></li>'; }).join("") + '</ul>';
+    var moBody = '<ul class="rv-list">' + mo.map(function (c, i) { return '<li><span class="rv-lt">' + ((function (h) { return h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening"; })(+c.at.slice(0, 2)) + " check-in") + '</span><span class="rv-each">' + t12(c.at) + ', ' + pts(10, mo.length) + ' pts</span></li>'; }).join("") + '</ul>';
     return '<section class="rv-card rv-rhythm"><div class="rv-ch"><div><h3 class="rv-h">Rhythm, scored out of 100</h3>' +
       '<p class="rv-hs">This makes ' + (ctx.mode === "template" ? "the patient's" : esc(MP.PATIENT.name) + "'s") + ' Mind score each day. The points are fixed.</p></div></div>' +
       '<div class="rv-half rv-in"><div class="rv-hh"><span class="rv-hn">Sleep</span><span class="rv-hp">70 points</span>' + edit(ctx, "sleep", "sleep") + '</div>' +
-        line("hours", hoursText(r.hours) + " a night") +
-        line("window", t12(r.bedtime) + " bedtime to " + t12(r.wake) + " wake", '<div class="rv-ls">The standard for everyone: full marks within 30 minutes of each time, fewer until 2 hours off.</div>') +
+        line("hours", r.second ? hoursText(r.hours + r.second.hours) + " a day, in two windows" : hoursText(r.hours) + " a night") +
+        line("window", t12(r.bedtime) + " bedtime to " + t12(r.wake) + " wake" + (r.second ? ", and " + t12(r.second.bedtime) + " to " + t12(r.second.wake) : ""), '<div class="rv-ls">The standard for everyone: full marks within 30 minutes of each time, fewer until 2 hours off.</div>') +
         line("winddown", wd.length ? (wd.length === 1 ? "1 task, it earns all 23" : wd.length + " tasks, each earns its share") : "", wdBody) +
       '</div>' +
       '<div class="rv-half rv-sc"><div class="rv-hh"><span class="rv-hn">Self-care</span><span class="rv-hp">30 points</span>' + edit(ctx, "selfcare", "self-care") + '</div>' +
@@ -144,32 +144,40 @@
       '<div class="rv-pcb">' + (rows.length ? rows.map(function (r) { return r.html; }).join("") : '<div class="rv-pe">' + emptyText + '</div>') + '</div></section>';
   }
 
-  /* the real Mind screen (mind/screen.html, Parts of the day), filled with this plan: tap, log and watch the Rhythm score move */
+  /* the latest Mind screen (v7/mind/index.html, Parts of the day, practices in the bottom nav), with What shaped your score? hidden (tiles=0), filled with this plan: tap, log and watch the Rhythm score move */
   function phone(plan, ctx) {
     var who = ctx.mode === "template" ? "the patient" : esc(MP.PATIENT.name);
     var one = function (layout, name) {
-      return '<figure class="rv-fig"><div class="rv-phone"><iframe class="rv-app" title="The Mind screen with this plan, ' + name + '" src="/mind/screen.html?coach=1&layout=' + layout + '&day=start&now=15&tiles=0&t=' + Date.now() + '"></iframe></div></figure>';
+      return '<figure class="rv-fig"><div class="rv-phone"><div class="rv-scale"><iframe class="rv-app" title="The Mind screen with this plan, ' + name + '" src="/v7/mind/index.html?coach=1&layout=' + layout + '&day=start&sstate=none&now=15&tiles=0&t=' + Date.now() + '"></iframe></div></div></figure>';
     };
     return '<aside class="rv-side" aria-label="Preview of the app"><div class="rv-cap rv-sidecap">What ' + who + ' will see</div>' +
-      '<p class="rv-try">The app itself, with this plan. Tick things off and log last night to watch the score grow. Nothing here is saved.</p>' +
       '<div class="rv-phones">' + one("parts", "Parts of the day") + '</div>' +
       '<button type="button" class="rv-reset" data-reload="1">Start the day again</button></aside>';
   }
 
+  /* the phone's scale: the room between the sticky top of the preview and the flow's bottom bar, never above life size */
+  function fitPhone(root) {
+    var ph = root.querySelector(".rv-side"); if (!ph) return;
+    var bar = document.querySelector(".mp-fbot"), bottom = bar ? bar.getBoundingClientRect().height : 72;
+    var room = innerHeight - 52 - 24 - 36 - 34 - bottom - 16;   /* top bar, sticky gap, caption, Start again, bottom bar */
+    ph.style.setProperty("--s", Math.max(.55, Math.min(1, room / 862)).toFixed(3));
+  }
+
   /* ---------- CSS, once ---------- */
   var CSS = [
-    ".rv-wrap{display:grid;gap:24px;align-items:start;font:400 14px/20px Onest,system-ui,sans-serif;color:#475467}",
+    ".rv-wrap{display:grid;gap:24px;align-items:start;font:400 13.5px/20px Onest,system-ui,sans-serif;color:#475467}",
     /* two phones beside the summary: the step widens past the flow's column to make room */
-    "@media (min-width:1200px){.rv-wrap{grid-template-columns:minmax(0,1fr) auto;width:min(1400px,calc(100vw - 48px));margin-left:calc(50% - min(700px,50vw - 24px))}}",
+    /* the summary in a reading column beside the one phone, the pair centred: wide screens no longer stretch the summary */
+    "@media (min-width:1100px){.rv-wrap{grid-template-columns:minmax(0,720px) auto;justify-content:center;gap:40px;width:min(1200px,calc(100vw - 48px));margin-left:calc(50% - min(600px,50vw - 24px))}}",
     ".rv-phones{display:flex;gap:20px;flex-wrap:wrap}",
     ".rv-fig{margin:0;display:flex;flex-direction:column;gap:8px}",
     ".rv-fcap{font:600 13px/18px Onest,sans-serif;color:#101828}",
     ".rv-main{display:flex;flex-direction:column;gap:16px;min-width:0}",
-    ".rv-title{margin:0;font:800 24px/32px Montserrat,sans-serif;color:#1D4D38}",
+    ".rv-title{margin:0;font:800 22px/30px Montserrat,sans-serif;color:#1D4D38}",
     ".rv-intro{margin:4px 0 0}",
     ".rv-card{background:#fff;border:1px solid #E4E7EC;border-radius:18px;padding:20px 22px}",
     ".rv-cap{font:700 11px/16px Onest,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#475467}",
-    ".rv-name{margin-top:4px;font:800 20px/28px Montserrat,sans-serif;color:#1D4D38}",
+    ".rv-name{margin-top:4px;font:800 18px/26px Montserrat,sans-serif;color:#1D4D38}",
     ".rv-about{margin:4px 0 0}",
     ".rv-metas{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}",
     ".rv-meta{display:inline-flex;align-items:center;height:28px;padding:0 12px;border-radius:999px;background:#F3FCF8;border:1px solid #E4E7EC;font:600 13px/18px Onest,sans-serif;color:#101828}",
@@ -190,7 +198,7 @@
     ".rv-hp{font:700 12px/16px Onest,sans-serif;color:#475467}",
     ".rv-line{padding:12px 0;border-top:1px solid #EAECF0}",
     ".rv-lh{display:flex;align-items:center;gap:8px}",
-    ".rv-ln{font:600 14px/20px Onest,sans-serif;color:#101828}",
+    ".rv-ln{font:600 13.5px/20px Onest,sans-serif;color:#101828}",
     ".rv-lv{margin-top:2px;color:#344054}",
     ".rv-ls{font-size:12.5px;line-height:18px;color:#667085}",
     ".rv-pts{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:999px;font:700 11.5px/16px Onest,sans-serif;white-space:nowrap}",
@@ -218,9 +226,11 @@
     ".rv-bt{font:600 14px/20px Onest,sans-serif;color:#7A2E0E}",
     ".rv-banner ul{margin:4px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:2px}",
     /* the phone */
-    ".rv-side{position:sticky;top:24px}",
+    ".rv-side{--s:.8;position:sticky;top:24px}",
     ".rv-sidecap{margin:0 0 10px 4px}",
-    ".rv-phone{width:360px;max-width:100%;border-radius:40px;padding:8px;background:#fff;border:1px solid #E4E7EC;box-shadow:0 12px 32px -12px rgba(16,24,40,.18)}",
+    /* the whole phone, always: drawn at its real size (390 x 844 inside an 8px frame) and scaled to fit the window's height */
+    ".rv-phone{width:calc(408px * var(--s));height:calc(862px * var(--s));border-radius:calc(44px * var(--s));overflow:hidden;background:#fff;border:1px solid #E4E7EC;box-shadow:0 12px 32px -12px rgba(16,24,40,.18)}",
+    ".rv-scale{width:406px;height:860px;padding:8px;transform:scale(var(--s));transform-origin:0 0}",
     ".rv-scr{height:min(760px,calc(100vh - 96px));overflow:auto;border-radius:32px;background:#fff;padding:0 12px 24px;font:400 14px/20px Roboto,system-ui,sans-serif;color:#101828;scrollbar-width:thin}",
     ".rv-sb{display:flex;justify-content:space-between;padding:14px 10px 6px;font-size:14px}",
     ".rv-top{display:flex;align-items:baseline;gap:8px;padding:8px 4px}",
@@ -243,8 +253,8 @@
     ".rv-pcb{margin:0 14px;padding:10px 0 14px;border-top:1px solid #F2F4F7;display:flex;flex-direction:column;gap:10px}",
     ".rv-pr{display:flex;gap:12px;align-items:flex-start}",
     ".rv-tk{flex:none;width:22px;height:22px;border-radius:999px;border:1.5px solid #D0D5DD;background:#fff}",
-    ".rv-app{display:block;width:100%;height:740px;border:0;border-radius:32px;background:#fff}",
-    ".rv-reset{display:block;margin:10px auto 0;border:0;background:none;padding:2px 0;font:600 12.5px/16px Onest,sans-serif;color:#299D6B;cursor:pointer}",
+    ".rv-app{display:block;width:390px;height:844px;border:0;border-radius:36px;background:#fff}",
+    ".rv-reset{display:block;width:calc(408px * var(--s));margin:10px 0 0;border:0;background:none;padding:2px 0;font:600 12.5px/16px Onest,sans-serif;color:#299D6B;cursor:pointer}",
     ".rv-try{margin:-4px 0 10px;font:400 12.5px/18px Onest,sans-serif;color:#667085}",
     ".rv-pi{flex:none;display:grid;place-items:center;width:22px;height:22px;color:#7A5AF8}.rv-pi svg{width:18px;height:18px}",
     ".rv-pt{flex:1;min-width:0;display:flex;flex-direction:column}",
@@ -281,6 +291,8 @@
         banner(list, ctx) + headerCard(plan, ctx) + rhythmCard(plan, ctx) + practicesCard(plan, ctx) +
         '</div>' + phone(plan, ctx) + '</div>';
       MP.previewPlan = plan;   /* read by mind/plan.js inside the phone (?coach=1) */
+      fitPhone(el);
+      if (!window.rvFit) { window.rvFit = 1; addEventListener("resize", function () { var e2 = document.querySelector(".rv-wrap"); if (e2) fitPhone(e2.parentNode); }); }
       el.onclick = function (e) {
         var b = e.target.closest("[data-go]");
         if (b && ctx.go) return ctx.go(b.getAttribute("data-go"));

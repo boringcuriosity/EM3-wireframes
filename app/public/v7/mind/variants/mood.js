@@ -195,7 +195,7 @@
     "@keyframes vmSh{from{background-position:100% 0}to{background-position:-100% 0}}",
     ".vm-k p{margin:0;font-size:15px;line-height:23px;color:var(--g-800,#1D2939);text-wrap:pretty}",
     ".vm-kw{display:flex;align-items:center;gap:6px;margin-bottom:6px;font:700 11px/16px Roboto,sans-serif;letter-spacing:.08em;color:var(--in-700,#3538CD)}",
-    ".vm-dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#444CE7,#2DA6A6)}",
+    ".vm-dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#444CE7,#E7C144)}",
     ".vm-quiet{margin:0;font-size:14px;line-height:21px;color:var(--g-700,#344054);animation:vmIn .4s cubic-bezier(.4,0,.2,1) both}",
     "@keyframes vmIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}",
     "@media (prefers-reduced-motion: reduce){.vm-k,.vm-k p,.vm-quiet{animation:none}.vm-face,.vm-wd{transition:none}}"

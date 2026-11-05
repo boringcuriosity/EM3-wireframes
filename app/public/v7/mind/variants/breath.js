@@ -441,14 +441,14 @@
      ===================================================================================================== */
   if (VK === "f") (function () {
     var LK = { 1: 1, 3: 3 }[+Q.get("blook")] || 1, AUTO = Q.get("bauto") === "1";
-    var T8 = "#2DA6A6", T3 = "#A4FDFD", T1 = "#E0FFFF", T25 = "#F5FFFF", INK = "#164A4A";
+    var T8 = "#E7C144", T3 = "#FDE8A4", T1 = "#FFF8E0", T25 = "#FFFDF5", INK = "#5C4E1F";
     var XG = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 32 32"><path fill="#98A2B3" d="M16 3a13 13 0 1 0 13 13A13.013 13.013 0 0 0 16 3m4.708 16.293a1 1 0 0 1-1.415 1.415L16 17.414l-3.293 3.293a1 1 0 0 1-1.415-1.415L14.587 16l-3.293-3.293a1 1 0 1 1 1.415-1.415L16 14.587l3.293-3.293a1 1 0 0 1 1.415 1.415L17.414 16z"/></svg>';
     var pid = 0;
     function pearl(sz) {
       var u = "bp" + (pid++);
-      return '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 14 14" fill="none" aria-hidden="true"><g filter="url(#' + u + 'a)"><g clip-path="url(#' + u + 'b)"><rect width="14" height="14" fill="#1F7A7A" rx="7"/>' +
-        '<g filter="url(#' + u + 'c)"><ellipse cx="6.316" cy="4.792" fill="#5CC9C9" rx="7.683" ry="7.542"/></g><g filter="url(#' + u + 'd)" opacity=".5"><ellipse cx="5.292" cy="3.75" fill="#A4EDED" rx="4.695" ry="4.583"/></g>' +
-        '<g filter="url(#' + u + 'e)" opacity=".6"><ellipse cx="1.989" cy="1.19" fill="#2DA6A6" rx="1.989" ry="1.19" transform="matrix(.982 -.18891 .19626 .98055 6.402 12.002)"/></g></g></g><defs>' +
+      return '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 14 14" fill="none" aria-hidden="true"><g filter="url(#' + u + 'a)"><g clip-path="url(#' + u + 'b)"><rect width="14" height="14" fill="#A68A2D" rx="7"/>' +
+        '<g filter="url(#' + u + 'c)"><ellipse cx="6.316" cy="4.792" fill="#F3D161" rx="7.683" ry="7.542"/></g><g filter="url(#' + u + 'd)" opacity=".5"><ellipse cx="5.292" cy="3.75" fill="#FDE8A4" rx="4.695" ry="4.583"/></g>' +
+        '<g filter="url(#' + u + 'e)" opacity=".6"><ellipse cx="1.989" cy="1.19" fill="#E7C144" rx="1.989" ry="1.19" transform="matrix(.982 -.18891 .19626 .98055 6.402 12.002)"/></g></g></g><defs>' +
         '<filter id="' + u + 'a" width="14" height="14" x="0" y="0" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BG"/><feBlend in="SourceGraphic" in2="BG" result="shape"/><feColorMatrix in="SourceAlpha" result="ha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/><feMorphology in="SourceAlpha" radius=".406" result="m"/><feOffset/><feGaussianBlur stdDeviation="1.625"/><feComposite in2="ha" k2="-1" k3="1" operator="arithmetic"/><feColorMatrix values="0 0 0 0 0.36 0 0 0 0 0.79 0 0 0 0 0.79 0 0 0 1 0"/><feBlend in2="shape"/></filter>' +
         '<filter id="' + u + 'c" width="25.525" height="25.242" x="-6.446" y="-7.829" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="2.54"/></filter>' +
         '<filter id="' + u + 'd" width="19.549" height="19.326" x="-4.483" y="-5.913" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="2.54"/></filter>' +
@@ -757,7 +757,7 @@
       /* the orb alone (Sleep 4-7-8, Zen Flow): a faint soft light behind it, no bloom; Glass adds a frosted sheen */
       ".bf-orb{position:absolute;left:50%;top:50%;width:200px;height:200px;transform:translate(-50%,-50%) scale(.56);will-change:transform}",
       ".bf-orb svg{position:relative;display:block;filter:drop-shadow(0 16px 28px rgba(31,122,122,.18))}",
-      ".bf-soft{position:absolute;inset:-24%;border-radius:50%;background:radial-gradient(circle,rgba(164,253,253,.42) 30%,rgba(224,255,255,.2) 52%,rgba(224,255,255,0) 70%)}",
+      ".bf-soft{position:absolute;inset:-24%;border-radius:50%;background:radial-gradient(circle,rgba(253,232,164,.42) 30%,rgba(224,255,255,.2) 52%,rgba(224,255,255,0) 70%)}",
       ".bf-lens{position:absolute;inset:0;border-radius:50%;background:linear-gradient(150deg,rgba(255,255,255,.5),rgba(255,255,255,.06) 55%,rgba(255,255,255,0));box-shadow:inset 0 0 0 1px rgba(255,255,255,.55)}",
       /* the length sheet */
       ".bf-scrim{position:absolute;inset:0;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .3s ease-out;z-index:8}",

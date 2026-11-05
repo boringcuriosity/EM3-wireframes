@@ -514,8 +514,9 @@
   .days button:hover:not(.on){background:rgba(255,255,255,.6);color:var(--ink)}
   .days button .ic{width:14px;height:14px}
   .days button.isrest{color:var(--ind-ink)}
-  .daytot{padding:6px 12px;border-radius:999px;background:var(--primary-l);color:#1D4D38}
-  .daytot b{color:#1D4D38}
+  /* a readout, not a control: plain text, no fill, no green */
+  .daytot{padding:0;border-radius:0;background:none;color:#667085;font-size:13.5px}
+  .daytot b{color:#101828;font-weight:600}
 
   /* actions: one solid green, the rest as tinted chips in their own GoodFlip tone */
   .acts{align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
@@ -624,6 +625,14 @@
   .cbtn:hover:not(:disabled){background:#d6eee2;border-color:var(--primary)}
   .cbtn:disabled{opacity:.45;cursor:not-allowed}
   .cbtn .ic{width:16px;height:16px;color:var(--primary)}
+  /* a Copy button's explainer: a small info mark inside it, the tip under it on hover or focus, as the kcal tip */
+  .ctip{position:relative;display:inline-flex}
+  .cbtn .inf{width:14px;height:14px;margin-left:2px;color:#4d8f72}
+  .ctip .tt{position:absolute;right:0;top:calc(100% + 8px);z-index:30;width:280px;padding:10px 12px;border-radius:8px;background:#101828;color:#D0D5DD;
+    font-size:12px;line-height:18px;font-weight:400;text-align:left;box-shadow:0 12px 24px -8px rgba(16,24,40,.3);
+    opacity:0;transform:translateY(-4px);pointer-events:none;transition:opacity .15s ease-out,transform .15s ease-out}
+  .ctip .tt b{display:block;margin-bottom:2px;font-size:13px;font-weight:600;color:#fff}
+  .ctip:hover .tt,.ctip:focus-within .tt{opacity:1;transform:none}
   .cbtn.ghost{background:#fff;border-color:var(--bd2);color:#344054}
   .cbtn.ghost .ic{color:var(--ink3)}
   .nbox .goal{max-width:440px}
@@ -703,6 +712,32 @@
 
   /* ---------- Preview and Assign: days with too little spread, as a warning ---------- */
   .alert.xl{width:min(640px,calc(100vw - 32px));max-height:calc(100vh - 48px);overflow:auto}
+  /* Preview and assign: two tabs, the checks and the plan's calories day by day */
+  .alert.xl:has(.ptabs){width:min(920px,calc(100vw - 32px))}
+  .ptabs{display:inline-flex;gap:2px;padding:3px;margin:0 0 16px;border-radius:11px;background:#F2F4F7}
+  .ptabs button{height:34px;padding:0 16px;border:0;border-radius:8px;background:none;font-size:14px;font-weight:600;color:#667085;cursor:pointer}
+  .ptabs button.on{background:#fff;color:#1D4D38;box-shadow:0 1px 3px rgba(16,24,40,.1),0 0 0 .6px #E4E7EC}
+  .kc-sum{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .kc-sum span{flex:1 1 150px;padding:8px 12px;border:1px solid #E4E7EC;border-radius:10px;background:#F9FAFB}
+  .kc-sum small{display:block;font-size:11.5px;color:#667085}.kc-sum b{font-size:15px;color:#101828;font-variant-numeric:tabular-nums}
+  .kc-sum em{display:block;font-style:normal;font-size:11.5px;color:#667085}
+  .kc-leg{display:flex;align-items:center;gap:14px;margin:0 0 8px;font-size:12px;color:#475467}
+  .kc-leg span{display:inline-flex;align-items:center;gap:6px}.kc-leg i{width:10px;height:6px;border-radius:3px}.kc-leg .u{margin-left:auto;color:#98A2B3}
+  .kc-leg .w,.kb .w{background:#6172F3}.kc-leg .s,.kb .s{background:#5FE9D0}
+  /* a long plan scrolls inside the table, its header and week names held */
+  .kc-wrap{max-height:min(46vh,420px);overflow:auto;border:1px solid #E4E7EC;border-radius:12px}
+  .kc{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;font-variant-numeric:tabular-nums}
+  .kc thead th{position:sticky;top:0;z-index:2;padding:8px;background:#F9FAFB;font-size:11.5px;font-weight:600;color:#667085;text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7EC}
+  .kc thead th:first-child{left:0;z-index:3}
+  .kc tbody th{position:sticky;left:0;z-index:1;padding:8px 10px;background:#fff;font-size:12px;font-weight:600;color:#344054;text-align:left;white-space:nowrap;border-bottom:1px solid #F2F4F7}
+  .kc td{padding:7px 8px;border-bottom:1px solid #F2F4F7;white-space:nowrap;cursor:default}
+  .kc td:hover{background:#F9FAFB}
+  .kc td b{display:block;font-size:13.5px;font-weight:600;color:#101828}
+  .kc td.kz b{color:#667085}
+  .kb{display:flex;gap:1px;height:4px;margin-top:5px;border-radius:2px;background:#F2F4F7;overflow:hidden}.kb i{height:100%}
+  .kr{display:block;margin-top:3px;font-size:10.5px;color:#98A2B3}
+  .kc td.kc-t{background:#F3FCF8}.kc td.kc-t b{color:#1D4D38}
+  .kc tr:last-child th,.kc tr:last-child td{border-bottom:0}
   .alert .btns button:disabled{opacity:.4;cursor:default;background:none}
   .spw{margin:-6px 0 16px;padding:14px;border:1px solid #FEF1C7;border-radius:var(--r-md);background:#FFFCF2}
   .spw-h{display:flex;gap:10px;align-items:flex-start}
@@ -870,6 +905,7 @@
   </main>
 </div>
 <div class="toast" id="toast" role="status"></div>
+<script src="/v7/coach-exercise/start.js"></script>
 <div class="scrim" id="pscrim"><div class="modal" role="dialog" aria-labelledby="pTitle">
   <div class="mh"><h2 id="pTitle">Parts of the day</h2><button class="mx" data-x="pclose" aria-label="Close">✕</button></div>
   <p class="msub">These times apply to the whole plan: each routine's time of day and the small moves.</p>
@@ -1250,7 +1286,60 @@ Yoga for Back Pain -2|P|27|min`;
     }); });
     return out;
   }
-  function previewOpts(name) {
+  /* calories a day across the whole plan: the day's workout (its routines) and its steps goal turned into kcal.
+     Steps kcal: steps × (height × 0.414) = metres walked, × kg × 0.5 per km (ACSM walking). ponytail: 70 kg and 165 cm until the patient's own come in */
+  var KG = 70, CM = 165;
+  function stepsKcal(n) { return Math.round(n * CM / 100 * 0.414 / 1000 * KG * 0.5); }
+  function kcalTable() {
+    /* one number a day, and a thin bar of workout and steps scaled to the plan's biggest day; the split is in the cell's tooltip */
+    var tot = 0, days = 0, top = null, cell = [];
+    PLAN.forEach(function (w, wi) {
+      cell[wi] = w.days.map(function (D, di) {
+        var sv = STEPS[dkey(wi, di)], off = S.nowalk || sv === "off", st = off || !sv ? 0 : +sv, sk = stepsKcal(st), wo = dayKcal(D), all = wo + sk;
+        tot += all; days++;
+        if (!top || all > top.v) top = { v: all, w: w.week_no, d: di + 1 };
+        return { wo: wo, sk: sk, all: all, rest: D.rest_day === "Y", st: st, off: off };
+      });
+    });
+    var max = top ? Math.max(1, top.v) : 1, n = function (v) { return v.toLocaleString("en-IN"); };
+    var rows = PLAN.map(function (w, wi) {
+      var wk = 0;
+      var tds = cell[wi].map(function (c, di) {
+        wk += c.all;
+        var tip = "Week " + w.week_no + ", Day " + (di + 1) + ": " + (c.rest ? "rest day" : "workout " + n(c.wo) + " kcal") +
+          (S.nowalk ? "" : c.off ? ", no steps" : c.st ? ", steps " + n(c.sk) + " kcal (" + n(c.st) + " steps)" : ", steps not set");
+        return '<td class="' + (c.rest ? "kz" : "") + '" title="' + tip + '" aria-label="' + tip + '"><b>' + n(c.all) + "</b>" +
+          '<span class="kb"><i class="w" style="width:' + (c.wo / max * 100) + '%"></i><i class="s" style="width:' + (c.sk / max * 100) + '%"></i></span>' +
+          (c.rest ? '<span class="kr">Rest day</span>' : "") + "</td>";
+      }).join("");
+      return "<tr><th>Week " + w.week_no + "</th>" + tds + '<td class="kc-t"><b>' + n(wk) + "</b></td></tr>";
+    }).join("");
+    return '<div class="kc-sum"><span><small>A day, on average</small><b>' + n(Math.round(tot / Math.max(1, days))) + ' kcal</b></span>' +
+      (top ? '<span><small>Highest day</small><b>' + n(top.v) + " kcal</b><em>Week " + top.w + ", Day " + top.d + "</em></span>" : "") + "</div>" +
+      '<div class="kc-leg"><span><i class="w"></i>Workout</span>' + (S.nowalk ? "" : '<span><i class="s"></i>Steps</span>') + '<span class="u">kcal a day · point at a day for its split</span></div>' +
+      '<div class="kc-wrap"><table class="kc"><thead><tr><th></th>' + [1, 2, 3, 4, 5, 6, 7].map(function (d) { return "<th>Day " + d + "</th>"; }).join("") + "<th>Week</th></tr></thead><tbody>" + rows + "</tbody></table></div>" +
+      "";
+  }
+  /* the dialog in two tabs: the checks before assigning, and the plan's calories day by day */
+  function withTabs(o) {
+    var check = o.html, init = o.init;
+    return {
+      xl: true, read: o.read,
+      html: '<div class="ptabs" role="tablist"><button role="tab" class="on" aria-selected="true" data-pt="check">Check and assign</button><button role="tab" aria-selected="false" data-pt="kcal">Calories by day</button></div>' +
+        '<div data-ptp="check">' + check + '</div><div data-ptp="kcal" hidden>' + kcalTable() + "</div>",
+      init: function () {
+        if (init) init();
+        document.querySelectorAll("[data-pt]").forEach(function (b) {
+          b.onclick = function () {
+            document.querySelectorAll("[data-pt]").forEach(function (x) { var on = x === b; x.classList.toggle("on", on); x.setAttribute("aria-selected", on); });
+            document.querySelectorAll("[data-ptp]").forEach(function (p) { p.hidden = p.dataset.ptp !== b.dataset.pt; });
+          };
+        });
+      }
+    };
+  }
+  function previewOpts(name) { return withTabs(checkOpts(name)); }
+  function checkOpts(name) {
     var save = saveOpts(name), low = lowSpread();
     if (!low.length) return save;
     var n = low.length, by = {};
@@ -1356,7 +1445,8 @@ Yoga for Back Pain -2|P|27|min`;
           '<div class="drop tod' + (tp ? " set" : S.flag ? " miss" : "") + '" data-drop="tod' + ri + '" title="Time of day"><span class="v">' + (tp ? '<span class="todi t-' + PS[r.time].tone + '">' + ico(PS[r.time].ic) + '</span>' + tp.label + ' <i>' + span(tp) + '</i>' : ico("time-outline") + "Set time of day") + '</span><span class="car"></span><div class="panel">' +
             PARTS.map(function (p) { var tk = r.time !== p.k && D.routines.some(function (o) { return o.time === p.k; }); return '<div class="opt' + (r.time === p.k ? " sel" : "") + (tk ? " taken" : "") + '" data-rtime="' + ri + '|' + p.k + '"><span class="todi t-' + PS[p.k].tone + '">' + ico(PS[p.k].ic) + '</span>' + p.label + ' <i>' + span(p) + '</i></div>'; }).join("") +
             '<div class="opt edit" data-x="ptimes">' + ico("time-outline") + 'Edit times</div></div></div></div>' +
-        (S.cm === "smart" ? '<button class="cbtn" data-copy="e|r' + ri + '">' + ico("copy-outline") + 'Copy routine</button></div>' :
+        (S.cm === "smart" ? ctip('<button class="cbtn" data-copy="e|r' + ri + '">' + ico("copy-outline") + 'Copy routine</button>', "Copy routine",
+          "Copies only this routine and its exercises to the days you pick, not the whole day. On days that already have routines, you choose to replace them or add to them.") + '</div>' :
         '<div class="drop cdrop" data-drop="copyr' + ri + '">' + ico("copy-outline") + '<span class="v">Copy Routine To</span><span class="car"></span><div class="panel">' +
           '<div class="opt" data-copyr="' + ri + '|">Copy Routine To</div><div class="opt" data-copyr="' + ri + '|all">All routine</div>' +
           D.routines.map(function (o, oi) { return oi === ri ? "" : '<div class="opt" data-copyr="' + ri + '|' + oi + '">Routine ' + o.routine_no + '</div>'; }).join("") +
@@ -1754,7 +1844,9 @@ Yoga for Back Pain -2|P|27|min`;
   function drawStepper() {
     var subs = [PLAN.length + (PLAN.length === 1 ? " week" : " weeks"), neatSummary(), stepsSummary()];
     /* the breadcrumbs ride at the stepper's left, so the page keeps the room a row of its own took */
-    $("stepper").innerHTML = '<div class="crumb incrumb"><span data-x="home">Home</span><span>&gt;&gt;</span><span data-x="crumbcancel">Create New Exercise</span><span>&gt;&gt;</span><b>Exercise Template</b></div>' + STEP_NAMES.map(function (n, i) {
+    /* full screen, as Create Diet Plan: the title at the left, the steps in the middle, the X at the right (coach-exercise/start.js asks before leaving) */
+    $("stepper").innerHTML = '<div class="sttl">Create Exercise Plan</div><button class="sx" data-x="close" aria-label="Close">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>' + STEP_NAMES.map(function (n, i) {
       var k = i + 1, cls = k === S.step ? "now" : k < S.step ? "done" : k <= S.reached ? "open" : "";
       return (i ? '<span class="sline"></span>' : "") + '<button class="sitem ' + cls + '" data-step="' + k + '"' + (k > S.reached ? " disabled" : "") + (k === S.step ? ' aria-current="step"' : "") + '>' +
         '<span class="sn">' + (cls === "done" ? "✓" : k) + '</span><span class="st"><b>' + n + '</b><small>' + subs[i] + '</small></span></button>';
@@ -1765,13 +1857,13 @@ Yoga for Back Pain -2|P|27|min`;
     if (S.step === 1) {
       var D = day();
       left = "Week " + PLAN[S.w].week_no + " · " + (D.rest_day === "Y" ? "Day " + D.day_no + " is a rest day" : "Day " + D.day_no + " total " + both(dayMin(D), dayKcal(D)));
-      right = '<button class="b ol" data-x="cancel">Cancel</button><button class="b pr" data-x="next">Next: Small moves</button>';
+      right = '<button class="b ol" data-x="draft">Save as Draft</button><button class="b pr" data-x="next">Next: Small moves</button>';
     } else if (S.step === 2) {
       left = "Small moves: " + neatSummary();
-      right = '<button class="b ol" data-x="back">Back</button><button class="b pr" data-x="next">Next: Steps goal</button>';
+      right = '<button class="b tx" data-x="back">Back</button><button class="b ol" data-x="draft">Save as Draft</button><button class="b pr" data-x="next">Next: Steps goal</button>';
     } else {
       left = "Steps goal: " + stepsSummary();
-      right = '<button class="b ol" data-x="back">Back</button><button class="b pr" data-x="preview">Preview and Assign</button>';
+      right = '<button class="b tx" data-x="back">Back</button><button class="b ol" data-x="draft">Save as Draft</button><button class="b pr" data-x="preview">Preview and Assign</button>';
     }
     $("sbar").innerHTML = '<span class="sum"><i></i>' + left + '</span><span class="acts2">' + right + '</span>';
     drawStepper();
@@ -1895,11 +1987,24 @@ Yoga for Back Pain -2|P|27|min`;
       '<div class="opt" data-wcopy="' + g + '| ">Copy week ' + PLAN[w].week_no + ' to</div><div class="opt" data-wcopy="' + g + '|all">All weeks</div>' +
       PLAN.map(function (wk, i) { return i === w ? "" : '<div class="opt" data-wcopy="' + g + '|' + i + '">Week ' + wk.week_no + '</div>'; }).join("") + '</div></div>';
   }
+  var INF = '<svg class="inf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg>';
+  var CTN = 0;
+  /* a Copy button with its explainer: the button keeps its own click, the tip only says what it will do */
+  function ctip(btn, title, say) {
+    var id = "ctt" + (++CTN);
+    return '<span class="ctip">' + btn.replace("<button ", '<button aria-describedby="' + id + '" ').replace("</button>", INF + "</button>") +
+      '<span class="tt" role="tooltip" id="' + id + '"><b>' + title + '</b>' + say + '</span></span>';
+  }
+  var CWHAT = { e: "routines", n: "small moves", s: "steps goal" };
   function copyBtns(g, can) {
     if (S.cm === "basic" && g !== "e") return '<div class="gacts">' + copyDrop(g, g === "n" ? S.nd : S.sd, can) + weekDrop(g, g === "n" ? S.nw : S.sw) + '</div>';
     var dis = can ? "" : ' disabled title="Set something first"';
-    return '<div class="gacts"><button class="cbtn" data-copy="' + g + '|day"' + dis + '>' + ico("copy-outline") + 'Copy this day</button>' +
-      '<button class="cbtn" data-copy="' + g + '|week">' + ico("layers-outline") + 'Copy this week</button></div>';
+    var also = g === "s" ? "" : " On days that already have some, you choose to replace them or add to them.";
+    return '<div class="gacts">' +
+      ctip('<button class="cbtn" data-copy="' + g + '|day"' + dis + '>' + ico("copy-outline") + 'Copy this day</button>', "Copy this day",
+        "Copies this day's " + CWHAT[g] + " to other days. Pick the days on a grid, or use a quick pick like the rest of this week." + also) +
+      ctip('<button class="cbtn" data-copy="' + g + '|week">' + ico("layers-outline") + 'Copy this week</button>', "Copy this week",
+        "Copies every day of this week to the same days in the weeks you pick. Day 1 goes to Day 1, Day 2 to Day 2, and so on." + also) + '</div>';
   }
   /* Save & Next under the day, as the exercise plan's: moves on to the next day, then the next week */
   function saveNext(id) { var r = $(id).querySelector(".right"); if (r) r.insertAdjacentHTML("beforeend", '<div class="center"><button class="b pr" data-x="' + id + 'next">Save &amp; Next' + ico("chevron-back-outline", "flip") + '</button></div>'); }
@@ -2134,6 +2239,19 @@ Yoga for Back Pain -2|P|27|min`;
 
   $("sdate").value = iso(today); $("sshow").value = mdy(iso(today));
   drawAssess(); draw();
+  /* the way in (coach-exercise/start.js): a template fills the plan, or a blank plan starts one empty week.
+     ponytail: every template loads the 120 days Plan's routines until templates come from the API */
+  var SAMPLE = JSON.parse(JSON.stringify(PLAN));
+  window.CET = {
+    use: function (name) {
+      PLAN.splice.apply(PLAN, [0, PLAN.length].concat(JSON.parse(JSON.stringify(SAMPLE))));
+      $("pname").value = name; $("preq").classList.remove("on"); S.w = 0; S.d = 0; S.weeArry = []; S.reached = 1; draw(); goStep(1);
+    },
+    blank: function () {
+      PLAN.splice(0, PLAN.length, { week_no: 1, days: [1,2,3,4,5,6,7].map(function (n) { return { day_no: n, rest_day: "N", routines: [{ routine_no: 1, exercises: [blank()] }] }; }) });
+      $("pname").value = ""; S.w = 0; S.d = 0; S.weeArry = []; S.reached = 1; draw(); goStep(1);
+    }
+  };
   var STQ = +new URLSearchParams(location.search).get("step");   /* ?step=2 or 3 opens on Small moves or Steps goal */
   if (STQ > 1) { S.reached = STQ; goStep(STQ); } else goStep(1);
   /* suggestions: add one from a card's tip, or pick several at once from the bar's sheet */

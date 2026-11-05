@@ -24,8 +24,8 @@ window.MV = function (i, eaten, target) {
 window.MVOFF = (function (o) { var f = { e: /e/.test(o), n: /n/.test(o), s: /s/.test(o) }; f.any = f.e || f.n || f.s; f.all = f.e && f.n && f.s; return f; })(new URLSearchParams(location.search).get("off") || "");
 /* no target for any of the three: small moves do not exist today, so their tile stands down and Workout and Steps share the row */
 if (window.MVOFF.all) document.write("<style>#railSect[hidden]{display:none}#railSect .mgrid{grid-template-columns:1fr 1fr !important}#railSect .mgrid>:nth-child(2){display:none}</style>");</script>
-<script>window.SAY_LOCK = "Your Rhythm score unlocks after your first Mind Coach consultation, once your coach assigns you a plan."; window.SAY_REST = "keep going through your day."; window.HERO_WORD = "Rhythm"; window.HERO_ORB = { colors: { "#246649": "#1F7A7A", "#79CCA8": "#5CC9C9", "#ABE6CC": "#A4EDED", "#59B38C": "#2DA6A6",
-  "0.160784 0 0 0 0 0.615686 0 0 0 0 0.419608": "0.36 0 0 0 0 0.79 0 0 0 0 0.79" }, shadow: [.12, .36, .36], introSky: ["lagoon", "mist"], gauge: [[.361, .788, .788], [.176, .651, .651]] };</script>
+<script>window.SAY_LOCK = "Your Rhythm score unlocks after your first Mind Coach consultation, once your coach assigns you a plan."; window.SAY_REST = "keep going through your day."; window.HERO_WORD = "Rhythm"; window.HERO_ORB = { colors: { "#246649": "#A68A2D", "#79CCA8": "#F9DD80", "#ABE6CC": "#FDE8A4", "#59B38C": "#E7C144",
+  "0.160784 0 0 0 0 0.615686 0 0 0 0 0.419608": "0.906 0 0 0 0 0.757 0 0 0 0 0.267" }, shadow: [.3, .25, .1], introSky: ["gold", "mist"], gauge: [[.953, .82, .38], [.804, .663, .208]], look: { sky: ["cream", "creamsoft"], edge: [.84, .79, .64], glow: [.97, .95, .87] }, tint: { streak: ".98, .87, .5", pale: ".995, .985, .955", sheenA: ".99, .91, .64", sheenB: ".91, .76, .27", grey: ".98" } };   /* Mind's Rhythm in GoodFlip gold: 300, 400, 600, 800 on the orbs, 500 to 700 on the gauge, 900 for the shadow */</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="../icons/glyph-masks.css">
 <link rel="stylesheet" href="goodflip-ui.css">
@@ -999,8 +999,8 @@ if (window.MVOFF.all) document.write("<style>#railSect[hidden]{display:none}#rai
   .ebub { width: 100px; height: 100px; border-radius: 50%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
     background: radial-gradient(circle at 34% 26%, rgba(255,255,255,.95) 0 10%, rgba(255,255,255,0) 32%),
       radial-gradient(circle at 62% 74%, rgba(255,255,255,.55) 0 8%, rgba(255,255,255,0) 26%),
-      radial-gradient(circle at 50% 50%, #F3FCF8 0 46%, #E6FAF1 66%, #CBF0E0 86%, #ABE6CC 100%);
-    box-shadow: inset 0 -6px 14px rgba(41,157,107,.16), inset 0 4px 10px rgba(255,255,255,.9), 0 10px 24px -10px rgba(41,157,107,.35), 0 0 0 1px rgba(171,230,204,.55); }
+      radial-gradient(circle at 50% 50%, var(--gold-25, #FFFDF5) 0 46%, var(--gold-50) 66%, var(--gold-100) 86%, var(--gold-200) 100%);   /* Mind's Rhythm: gold, as the score's orbs */
+    box-shadow: inset 0 -6px 14px rgba(231,193,68,.18), inset 0 4px 10px rgba(255,255,255,.9), 0 10px 24px -10px rgba(205,169,53,.35), 0 0 0 1px rgba(253,232,164,.7); }
   .ebub b { font: 600 27px/1 Roboto, sans-serif; color: var(--g-900); letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
   .ebub b sup { font: 400 10px/1 Roboto, sans-serif; vertical-align: .95em; margin-left: 1px; }
   .ebub span { font: 400 13px/16px Roboto, sans-serif; color: var(--g-700); margin-top: 2px; }
@@ -2393,13 +2393,13 @@ function loadScripts(list, done) {
 
   /* Hero: the day view's Cloud Drop, shorter. The score, orbs and tag live
      inside it; a quiet caption only adds the day when it is not today. */
-  var caption = REST ? "Your coach planned no workout, small moves or steps for today, so there’s no score. Your Momentum starts fresh tomorrow."
+  var caption = REST ? "Your coach planned nothing for today, so there’s no score. Your Rhythm starts fresh tomorrow."
     : LOCKED ? ""   /* the rows below say when it unlocks, as on Eat */
     : SCORE == null ? "Nothing was logged on " + S.day
     : PAST ? S.day : "";
   var hero = '<div class="ebub-wrap">' + (LOCKED ? '<div class="ebub lock"><div class="lk" id="esLock"></div></div>'
       : REST ? '<div class="ebub"><b class="erest">No target</b></div>'
-      : '<div class="ebub"><b>' + Math.round(SCORE || 0) + '<sup>%</sup></b><span>Momentum</span></div>') +
+      : '<div class="ebub"><b>' + Math.round(SCORE || 0) + '<sup>%</sup></b><span>Rhythm</span></div>') +
     (caption ? '<div class="ecap' + (REST ? " rest" : "") + '">' + caption + "</div>" : "") + "</div>";
 
   /* the padlock plays once and holds, as on the day view; its player loads only when it is needed */
@@ -2426,7 +2426,7 @@ function loadScripts(list, done) {
   var COACHCARD =
     '<div class="ecoach">' +
       '<span class="av">SC</span>' +
-      '<span class="t"><span>Your Move coach</span><b>Sahana Chandra</b></span>' +
+      '<span class="t"><span>Your Mind coach</span><b>Sahana Chandra</b></span>' +
       '<button class="msg">Message</button>' +
     "</div>";
 
@@ -2455,9 +2455,9 @@ function loadScripts(list, done) {
 
   /* before a plan (noplanempty, noplan): what to do now comes first, as on Eat's sheet */
   var IC = function (d) { return '<svg class="ico" viewBox="0 0 24 24" style="width:18px;height:18px">' + d + "</svg>"; };
-  var FIRST = LOCKED && !S.free ? '<div class="esec"><h5>Show us how you move.</h5><div class="elist esteps">' + [
-      [IC('<path d="M6.5 6.5v11M17.5 6.5v11M3 9.5v5M21 9.5v5M6.5 12h11"/>'), "Log any workout you do, we do not judge, promise."],
-      [IC('<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>'), "Your coach will look at this before building your move plan."],
+  var FIRST = LOCKED && !S.free ? '<div class="esec"><h5>Show us how you sleep.</h5><div class="elist esteps">' + [
+      [IC('<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>'), "Log last night’s sleep and how your day felt, we do not judge, promise."],
+      [IC('<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>'), "Your coach will look at this before building your mind plan."],
       [IC('<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>'), "Your Rhythm score unlocks after your first Mind Coach consultation, once your coach assigns you a plan."]
     ].map(function (r) { return '<div class="erow"><span class="ic">' + r[0] + '</span><span class="t">' + r[1] + "</span></div>"; }).join("") + "</div></div>" : "";
   var secs = FIRST + SECS.map(function (x, i) {
@@ -3341,7 +3341,7 @@ function mealsIn() {
      Mind teal, Eat green. --teal-600 in this system is a pale cyan, so the
      teal here is --teal-800, which is the Mind hue the wireframes actually
      carry and the only one of the four that reads on white. */
-  var BURST_C = ["var(--gold-600)", "var(--in-600)", "var(--teal-800)", "var(--brand-600)"];
+  var BURST_C = ["var(--gold-600)", "var(--in-600)", "var(--gold-800)", "var(--brand-600)"];
   /* the To-do's own spread parameter, the value its toast uses, nudged up so a
      burst off a 24px mark carries as far as one off the wireframe's 21px */
   var SPREAD = 1.5;
@@ -3861,6 +3861,6 @@ function mealsIn() {
   (function () { var q = window.MDPLAN ? MDPLAN.Q : new URLSearchParams(location.search);   /* plan.js's defaults: the finals, J and A */
     ["mood", "sleep", "breath", "tiles"].forEach(function (k) { if (q.get("v" + k)) document.write('<script src="/v7/mind/variants/' + k + '.js?t=' + Date.now() + '"><\/script>'); }); })();
 </script>
-<script src="/v7/mind/rhythm.js?v=8"></script>
+<script src="/v7/mind/rhythm.js?v=9"></script>
 </body>
 </html>

@@ -98,9 +98,9 @@
     S.ctl = true; clearTimeout(ctlT);
     ctlT = setTimeout(function () { if (S.playing && !drag) { S.ctl = false; el.classList.remove("ctl"); } }, 3000);
   }
-  function go(k) {
+  function go(k, hold) {
     S.i = k; S.ctl = false; var id = cur();
-    S.ended = !EX[id].video; S.playing = !S.ended;
+    S.ended = !EX[id].video; S.playing = !S.ended && !hold;   /* hold: open on its first frame, paused, until play is tapped */
     /* nothing to watch: back to portrait, where its steps and its button are */
     if (S.land && !EX[id].video) { S.land = false; bar(true); }
     if (EX[id].video) { vidFor(id); VID.currentTime = 0; }
@@ -257,7 +257,7 @@
       };
       /* a tap on the thumbnail starts it full screen, turned to landscape; on the name it opens upright, the detail */
       S.land = !upright; enter = !upright; bar(!!upright);
-      go(P.RT[S.r].ex.indexOf(id));
+      go(P.RT[S.r].ex.indexOf(id), !!upright);   /* the detail opens paused; only the thumbnail plays straight away */
       setTimeout(function () { enter = false; el.classList.remove("enter"); }, 520);
     }
   };

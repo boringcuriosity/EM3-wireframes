@@ -33,7 +33,7 @@
   };
   function plural(n, one, many) { return n + " " + (n === 1 ? one : (many || one + "s")); }
   function t12(hm) { try { return H.t12(hm); } catch (e) { return hm || ""; } }
-  function window12(p) { var r = p.rhythm || {}; return r.bedtime && r.wake ? t12(r.bedtime) + " to " + t12(r.wake) : "Not set"; }
+  function window12(p) { var r = p.rhythm || {}; return r.bedtime && r.wake ? t12(r.bedtime) + " to " + t12(r.wake) + (r.second ? ", " + t12(r.second.bedtime) + " to " + t12(r.second.wake) : "") : "Not set"; }
   function summary(p) {
     var r = p.rhythm || {};
     return ["Bed " + window12(p), (r.winddown || []).length + " wind-down", (r.breathing || []).length + " breathing",
@@ -237,7 +237,7 @@
   }
   function fromTemplate(t) {
     var p = clone(t); delete p.own; delete p.about;
-    var b = MP.blankPlan(); p.id = null; p.status = "draft"; p.from = t.id; p.start = b.start; p.end = b.end; p.name = "Mind Plan";
+    var b = MP.blankPlan(); p.id = null; p.status = "draft"; p.from = t.id; p.start = b.start; p.end = b.end; p.name = MP.defaultName();
     return p;
   }
   function flowTitle() {
@@ -323,7 +323,7 @@
   function saveDraft() {
     var F = S.flow, p = clone(F.plan);
     p.id = F.editId || newId("mp"); p.status = "draft"; p.saved = Date.now();
-    if (!String(p.name || "").trim()) p.name = "Mind Plan";
+    if (!String(p.name || "").trim()) p.name = MP.defaultName();
     upsertPlan(p);
     S.fresh = p.id; S.filter = "all";
     closeFrame();
@@ -335,7 +335,7 @@
     if (bad) { goStep(bad.k); showMsg(bad.v); return; }
     var p = clone(F.plan), replaced = [];
     p.id = F.editId || newId("mp"); p.status = "active"; p.saved = Date.now();
-    if (!String(p.name || "").trim()) p.name = "Mind Plan";
+    if (!String(p.name || "").trim()) p.name = MP.defaultName();
     S.plans.forEach(function (x) { if (x.status === "active" && x.id !== p.id) { x.status = "inactive"; replaced.push(x.name); } });
     upsertPlan(p);
     S.fresh = p.id; S.filter = "all";
@@ -471,7 +471,7 @@
     var a = b.dataset.f, F = S.flow;
     if (a === "close") { F && F.kind === "done" ? (closeFrame(), fadeFresh()) : askClose(); }
     if (a === "use") { var t = tplById(b.dataset.id); if (t) startFlow(fromTemplate(t), { mode: "plan", tId: t.id }); }
-    if (a === "blank") { var bp = MP.blankPlan(); bp.name = "Mind Plan"; startFlow(bp, { mode: "plan" }); }
+    if (a === "blank") { var bp = MP.blankPlan(); bp.name = MP.defaultName(); startFlow(bp, { mode: "plan" }); }
     if (a === "manage") openLibrary("start");
     if (a === "step") goStep(b.dataset.k);
     if (a === "next") next();
@@ -517,7 +517,7 @@
     var seeUpTo = function () { if (!step) return; for (var i = 0; i <= KEYS.indexOf(step); i++) S.flow.seen[KEYS[i]] = true; goStep(step, true); };
     if (view === "create") {
       if (t) { startFlow(fromTemplate(t), { mode: "plan", tId: t.id }); seeUpTo(); }
-      else if (step) { var bp = MP.blankPlan(); bp.name = "Mind Plan"; startFlow(bp, { mode: "plan" }); seeUpTo(); }
+      else if (step) { var bp = MP.blankPlan(); bp.name = MP.defaultName(); startFlow(bp, { mode: "plan" }); seeUpTo(); }
       else openStart();
     } else if (view === "library") {
       if (t) editTemplate(t, step);

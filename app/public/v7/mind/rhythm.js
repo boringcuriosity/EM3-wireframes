@@ -56,6 +56,17 @@
     { cls: "glyph-care", name: "Self-care", T: selfT(), unit: "" });
   function live() { var r = parts().raw; return [Math.round(r.slept * 10) / 10, r.ontime, r.self]; }
   window.MV = function (i) { return live()[i]; };
+  /* the Rhythm sheet: built before this file runs, so its score and three tiles are filled in each time it opens, from the same live numbers */
+  window.MVSHEET = function (sheet) {
+    var b = sheet.querySelector(".ebub b"), sc = score();
+    if (b && sc != null) b.innerHTML = Math.round(sc) + "<sup>%</sup>";
+    var ch = sheet.querySelector(".echips"); if (!ch) return;
+    ch.innerHTML = window.MOVEPART.map(function (n, i) {
+      var t = n.txt ? n.txt() : null, v = live()[i];
+      return '<div><span class="top"><span class="' + n.cls + ' eglyph"></span>' + n.name + "</span>" +
+        (t ? "<b>" + t.v + "<small>" + t.of.replace("<br>", " ") + "</small></b>" : "<b>" + v + "<small> of " + n.T + n.unit + "</small></b>") + "</div>";
+    }).join("");
+  };
 
   var last = score() || 0, said = false;
   (function first(tries) {

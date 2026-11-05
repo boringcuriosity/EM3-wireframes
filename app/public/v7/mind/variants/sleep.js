@@ -10,7 +10,7 @@
               (E to H were dropped by the user, 2 Nov; their code stays)
    ?vsleep=i  A without its two tiles. Also the split night: ?sstate=split (entered) or split-synced (two sessions from Health),
               and "+ Add another sleep" in the sheet. ?skin=white (default), soft, scene, deep changes only the look.
-   ?sstate=   synced (default) | short | nap | none | wait | manual | edited | noperm
+   ?sstate=   synced (default) | short | nap | none | manual | edited | noperm
    ?spos=below puts the card under the plan, where Move keeps steps. ?os=android names Health Connect.
    ?sheet=sleep opens the sheet, ?sheet=sleepinfo the points, ?sheet=sleepperm the connect sheet.
    Hours count from falling asleep to waking, as rhythm.js does. */
@@ -35,7 +35,6 @@
     short: { perm: true, src: "health", night: SH, health: SH, odd: true },
     nap: { perm: true, src: "health", night: SY, health: SY, nap: [900, 940] },
     none: { perm: true, src: null, night: null, health: null },
-    wait: { perm: true, src: null, night: null, health: null, wait: true },
     manual: { perm: true, src: "manual", night: { bed: PLAN.bed + 30, wake: PLAN.wake + 30 }, health: null },
     edited: { perm: true, src: "edited", night: { bed: PLAN.bed + 45, wake: PLAN.wake + 15 }, health: SH },
     noperm: { perm: false, src: null, night: null, health: null },
@@ -92,7 +91,7 @@
     var band = '<span class="band" style="left:' + pc(PLAN.bed) + '%;width:' + (pc(PLAN.wake) - pc(PLAN.bed)) + '%"></span>';
     var b = n && n.segs ? n.segs.map(function (x, i) { return (i ? '<span class="gap" style="left:' + pc(n.segs[i - 1].wake) + '%;width:' + Math.max(0, pc(x.bed) - pc(n.segs[i - 1].wake)) + '%"></span>' : "") + '<span class="bar" style="left:' + pc(x.bed) + '%;width:' + Math.max(0, pc(x.wake) - pc(x.bed)) + '%"></span>'; }).join("")
       : n ? '<span class="bar" style="left:' + pc(n.bed) + '%;width:' + Math.max(0, pc(n.wake) - pc(n.bed)) + '%"></span>'
-      : o.wait ? '<span class="bar wait" style="left:' + pc(PLAN.bed) + '%;width:' + (pc(PLAN.wake) - pc(PLAN.bed)) + '%"></span>' : "";
+ : "";
     var pins = o.mini || J ? "" : '<span class="pin" style="left:' + pc(PLAN.bed) + '%">' + clk(PLAN.bed) + '</span><span class="pin" style="left:' + pc(PLAN.wake) + '%">' + clk(PLAN.wake) + '</span>';
     var ax = o.mini || o.noaxis ? "" : '<div class="ax" aria-hidden="true">' + AX.map(function (m) { return '<span style="left:' + pc(m) + '%">' + clk(m).replace(":00", "") + '</span>'; }).join("") + '</div>';
     var lbl = (n ? "Slept " + clk(n.bed) + " to " + clk(n.wake) + ". " : "") + "Your plan is " + clk(PLAN.bed) + " to " + clk(PLAN.wake) + ".";
@@ -132,8 +131,7 @@
     if (J && ST.src === "manual" && ST.perm) return "";   /* J: times they typed need no label; not connected keeps the Connect strip */
     if (ST.src === "manual" && (ST.perm || !J)) return '<div class="mv-sync"><span class="src"><i class="hk sv-me">' + I.pencil + '</i>Entered by you</span><span class="at">' + (ST.at || "7:12 AM") + '</span></div>';
     if (!ST.perm) return '<button class="mv-sync off" data-sv="perm">' + hk + '<span class="tx"><b>' + (AND ? "Turn on Health Connect" : "Connect Apple Health") + '</b><span>Your sleep fills in by itself</span></span>' + MD.IC.chev + '</button>';
-    if (ST.wait) return '<div class="mv-sync"><span class="src">' + hk + 'Waiting for ' + NAME + '</span><span class="at">Checked 7:28 AM</span></div>';
-    if (!ST.night) return '<div class="mv-sync"><span class="src">' + hk + 'From ' + NAME + '</span><span class="at">Nothing for last night</span></div>';
+    if (!ST.night) return '<div class="mv-sync"><span class="src">' + hk + 'From ' + NAME + '</span><span class="at">No sleep synced yet</span></div>';
     if (ST.src === "edited") return '<div class="mv-sync"><span class="src">' + hk + 'From ' + NAME + ', edited by you</span></div>';
     return '<div class="mv-sync"><span class="src">' + hk + 'From ' + NAME + '</span><span class="at">Updated 7:22 AM</span></div>';
   }
@@ -153,13 +151,12 @@
   }
   function empty() {
     if (!ST.perm) return { t: "Add last night", s: "Enter the times, or connect " + NAME + " to fill them in by itself.", b: "Enter Last Night", sec: false };
-    if (ST.wait) return { t: "Last night is on its way", s: "It usually arrives once your watch syncs with your phone.", b: "Enter It Yourself", sec: true };
-    return { t: "Nothing for last night yet", s: NAME + " fills this in when you wear your watch to bed.", b: "Enter Last Night", sec: false };
+    return { t: "We haven’t received last night’s sleep yet", s: "Wait for it to sync, or log it yourself.", b: "Enter Last Night", sec: false };
   }
   function emptyCard(pic) {
     if (J) return jEmpty();
     var c = empty();
-    return '<div class="mv-sc sv-sc"><div class="sv-et">' + (pic || "") + '<div><div class="sv-t">' + c.t + '</div><div class="mv-sub">' + c.s + '</div></div></div>' + (pic ? "" : bar(null, { wait: ST.wait })) +
+    return '<div class="mv-sc sv-sc"><div class="sv-et">' + (pic || "") + '<div><div class="sv-t">' + c.t + '</div><div class="mv-sub">' + c.s + '</div></div></div>' + (pic ? "" : bar(null, {})) +
       '<button class="sv-cta' + (c.sec ? " sec" : "") + '" data-sv="edit">' + c.b + '</button></div>';
   }
   var EDIT = '<button class="mv-logbtn" data-sv="edit">' + I.pencil + 'Edit</button>';
@@ -179,8 +176,8 @@
   /* J with nothing for last night: Log sleep at the top right, as Move's Log steps, over the empty sleep window */
   function jEmpty() {
     var c = empty();
-    return '<div class="mv-sc sv-sc"><div class="mv-sh"><div class="t"><div class="sv-t">' + c.t + '</div><div class="mv-sub">' + c.s + '</div></div>' +
-      '<button class="mv-logbtn" data-sv="edit">' + PLUSQ + 'Log sleep</button></div>' + bar(null, { wait: ST.wait }) + '</div>';
+    return '<div class="mv-sc sv-sc"><div class="mv-sh"><div class="t"><div class="sv-t">' + c.t + '</div>' + (c.s ? '<div class="mv-sub">' + c.s + '</div>' : "") + '</div>' +
+      '<button class="mv-logbtn" data-sv="edit">' + PLUSQ + 'Log sleep</button></div>' + bar(null, {}) + '</div>';
   }
   var CARD = {
     /* I: A exactly, without the Hours and Timing tiles. What the tiles said comes back in A's own two lines:
@@ -233,11 +230,11 @@
   }
   function slimEmpty(cls, dark) {
     var hk = '<i class="hk' + (AND ? " hc" : "") + '"></i>';
-    var t = !ST.perm ? "Add last night" : ST.wait ? "Last night is on its way" : "Nothing for last night yet";
+    var t = !ST.perm ? "Add last night" : "We haven’t received last night’s sleep yet";
     var sub = !ST.perm ? '<button class="sv-lk" data-sv="perm">' + (AND ? "Turn on Health Connect" : "Connect Apple Health") + '</button>'
-      : '<span class="sv-src">' + hk + (ST.wait ? "Waiting for " + NAME : NAME + " has nothing yet") + '</span>';
+      : '<span class="sv-src">' + hk + (NAME + " has nothing yet") + '</span>';
     return '<div class="mv-sc sv-sl ' + cls + '"><div class="sv-er"><span class="sv-mi">' + I.moon + '</span><div class="t"><div class="sv-et2">' + t + '</div><div class="sv-es">' + sub + '</div></div>' +
-      '<button class="sv-enter" data-sv="edit">Enter Times</button></div>' + (ST.wait ? bar(null, { mini: true, wait: true }) : "") + '</div>';
+      '<button class="sv-enter" data-sv="edit">Enter Times</button></div>' + '</div>';
   }
   function ends(n) {   /* last night's times under the two ends of the bar, the only place they are written */
     return '<div class="sv-ends" aria-hidden="true"><span style="left:' + pc(n.bed) + '%">' + clk(n.bed) + '</span><span style="left:' + pc(n.wake) + '%">' + clk(n.wake) + '</span></div>';
@@ -407,7 +404,7 @@
     var g = draft.segs, n = { bed: g[0].bed, wake: g[g.length - 1].wake }, h = ST.health;
     if (g.length > 1) n.segs = g.map(function (x) { return { bed: x.bed, wake: x.wake }; });
     var key = function (x) { return x ? JSON.stringify(x.segs || [{ bed: x.bed, wake: x.wake }]) : ""; }, same = h && key(h) === key(n);
-    ST.night = same ? h : n; ST.src = same ? "health" : h ? "edited" : "manual"; ST.wait = false;
+    ST.night = same ? h : n; ST.src = same ? "health" : h ? "edited" : "manual"; 
     if (!same) { ST.odd = false; ST.at = clk(Math.floor(NOWM / 5) * 5); }
     put(ST.night); MD.cause = "sleep"; window.closeSheets(); MD.render(); place(); MD.toast("Last night saved.");
   }
@@ -531,7 +528,7 @@
     if (draft && draft.segs) return saveI();
     if (!draft || check().err) return;
     var h = ST.health, same = h && h.bed === draft.bed && h.wake === draft.wake;
-    ST.night = { bed: draft.bed, wake: draft.wake }; ST.src = same ? "health" : h ? "edited" : "manual"; ST.wait = false;
+    ST.night = { bed: draft.bed, wake: draft.wake }; ST.src = same ? "health" : h ? "edited" : "manual"; 
     if (!same) { ST.odd = false; ST.at = clk(Math.floor(NOWM / 5) * 5); }
     put(ST.night); MD.cause = "sleep"; window.closeSheets(); MD.render(); place(); MD.toast("Last night saved.");
   }
@@ -619,7 +616,7 @@
     if (a === "reset") { ST.night = ST.health.segs ? ST.health : { bed: ST.health.bed, wake: ST.health.wake }; ST.src = "health"; ST.odd = len(ST.night) < 180; put(ST.night); window.closeSheets(); MD.render(); place(); MD.toast("Back to " + NAME + "’s times."); return; }
     if (a === "permgo") {
       /* the phone's own permission screen comes next; here it always says yes, then last night is read */
-      window.closeSheets(); ST = { perm: true, src: null, night: null, health: null, wait: true }; put(null); MD.render(); place();
+      window.closeSheets(); ST = { perm: true, src: null, night: null, health: null }; put(null); MD.render(); place();
       setTimeout(function () { ST = { perm: true, src: "health", night: SY, health: SY }; put(SY); MD.render(); place(); MD.toast("Last night came in from " + NAME + "."); }, RD ? 50 : 1400);
     }
   });
@@ -631,8 +628,8 @@
       if (x.sheet !== "sleep") return x;
       var n = ST.night, mark = ST.src === "manual" ? '<i class="hk sv-me">' + I.pencil + '</i>' : '<i class="hk' + (AND ? " hc" : "") + '"></i>';
       var d = n ? mark + dur(len(n)) + " · " + clk(n.bed) + " to " + clk(n.wake) + (ST.src === "edited" ? " · edited" : "") + (ST.odd && ST.src === "health" ? ' <em class="sv-chk">· check this</em>' : "")
-        : !ST.perm ? "Enter it, or connect " + NAME : ST.wait ? "Waiting for " + NAME : "Nothing from " + NAME + ". Tap to enter.";
-      return { m: x.m, sheet: "sleep", on: !!n, at: x.at, t: x.t, d: '<span class="sv-rowd">' + d + '</span>' + bar(n, { mini: true, wait: ST.wait }) };
+        : !ST.perm ? "Enter it, or connect " + NAME : "Nothing from " + NAME + ". Tap to enter.";
+      return { m: x.m, sheet: "sleep", on: !!n, at: x.at, t: x.t, d: '<span class="sv-rowd">' + d + '</span>' + bar(n, { mini: true }) };
     });
   }
 
@@ -670,17 +667,15 @@
     ".sv-hd{position:absolute;top:-10px;bottom:-10px;width:32px;margin-left:-16px;cursor:ew-resize;touch-action:none;outline:none}",
     ".sv-hd span{position:absolute;left:50%;top:50%;width:10px;height:24px;transform:translate(-50%,-50%);border-radius:5px;background:#fff;border:1.5px solid var(--g-900);box-shadow:0 1px 3px rgba(16,24,40,.18);transition:border-color .15s cubic-bezier(.4,0,.2,1)}",
     ".sv-hd:hover span,.sv-hd.is-drag span{border-color:var(--in-600)}.sv-hd:focus-visible span{border-color:var(--p-600);box-shadow:0 0 0 3px rgba(41,157,107,.35)}",
-    /* J in Mind's teal (goodflip-design foundations: teal 800 #2DA6A6, 900 #2D8282). Text in teal 900, 4.54:1 on white */
-    ".sv-j .mv-big{color:#2D8282}.sv-tl.j .bar{background:linear-gradient(90deg,#2DA6A6,#2D8282)}.sv-tl.j + .sv-lg .lb,.sv-tl.j .sv-lg .lb{background:linear-gradient(90deg,#2DA6A6,#2D8282)}",
+    /* J in Mind's teal (goodflip-design foundations: teal 800 #E7C144, 900 #826E2D). Text in teal 900, 4.54:1 on white */
+    ".sv-j .mv-big{color:#826E2D}.sv-tl.j .bar{background:linear-gradient(90deg,#E7C144,#826E2D)}.sv-tl.j + .sv-lg .lb,.sv-tl.j .sv-lg .lb{background:linear-gradient(90deg,#E7C144,#826E2D)}",
     ".sv-tl.j .tr{height:18px;border-radius:6px}.sv-tl.j .band{top:-3px;bottom:-3px;border-radius:8px}.sv-tl.j .bar{top:3px;bottom:3px;border-radius:4px}",
     ".sv-lg{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:10px;font:400 12px/16px Roboto,sans-serif;color:var(--g-600)}.sv-lg span{display:inline-flex;align-items:center;gap:6px}",
     ".sv-lg i{width:14px;height:8px;border-radius:3px;flex:0 0 auto}.sv-lg .lb{background:linear-gradient(90deg,var(--in-500),#4F50B8)}.sv-lg .lp{background:var(--in-50);border:1.5px dashed var(--in-200);height:10px}",
-    ".sk-soft .sv-lg .lp{background:#E0FFFF;border-color:#2D8282}.sk-deep .sv-lg{color:#C7D7FE}.sk-deep .sv-lg .lp{background:rgba(164,253,253,.12);border-color:#A4FDFD}",
+    ".sk-soft .sv-lg .lp{background:#FFF8E0;border-color:#826E2D}.sk-deep .sv-lg{color:#C7D7FE}.sk-deep .sv-lg .lp{background:rgba(253,232,164,.12);border-color:#FDE8A4}",
     ".sv-tl .tr{position:relative;height:28px;border-radius:8px;background:var(--g-50)}",
     ".sv-tl .band{position:absolute;top:-4px;bottom:-4px;border-radius:10px;background:var(--in-50);border:1.5px dashed var(--in-200)}",
     ".sv-tl .bar{position:absolute;top:4px;bottom:4px;border-radius:6px;background:linear-gradient(90deg,var(--in-500),#4F50B8);transition:left .5s cubic-bezier(.4,0,.2,1),width .5s cubic-bezier(.4,0,.2,1)}",
-    ".sv-tl .bar.wait{background:linear-gradient(90deg,var(--in-50),var(--in-100),var(--in-50));background-size:200% 100%;animation:svshim 1.6s linear infinite}",
-    "@keyframes svshim{to{background-position:-200% 0}}",
     ".sv-tl .pin{position:absolute;top:0;transform:translateX(-50%);font:600 10px/14px Roboto,sans-serif;color:var(--in-600);white-space:nowrap}",
     ".sv-tl .ax{position:relative;height:16px;margin-top:6px}.sv-tl .ax span{position:absolute;transform:translateX(-50%);font:400 10px/14px Roboto,sans-serif;color:var(--g-400);white-space:nowrap}.sv-tl .ax span:first-child{transform:none}",
     ".sv-tl.mini{padding-top:0;margin-top:8px;width:100%}.sv-tl.mini .tr{height:10px;border-radius:4px}.sv-tl.mini .band{top:-2px;bottom:-2px;border-radius:5px;border-width:1px}.sv-tl.mini .bar{top:2px;bottom:2px;border-radius:3px}",
@@ -729,7 +724,7 @@
     ".sv-perm .pair .hk{width:48px;height:48px;border-radius:12px;background:#fff url(/v7/icons/health/apple-health-heart.png) center/30px no-repeat;box-shadow:0 0 0 1px var(--g-200)}.sv-perm .pair .hk.hc{background:url(/v7/icons/health/health-connect.png) center/cover no-repeat}",
     ".sv-perm ul{margin:0;padding:0;list-style:none;display:grid;gap:8px;align-self:stretch}.sv-perm li{display:flex;gap:10px;font:400 14px/20px Roboto,sans-serif;color:var(--g-700)}.sv-perm li svg{width:18px;height:18px;color:var(--p-600,#299D6B);flex:none}",
     /* E to H, tokens from the GoodFlip design system: indigo 25 #F5F8FF, 50 #EEF4FF, 100 #E0EAFF, 200 #C7D7FE, 300 #A4BCFD, 500 #6172F3, 600 #444CE7, 700 #3538CD, 800 #2D31A6, 900 #2D3282;
-       teal 50 #EEFFFF, 100 #E0FFFF, 200 #C7FEFE (border-teal), 300 #A4FDFD, 900 #2D8282 */
+       teal 50 #FFFBEE, 100 #FFF8E0, 200 #FEF1C7 (border-teal), 300 #FDE8A4, 900 #826E2D */
     ".sv-sl{display:flex;flex-direction:column;gap:8px;padding:12px 16px;border-radius:var(--r-xl,24px);border:1px solid #E0EAFF;background:linear-gradient(180deg,#F5F8FF,#fff 60%);box-shadow:0 1px 2px rgba(16,24,40,.04),0 6px 16px -8px rgba(16,24,40,.12)}",
     ".sv-sl .sv-r1{display:flex;align-items:center;gap:12px}.sv-sl .sv-r1>.t,.sv-sl .sv-r1>.mv-big,.sv-sl .sv-r1>.sv-h{flex:1;min-width:0}",
     ".sv-sl .sv-r2{display:flex;align-items:center;justify-content:space-between;gap:8px;font:400 12px/16px Roboto,sans-serif;color:#667085}",
@@ -737,7 +732,7 @@
     ".sv-vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}",
     ".sv-src{display:inline-flex;align-items:center;gap:6px;font:400 12px/16px Roboto,sans-serif;color:#667085;white-space:nowrap;min-width:0}",
     ".sv-src .hk{display:inline-block;width:14px;height:14px;border-radius:4px;flex:none;background:#fff url(/v7/icons/health/apple-health-heart.png) center/9px no-repeat;box-shadow:0 0 0 1px #E4E7EC}.sv-src .hk.hc{background:url(/v7/icons/health/health-connect.png) center/cover no-repeat}.sv-src .hk.sv-me svg{width:9px;height:9px}",
-    ".sv-tw{display:inline-flex;align-items:center;gap:4px;font:600 12px/16px Roboto,sans-serif;color:#3538CD}.sv-tw svg{width:14px;height:14px;flex:none}.sv-tw.ok{color:#2D8282}",
+    ".sv-tw{display:inline-flex;align-items:center;gap:4px;font:600 12px/16px Roboto,sans-serif;color:#3538CD}.sv-tw svg{width:14px;height:14px;flex:none}.sv-tw.ok{color:#826E2D}",
     ".sv-sn{display:flex;gap:6px;align-items:center;font:400 12px/16px Roboto,sans-serif;color:#667085}.sv-sn svg{width:14px;height:14px;flex:none}.sv-sn.warn{color:#B54708}.sv-sn .sv-lk{font-size:12px}",
     ".sv-mi{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:#EEF4FF;color:#444CE7;flex:none}.sv-mi svg{width:18px;height:18px}",
     ".sv-h{font:700 18px/24px Roboto,sans-serif;color:#3538CD;font-variant-numeric:tabular-nums;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.sv-h small{font:400 12px/16px Roboto,sans-serif;color:#667085}",
@@ -748,46 +743,46 @@
     /* E: A's bar, its times only at the two ends */
     ".sv-ein .sv-tl{padding-top:16px}.sv-ends{position:relative;height:16px;margin-top:-4px}.sv-ends span{position:absolute;transform:translateX(-50%);font:600 11px/16px Roboto,sans-serif;color:#344054;white-space:nowrap;font-variant-numeric:tabular-nums}",
     /* the teal window for F, G, H: the coach's plan, which is what earns the points */
-    ".sv-fin .sv-tl .band,.sv-gin .sv-tl .band,.sv-hin .sv-tl .band{background:#E0FFFF;border-color:#2D8282}",
+    ".sv-fin .sv-tl .band,.sv-gin .sv-tl .band,.sv-hin .sv-tl .band{background:#FFF8E0;border-color:#826E2D}",
     /* F: night indigo */
     ".sv-fin{background:linear-gradient(160deg,#2D3282,#2D31A6);border-color:#2D31A6}",
-    ".sv-fin .sv-mi{background:rgba(255,255,255,.1);color:#A4FDFD}.sv-fin .sv-h{color:#fff}.sv-fin .sv-h small,.sv-fin .sv-src,.sv-fin .sv-es,.sv-fin .sv-sn{color:#C7D7FE}",
-    ".sv-fin .sv-tw{color:#C7D7FE}.sv-fin .sv-tw.ok{color:#A4FDFD}.sv-fin .sv-pen{color:#fff}.sv-fin .sv-et2{color:#fff}.sv-fin .sv-sn.warn{color:#FEC84B}.sv-fin .sv-lk{color:#A4FDFD}",
-    ".sv-fin .sv-tl.mini .tr{background:rgba(255,255,255,.08)}.sv-fin .sv-tl .band{background:rgba(164,253,253,.14);border-color:#A4FDFD}.sv-fin .sv-tl .bar{background:linear-gradient(90deg,#C7D7FE,#fff)}",
+    ".sv-fin .sv-mi{background:rgba(255,255,255,.1);color:#FDE8A4}.sv-fin .sv-h{color:#fff}.sv-fin .sv-h small,.sv-fin .sv-src,.sv-fin .sv-es,.sv-fin .sv-sn{color:#C7D7FE}",
+    ".sv-fin .sv-tw{color:#C7D7FE}.sv-fin .sv-tw.ok{color:#FDE8A4}.sv-fin .sv-pen{color:#fff}.sv-fin .sv-et2{color:#fff}.sv-fin .sv-sn.warn{color:#FEC84B}.sv-fin .sv-lk{color:#FDE8A4}",
+    ".sv-fin .sv-tl.mini .tr{background:rgba(255,255,255,.08)}.sv-fin .sv-tl .band{background:rgba(253,232,164,.14);border-color:#FDE8A4}.sv-fin .sv-tl .bar{background:linear-gradient(90deg,#C7D7FE,#fff)}",
     ".sv-fin .sv-enter{background:#fff;border-color:#fff;box-shadow:none}.sv-fin .sv-src .hk{box-shadow:none}",
     ".sv-fb .sv-tl.mini{margin-top:4px}.sv-fb .sv-tl.mini .tr{height:8px}",
     /* G: one row */
     ".sv-gin .sv-r1{gap:12px}.sv-gin .sv-h,.sv-gin .sv-es{flex-wrap:nowrap;white-space:nowrap}.sv-gin .sv-es{overflow:hidden;text-overflow:ellipsis}.sv-chip{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0 8px;border-radius:999px;border:1px solid #E0EAFF;background:#fff;font:600 12px/16px Roboto,sans-serif;color:#3538CD;white-space:nowrap}",
-    ".sv-chip.ok{border-color:#C7FEFE;color:#2D8282}.sv-chip svg{width:14px;height:14px}",
+    ".sv-chip.ok{border-color:#FEF1C7;color:#826E2D}.sv-chip svg{width:14px;height:14px}",
     ".sv-gin .sv-tl.mini{margin-top:2px}.sv-gin .sv-tl.mini .tr{height:8px}.sv-gin .sv-tl.mini .bar{top:1px;bottom:1px}.sv-fb .sv-tl.mini .bar{top:1px;bottom:1px}",
     /* H: the bar is the card */
     ".sv-ht{position:relative;height:28px;border-radius:10px;background:#F9FAFB}",
-    ".sv-ht .wn{position:absolute;top:0;bottom:0;border-radius:10px;background:#EEFFFF;border:1.5px dashed #2D8282}",
+    ".sv-ht .wn{position:absolute;top:0;bottom:0;border-radius:10px;background:#FFFBEE;border:1.5px dashed #826E2D}",
     ".sv-ht .nb{position:absolute;top:4px;bottom:4px;border-radius:7px;background:linear-gradient(90deg,#444CE7,#2D31A6);display:flex;align-items:center;justify-content:space-between;padding:0 8px;transition:left .5s cubic-bezier(.4,0,.2,1),width .5s cubic-bezier(.4,0,.2,1)}",
     ".sv-ht .nb em{font:500 11px/1 Roboto,sans-serif;font-style:normal;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap}",
-    ".sv-pl{font:500 12px/16px Roboto,sans-serif;color:#2D8282;font-variant-numeric:tabular-nums}",
+    ".sv-pl{font:500 12px/16px Roboto,sans-serif;color:#826E2D;font-variant-numeric:tabular-nums}",
     ".sv-hin .sv-h{font-size:20px;line-height:26px}",
     /* I and the split night */
     ".sv-tl .gap{position:absolute;top:4px;bottom:4px;background:repeating-linear-gradient(135deg,#E0EAFF 0 3px,#fff 3px 6px);border-radius:3px}",
-    ".sv-tw2{font-weight:600;color:#3538CD}.sv-tw2.ok{color:#2D8282}",
+    ".sv-tw2{font-weight:600;color:#3538CD}.sv-tw2.ok{color:#826E2D}",
     ".sv-pair{display:flex;flex-direction:column;gap:8px}.sv-ph{display:flex;align-items:center;justify-content:space-between;font:600 12px/16px Roboto,sans-serif;letter-spacing:.06em;text-transform:uppercase;color:#667085}",
     ".sv-rm{position:relative;border:0;background:none;padding:0;font:600 13px Roboto,sans-serif;letter-spacing:.25px;text-transform:none;color:#B42318;cursor:pointer}.sv-rm::after{content:'';position:absolute;left:50%;top:50%;width:64px;height:44px;transform:translate(-50%,-50%)}",
     ".sv-add{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:44px;padding:4px 0;border:0;background:none;text-align:left;font:600 14px/20px Roboto,sans-serif;color:#299D6B;cursor:pointer}.sv-add small{font:400 12px/16px Roboto,sans-serif;color:#667085}",
     ".sv-addl{display:inline-flex;align-items:center;gap:6px}.sv-addl svg{width:20px;height:20px;flex:0 0 auto}",
     /* I's skins: the content and layout stay, only the look changes. Tokens: indigo 25 to 900, teal 50, 100, 300, 900 */
     ".sk-soft .mv-sc{background:#EEF4FF;border-color:#C7D7FE}.sk-soft .mv-sync{background:#E0EAFF;border-color:#C7D7FE}",
-    ".sk-soft .sv-tl .tr{background:#fff}.sk-soft .sv-tl .band{background:#E0FFFF;border-color:#2D8282}.sk-soft .sv-tl .pin{color:#2D8282}.sk-soft .sv-tw2.ok{color:#2D8282}",
+    ".sk-soft .sv-tl .tr{background:#fff}.sk-soft .sv-tl .band{background:#FFF8E0;border-color:#826E2D}.sk-soft .sv-tl .pin{color:#826E2D}.sk-soft .sv-tw2.ok{color:#826E2D}",
     ".sk-scene .mv-sc{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(180deg,#F5F8FF,#fff 60%)}.sk-scene .mv-logbtn{background:rgba(255,255,255,.85);border-radius:8px;padding:0 6px}",
     ".sk-scene .mv-sc::before{content:'';position:absolute;inset:0 0 auto 0;height:132px;z-index:-1;background:url(/v7/icons/mind/bg/night.webp?v=1) right top/auto 100% no-repeat;opacity:.4;-webkit-mask-image:linear-gradient(90deg,transparent 25%,#000 70%),linear-gradient(180deg,#000 40%,transparent);-webkit-mask-composite:source-in;mask-image:linear-gradient(90deg,transparent 25%,#000 70%),linear-gradient(180deg,#000 40%,transparent);mask-composite:intersect}",
     ".sk-scene .sv-tl .tr{background:rgba(255,255,255,.85)}",
     ".sk-deep .mv-sc{background:linear-gradient(160deg,#2D3282,#2D31A6);border-color:#2D31A6}",
     ".sk-deep .mv-big{color:#fff}.sk-deep .mv-big span,.sk-deep .mv-sub{color:#C7D7FE}.sk-deep .mv-logbtn{color:#fff}",
-    ".sk-deep .sv-tw2{color:#fff}.sk-deep .sv-tw2.ok{color:#A4FDFD}",
-    ".sk-deep .sv-tl .tr{background:rgba(255,255,255,.08)}.sk-deep .sv-tl .band{background:rgba(164,253,253,.12);border-color:#A4FDFD}.sk-deep .sv-tl .pin{color:#A4FDFD}.sk-deep .sv-tl .ax span{color:#A4BCFD}",
+    ".sk-deep .sv-tw2{color:#fff}.sk-deep .sv-tw2.ok{color:#FDE8A4}",
+    ".sk-deep .sv-tl .tr{background:rgba(255,255,255,.08)}.sk-deep .sv-tl .band{background:rgba(253,232,164,.12);border-color:#FDE8A4}.sk-deep .sv-tl .pin{color:#FDE8A4}.sk-deep .sv-tl .ax span{color:#A4BCFD}",
     ".sk-deep .sv-tl .bar{background:linear-gradient(90deg,#C7D7FE,#fff)}.sk-deep .sv-tl .gap{background:repeating-linear-gradient(135deg,rgba(255,255,255,.25) 0 3px,transparent 3px 6px)}",
-    ".sk-deep .sv-note{background:rgba(255,255,255,.08);color:#E0EAFF}.sk-deep .sv-note svg{color:#C7D7FE}.sk-deep .sv-note.warn{color:#FEC84B}.sk-deep .sv-note.warn svg{color:#FEC84B}.sk-deep .sv-lk{color:#A4FDFD}",
+    ".sk-deep .sv-note{background:rgba(255,255,255,.08);color:#E0EAFF}.sk-deep .sv-note svg{color:#C7D7FE}.sk-deep .sv-note.warn{color:#FEC84B}.sk-deep .sv-note.warn svg{color:#FEC84B}.sk-deep .sv-lk{color:#FDE8A4}",
     ".sk-deep .sv-t{color:#fff}.sk-deep .mv-sync{background:#EEF4FF;border-color:#C7D7FE}",
-    "@media (prefers-reduced-motion: reduce){.sv-ht .nb{transition:none}.sv-tl .bar{transition:none}.sv-tl .bar.wait{animation:none}}"
+    "@media (prefers-reduced-motion: reduce){.sv-ht .nb{transition:none}.sv-tl .bar{transition:none}}"
   ].join("");
   document.head.appendChild(css);
 

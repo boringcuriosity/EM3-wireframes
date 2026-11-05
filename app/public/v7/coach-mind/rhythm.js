@@ -30,6 +30,22 @@
       ".P-hint{margin:-10px 0 0}",
       ".P-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;align-items:start}",
       ".P-g-plan{grid-template-columns:2fr 1fr 1fr}",
+      ".P-addw{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-top:16px}",
+      ".P-wins{display:flex;flex-direction:column;gap:12px;margin-top:4px}",
+      ".P-win{padding:14px 16px 16px;border:1px solid #E4E7EC;border-radius:14px;background:#fff}",
+      ".P-winh{display:flex;align-items:center;gap:8px;margin-bottom:10px}.P-winh b{flex:1;font:700 14px Onest,sans-serif;color:#101828}",
+      ".P-wn{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;background:#EEF4FF;color:#444CE7;font:700 12px Onest,sans-serif}",
+      ".P-g3{grid-template-columns:repeat(3,minmax(0,1fr))}",
+      ".P-sum{display:flex;align-items:center;gap:16px;min-height:44px}.P-sum>b{font:700 22px Onest,sans-serif;color:#101828;white-space:nowrap}.P-sum>b small{font-size:14px;font-weight:600;color:#475467;margin-left:2px}",
+      ".P-split{flex:1;display:flex;gap:3px;height:28px;max-width:520px}.P-split i{display:flex;align-items:center;min-width:0;padding:0 10px;border-radius:8px;background:#C7D7FE}.P-split i+i{background:#E0EAFF}",
+      ".P-split em{font:600 12px Onest,sans-serif;font-style:normal;color:#2D31A6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
+      ".P-tot{margin:12px 0 0;font:400 13px/19px Onest,sans-serif;color:#475467}.P-tot b{color:#101828}",
+      ".P-tot.bad{display:flex;align-items:center;flex-wrap:wrap;gap:12px;padding:12px 14px;border:1px solid #FECDCA;border-radius:12px;background:#FEF3F2;color:#912018}.P-tot.bad b{color:#7A271A}",
+      ".P-cw{flex:1 1 320px;display:flex;gap:8px;align-items:flex-start}.P-cw svg{width:16px;height:16px;flex:none;margin-top:2px;color:#D92D20}",
+      ".P-merge{height:36px;padding:0 14px;border-radius:11px;border:1px solid #299D6B;background:#fff;color:#1D4D38;font:600 13px Onest,sans-serif;cursor:pointer}.P-merge:hover{background:#F3FCF8}",
+      ".P-lens{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:14px}.P-lens .P-lab{margin-right:4px}",
+      ".P-len{height:32px;padding:0 14px;border-radius:999px;border:1px solid #E4E7EC;background:#fff;font:600 13px Onest,sans-serif;color:#344054;cursor:pointer}",
+      ".P-len:hover{border-color:#299D6B}.P-len[aria-pressed=true]{background:#F3FCF8;border-color:#299D6B;color:#1D4D38}",
       ".P-f{display:flex;flex-direction:column;gap:8px;min-width:0}",
       ".P-lab{font:700 11px/16px Onest,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#475467}",
       ".P-in{height:44px;width:100%;background:#F3FCF8;border:1px solid #E4E7EC;border-radius:11px;padding:0 14px;font:600 14px Onest,sans-serif;color:#101828}",
@@ -206,7 +222,7 @@
       ".rt-tp:hover{border-color:#D0D5DD}.rt-tp[aria-expanded=true],.rt-tp:focus-visible{outline:none;border-color:#299D6B;box-shadow:0 0 0 3px rgba(41,157,107,.18)}" +
       ".rt-tp svg{width:14px;height:14px;flex:none;color:#667085}.rt-tp.big{height:44px;width:100%;border-radius:11px;padding:0 14px}" +
       ".rt-tp.need{background:#FFFAEB;border-color:#FEC84B;color:#B54708}" +
-      "[data-tlat]{width:116px;flex:none}[data-bm]{width:96px;flex:none}";
+      "[data-tlat]{width:116px;flex:none}[data-bm]{width:96px;flex:none}.rt-nm{width:100%;max-width:360px;background:#fff}.rt-nm span{overflow:hidden;text-overflow:ellipsis}";
     document.head.appendChild(css);
     function close(refocus) {
       if (!box) return; var t = cur.t; box.remove(); box = null; cur = null;
@@ -276,6 +292,23 @@
     ".rt-ferr{display:flex;align-items:center;gap:6px;margin:-2px 0 0 4px;font:500 12.5px/18px Onest,sans-serif;color:#B42318;animation:rt-in .16s ease}" +
     ".rt-ferr svg{width:14px;height:14px;flex:none}";
   document.head.appendChild(ecss);
+  /* a text field at its maxlength says so in a line under it, while typing or after a paste; it goes once the text is shorter.
+     One listener for every Mind plan field with a maxlength */
+  if (!window.MP_LIMIT) {
+    window.MP_LIMIT = 1;
+    var lst = document.createElement("style");
+    lst.textContent = ".ml-note{display:flex;align-items:center;gap:6px;margin:6px 0 0;font:500 12.5px/18px Onest,sans-serif;color:#B54708}.ml-note::before{content:'';width:6px;height:6px;border-radius:50%;background:#F79009;flex:none}";
+    document.head.appendChild(lst);
+    document.addEventListener("input", function (e) {
+      var f = e.target, max = f.maxLength;
+      if (!(f.matches && f.matches("input[maxlength],textarea[maxlength]")) || max < 1) return;
+      var row = f.closest(".sl-row,.sc-row,.sl-f,.sc-f,.mp-fld,.pr-hab") || f, note = row.nextElementSibling;
+      var on = f.value.length >= max, has = note && note.classList.contains("ml-note");
+      if (on && !has) { note = document.createElement("p"); note.className = "ml-note"; note.setAttribute("role", "status"); row.after(note); }
+      if (on) note.textContent = "That is the " + max + " character limit. Anything more will not fit.";
+      else if (has) note.remove();
+    }, true);
+  }
   function clearErr(n) {
     if (!n || !n.classList.contains("rt-bad")) return;
     n.classList.remove("rt-bad"); n.removeAttribute("aria-invalid"); n.removeAttribute("aria-describedby");
@@ -341,7 +374,10 @@
   function tlHtml(c) {
     var p = c.p, n = c.items.length, full = n >= c.max && !c.swap;
     var rows = n ? '<div class="' + p + '-list">' + c.items.map(function (x, i) {
-      return '<div class="' + p + '-row"><span class="' + p + '-rt">' + esc(c.name(x, i)) + "</span>" + (c.extra ? c.extra(x, i) : "") +
+      /* a list of fixed choices (breathing): the name is a dropdown, so a picked exercise can be changed in place */
+      var nm = c.pick ? '<span class="' + p + '-rt">' + ddBtn('data-tlname="' + c.id + '" data-i="' + i + '" data-fk="' + c.id + "nm" + i + '"', c.name(x, i), c.name(x, i), "Change " + c.name(x, i)).replace('class="rt-tp"', 'class="rt-tp rt-nm"') + "</span>"
+        : '<span class="' + p + '-rt">' + esc(c.name(x, i)) + "</span>";
+      return '<div class="' + p + '-row">' + nm + (c.extra ? c.extra(x, i) : "") +
         tpBtn('data-tlat="' + c.id + '" data-i="' + i + '" data-fk="' + c.id + "at" + i + '"', x.at, "Time for " + c.name(x, i)) +
         (n > (c.min || 0) ? '<button type="button" class="' + p + '-x" data-tldel="' + c.id + '" data-i="' + i + '" data-fk="' + c.id + "del" + i + '" aria-label="Remove ' + esc(c.name(x, i)) + '">×</button>' : '<span class="' + p + '-xs"></span>') + "</div>";
     }).join("") + "</div>" : c.empty ? '<div class="' + p + '-empty">' + c.empty + "</div>" : "";
@@ -365,6 +401,12 @@
         done(c.items.length ? c.id + "del" + Math.min(i, c.items.length - 1) : c.id + "-q");
         toast(c.p, "Removed " + c.name(x, i), function () { if (c.items.length >= c.max) return; c.items.splice(Math.min(i, c.items.length), 0, x); done(); });
       };
+    });
+    q("data-tlname").forEach(function (b) {
+      var i = +b.dataset.i, x = c.items[i];
+      ddWire(b, c.sugs.map(function (s) { return [s[0], esc(s[0]), s[1] ? "usually " + H.t12(s[1]).replace(":00 ", " ") : ""]; }), function (v) {
+        var y = c.make(v, x.at); y.at = x.at; c.items[i] = y; done(c.id + "nm" + i);   /* a new exercise keeps the time, takes its own minutes */
+      });
     });
     q("data-tlone").forEach(function (b) { b.onclick = function () { add(c.make("", c.def(c.items.length))); }; });
     if (c.wire) c.wire(el);
@@ -407,10 +449,35 @@
   /* keep the plan consistent: fixed standard, 15 minute hours, wake = bedtime + hours */
   function settle(r) {
     for (var k in FIXED) r[k] = FIXED[k];
-    r.hours = Math.min(12, Math.max(4, Math.round((+r.hours || 7.5) * 4) / 4));
+    r.hours = r.second ? Math.min(8, Math.max(1, Math.round((+r.hours || 5.5) * 4) / 4)) : Math.min(12, Math.max(4, Math.round((+r.hours || 7.5) * 4) / 4));
     if (!okTime(r.bedtime)) r.bedtime = "22:30";
     r.bedtime = r.bedtime.slice(0, 5);
     r.wake = hm(mins(r.bedtime) + durM(r));
+    /* a second sleep window (night shifts, sleep split in two): its own bedtime and length, 1 to 8 hours */
+    if (r.second) {
+      var s2 = r.second;
+      s2.hours = Math.min(8, Math.max(1, Math.round((+s2.hours || 2) * 4) / 4));
+      if (!okTime(s2.bedtime)) s2.bedtime = hm(mins(r.wake) + 480);
+      s2.bedtime = s2.bedtime.slice(0, 5);
+      s2.wake = hm(mins(s2.bedtime) + Math.round(s2.hours * 60));
+    }
+  }
+  /* the day's target is both windows together; with two, each window carries half of the window points */
+  var totalH = function (r) { return r.hours + (r.second ? r.second.hours : 0); };
+  /* the gap between the two windows in minutes, the shorter way round the clock; 0 when they touch or overlap.
+     Under 1 hour their full-marks bands meet, so they read as one sleep */
+  var CLOSE = 60;
+  function apart(r) {
+    if (!r.second || overlap(r)) return 0;
+    var a = mins(r.bedtime), b = a + durM(r), c = mins(r.second.bedtime), d = c + Math.round(r.second.hours * 60), m = function (x) { return ((x % 1440) + 1440) % 1440; };
+    return Math.min(m(c - b), m(a - d));
+  }
+  var tooClose = function (r) { return !!r.second && apart(r) < CLOSE; };
+  /* do the two windows share any minute of the day? */
+  function overlap(r) {
+    if (!r.second) return false;
+    var a = mins(r.bedtime), b = a + durM(r), c = mins(r.second.bedtime), d = c + Math.round(r.second.hours * 60);
+    return [-1440, 0, 1440].some(function (k) { return c + k < b && a < d + k; });
   }
   function stepper(r, k, label, note) {
     var c = STP[k], v = r[k], b = bounds(r, k);
@@ -420,9 +487,20 @@
       '<button type="button" class="sl-sb" data-st="' + k + '" data-d="1" data-fk="' + k + '+" aria-label="More"' + (v + c[0] > b[1] + 1e-9 ? " disabled" : "") + ">+</button></div>" +
       (note ? '<span class="sl-note">' + note + "</span>" : "") + "</div>";
   }
-  function steppers(r) { return stepper(r, "hours", "Target duration", "Steps of 0.5 h, or drag the bar"); }
+  function steppers(r) {
+    if (!r.second) return stepper(r, "hours", "Target sleep in a day", "Steps of 0.5 h, or drag the bar");
+    /* two windows: the day's target is their sum, so it is read here and changed in each window */
+    var a = r.hours / totalH(r) * 100;
+    return '<div class="sl-f sl-sumf"><span class="sl-lab">Target sleep in a day</span><div class="sl-sum"><b>' + hrsHtml(totalH(r)) + "</b>" +
+      '<span class="sl-split"><i style="width:' + a + '%"><em>Window 1, ' + hrs(r.hours) + '</em></i><i style="width:' + (100 - a) + '%"><em>Window 2, ' + hrs(r.second.hours) + "</em></i></span></div>" +
+      '<span class="sl-note">Change each window below, or drag them on the bar.</span></div>';
+  }
   function hoursLine(r) {
-    var zero = hrs(Math.max(0, r.hours - r.shortZero)), over = hrs(r.hours + 1);
+    var T = totalH(r), zero = hrs(Math.max(0, T - r.shortZero)), over = hrs(T + 1);
+    if (r.second) return '<b class="rt-h">How the 47 points work</b>' +
+      '<span class="rt-r"><b>Hours, 23</b>The two windows together: full marks for ' + hrs(T) + " to " + over + " of sleep in the day. Less earns fewer, down to zero at " + zero + " or less.</span>" +
+      '<span class="rt-r"><b>Window, 24</b>12 points for each window, for sleeping and waking within 30 minutes of its times. Further off earns fewer, down to zero at 2 hours off.</span>' +
+      '<span class="rt-n">The same standard for every patient.</span>';
     return '<b class="rt-h">How the 47 points work</b>' +
       '<span class="rt-r"><b>Hours, 23</b>Full marks for ' + hrs(r.hours) + " to " + over + " of sleep. Less sleep earns fewer, down to zero at " + zero + " or less. Past " + over + ", each extra hour loses 20%.</span>" +
       '<span class="rt-r"><b>Window, 24</b>Full marks for sleeping within 30 minutes of ' + H.t12(r.bedtime) + " and waking within 30 minutes of " + H.t12(r.wake) + ". Further off earns fewer, down to zero at 2 hours off.</span>" +
@@ -467,11 +545,24 @@
       '<linearGradient id="sl-fr"><stop offset="0" stop-color="#444CE7" stop-opacity=".55"/><stop offset="1" stop-color="#444CE7" stop-opacity="0"/></linearGradient>' +
       '<clipPath id="sl-clip"><rect x="' + NB.L + '" y="' + y + '" width="' + NB.w + '" height="' + h + '" rx="8"/></clipPath></defs>' +
       '<g clip-path="url(#sl-clip)"><rect x="' + NB.L + '" y="' + y + '" width="' + NB.w + '" height="' + h + '" fill="#F2F4F7"/>' +
-      spans(bed, wake, 'fill="#C7D7FE"') + edge(bed) + edge(wake) + "</g>" + ticks +
-      mark(bed, "Bed " + H.t12(r.bedtime)) + mark(wake, "Wake " + H.t12(r.wake)) + "</svg>";
+      spans(bed, wake, 'fill="#C7D7FE"') + edge(bed) + edge(wake) + sec("g") + "</g>" + ticks +
+      (r.second ? midMark(bed, wake, "1", r.bedtime, r.wake) : mark(bed, "Bed " + H.t12(r.bedtime)) + mark(wake, "Wake " + H.t12(r.wake))) + sec("m") + "</svg>";
+    /* two windows: each window's two lines and one label over its middle, numbered as in the rows below */
+    function midMark(a, b, n, t1, t2) {
+      var tick = function (m) { var x = X(onAxis(m)).toFixed(1); return '<line x1="' + x + '" x2="' + x + '" y1="' + (y - 6) + '" y2="' + (y + h + 4) + '" stroke="#101828" stroke-width="1.5"/>'; };
+      var mid = X(onAxis((a + b) / 2)), anc = mid < 110 ? "start" : mid > W - 110 ? "end" : "middle";
+      return tick(a) + tick(b) + '<text x="' + mid.toFixed(1) + '" y="' + (y - 12) + '" text-anchor="' + anc + '" font-family="Onest,sans-serif" font-size="13" font-weight="700" fill="#101828">' + n + " · " + H.t12(t1) + " to " + H.t12(t2) + "</text>";
+    }
+    /* the second window on the same bar, set from its fields rather than dragged */
+    function sec(what) {
+      if (!r.second) return "";
+      var b2 = fromNoon(r.second.bedtime), w2 = b2 + Math.round(r.second.hours * 60);
+      if (what === "g") return spans(b2, w2, 'fill="#C7D7FE"') + edge(b2) + edge(w2);
+      return midMark(b2, w2, "2", r.second.bedtime, r.second.wake);
+    }
   }
   function legend(r) {
-    return '<span><i style="background:#C7D7FE"></i>Planned sleep, ' + len(durM(r)) + "</span>" +
+    return '<span><i style="background:#C7D7FE"></i>Planned sleep, ' + len(Math.round(totalH(r) * 60)) + "</span>" +
       '<span><i style="background:#444CE7"></i>Full marks, within ' + len(r.allowance) + "</span>" +
       '<span><i style="background:linear-gradient(90deg,rgba(68,76,231,.55),rgba(68,76,231,0))"></i>Fewer marks, until ' + len(r.zeroAt) + " off</span>";
   }
@@ -493,7 +584,11 @@
         return '<section class="sl-card"><div class="sl-grid sl-g-plan">' +
           '<label class="sl-f"><span class="sl-lab">Plan name</span><input class="sl-in" data-k="name" value="' + esc(plan.name) + '" placeholder="For example, Mind plan, November"></label>' +
           '<label class="sl-f"><span class="sl-lab">Starts</span><input class="sl-in" type="date" data-k="start" value="' + esc(plan.start) + '"></label>' +
-          '<label class="sl-f"><span class="sl-lab">Ends</span><input class="sl-in" type="date" data-k="end" value="' + esc(plan.end) + '"></label></div></section>';
+          '<label class="sl-f"><span class="sl-lab">Ends</span><input class="sl-in" type="date" data-k="end" value="' + esc(plan.end) + '"></label></div>' +
+          /* quick lengths: each sets Ends from Starts; the one that matches the dates shows as picked */
+          '<div class="sl-lens" role="group" aria-label="Plan length"><span class="sl-lab">Length</span>' + MP.LENGTHS.map(function (l, i) {
+            return '<button type="button" class="sl-len" data-len="' + i + '" aria-pressed="' + (MP.endFor(plan.start, l[1]) === plan.end) + '">' + l[0] + "</button>";
+          }).join("") + "</div></section>";
       }
       /* Sleep duration and window, one card: the window's length is the target */
       function sleepCard() {
@@ -504,19 +599,56 @@
           '<div class="sl-night"><div class="sl-bar" id="sl-bar"><div id="sl-svg">' + night(r) + "</div>" +
           '<div class="sl-blk" data-drag="blk" tabindex="0" role="slider"></div><div class="sl-blk" data-drag="blk" tabindex="-1" aria-hidden="true"></div>' +
           '<div class="sl-hd" data-drag="bed" tabindex="0" role="slider"><span class="sl-grip"></span></div>' +
-          '<div class="sl-hd" data-drag="wake" tabindex="0" role="slider"><span class="sl-grip"></span></div></div>' +
+          '<div class="sl-hd" data-drag="wake" tabindex="0" role="slider"><span class="sl-grip"></span></div>' +
+          (r.second ? '<div class="sl-blk" data-drag="blk2" tabindex="0" role="slider"></div><div class="sl-blk" data-drag="blk2" tabindex="-1" aria-hidden="true"></div>' +
+            '<div class="sl-hd" data-drag="bed2" tabindex="0" role="slider"><span class="sl-grip"></span></div>' +
+            '<div class="sl-hd" data-drag="wake2" tabindex="0" role="slider"><span class="sl-grip"></span></div>' : "") + "</div>" +
           '<div class="sl-leg" id="sl-leg">' + legend(r) + "</div></div>" +
-          '<div class="sl-grid">' +
+          winsHtml() + "</section>";
+      }
+      /* one window by default: its bedtime and wake time under the bar. A second splits the day's target in two, and each
+         window gets the same row: its length, bedtime and wake time. Removing the second gives its hours back to the first */
+      function winsHtml() {
+        if (!r.second) return '<div class="sl-grid">' +
           '<div class="sl-f"><span class="sl-lab">Bedtime</span>' + tpBtn('data-tk="bedtime"', r.bedtime, "Bedtime", true) + "</div>" +
           '<div class="sl-f"><span class="sl-lab">Wake time</span>' + tpBtn('data-tk="wake"', r.wake, "Wake time", true) + "</div></div>" +
-          "</section>";
+          /* ponytail: two sleep windows are parked for now; ?split=1 brings the option back */
+          (!/[?&]split=1/.test(location.search) ? "" : '<div class="sl-addw"><button type="button" class="sl-more" data-w2="add" data-fk="w2add">+ Split into two sleep windows</button>' +
+          '<span class="sl-note">For night shifts, or sleep in two parts of the day. The ' + hrs(r.hours) + ' target is shared between them.</span></div>');
+        return '<div class="sl-wins">' + winRow(1) + winRow(2) + "</div>" +
+          '<div class="sl-tot' + (tooClose(r) ? " bad" : "") + '" id="sl-tot" role="status">' + totLine() + "</div>";
+      }
+      function winRow(n) {
+        var o = n === 1 ? r : r.second, tk = n === 1 ? "data-tk" : "data-tk2", w = "data-w" + n;
+        var stp = function (d, dis) { return '<button type="button" class="sl-sb" ' + w + '="' + d + '" data-fk="w' + n + d + '" aria-label="' + (d > 0 ? "Longer" : "Shorter") + " window " + n + '"' + (dis ? " disabled" : "") + ">" + (d > 0 ? "+" : "−") + "</button>"; };
+        return '<div class="sl-win"><div class="sl-winh"><span class="sl-wn">' + n + "</span><b>Window " + n + "</b>" +
+          (n === 2 ? '<button type="button" class="sl-x" data-w2="rm" data-fk="w2rm" aria-label="Remove window 2, its hours go back to window 1">×</button>' : "") + "</div>" +
+          '<div class="sl-grid sl-g3">' +
+          '<div class="sl-f"><span class="sl-lab" id="sl-l-w' + n + '">Length</span><div class="sl-stp" role="group" aria-labelledby="sl-l-w' + n + '">' + stp(-1, o.hours - .5 < 1) +
+            '<output class="sl-sv" aria-live="polite">' + hrsHtml(o.hours) + "</output>" + stp(1, o.hours + .5 > 8) + "</div></div>" +
+          '<div class="sl-f"><span class="sl-lab">Bedtime</span>' + tpBtn(tk + '="bedtime"', o.bedtime, "Window " + n + " bedtime", true) + "</div>" +
+          '<div class="sl-f"><span class="sl-lab">Wake time</span>' + tpBtn(tk + '="wake"', o.wake, "Window " + n + " wake time", true) + "</div></div></div>";
+      }
+      function wireMerge() { var b = el.querySelector('[data-w2="merge"]'); if (b) b.onclick = function () { merge(); done("w2add"); }; }
+      function totLine() {
+        if (!tooClose(r)) return "Each window carries 12 of the 24 window points.";
+        var g = apart(r);
+        return '<span class="sl-cw">' + ICON.info + "<span><b>" + (overlap(r) ? "The two windows overlap." : g ? "The two windows are only " + len(g) + " apart." : "The two windows touch.") + "</b> " +
+          "Sleep this close together is one sleep. Merge them into one window, or move one at least 1 hour away.</span></span>" +
+          '<button type="button" class="sl-merge" data-w2="merge" data-fk="w2merge">Merge into One Window</button>';
+      }
+      /* merge: one window from the first bedtime to the last wake, the gap included, up to 12 hours */
+      function merge() {
+        var a = mins(r.bedtime), b = a + durM(r), c = mins(r.second.bedtime), d = c + Math.round(r.second.hours * 60), m = function (x) { return ((x % 1440) + 1440) % 1440; };
+        var one = m(c - b) <= m(a - d), st = one ? a : c, end = one ? Math.max(b, a + m(c - a) + (d - c)) : Math.max(d, c + m(a - c) + (b - a));
+        r.second = null; r.bedtime = hm(st); r.hours = Math.min(MAXM, end - st) / 60; settle(r);
       }
       /* Wind-down: every task is a text field with its time. Clicking one offers the suggestions; a pick fills the text, which stays editable */
       if (!r.winddown.length) r.winddown.push({ label: "", at: "" });
       function wdCard() {
         var n = r.winddown.length, w = part("winddown").w;
         var rows = r.winddown.map(function (t, i) {
-          return '<div class="sl-row sl-trow"><input class="sl-in sl-tin" data-wdt="' + i + '" data-fk="wdt' + i + '" role="combobox" aria-autocomplete="list" aria-expanded="false" autocomplete="off" maxlength="80"' +
+          return '<div class="sl-row sl-trow"><input class="sl-in sl-tin" data-wdt="' + i + '" data-fk="wdt' + i + '" role="combobox" aria-autocomplete="list" aria-expanded="false" autocomplete="off" maxlength="100"' +
             ' aria-label="Wind-down task ' + (i + 1) + '" placeholder="Type a small step before bed" value="' + esc(t.label) + '">' +
             tpBtn('data-wdat="' + i + '" data-fk="wdat' + i + '"', t.at, "Time for " + (t.label || "this task")) +
             '<button type="button" class="sl-x" data-wdel="' + i + '" data-fk="wdel' + i + '" aria-label="Remove ' + esc(t.label || "this task") + '">×</button></div>';
@@ -572,6 +704,17 @@
         hb.setAttribute("aria-valuetext", b12 + ", " + dl);
         hw.setAttribute("aria-label", "Wake time, " + w12 + ". Left and Right arrows change it 15 minutes, the bedtime stays.");
         hw.setAttribute("aria-valuetext", w12 + ", " + dl);
+        if (!r.second) return;
+        var b2 = fromNoon(r.second.bedtime), d2 = Math.round(r.second.hours * 60), w2 = b2 + d2;
+        var k2 = el.querySelectorAll('[data-drag="blk2"]'), h2b = el.querySelector('[data-drag="bed2"]'), h2w = el.querySelector('[data-drag="wake2"]');
+        if (w2 <= 1440) { seg(k2[0], b2, w2); k2[1].hidden = true; }
+        else { seg(k2[0], b2, 1440); seg(k2[1], 0, w2 - 1440); k2[1].hidden = false; }
+        h2b.style.left = pct(b2) + "%"; h2w.style.left = pct(onAxis(w2)) + "%";
+        var sb = H.t12(r.second.bedtime), sw = H.t12(r.second.wake);
+        k2[0].setAttribute("aria-label", "Second sleep window, " + sb + " to " + sw + ". Left and Right arrows move it 15 minutes.");
+        k2[0].setAttribute("aria-valuetext", sb + " to " + sw + ", " + len(d2));
+        h2b.setAttribute("aria-label", "Second bedtime, " + sb + ". Left and Right arrows change it 15 minutes.");
+        h2w.setAttribute("aria-label", "Second wake time, " + sw + ". Left and Right arrows change it 15 minutes.");
       }
       function sync(src) {
         settle(r);
@@ -581,20 +724,34 @@
         var st = document.getElementById("sl-steps"), fk = document.activeElement && st.contains(document.activeElement) ? document.activeElement.dataset.fk : null;
         st.innerHTML = steppers(r); bindSteppers(); if (fk) refocus(st, fk);
         ["bedtime", "wake"].forEach(function (k) { var b = el.querySelector('[data-tk="' + k + '"]'); if (b.dataset.v !== r[k]) tpSet(b, r[k]); });
+        if (r.second) {
+          ["bedtime", "wake"].forEach(function (k) { var b = el.querySelector('[data-tk2="' + k + '"]'); if (b.dataset.v !== r.second[k]) tpSet(b, r.second[k]); });
+          [r, r.second].forEach(function (o, i) {
+            var n = i + 1, row = el.querySelectorAll(".sl-win")[i];
+            row.querySelector(".sl-sv").innerHTML = hrsHtml(o.hours);
+            el.querySelector('[data-w' + n + '="-1"]').disabled = o.hours - .5 < 1; el.querySelector('[data-w' + n + '="1"]').disabled = o.hours + .5 > 8;
+          });
+          var tl = el.querySelector("#sl-tot"), was = tl.classList.contains("bad");
+          if (was !== tooClose(r) || tooClose(r)) { tl.innerHTML = totLine(); tl.classList.toggle("bad", tooClose(r)); wireMerge(); }
+        }
         place();
       }
       /* bedtime b (minutes of the day) and duration d (minutes) for the plan */
-      function setWin(b, d) {
-        d = Math.min(MAXM, Math.max(MINM, d));
-        var nb = hm(b), changed = nb !== r.bedtime || d !== durM(r);
-        r.bedtime = nb; r.hours = d / 60;
+      /* the window a drag moves: the first (4 to 12 h) or the second (1 to 8 h), by the "2" at the end of its kind */
+      function tw(kind) { return /2$/.test(kind) ? { o: r.second, lo: 60, hi: 480 } : r.second ? { o: r, lo: 60, hi: 480 } : { o: r, lo: MINM, hi: MAXM }; }
+      var twM = function (t) { return Math.round(t.o.hours * 60); };
+      function setWin(b, d, t) {
+        t = t || tw("");
+        d = Math.min(t.hi, Math.max(t.lo, d));
+        var nb = hm(b), changed = nb !== t.o.bedtime || d !== twM(t);
+        t.o.bedtime = nb; t.o.hours = d / 60;
         return changed;
       }
       function move(kind, b0, d0, dm) {
-        var sn = function (v) { return Math.round(v / Q) * Q; }, d;
-        if (kind === "blk") return setWin(sn(b0 + dm), d0);
-        if (kind === "bed") { d = Math.min(MAXM, Math.max(MINM, sn(d0 - dm))); return setWin(b0 + d0 - d, d); }
-        return setWin(b0, sn(d0 + dm));
+        var sn = function (v) { return Math.round(v / Q) * Q; }, d, t = tw(kind), k = kind.replace("2", "");
+        if (k === "blk") return setWin(sn(b0 + dm), d0, t);
+        if (k === "bed") { d = Math.min(t.hi, Math.max(t.lo, sn(d0 - dm))); return setWin(b0 + d0 - d, d, t); }
+        return setWin(b0, sn(d0 + dm), t);
       }
       var pressing = false;
       function dragger(node) {
@@ -602,12 +759,12 @@
         node.onpointerdown = function (e) {
           if (e.button !== 0) return;
           e.preventDefault();
-          var cap = kind === "blk" ? el.querySelector(".sl-blk") : node;   /* the first block piece is never hidden, so it holds the drag */
+          var cap = /^blk/.test(kind) ? el.querySelector('[data-drag="' + kind + '"]') : node;   /* the first block piece is never hidden, so it holds the drag */
           document.getElementById("sl-bar").classList.add("is-ptr");   /* a press focuses it without the keyboard ring */
           pressing = true; cap.focus({ preventScroll: true }); pressing = false;
           cap.setPointerCapture(e.pointerId); cap.classList.add("is-drag");
           var bar = document.getElementById("sl-bar").getBoundingClientRect(), k = NB.W / bar.width * 1440 / NB.w;
-          var x0 = e.clientX, b0 = mins(r.bedtime), d0 = durM(r), moved = false;
+          var t = tw(kind), x0 = e.clientX, b0 = mins(t.o.bedtime), d0 = twM(t), moved = false;
           cap.onpointermove = function (ev) { if (move(kind, b0, d0, (ev.clientX - x0) * k)) { moved = true; sync(); } };
           cap.onpointerup = cap.onpointercancel = function () {
             cap.onpointermove = cap.onpointerup = cap.onpointercancel = null;
@@ -619,7 +776,8 @@
           document.getElementById("sl-bar").classList.remove("is-ptr");
           var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0; if (!d) return;
           e.preventDefault();
-          if (move(kind, mins(r.bedtime), durM(r), d * Q)) { sync(); MP.changed(); }
+          var t = tw(kind);
+          if (move(kind, mins(t.o.bedtime), twM(t), d * Q)) { sync(); MP.changed(); }
         };
       }
       function bindSteppers() {
@@ -637,11 +795,34 @@
         el.querySelectorAll("[data-drag]").forEach(dragger);
         var bar = document.getElementById("sl-bar");
         bar.addEventListener("focusin", function () { if (!pressing) bar.classList.remove("is-ptr"); });
+        /* split: the target stays, window 2 takes 2 h of it in the afternoon; remove: window 1 gets them back */
+        wireMerge();
+        el.querySelectorAll("[data-w1],[data-w2]:not([data-w2=merge])").forEach(function (b) { b.onclick = function () {
+          var a = b.dataset.w2 || b.dataset.w1, o = b.dataset.w1 ? r : r.second;
+          /* a night shift by default: the main sleep after the shift, from 8:00 AM, and a short sleep before the next one at 6:00 PM */
+          if (a === "add") { var t = r.hours, two = Math.min(2, t - 2); r.second = { hours: two, bedtime: "18:00" }; r.hours = t - two; r.bedtime = "08:00"; settle(r); if (tooClose(r)) { r.second.bedtime = hm(mins(r.wake) + 180); settle(r); } return done("w2rm"); }
+          if (a === "rm") { var tt = totalH(r); r.second = null; r.hours = Math.min(12, Math.max(4, tt)); settle(r); return done("w2add"); }
+          o.hours += .5 * +a; settle(r); done(b.dataset.fk);
+        }; });
+        el.querySelectorAll("[data-tk2]").forEach(function (b) {   /* either time moves the second window, its length stays */
+          var k = b.dataset.tk2;
+          tpWire(b, function (v) { var m = mins(v); r.second.bedtime = hm(k === "bedtime" ? m : m - Math.round(r.second.hours * 60)); settle(r); done(false); draw(); }, r.second[k]);
+        });
         el.querySelectorAll("[data-tk]").forEach(function (b) {   /* either time moves the window, the duration stays */
           var k = b.dataset.tk;
           tpWire(b, function (v) { var m = mins(v); r.bedtime = hm(k === "bedtime" ? m : m - durM(r)); sync(k); MP.changed(); }, r[k]);
         });
-        el.querySelectorAll("[data-k]").forEach(function (i) { var k = i.dataset.k; i.oninput = function () { plan[k] = i.value; MP.changed(); }; });
+        /* moving Starts keeps the picked length, so Ends moves with it */
+        var lenOn = function () { var b = el.querySelector('.sl-len[aria-pressed="true"]'); return b ? MP.LENGTHS[+b.dataset.len][1] : null; };
+        var paintLens = function () { el.querySelectorAll(".sl-len").forEach(function (b) { b.setAttribute("aria-pressed", MP.endFor(plan.start, MP.LENGTHS[+b.dataset.len][1]) === plan.end); }); };
+        el.querySelectorAll("[data-k]").forEach(function (i) { var k = i.dataset.k; i.oninput = function () {
+          var keep = k === "start" && i.value ? lenOn() : null;
+          plan[k] = i.value;
+          if (keep) { plan.end = MP.endFor(plan.start, keep); el.querySelector('[data-k="end"]').value = plan.end; }
+          paintLens(); MP.changed(); }; });
+        el.querySelectorAll(".sl-len").forEach(function (b) { b.onclick = function () {
+          if (!plan.start) return;
+          plan.end = MP.endFor(plan.start, MP.LENGTHS[+b.dataset.len][1]); el.querySelector('[data-k="end"]').value = plan.end; paintLens(); MP.changed(); }; });
         wdBind();
       }
       draw();
@@ -658,6 +839,9 @@
       var r = plan.rhythm, tpl = sleepMode === "template";
       if (!String(plan.name || "").trim()) return tpl ? "Give the template a name." : "Give the plan a name, so the person knows what it is.";
       if (!tpl && plan.start && plan.end && plan.end <= plan.start) return "The end date needs to come after the start date.";
+      if (overlap(r)) return "The two sleep windows overlap. Merge them into one, or move one apart.";
+      if (tooClose(r)) return "The two sleep windows are less than 1 hour apart. Merge them into one, or move one at least 1 hour away.";
+      if (r.second && totalH(r) > 12) return "The two sleep windows come to more than 12 hours. Shorten one.";
       if (r.winddown.length > WDMAX) return "Add up to " + WDMAX + " wind-down tasks.";
       if (r.winddown.some(function (t) { return !String(t.label).trim(); })) return r.winddown.length > 1 ? "Type each wind-down task, or remove the empty one." : "Add at least one wind-down task.";
       if (r.winddown.some(function (t) { return !t.at; })) return "Set a time for every wind-down task.";
@@ -682,12 +866,15 @@
           ddWire(b, ms.map(function (m) { return [String(m), m + " min"]; }), function (v) { x.mins = +v; done("bm" + b.dataset.bm); });
         });
       };
-      var LISTS = function () { return {
-        br: { p: "sc", id: "br", items: r.breathing, max: BMAX, min: 1, noun: "exercise", dupes: true, ph: "Add another exercise", wire: wireMins,
-          name: function (x) { return x.name; }, make: function (l, at) { return { name: l, mins: 5, at: at }; }, def: function () { return free(r.breathing, BDEF); },
-          sugs: MP.BREATHS.map(function (b) { return [b[0], ""]; }), extra: minsSel, empty: "" },
-        mood: { p: "sc", id: "mood", items: r.mood.checks, max: 2, min: 1, noun: "check-in", one: "Add a second check-in",
-          name: function (x, i) { return (i == null ? r.mood.checks.indexOf(x) : i) ? "Second check-in" : "Check-in"; }, make: function (l, at) { return { at: at }; }, def: function () { return free(r.mood.checks, ["20:30", "13:00"]); },
+      var LISTS = function () { r.mood.checks.sort(function (a, b) { return (a.at || "").localeCompare(b.at || ""); });   /* check-ins in the order of the day */
+        return {
+        br: { p: "sc", id: "br", items: r.breathing, max: BMAX, min: 0, pick: true, noun: "exercise", dupes: true, ph: r.breathing.length ? "Add another exercise" : "Pick a breathing exercise", wire: wireMins,
+          name: function (x) { return x.name; }, make: function (l, at) { var b = MP.BREATHS.filter(function (x) { return x[0] === l; })[0]; return { name: l, mins: b ? b[2] : 5, at: at }; }, def: function () { return free(r.breathing, BDEF); },
+          sugs: MP.BREATHS.map(function (b) { return [b[0], b[3]]; }), extra: minsSel, empty: "" },
+        mood: { p: "sc", id: "mood", items: r.mood.checks, max: 2, min: 1, noun: "check-in", one: "Add another check-in",
+          /* named by the part of the day its time falls in, so moving the time renames it */
+          name: function (x) { var h = x.at ? +x.at.slice(0, 2) : 12; return (h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening") + " check-in"; },
+          make: function (l, at) { return { at: at }; }, def: function () { return free(r.mood.checks, ["07:00", "21:00"]); },
           sugs: [], empty: "" }
       }; };
       /* nothing to choose before the first one: an empty me-time list opens on the swap list's own words */
@@ -707,8 +894,12 @@
       function meBind() {
         var f = document.getElementById("me-in"), m = r.metime[0];
         tpWire(el.querySelector("[data-meat]"), function (v) { m.at = v; MP.changed(); }, m.at);
-        suggestField(f, function () { return MP.METIME.map(function (x) { return [x[0], ""]; }); },
-          function (v) { m.label = v; MP.changed(); }, function (v) { m.label = v; MP.changed(); });
+        suggestField(f, function () { return MP.METIME.map(function (x) { return [x[0], "usually " + H.t12(x[1]).replace(":00 ", " ")]; }); },
+          function (v) {   /* a picked activity brings its usual time */
+            m.label = v; var x = MP.METIME.filter(function (y) { return y[0] === v; })[0];
+            if (x) { m.at = x[1]; tpSet(el.querySelector("[data-meat]"), x[1]); }
+            MP.changed();
+          }, function (v) { m.label = v; MP.changed(); });
       }
       var share = function (n, what) {
         return n > 1 ? '<span class="rt-r">Each ' + what + " done earns 10 ÷ " + n + " = " + num(10 / n) + " points. " + (n === 2 ? "Both" : "All " + n) + " done earns the full 10. One left undone adds nothing.</span>"

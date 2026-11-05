@@ -210,6 +210,10 @@
 // score gauge: a 270° arc from bottom-left, clockwise over the top, to bottom-right
 // ?embed=1 runs as a hero inside another screen: ?score= sets the number, ?v= the variant
 const QS = new URLSearchParams(location.search), EMBED = QS.has('embed');
+/* the shader's own mint (a streak in the pour, the settled liquid's pale, the rim's sheen): a pillar may bring warmer ones (Mind: gold) */
+/* grey: how bright an empty orb's grey is, from its colour's lightness. A light orb (gold) needs less, or it greys to white */
+const TINT = Object.assign({ streak: '.55, .90, .80', pale: '.975, .99, .98', sheenA: '.67, .9, .8', sheenB: '.35, .75, .56', grey: '1.35' },
+  (() => { try { return parent !== window && parent.HERO_ORB && parent.HERO_ORB.tint; } catch (e) { return null; } })() || {});
 if (EMBED) document.documentElement.classList.add('embed');
 // a pillar copy (Move) names its own score; Eat sets nothing and keeps "Sufficient"
 try { var HW = parent !== window && parent.HERO_WORD; if (HW) document.querySelector(".word").firstChild.nodeValue = HW; } catch (e) {}
@@ -295,7 +299,7 @@ vec3 fluid(vec2 p){
   float mv = clamp(.5 + .42*sin(uTime*.09) + (w2.x - .47)*1.8, 0., 1.);
   vec3 col = mix(skyA(h), skyB(h), mv);
   if (uGreenIn > 0.) col = mix(col, skyG(h), smoothstep(.34, .56, w1.x)*uGreenIn);   // emerald streaks
-  col = mix(col, vec3(.55, .90, .80), smoothstep(.58, .74, w1.y)*.3*(1. - abs(h - .5)));
+  col = mix(col, vec3(${TINT.streak}), smoothstep(.58, .74, w1.y)*.3*(1. - abs(h - .5)));
   col += .06*smoothstep(.5, .85, f);
   return mix(mix(PAPER, col, .55), col, uVivid);
 }
@@ -378,7 +382,7 @@ void main(){
     mat2 ch = rot(uTime*.1);
     vec2 s = mix((p - uEye)*3./${F(S)}, (p - C)*3.*${F(R0)}/R, isT);
     vec3 inner = vec3(fluid(uEye + ch*(s + off*2.)).r, fluid(uEye + ch*(s + off*2.2)).g, fluid(uEye + ch*(s + off*2.4)).b);
-    vec3 pale = mix(inner, vec3(.975, .99, .98), uLift*uGlow);   // light variants: the settled liquid pales to a whisper of colour
+    vec3 pale = mix(inner, vec3(${TINT.pale}), uLift*uGlow);   // light variants: the settled liquid pales to a whisper of colour
     // tide: rich liquid up to the level with a slow wave on top, pale glass above
     float surf = C.y - R + 2.*R*lvl + (.006*sin(p.x*38. + uTime*1.8) + .004*sin(p.x*21. - uTime*1.1))*R/${F(R0)};
     float below = smoothstep(1.5*px, -1.5*px, p.y - surf), tk = uTide*isT;
@@ -390,7 +394,7 @@ void main(){
     vec3 gc = mix(pearl, inner, rich)*vec3(1.02, 1.01, 1.05) + .02;
     float fres = pow(rr, 4.);
     vec3 ir = .5 + .5*cos(6.2831*(vec3(0., .33, .67) + rr*1.3 + p.y*1.2 + uTime*.06));
-    ir = mix(ir, mix(vec3(.67, .9, .8), vec3(.35, .75, .56), .5 + .5*sin(rr*6. + uTime*.4)), uRim*.8);   // green-leaning sheen
+    ir = mix(ir, mix(vec3(${TINT.sheenA}), vec3(${TINT.sheenB}), .5 + .5*sin(rr*6. + uTime*.4)), uRim*.8);   // green-leaning sheen
     gc = mix(gc, ir*.85 + .15, fres*.28) + fres*.22*rich;
     vec3 L = normalize(vec3(uLight, .12));
     float nh = max(dot(n, normalize(L + vec3(0, 0, 1))), 0.);
@@ -438,7 +442,7 @@ uniform sampler2D uT; uniform float uMix; uniform vec3 uShadow; varying vec2 vUV
 void main(){
   float e = 1. - vF;
   vec4 c = texture2D(uT, vUV);                                          // premultiplied; empty orbs stay crisp, only greyed
-  vec3 rgb = min(mix(c.rgb, vec3(dot(c.rgb, vec3(.299, .587, .114))*1.35), e), vec3(c.a));
+  vec3 rgb = min(mix(c.rgb, vec3(dot(c.rgb, vec3(.299, .587, .114))*${TINT.grey}), e), vec3(c.a));
   vec4 orb = vec4(rgb, c.a)*(.5 + .5*vF);
   float sh = texture2D(uT, vUV + vec2(0., -.03), 1.8).a*.22*vF;         // soft green drop shadow under filled orbs, well inside the tile
   gl_FragColor = (orb + vec4(uShadow*sh, sh)*(1. - orb.a))*uMix;
@@ -496,6 +500,11 @@ const SKY = {
   // the orb's own greens, Flip green from the design system: brand 800, 600, 500, 400, 300, 100
   orb:      [.141,.4,.286, .161,.616,.42, .349,.702,.549, .475,.8,.659, .671,.902,.8, .902,.98,.945],
   orbsoft:  [.114,.302,.22, .141,.45,.32, .30,.66,.50, .52,.82,.70, .78,.93,.86, .96,.99,.975],
+  // Mind gold, the same six steps: 800, 600, 500, 400, 300, 100 (goodflip-design foundations)
+  // cream: the settled bubble warmed for gold (Mind), as cloud is milky mint for green
+  cream:     [.80,.76,.64, .88,.85,.75, .93,.91,.83, .96,.95,.89, .985,.98,.95, 1,1,1],
+  creamsoft: [.83,.80,.70, .90,.88,.80, .94,.93,.87, .97,.96,.92, .99,.985,.97, 1,1,1],
+  gold:       [.651,.541,.176, .906,.757,.267, .953,.82,.38, .976,.867,.502, .992,.91,.643, 1,.973,.878],
   // Move indigo, the same six steps as orb: 800, 600, 500, 400, 300, 100
   indigo:     [.176,.196,.51, .267,.298,.906, .38,.447,.953, .502,.596,.976, .643,.737,.992, .878,.918,1],
   indigosoft: [.15,.17,.42, .24,.27,.72, .40,.46,.90, .58,.66,.97, .80,.86,1, .96,.97,1],
@@ -558,7 +567,9 @@ VARIANTS.forEach((v, i) => {
 // Move pours in indigo: the intro liquid, its streaks, and the gauge the drops and ring are drawn in (indigo 400 to 600)
 if (PILLAR_ORB && PILLAR_ORB.introSky) {
   SKY.green = SKY[PILLAR_ORB.introSky[0]];
-  Object.assign(VARIANTS.find(v => v.name === 'Cloud Drop'), { introSky: PILLAR_ORB.introSky, gauge: PILLAR_ORB.gauge || [[.502, .596, .976], [.267, .298, .906]] });   /* a pillar may bring its own gauge colours (Mind: teal); Move keeps indigo */
+  Object.assign(VARIANTS.find(v => v.name === 'Cloud Drop'), { introSky: PILLAR_ORB.introSky, gauge: PILLAR_ORB.gauge || [[.502, .596, .976], [.267, .298, .906]] });   /* a pillar may bring its own gauge colours (Mind: gold); Move keeps indigo */
+  /* and its own settled bubble: sky, rim edge and glow (Mind: cream, so the mint never meets the gold) */
+  if (PILLAR_ORB.look) Object.assign(VARIANTS.find(v => v.name === 'Cloud Drop'), PILLAR_ORB.look);
 }
 // ?lock=lit|quiet (embedded): no plan yet, so no score. The same pour in mist, empty orbs, and the padlock
 // (Lock.json) where the number would be. Lit keeps a mint halo, the day nothing has happened; quiet does not.
@@ -582,6 +593,7 @@ if (LOCK) {
 }
 // Cloud is the default; embedded, the host names one (Cloud Drop unless told otherwise)
 setVariant(Math.max(0, VARIANTS.findIndex(v => v.name === (EMBED ? QS.get('v') || 'Cloud Drop' : 'Cloud'))));
+vCur = vTarget.slice();   /* the first look is set, not blended from the list's first variant (a 0% day never finished that blend) */
 // the padlock: the same player and animation the Plate uses, from the prototype's assets
 let lockAnim = null, lockPlayed = false;
 const restEl = BLANK && QS.get('tag') === 'rest' ? $('restAnim') : null;

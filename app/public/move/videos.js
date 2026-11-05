@@ -221,7 +221,18 @@
     return sec ? { k: sec.k, h: sec.h, items: sec.items } : null;
   }
   function find(q) { q = q.toLowerCase(); return [WEEK].concat.apply([WEEK], S.map(function (s) { return s.items; })).filter(function (x) { return x.t.toLowerCase().indexOf(q) >= 0; })[0]; }
+  /* Search videos (learn.html#search): each word must appear in the name, the section or the description */
+  function search(q) {
+    var seen = [], w = q.toLowerCase().split(/\s+/).filter(Boolean);
+    [{ h: "", items: [WEEK] }].concat(S).forEach(function (s) { s.items.forEach(function (x) {
+      var hay = (x.t + " " + s.h + " " + x.d).toLowerCase();
+      if (seen.indexOf(x) < 0 && w.every(function (t) { return hay.indexOf(t) >= 0; })) seen.push(x);
+    }); });
+    /* names that match come first, then the rest */
+    var inName = function (x) { return w.every(function (t) { return x.t.toLowerCase().indexOf(t) >= 0; }) ? 0 : 1; };
+    return seen.sort(function (a, b) { return inName(a) - inName(b); });
+  }
   function save(x) { if (x && SAVED.indexOf(x) < 0) SAVED.push(x); }
   function more(x) { if (ALL.indexOf(x) < 0) ALL.push(x); about(x); }
-  window.MVV = { queue: queue, find: find, save: save, more: more, page: page, card: card, section: section, list: list, fit: fit, parts: parts, S: S, WEEK: WEEK, IMG: IMG };
+  window.MVV = { search: search, queue: queue, find: find, save: save, more: more, page: page, card: card, section: section, list: list, fit: fit, parts: parts, S: S, WEEK: WEEK, IMG: IMG };
 })();

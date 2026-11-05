@@ -32,6 +32,18 @@
   #home { background: linear-gradient(180deg, #EEF2FB 0%, #FFFFFF 96px) no-repeat; }
   .vhead { margin-top: 12px; }
   .sub { min-height: 100vh; }
+  /* Search videos: the link by the Videos heading, and its page (#search) */
+  .vfind svg { width: 16px; height: 16px; margin: 0 4px 0 0; }
+  .vsrch { position: sticky; top: 110px; z-index: 4; padding: 12px 16px; background: #fff; }
+  .vsrch label { display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border: 1px solid var(--g-200); border-radius: 12px; }
+  .vsrch label:focus-within { border-color: var(--brand-500); box-shadow: 0 0 0 4px var(--brand-50); }
+  .vsrch svg { width: 20px; height: 20px; flex: none; color: var(--g-500); }
+  .vsrch input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none; font: 400 15px/1.2 Roboto, sans-serif; color: var(--g-900); }
+  .vsrch input::placeholder { color: var(--g-400); }
+  .vnone { margin: 24px 16px; font-size: 14px; line-height: 21px; color: var(--g-500); text-align: center; }
+  /* a detail screen (a category, View all) is a step in, with its own back arrow, so the tabs leave with it */
+  .col:has(#sub:not([hidden])) { padding-bottom: 24px; }
+  .col:has(#sub:not([hidden])) .nav { display: none; }
   .subbar { position: sticky; top: 54px; z-index: 5; display: flex; align-items: center; gap: 6px; height: 56px; padding: 0 12px 0 6px; background: #fff; border-bottom: 1px solid var(--g-100); }
   .subbar button { width: 44px; height: 44px; border: 0; background: none; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--g-900); }
   .subbar button img { width: 22px; height: 22px; display: block; }   /* GoodFlip's own back mark, as on the tab bar and Log workout */
@@ -58,7 +70,7 @@
   <main id="home">
     <div class="mvv-h ahead"><h2>Articles</h2><a class="mvv-all" href="#articles">View all<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg></a></div>
     <div class="list" id="list"></div>
-    <div class="mvv-h ahead vhead"><h2>Videos</h2></div>
+    <div class="mvv-h ahead vhead"><h2>Videos</h2><a class="mvv-all vfind" href="#search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Search videos</a></div>
     <div id="videos"></div>
   </main>
   <main class="sub" id="sub" hidden>
@@ -103,6 +115,7 @@
   function route() {
     var h = location.hash.slice(1), page = null;
     if (h === "articles") page = { t: "Articles", n: A.length + " articles", html: '<div class="list">' + rows(A) + "</div>" };
+    else if (h === "search") page = { t: "Search videos", n: "", html: '<div class="vsrch"><label>' + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>' + '<input id="vq" type="search" placeholder="Search by name, like breathing or lunges" aria-label="Search videos" autocomplete="off"></label></div><div id="vres"></div>' };
     else if (h.indexOf("v-") === 0) { var r = MVV.list(h.slice(2)); if (r) page = { t: r.h, n: r.n + (r.n === 1 ? " video" : " videos"), html: r.html }; }
     if (page) {
       if (!home.hidden) y = scrollY;
@@ -112,6 +125,17 @@
   }
   document.getElementById("subBack").onclick = function () { history.length > 1 ? history.back() : (location.hash = ""); };
   addEventListener("hashchange", route); route();
+  /* results as the person types: every video whose name, section or description has the words */
+  function vsearch() {
+    var q = document.getElementById("vq").value.trim(), r = MVV.search(q), out = document.getElementById("vres");
+    if (!q) { out.innerHTML = ""; return; }   /* nothing typed: an empty page under the field, results only once there are words */
+    out.innerHTML = r.length ? '<div class="mvv"><div class="mvv-vlist">' + r.map(function (x) { return MVV.card(x); }).join("") + "</div></div>"
+      : '<p class="vnone">No videos match &ldquo;' + q.replace(/[&<>"]/g, "") + '&rdquo;. Try a shorter word.</p>';
+    MVV.fit(out);
+  }
+  document.addEventListener("input", function (e) { if (e.target.id === "vq") vsearch(); });
+  addEventListener("hashchange", function () { if (location.hash === "#search") { vsearch(); document.getElementById("vq").focus(); } });
+  if (location.hash === "#search") vsearch();
 </script>
 <script src="/v7/r3/chrome.js"></script>
 </body>
