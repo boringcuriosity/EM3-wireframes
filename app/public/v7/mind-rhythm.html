@@ -354,7 +354,7 @@
       <div class="cases" data-cases="say"></div>
     </section>
 
-    <section id="tiles">
+    <section id="tiles" hidden>   <!-- parked for now: the screen hides What shaped your score? (?tiles=1 brings it back) -->
       <div class="snum">Section</div>
       <h2>What shaped your score?</h2>
       <div class="cases" data-cases="tiles"></div>
@@ -378,7 +378,7 @@
     <section id="mood">
       <div class="snum">Section</div>
       <h2>Mood check-in</h2>
-      <p>One question, five faces. A pick is a draft: KAIRA's card shimmers in, then replies. Only Log Mood logs and scores it, the same for any face. After that only the face can change, and the first time is kept.</p>
+      <p>One question, five faces. Picking a face logs it at once, the same for any face: KAIRA's card shimmers in, then replies, and one warm button closes the sheet (Thank You, KAIRA after Awful or Low, Got It otherwise). There is no Log button. Another face replaces it, and the first time is kept.</p>
       <div class="grouphead"><h3>The check-in</h3><span></span></div>
       <div class="cases" data-cases="mood1"></div>
       <div class="grouphead"><h3>Low and very low</h3><span></span></div>
@@ -528,10 +528,11 @@
    for this page and inert without them: ?me= ?done= ?act= ?mpick= ?mwait=
    ?merr= (variants/mood.js), ?serr= ?sstate=manual-noperm ?act=sleep
    (variants/sleep.js), ?bfstate= ?bfel= (variants/breath.js).
-   Steady motivation: Zen Flow 3 min at 8 AM, mood at 8:30 PM, one
-   wind-down at 10:30 PM, bed 10:30 PM to 6 AM, 7.5 h.
+   The plan: the coach portal's defaults and lists (coach-mind/data.js MP.SAMPLE): bed 10:30 PM to 6 AM, 7.5 h;
+   wind-down Last caffeine 4 PM, Screen-free wind-down 9:30 PM, the room 10 PM; Coherent Breathing 5 min at 7 AM;
+   me-time Walk in nature 7 AM; one mood check-in at 9 PM.
    ============================================================ */
-const ME = "me=Evening+walk+with+family&meat=18:00";
+const ME = "x=1";   /* the sample plan (coach-mind/data.js MP.SAMPLE) has its own me-time now */
 const CASES = {
   screen: [
     ["", "The screen", "default", "Today at 3 PM: last night in from Apple Health, the plan in Morning, Evening and Night, nothing ticked yet."],
@@ -550,11 +551,12 @@ const CASES = {
     ["os=android&sstate=short", "A short sync", "os=android", "“Health Connect shows 2h 05m. If you slept more, fix it.”"],
   ],
   act0: [
-    ["state=noplan", "Before a plan", "state=noplan", "No consultation yet. The plan card says it is on its way; last night still comes in from Health."],
+    ["state=noplanempty&sstate=none", "The first landing", "noplanempty", "Where a Care user starts. No plan yet, so the score sits locked and the line under it says when it unlocks: after the first Mind Coach consultation. Nothing for last night yet, so the night card offers Log sleep; there is no sleep window to draw until the coach sets one."],
+    ["state=noplan", "Last night in, still no plan", "noplan", "Last night comes in from Health. The hours and the bedtime are real, with no targets to measure them against, so the night card shows them as they are, with no tiles and no plan section. The score stays locked, with the same line under it."],
   ],
   act1: [
     ["now=7.5&" + ME, "Last night is in", "now=7.5", "7:30 AM. 7h 20m from Apple Health. The plan is all still to do."],
-    ["now=9&" + ME + "&done=br:0", "Breathing done", "done=br:0", "9 AM. Zen Flow ticked in Morning."],
+    ["now=9&" + ME + "&done=br:0", "Breathing done", "done=br:0", "9 AM. Coherent Breathing ticked in Morning."],
   ],
   act2: [
     ["now=19&" + ME + "&done=br:0,me:0", "The evening walk", "done=me:0", "7 PM. Me-time ticked in Evening."],
@@ -611,12 +613,12 @@ const CASES = {
     ["scroll=plan&now=21&" + ME + "&done=br:0,me:0,mood", "Rows ticked", "done=…", "A ticked row greys under the green check; a part reads All done."],
   ],
   mood1: [
-    ["sheet=mood", "Five faces", "sheet=mood", "Evening check-in, 8:30 PM. Log Mood waits for a face."],
+    ["sheet=mood", "Five faces", "sheet=mood", "Evening check-in, 9:00 PM. Five faces; picking one logs it."],
     ["sheet=mood&mpick=3&mwait=1", "KAIRA reading it", "mwait=1", "Good picked. KAIRA's card shimmers in for under a second."],
-    ["mstate=happy&sheet=mood", "A pick is a draft", "mstate=happy", "KAIRA replies. Nothing is logged until Log Mood."],
+    ["mstate=happy&sheet=mood", "Logged on the tap", "mstate=happy", "KAIRA replies under the faces; Got It closes the sheet."],
     ["now=13&done=mood&scroll=plan", "Logged", "done=mood", "“🙂 Good, at 1:00 PM” on the row."],
-    ["mstate=change&sheet=mood", "Reopened", "mstate=change", "Good still picked; the button reads Done."],
-    ["mstate=change&sheet=mood&mpick=4", "Changing the face", "mpick=4", "Log Mood comes back. Mood updated, and the first time, 1:06 PM, is kept."],
+    ["mstate=change&sheet=mood", "Reopened", "mstate=change", "Good still picked, KAIRA's reply under it; Got It closes."],
+    ["mstate=change&sheet=mood&mpick=4", "Changing the face", "mpick=4", "The new face is logged on the tap, with KAIRA's new reply; the first time, 1:06 PM, is kept."],
   ],
   mood2: [
     ["mstate=low&sheet=mood", "Low", "mstate=low", "KAIRA suggests something small they enjoy."],
@@ -629,7 +631,7 @@ const CASES = {
     ["state=past&date=2026-9-10&sheet=mood&mpick=3", "How did you feel?", "state=past", "It counts for that day, and reads “added later”."],
   ],
   br1: [
-    ["sheet=breath", "Ready", "sheet=breath", "Zen Flow: the orb, In 4, out 6, 3 min session, Start."],
+    ["sheet=breath", "Ready", "sheet=breath", "Coherent Breathing: the orb, in 5, out 5, 5 min session, Start."],
     ["bfstate=len", "Session length", "bfstate=len", "1, 2, 3, 5 or 10 min; the coach's marked Recommended by your coach."],
     ["bx=box&bfstate=run&bfel=20", "Running", "bfstate=run", "The pearl walks the square; the phase word and its count. End and Pause."],
     ["bx=box&bfstate=paused", "Paused", "bfstate=paused", "The time is locked once a session begins. End and Resume."],
@@ -648,7 +650,7 @@ const CASES = {
   ],
   br3: [
     ["t=t-calm&sheet=brask", "Mark as done?", "sheet=brask", "Tapping the circle: “Box Breathing, 5 min. Mark it done if you have already breathed it on your own.” Mark as Done, or Not Now. A ticked circle unticks straight away, with a toast."],
-    ["scroll=plan", "Not done", "default", "Zen Flow Breathing, 3 min under the name, 8:00 AM before the chevron. The row opens the player; the circle asks first."],
+    ["scroll=plan", "Not done", "default", "Coherent Breathing (5-5), 5 min under the name, 7:00 AM before the chevron. The row opens the player; the circle asks first."],
     ["bx=box&bfstate=saved&scroll=plan", "2 of 3 min saved", "bfstate=saved", "Still unticked; saved minutes add up through the day."],
     ["bstate=donerow&scroll=plan", "Done", "bstate=donerow", "Ticked."],
   ],
@@ -677,7 +679,7 @@ const SECTIONS = [
   ["health", "Apple Health"],
   ["states", "One day, in order"],
   ["say", "The line under the score"],
-  ["tiles", "What shaped your score?"],
+  /* ["tiles", "What shaped your score?"],   parked */
   ["sleep", "Last night"],
   ["plan", "Your mind plan"],
   ["mood", "Mood check-in"],

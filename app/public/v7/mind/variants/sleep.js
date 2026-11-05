@@ -88,14 +88,15 @@
   var AX = [1200, 1440, 1680, 1920];
   function bar(n, o) {
     o = o || {};
-    var band = '<span class="band" style="left:' + pc(PLAN.bed) + '%;width:' + (pc(PLAN.wake) - pc(PLAN.bed)) + '%"></span>';
+    /* before a plan there is no coach's window to draw, only the night itself */
+    var band = MD.noplan ? "" : '<span class="band" style="left:' + pc(PLAN.bed) + '%;width:' + (pc(PLAN.wake) - pc(PLAN.bed)) + '%"></span>';
     var b = n && n.segs ? n.segs.map(function (x, i) { return (i ? '<span class="gap" style="left:' + pc(n.segs[i - 1].wake) + '%;width:' + Math.max(0, pc(x.bed) - pc(n.segs[i - 1].wake)) + '%"></span>' : "") + '<span class="bar" style="left:' + pc(x.bed) + '%;width:' + Math.max(0, pc(x.wake) - pc(x.bed)) + '%"></span>'; }).join("")
       : n ? '<span class="bar" style="left:' + pc(n.bed) + '%;width:' + Math.max(0, pc(n.wake) - pc(n.bed)) + '%"></span>'
  : "";
     var pins = o.mini || J ? "" : '<span class="pin" style="left:' + pc(PLAN.bed) + '%">' + clk(PLAN.bed) + '</span><span class="pin" style="left:' + pc(PLAN.wake) + '%">' + clk(PLAN.wake) + '</span>';
     var ax = o.mini || o.noaxis ? "" : '<div class="ax" aria-hidden="true">' + AX.map(function (m) { return '<span style="left:' + pc(m) + '%">' + clk(m).replace(":00", "") + '</span>'; }).join("") + '</div>';
     var lbl = (n ? "Slept " + clk(n.bed) + " to " + clk(n.wake) + ". " : "") + "Your plan is " + clk(PLAN.bed) + " to " + clk(PLAN.wake) + ".";
-    var lg = J && !o.mini ? '<div class="sv-lg" aria-hidden="true">' + (n ? '<span><i class="lb"></i>Last night</span>' : "") + '<span><i class="lp"></i>Sleep window' + (o.inSheet ? "" : ", " + clk(PLAN.bed) + " to " + clk(PLAN.wake)) + '</span></div>' : "";
+    var lg = J && !o.mini ? '<div class="sv-lg" aria-hidden="true">' + (n ? '<span><i class="lb"></i>Last night</span>' : "") + (MD.noplan ? "" : '<span><i class="lp"></i>Sleep window' + (o.inSheet ? "" : ", " + clk(PLAN.bed) + " to " + clk(PLAN.wake)) + '</span>') + '</div>' : "";
     return '<div class="sv-tl' + (o.mini ? " mini" : "") + (J ? " j" : "") + '" role="img" aria-label="' + lbl + '">' + pins + '<div class="tr">' + band + b + '</div>' + ax + lg + '</div>';
   }
 

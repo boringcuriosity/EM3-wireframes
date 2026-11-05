@@ -1,7 +1,7 @@
 /* Mood check-in variants on the real Mind screen (?vmood=a..e), for research/mood.html.
    One question only, then a reply. Each check-in slot in the coach's plan (?t=t-calm has two) is its own row
-   ("mood" and "mood:1") with its own answer. Picking a face is a draft: KAIRA's card shimmers in and answers it,
-   and only "Log Mood" stores it, so the score counts it then, the same for any face.
+   ("mood" and "mood:1") with its own answer. Picking a face logs it at once: KAIRA's card shimmers in and answers it,
+   and the button under it closes the sheet ("Thank You, KAIRA" after a low day, "Got It" otherwise). Another face replaces it.
    Doc states: ?mstate=start|happy|low|vlow (a face picked, not logged yet)|change|two|missed|offline, with ?now= for the clock. */
 (function () {
   var MD = window.MDPLAN;
@@ -125,8 +125,9 @@
     var h = '<div class="vm-top"><div class="vm-slot">' + (PAST ? DAYN + ", " + s.name.toLowerCase() : s.name) + " check-in, " + MD.niceS(s.at) + '</div><div class="vm-hint">' +
       (PAST ? "Pick the one closest to how you felt then. It still counts for that day." : "Pick the one closest to how you feel. Every check-in counts the same.") + '</div></div>' + ask(a);
     if (sel != null) h += reply(sel);
-    h += errLine() + (same && !err ? '<button class="md-save" data-vmdone="1">Done</button>'
-      : '<button class="md-save" data-vmlog="1"' + (sel == null || wait ? " disabled" : "") + '>' + (err ? "Try Again" : "Log Mood") + '</button>');
+    /* a face is logged the moment it is picked: no Log button. KAIRA answers, and one warm button closes the sheet */
+    h += errLine() + (err ? '<button class="md-save" data-vmlog="1">Try Again</button>'
+      : same ? '<button class="md-save" data-vmdone="1">' + (sel <= 1 ? "Thank You, KAIRA" : "Got It") + '</button>' : "");
     return '<div class="vm">' + h + '</div>';
   }
   function draw() { window.GFOpenSheet("vmMood", PAST ? "How did you feel?" : "How are you feeling?", body()); }
@@ -134,7 +135,7 @@
   function choose(f) {
     if (sel === f && !err) return;
     sel = f; err = false; clearTimeout(TW);
-    wait = !RM; draw();
+    wait = !RM; log(); draw();
     if (wait) TW = setTimeout(function () { wait = false; draw(); }, 900);
   }
   function log() {
@@ -142,8 +143,7 @@
     if (OFF) { OFF = false; err = true; return draw(); }   /* ponytail: the first try fails in the offline state, the retry goes through */
     var old = VM[cur];   /* changing the face keeps the time it was first logged */
     VM[cur] = { f: sel, at: old ? old.at : NOWT, late: old ? old.late : !!PAST }; err = false;
-    sync(); MD.cause = "mood"; if (window.closeSheets) window.closeSheets(); MD.render();
-    MD.toast(old ? "Mood updated." : PAST ? "Mood added. It counts for that day." : "Mood logged. Thank you for checking in.");
+    sync(); MD.cause = "mood"; MD.render();   /* the sheet stays open on KAIRA's reply; the screen behind updates */
   }
 
   document.addEventListener("click", function (ev) {
@@ -151,7 +151,7 @@
     if (!t) return;
     var d = t.dataset;
     if (d.vmf != null) return choose(+d.vmf);
-    if (d.vmlog) return log();
+    if (d.vmlog) { log(); return draw(); }
     if (d.vmdone && window.closeSheets) window.closeSheets();
   });
   document.addEventListener("change", function (ev) {

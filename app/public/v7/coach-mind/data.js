@@ -157,6 +157,18 @@
     })
   ];
 
+  /* the patient's Mind screen (v7/mind) shows this plan: the coach portal's defaults (7.5 h, 10:30 PM to 6:00 AM, one evening
+     mood check-in at 9:00 PM) with picks from its own lists at their usual times, so the app shows exactly what a coach can set */
+  MP.SAMPLE = (function () {
+    var p = MP.blankPlan(); p.id = "sample"; p.name = MP.defaultName();
+    var wd = function (i) { return { label: MP.WINDDOWN[i][0], at: MP.WINDDOWN[i][1] }; };
+    p.rhythm.winddown = [wd(0), wd(6), wd(10)];   /* last caffeine 4 PM, screen-free 9:30 PM, the room 10 PM */
+    p.rhythm.breathing = [{ name: MP.BREATHS[0][0], mins: MP.BREATHS[0][2], at: MP.BREATHS[0][3] }];   /* Coherent Breathing, 5 min, 7 AM */
+    p.rhythm.metime = [{ label: MP.METIME[2][0], at: MP.METIME[2][1] }];   /* walk in nature, 7 AM */
+    p.practices = [{ id: "gratitude", times: 1 }, { id: "worry-tree", times: 1 }, { id: "habit-tracker", times: 1, habits: ["Walk after dinner", "Drink water on waking"] }];
+    return p;
+  })();
+
   /* the plans this patient already has: none. The list starts empty, the way the portal has no Mind plan today. */
   MP.PLANS = [];
 

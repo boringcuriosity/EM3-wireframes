@@ -13,7 +13,10 @@
   var Q = MD.Q, VK = (Q.get("vbreath") || "b").toLowerCase();
   var LOOK = { a: "orb", b: "own", c: "room", d: "own", f: "own" }[VK] || "own", SETTLE = VK === "d";
   var BX = { box: "Box Breathing", "478": "Sleep Breathing", sleep: "Sleep Breathing", zen: "Zen Flow Breathing", star: "Star Breathing", finger: "5 Finger Breathing" };
-  var KEY = { "Box Breathing": "box", "Sleep Breathing": "sleep", "Zen Flow Breathing": "zen", "Star Breathing": "star", "5 Finger Breathing": "finger" };
+  var KEY = { "Box Breathing": "box", "Sleep Breathing": "sleep", "Zen Flow Breathing": "zen", "Star Breathing": "star", "5 Finger Breathing": "finger",
+    /* the coach portal's seven (coach-mind/data.js MP.BREATHS) */
+    "Coherent Breathing (5-5)": "coherent", "Box Breathing (4-4-4-4)": "box", "Belly Breathing": "belly", "Pursed Lip Breathing": "pursed",
+    "Extended Exhale (2:1)": "exhale", "Humming Bee Breath (Bhramari)": "hum", "4-7-8 Breathing": "sleep" };
   if (!MD.P.br.length) MD.P.br.push({ n: "Box Breathing", min: 5, how: "", at: "13:00" });
   if (Q.get("bx") && BX[Q.get("bx")]) MD.P.br[0].n = BX[Q.get("bx")];
   if (+Q.get("bmin")) MD.P.br[0].min = +Q.get("bmin");
@@ -30,6 +33,7 @@
     finger: '<path d="M18 11V6a2 2 0 0 0-4 0v5"/><path d="M14 10V4a2 2 0 0 0-4 0v2"/><path d="M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/>',
     box: '<rect x="4" y="4" width="16" height="16" rx="2"/>'
   };
+  G.coherent = G.belly = G.pursed = G.exhale = G.hum = G.zen;   /* the orb exercises share the calm leaf */
   function glyph(k) { return '<svg class="bv-g" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + G[k] + '</svg>'; }
   function clock(s) { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2); }
   function dur(s) { s = Math.floor(s); var m = Math.floor(s / 60), r = s % 60; return m ? m + " min" + (r ? " " + r + " s" : "") : r + " s"; }
@@ -76,6 +80,27 @@
       seq: function (o) { var k = o.short ? .5 : 1, c = [ph("in", 4 * k, "Breathe in", "Through your nose"), ph("hold", 7 * k, "Hold", "Keep still"), ph("out", 8 * k, "Breathe out", "Slowly, through your mouth")], s = [];
         for (var i = 0; i < 4; i++) s = s.concat(c.map(function (p) { return Object.assign({}, p, { round: i }); }));
         s.push(ph("rest", 15, "Breathe normally", "A short rest before the next round")); s[0].lap = true; return s; } },
+    /* the coach portal's own exercises, each as the orb growing and shrinking with the breath */
+    coherent: { sum: "5 in, 5 out, six breaths a minute",
+      steps: [["5 s", "Breathe in slowly through your nose"], ["5 s", "Breathe out slowly, the same length"]],
+      line: "Breathing six times a minute is the pace where your heart rhythm settles most easily.",
+      seq: function () { return [ph("in", 5, "Breathe in", "Through your nose"), ph("out", 5, "Breathe out", "Slow and even")]; } },
+    belly: { sum: "A slow breath in as your belly rises, a slow breath out",
+      steps: [["", "One hand on your chest, one on your belly"], ["4 s", "Breathe in so the belly hand rises, the chest stays still"], ["6 s", "Breathe out slowly as the belly falls"]],
+      line: "Breathing from the belly uses your diaphragm, the calmest way to breathe.",
+      seq: function () { return [ph("in", 4, "Breathe in", "Let your belly rise"), ph("out", 6, "Breathe out", "Let it fall")]; } },
+    pursed: { sum: "In through the nose, out slowly through pursed lips",
+      steps: [["2 s", "Breathe in through your nose"], ["4 to 6 s", "Breathe out through pursed lips, like blowing out a candle"]],
+      line: "A slow breath out through pursed lips eases breathlessness and slows your breathing down.",
+      seq: function () { return [ph("in", 2, "Breathe in", "Through your nose"), ph("out", 5, "Breathe out", "Through pursed lips")]; } },
+    exhale: { sum: "4 in, 8 out, no holds",
+      steps: [["4 s", "Breathe in through your nose"], ["8 s", "Breathe out slowly, twice as long"]],
+      line: "A breath out twice as long as the breath in tells your body it is safe to slow down.",
+      seq: function () { return [ph("in", 4, "Breathe in", "Through your nose"), ph("out", 8, "Breathe out", "Twice as long")]; } },
+    hum: { sum: "Breathe in, then hum on the way out",
+      steps: [["3 to 4 s", "Breathe in through your nose"], ["6 to 8 s", "Breathe out with a soft, low hum, lips closed"]],
+      line: "The gentle hum on the breath out quietens a busy mind before bed.",
+      seq: function () { return [ph("in", 4, "Breathe in", "Through your nose"), ph("out", 7, "Hum", "A soft, low hum")]; } },
     zen: { sum: "4 in, 6 out, with a calming word",
       steps: [["4 s", "Breathe in slowly through your nose"], ["6 s", "Breathe out through your mouth and say your word silently"], ["", "If your mind wanders, come back to the word"]],
       line: "Breathing six times a minute is the pace where your heart rhythm settles most easily.",

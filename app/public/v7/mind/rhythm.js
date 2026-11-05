@@ -50,7 +50,13 @@
     return { v: Math.abs(off) <= P.tol ? "On time" : gap(off) + (off > 0 ? " late" : " early"), of: plan, pct: parts().window };
   }
   var selfT = function () { return P.wd.length + P.br.length + (P.me.length ? 1 : 0) + (S.vmSlots || 1); };
-  window.MOVEPART.splice(0, 3,   /* in place: the screen's rail already holds this array */
+  /* before a plan there are no targets, so no tiles (hidden below); the array stays valid for anything that reads it */
+  function bedTile() { return M.logged() ? { v: M.nice(S.bed), of: "last night", pct: 0 } : { v: "Not logged", of: "last night", pct: 0 }; }
+  if (M.noplan) {
+    window.MOVEPART.splice(0, 3, { cls: "glyph-sleep", name: "Sleep hours", T: 0, unit: " h" }, { cls: "glyph-clock", name: "Went to bed", T: 0, unit: "", txt: bedTile });
+    /* before a plan the tiles stand down: the night card already says what last night was */
+    var g2 = document.createElement("style"); g2.textContent = "#railSect{display:none !important}"; document.head.appendChild(g2);
+  } else window.MOVEPART.splice(0, 3,   /* in place: the screen's rail already holds this array */
     { cls: "glyph-sleep", name: "Sleep hours", T: P.hours, unit: " h" },
     { cls: "glyph-clock", name: "Sleep window", T: 2, unit: "", txt: windowTile },
     { cls: "glyph-care", name: "Self-care", T: selfT(), unit: "" });
@@ -68,14 +74,17 @@
     }).join("");
   };
 
-  var last = score() || 0, said = false;
+  /* before a plan there is no score: the hero keeps its padlock and nothing is set */
+  var last = M.noplan ? null : score() || 0, said = false;
   (function first(tries) {
+    if (M.noplan) { if (window.paintMacros) tiles(); else if (tries < 50) setTimeout(function () { first(tries + 1); }, 100); return; }   /* the two tiles, painted once the rail can be */
     if (window.setHeroScore && last != null) { window.setHeroScore(last); return; }
     if (tries < 50) setTimeout(function () { first(tries + 1); }, 100);
   })(0);
 
   /* the line under the score: a nudge before anything, then the gain and where it came from */
-  var hide = document.createElement("style"); hide.textContent = "#cm:not(.said){display:none}"; document.head.appendChild(hide);
+  /* the line waits for something to say; before a plan the unlock line is already there (SAY_LOCK), so it stays */
+  if (!M.noplan) { var hide = document.createElement("style"); hide.textContent = "#cm:not(.said){display:none}"; document.head.appendChild(hide); }
   var WHY = {
     sleep: "A steady night is the base of your Rhythm.",
     wd: "Small steps in the evening help you sleep steady.",
@@ -105,8 +114,9 @@
 
   var t = 0;
   function update() {
-    var n = score(); if (n == null) return;
-    tiles();
+    var n = score();
+    tiles();   /* before a plan the tiles still follow what is logged; there is just no score */
+    if (n == null) return;
     var d = n - last; if (!d) return;
     last = n;
     if (window.S && window.S.hero) window.S.hero.score = n;
@@ -115,7 +125,7 @@
   }
   function tiles() {
     if (!window.paintMacros) return;
-    window.MOVEPART[0].T = P.hours; window.MOVEPART[2].T = selfT();
+    if (!M.noplan) { window.MOVEPART[0].T = P.hours; window.MOVEPART[2].T = selfT(); }
     window.paintMacros(null, "");
   }
   window.MDRHYTHM = { score: score, parts: parts, update: update };

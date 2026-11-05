@@ -33,12 +33,13 @@
   var CP = null, ACT = [], COACHN = "", NOTE = "";
   var MPX = null;
   try { if (Q.get("coach") && window.parent !== window && window.parent.MP) { MPX = window.parent.MP; CP = MPX.previewPlan; } } catch (e) {}
-  if (!CP && Q.get("coach") && window.MP) { MPX = window.MP; CP = MPX.TEMPLATES.filter(function (t) { return t.id === (Q.get("t") || "t-motivation"); })[0]; }
+  /* on its own, the screen shows the coach portal's sample plan (its defaults and lists, coach-mind/data.js MP.SAMPLE); ?t= shows a template */
+  if (!CP && Q.get("coach") && window.MP) { MPX = window.MP; CP = Q.get("t") ? MPX.TEMPLATES.filter(function (t) { return t.id === Q.get("t"); })[0] : MPX.SAMPLE; }
   if (CP) {
     var cr = CP.rhythm, BR = MPX.BREATHS || [];
     window.MDCOACH = true;
     P.hours = cr.hours; P.bed = cr.bedtime; P.wake = cr.wake;
-    P.wd = cr.winddown.filter(function (w) { return String(w.label || "").trim(); }).map(function (w, i) { return { t: w.label, at: w.at || "21:" + ("0" + i).slice(-2), d: "Before bed" }; });
+    P.wd = cr.winddown.filter(function (w) { return String(w.label || "").trim(); }).map(function (w, i) { return { t: w.label, at: w.at || "21:" + ("0" + i).slice(-2), d: "" }; });   /* no subtext: the task and its time say it all */
     P.br = cr.breathing.slice(0, 3).map(function (b) { var x = BR.filter(function (y) { return y[0] === b.name; })[0]; return { n: b.name, min: b.mins, how: x ? x[1] : "", at: b.at }; });
     P.me = cr.metime.filter(function (m) { return String(m.label || "").trim(); }).slice(0, 1).map(function (m) { return { t: m.label, d: "", at: m.at }; });
     P.moodAt = cr.mood.checks[0].at; P.moodAt2 = (cr.mood.checks[1] || {}).at;   /* ponytail: one mood row, the first time; a second row needs a second mood sheet */
@@ -121,7 +122,7 @@
     var on = !!o.on, tag = o.sheet ? 'data-open="' + o.sheet + '"' : 'data-mt="' + o.key + '"';
     return '<div class="mv-tip tip md-row' + (on ? " done" : "") + '" data-tiprow="' + (o.key || o.sheet) + '">' +
       '<button class="mv-tb tickbtn" ' + tag + ' aria-pressed="' + on + '" aria-label="' + o.t + '"><span class="tmark' + (on ? " on" : "") + '">' + (on ? IC.checkD : "") + '</span></button>' +
-      '<button class="md-rb" ' + tag + '><span class="tt">' + o.t + '</span><span class="td">' + o.d + '</span></button>' +
+      '<button class="md-rb" ' + tag + '><span class="tt">' + o.t + '</span>' + (o.d ? '<span class="td">' + o.d + '</span>' : "") + '</button>' +
       (o.sheet ? '<span class="md-chev" aria-hidden="true">' + IC.chev + '</span>' : '<span class="md-chev"></span>') + '</div>';
   }
   function items() {
@@ -301,7 +302,7 @@
 
   function render() {
     if (NOPLAN) {
-      root.innerHTML = '<div class="sec"><h2>Your mind plan</h2></div><section class="mv-card"><div class="mv-mh"><div class="t"><div class="n">Your plan is on its way</div><div class="s">Your Mind Coach sets your sleep times, wind-down and calm minutes after your first consultation.</div></div></div></section>';
+      root.innerHTML = "";   /* before a plan there is no plan section: the line under the score already says when it comes */
     } else root.innerHTML = '<div class="sec"><h2>Your mind plan</h2></div>' + (LY ? LY({ P: P, S: S, items: items, practices: practices, rowHTML: rowHTML, nice: nice, niceS: niceS, hm: hm, mins: mins, now: NOW, I: I, IC: IC, FACES: FACES, logged: logged }) : V === "b" ? upNextCard() : V === "c" ? nightDayCards() : V === "d" ? tilesCard() : V === "e" ? stackCards() : V === "f" ? gridCards() : V === "g" ? swipeCards() : todayCard());   /* Coach suggested moved to the Practices tab (index.html) */
     if (window.MDRHYTHM) window.MDRHYTHM.update();
     kaira();
@@ -563,8 +564,11 @@
   ].join("");
   document.head.appendChild(css);
 
-  /* ?tiles=0 takes "What shaped your score?" away, to see the screen without it */
-  if (Q.get("tiles") === "0") { var rs = document.getElementById("railSect"); if (rs) rs.hidden = true; }
+  /* "What shaped your score?" is parked for now, on the screen and in the Rhythm sheet; ?tiles=1 brings it back */
+  if (Q.get("tiles") !== "1") {
+    var rs = document.getElementById("railSect"); if (rs) rs.hidden = true;
+    var tsx = document.createElement("style"); tsx.textContent = "#es-suff .echips{display:none !important}"; document.head.appendChild(tsx);
+  }
   render();
   /* ?sheet=sleep opens last night's sheet once the screen is up, for the case document */
   if (Q.get("sheet") === "sleep" && !NOPLAN) setTimeout(sleepSheet, 900);
