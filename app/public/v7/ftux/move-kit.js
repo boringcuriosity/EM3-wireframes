@@ -2,7 +2,7 @@
    The Move twin of kit.js.
    MOVEK.day(el)    step 2: the Morning scene from the Move cards (/v7/icons/move/bg/morning.webp) under a glass card.
                     The coach's workout is ticked, then a small move, then the steps count up and their ring fills.
-   MOVEK.reward(el) step 3: slow sun rays behind Move's Sneaker medal on its ribbon, and 8 FlipCoins for the day's workout.
+   MOVEK.reward(el) step 3: slow sun rays behind Move's Sneaker medal on its ribbon, and 2 FlipCoins for the day's workout.
    Each returns { play(), still(), reset() }. Pass { compact: true } for small stages.
    Numbers are one sample morning, worked out as move/momentum.js does: the plan burns 118 kcal, the plank burns 25 (10 of 45);
    6,400 of 10,000 steps (16 of 25); 1 of 5 small moves (3 of 15); 1 of 4 parts of the day (4 of 15). */
@@ -96,13 +96,13 @@
       '<div class="mk-coin"><img src="/v7/icons/flipcoins/coin.webp" alt=""><b>+0</b><span>FlipCoins for today&rsquo;s workout</span></div></div>';
     var root = el.firstChild, coin = root.querySelector(".mk-coin"), n = coin.querySelector("b"), tms = [];
     function reset() { tms.forEach(clearTimeout); tms = []; root.classList.remove("mk-on", "mk-still"); coin.classList.remove("on", "flip"); n.textContent = "+0"; }
-    function still() { reset(); root.classList.add("mk-on", "mk-still"); coin.classList.add("on"); n.textContent = "+8"; }
+    function still() { reset(); root.classList.add("mk-on", "mk-still"); coin.classList.add("on"); n.textContent = "+2"; }
     function play() {
       if (REDUCED) return still();
       reset(); void root.offsetWidth; root.classList.add("mk-on");
       tms.push(setTimeout(function () { coin.classList.add("on"); }, 1200));
-      /* the day's coins: they land, turn once, and the count reads +8 */
-      tms.push(setTimeout(function () { n.textContent = "+8"; coin.classList.add("flip"); }, 1700));
+      /* the day's coins: they land, turn once, and the count reads +2 */
+      tms.push(setTimeout(function () { n.textContent = "+2"; coin.classList.add("flip"); }, 1700));
     }
     reset();
     return { play: play, still: still, reset: reset };

@@ -26,7 +26,7 @@ Draft 1, 5 Nov 2026. For design, dev and product, and for an engineering agent t
 | 10 | The patient's Momentum, for the coach | 10 |
 | 11 | What the backend needs | 11 |
 | 12 | Where the prototype differs | 12 |
-| 13 | Open questions | 13 |
+| 13 | Decisions and open questions | 13 |
 
 ---
 
@@ -390,19 +390,20 @@ The score sits over each day, with a badge for their own workouts. Legend: "Done
 
 ---
 
-## 13. Open questions
+## 13. Decisions and open questions
 
 | # | Question | Notes |
 |---|---|---|
-| 1 | Copying with "Add to it", or copying one routine, can give a day two routines at the same time of day | Block it, merge them, or allow it? |
+| 1 | Two routines at the same time of day | Decided: one routine per time of day. Add a Routine and the time picker already block a taken part. Copying with "Add to it", or copying one routine, merges its exercises into the routine already at that time. |
 | 2 | The coach KAIRA says "each part of the day adds 10 points" | It is about 4 (15 ÷ 4). Fix the reply. |
 | 3 | Small moves for each level of mobility | The deck has Mild, Moderate and Wheelchair versions; the builder offers only the "No limitation" ones. Show the patient's level's version? |
 | 4 | Must-have small moves | Marked in the data; not shown to the coach. Show them, or pre-fill them? |
 | 5 | Move Kit moves (grip trainer, breath trainer, bands, bottle curls, slant board) | In the deck; not in the suggestions. |
-| 6 | A default steps goal | Today a day has none until the coach sets it. Start at 10,000? |
-| 7 | Who can update a master template | Any coach, or only its creator? |
+| 6 | A default steps goal | Decided: none. A day has no goal until the coach sets it. |
+| 7 | Who can update a master template | Decided: only the coach who made it, and admins. Everyone else saves a copy. |
 | 8 | The "Assign anyway" tick sits in the first tab only | Fine, or show it from both tabs? |
-| 9 | Deactivating the active plan | Ask first? What does the patient see until a new plan is assigned? |
+| 9 | Deactivating the active plan | Decided: the patient sees the before a plan state until a new plan is assigned. |
+| 10 | Rest days | Decided: marking a rest day keeps its routines underneath, saved with the plan; unmarking brings them back. The patient does not see them while it is a rest day. |
 
 ---
 

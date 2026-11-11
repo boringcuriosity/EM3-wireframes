@@ -461,7 +461,7 @@
        Sleep 4-7-8 and Zen Flow trace nothing, so in both looks they are the orb alone, growing and shrinking with the breath.
      Tapping a breathing row opens it over the whole screen on its ready state: close X top left, the time top right (tap it
      to change the length before Start; locked once a session has begun, paused included), the animation and phase word in the centre, Start, then Pause or Resume and End.
-     The pearl is the Rhythm score's own orb (r3/heroes/cloud/orb.svg in Mind's teal, as HERO_ORB recolours it).
+     The pearl is the Rhythm score's own orb (r3/heroes/cloud/orb.svg in Mind's gold, rim and glow included).
      ?bauto=1 starts on open.
      ===================================================================================================== */
   if (VK === "f") (function () {
@@ -474,7 +474,7 @@
       return '<svg width="' + sz + '" height="' + sz + '" viewBox="0 0 14 14" fill="none" aria-hidden="true"><g filter="url(#' + u + 'a)"><g clip-path="url(#' + u + 'b)"><rect width="14" height="14" fill="#A68A2D" rx="7"/>' +
         '<g filter="url(#' + u + 'c)"><ellipse cx="6.316" cy="4.792" fill="#F3D161" rx="7.683" ry="7.542"/></g><g filter="url(#' + u + 'd)" opacity=".5"><ellipse cx="5.292" cy="3.75" fill="#FDE8A4" rx="4.695" ry="4.583"/></g>' +
         '<g filter="url(#' + u + 'e)" opacity=".6"><ellipse cx="1.989" cy="1.19" fill="#E7C144" rx="1.989" ry="1.19" transform="matrix(.982 -.18891 .19626 .98055 6.402 12.002)"/></g></g></g><defs>' +
-        '<filter id="' + u + 'a" width="14" height="14" x="0" y="0" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BG"/><feBlend in="SourceGraphic" in2="BG" result="shape"/><feColorMatrix in="SourceAlpha" result="ha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/><feMorphology in="SourceAlpha" radius=".406" result="m"/><feOffset/><feGaussianBlur stdDeviation="1.625"/><feComposite in2="ha" k2="-1" k3="1" operator="arithmetic"/><feColorMatrix values="0 0 0 0 0.36 0 0 0 0 0.79 0 0 0 0 0.79 0 0 0 1 0"/><feBlend in2="shape"/></filter>' +
+        '<filter id="' + u + 'a" width="14" height="14" x="0" y="0" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feFlood flood-opacity="0" result="BG"/><feBlend in="SourceGraphic" in2="BG" result="shape"/><feColorMatrix in="SourceAlpha" result="ha" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/><feMorphology in="SourceAlpha" radius=".406" result="m"/><feOffset/><feGaussianBlur stdDeviation="1.625"/><feComposite in2="ha" k2="-1" k3="1" operator="arithmetic"/><feColorMatrix values="0 0 0 0 0.80 0 0 0 0 0.66 0 0 0 0 0.21 0 0 0 1 0"/><feBlend in2="shape"/></filter>' +
         '<filter id="' + u + 'c" width="25.525" height="25.242" x="-6.446" y="-7.829" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="2.54"/></filter>' +
         '<filter id="' + u + 'd" width="19.549" height="19.326" x="-4.483" y="-5.913" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="2.54"/></filter>' +
         '<filter id="' + u + 'e" width="8.81" height="7.329" x="4.183" y="9.128" color-interpolation-filters="sRGB" filterUnits="userSpaceOnUse"><feGaussianBlur stdDeviation="1.219"/></filter>' +
@@ -575,7 +575,7 @@
       build: function () {
         if (!RT) return ORB.build(false);
         var u = VS / 310, w = (1.6 * u).toFixed(3);   /* 1.6 px in the drawing's own units */
-        stage.innerHTML = '<svg class="bf-sv" ' + VB + '><g transform="' + RT.tf + '"><path d="' + RT.outline + '" fill="none" stroke="#C9E6E6" stroke-width="1.25" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>' +
+        stage.innerHTML = '<svg class="bf-sv" ' + VB + '><g transform="' + RT.tf + '"><path d="' + RT.outline + '" fill="none" stroke="#F3E2A6" stroke-width="1.25" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>' +
           RT.segs.map(function (d) { return '<g class="sg" opacity="0">' + [.16, .3, .55].map(function (o) { return '<path d="' + d + '" fill="none" stroke="' + T8 + '" stroke-width="' + w + '" stroke-linecap="round" stroke-linejoin="round" opacity="' + o + '"/>'; }).join("") + '</g>'; }).join("") +
           '</g></svg><div class="bf-pearl">' + pearl(24) + '</div>';
         this.sg = [].slice.call(stage.querySelectorAll(".sg")); this.pe = stage.querySelector(".bf-pearl"); this.last = -1; this.cur = null;
@@ -610,7 +610,7 @@
           '<radialGradient id="bfL" cx=".5" cy=".55" r=".62"><stop offset="0" stop-color="' + T3 + '" stop-opacity=".7"/><stop offset="1" stop-color="' + T1 + '" stop-opacity="0"/></radialGradient></defs>' +
           '<g transform="' + RT.tf + '"><path d="' + RT.outline + '" fill="url(#bfG)" stroke="#FFFFFF" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>' +
           '<path class="lt" d="' + RT.outline + '" fill="url(#bfL)" opacity=".2"/>' +
-          '<path d="' + RT.outline + '" fill="none" stroke="rgba(45,166,166,.32)" stroke-width="1" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></g></svg><div class="bf-pearl">' + pearl(24) + '</div>';
+          '<path d="' + RT.outline + '" fill="none" stroke="rgba(205,169,53,.32)" stroke-width="1" vector-effect="non-scaling-stroke" stroke-linejoin="round"/></g></svg><div class="bf-pearl">' + pearl(24) + '</div>';
         this.lt = stage.querySelector(".lt"); this.pe = stage.querySelector(".bf-pearl");
       },
       draw: function (S, P, f) {
@@ -762,27 +762,27 @@
       ".bf-top{position:absolute;top:44px;left:0;right:0;height:56px;display:flex;align-items:center;gap:8px;padding:0 16px;z-index:5}",
       ".bf-x{width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.7);color:" + INK + ";display:grid;place-items:center;cursor:pointer}.bf-x svg{width:20px;height:20px}",
       ".bf-ti{flex:1;text-align:center;font:500 14px/20px Roboto;opacity:.85}",
-      ".bf-tl{min-width:44px;height:36px;padding:0 8px 0 12px;border-radius:999px;border:1px solid rgba(22,74,74,.16);background:rgba(255,255,255,.7);color:" + INK + ";display:inline-flex;align-items:center;gap:2px;font:600 13px Roboto;font-variant-numeric:tabular-nums;cursor:pointer;position:relative}",
+      ".bf-tl{min-width:44px;height:36px;padding:0 8px 0 12px;border-radius:999px;border:1px solid rgba(92,78,31,.16);background:rgba(255,255,255,.7);color:" + INK + ";display:inline-flex;align-items:center;gap:2px;font:600 13px Roboto;font-variant-numeric:tabular-nums;cursor:pointer;position:relative}",
       ".bf-tl::after{content:'';position:absolute;left:50%;top:50%;width:max(100%,44px);height:44px;transform:translate(-50%,-50%)}.bf-tl svg{width:16px;height:16px}",
       ".bf-tl.lock{border-color:transparent;background:transparent;padding:0 4px;cursor:default}.bf-tl.lock::after{display:none}",
       /* one template for every exercise and state: top bar, a fixed visual zone, a fixed instruction zone under it, actions pinned to the bottom */
       ".bf-stage{position:absolute;left:50%;top:108px;width:300px;height:300px;transform:translateX(-50%);z-index:2;overflow:visible}",
       ".bf-sv{position:absolute;inset:0;width:100%;height:100%;overflow:visible}",
-      ".bf-pearl{position:absolute;width:0;height:0;z-index:3}.bf-pearl svg{position:absolute;transform:translate(-50%,-50%);filter:drop-shadow(0 3px 6px rgba(31,122,122,.22))}",
+      ".bf-pearl{position:absolute;width:0;height:0;z-index:3}.bf-pearl svg{position:absolute;transform:translate(-50%,-50%);filter:drop-shadow(0 3px 6px rgba(166,138,45,.22))}",
       ".bf-txt{position:absolute;left:0;right:0;top:424px;height:124px;display:flex;flex-direction:column;align-items:center;text-align:center;z-index:4;pointer-events:none}",
-      ".bf-word{font:300 32px/38px Roboto;letter-spacing:.3px;padding:0 24px;max-height:76px;overflow:hidden}.bf.s-ready .bf-word,.bf.s-early .bf-word{font-size:26px;line-height:32px}.bf-cnt{margin-top:6px;font:500 15px/20px Roboto;font-variant-numeric:tabular-nums;color:#2D6B6B;min-height:20px;padding:0 48px}",
+      ".bf-word{font:300 32px/38px Roboto;letter-spacing:.3px;padding:0 24px;max-height:76px;overflow:hidden}.bf.s-ready .bf-word,.bf.s-early .bf-word{font-size:26px;line-height:32px}.bf-cnt{margin-top:6px;font:500 15px/20px Roboto;font-variant-numeric:tabular-nums;color:#A68A2D;min-height:20px;padding:0 48px}",
       ".bf-bot{position:absolute;left:0;right:0;bottom:0;padding:0 24px calc(40px + env(safe-area-inset-bottom,0px));display:flex;gap:12px;z-index:5}",
       ".bf-bot>button{flex:1;width:auto}.bf-bot.stack{flex-direction:column}.bf-bot.stack>button{flex:none;width:100%}",
       ".bf-ask{display:flex;flex-direction:column;gap:12px}.bf-ask>button{width:100%}",
       /* tracing shapes keep their centre clear: the word sits under the shape */
       ".l1 .bf-bg{background:linear-gradient(180deg," + T25 + " 0%,#FFFFFF 46%,#F5F8FF 100%)}",
       ".l3 .bf-bg{background:linear-gradient(160deg," + T25 + " 0%,#FFFFFF 42%,#F3F1FF 100%)}",
-      ".bf-glass{filter:drop-shadow(0 24px 30px rgba(31,122,122,.16))}",
+      ".bf-glass{filter:drop-shadow(0 24px 30px rgba(166,138,45,.16))}",
       ".l4 .bf-bg{background:radial-gradient(90% 60% at 50% 42%," + T25 + " 0%,#FFFFFF 70%)}",
       /* the orb alone (Sleep 4-7-8, Zen Flow): a faint soft light behind it, no bloom; Glass adds a frosted sheen */
       ".bf-orb{position:absolute;left:50%;top:50%;width:200px;height:200px;transform:translate(-50%,-50%) scale(.56);will-change:transform}",
-      ".bf-orb svg{position:relative;display:block;filter:drop-shadow(0 16px 28px rgba(31,122,122,.18))}",
-      ".bf-soft{position:absolute;inset:-24%;border-radius:50%;background:radial-gradient(circle,rgba(253,232,164,.42) 30%,rgba(224,255,255,.2) 52%,rgba(224,255,255,0) 70%)}",
+      ".bf-orb svg{position:relative;display:block;filter:drop-shadow(0 16px 28px rgba(166,138,45,.18))}",
+      ".bf-soft{position:absolute;inset:-24%;border-radius:50%;background:radial-gradient(circle,rgba(253,232,164,.42) 30%,rgba(255,248,224,.2) 52%,rgba(255,248,224,0) 70%)}",
       ".bf-lens{position:absolute;inset:0;border-radius:50%;background:linear-gradient(150deg,rgba(255,255,255,.5),rgba(255,255,255,.06) 55%,rgba(255,255,255,0));box-shadow:inset 0 0 0 1px rgba(255,255,255,.55)}",
       /* the length sheet */
       ".bf-scrim{position:absolute;inset:0;background:rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .3s ease-out;z-index:8}",

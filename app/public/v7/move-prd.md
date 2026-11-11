@@ -299,7 +299,8 @@ Each step log is kept as its own entry (steps and time). The phone's steps stay 
 
 - Title **"Log steps"**. Columns **"Steps"** and **"Around"**. Each row: a number field and a time ("3:40 PM"), an X on every row after the first.
 - **"+ Add another time"**, up to **6 rows**; a new row copies the last row's time.
-- Numbers only, no leading zero, **at most 5 digits** (see the open question on a ceiling).
+- Numbers only, no leading zero, **at most 50,000** a row.
+- **An hour the phone already counted:** under that row, a quiet line with an info icon: **"Your phone already counted {N} steps between {3 PM} and {4 PM}. Log only a walk it missed."** {N} is the phone's steps in that hour, without the person's own logs. It follows the row's time, shows only when Health is connected and the phone has steps there, and never in the edit sheet. Logging still adds on top.
 - Time sheet **"Around what time?"**, **"Set time"**. Later than now: **"That's later than now. Pick a time up to 3:40 PM."**
 - **"Save"**, or **"Save N logs"** for more than one row. Disabled until a row has steps.
 - Save: each row goes into its own hour, **added on top** of what is there, and becomes its own log. The tip of that hour opens, and the bars grow from where they were.
@@ -317,13 +318,13 @@ Each step log is kept as its own entry (steps and time). The phone's steps stay 
 |---|---|---|
 | Q1 Can a log be changed? | Change in place | Yes (pencil) |
 | Q3 What can be removed? | Own logs only | Yes |
-| Q4 A log and the phone in the same hour | Add on top, with a hint under the row: "Your phone counted 1,240 steps around then. Log only the steps it missed." | Adds on top, **no hint yet** |
+| Q4 A log and the phone in the same hour | Add on top, with a quiet line under the row: "Your phone already counted {N} steps between {3 PM} and {4 PM}. Log only a walk it missed." Shown only when the phone counted steps in that hour, never when editing. It follows the row's time | Yes, under the row |
 | Q6 Storage | Per entry, shown per hour | Yes |
 | Q8 Same weight in the score | Yes, logged steps count the same | Yes |
 | Q9 Write back to Health | No, keep them in GoodFlip | Yes |
 | Q14 Reading phone steps | The platform's merged total, per hour | n/a |
 | Q15 Steps switched off in Settings | Keep what was read | n/a |
-| Q2, Q5, Q7, Q10, Q11, Q12, Q13 | See open questions, section 22 | |
+| Q2, Q5, Q7, Q10, Q11, Q12, Q13 | See section 22 | |
 
 ### 9.6 Calories from steps
 
@@ -420,7 +421,7 @@ At **80% or more** a medal on a ribbon swings in from under the header ("Momentu
 ### FlipCoins
 
 - The **Earn** chip opens **"Earn FlipCoins"**: **"Log your workout daily to earn FlipCoins"**, **"Your current streak:"** with the streak, **"Only workouts logged on the day count towards your streak."**, **"Keep the streak going to earn more"**, a week card (+20) and a month card (+50), "Earned so far from this streak: +N FlipCoins", **"Log your workout →"**.
-- A workout logged on the day keeps the streak. **One FlipCoin a day** (see open questions).
+- A workout logged on the day keeps the streak. **FlipCoins a day: the live FlipCoins rule's daily maximum** (2 today). The first look shows "+2" and its copy names no number.
 - A workout log that raises the score shows the toast **"You have earned FlipCoins"**.
 
 ---
@@ -511,22 +512,38 @@ Also in **`v7/move-coach-prd.md`** (section 10).
 
 ---
 
-## 22. Open questions
+## 22. Decisions and open questions
 
-Coach portal questions are in `v7/move-coach-prd.md`, section 13.
+Decided on 11 Nov 2026, from the full stack developer's questions.
+
+| # | Question | Decision |
+|---|---|---|
+| 1 | FlipCoins a day | The live FlipCoins rule's daily maximum (2 today). The first look shows "+2"; its copy says "you also earn FlipCoins" with no number. |
+| 2 | The default day score | There is none. Every day starts at 0%. The 40 (and 36) in the docs is the example day at 3:40 PM, not a default. |
+| 3 | A full plan day | Follow the documented rule. When the coach plans nothing at night, doing everything in the plan scores 96; the user reaches 100 only by moving at night on their own (a workout logged, for example). See the note under this table. |
+| 4 | The first look in Release 1 | Yes, it ships in Release 1. |
+| 5 | The first look, once per device or per user | Once per user, saved on the server, so a reinstall or a new phone does not show it again. |
+| 6 | The first look before a plan | Shown once to everyone when Momentum launches, plan or no plan. |
+| 7 | Steps ceiling per log | 50,000 per log. The field takes up to 5 digits and stops at 50,000. |
+| 8 | A hint when a log meets phone steps in the same hour | Yes: a quiet line under that row (section 9.5, Q4). |
+| 9 | Log steps for yesterday | Yes. |
+| 10 | Step logs when Health is connected later | Keep them. |
+| 11 | The coach sees which steps were logged by hand | Not needed. |
+| 12 | How far back a workout can be logged | The last 7 days. |
+| 13 | Deactivated plan | The patient sees the before a plan state. |
+| 14 | Program paused | The patient sees the state of a user with no program. |
+| 15 | Which Compendium edition | With Dr. Bhavan. The list page says 2024; code comments say 2011. |
+| 16 | Odd intensity names from the team sheet | With Dr. Bhavan. Walking: "Under 2.0 mph Very Slow", "Snow Blower", "Pushing A Wheelchair", with no brisk walk. Swimming has only treading water. |
+| 17 | The coach exercise library rows flagged in `/v7/move-exercise-lists.html` | Keep the current library as it is. Add only the coach exercises the app's list lacks, as documented there. |
+
+**A full plan day, 96 or 100.** Spread is 15 × parts of the day moved in ÷ 4. A plan with nothing at night can only fill three parts, so following it fully gives 45 + 25 + 15 + 11 = 96. Moving at night on their own fills the fourth part and makes it 100. This is on purpose: the score rewards moving through the whole day.
+
+Still open:
 
 | # | Question | Notes |
 |---|---|---|
-| 1 | FlipCoins a day: 1 or 8? | The Earn sheet gives 1; the first look in `/v7/move-momentum.html` promises 8. |
-| 2 | Steps: show what was logged | Recommended: the tip splits the hour ("2,230 steps. 230 from Apple Health, 2,000 you logged.") and a line under the chart "You logged 2,000 steps today" opens the list. The prototype has only the pencil and bin. |
-| 3 | Steps: a ceiling | Recommended: up to 30,000 a row, a check above 10,000 ("That is a long walk. Save 12,000 steps?"). The prototype allows 99,999. |
-| 4 | Steps: a hint when a log meets phone steps in the same hour | Recommended, not built (Q4). |
-| 5 | Steps: log into yesterday | Recommended today and yesterday, with "Logging for yesterday" (Q11). |
-| 6 | Steps: logs when Health is connected later | Recommended: keep them and say so once (Q12). |
-| 7 | Steps: zero on a connected iPhone | Recommended: a gentle check after midday (Q13). |
-| 8 | What the coach sees of logged steps | Recommended: "9,400 steps, 2,000 logged by hand" (Q10). |
-| 9 | Which Compendium edition is the source | The list page says 2024; code comments say 2011. |
-| 10 | Odd intensity names from the team sheet | Walking: "Under 2.0 mph Very Slow", "Snow Blower", "Pushing A Wheelchair", with no brisk walk. Swimming has only treading water. |
+| A | Steps: show what was logged | Recommended: the tip splits the hour ("2,230 steps. 230 from Apple Health, 2,000 you logged.") and a line under the chart "You logged 2,000 steps today" opens the list. The prototype has only the pencil and bin. |
+| B | Steps: zero on a connected iPhone | Recommended: a gentle check after midday (Q13). |
 
 ---
 

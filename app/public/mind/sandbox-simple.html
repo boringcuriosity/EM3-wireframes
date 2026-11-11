@@ -219,35 +219,9 @@
 
       <div class="card" id="sqCard" hidden></div>   <!-- hidden for now: the sleep quality question -->
 
-      <div class="card"><h3>Wind-down tasks <span class="wt" id="w-wd"></span></h3><div class="hint">Each task done earns its share. Each has a suggested time, and the app sends a reminder then.</div><div id="l-wd"></div><div class="add" style="flex-wrap:wrap"><select id="a-wd-pick" title="Suggested tasks">
-          <option value="">Pick a suggested task…</option>
-          <optgroup label="From the Mind coach's framework">
-            <option data-at="22:00">Screen-off routine: reduce screens before bedtime</option>
-            <option data-at="14:00">Caffeine cut-off: no caffeine late in the day</option>
-            <option data-at="22:30">Consistent sleep timing: go to bed at the planned time</option>
-            <option data-at="22:15">Pre-sleep relaxation: 5 minutes of breathing or relaxation</option>
-          </optgroup>
-          <optgroup label="From the research doc">
-            <option data-at="20:30">Dinner 2 hours before bed</option>
-            <option data-at="21:45">2 minute mind dump</option>
-            <option data-at="20:00">No alcohol near bedtime</option>
-            <option data-at="21:00">Lights low in the last hours before bed</option>
-          </optgroup>
-        </select><input type="text" id="a-wd" placeholder="or write your own"><input type="time" id="a-wd-at" value="21:30" title="Suggested time"><button class="btn" data-add="wd">Add</button></div></div>
-      <div class="card"><h3>Breathing exercises <span class="wt" id="w-br"></span></h3><div class="hint">One by default, up to 2. Each exercise done earns its share.</div><div id="l-br"></div><div class="add" id="add-br"><select id="a-br-pick" aria-label="Breathing exercise"></select><select id="a-br-min" aria-label="Minutes"></select><input type="hidden" id="a-br"><button class="btn" data-add="br">Add</button></div></div>
-      <div class="card"><h3>Me-time tasks <span class="wt" id="w-me"></span></h3><div class="hint">The coach offers a few. Logging any one of them earns the full marks.</div><div id="l-me"></div><div class="add" style="flex-wrap:wrap"><select id="a-me-pick" title="Suggested tasks">
-          <option value="">Pick a suggested task…</option>
-          <optgroup label="From the Mind coach's framework">
-            <option>Do one enjoyable activity</option>
-            <option>Have one meaningful social interaction</option>
-            <option>Spend 10 to 15 minutes fully engaged in something</option>
-          </optgroup>
-          <optgroup label="From the research doc">
-            <option>Music or bhajans</option><option>Prayer or puja</option><option>Gardening</option><option>Time with family</option>
-            <option>A walk in the park</option><option>Chai with a friend</option><option>Reading</option><option>A hobby</option>
-            <option>A show, chosen on purpose</option><option>Sitting in the sun</option><option>Helping someone</option><option>A small outing</option>
-          </optgroup>
-        </select><input type="text" id="a-me" placeholder="or write your own"><button class="btn" data-add="me">Add</button></div></div>
+      <div class="card"><h3>Wind-down tasks <span class="wt" id="w-wd"></span></h3><div class="hint">Each task done earns its share. Each has a suggested time, and the app sends a reminder then.</div><div id="l-wd"></div><div class="add" style="flex-wrap:wrap"><select id="a-wd-pick" title="Suggested tasks"></select><input type="text" id="a-wd" placeholder="or write your own"><input type="time" id="a-wd-at" value="21:30" title="Suggested time"><button class="btn" data-add="wd">Add</button></div></div>
+      <div class="card"><h3>Breathing exercises <span class="wt" id="w-br"></span></h3><div class="hint">One by default, up to 3. Each exercise done earns its share.</div><div id="l-br"></div><div class="add" id="add-br"><select id="a-br-pick" aria-label="Breathing exercise"></select><select id="a-br-min" aria-label="Minutes"></select><input type="hidden" id="a-br"><button class="btn" data-add="br">Add</button></div></div>
+      <div class="card"><h3>Me-time tasks <span class="wt" id="w-me"></span></h3><div class="hint">One activity a day by default, at a time that suits them. The coach can offer more; doing any one earns the full marks.</div><div id="l-me"></div><div class="add" style="flex-wrap:wrap"><select id="a-me-pick" title="Suggested tasks"></select><input type="text" id="a-me" placeholder="or write your own"><button class="btn" data-add="me">Add</button></div></div>
 
       <div class="card">
         <h3>Mood check-in <span class="wt" id="w-mood"></span></h3>
@@ -281,6 +255,7 @@
   <div class="samples" id="samples"></div>
 </div>
 
+<script src="/v7/coach-mind/data.js"></script>
 <script>
 (function(){
 var $=function(s){return document.querySelector(s)}, $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
@@ -291,11 +266,12 @@ var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"
 var P={hours:7.5,short:3,exOn:true,grace:1,exPen:20,bed:"22:30",wake:"06:00",tol:30,zero:120,
   w:{hours:23,window:24,sq:5,wd:23,br:10,me:10,mood:10},   /* starts on the Mind deck weights: sleep 70, self-care 30 */
   sq:{on:false,text:"How did you sleep?",scale:"faces",mode:"answer"},   /* the optional sleep quality question; its weight counts only while it is on and scored */
-  moodN:1, moodAt:["20:30"],   /* one check-in, in the evening: how the day felt */
-  wd:["Last tea or coffee before 2 PM","Dinner 2 hours before bed","Phone away, lights low"],
-  wdAt:["14:00","20:30","22:00"],   /* suggested time per wind-down task, when its reminder goes out */
-  br:["Cyclic sighing, 5 min"],   /* one by default, the coach can assign up to BRMAX */
-  me:["Do one enjoyable activity","Have one meaningful social interaction","Spend 10 to 15 minutes fully engaged in something"]};
+  /* the rest is the coach portal's sample plan (v7/coach-mind/data.js MP.SAMPLE), so this sandbox and the portal start the same */
+  moodN:1, moodAt:MP.SAMPLE.rhythm.mood.checks.map(function(c){return c.at}),   /* one check-in, 9:00 PM: how the day felt */
+  wd:MP.SAMPLE.rhythm.winddown.map(function(t){return t.label}),
+  wdAt:MP.SAMPLE.rhythm.winddown.map(function(t){return t.at}),   /* suggested time per wind-down task, when its reminder goes out */
+  br:MP.SAMPLE.rhythm.breathing.map(function(b){return b.name+", "+b.mins+" min"}),   /* one by default, the coach can assign up to BRMAX */
+  me:MP.SAMPLE.rhythm.metime.map(function(t){return t.label})};
 /* what the person did */
 var D={bed:null,wake:null,   /* minutes from 00:00 yesterday: 1410 is 11:30 PM yesterday, 1485 is 12:45 AM today */
   wd:{},br:{},me:{},mood:[-1,-1],sq:-1};
@@ -326,18 +302,20 @@ function score(){
   var cnt=function(list,done){return list.filter(function(x,i){return done[i]}).length+" of "+list.length};
   var night=D.bed!=null&&D.wake!=null&&D.wake>D.bed;   /* last night counts only once both times are in */
   return [["hours","Sleep hours",night?s:0,night?why:"Last night not logged yet",night&&slept>T+P.grace&&P.exOn],["window","Sleep window",night?ws:0,night?off(db,"Bed")+" · "+off(dw,"wake"):"Last night not logged yet"],
-    ["wd","Wind-down",share(P.wd,D.wd),cnt(P.wd,D.wd)+" done"],["br","Breathing",share(P.br,D.br),cnt(P.br,D.br)+" done"],["me","Me-time",meN?1:0,meN?meN+" logged, one is enough":"Log any one of "+P.me.length+" tasks"],
+    ["wd","Wind-down",share(P.wd,D.wd),cnt(P.wd,D.wd)+" done"],["br","Breathing",share(P.br,D.br),cnt(P.br,D.br)+" done"],["me","Me-time",meN?1:0,meN?meN+" logged, one is enough":P.me.length>1?"Log any one of "+P.me.length+" activities":"Not logged yet"],
     ["sq","Sleep quality",D.sq<0?0:(P.sq.mode==="value"?D.sq/(P.sq.scale==="ten"?10:4):1),D.sq<0?"Not answered yet":P.sq.mode==="value"?"Rated "+(P.sq.scale==="ten"?D.sq+" of 10":["Awful","Low","Okay","Good","Great"][D.sq])+", the rating is scored":"Answered · the rating is not scored"],
     ["mood","Mood check-in",mDone/P.moodN,(mDone?"Checked in":"Not yet")+" · the face is not scored"]];
 }
 
 function nice(s){var m=mins(s),h=Math.floor(m/60);return ((h%12)||12)+":"+("0"+m%60).slice(-2)+(h<12?" AM":" PM")}
-var BRMAX=2;
-/* breathing exercises the coach can pick, with what each one is (the research doc's list); Kapalabhati stays out, it is coach-guided only */
-var BREATHS=[["Cyclic sighing","Two breaths in, one long breath out"],["Extended exhale","In 4, out 6"],["Box breathing","In 4, hold 4, out 4, hold 4"],["4-7-8 breathing","In 4, hold 7, out 8"],
-  ["Star breathing","Trace a star: in 4, hold 2, out 4"],["Five finger breathing","Trace each finger: in 4, out 4"],["Nadi Shodhana","Alternate nostrils, slow"],["Bhramari","Humming breath out"],["Pursed lip breathing","In 2 through the nose, out 4 through pursed lips"]];
-var BMIN=[2,3,5,10,15];
+var BRMAX=MP.BREATH_MAX;
+/* breathing exercises the coach can pick: the coach portal's list, with what each one is */
+var BREATHS=MP.BREATHS.map(function(b){return [b[0],b[1]]});
+var BMIN=MP.BREATH_MINS;   /* any whole minute, 1 to 30, as in the portal */
 var brName=function(s){return s.split(",")[0]}, brMin=function(s){var m=s.match(/(\d+)\s*min/);return m?+m[1]:5};
+/* the wind-down and me-time pickers: the coach portal's lists, each with its usual time */
+$("#a-wd-pick").innerHTML='<option value="">Pick a suggested task…</option>'+MP.WINDDOWN.map(function(t){return '<option data-at="'+t[1]+'">'+esc(t[0])+'</option>'}).join("");
+$("#a-me-pick").innerHTML='<option value="">Pick a suggested activity…</option>'+MP.METIME.map(function(t){return '<option>'+esc(t[0])+'</option>'}).join("");
 function brAdd(){
   var used=P.br.map(brName), pk=$("#a-br-pick");
   pk.innerHTML=BREATHS.map(function(b){return '<option value="'+esc(b[0])+'"'+(used.indexOf(b[0])>=0?" disabled":"")+'>'+esc(b[0])+' · '+esc(b[1])+'</option>'}).join("");
@@ -347,7 +325,7 @@ function brAdd(){
   pk.onchange=mn.onchange=function(){$("#a-br").value=pk.value+", "+mn.value+" min";};
 }
 function list(k){
-  if(k==="br"){ var full=P.br.length>=BRMAX, a=$("#add-br"); a.style.display=full?"none":"flex"; var n=$("#br-full"); if(!n){n=document.createElement("div");n.id="br-full";n.className="hint";n.style.margin="8px 0 0";a.parentNode.appendChild(n);} n.textContent=full?"Two exercises assigned, the most allowed. Remove one to add another.":""; }
+  if(k==="br"){ var full=P.br.length>=BRMAX, a=$("#add-br"); a.style.display=full?"none":"flex"; var n=$("#br-full"); if(!n){n=document.createElement("div");n.id="br-full";n.className="hint";n.style.margin="8px 0 0";a.parentNode.appendChild(n);} n.textContent=full?BRMAX+" exercises assigned, the most allowed. Remove one to add another.":""; }
   if(k==="wd") return listWd();
   if(k==="br"){ brAdd();
     $("#l-br").innerHTML=P.br.length?P.br.map(function(t,i){return '<div class="item"><span class="t">'+esc(brName(t))+'</span><select data-brmin="'+i+'" aria-label="Minutes">'+BMIN.concat(BMIN.indexOf(brMin(t))<0?[brMin(t)]:[]).map(function(m){return '<option value="'+m+'"'+(m===brMin(t)?" selected":"")+'>'+m+' min</option>'}).join("")+'</select><button class="x" data-del="br" data-i="'+i+'" title="Remove">×</button></div>'}).join(""):'<div class="empty">Nothing assigned</div>';

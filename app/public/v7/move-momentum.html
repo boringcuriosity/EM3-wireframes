@@ -420,6 +420,7 @@
     <section id="steps">
       <div class="snum">Section</div>
       <h2>Your steps</h2>
+      <p>Logging steps for an hour the phone already counted adds on top, so the sheet says how many the phone has there, under that row, and asks for only a walk it missed. No line when the phone counted nothing in that hour, and none when editing a log. Up to 50,000 steps a row.</p>
       <div class="cases" data-cases="steps"></div>
     </section>
 
@@ -498,7 +499,7 @@
       <ul class="plain">
         <li><b>Step 1, the score.</b> Move's Cloud Drop in indigo, named Momentum. New users read "From today, your workouts, steps and small moves add up to a score out of 100." Current users read "The workouts, steps and small moves you already track now add up to a score out of 100." Both go on: it shows how well you keep moving through your day, and it starts fresh every morning.</li>
         <li><b>Step 2, the coach's plan.</b> A Morning card on the left of Move's morning scene, with three rows: Plank to push up (your coach's workout), Take the stairs (a small move) and 6,400 of 10,000 steps. The tick or the steps ring sits on the left, then the picture, then the words. The icons are the Move screen's own: the Small moves person and the Steps footprints. The workout ticks, then the small move, then the steps count up and their ring fills. Title: "Your coach plans your moves".</li>
-        <li><b>Step 3, the rewards.</b> The Sneaker medal swings in on its ribbon under slow sun rays, then +8 FlipCoins land and turn once. "Reach 80 in a day to earn the Momentum medal. Every day you log a workout, you also earn 8 FlipCoins."</li>
+        <li><b>Step 3, the rewards.</b> The Sneaker medal swings in on its ribbon under slow sun rays, then +2 FlipCoins land and turn once. "Reach 80 in a day to earn the Momentum medal. Every day you log a workout, you also earn FlipCoins."</li>
         <li><b>The buttons.</b> Next on steps 1 and 2. Back is GoodFlip's secondary button with a left arrow, from step 2. The last step ends on Start Logging Workouts.</li>
         <li><b>Motion.</b> Each visual plays once, the first time its step settles. Swipes snap on a smooth ease-out with a soft parallax. Reduce motion shows every end state at once.</li>
         <li><b>Flags.</b> who=new or who=current, step=1 to 3, still=1. Built in /v7/ftux/move-swipe.html with move-kit.js.</li>
@@ -622,7 +623,8 @@ const CASES = {
   steps: [
     ["day=early&act=healthcard", "The whole day", "day=early", "Midnight to midnight, as Apple Health counts it. A 5 AM walk adds 1,900 steps to the total. The clock is marked every six hours, the way health apps do."],
     ["act=bar", "A bar tapped", "act=bar", "A small white tip with that hour's steps."],
-    ["act=steps", "Log steps", "act=steps", "Steps by hand, added to the hour picked. Never later than now."],
+    ["act=steps", "Log steps, in an hour the phone counted", "act=steps", "Steps by hand, added to the hour picked. Never later than now. The phone already counted 230 steps between 3 PM and 4 PM, so a quiet line under the row says so: Your phone already counted 230 steps between 3 PM and 4 PM. Log only a walk it missed. It follows the row's time when it changes."],
+    ["health=off&act=steps", "Log steps, nothing counted then", "act=steps", "Health not connected, so the phone counted nothing in that hour and no line shows. The line also stays out when editing a log."],
   ],
   /* Apple Health on iPhone, Health Connect on Android (?os=android): not connected, the sheet, connected */
   health_ios: [
@@ -689,7 +691,7 @@ const CASES = {
   firstlook: [
     ["/v7/ftux/move-swipe.html?step=1&still=1", "Step 1, the score", "step=1", "Move's Cloud Drop in indigo, named Momentum."],
     ["/v7/ftux/move-swipe.html?step=2&still=1", "Step 2, the coach's plan", "step=2", "The Morning card: the workout and the small move ticked, 6,400 steps with their ring."],
-    ["/v7/ftux/move-swipe.html?step=3&still=1", "Step 3, the rewards", "step=3", "The Sneaker medal and +8 FlipCoins for the day's workout. Ends on Start Logging Workouts."],
+    ["/v7/ftux/move-swipe.html?step=3&still=1", "Step 3, the rewards", "step=3", "The Sneaker medal and +2 FlipCoins for the day's workout. Ends on Start Logging Workouts."],
   ],
 };
 

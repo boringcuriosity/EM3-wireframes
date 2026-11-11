@@ -330,13 +330,20 @@
       '<div class="mv-row2 mv-heads"><span class="mv-fl">Steps</span><span class="mv-fl">Around</span><span></span></div>' +
       '<div class="mv-srows">' + draft.rows.map(function (r, i) {
         return '<div class="mv-row2 mv-srow' + (keep === "new" && i === draft.rows.length - 1 ? " new" : "") + '"><input class="mv-in" data-row="' + i + '"' + (i ? "" : ' id="mvN"') + ' inputmode="numeric" placeholder="0" autocomplete="off" aria-label="Steps" value="' + r.n + '">' +
-          timeBtn("steps|" + i, r.at) + (i || ED ? '<button class="mv-srm" data-srm="' + i + '" aria-label="' + (ED ? "Remove this log" : "Remove this time") + '">' + IC.x + "</button>" : "<span></span>") + "</div>";
+          timeBtn("steps|" + i, r.at) + (i || ED ? '<button class="mv-srm" data-srm="' + i + '" aria-label="' + (ED ? "Remove this log" : "Remove this time") + '">' + IC.x + "</button>" : "<span></span>") + "</div>" +
+          (ED ? "" : phoneHint(r.at));
       }).join("") + "</div>" +
       (!ED && draft.rows.length < 6 ? '<button class="mv-addrow" data-addrow>' + IC.plusSq + "Add another time</button>" : "") +
       '<button class="ok" data-save' + (canSave() ? "" : " disabled") + ">" + saveLabel() + "</button>");
     el.setAttribute("data-kb-lift", "");   /* the phone frame's keyboard pushes the sheet up, so the field and Save stay in view */
     var f = el.querySelector('[data-row="' + (keep === "new" ? draft.rows.length - 1 : 0) + '"]');
     if (!keep || keep === "new") setTimeout(function () { f.focus(); }, keep ? 60 : 320);
+  }
+  /* a log in an hour the phone already counted says so under its row, so the same walk is not counted twice (move-prd.md 9.5, Q4) */
+  function phoneAt(at) { var h = parseInt(at, 10); return HEALTH ? Math.max(0, (S.steps[h] || 0) - logsAt(h).reduce(function (t, l) { return t + l.n; }, 0)) : 0; }
+  function phoneHint(at) {
+    var n = phoneAt(at), h = parseInt(at, 10);
+    return n ? '<p class="mv-phint">' + IC.info + '<span>Your phone already counted <b>' + fmt(n) + ' steps</b> between ' + hr(h) + ' and ' + hr(h + 1) + '. Log only a walk it missed.</span></p>' : "";
   }
   function keepRows() { [].forEach.call(document.querySelectorAll("#mvSteps [data-row]"), function (x) { draft.rows[+x.dataset.row].n = x.value; }); }
 
@@ -509,6 +516,7 @@
   document.addEventListener("input", function (ev) {
     if (!ev.target.closest || !ev.target.closest("#mvSteps [data-row]")) return;
     ev.target.value = ev.target.value.replace(/[^0-9]/g, "").replace(/^0+/, "").slice(0, 5);
+    if (+ev.target.value > 50000) ev.target.value = "50000";   /* 50,000 a log at most (move-prd.md section 22) */
     keepRows();
     var b = document.querySelector("#mvSteps [data-save]"); b.disabled = !canSave(); b.textContent = saveLabel();
   });

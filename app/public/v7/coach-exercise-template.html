@@ -2163,10 +2163,18 @@ Yoga for Back Pain -2|P|27|min`;
     if (C.mode === "replace" && ri < 0) { t.rest_day = src.rest_day; t.routines = src.rest_day === "Y" ? [] : deep(src.routines); return; }
     if (src.rest_day === "Y") return;
     if (t.rest_day === "Y") { t.rest_day = "N"; t.routines = []; }
+    /* one routine per time of day: a routine landing on a time the day already has merges its exercises into that routine */
     list.forEach(function (r) {
-      var c = deep(r);
+      var c = deep(r), same;
       if (C.mode === "replace" && t.routines[ri]) { c.routine_no = t.routines[ri].routine_no; t.routines[ri] = c; }
+      else if (c.time && (same = t.routines.filter(function (o) { return o.time === c.time; })[0])) same.exercises = same.exercises.concat(c.exercises);
       else { c.routine_no = next(); t.routines.push(c); }
+    });
+    /* a replaced routine can now share its time with another: merge those too, keeping the first */
+    t.routines = t.routines.filter(function (o, i, a) {
+      var first = o.time && a.filter(function (x) { return x.time === o.time; })[0];
+      if (first && first !== o) { first.exercises = first.exercises.concat(o.exercises); return false; }
+      return true;
     });
   }
   /* a no steps day, as a rest day in the exercise plan: for a user who can't walk (a cast, a wheelchair). Copy it to
