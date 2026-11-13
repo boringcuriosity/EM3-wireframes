@@ -186,6 +186,7 @@
   .arc span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
   .arc b{font-size:14px;font-weight:500;color:#101828}
   .arc small{font-size:12.5px;line-height:18px;color:#475467}
+  .arc small.aby{margin-top:4px;color:#667085}.arc small.aby b{font-size:12.5px;font-weight:600;color:#344054}
   .arc .acopy{display:none;width:100%;margin-top:8px;height:36px;padding:0 10px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;font:inherit;font-size:14px;outline:none;box-sizing:border-box}
   .arc .acopy:focus{border-color:var(--primary)}
   .arc:has(input[type=radio]:checked) .acopy{display:block}
@@ -1250,13 +1251,20 @@ Yoga for Back Pain -2|P|27|min`;
   }
   /* one tick to save it as a template too, then a choice of two: a copy of the coach's own (the default, it changes nothing
      shared) or the master every coach starts from. Not ticked: the plan goes to this user only. */
+  /* the template this plan was opened from, and who made it (coach-exercise/start.js), so updating the master names its owner */
+  function tplFrom() {
+    var t = (window.CS_TPL || []).filter(function (x) { return x.name === S.from; })[0]; if (!t) return null;
+    return { name: t.name, by: t.by };
+  }
   function saveOpts(name) {
+    var tf = tplFrom();
     return {
       html: '<div class="asave"><label class="aopt"><input type="checkbox" id="aSave"><span><b>Save as a template too</b><small>Reuse this plan for other users.</small></span></label>' +
         '<div class="aseg" role="radiogroup" aria-label="How to save it">' +
           '<label class="arc"><input type="radio" name="tplmode" value="copy" checked><span><b>Save as a copy</b><small>A new template. The master stays as it is.</small>' +
             '<input class="acopy" id="aCopy" value="' + esc(name) + ' (copy)" maxlength="60" aria-label="Copy template name"></span></label>' +
-          '<label class="arc"><input type="radio" name="tplmode" value="master"><span><b>Update master template</b><small>Changes "' + esc(name) + '" for every coach.</small></span></label></div></div>',
+          '<label class="arc"><input type="radio" name="tplmode" value="master"><span><b>Update master template</b><small>Changes "' + esc(tf ? tf.name : name) + '" for every coach.</small>' +
+            (tf ? '<small class="aby">Created by <b>' + esc(tf.by) + '</b></small>' : "") + '</span></label></div></div>',
       read: function () {
         if (!$("aSave").checked) return { master: false, copy: "" };
         var m = document.querySelector('input[name="tplmode"]:checked').value === "master";
@@ -2238,6 +2246,7 @@ Yoga for Back Pain -2|P|27|min`;
         '<div class="pvrow"><b>Exercise Name</b><div>' + name + '</div></div><div class="pvrow"><b>Start Date</b><div>' + fmt(start) + '</div></div><div class="pvrow"><b>End Date</b><div>' + fmt(iso(end)) + '</div></div>' +
         '<div class="pvrow"><b>Small moves</b><div>' + neatSummary() + '</div></div><div class="pvrow"><b>Steps goal</b><div>' + stepsSummary() + '</div></div>' +
         '<div class="pvrow"><b>Master template</b><div>' + (S.tpl.master ? "Will be updated with these changes" : "Not changed") + '</div></div>' +
+        (S.tpl.master && tplFrom() ? '<div class="pvrow"><b>Template created by</b><div>' + esc(tplFrom().by) + '</div></div>' : "") +
         '<div class="pvrow"><b>Copy template</b><div>' + (S.tpl.copy ? 'Saved as "' + esc(S.tpl.copy) + '"' : "Not saved") + '</div></div></div>' +
         '<div class="phone"><h1>' + name + '</h1><p class="valid">Valid from ' + fmt(start) + ' to ' + fmt(iso(end)) + '</p>' +
           '<div class="seg"><button class="on">Routine1</button><button disabled>Routine2</button><button disabled>Routine3</button></div>' + list +
@@ -2245,7 +2254,7 @@ Yoga for Back Pain -2|P|27|min`;
     $("app").classList.add("preview"); $("main").scrollTop = 0;
   }
 
-  $("sdate").value = iso(today); $("sshow").value = mdy(iso(today));
+  $("sdate").value = iso(today); $("sshow").value = mdy(iso(today)); S.from = $("pname").value.trim();
   drawAssess(); draw();
   /* the way in (coach-exercise/start.js): a template fills the plan, or a blank plan starts one empty week.
      ponytail: every template loads the 120 days Plan's routines until templates come from the API */
@@ -2253,11 +2262,11 @@ Yoga for Back Pain -2|P|27|min`;
   window.CET = {
     use: function (name) {
       PLAN.splice.apply(PLAN, [0, PLAN.length].concat(JSON.parse(JSON.stringify(SAMPLE))));
-      $("pname").value = name; $("preq").classList.remove("on"); S.w = 0; S.d = 0; S.weeArry = []; S.reached = 1; draw(); goStep(1);
+      $("pname").value = name; S.from = name; $("preq").classList.remove("on"); S.w = 0; S.d = 0; S.weeArry = []; S.reached = 1; draw(); goStep(1);
     },
     blank: function () {
       PLAN.splice(0, PLAN.length, { week_no: 1, days: [1,2,3,4,5,6,7].map(function (n) { return { day_no: n, rest_day: "N", routines: [{ routine_no: 1, exercises: [blank()] }] }; }) });
-      $("pname").value = ""; S.w = 0; S.d = 0; S.weeArry = []; S.reached = 1; draw(); goStep(1);
+      $("pname").value = ""; S.from = ""; S.w = 0; S.d = 0; S.weeArry = []; S.reached = 1; draw(); goStep(1);
     }
   };
   var STQ = +new URLSearchParams(location.search).get("step");   /* ?step=2 or 3 opens on Small moves or Steps goal */
@@ -2292,5 +2301,8 @@ Yoga for Back Pain -2|P|27|min`;
   }
 })();
 </script>
+<!-- on a phone: layout only, linked last so it wins -->
+<link rel="stylesheet" href="/v7/coach-exercise/mobile.css">
+<script src="/v7/coach-exercise/mobile.js"></script>
 </body>
 </html>

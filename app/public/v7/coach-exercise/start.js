@@ -36,6 +36,7 @@
     ["Others plan", 4, 5, 5, "2023-05-09"]
   ].map(function (t, i) { return { name: t[0], weeks: t[1], days: t[2], ex: t[3], at: t[4], by: BY[i % BY.length] }; });
 
+  window.CS_TPL = TPL;   /* the builder reads who made a template, for Update master template and the preview */
   var PLANS = [
     { name: "Shaheer's exercise plan", status: "active", from: "2026-11-05", to: "2026-12-02" },
     { name: "Desk worker mobility", status: "draft", from: "2026-12-03", to: "2026-12-30" },
