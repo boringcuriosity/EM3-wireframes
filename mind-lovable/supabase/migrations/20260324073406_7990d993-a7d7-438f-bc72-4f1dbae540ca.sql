@@ -1,0 +1,1 @@
+ALTER TABLE public.template_assignments ADD COLUMN IF NOT EXISTS assigned_date date NOT NULL DEFAULT CURRENT_DATE;

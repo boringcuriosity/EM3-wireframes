@@ -1,0 +1,1 @@
+ALTER TABLE public.template_assignments ADD COLUMN IF NOT EXISTS habit_names text[] NOT NULL DEFAULT '{}'::text[];

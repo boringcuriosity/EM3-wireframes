@@ -52,6 +52,7 @@
   SORTED.forEach(function (w) { HAS[w[0][0].toUpperCase()] = 1; });
   var TICO = {
     clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    heart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-9.2A4 4 0 0 1 12 8a4 4 0 0 1 7 2.8C19 15.6 12 20 12 20z"/></svg>',
     list: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="2.6"/></svg>'
   };
   /* Recent: the workouts logged before, newest first, each with how long it was last time. Kept on the phone.
@@ -65,6 +66,25 @@
   }
   function remember(n, min) {
     try { var a = (JSON.parse(localStorage.getItem(RKEY)) || []).filter(function (x) { return x.n !== n; }); a.unshift({ n: n, min: min, t: Date.now() }); localStorage.setItem(RKEY, JSON.stringify(a.slice(0, 8))); } catch (e) {}
+  }
+  /* Favourites, as Eat's food log: a heart on every row keeps a workout here. Kept on the phone.
+     ?fav=Walking|Yoga sets it for the case document, ?fav=none empties it */
+  var FKEY = "mvFavWorkouts", FQ = new URLSearchParams(location.search).get("fav");
+  var FAV = FQ === "none" ? [] : FQ ? FQ.split("|") : (function () { try { return JSON.parse(localStorage.getItem(FKEY)) || []; } catch (e) { return []; } })();
+  function setFav(n, on) {
+    FAV = FAV.filter(function (x) { return x !== n; }); if (on) FAV.push(n);
+    try { localStorage.setItem(FKEY, JSON.stringify(FAV)); } catch (e) {}
+  }
+  var HEART = function (on) { return '<svg viewBox="0 0 24 24" width="19" height="19" fill="' + (on ? "currentColor" : "none") + '" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 0 0-7.1 7.1l8.8 8.8 8.8-8.8a5 5 0 0 0 0-7.1z"/></svg>'; };
+  var heartBtn = function (n) { var on = FAV.indexOf(n) > -1; return '<button class="mvl-heart' + (on ? " on" : "") + '" data-fav="' + esc(n) + '" aria-pressed="' + on + '" aria-label="' + (on ? "Remove " + esc(n) + " from favourites" : "Add " + esc(n) + " to favourites") + '">' + HEART(on) + '</button>'; };
+  /* Eat's like: the glyph overshoots, a ring throws outward with dots behind it, gone inside half a second */
+  function burst(btn) {
+    if (!btn || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    btn.classList.remove("pop"); void btn.offsetWidth; btn.classList.add("pop");
+    var b = document.createElement("span"), h = '<span class="ring"></span>';
+    b.className = "burst"; b.setAttribute("aria-hidden", "true");
+    for (var i = 0; i < 7; i++) { var a = i / 7 * Math.PI * 2 - Math.PI / 2, r = 20 + i % 2 * 5; h += '<i style="--tx:' + (Math.cos(a) * r).toFixed(1) + "px;--ty:" + (Math.sin(a) * r).toFixed(1) + "px;background:" + (i % 2 ? "#FDA29B" : "#F04438") + '"></i>'; }
+    b.innerHTML = h; btn.appendChild(b); setTimeout(function () { b.remove(); }, 620);
   }
   var byName = function (n) { return W.filter(function (w) { return w[0] === n; })[0]; };
 
@@ -84,8 +104,9 @@
       '<button class="mvl-clr" id="mvlClr" type="button" aria-label="Clear search"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1.5 1.5l7 7M8.5 1.5l-7 7"/></svg></button></label>' +
       /* two tabs, as Eat's food log: what you log often, and every workout A to Z (the earlier single list: ?logv=1) */
       (V1 ? "" : '<div class="mvl-tabs" id="mvlTabs" role="tablist"><button class="mvl-tab" role="tab" data-t="recent">' + TICO.clock + '<span>Recent</span></button>' +
+        '<button class="mvl-tab" role="tab" data-t="fav">' + TICO.heart + '<span>Favourites</span></button>' +
         '<button class="mvl-tab" role="tab" data-t="all">' + TICO.list + '<span>All workouts</span></button><span class="mvl-ind" aria-hidden="true"></span></div>' +
-        '<div class="mvl-panes"><div class="mvl-pane" id="mvlRecent" data-t="recent"></div><div class="mvl-pane" id="mvlAll" data-t="all"></div></div>') +
+        '<div class="mvl-panes"><div class="mvl-pane" id="mvlRecent" data-t="recent"></div><div class="mvl-pane" id="mvlFav" data-t="fav"></div><div class="mvl-pane" id="mvlAll" data-t="all"></div></div>') +
       '<div class="mvl-lab" id="mvlLab">All Workouts</div><div class="mvl-list" id="mvlList"></div></div>' +
     (V1 ? "" : '<div class="mvl-az" id="mvlAz" aria-label="Jump to a letter">' + AZ.map(function (l) { return '<span data-l="' + l + '"' + (HAS[l] ? "" : ' class="off"') + '>' + l + '</span>'; }).join("") + '</div>' +
       '<div class="mvl-bub" id="mvlBub" aria-hidden="true"></div>');
@@ -96,9 +117,9 @@
   function wrow(w, i, q, sub) {
     var n = esc(w[0]), k = q ? w[0].toLowerCase().indexOf(q) : -1;
     if (k > -1) n = esc(w[0].slice(0, k)) + "<mark>" + esc(w[0].slice(k, k + q.length)) + "</mark>" + esc(w[0].slice(k + q.length));
-    return '<button class="mvl-row" style="--i:' + Math.min(i, 12) + ";--src:url(" + ICN(w[1]) + ')" data-w="' + esc(w[0]) + '"' + (sub ? ' data-min="' + sub.min + '"' : "") + '>' +
+    return '<div class="mvl-fr"><button class="mvl-row" style="--i:' + Math.min(i, 12) + ";--src:url(" + ICN(w[1]) + ')" data-w="' + esc(w[0]) + '"' + (sub ? ' data-min="' + sub.min + '"' : "") + '>' +
       '<span class="ic"><i></i></span><span class="nm">' + n + "" + '</span>' +
-      '<img src="' + A + 'chevron.svg" alt=""></button>';
+      '<span class="hsp"></span><img src="' + A + 'chevron.svg" alt=""></button>' + heartBtn(w[0]) + '</div>';
   }
   var TAB = "all";
   function draw(q) {
@@ -120,11 +141,19 @@
       : '<div class="mvl-blank"><span class="art"><img src="/move/movement.png" alt=""></span>' +
         '<p>Start with whatever you did last. No judgement, ever.</p><button class="mvl-go" data-go="find">' +
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Find your workout</button></div>';
+    el.querySelector("#mvlFav").classList.remove("still"); favPane();
     el.querySelector("#mvlAll").innerHTML = AZ.filter(function (l) { return HAS[l]; }).map(function (l) {
       return '<section class="mvl-sec" data-l="' + l + '"><h4 class="mvl-l">' + l + '</h4>' +
         SORTED.filter(function (w) { return w[0][0].toUpperCase() === l; }).map(function (w) { return wrow(w, i++, ""); }).join("") + '</section>';
     }).join("");
     tab(TAB, true);
+  }
+  /* Favourites in the order they were hearted. Empty: the heart on a row, as it really sits, is the instruction */
+  function favPane() {
+    var F = FAV.map(byName).filter(Boolean);
+    el.querySelector("#mvlFav").innerHTML = F.length ? F.map(function (w, j) { return wrow(w, j, ""); }).join("")
+      : '<div class="mvl-blank"><span class="favdemo" aria-hidden="true"><span class="ic"><i style="--src:url(' + ICN((byName("Walking") || W[0])[1]) + ')"></i></span><b>Walking</b><span class="h">' + HEART(true) + '</span></span>' +
+        '<p>Tap the heart on a workout, and it is here whenever you want it.</p></div>';
   }
   /* the indicator travels between the tabs; the panes slide toward the side their tab sits on */
   function tab(t, still) {
@@ -164,6 +193,14 @@
   sc.addEventListener("click", function (e) {
     if (e.target.closest('[data-go="find"]')) return Qi.focus();   /* as Eat's Find your food: straight to the search */
     var t = e.target.closest(".mvl-tab, [data-go]"); if (t) return tab(t.dataset.t || t.dataset.go);
+    var h = e.target.closest(".mvl-heart"); if (h) {
+      var n = h.dataset.fav, on = FAV.indexOf(n) === -1; setFav(n, on);
+      /* every copy of that row (Recent, All, search) changes in place; only Favourites is redrawn, without its rows rising again */
+      [].forEach.call(el.querySelectorAll(".mvl-heart"), function (x) { if (x.dataset.fav === n) x.outerHTML = heartBtn(n); });
+      var fp = el.querySelector("#mvlFav"); if (fp) { fp.classList.add("still"); favPane(); }
+      if (on) [].forEach.call(el.querySelectorAll(".mvl-heart"), function (x) { if (x.dataset.fav === n && x.offsetParent) burst(x); });
+      return;
+    }
     var b = e.target.closest(".mvl-row"); if (!b) return;
     detail(byName(b.dataset.w), +b.dataset.min || 0);   /* a recent one opens at the length it was last time */
   });

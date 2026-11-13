@@ -221,3 +221,37 @@ html.mvl-lock, html.mvl-lock body { overflow: hidden; }
   font: 700 15px/1 Roboto, sans-serif; box-shadow: 0 7px 0 var(--brand-700); transition: transform .15s cubic-bezier(.4,0,.2,1), box-shadow .15s cubic-bezier(.4,0,.2,1); }
 .mvl.v2 .mvl-go:active { transform: translateY(7px); box-shadow: none; background: var(--brand-600); }
 .mvl.v2 .mvl-go svg { width: 18px; height: 18px; }
+
+/* Favourites, as Eat's food log: a heart on every row. The row is a button, so the heart sits beside it, over a 44 px
+   spacer before the chevron; --hr is how far the chevron sits from the right edge (the A to Z rows leave room for the index) */
+.mvl-fr { position: relative; --hr: 0px; }
+.mvl-sec .mvl-fr { --hr: 20px; }
+.mvl-row .hsp { flex: none; width: 32px; }
+.mvl-heart { position: absolute; top: 50%; right: calc(var(--hr) + 26px); isolation: isolate; width: 44px; height: 44px; margin-top: -22px; border: 0; background: none; border-radius: 9999px;
+  display: grid; place-items: center; color: #98A2B3; cursor: pointer; }
+.mvl-heart:focus-visible { outline: 2px solid var(--brand-600); outline-offset: -4px; }
+/* a like, not an error: a step warmer and lighter than the error red, as on Eat */
+.mvl-heart.on { color: #F04438; }
+.mvl-heart svg { position: relative; z-index: 1; }
+.mvl-heart.pop svg { animation: mvlHeart .45s cubic-bezier(.22,1,.36,1) both; }
+@keyframes mvlHeart { 0% { transform: scale(.25); } 45% { transform: scale(1.3); } 70% { transform: scale(.92); } 100% { transform: scale(1); } }
+.mvl-heart .burst { position: absolute; left: 50%; top: 50%; width: 0; height: 0; pointer-events: none; }
+.mvl-heart .burst .ring { position: absolute; left: -11px; top: -11px; width: 12px; height: 12px; border-radius: 9999px; border: 5px solid #F97066; animation: mvlRing .48s cubic-bezier(.2,.7,.3,1) both; }
+@keyframes mvlRing { 0% { transform: scale(.2); opacity: 1; } 45% { border-color: #FDA29B; opacity: 1; } 75% { border-color: #FEE4E2; opacity: .85; } 100% { transform: scale(2.1); border-width: 1px; opacity: 0; } }
+.mvl-heart .burst i { position: absolute; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 9999px; animation: mvlDot .44s cubic-bezier(.2,.7,.3,1) .1s both; }
+@keyframes mvlDot { 0% { transform: translate(0,0) scale(.3); opacity: 1; } 55% { opacity: 1; } 100% { transform: translate(var(--tx), var(--ty)) scale(.3); opacity: 0; } }
+/* a heart taken off in Favourites redraws the list; the rows left stay put rather than rising again */
+.mvl.on .mvl-pane.still .mvl-row { animation: none; }
+/* Favourites sits between Recent and All workouts, so it only fades */
+.mvl-pane[data-t="fav"]:not(.on) { transform: none; }
+/* Favourites, empty: the real control on a row, hearted, is the instruction */
+.mvl-blank .favdemo { display: flex; align-items: center; gap: 12px; width: 248px; padding: 12px 8px 12px 12px; border-radius: 14px; background: #fff; border: 1px solid var(--g-200);
+  box-shadow: 0 4px 12px rgba(16,24,40,.06); text-align: left; }
+.mvl-blank .favdemo .ic { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: var(--brand-50); }
+.mvl-blank .favdemo .ic i { width: 18px; height: 18px; background: var(--brand-600); -webkit-mask: var(--src) center / contain no-repeat; mask: var(--src) center / contain no-repeat; }
+.mvl-blank .favdemo b { flex: 1; font: 400 16px/1.2 Roboto, sans-serif; color: var(--g-900); }
+.mvl-blank .favdemo .h { display: grid; place-items: center; width: 32px; color: #F04438; }
+.mvl.v2 .mvl-blank:has(.favdemo) p { margin-top: 20px; }
+@media (prefers-reduced-motion: reduce) { .mvl-heart.pop svg { animation: none; } }
+/* three tabs now: each label keeps to one line */
+.mvl-tab { white-space: nowrap; gap: 5px; }

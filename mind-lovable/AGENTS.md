@@ -1,0 +1,2 @@
+# Architecture Rules
+- Register each coach-assignable tool in the shared template catalog and connect assignment, patient rendering, persistence, and saved-history display so the workflow stays complete.

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Breathing Music</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap">
+<style>
+  :root { --ink: #101828; --sub: #475467; --mute: #667085; --line: #EAECF0; --gold: #A68A2D; --goldbg: #FFF8E0; --goldln: #F3D161; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--ink); font: 400 15px/22px Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 32px 24px 96px; }
+  .eyebrow { font: 600 12px/16px Roboto; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gold); }
+  h1 { font: 600 36px/44px "Playfair Display", serif; margin: 8px 0; }
+  .lede { max-width: 760px; color: var(--sub); margin: 0 0 8px; }
+  .nav { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: 0; background: rgba(255,255,255,.92); backdrop-filter: blur(8px); padding: 12px 0; border-bottom: 1px solid var(--line); z-index: 3; }
+  .nav a { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); font: 500 13px Roboto; color: var(--sub); text-decoration: none; display: inline-flex; align-items: center; }
+  section { margin-top: 44px; }
+  h2 { font: 600 24px/32px Roboto; margin: 0; }
+  .ask { color: var(--mute); margin: 4px 0 16px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+  .t { border: 1px solid var(--line); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .t.pick { border-color: var(--goldln); background: linear-gradient(180deg, var(--goldbg), #fff 60%); }
+  .t h3 { font: 600 16px/22px Roboto; margin: 0; display: flex; gap: 8px; align-items: baseline; justify-content: space-between; }
+  .t h3 small { font: 500 12px Roboto; color: var(--mute); white-space: nowrap; }
+  .mood { font-size: 13px; color: var(--gold); font-weight: 500; }
+  .pk { display: inline-block; margin-right: 6px; padding: 1px 8px; border-radius: 999px; background: #5C4E1F; color: #FFF8E0; font: 600 11px/16px Roboto; }
+  .why { font-size: 14px; color: var(--sub); margin: 0; }
+  audio { width: 100%; height: 40px; }
+  .meta { font-size: 12px; line-height: 18px; color: var(--mute); }
+  .meta a { color: var(--sub); }
+  .lic { display: inline-block; padding: 2px 8px; border-radius: 999px; background: #ECFDF3; color: #067647; font: 600 11px/16px Roboto; }
+  .lic.warn { background: #FFFAEB; color: #B54708; }
+  .empty { color: var(--mute); font-style: italic; }
+  @media (max-width: 600px) { .wrap { padding: 20px 16px 64px; } h1 { font-size: 28px; line-height: 36px; } .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Mind · Breathing · Music</div>
+  <h1>What each breath sounds like</h1>
+  <p class="lede">Free to use music and sound for every breathing exercise, each checked for its licence. Play them side by side and pick one per exercise. Headphones help.</p>
+  <div class="nav">
+    <a href="#coherent">Coherent</a><a href="#box">Box</a><a href="#sleep">4-7-8</a><a href="#belly">Belly</a><a href="#hum">Bhramari</a><a href="#exhale">Extended Exhale</a><a href="#pursed">Pursed Lip</a><a href="#cue">Cue sounds</a>
+    <a href="/v7/mind/breath-lab/index.html">Visuals</a>
+  </div>
+  <div id="secs"></div>
+</div>
+<script>
+(function () {
+  var S = [
+    ["coherent", "Coherent Breathing (5-5)", "The coach asked for: generic. Morning, 5 to 10 min."],
+    ["box", "Box Breathing (4-4-4-4)", "The coach asked for: generic. Morning, 5 min."],
+    ["sleep", "4-7-8 Breathing", "The coach asked for: white noise. Night, 1 to 2 min."],
+    ["belly", "Belly Breathing", "The coach asked for: generic, to suit the visual. Morning or noon, 5 min."],
+    ["hum", "Humming Bee Breath (Bhramari)", "The coach asked for: customised. A drone to hum along to. Evening, 5 to 10 min."],
+    ["exhale", "Extended Exhale (2:1)", "The coach asked for: generic, to suit the visual. Noon, night or any time, 2 to 5 min."],
+    ["pursed", "Pursed Lip Breathing", "The coach asked for: generic, to suit the visual. Noon or any time, 2 to 5 min."],
+    ["cue", "Cue sounds", "Short sounds for the moment the breath changes, so eyes can stay closed."]
+  ];
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var mm = function (s) { s = Math.round(+s || 0); return s ? Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2) : ""; };
+  var get = function (u) { return fetch(u + "?t=" + Date.now()).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }); };
+  Promise.all([get("/v7/mind/breath-lab/music-a.json"), get("/v7/mind/breath-lab/music-b.json")]).then(function (r) {
+    var all = r[0].concat(r[1]), host = document.getElementById("secs");
+    S.forEach(function (s) {
+      var list = all.filter(function (x) { return x.tech === s[0]; }), sec = document.createElement("section");
+      sec.id = s[0];
+      sec.innerHTML = "<h2>" + s[1] + "</h2><p class=\"ask\">" + s[2] + "</p><div class=\"grid\">" + (list.length ? list.map(function (x) {
+        var free = /cc0|public domain|made by us|pixabay|mixkit/i.test(x.license || "") && !x.attribution;
+        return '<div class="t' + (x.pick ? " pick" : "") + '"><h3>' + esc(x.title) + "<small>" + mm(x.seconds) + (x.loops ? " · loops" : "") + "</small></h3>" +
+          '<div class="mood">' + (x.pick ? '<span class="pk">Our pick</span> ' : "") + esc(x.mood) + "</div>" + '<audio controls preload="none" src="' + esc(x.file) + '"' + (x.loops ? " loop" : "") + "></audio>" +
+          '<p class="why">' + esc(x.why) + "</p>" +
+          '<div class="meta"><span class="lic' + (free ? "" : " warn") + '">' + esc(x.license) + "</span> " + esc(x.artist) + " · " +
+          (x.url ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.source) + "</a>" : esc(x.source)) +
+          (x.licenseUrl ? ' · <a href="' + esc(x.licenseUrl) + '" target="_blank" rel="noopener">licence</a>' : "") +
+          (x.attribution ? "<br>Credit needed: " + esc(x.attribution) : "") + "</div></div>";
+      }).join("") : '<div class="empty">Tracks on their way.</div>') + "</div>";
+      host.appendChild(sec);
+    });
+    /* one track at a time */
+    document.addEventListener("play", function (e) { [].forEach.call(document.querySelectorAll("audio"), function (a) { if (a !== e.target) a.pause(); }); }, true);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,301 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* GoodFlip-inspired palette: soft lavender-blue gradients */
+    --background: 220 30% 97%;
+    --foreground: 220 25% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 25% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 25% 15%;
+
+    /* Primary: GoodFlip teal */
+    --primary: 170 45% 42%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 25% 94%;
+    --secondary-foreground: 220 20% 28%;
+
+    --muted: 220 20% 95%;
+    --muted-foreground: 220 12% 48%;
+
+    /* Accent: warm gold */
+    --accent: 45 80% 58%;
+    --accent-foreground: 220 25% 15%;
+
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 170 45% 42%;
+
+    --radius: 0.75rem;
+
+    /* Gradient tokens */
+    --gradient-start: 230 70% 94%;
+    --gradient-mid: 200 60% 96%;
+    --gradient-end: 170 40% 95%;
+
+    /* Brand colors */
+    --brand-blue: 225 65% 63%;
+    --brand-gold: 45 75% 60%;
+    --brand-teal: 170 45% 50%;
+
+    /* Sage tokens (keep for section backgrounds) */
+    --sage-50: 170 20% 96%;
+    --sage-100: 170 18% 92%;
+    --sage-200: 170 16% 84%;
+    --sage-300: 170 14% 72%;
+    --sage-400: 170 18% 55%;
+    --sage-500: 170 22% 42%;
+    --sage-600: 170 25% 35%;
+    --sage-700: 170 28% 28%;
+
+    --cream-50: 42 45% 98%;
+    --cream-100: 42 40% 96%;
+    --cream-200: 42 35% 92%;
+
+    --coral-400: 15 60% 68%;
+    --coral-500: 15 65% 60%;
+
+    /* Focus area cards */
+    --focus-card: 220 20% 98%;
+    --focus-card-hover: 220 25% 95%;
+    --focus-card-selected: 170 25% 92%;
+
+    /* Journal section backgrounds */
+    --section-worry: 35 50% 96%;
+    --section-gratitude: 170 30% 96%;
+    --section-goal: 200 35% 96%;
+    --section-motivation: 15 45% 96%;
+
+    /* Sidebar */
+    --sidebar-background: 220 25% 98%;
+    --sidebar-foreground: 220 20% 28%;
+    --sidebar-primary: 170 45% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 20% 95%;
+    --sidebar-accent-foreground: 220 20% 28%;
+    --sidebar-border: 220 15% 90%;
+    --sidebar-ring: 170 45% 42%;
+  }
+
+  .dark {
+    --background: 220 25% 8%;
+    --foreground: 220 20% 94%;
+
+    --card: 220 22% 12%;
+    --card-foreground: 220 20% 94%;
+
+    --popover: 220 22% 12%;
+    --popover-foreground: 220 20% 94%;
+
+    --primary: 170 35% 55%;
+    --primary-foreground: 220 25% 8%;
+
+    --secondary: 220 18% 18%;
+    --secondary-foreground: 220 20% 94%;
+
+    --muted: 220 15% 18%;
+    --muted-foreground: 220 12% 60%;
+
+    --accent: 45 60% 50%;
+    --accent-foreground: 220 25% 8%;
+
+    --destructive: 0 55% 45%;
+    --destructive-foreground: 220 20% 94%;
+
+    --border: 220 15% 22%;
+    --input: 220 15% 22%;
+    --ring: 170 35% 55%;
+
+    --gradient-start: 230 30% 14%;
+    --gradient-mid: 200 25% 12%;
+    --gradient-end: 170 20% 12%;
+
+    --brand-blue: 225 55% 55%;
+    --brand-gold: 45 65% 50%;
+    --brand-teal: 170 35% 45%;
+
+    --sage-50: 220 18% 16%;
+    --sage-100: 220 16% 20%;
+    --sage-200: 220 14% 24%;
+
+    --cream-50: 220 12% 14%;
+    --cream-100: 220 10% 18%;
+
+    --focus-card: 220 18% 14%;
+    --focus-card-hover: 220 20% 18%;
+    --focus-card-selected: 170 18% 18%;
+
+    --section-worry: 35 20% 12%;
+    --section-gratitude: 170 18% 12%;
+    --section-goal: 200 18% 12%;
+    --section-motivation: 15 20% 12%;
+
+    --sidebar-background: 220 22% 10%;
+    --sidebar-foreground: 220 20% 94%;
+    --sidebar-primary: 170 35% 55%;
+    --sidebar-primary-foreground: 220 25% 8%;
+    --sidebar-accent: 220 15% 18%;
+    --sidebar-accent-foreground: 220 20% 94%;
+    --sidebar-border: 220 15% 22%;
+    --sidebar-ring: 170 35% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Libre Baskerville', Georgia, serif;
+  }
+}
+
+@layer components {
+  /* Page gradient background */
+  .goodflip-bg {
+    background: linear-gradient(
+      160deg,
+      hsl(var(--gradient-start)) 0%,
+      hsl(var(--gradient-mid)) 40%,
+      hsl(var(--gradient-end)) 100%
+    );
+    position: relative;
+  }
+
+  .goodflip-bg::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(ellipse 600px 400px at 10% 20%, hsl(var(--brand-blue) / 0.08), transparent),
+      radial-gradient(ellipse 500px 500px at 80% 60%, hsl(var(--brand-teal) / 0.06), transparent),
+      radial-gradient(ellipse 400px 300px at 50% 90%, hsl(var(--brand-gold) / 0.05), transparent);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .goodflip-bg > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .journal-section {
+    @apply rounded-2xl p-6 transition-all duration-300;
+  }
+
+  .focus-card {
+    @apply rounded-xl border border-border/50 p-4 cursor-pointer transition-all duration-200;
+    background: hsl(var(--focus-card));
+  }
+
+  .focus-card:hover {
+    background: hsl(var(--focus-card-hover));
+    @apply shadow-md border-primary/20;
+  }
+
+  .focus-card.selected {
+    background: hsl(var(--focus-card-selected));
+    @apply border-primary shadow-lg;
+  }
+
+  .calendar-day {
+    @apply rounded-lg transition-all duration-150;
+  }
+
+  .calendar-day.has-entry {
+    @apply bg-primary/15 font-medium;
+  }
+
+  .calendar-day.today {
+    @apply ring-2 ring-primary/40;
+  }
+
+  /* Feature cards */
+  .feature-card {
+    @apply rounded-2xl p-5 border border-border/40 cursor-pointer transition-all duration-300 ease-out;
+    background: hsl(var(--card) / 0.85);
+    backdrop-filter: blur(8px);
+  }
+
+  .feature-card:hover {
+    @apply shadow-lg border-primary/30 -translate-y-1;
+  }
+
+  /* Staggered fade-in animations */
+  .stagger-1 { animation: fadeSlideIn 0.5s ease-out 0.1s both; }
+  .stagger-2 { animation: fadeSlideIn 0.5s ease-out 0.2s both; }
+  .stagger-3 { animation: fadeSlideIn 0.5s ease-out 0.3s both; }
+  .stagger-4 { animation: fadeSlideIn 0.5s ease-out 0.4s both; }
+  .stagger-5 { animation: fadeSlideIn 0.5s ease-out 0.5s both; }
+
+  @keyframes fadeSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes breathePulse {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(1.05); opacity: 1; }
+  }
+
+  @keyframes floatSlow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .animate-breathe { animation: breathePulse 4s ease-in-out infinite; }
+  .animate-float { animation: floatSlow 6s ease-in-out infinite; }
+  .animate-shimmer {
+    background-size: 200% auto;
+    animation: shimmer 3s linear infinite;
+  }
+}
+
+@layer utilities {
+  .section-worry {
+    background: hsl(var(--section-worry));
+  }
+
+  .section-gratitude {
+    background: hsl(var(--section-gratitude));
+  }
+
+  .section-goal {
+    background: hsl(var(--section-goal));
+  }
+
+  .section-motivation {
+    background: hsl(var(--section-motivation));
+  }
+}
