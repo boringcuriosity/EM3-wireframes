@@ -68,48 +68,6 @@
     }
   });
 
-  /* 2. The breath as a path: a quick climb, then a long gentle slope you can see ahead */
-  LAB.add("exhale", {
-    id: "exhale-path", name: "Breath path",
-    note: "The breath drawn as a hill: a short climb and a long, gentle slope down. The gold pearl rides it, and the slope ahead shows how much out-breath is left.",
-    ref: "Othership and Prana Breath's breathing graph, ridden by the Rhythm pearl",
-    build: function (stage) {
-      var n = ++uid, s = L.svg("svg", { class: "be-svg", viewBox: "0 0 320 360" }), d = L.svg("defs");
-      var lg = L.svg("linearGradient", { id: "be-pf" + n, x1: 0, y1: 0, x2: 0, y2: 1 });
-      lg.appendChild(L.svg("stop", { offset: 0, "stop-color": C.gold300, "stop-opacity": .7 }));
-      lg.appendChild(L.svg("stop", { offset: 1, "stop-color": C.gold100, "stop-opacity": 0 }));
-      var mg = L.svg("linearGradient", { id: "be-pm" + n, x1: 0, y1: 0, x2: 1, y2: 0 });
-      [[0, 0], [.12, 1], [.86, 1], [1, 0]].forEach(function (q) { mg.appendChild(L.svg("stop", { offset: q[0], "stop-color": "#fff", "stop-opacity": q[1] })); });
-      var m = L.svg("mask", { id: "be-mk" + n, maskUnits: "userSpaceOnUse", x: 0, y: 0, width: 320, height: 360 });
-      m.appendChild(L.svg("rect", { x: 0, y: 0, width: 320, height: 360, fill: "url(#be-pm" + n + ")" }));
-      d.appendChild(lg); d.appendChild(mg); d.appendChild(m); s.appendChild(d);
-      var g = s.appendChild(L.svg("g", { mask: "url(#be-mk" + n + ")" }));
-      var area = g.appendChild(L.svg("path", { fill: "url(#be-pf" + n + ")" }));
-      var base = g.appendChild(L.svg("line", { x1: 0, x2: 320, y1: 268, y2: 268, stroke: C.gold300, "stroke-width": 1, opacity: .6 }));
-      var future = g.appendChild(L.svg("path", { fill: "none", stroke: C.gold400, "stroke-width": 3, "stroke-linecap": "round", "stroke-dasharray": "0.1 8" }));
-      var past = g.appendChild(L.svg("path", { fill: "none", stroke: C.gold600, "stroke-width": 3, "stroke-linecap": "round", "stroke-linejoin": "round" }));
-      var now = s.appendChild(L.svg("line", { x1: 96, x2: 96, y1: 92, y2: 268, stroke: C.gold300, "stroke-width": 1.5, "stroke-dasharray": "2 5", "stroke-linecap": "round" }));
-      stage.appendChild(s);
-      var r = document.createElement("div"); r.className = "be-rider"; r.innerHTML = "<i></i>" + LAB.pearl(44); stage.appendChild(r);
-      return { area: area, past: past, future: future, r: r, base: base, now: now };
-    },
-    frame: function (s, p) {
-      var T = p.reduced ? p.time - p.sec + p.dur - .001 : p.time;
-      var X = 96, px = 19, top = 112, bot = 268;
-      function eAt(t) { var c = ((t % 12) + 12) % 12; return c < 4 ? ease(c / 4) : 1 - ease((c - 4) / 8); }
-      function y(t) { return bot - (bot - top) * eAt(t); }
-      var t0 = T - X / px, t1 = T + (320 - X) / px, st = .1, a = [], b = [], t;
-      for (t = t0; t < T; t += st) a.push((X + (t - T) * px).toFixed(1) + " " + y(t).toFixed(1));
-      a.push(X + " " + y(T).toFixed(1));
-      for (t = T; t <= t1 + st; t += st) b.push((X + (t - T) * px).toFixed(1) + " " + y(t).toFixed(1));
-      s.past.setAttribute("d", "M" + a.join("L"));
-      s.future.setAttribute("d", "M" + b.join("L"));
-      s.area.setAttribute("d", "M" + a.concat(b).join("L") + "L330 " + bot + "L-10 " + bot + "Z");
-      var e = eAt(T), sc = .86 + .22 * e;
-      s.r.style.transform = "translate(" + X + "px," + y(T).toFixed(2) + "px) scale(" + sc.toFixed(3) + ")";
-    }
-  });
-
   /* 3. A bloom that opens fast and closes slow, over a 1:2 timeline */
   LAB.add("exhale", {
     id: "exhale-bloom", name: "Bloom and timeline",

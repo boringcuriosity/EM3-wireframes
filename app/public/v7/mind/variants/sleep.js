@@ -11,6 +11,8 @@
    ?vsleep=i  A without its two tiles. Also the split night: ?sstate=split (entered) or split-synced (two sessions from Health),
               and "+ Add another sleep" in the sheet. ?skin=white (default), soft, scene, deep changes only the look.
    ?sstate=   synced (default) | short | nap | none | manual | edited | noperm
+   ?sleep=    doc only: every session as it came in (SLEEPS below), judged by mind/sleep-rule.js. ?ssrc=manual: typed in;
+              ?naps=count: nap time adds to hours (the open decision)
    ?spos=below puts the card under the plan, where Move keeps steps. ?os=android names Health Connect.
    ?sheet=sleep opens the sheet, ?sheet=sleepinfo the points, ?sheet=sleepperm the connect sheet.
    Hours count from falling asleep to waking, as rhythm.js does. */
@@ -45,8 +47,45 @@
     "manual-noperm": { perm: false, src: "manual", night: { bed: PLAN.bed + 30, wake: PLAN.wake + 30 }, health: null }
   }[K] || null;
   if (!ST) { K = "synced"; ST = { perm: true, src: "health", night: SY, health: SY }; }
-  function put(n) { S.bed = n ? n.bed : null; S.wake = n ? n.wake : null; S.segs = n && n.segs || null; }   /* rhythm.js counts a split night's time asleep only */
-  put(ST.night);
+  /* ?sleep= (doc only, v7/mind-rhythm.html "Sleep window: how it is judged"): every session as it came in, naps and
+     repeats included, so the card and the score show what mind/sleep-rule.js makes of them. ?ssrc=manual: typed in.
+     Minutes from 00:00 yesterday: 1350 is 10:30 PM, 1800 is 6:00 AM, 2280 is 2:00 PM today */
+  var SLEEPS = {
+    plan: [[1350, 1800]],
+    late15: [[1365, 1800]], late30: [[1380, 1800]], late60: [[1410, 1800]], late120: [[1470, 1800]],
+    early15: [[1350, 1785]], early30: [[1350, 1770]], early60: [[1350, 1740]], early120: [[1350, 1680]],
+    bedearly60: [[1290, 1800]], shift60: [[1410, 1860]], shift120: [[1470, 1920]],
+    nap20: [[1350, 1800], [2280, 2300]], nap90: [[1350, 1800], [2220, 2310]], napeve: [[1140, 1200], [1350, 1800]],
+    napin: [[1350, 1370], [1500, 1800]], naponly: [[2220, 2310]], yday: [[900, 940], [1350, 1800]], tomorrow: [[1350, 1800], [2460, 2580]],
+    split2h: [[1350, 1530], [1650, 1800]], dozeback: [[1350, 1710], [1830, 1890]],
+    short2h: [[1350, 1470]], short3h: [[1350, 1530]], partial: [[1690, 1815]],
+    nightshift: [[1980, 2400]],
+    dup: [[1370, 1810], [1360, 1800]], overlap: [[1370, 1600], [1560, 1810]], crumb: [[1350, 1800], [2100, 2105]]
+  };
+  var SLK = Q.get("sleep");
+  if (SLEEPS[SLK]) {
+    var raw = SLEEPS[SLK].map(function (x) { return { bed: x[0], wake: x[1] }; }), hand = Q.get("ssrc") === "manual";
+    ST = { perm: true, src: hand ? "manual" : "health", night: { bed: raw[0].bed, wake: raw[raw.length - 1].wake, segs: raw }, health: null };
+  }
+  var NAPS = Q.get("naps") === "count";   /* doc only: nap time counts towards hours, the open decision */
+  /* the night and the naps, as the rule sees them: the card always shows the night; every other sleep is in ST.naps */
+  function norm() {
+    var pieces = (ST.night ? (ST.night.segs || [ST.night]) : []);
+    (ST.naps || []).forEach(function (x) { pieces = pieces.concat(x.segs || [x]); });
+    if (!pieces.length) { ST.naps = null; return; }
+    var r = window.MDSLEEP.split(pieces, PLAN), b = r.night;
+    ST.night = b ? { bed: b.bed, wake: b.wake, segs: b.segs.length > 1 ? b.segs.map(function (x) { return { bed: x.bed, wake: x.wake }; }) : null } : null;
+    ST.naps = r.naps.length ? r.naps : null;
+  }
+  function put() {
+    norm(); var n = ST.night;
+    S.bed = n ? n.bed : null; S.wake = n ? n.wake : null; S.segs = n && n.segs || null; S.naps = ST.naps;   /* rhythm.js scores the night; naps sit beside it */
+  }
+  put();
+  if (SLEEPS[SLK]) {   /* Health's own times, for Edit's "Use Apple Health's times"; a short sync gets the gold ribbon, as ?sstate=short */
+    ST.health = ST.src === "health" ? ST.night : null;
+    ST.odd = ST.src === "health" && !!ST.night && (ST.night.segs || [ST.night]).reduce(function (t, x) { return t + x.wake - x.bed; }, 0) < 180;
+  }
 
   /* ---------- words ---------- */
   var clk = MD.nice;
@@ -56,11 +95,10 @@
   /* a split night counts only the time asleep; its timing is the first bedtime and the last wake */
   var len = function (n) { return n.segs ? n.segs.reduce(function (a, x) { return a + x.wake - x.bed; }, 0) : n.wake - n.bed; };
   var awake = function (n) { return n.segs ? n.wake - n.bed - len(n) : 0; };
-  function pts(n) {
-    if (!n) return { h: 0, w: 0 };
-    var s = len(n) / 60, T = P.hours, h = s < T ? Math.max(0, 1 - (T - s) / P.short) : P.exOn && s > T + P.grace ? Math.max(0, 1 - (s - T - P.grace) * P.exPen / 100) : 1;
-    var e = function (d) { return d <= P.tol ? 1 : d >= P.zero ? 0 : 1 - (d - P.tol) / (P.zero - P.tol); };
-    return { h: Math.round(P.w.hours * h), w: Math.round(P.w.window * (e(Math.abs(n.bed - PLAN.bed)) + e(Math.abs(n.wake - PLAN.wake))) / 2) };
+  /* the night's points, from the score itself (rhythm.js, mind/sleep-rule.js), so the sheet and the score never differ */
+  function pts() {
+    var s = window.MDRHYTHM && window.MDRHYTHM.night();
+    return s ? { h: Math.round(P.w.hours * s.hours), w: Math.round(P.w.window * s.window), s: s } : { h: 0, w: 0, s: null };
   }
   function timing(n) {
     var b = n.bed - PLAN.bed, w = n.wake - PLAN.wake;
@@ -148,6 +186,11 @@
     if (J && ST.odd && ST.src === "health") h += ST.oddOk ? "" : oddNote(n);
     else if (ST.odd && ST.src === "health") h += '<div class="sv-note warn">' + I.warn + '<span>Only ' + dur(len(n)) + ' came through from ' + NAME + '. If you slept longer, <button class="sv-lk" data-sv="edit">fix the times</button>.</span></div>';
     if (ST.nap) h += '<div class="sv-note">' + I.moon + '<span>' + NAME + ' also has a ' + gap(ST.nap[1] - ST.nap[0]) + ' nap yesterday at ' + clk(ST.nap[0]) + '. Your hours count the night.</span></div>';
+    /* mind/sleep-rule.js: a night under 3 hours asleep gets no window points; naps never touch the night's points */
+    if (n && len(n) < window.MDSLEEP.R.minNight && !(ST.odd && ST.src === "health")) h += '<div class="sv-note">' + I.info + '<span>Under 3 hours of sleep, so your sleep window gets no points today.</span></div>';
+    (ST.naps || []).forEach(function (x) {
+      h += '<div class="sv-note">' + I.moon + '<span>Also a ' + gap(x.asleep) + ' nap at ' + clk(x.bed) + '. ' + (NAPS ? 'It adds to your hours, not your sleep window.' : 'Naps don’t change your sleep points.') + '</span></div>';
+    });
     return h;
   }
   function empty() {
@@ -534,9 +577,10 @@
     put(ST.night); MD.cause = "sleep"; window.closeSheets(); MD.render(); place(); MD.toast("Last night saved.");
   }
   function info() {
-    var p = pts(ST.night), n = ST.night;
+    var p = pts(), n = ST.night, why = p.s ? window.MDSLEEP.words(p.s, P, PLAN, P.w, { naps: NAPS }) : [];
     window.GFOpenSheet("svInfo", "How last night counts", '<div class="msub">Last night gives up to ' + (P.w.hours + P.w.window) + ' of your 100 Rhythm points, set from your coach’s plan: in bed by ' + clk(PLAN.bed) + ', up at ' + clk(PLAN.wake) + ', ' + dur(PLAN.hours) + ' of sleep.</div>' +
       '<div class="sv-pts"><div>Hours<b>' + (n ? p.h : 0) + ' of ' + P.w.hours + '</b>Full at ' + dur(PLAN.hours) + '</div><div>Timing<b>' + (n ? p.w : 0) + ' of ' + P.w.window + '</b>Full within ' + P.tol + ' min of both times</div></div>' +
+      (why.length ? '<ul class="sv-why">' + why.map(function (t) { return '<li>' + t + '</li>'; }).join("") + '</ul>' : '') +
       '<div class="msub" style="margin-top:16px">Both count on their own, so a full night at a late hour still earns its hours. Going to bed at the same time each night is what helps your sugar and energy most.</div>');
   }
   function perm() {
@@ -720,6 +764,7 @@
     ".sv-sum{display:flex;flex-direction:column;gap:6px}.sv-sum .h{font:400 15px/22px Roboto,sans-serif;color:var(--g-700);font-variant-numeric:tabular-nums}.sv-sum .h b{font-size:17px;color:var(--g-900)}",
     ".sv-msg{display:flex;gap:6px;align-items:flex-start;font:400 13px/18px Roboto,sans-serif}.sv-msg svg{width:16px;height:16px;flex:none;margin-top:1px}.sv-msg.err{color:#D92D20}.sv-msg.wrn{color:#B54708}",
     ".sv-rst{align-self:center;min-height:44px;border:0;background:none;font:600 14px Roboto,sans-serif;color:var(--p-600,#299D6B);cursor:pointer;width:100%}",
+    ".sv-why{margin:16px 0 0;padding:0 0 0 18px;display:flex;flex-direction:column;gap:8px;font:400 14px/20px Roboto,sans-serif;color:var(--g-700)}",   /* why the night scored what it did, from mind/sleep-rule.js */
     ".sv-pts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px}.sv-pts div{border:1px solid var(--g-200);border-radius:12px;padding:10px 12px;font:400 12px/16px Roboto,sans-serif;color:var(--g-500)}.sv-pts b{display:block;font:700 18px/24px Roboto,sans-serif;color:var(--g-900)}",
     ".sv-perm{display:flex;flex-direction:column;align-items:center;gap:16px;padding:4px 0 16px}.sv-perm .pair{display:flex;gap:12px;align-items:center}.sv-perm .pair img{width:48px;height:48px;border-radius:12px;box-shadow:0 0 0 1px var(--g-200)}",
     ".sv-perm .pair .hk{width:48px;height:48px;border-radius:12px;background:#fff url(/v7/icons/health/apple-health-heart.png) center/30px no-repeat;box-shadow:0 0 0 1px var(--g-200)}.sv-perm .pair .hk.hc{background:url(/v7/icons/health/health-connect.png) center/cover no-repeat}",

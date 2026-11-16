@@ -5,7 +5,7 @@
 (function () {
   var Q = new URLSearchParams(location.search), ST = Q.get("state") || "";
   /* /v7/mind opens as the coach portal's review preview, with "What shaped your score?" shown, and the final sleep card (J) and mood check-in (A, five faces, KAIRA replies) and the full-screen breathing player (f, Line look): Parts of the day, a coach's template (?t=, t-motivation by default) */
-  [["layout", "parts"], ["coach", "1"], ["day", "start"], ["vsleep", "j"], ["vmood", "a"], ["vbreath", "f"], ["blook", "1"]].forEach(function (d) { if (!Q.has(d[0])) Q.set(d[0], d[1]); });
+  [["layout", "parts"], ["coach", "1"], ["day", "start"], ["vsleep", "j"], ["vmood", "a"], ["vbreath", "f"], ["blook", "1"], ["vlib", "k2"]].forEach(function (d) { if (!Q.has(d[0])) Q.set(d[0], d[1]); });
   var FREE = /^free/.test(ST), NOPLAN = FREE || /^noplan/.test(ST);
   var NOW = +Q.get("now") || 15;   /* the prototype's clock, in hours; ?now= for the case document */
 
@@ -19,7 +19,7 @@
       { t: "Dinner 2 hours before bed", at: "20:30", d: "An early dinner keeps your sugar steadier through the night." },
       { t: "Phone away, lights low", at: "22:00", d: "Dim light tells your body it is time to sleep." }
     ],
-    br: [{ n: "Cyclic sighing", min: 5, how: "Two breaths in through the nose, one long breath out" }],
+    br: [{ n: "Simple Breathing", min: 5, how: "In 5 s, out 5 s, 6 breaths a minute" }],
     me: [
       { t: "Do one enjoyable activity", d: "Music, a hobby, gardening, anything you look forward to." },
       { t: "Have one meaningful conversation", d: "A call or a chai with someone who matters to you." },
@@ -40,13 +40,16 @@
     window.MDCOACH = true;
     P.hours = cr.hours; P.bed = cr.bedtime; P.wake = cr.wake;
     P.wd = cr.winddown.filter(function (w) { return String(w.label || "").trim(); }).map(function (w, i) { return { t: w.label, at: w.at || "21:" + ("0" + i).slice(-2), d: "" }; });   /* no subtext: the task and its time say it all */
-    P.br = cr.breathing.slice(0, 3).map(function (b) { var x = BR.filter(function (y) { return y[0] === b.name; })[0]; return { n: b.name, min: b.mins, how: x ? x[1] : "", at: b.at }; });
+    P.br = cr.breathing.slice(0, 3).map(function (b) { var x = (MPX.breath && MPX.breath(b.name)) || BR[0]; return { n: x[0], min: b.mins, how: x[1], at: b.at }; });   /* an older or unknown name opens as one of the final seven, never shown as it was saved */
     P.me = cr.metime.filter(function (m) { return String(m.label || "").trim(); }).slice(0, 1).map(function (m) { return { t: m.label, d: "", at: m.at }; });
     P.moodAt = cr.mood.checks[0].at; P.moodAt2 = (cr.mood.checks[1] || {}).at;   /* ponytail: one mood row, the first time; a second row needs a second mood sheet */
     var PH = MPX.helpers;
     ACT = (CP.practices || []).map(function (x) { var p = PH.practice(x.id) || { name: x.id, desc: "" }; return { n: p.name, d: p.desc, times: x.times || 1, habits: x.habits || [], habit: p.kind === "habit" }; });
     COACHN = MPX.COACH.name; NOTE = String(CP.note || "").trim();
   }
+
+  /* ?pbed=09:00&pwake=16:30 (doc only, v7/mind-rhythm.html): a coach's daytime sleep window, for a night-shift sleeper */
+  if (/^\d\d:\d\d$/.test(Q.get("pbed") || "") && /^\d\d:\d\d$/.test(Q.get("pwake") || "")) { P.bed = Q.get("pbed"); P.wake = Q.get("pwake"); }
 
   /* minutes from 00:00 yesterday: 1350 is 10:30 PM yesterday, 1485 is 12:45 AM today, 1800 is 6:00 AM today */
   function mins(s) { var p = s.split(":"); return +p[0] * 60 + +p[1]; }
@@ -352,7 +355,7 @@
      Ready (what to do), Running (the orb leads, a ring shows the session, the breath is counted), Paused (frozen, Resume
      or End), Ended early (keep going, or count what was done), Done (a warm word, then it counts). Closing the sheet
      mid-session pauses it, and the row says where it stopped. ?fast=1 runs ten times faster, for the docs. */
-  var PAT = { "Cyclic sighing": [["Breathe in through your nose", 2.5, .85], ["A short second breath in", 1, 1], ["A long breath out through your mouth", 6, .45]] };
+  var PAT = { "Simple Breathing": [["Breathe in", 5, .85], ["Breathe out", 5, .45]] };
   var SPEED = Q.get("fast") ? 10 : 1, PL = null;
   function clockS(s) { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2); }
   function plBody(state) {
@@ -429,7 +432,15 @@
     if (a.help) { toast("Sahana will call you today."); return; }
     var key = a.mt || (a.mb != null ? "br:" + a.mb : null);
     if (key) {
-      var q = key.split(":"), on = S[q[0]][q[1]] = !S[q[0]][q[1]];
+      var q = key.split(":");
+      /* a ticked wind-down or me-time step: Eat's item menu (r3/eat.html itemMenu) with one row; no confirm, the sheet was the asking */
+      if (a.mt && S[q[0]][q[1]] && (q[0] === "wd" || q[0] === "me")) {
+        var it = P[q[0]][+q[1]];
+        return menu("mdUntick", it.t, [["undo", MI.back, "Mark as not done"]], function () {
+          S[q[0]][q[1]] = false; MD.cause = ""; if (window.closeSheets) window.closeSheets(); render(); toast("Marked as not done");
+        });
+      }
+      var on = S[q[0]][q[1]] = !S[q[0]][q[1]];
       MD.cause = on ? q[0] : "";
       render();
       if (on && q[0] === "wd" && P.wd.every(function (w, i) { return S.wd[i]; })) toast("Nicely wound down. Rest well tonight.");
@@ -440,7 +451,17 @@
     }
   });
 
-  var MD = window.MDPLAN = { P: P, S: S, noplan: NOPLAN, free: FREE, now: NOW, logged: logged, bedM: bedM, wakeM: wakeM, render: render, cause: "",
+  /* Eat's item menu (r3/eat.html itemMenu): .menurow rows with a 16px icon, warn rows in red. rows: [act, icon, words, warn] */
+  var MI = {
+    back: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4M3 3v5h5"/></svg>',
+    play: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.5v15l12-7.5z"/></svg>'
+  };
+  function menu(id, title, rows, go) {
+    var el = window.GFOpenSheet(id, title, rows.map(function (r) { return '<button class="menurow' + (r[3] ? " warn" : "") + '" data-mdmenu="' + r[0] + '"><span class="mi">' + r[1] + '</span>' + r[2] + '</button>'; }).join(""));
+    el.querySelector(".sbody").onclick = function (e) { var b = e.target.closest("[data-mdmenu]"); if (b) go(b.dataset.mdmenu); };
+    return el;
+  }
+  var MD = window.MDPLAN = { menu: menu, MI: MI, P: P, S: S, noplan: NOPLAN, free: FREE, now: NOW, logged: logged, bedM: bedM, wakeM: wakeM, render: render, cause: "",
     Q: Q, toast: toast, items: items, mins: mins, nice: nice, niceS: niceS, hm: hm, FACES: FACES, IC: IC, I: I, coach: COACHN };
   /* variants: /v7/mind/variants/<topic>.js sets window.MDVAR = { open: { mood|sleep|br: function (sheetId, MD) }, items: function (L, MD) }.
      open returns true when it took the tap, so the default sheet stays for anything it leaves alone */
@@ -581,6 +602,8 @@
     else if (SH === "breath") player(0); else if (SH === "breathrun") { player(0); plShow("run"); }
     else if (SH === "breathpause") { PL = { i: 0, el: 130, k: 0, rest: 0, n: 13 }; plShow("paused"); }
   }, 900);
+  /* ?untick=wd:0|me:0|br:0 taps that row's tick once the screen is up: with ?done= the same key, it opens the row's menu (16 Nov) */
+  if (Q.get("untick")) setTimeout(function () { var b = document.querySelector('[data-tiprow="' + Q.get("untick") + '"] .tickbtn'); if (b) b.click(); }, 1100);
   /* ?mood= and ?tags= set a check-in for the docs */
   if (Q.get("mood") != null) { S.mood = +Q.get("mood"); S.tags = (Q.get("tags") || "").split(",").filter(Boolean); render(); }
 })();

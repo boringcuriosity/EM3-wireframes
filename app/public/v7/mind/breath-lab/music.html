@@ -41,7 +41,7 @@
   <h1>What each breath sounds like</h1>
   <p class="lede">Free to use music and sound for every breathing exercise, each checked for its licence. Play them side by side and pick one per exercise. Headphones help.</p>
   <div class="nav">
-    <a href="#coherent">Coherent</a><a href="#box">Box</a><a href="#sleep">4-7-8</a><a href="#belly">Belly</a><a href="#hum">Bhramari</a><a href="#exhale">Extended Exhale</a><a href="#pursed">Pursed Lip</a><a href="#cue">Cue sounds</a>
+    <a href="#coherent">Simple</a><a href="#box">Box</a><a href="#sleep">4-7-8</a><a href="#belly">Belly</a><a href="#hum">Bhramari</a><a href="#exhale">Extended Exhale</a><a href="#pursed">Pursed Lip</a><a href="#cue">Cue sounds</a>
     <a href="/v7/mind/breath-lab/index.html">Visuals</a>
   </div>
   <div id="secs"></div>
@@ -49,7 +49,7 @@
 <script>
 (function () {
   var S = [
-    ["coherent", "Coherent Breathing (5-5)", "The coach asked for: generic. Morning, 5 to 10 min."],
+    ["coherent", "Simple Breathing", "The coach asked for: generic. Morning, 5 to 10 min."],
     ["box", "Box Breathing (4-4-4-4)", "The coach asked for: generic. Morning, 5 min."],
     ["sleep", "4-7-8 Breathing", "The coach asked for: white noise. Night, 1 to 2 min."],
     ["belly", "Belly Breathing", "The coach asked for: generic, to suit the visual. Morning or noon, 5 min."],
@@ -61,8 +61,8 @@
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
   var mm = function (s) { s = Math.round(+s || 0); return s ? Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2) : ""; };
   var get = function (u) { return fetch(u + "?t=" + Date.now()).then(function (r) { return r.ok ? r.json() : []; }).catch(function () { return []; }); };
-  Promise.all([get("/v7/mind/breath-lab/music-a.json"), get("/v7/mind/breath-lab/music-b.json")]).then(function (r) {
-    var all = r[0].concat(r[1]), host = document.getElementById("secs");
+  Promise.all([get("/v7/mind/breath-lab/music-a.json"), get("/v7/mind/breath-lab/music-b.json"), get("/v7/mind/breath-lab/music-c.json")]).then(function (r) {
+    var all = r[0].concat(r[1], r[2]), host = document.getElementById("secs");
     S.forEach(function (s) {
       var list = all.filter(function (x) { return x.tech === s[0]; }), sec = document.createElement("section");
       sec.id = s[0];

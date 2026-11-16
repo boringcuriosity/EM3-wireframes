@@ -86,7 +86,7 @@
     }).join("") + '</ul>' : empty("No wind-down tasks yet. These are the small steps before bed.", ctx, "sleep", "Add Tasks");
     var br = r.breathing, me = r.metime.filter(function (m) { return String(m.label || "").trim(); });
     var brBody = br.length ? '<ul class="rv-list">' + br.map(function (b) {
-      return '<li><span class="rv-lt">' + esc(b.name) + ', ' + b.mins + ' min</span><span class="rv-each">' + t12(b.at) + ', ' + pts(10, br.length) + ' pts</span></li>';
+      return '<li><span class="rv-lt">' + esc(MP.breathName(b.name)) + ', ' + b.mins + ' min</span><span class="rv-each">' + t12(b.at) + ', ' + pts(10, br.length) + ' pts</span></li>';
     }).join("") + '</ul>' : empty("No breathing exercise yet.", ctx, "selfcare", "Add Breathing");
     var meBody = me.length ? '<ul class="rv-list">' + me.map(function (m) { return '<li><span class="rv-lt">' + esc(m.label) + '</span><span class="rv-each">' + t12(m.at) + ', 10 pts</span></li>'; }).join("") + '</ul>' : empty("No me-time activity yet.", ctx, "selfcare", "Choose One");
     var mo = r.mood.checks;

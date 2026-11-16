@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>All Breathing Exercises</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap">
+<style>
+  :root { --ink: #101828; --sub: #475467; --mute: #667085; --line: #EAECF0; --gold: #A68A2D; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #FFFFFF; color: var(--ink); font: 400 15px/22px Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1440px; margin: 0 auto; padding: 32px 24px 96px; }
+  .eyebrow { font: 600 12px/16px Roboto; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gold); }
+  h1 { font: 600 36px/44px "Playfair Display", serif; margin: 8px 0; }
+  .lede { max-width: 820px; color: var(--sub); margin: 0 0 8px; }
+  .ctl { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; position: sticky; top: 0; z-index: 5; background: rgba(255,255,255,.94); backdrop-filter: blur(8px); padding: 12px 0; border-bottom: 1px solid var(--line); margin-top: 16px; }
+  .ctl span { font: 500 13px Roboto; color: var(--mute); margin-right: 4px; }
+  .ctl button { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font: 500 13px Roboto; color: var(--sub); cursor: pointer; }
+  .ctl button[aria-pressed=true] { background: #FFF8E0; border-color: #F3D161; color: #5C4E1F; }
+  h2 { font: 600 24px/32px Roboto; margin: 40px 0 4px; }
+  .grp { color: var(--sub); margin: 0 0 16px; max-width: 820px; }
+  .row { display: flex; gap: 32px; overflow-x: auto; padding: 4px 4px 16px; }
+  .card { flex: 0 0 390px; display: flex; flex-direction: column; gap: 8px; }
+  .card h3 { font: 600 16px/22px Roboto; margin: 0; display: flex; gap: 8px; align-items: center; }
+  .tag { font: 600 11px/16px Roboto; letter-spacing: .4px; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; }
+  .tag.gf { background: #DCFAE6; color: #067647; } .tag.un { background: #EBE9FE; color: #5925DC; }
+  .card p { font-size: 13px; line-height: 19px; color: var(--sub); margin: 0; min-height: 76px; }
+  .ph { width: 390px; height: 844px; border-radius: 36px; border: 1px solid var(--line); overflow: hidden; box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 16px 40px -16px rgba(16,24,40,.18); background: #fff; }
+  .ph iframe { width: 390px; height: 844px; border: 0; display: block; }
+  .card a { font: 500 13px Roboto; color: #2A805A; }
+  @media (max-width: 600px) { .wrap { padding: 20px 16px 64px; } h1 { font-size: 28px; line-height: 36px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Mind · Breathing · Library</div>
+  <h1>All breathing exercises</h1>
+  <p class="lede">A section at the end of the Mind screen where anyone can start any of the seven final breathing exercises: free users, people whose Mind plan isn't set yet, and plan users, whether or not an exercise is in their plan. Each phone is the real Mind screen, scrolled to the new section. Tap a card or its info to see what the exercise is, then Start.</p>
+  <div class="ctl" id="ctl"><span>Who is looking</span>
+    <button data-st="" aria-pressed="true">Mind plan</button><button data-st="noplan">No plan yet</button><button data-st="free">Free user</button>
+  </div>
+  <div id="list"></div>
+</div>
+<script>
+(function () {
+  /* [id, name, kind (gf = GoodFlip language, un = unique), what it is and why] */
+  var V = [
+    ["Kept", "What stayed after review: native to GoodFlip, light mode only, art that relates to breathing.", [
+      ["k", "Indigo plan tiles", "gf", "The Your mind plan card cut to rail size: indigo top wash, indigo tipped border, hard shadow, and the Mind scene top right by when it suits the day (morning, afternoon, evening, night). Name, pattern, then a hairline footer with In your plan, minutes and Start."],
+      ["s", "Line icons, minimal", "gf", "Quiet white cards with lots of air: one thin indigo line icon each (seven drawn on one grid), what it is best for in a word, the name, minutes and an outlined play disc. Nothing tinted, nothing moving."],
+      ["pb", "Glass method chips", "gf", "One soft indigo grey field with compact glass chips: line icon, name, \"5 min · Calm\". Tap a chip to pick it; below, its pattern, How it works and one white Start pill, as on TIDE."],
+      ["pg", "Frosted over colour", "un", "Each card is a soft blurred field of colour by need (indigo for sleep, sky for focus, mint for calm, lavender for breathing easier), the blobs placed differently on every card. A frosted white panel holds the name, pattern, minutes and a round play button in the field's deep shade."],
+      ["ph", "Editorial type", "un", "Quiet magazine pages: a light, letter-spaced wordmark (S I M P L E, 4 · 7 · 8, B O X) over warm paper with a soft bloom rising in the need's colour. A number and need at the top, minutes opposite, the full name and pattern under a hairline with a round Start."]
+    ]],
+    ["Round 3: the kept ones, taken further", "Indigo GoodFlip cards, one colour family, light mode, and art you can relate to breathing.", [
+      ["k2", "Plan tiles, own illustration", "gf", "K, with a scene drawn for each exercise in the Mind illustration style: lying in bed for 4-7-8, a hand on the belly for Belly, fingers on the ears for Bhramari, pursed lips for Pursed Lip, at a desk for Box, on the balcony for Extended Exhale, seated on a mat for Simple."],
+      ["pb2", "Glass cards", "gf", "One frosted glass card per exercise on the white page, a soft indigo glow behind each so the glass reads, with the line icon, name, minutes and what it is for, and a white Start bar in green."],
+      ["pg2", "Frosted indigo", "gf", "A frosted white panel over a soft blurred field in one indigo and lavender family, only the pools shifting card to card, with the line icon on a frosted disc and a green Start pill."],
+      ["s2", "Line icons, with warmth", "gf", "The line icons on soft indigo discs inside the plan card's skin (indigo wash, indigo-tipped border, 2px hard shadow), with a one-word benefit, the name, minutes and a green Start."],
+      ["ph2", "Editorial, GoodFlip", "gf", "A white plan-style card with a letter-spaced indigo wordmark over a soft indigo bloom, GoodFlip's 12/16 meta, the name and pattern under a hairline, and a round green Start."]
+    ]]
+  ];
+  var list = document.getElementById("list"), st = "";
+  function src(id) { return "/v7/mind/index.html?vlib=" + id + "&lfocus=1&lshow=1" + (st ? "&state=" + st : ""); }
+  V.forEach(function (g) {
+    var s = document.createElement("section");
+    s.innerHTML = "<h2>" + g[0] + "</h2><p class=\"grp\">" + g[1] + "</p><div class=\"row\"></div>";
+    list.appendChild(s);
+    g[2].forEach(function (v) {
+      var c = document.createElement("div"); c.className = "card";
+      c.innerHTML = "<h3>" + v[0].toUpperCase() + ". " + v[1] + " <span class=\"tag " + v[2] + "\">" + (v[2] === "gf" ? "GoodFlip" : "Unique") + "</span></h3><p>" + v[3] + "</p>" +
+        "<div class=\"ph\"><iframe loading=\"lazy\" data-id=\"" + v[0] + "\" src=\"" + src(v[0]) + "\" title=\"" + v[1] + "\"></iframe></div><a target=\"_blank\" href=\"" + src(v[0]) + "\">Open full screen</a>";
+      s.querySelector(".row").appendChild(c);
+    });
+  });
+  document.getElementById("ctl").onclick = function (e) {
+    var b = e.target.closest("button"); if (!b) return; st = b.dataset.st;
+    this.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", x === b); });
+    document.querySelectorAll("iframe").forEach(function (f) { f.src = src(f.dataset.id); });
+    document.querySelectorAll(".card a").forEach(function (a) { a.href = src(a.previousSibling.firstChild.dataset.id); });
+  };
+})();
+</script>
+</body>
+</html>

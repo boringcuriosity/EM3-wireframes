@@ -21,7 +21,7 @@
   function row(x, right) {
     /* the time the coach set sits at the right of every activity, before the chevron when the row opens something */
     var tm = x.at && /\d/.test(x.at) ? x.at : "";
-    var r = right != null ? right : x.sheet ? (tm ? '<span class="ly-at">' + tm + '</span>' : "") + CHEV : x.at;
+    var r = right != null ? right : x.sheet && K(x) !== "mood" ? (tm ? '<span class="ly-at">' + tm + '</span>' : "") + CHEV : x.at;   /* mood check-in: the time only, no chevron (16 Nov) */
     return '<div class="mv-tip tip ly-row' + (x.on ? " done" : "") + '" data-tiprow="' + id(x) + '">' +
       '<button class="mv-tb tickbtn" ' + (K(x) === "br" ? 'data-brask="' + x.sheet.split(":")[1] + '"' : tag(x)) + ' aria-pressed="' + x.on + '" aria-label="' + x.t + '">' + mark(x.on) + '</button>' +
       '<button class="ly-rb" ' + tag(x) + '><span class="tt">' + x.t + '</span>' + (x.d ? '<span class="td">' + x.d + '</span>' : "") + '</button>' +

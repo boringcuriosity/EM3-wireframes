@@ -1,0 +1,18 @@
+<!doctype html><html><head><meta charset="utf-8"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600&display=swap">
+<style>body{margin:0;font:13px Roboto;background:#fff}.g{display:flex;flex-wrap:wrap;gap:16px;padding:16px}.c{width:320px}.c b{display:block;margin-bottom:4px}</style>
+<script>document.write([...document.querySelectorAll('x')].length?'':'');</script>
+</head><body><div class="g" id="g"></div>
+<script src="/v7/mind/breath-lab/lab.js"></script><script src="/v7/mind/breath-lab/orb.js"></script>
+<script>
+// ponytail: side-by-side review of one character style, ?s=a..f picks the file
+var q=new URLSearchParams(location.search), s=q.get('s')||'a';
+var css=[...document.styleSheets];
+document.write('<script src="/v7/mind/breath-lab/'+(s==='frames'?'frames':'chars-'+s)+'.js"><\/script>');
+</script>
+<script>
+(function(){ // copy the phone frame CSS from index.html
+ fetch('/v7/mind/breath-lab/index.html').then(r=>r.text()).then(t=>{var m=t.match(/<style>([\s\S]*?)<\/style>/);var st=document.createElement('style');st.textContent=m[1].replace(/body \{[^}]*\}/,'');document.head.appendChild(st);
+ Object.keys(LAB.V).forEach(k=>LAB.V[k].forEach(v=>{if(!/^([a-f]|frames)-/.test(v.id))return;var c=document.createElement('div');c.className='c';c.innerHTML='<b>'+v.id+'</b>';document.getElementById('g').appendChild(c);LAB.phone(c,k,v);}));
+ setTimeout(()=>LAB.kick(),300);});
+})();
+</script></body></html>

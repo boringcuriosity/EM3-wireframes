@@ -23,6 +23,7 @@
 
   /* ---------- small helpers ---------- */
   var IC = {
+    menu: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
     x: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
     moon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>',
     grid: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>',
@@ -101,7 +102,7 @@
     var P = MP.PATIENT;
     var item = function (label, cls, extra) { return '<li><div class="mp-ni ' + (cls || "") + '">' + label + (extra || "") + "</div></li>"; };
     return '<nav class="mp-nav" aria-label="Patient">' +
-      '<div class="mp-pt"><span class="mp-pt-av">' + esc(P.name.charAt(0)) + '</span><div><div class="mp-pt-name">' + esc(P.name) + '</div>' +
+      '<div class="mp-pt"><button type="button" class="mp-menu" data-act="menu" aria-label="Patient menu" aria-expanded="false">' + IC.menu + '</button><span class="mp-pt-av">' + esc(P.name.charAt(0)) + '</span><div><div class="mp-pt-name">' + esc(P.name) + '</div>' +
       '<div class="mp-pt-meta">' + P.age + " · " + esc(P.sex) + " · Indication: <b>" + esc(P.indication) + "</b></div></div></div>" +
       "<ul>" + item("Overview") + item("Chat with KAIRA") + "</ul>" +
       '<div class="mp-nav-cap">CARE TRIAD</div><ul>' +
@@ -182,12 +183,21 @@
     if (!b) return;
     if (b.dataset.filter) { S.filter = b.dataset.filter; renderShell(); root.querySelector('[data-filter="' + S.filter + '"]').focus(); return; }
     var a = b.dataset.act, p = S.plans.filter(function (x) { return x.id === b.dataset.id; })[0];
+    if (a === "menu") { menu(!b.closest(".mp-nav").classList.contains("is-open")); return; }
     if (a === "create") openStart();
     if (a === "library") openLibrary("list");
     if (a === "home") { S.filter = "all"; renderShell(); }
     if (a === "view" && p) openView(p);
     if (a === "edit" && p) editDraft(p);
   });
+
+  /* phone only (mobile.css): the sidebar folds into a patient strip; the menu button slides it in as a drawer */
+  function menu(open) {
+    var n = root.querySelector(".mp-nav"); if (!n) return;
+    n.classList.toggle("is-open", open); n.querySelector(".mp-menu").setAttribute("aria-expanded", open);
+  }
+  document.addEventListener("click", function (e) { if (!e.target.closest(".mp-nav")) menu(false); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") menu(false); });
 
   /* ---------- the full-screen frame ---------- */
   var full = null;

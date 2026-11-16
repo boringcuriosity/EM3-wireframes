@@ -24,6 +24,11 @@ id: "coherent-today", name: "Today's orb", note: "The Rhythm score's gold orb gr
 build: function (stage) { stage.innerHTML = '<div class="ro"><i></i>' + pearl(200) + '</div>'; return { o: stage.firstChild }; },
 frame: function (s, p) { s.o.style.transform = "translate(-50%,-50%) scale(" + (.56 + .44 * (p.reduced ? (p.k === "out" ? 0 : 1) : p.e)).toFixed(4) + ")"; }
   });
+  LAB.add("exhale", {
+id: "exhale-today", name: "Today's orb", note: "The same orb: it grows on the short in-breath and shrinks for twice as long on the out-breath. Kept as the reference.",
+build: function (stage) { stage.innerHTML = '<div class="ro"><i></i>' + pearl(200) + '</div>'; return { o: stage.firstChild }; },
+frame: function (s, p) { s.o.style.transform = "translate(-50%,-50%) scale(" + (.56 + .44 * (p.reduced ? (p.k === "out" ? 0 : 1) : p.e)).toFixed(4) + ")"; }
+  });
   LAB.add("sleep", {
 id: "sleep-today", name: "Today's orb", note: "The same orb: it grows, rests full through the hold, then shrinks slowly. Kept as the reference.",
 build: function (stage) { stage.innerHTML = '<div class="ro"><i></i>' + pearl(200) + '</div>'; return { o: stage.firstChild }; },

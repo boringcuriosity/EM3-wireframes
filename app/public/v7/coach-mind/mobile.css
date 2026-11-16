@@ -1,0 +1,138 @@
+/* Mind plan (coach-mind-plan.html) on a phone. Layout only: the same data, the same words, the same actions.
+   Linked last in the page; the step modules inject their CSS at runtime, so rules here that must beat them use one more class.
+   Desktop is untouched: everything sits under one breakpoint. */
+.mp-menu { display: none; }
+
+@media (max-width: 760px) {
+
+  input, select, textarea { font-size: 16px !important; }   /* 16px stops iOS zooming into a field on focus */
+
+  /* ---------- shell: no patient rail, the page takes the width ---------- */
+  .mp-shell { grid-template-columns: 1fr; }
+  /* the sidebar folds into a patient strip with a menu button; open, it slides in from the left over a scrim */
+  .mp-nav { position: sticky; top: 0; z-index: 5; height: 66px; padding: 12px 16px; overflow: hidden; border-right: 0; border-bottom: 1px solid var(--mp-line); }
+  .mp-nav > :not(.mp-pt) { display: none; }
+  .mp-pt { padding: 0; margin: 0; border: 0; }
+  .mp-pt-av { width: 40px; height: 40px; border-radius: 13px; }
+  .mp-menu { display: grid; place-items: center; width: 44px; height: 44px; flex: none; margin: 0 -2px 0 -10px; border: 0; border-radius: 12px; background: none; color: var(--mp-green-deep); }
+  .mp-menu:hover { background: #F2F4F7; }
+  .mp-nav.is-open { position: fixed; inset: 0 auto 0 0; width: min(300px, 84vw); height: auto; overflow-y: auto; border-bottom: 0; box-shadow: 0 0 0 100vmax rgba(16, 24, 40, .38); animation: mp-drawer .24s var(--mp-ease); }
+  .mp-nav.is-open > :not(.mp-pt) { display: revert; }
+  .mp-nav.is-open > ul { display: grid; }
+  .mp-nav.is-open .mp-pt { padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--mp-line); }
+  .mp-shell:has(.mp-nav.is-open) { padding-top: 66px; }   /* holds the strip's place so the page doesn't jump */
+  @keyframes mp-drawer { from { transform: translateX(-100%); } to { transform: none; } }
+  .mp-top { position: static; height: auto; flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
+  .mp-top h1 { flex: 1 1 100%; font-size: 19px; line-height: 26px; }
+  .mp-top-sp, .mp-coach { display: none; }
+  .mp-top .mp-btn { flex: 1; height: 44px; }
+  .mp-body { padding: 16px 16px 40px; }
+
+  /* list: filters scroll sideways, each plan a card with its actions across the foot */
+  .mp-pills { flex-wrap: nowrap; overflow-x: auto; margin: 0 -16px 14px; padding: 0 16px; scrollbar-width: none; }
+  .mp-pills::-webkit-scrollbar { display: none; }
+  .mp-pill { flex: none; }
+  .mp-row { flex-wrap: wrap; align-items: flex-start; gap: 12px; padding: 14px; }
+  .mp-row-a { flex: 1 1 100%; }
+  .mp-row-a .mp-btn { flex: 1; height: 40px; }
+  .mp-empty { margin-top: 16px; padding: 28px 20px; }
+
+  /* ---------- full-screen frame: title and X on one row, the steps under them ---------- */
+  .mp-fbar { height: auto; grid-template-columns: minmax(0, 1fr) auto; gap: 0; padding: 4px 8px 8px 16px; }
+  .mp-fbar > :nth-child(2) { grid-column: 1 / -1; grid-row: 2; min-width: 0; }
+  .mp-fbar > :nth-child(2):empty { display: none; }
+  .mp-ftitle { font-size: 17px; line-height: 44px; }
+  .mp-fend { grid-column: 2; grid-row: 1; }
+  .mp-x { width: 44px; height: 44px; }
+  .mp-fmain, .mp-fmain.is-wide { padding: 16px 16px 32px; }
+
+  /* four steps on one slim line: numbers for all, the name only for the step you are on */
+  .mp-steps { gap: 2px; padding-right: 8px; }
+  .mp-steps > li:not(.mp-sline) { flex: none; }
+  .mp-sline { flex: 1 1 0; width: auto; min-width: 6px; }
+  .mp-sbtn { gap: 6px; min-height: 36px; padding: 2px; }
+  .mp-snum { width: 24px; height: 24px; font-size: 12px; }
+  .mp-ssub { display: none; }
+  .mp-sbtn:not(.is-on) .mp-stxt { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .mp-stitle { font-size: 13px; }
+
+  /* bottom bar: the summary on its own line, then the actions as full-width buttons */
+  .mp-fbot { flex-wrap: wrap; gap: 8px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); }
+  .mp-sum { flex: 1 1 100%; font-size: 12.5px; }
+  .mp-acts { flex: 1 1 100%; }
+  .mp-acts .mp-btn { flex: 1 1 auto; height: 44px; padding: 0 12px; }
+  .mp-acts .mp-btn.is-primary { flex: 2 1 auto; }
+  .mp-acts .mp-btn.is-ghost { flex: 0 1 auto; }
+  .mp-msg { left: 16px; right: 16px; max-width: none; }
+
+  /* ---------- start screen and template library: the tables become cards ---------- */
+  .mp-head { flex-direction: column; align-items: stretch; gap: 12px; }
+  .mp-head h2 { font-size: 20px; line-height: 26px; }
+  .mp-head .mp-btn { height: 44px; }
+  .mp-table, .mp-table tbody { display: block; }
+  .mp-table thead { display: none; }
+  .mp-table tbody tr { display: flex; flex-wrap: wrap; align-items: baseline; padding: 14px 16px; border-top: 1px solid #F2F4F7; }
+  .mp-table tbody tr:first-child { border-top: 0; }
+  .mp-table td { display: block; padding: 0; border: 0; }
+  .mp-table td:first-child { flex: 1 1 100%; }
+  .mp-table .mp-ta { flex: 1 1 100%; max-width: none; margin: 2px 0 6px; }
+  .mp-table td.mp-nowrap { font-size: 12.5px; line-height: 18px; color: #344054; }
+  .mp-table td.mp-nowrap + td.mp-nowrap::before { content: "·"; margin: 0 6px; color: #98A2B3; }
+  .mp-table td.mp-tact { flex: 1 1 100%; display: flex; gap: 8px; margin-top: 12px; text-align: left; }
+  .mp-table td.mp-tact .mp-btn { flex: 1; height: 40px; }
+  .mp-table td.mp-tact .mp-btn + .mp-btn { margin-left: 0; }
+  .mp-blank { flex-direction: column; align-items: stretch; padding: 16px; }
+  .mp-blank .mp-btn { height: 44px; }
+
+  .mp-ro-note { align-items: flex-start; }
+  .mp-done h2 { font-size: 21px; line-height: 28px; }
+
+  /* ---------- dialogs rise from the bottom as sheets ---------- */
+  .mp-scrim { place-items: end stretch; padding: 0; }
+  .mp-dlg { max-width: none; max-height: 90vh; overflow: auto; border-radius: 20px 20px 0 0; padding: 20px 16px calc(16px + env(safe-area-inset-bottom)); }
+  .mp-dlg-h .mp-x { width: 36px; height: 36px; }
+  .mp-dlg-a .mp-btn { flex: 1 1 auto; height: 44px; }
+  .mp-dlg-a .mp-dlg-left { margin-right: 0; flex-basis: 100%; order: 2; }
+  .mp-toast, .sl-toast, .sc-toast { width: max-content; max-width: calc(100vw - 32px); bottom: calc(150px + env(safe-area-inset-bottom)); }
+}
+@media (max-width: 760px) {
+  /* actions sit at the card's foot, right, compact: the card reads first, the buttons don't shout four times down the page */
+  .mp-row-a, .mp-table td.mp-tact { justify-content: flex-end; }
+  .mp-row-a .mp-btn, .mp-table td.mp-tact .mp-btn { flex: none; min-width: 96px; height: 38px; }
+}
+@media (max-width: 760px) {
+  /* step pages: the stepper names the step, so the big title would only repeat it; the lead line stays */
+  .sl-head h1, .sc-head h1, .pr-h1, .rv-title { display: none; }
+  .sl-head p, .sc-head p, .pr-intro, .rv-intro { margin: 0; }
+  .sl-wrap, .sc-wrap, .pr-root { gap: 12px; }
+  .sl-card, .sc-card, .rv-card { padding: 16px; border-radius: 16px; }
+  .pr-card { border-radius: 16px; }
+  .pr-top { padding: 14px; }
+  .pr-theme { padding: 14px 0 6px; }
+  .pr-theme .pr-h2 { padding: 0 16px 4px; }
+  .pr-row { gap: 12px; padding: 10px 16px; }
+  .pr-panel { padding: 16px 16px 6px; }
+  .pr-note { padding: 16px; }
+
+  /* a timed row: what it is (and its remove) across the top, its minutes and time under it */
+  .sl-wrap .sl-row, .sc-wrap .sc-row { flex-wrap: wrap; gap: 8px; padding: 8px; }
+  .sl-row > :first-child, .sc-row > :first-child { order: -2; flex: 1 1 calc(100% - 40px); min-width: 0; }
+  .sl-row > .sl-x, .sc-row > .sc-x { order: -1; }
+  .sc-rt .rt-nm { max-width: 100%; }
+  .sl-row > .rt-tp:not(.rt-nm), .sc-row > .rt-tp:not(.rt-nm) { flex: 1 1 0; width: auto; height: 40px; }
+  .sc-merow [data-meat], .sl-row [data-wdat] { margin-right: 0 !important; }
+}
+@media (max-width: 760px) {
+  /* practices: what is chosen sits on top, where a tap on + shows up; the library under it; the patient note last */
+  .pr-cols .pr-side { display: contents; }
+  .pr-side > .pr-panel { order: -1; }
+  .pr-side > .pr-note { order: 1; }
+}
+@media (max-width: 760px) {
+  /* review: the patient's phone sits centred under the summary, not stuck to the side */
+  .rv-wrap .rv-side { position: static; justify-self: center; text-align: center; }
+}
+@media (max-width: 760px) {
+  /* ponytail: fixed scale fits a 350px-wide phone; the desktop fit-to-height script is beaten by !important */
+  .rv-wrap .rv-side { --s: .78 !important; }
+}

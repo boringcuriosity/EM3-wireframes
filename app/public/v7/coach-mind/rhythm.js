@@ -368,7 +368,7 @@
      Rows: the name, anything extra (breathing's minutes), its time, remove. Under them one field: click it and the
      suggestions open with their usual times; type to filter or to add your own. A suggestion comes in with its time and the
      cursor on it; a task of their own opens its time straight away.
-     c = { p, id, items, max, min, name(x), sugs [[label, at]], own, swap, dupes, extra(x, i), wire(el), def(n), noun, ph, one } */
+     c = { p, id, items, max, min, name(x), sugs [[label, at, note]], own, swap, dupes, extra(x, i), wire(el), def(n), noun, ph, one } */
   var TYPED = {};   /* what is typed in each field, kept across redraws */
   var hl = function (l, q) { var i = q ? l.toLowerCase().indexOf(q.toLowerCase()) : -1; return i < 0 ? esc(l) : esc(l.slice(0, i)) + "<mark>" + esc(l.slice(i, i + q.length)) + "</mark>" + esc(l.slice(i + q.length)); };
   function tlHtml(c) {
@@ -404,7 +404,7 @@
     });
     q("data-tlname").forEach(function (b) {
       var i = +b.dataset.i, x = c.items[i];
-      ddWire(b, c.sugs.map(function (s) { return [s[0], esc(s[0]), s[1] ? "usually " + H.t12(s[1]).replace(":00 ", " ") : ""]; }), function (v) {
+      ddWire(b, c.sugs.map(function (s) { return [s[0], esc(s[0]), (s[2] ? s[2] + ", " : "") + (s[1] ? "usually " + H.t12(s[1]).replace(":00 ", " ") : "")]; }), function (v) {
         var y = c.make(v, x.at); y.at = x.at; c.items[i] = y; done(c.id + "nm" + i);   /* a new exercise keeps the time, takes its own minutes */
       });
     });
@@ -414,8 +414,8 @@
     var list = function () {
       var t = f.value.trim(), lt = t.toLowerCase();
       var taken = function (l) { return !c.dupes && c.items.some(function (x) { return same(c.name(x), l); }); };
-      var L = c.sugs.filter(function (s) { return !taken(s[0]) && (!lt || s[0].toLowerCase().indexOf(lt) >= 0); })
-        .map(function (s) { return ["s:" + s[0], hl(s[0], t), s[1] ? "usually " + H.t12(s[1]).replace(":00 ", " ") : ""]; });
+      var L = c.sugs.filter(function (s) { return !taken(s[0]) && (!lt || (s[0] + " " + (s[2] || "")).toLowerCase().indexOf(lt) >= 0); })   /* a coach's note (Coherent, 5-5) finds its exercise too */
+        .map(function (s) { return ["s:" + s[0], hl(s[0], t), (s[2] ? s[2] + ", " : "") + (s[1] ? "usually " + H.t12(s[1]).replace(":00 ", " ") : "")]; });
       if (c.own && t && !c.sugs.some(function (s) { return same(s[0], t); }) && !taken(t)) L.push(["o:" + t, "Add “" + esc(t) + "” as your own", "you set the time", true]);
       return L;
     };
@@ -850,7 +850,7 @@
   };
 
   /* ---------- Self-care ---------- */
-  var bdesc = function (name) { var b = MP.BREATHS.filter(function (x) { return x[0] === name; })[0]; return b ? b[1] : ""; };
+  var bdesc = function (name) { var b = MP.breath(name); return b ? b[1] : ""; };
 
   MP.steps.selfcare = {
     title: "Self-care",
@@ -858,6 +858,7 @@
     render: function (el, plan) {
       css("sc");
       var r = plan.rhythm, BMAX = MP.BREATH_MAX, BDEF = ["08:00", "13:30", "21:00"];
+      r.breathing.forEach(function (x) { x.name = MP.breathName(x.name); });   /* an older plan's name (Coherent Breathing (5-5)) shows as today's */
       var free = function (list, slots) { var u = list.map(function (x) { return x.at; }); return slots.filter(function (t) { return u.indexOf(t) < 0; })[0] || slots[0]; };
       var minsSel = function (x, i) { return ddBtn('data-bm="' + i + '" data-fk="bm' + i + '"', String(x.mins), x.mins + " min", "Minutes of " + x.name); };
       var wireMins = function (el) {
@@ -869,8 +870,8 @@
       var LISTS = function () { r.mood.checks.sort(function (a, b) { return (a.at || "").localeCompare(b.at || ""); });   /* check-ins in the order of the day */
         return {
         br: { p: "sc", id: "br", items: r.breathing, max: BMAX, min: 0, pick: true, noun: "exercise", dupes: true, ph: r.breathing.length ? "Add another exercise" : "Pick a breathing exercise", wire: wireMins,
-          name: function (x) { return x.name; }, make: function (l, at) { var b = MP.BREATHS.filter(function (x) { return x[0] === l; })[0]; return { name: l, mins: b ? b[2] : 5, at: at }; }, def: function () { return free(r.breathing, BDEF); },
-          sugs: MP.BREATHS.map(function (b) { return [b[0], b[3]]; }), extra: minsSel, empty: "" },
+          name: function (x) { return x.name; }, make: function (l, at) { var b = MP.breath(l); return { name: b ? b[0] : l, mins: b ? b[2] : 5, at: at }; }, def: function () { return free(r.breathing, BDEF); },
+          sugs: MP.BREATHS.map(function (b) { return [b[0], b[3], b[5]]; }), extra: minsSel, empty: "" },
         mood: { p: "sc", id: "mood", items: r.mood.checks, max: 2, min: 1, noun: "check-in", one: "Add another check-in",
           /* named by the part of the day its time falls in, so moving the time renames it */
           name: function (x) { var h = x.at ? +x.at.slice(0, 2) : 12; return (h < 12 ? "Morning" : h < 17 ? "Afternoon" : "Evening") + " check-in"; },

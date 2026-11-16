@@ -35,17 +35,25 @@
     ["Listen to calming music (15 to 30 min)", "21:45"],
     ["Positive sleep association: prepare the room, dark and at a comfortable temperature", "22:00"]
   ];
-  /* the breathing exercises a coach picks for the score: [name, how it goes, starting minutes, usual time].
+  /* the breathing exercises a coach picks for the score: [name, how it goes, starting minutes, usual time, player key, coach's note].
+     The final seven, signed off 15 Nov 2026: names, timings and visuals match the patient player (mind/breath-lab/final-list.js,
+     spec in mind/breath-lab/FINAL.md). The key picks the player's visual; the note shows only in the coach's picker.
      A range of minutes starts at its lower end; Morning is 7:00 AM, Noon 12:00 PM, and a time range uses its first time */
   MP.BREATHS = [
-    ["Coherent Breathing (5-5)", "In 5 s, out 5 s, 6 breaths a minute", 5, "07:00"],
-    ["Box Breathing (4-4-4-4)", "In 4 s, hold 4 s, out 4 s, hold 4 s", 5, "06:30"],
-    ["Belly Breathing", "Slow breath in as the belly rises, then a slow breath out", 5, "07:00"],
-    ["Pursed Lip Breathing", "In 2 s through the nose, out 4 to 6 s through pursed lips, like blowing out a candle", 2, "12:00"],
-    ["Extended Exhale (2:1)", "In 4 s, out 8 s, no holds", 2, "12:00"],
-    ["Humming Bee Breath (Bhramari)", "In 3 to 4 s, hum on the breath out for 6 to 8 s", 5, "20:30"],
-    ["4-7-8 Breathing", "In 4 s, hold 7 s, out 8 s, 4 rounds", 1, "21:30"]
+    ["Simple Breathing", "In 5 s, out 5 s, 6 breaths a minute", 5, "07:00", "coherent", "Coherent, 5-5"],
+    ["Box Breathing (4-4-4-4)", "In 4 s, hold 4 s, out 4 s, hold 4 s", 5, "06:30", "box"],
+    ["Belly Breathing", "In 4 s as the belly rises, out 6 s as it falls", 5, "07:00", "belly"],
+    ["Pursed Lip Breathing", "In 2 s through the nose, out 4 s through pursed lips, like blowing out a candle", 2, "12:00", "pursed"],
+    ["Extended Exhale (2:1)", "In 4 s, out 8 s, no holds", 2, "12:00", "exhale"],
+    ["Humming Bee Breath (Bhramari)", "In 4 s, then hum on the breath out for 7 s", 5, "20:30", "hum"],
+    ["4-7-8 Breathing", "In 4 s, hold 7 s, out 8 s", 1, "21:30", "sleep"]
   ];
+  /* names saved in older plans, so they still open the right exercise. Never shown: MP.breathName gives today's name */
+  MP.BREATH_ALIAS = { "Coherent Breathing (5-5)": "Simple Breathing", "Coherent Breathing": "Simple Breathing", "Zen Flow Breathing": "Simple Breathing",
+    "Box Breathing": "Box Breathing (4-4-4-4)", "Sleep Breathing": "4-7-8 Breathing", "Extended Exhale": "Extended Exhale (2:1)",
+    "Humming Bee Breath": "Humming Bee Breath (Bhramari)", "Bhramari": "Humming Bee Breath (Bhramari)" };
+  MP.breath = function (name) { var n = MP.BREATH_ALIAS[name] || name; return MP.BREATHS.filter(function (b) { return b[0] === n; })[0]; };
+  MP.breathName = function (name) { var b = MP.breath(name); return b ? b[0] : name; };
   /* minutes: any whole minute from 1 to 30 */
   MP.BREATH_MINS = []; for (var bm = 1; bm <= 30; bm++) MP.BREATH_MINS.push(bm);
   MP.BREATH_MAX = 3;
@@ -151,21 +159,22 @@
     }),
     T("t-motivation", "Steady motivation", "Small goals and a weekly habit tracker to keep going.", function (p) {
       p.rhythm.winddown = [{ label: "Gratitude practice, 3 things (3 to 5 min)", at: "21:30" }];
-      p.rhythm.breathing = [{ name: "Coherent Breathing (5-5)", mins: 5, at: "07:00" }];
+      p.rhythm.breathing = [{ name: "Simple Breathing", mins: 5, at: "07:00" }];
       p.rhythm.metime = [{ label: "", at: "18:00" }];   /* the coach types the activity for each person */
       p.practices = [{ id: "smart-goals", times: 1 }, { id: "motivation-checkin", times: 2 }, { id: "habit-tracker", times: 1, habits: ["Walk after dinner", "Drink water on waking"] }];
     })
   ];
 
-  /* the patient's Mind screen (v7/mind) shows this plan: the coach portal's defaults (7.5 h, 10:30 PM to 6:00 AM, one evening
-     mood check-in at 9:00 PM) with picks from its own lists at their usual times, so the app shows exactly what a coach can set */
+  /* the patient's Mind screen (v7/mind) shows this plan: the coach portal's defaults (7.5 h, 10:30 PM to 6:00 AM, mood check-ins
+     at 8:00 AM and 9:00 PM) with picks from its own lists at their usual times, so the app shows exactly what a coach can set */
   MP.SAMPLE = (function () {
     var p = MP.blankPlan(); p.id = "sample"; p.name = MP.defaultName();
     var wd = function (i) { return { label: MP.WINDDOWN[i][0], at: MP.WINDDOWN[i][1] }; };
     p.rhythm.winddown = [wd(0), wd(6), wd(10)];   /* last caffeine 4 PM, screen-free 9:30 PM, the room 10 PM */
-    p.rhythm.breathing = [{ name: MP.BREATHS[0][0], mins: MP.BREATHS[0][2], at: MP.BREATHS[0][3] }];   /* Coherent Breathing, 5 min, 7 AM */
+    p.rhythm.breathing = [{ name: MP.BREATHS[0][0], mins: MP.BREATHS[0][2], at: MP.BREATHS[0][3] }];   /* Simple Breathing, 5 min, 7 AM */
     p.rhythm.metime = [{ label: MP.METIME[2][0], at: MP.METIME[2][1] }];   /* walk in nature, 7 AM */
     p.practices = [{ id: "gratitude", times: 1 }, { id: "worry-tree", times: 1 }, { id: "habit-tracker", times: 1, habits: ["Walk after dinner", "Drink water on waking"] }];
+    p.rhythm.mood.checks = [{ at: "08:00" }, { at: "21:00" }];   /* two check-ins, morning and night, so the screen shows one open and one not yet open */
     return p;
   })();
 

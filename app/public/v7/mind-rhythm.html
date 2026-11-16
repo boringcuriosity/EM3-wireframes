@@ -144,6 +144,10 @@
   tbody tr:last-child td { border-bottom: 1px solid var(--gray-200); }
   tbody tr:hover td { background: var(--gray-50); }
 
+  table.sw tr.grp td { font-size: 12px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: var(--gray-500); background: var(--gray-50); }
+  table.sw tr.chg td:nth-child(4) { color: var(--ok-600); font-weight: 600; }
+  table.sw td:nth-child(3), table.sw td:nth-child(4) { white-space: nowrap; }
+
   /* ---------- callouts ---------- */
   .note { display: flex; gap: 12px; max-width: 760px; margin: 20px 0; padding: 16px; border-radius: 16px; font-size: 14px; line-height: 21px; color: var(--gray-600); }
   .note b { display: block; margin-bottom: 4px; font-weight: 600; color: var(--gray-900); }
@@ -350,8 +354,10 @@
     <section id="say">
       <div class="snum">Section</div>
       <h2>The line under the score</h2>
-      <p>One fixed sentence under the score; only the % changes. Before last night is in, it asks for it; after that, it says to keep going. After a tick the score steps up first, then the line names the gain and what it did.</p>
+      <p>One fixed sentence under the score; only the % changes. Before last night is in, it asks for it; after that, it says to keep going. After a log the score steps up first, then the line names what was logged and the gain in Momentum's green capsule (“Your breathing added <b>+10%</b>.”), one line per kind: sleep, wind-down, breathing, me-time, mood. Every gain line ends in <b>Learn more</b>, and a tap anywhere on the card opens <b>KAIRA analysis</b>: a shimmer while KAIRA writes, then one sentence on why the score moved and one or two next steps from what is still open today, with what each adds. The AI is not live yet, so the sheet shows a sample built from the same facts the AI will get; the prompt and the request JSON are in <code>mind/rhythm-say.js</code> (MDKAIRA) and in <code>coach-mind/mind-plan-defaults.md</code>. The nudges before a gain have no Learn more, as on Move. <code>&amp;kaira=1</code> opens the sheet by itself once the line lands.</p>
       <div class="cases" data-cases="say"></div>
+      <div class="grouphead"><h3>Learn more · KAIRA analysis</h3><span></span></div>
+      <div class="cases" data-cases="saykaira"></div>
     </section>
 
     <section id="tiles" hidden>   <!-- parked for now: the screen hides What shaped your score? (?tiles=1 brings it back) -->
@@ -368,17 +374,95 @@
       <div class="cases" data-cases="sleepsheet"></div>
     </section>
 
+    <section id="sleepwin">
+      <div class="snum">Section</div>
+      <h2>Sleep window: how it is judged</h2>
+      <p>The designer's question: if I slept as the coach planned and took a small nap in the afternoon, does the nap take my sleep window to zero? Until 16 Nov it could halve it, if the nap reached the score as a sleep: every session was added up as hours, and the window read the first bedtime and the last wake-up of all of them. From 16 Nov only the night is judged.</p>
+      <ul class="plain">
+        <li><b>Which sleep is today's.</b> Every sleep that ended between 6 PM yesterday and 6 PM today. Overlapping or repeated sessions (a watch and a phone) are merged, so no minute counts twice. Pieces under 10 minutes are dropped.</li>
+        <li><b>One night, not pieces.</b> Sleep with a break of 1 hour or less is one sleep. A break that sits wholly inside the coach's sleep window (awake in the night) keeps it one sleep up to 3 hours.</li>
+        <li><b>The night is the longest sleep.</b> The sleep with the most time asleep is the night. Every other sleep is a nap.</li>
+        <li><b>Naps change nothing.</b> Not the window, and not the hours (the open decision below). The card says so: “Also a 20 min nap at 2:00 PM. Naps don’t change your sleep points.”</li>
+        <li><b>A night needs 3 hours.</b> Under 3 hours asleep, the window gives 0 and the card says “Under 3 hours of sleep, so your sleep window gets no points today.”</li>
+        <li><b>The window, 24 points.</b> Bedtime (the night's first sleep) and wake-up (its last) earn 12 each: full within 30 min of the plan, then a straight line down to 0 at 2 hours off, early or late alike. Minutes off <span class="mono">d</span>: <span class="mono">1</span> if d ≤ 30, <span class="mono">1 − (d − 30) / 90</span> up to 120, <span class="mono">0</span> after. 1 h late keeps 8 of 12.</li>
+        <li><b>Hours, 23 points.</b> Time asleep in the night, breaks left out. Full at the coach's hours up to 1 h over, 0 at 3 h short, a straight line between; past 1 h over, 20% less per extra hour.</li>
+        <li><b>Where it is explained.</b> “How last night counts” (<span class="mono">?sheet=sleepinfo</span>) lists the hours, bedtime and wake-up with their points, and each nap, in plain words: “Slept 11:30 PM, 1h late: 8 of 12.”</li>
+      </ul>
+      <p>Every case below is a live link; it opens the screen with that night and “How last night counts”. Points are hours (of 23) / window (of 24), with the sample plan of 7.5 h, 10:30 PM to 6:00 AM. Rows that changed are marked. The same table runs as a self-check: <span class="mono">node app/public/v7/mind/sleep-rule.check.cjs</span>.</p>
+      <div class="tablewrap"><table class="sw">
+        <thead><tr><th>Case</th><th>Sleep that came in</th><th>Before</th><th>After</th><th>Why</th><th></th></tr></thead>
+        <tbody>
+          <tr class="grp"><td colspan="6">The night against the window</td></tr>
+          <tr><td>On plan</td><td>10:30 PM to 6:00 AM</td><td>23 / 24</td><td>23 / 24</td><td>Full marks.</td><td><a href="/v7/mind/index.html?sleep=plan&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Slept 15 min late</td><td>10:45 PM to 6:00 AM</td><td>21 / 24</td><td>21 / 24</td><td>Inside the 30 min allowance, so the window is full. Hours lose 15 min.</td><td><a href="/v7/mind/index.html?sleep=late15&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Slept 30 min late</td><td>11:00 PM to 6:00 AM</td><td>19 / 24</td><td>19 / 24</td><td>Still on time for the window.</td><td><a href="/v7/mind/index.html?sleep=late30&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Slept 1 h late</td><td>11:30 PM to 6:00 AM</td><td>15 / 20</td><td>15 / 20</td><td>Bedtime earns 8 of its 12, wake-up keeps 12.</td><td><a href="/v7/mind/index.html?sleep=late60&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Slept 2 h late</td><td>12:30 AM to 6:00 AM</td><td>8 / 12</td><td>8 / 12</td><td>Bedtime 0, wake-up 12. One late edge never takes the whole window.</td><td><a href="/v7/mind/index.html?sleep=late120&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Woke 15 min early</td><td>10:30 PM to 5:45 AM</td><td>21 / 24</td><td>21 / 24</td><td>On time.</td><td><a href="/v7/mind/index.html?sleep=early15&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Woke 30 min early</td><td>10:30 PM to 5:30 AM</td><td>19 / 24</td><td>19 / 24</td><td>On time.</td><td><a href="/v7/mind/index.html?sleep=early30&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Woke 1 h early</td><td>10:30 PM to 5:00 AM</td><td>15 / 20</td><td>15 / 20</td><td>Early counts the same as late.</td><td><a href="/v7/mind/index.html?sleep=early60&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Woke 2 h early</td><td>10:30 PM to 4:00 AM</td><td>8 / 12</td><td>8 / 12</td><td>Wake-up 0, bedtime 12.</td><td><a href="/v7/mind/index.html?sleep=early120&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>In bed 1 h early</td><td>9:30 PM to 6:00 AM</td><td>23 / 20</td><td>23 / 20</td><td>8.5 h is inside the 1 h over the target. Bedtime loses 4.</td><td><a href="/v7/mind/index.html?sleep=bedearly60&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Shifted 1 h later</td><td>11:30 PM to 7:00 AM</td><td>23 / 16</td><td>23 / 16</td><td>Both edges 1 h off, 8 of 12 each.</td><td><a href="/v7/mind/index.html?sleep=shift60&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Shifted 2 h later</td><td>12:30 AM to 8:00 AM</td><td>23 / 0</td><td>23 / 0</td><td>A full night at the wrong hours: hours full, window 0.</td><td><a href="/v7/mind/index.html?sleep=shift120&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr class="grp"><td colspan="6">Naps</td></tr>
+          <tr class="chg"><td>20 min nap in the afternoon</td><td>Night on plan, nap 2:00 to 2:20 PM</td><td>23 / 12</td><td>23 / 24</td><td><b>The designer's case.</b> Before, the nap became the wake-up time and halved the window. Now it is a nap and changes nothing.</td><td><a href="/v7/mind/index.html?sleep=nap20&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr class="chg"><td>90 min nap in the afternoon</td><td>Night on plan, nap 1:00 to 2:30 PM</td><td>21 / 12</td><td>23 / 24</td><td>Before, the nap also pushed hours past 8.5 h and cost 2.</td><td><a href="/v7/mind/index.html?sleep=nap90&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr class="chg"><td>90 min nap, if naps count</td><td>Same</td><td>21 / 12</td><td>21 / 24</td><td>The open decision: nap time adds to hours (9 h, so 2 lost for oversleeping). The window stays full.</td><td><a href="/v7/mind/index.html?sleep=nap90&naps=count&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr class="chg"><td>Evening doze before bed</td><td>7:00 to 8:00 PM, then 10:30 PM to 6:00 AM</td><td>23 / 12</td><td>23 / 24</td><td>2 h 30 min awake before bed, outside the window, so the doze is a nap.</td><td><a href="/v7/mind/index.html?sleep=napeve&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Dozed at bedtime, then awake</td><td>10:30 to 10:50 PM, then 12:30 to 6:00 AM</td><td>6 / 24</td><td>6 / 24</td><td>The break sits inside the window, so it is one night: on time, but only 5h 20m asleep.</td><td><a href="/v7/mind/index.html?sleep=napin&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Only a nap, no night</td><td>1:00 to 2:30 PM</td><td>0 / 0</td><td>0 / 0</td><td>Under 3 h, so the window is not judged. Hours 0.</td><td><a href="/v7/mind/index.html?sleep=naponly&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr class="chg"><td>Nap yesterday afternoon</td><td>3:00 to 3:40 PM yesterday, then the night</td><td>23 / 12</td><td>23 / 24</td><td>It ended before 6 PM yesterday, so it belongs to yesterday.</td><td><a href="/v7/mind/index.html?sleep=yday&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr class="chg"><td>Nap ending after 6 PM today</td><td>Night on plan, nap 5:00 to 7:00 PM</td><td>18 / 12</td><td>23 / 24</td><td>It ends after 6 PM, so it counts for tomorrow.</td><td><a href="/v7/mind/index.html?sleep=tomorrow&now=20&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr class="grp"><td colspan="6">Broken nights</td></tr>
+          <tr><td>Awake 40 min in the night</td><td>10:50 PM to 2:30 AM, 3:10 to 6:10 AM</td><td>17 / 24</td><td>17 / 24</td><td>One night. Only time asleep counts towards hours.</td><td><a href="/v7/mind/index.html?sstate=split&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Awake 2 h in the night</td><td>10:30 PM to 1:30 AM, 3:30 to 6:00 AM</td><td>8 / 24</td><td>8 / 24</td><td>Breaks inside the window, up to 3 h, keep it one night.</td><td><a href="/v7/mind/index.html?sleep=split2h&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr class="chg"><td>Woke at 4:30, dozed again</td><td>10:30 PM to 4:30 AM, 6:30 to 7:30 AM</td><td>19 / 16</td><td>12 / 16</td><td>The 2 h break ends past 6:00 AM, so the doze is a nap and the 6 h night scores the hours.</td><td><a href="/v7/mind/index.html?sleep=dozeback&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Same, if naps count</td><td>Same</td><td>19 / 16</td><td>19 / 16</td><td>Counting naps gives the hour back.</td><td><a href="/v7/mind/index.html?sleep=dozeback&naps=count&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr class="grp"><td colspan="6">Too short to judge</td></tr>
+          <tr class="chg"><td>2 h night, typed in</td><td>10:30 PM to 12:30 AM</td><td>0 / 12</td><td>0 / 0</td><td>Under 3 h asleep: the window gives 0, and the card says why.</td><td><a href="/v7/mind/index.html?sleep=short2h&ssrc=manual&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>3 h night</td><td>10:30 PM to 1:30 AM</td><td>0 / 12</td><td>0 / 12</td><td>3 h is enough to judge: bedtime 12, wake-up 0.</td><td><a href="/v7/mind/index.html?sleep=short3h&ssrc=manual&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr class="chg"><td>Health sent part of the night</td><td>4:10 to 6:15 AM</td><td>0 / 12</td><td>0 / 0</td><td>Under 3 h. The gold ribbon asks them to fix the times, which brings the points back.</td><td><a href="/v7/mind/index.html?sleep=partial&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr class="grp"><td colspan="6">Other sleepers</td></tr>
+          <tr><td>Night shift, day sleep</td><td>9:00 AM to 4:00 PM</td><td>19 / 0</td><td>19 / 0</td><td>The plan says 10:30 PM. Hours count; the window is 0 until the coach sets a day window.</td><td><a href="/v7/mind/index.html?sleep=nightshift&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Night shift, coach sets a day window</td><td>9:00 AM to 4:00 PM, plan 9:00 AM to 4:30 PM</td><td>19 / 24</td><td>19 / 24</td><td>On time against the coach's own window.</td><td><a href="/v7/mind/index.html?sleep=nightshift&pbed=09:00&pwake=16:30&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr class="grp"><td colspan="6">Data from the phone</td></tr>
+          <tr class="chg"><td>Watch and phone both sent the night</td><td>10:50 PM to 6:10 AM and 10:40 PM to 6:00 AM</td><td>0 / 24</td><td>23 / 24</td><td>Before, both were added up to 14h 40m and lost all hours for oversleeping. Now they are merged.</td><td><a href="/v7/mind/index.html?sleep=dup&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr class="chg"><td>Two sessions overlap</td><td>10:50 PM to 2:40 AM, 2:00 to 6:10 AM</td><td>23 / 24</td><td>22 / 24</td><td>The 40 min overlap no longer counts twice.</td><td><a href="/v7/mind/index.html?sleep=overlap&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr class="chg"><td>A 5 min blip at 11 AM</td><td>Night on plan, 11:00 to 11:05 AM</td><td>23 / 12</td><td>23 / 24</td><td>Pieces under 10 min are dropped.</td><td><a href="/v7/mind/index.html?sleep=crumb&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Typed in, not synced</td><td>10:30 PM to 6:00 AM</td><td>23 / 24</td><td>23 / 24</td><td>Hand-logged and synced sleep follow the same rule.</td><td><a href="/v7/mind/index.html?sleep=plan&ssrc=manual&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+          <tr><td>Nothing came in</td><td>Nothing</td><td>0 / 0</td><td>0 / 0</td><td>No points until last night is in.</td><td><a href="/v7/mind/index.html?sstate=none&now=7&amp;sheet=sleepinfo" target="_blank">Open</a></td></tr>
+        </tbody>
+      </table></div>
+      <div class="q"><h3>Decision: do naps count towards hours?</h3>
+        <div class="opts">
+          <div class="opt rec"><span class="rt">Recommended</span><b>A. The night only</b>As built. Hours read the night, so a nap never moves the score, up or down.<span class="catch">Catch: a 4:30 AM wake with a doze after 6:30 AM loses the doze (19 to 12 hours points).</span></div>
+          <div class="opt"><b>B. Naps count in full</b><span class="mono">?naps=count</span>. Nap time adds to hours; the window still reads the night.<span class="catch">Catch: a long nap can push past the 1 h allowance and cost points for oversleeping, and a nap can make up for a short night.</span></div>
+          <div class="opt"><b>C. Naps count up to 30 min</b>Not built. A short nap helps, a long one cannot replace the night.<span class="catch">Catch: one more number to explain.</span></div>
+        </div>
+      </div>
+      <div class="grouphead"><h3>On the screen</h3><span></span></div>
+      <div class="cases" data-cases="sleepwin"></div>
+    </section>
+
+    <section id="who">
+      <div class="snum">Section</div>
+      <h2>Who sees what</h2>
+      <p>Three kinds of people open Mind. <b>Free users</b> (no GoodFlip care plan) have no Rhythm score at all: no score bubbles, no line under them, no plan and no check-ins. They see their sleep from Health and can do any of the seven breathing exercises. <b>People waiting for a Mind plan</b> see the score locked, with the line saying it unlocks after their first Mind Coach consultation, their sleep, and the breathing exercises. <b>Plan users</b> get the full screen and breathe from their plan, so the "Breathing exercises" section is hidden for them. Breathing done from the section never changes Rhythm.</p>
+      <div class="cases" data-cases="who"></div>
+    </section>
+
     <section id="plan">
       <div class="snum">Section</div>
       <h2>Your mind plan</h2>
-      <p>The coach's plan in parts of the day, each item in the part its time falls in; an empty part is hidden. Every row is ticked or unticked, with the time the coach set on the right: before the chevron on rows that open something (breathing, mood), plain on wind-down and me-time. A breathing row shows only its minutes, "3 min".</p>
+      <p>The coach's plan in parts of the day, each item in the part its time falls in; an empty part is hidden. Every row is ticked or unticked, with the time the coach set on the right: before the chevron on the breathing row, which opens the player; plain on mood, wind-down and me-time (since 16 Nov the mood row has no chevron). A breathing row shows only its minutes, "3 min".</p>
       <div class="cases" data-cases="plan"></div>
     </section>
 
     <section id="mood">
       <div class="snum">Section</div>
       <h2>Mood check-in</h2>
-      <p>One question, five faces. Picking a face logs it at once, the same for any face: KAIRA's card shimmers in, then replies, and one warm button closes the sheet (Thank You, KAIRA after Awful or Low, Got It otherwise). There is no Log button. Another face replaces it, and the first time is kept.</p>
+      <p>One question, five faces. Picking a face logs it at once, the same for any face: a quote card (the commentary's quote mark, no KAIRA name) shimmers in with a supportive line, and one Done button closes the sheet. Each check-in opens 3 hours before the coach's time and stays open until midnight; tapped earlier, a sheet says when it opens. The row reads Mood check-in, "How are you feeling today?" and the time, with no chevron. (Before: Thank You, KAIRA after Awful or Low, Got It otherwise). There is no Log button. Another face replaces it, and the first time is kept.</p>
       <div class="grouphead"><h3>The check-in</h3><span></span></div>
       <div class="cases" data-cases="mood1"></div>
       <div class="grouphead"><h3>Low and very low</h3><span></span></div>
@@ -400,10 +484,10 @@
     <section id="breath">
       <div class="snum">Section</div>
       <h2>Breathing</h2>
-      <p>Tapping a breathing row opens the full-screen player, in the Line look. Tapping its circle opens "Mark as done?" for anyone who breathed on their own. The row ticks only when the coach's minutes are reached.</p>
+      <p>Tapping a breathing row opens the full-screen player, with the exercise's final picture (the seven in <a href="/v7/mind/breath-lab/final.html">breath-lab/final.html</a>). Tapping its circle, not yet done, opens a sheet named for the exercise: Start breathing, or I've already done it. The sound button sits left of Start from the ready screen on. The length sheet ends with No time limit, which counts up from 0:00. One minute breathed ticks the row in the background, right then, even if they keep going; the saved minutes are the whole minutes breathed. X or End asks: at 1 minute or more "N min saved" (Save and exit, Keep breathing), under it "Stop breathing?" (Keep breathing, Leave). A done row, tapped on its body or its circle, opens Eat's item menu: Breathe again, Mark as not done.</p>
       <div class="grouphead"><h3>A session, start to finish</h3><span></span></div>
       <div class="cases" data-cases="br1"></div>
-      <div class="grouphead"><h3>All five exercises</h3><span></span></div>
+      <div class="grouphead"><h3>All seven exercises</h3><span></span></div>
       <div class="cases" data-cases="br2"></div>
       <div class="grouphead"><h3>The row</h3><span></span></div>
       <div class="cases" data-cases="br3"></div>
@@ -434,8 +518,8 @@
       <div class="tablewrap"><table>
         <thead><tr><th>Part</th><th>Points</th><th>How it counts</th></tr></thead>
         <tbody>
-          <tr><td>Sleep hours</td><td>23</td><td>Full at the coach's hours, up to an hour over. Falls to 0 at 3 h short; past an hour over, loses 20% an hour. A split night counts time asleep only.</td></tr>
-          <tr><td>Sleep window</td><td>24</td><td>Bedtime and wake-up, half each. Full within 30 min of the plan, 0 at 2 h off, early or late alike. A split night reads the first bedtime and the last wake-up.</td></tr>
+          <tr><td>Sleep hours</td><td>23</td><td>Full at the coach's hours, up to an hour over. Falls to 0 at 3 h short; past an hour over, loses 20% an hour. Counts the night's time asleep only: breaks and naps are left out (see Sleep window: how it is judged).</td></tr>
+          <tr><td>Sleep window</td><td>24</td><td>Bedtime and wake-up, half each. Full within 30 min of the plan, 0 at 2 h off, early or late alike. Judged on the night only, its first bedtime and last wake-up; naps never move it. A night under 3 h asleep gives 0.</td></tr>
           <tr><td>Wind-down</td><td>23</td><td>Each task ticked earns its share.</td></tr>
           <tr><td>Breathing</td><td>10</td><td>Each exercise done in full earns its share.</td></tr>
           <tr><td>Me-time</td><td>10</td><td>The activity done earns all 10.</td></tr>
@@ -456,6 +540,7 @@
       <h2>Open questions</h2>
 
       <div class="q"><h3>1. Should saved breathing minutes count before the plan is reached?</h3>
+        <p><b>Decided 16 Nov:</b> one minute breathed ticks the row in full (C below), so the row and the score move at 1 minute.</p>
         <p>A 3 min plan done as 2 min, saved, scores nothing until the last minute, though the player says "Minutes add up through the day".</p>
         <div class="opts">
           <div class="opt rec"><span class="rt">Recommended</span><b>A. Count minutes pro rata</b>2 of 3 min earns two thirds of that exercise's share.<span class="catch">Catch: points rise while the row stays unticked.</span></div>
@@ -488,7 +573,7 @@
         </div>
       </div>
 
-      <div class="q"><h3>5. Learn more under the line</h3>
+      <div class="q"><h3>5. Learn more under the line (built 16 Nov as A: see The line under the score)</h3>
         <div class="opts">
           <div class="opt rec"><span class="rt">Recommended</span><b>A. Add Learn more</b>KAIRA analysis for the night and the day, as Move has.<span class="catch">Catch: sleep notes need care with health claims.</span></div>
           <div class="opt"><b>B. Keep the line plain</b>As built.<span class="catch">Catch: Mind reads thinner than Eat and Move.</span></div>
@@ -527,9 +612,9 @@
    ?mstate= (mood), ?bx= ?bstate= ?rm= (breathing). Doc-only hooks, added
    for this page and inert without them: ?me= ?done= ?act= ?mpick= ?mwait=
    ?merr= (variants/mood.js), ?serr= ?sstate=manual-noperm ?act=sleep
-   (variants/sleep.js), ?bfstate= ?bfel= (variants/breath.js).
+   (variants/sleep.js), ?bfstate= ?bfel= (variants/breath.js), ?untick= (plan.js).
    The plan: the coach portal's defaults and lists (coach-mind/data.js MP.SAMPLE): bed 10:30 PM to 6 AM, 7.5 h;
-   wind-down Last caffeine 4 PM, Screen-free wind-down 9:30 PM, the room 10 PM; Coherent Breathing 5 min at 7 AM;
+   wind-down Last caffeine 4 PM, Screen-free wind-down 9:30 PM, the room 10 PM; Simple Breathing 5 min at 7 AM;
    me-time Walk in nature 7 AM; one mood check-in at 9 PM.
    ============================================================ */
 const ME = "x=1";   /* the sample plan (coach-mind/data.js MP.SAMPLE) has its own me-time now */
@@ -550,13 +635,23 @@ const CASES = {
     ["os=android", "Connected", "os=android", "From Health Connect."],
     ["os=android&sstate=short", "A short sync", "os=android", "“Health Connect shows 2h 05m. If you slept more, fix it.”"],
   ],
+  who: [
+    ["state=free", "Free user, no score", "state=free", "No score, no line, no plan. Mind opens on Last night, then Breathing exercises: seven cards in a rail, each with its own scene."],
+    ["state=free&lfocus=1", "Free user, the breathing rail", "lfocus=1", "“Breathing exercises”, See all 7, one line under it, the seven cards. Tapping a card opens how it works; Start plays it."],
+    ["state=free&lsheet=box", "How it works", "lsheet=box", "The pattern, the breath as a wave with its key, good for, How long (the suggested time picked, any of 1 to 10 min or No time limit), the steps, why it helps, Start."],
+    ["state=free&lplay=box", "Starting", "lplay=box", "A 3, 2, 1 with Get comfortable, then the breath. With a time set it counts down and ends on Well done; with No time limit it counts up until End."],
+    ["state=noplan&lfocus=1", "Waiting for a plan", "state=noplan", "The score locked above, sleep, then the same breathing rail."],
+    ["scroll=plan", "Plan user", "default", "The full screen with the plan. No Breathing exercises section: breathing is in the plan."],
+    ["", "No FlipCoins", "default", "FlipCoins are off on Mind until the PM decides they exist: no Earn chip in the header, no coin toast after a log, no earn sheet. One switch, MD_COINS in mind/index.html."],
+    ["coins=1", "FlipCoins back on", "coins=1", "The same screen with the Earn chip and the coin toast, as before."],
+  ],
   act0: [
     ["state=noplanempty&sstate=none", "The first landing", "noplanempty", "Where a Care user starts. No plan yet, so the score sits locked and the line under it says when it unlocks: after the first Mind Coach consultation. Nothing for last night yet, so the night card offers Log sleep; there is no sleep window to draw until the coach sets one."],
     ["state=noplan", "Last night in, still no plan", "noplan", "Last night comes in from Health. The hours and the bedtime are real, with no targets to measure them against, so the night card shows them as they are, with no tiles and no plan section. The score stays locked, with the same line under it."],
   ],
   act1: [
     ["now=7.5&" + ME, "Last night is in", "now=7.5", "7:30 AM. 7h 20m from Apple Health. The plan is all still to do."],
-    ["now=9&" + ME + "&done=br:0", "Breathing done", "done=br:0", "9 AM. Coherent Breathing ticked in Morning."],
+    ["now=9&" + ME + "&done=br:0", "Breathing done", "done=br:0", "9 AM. Simple Breathing ticked in Morning."],
   ],
   act2: [
     ["now=19&" + ME + "&done=br:0,me:0", "The evening walk", "done=me:0", "7 PM. Me-time ticked in Evening."],
@@ -572,16 +667,26 @@ const CASES = {
     ["t=t-sleep&now=21", "Sleep reset", "t=t-sleep", "An earlier bedtime and three wind-down tasks, all at night."],
   ],
   say: [
-    ["sstate=none&now=7", "Before last night", "sstate=none", "“Log last night’s sleep to start today’s Rhythm.”"],
-    ["", "Last night in", "default", "“Keep going through your day to grow your Rhythm.”"],
-    ["sstate=none&now=7.5&act=sleep", "Sleep came in", "act=sleep", "“A steady night is the base of your Rhythm.”"],
-    ["act=br:0", "Breathing done", "act=br:0", "“A few slow breaths help your body settle.”"],
-    [ME + "&act=me:0", "Me-time done", "act=me:0", "“Time for yourself keeps stress low.”"],
-    ["act=mood", "Mood logged", "act=mood", "“Naming how you feel helps you understand your day.”"],
-    ["act=wd:0", "Wind-down ticked", "act=wd:0", "“Small steps in the evening help you sleep steady.”"],
-    ["now=22.5&" + ME + "&done=br:0,me:0,mood&act=wd:0", "The medal", "medal", "“You’ve earned today’s medal! Your Rhythm went up by N%. Well done.”"],
-    ["now=22.5&sstate=manual&" + ME + "&done=br:0,me:0,mood&act=wd:0", "100% Rhythm", "hundred", "“You reached 100% Rhythm! You looked after your night and your day.”"],
+    ["sstate=none&now=7", "Before last night", "sstate=none", "“Log last night’s sleep to start today’s Rhythm.” No Learn more."],
+    ["", "Last night in", "default", "“Keep going through your day to grow your Rhythm.” No Learn more."],
+    ["sstate=none&now=7.5&act=sleep", "Sleep came in", "act=sleep", "“Last night’s sleep added +N%. A steady night is the base of your Rhythm. Learn more”"],
+    ["act=br:0", "Breathing done", "act=br:0", "“Your breathing added +N%. A few slow breaths help your body settle. Learn more”"],
+    ["act=wd:0", "Wind-down ticked", "act=wd:0", "“Your wind-down added +N%. Small steps in the evening help you sleep steady. Learn more”"],
+    ["act=me:0", "Me-time done", "act=me:0", "“Your me-time added +N%. Time for yourself keeps stress low. Learn more”"],
+    ["act=mood", "Mood logged", "act=mood", "“Your mood check-in added +N%. Naming how you feel helps you understand your day. Learn more”"],
+    ["now=21.5&done=br:0,me:0,mood:0,wd:0&act=wd:1", "The medal", "medal", "“You’ve earned today’s medal! Your Rhythm went up by +N%. Well done. Learn more”"],
+    ["now=22.5&sstate=manual&done=br:0,me:0,mood:0,mood:1,wd:0,wd:1&act=wd:2", "100% Rhythm", "hundred", "“You reached 100% Rhythm! You looked after your night and your day. Learn more”"],
   ],
+  saykaira: [
+    ["sstate=none&now=7.5&act=sleep&kaira=1", "KAIRA on a night", "kaira=1", "“Last night is in.” Why it added what it did (hours against the coach's, the window), then the two soonest things still open."],
+    ["act=br:0&kaira=1", "KAIRA on breathing", "kaira=1", "“That breathing counted.” Opens on the shimmer, “KAIRA is looking at your day…”, then the note."],
+    ["act=wd:0&kaira=1", "KAIRA on wind-down", "kaira=1", "“Your wind-down counted.” Names the task ticked, then what helps next with times and +N%."],
+    ["act=me:0&kaira=1", "KAIRA on me-time", "kaira=1", "“Your me-time counted.”"],
+    ["act=mood&kaira=1", "KAIRA on a check-in", "kaira=1", "“Thanks for checking in.” Never comments on the face picked."],
+    ["now=21.5&done=br:0,me:0,mood:0,wd:0&act=wd:1&kaira=1", "KAIRA on the medal", "kaira=1", "“Today’s medal is yours!” Then what is still open tonight."],
+    ["now=22.5&sstate=manual&done=br:0,me:0,mood:0,mood:1,wd:0,wd:1&act=wd:2&kaira=1", "KAIRA at 100%", "kaira=1", "“You reached 100% Rhythm!” No next steps: “Rest well tonight. Tomorrow starts fresh.”"],
+  ],
+
   tiles: [
     ["", "On time", "default", "Sleep hours against the coach's hours, the window in words with the plan under it, and self-care done of planned."],
     ["sstate=edited", "Late", "sstate=edited", "The later of bedtime and wake-up, in words: 45 min late."],
@@ -595,6 +700,14 @@ const CASES = {
     ["sstate=edited", "Edited after sync", "sstate=edited", "From Apple Health, edited by you."],
     ["sstate=split", "Split night, typed in", "sstate=split", "The bar shows the gap; Awake 40 min at 2:30 AM."],
     ["sstate=split-synced", "Split night, from Health", "sstate=split-synced", "Two sessions from Apple Health, drawn the same way."],
+  ],
+  sleepwin: [
+    ["sleep=nap20", "A 20 min afternoon nap", "sleep=nap20", "The night on plan keeps 24 of 24. The card names the nap and says it changes nothing."],
+    ["sleep=nap20&sheet=sleepinfo", "How last night counts", "sheet=sleepinfo", "Hours, bedtime and wake-up with their points, and the nap, in plain words."],
+    ["sleep=late60&sheet=sleepinfo", "Slept 1 h late", "sleep=late60", "“Slept 11:30 PM, 1h late: 8 of 12. Woke up 6:00 AM, on time: 12 of 12.”"],
+    ["sleep=split2h", "Awake 2 h in the night", "sleep=split2h", "One night, the gap drawn in the bar. Window 24, hours count 5h 30m asleep."],
+    ["sleep=short2h&ssrc=manual", "A 2 h night", "sleep=short2h", "“Under 3 hours of sleep, so your sleep window gets no points today.”"],
+    ["sleep=dup", "Watch and phone both", "sleep=dup", "Merged into one 7h 30m night, not 14h 40m."],
   ],
   sleepsheet: [
     ["sheet=sleep", "The sheet", "sheet=sleep", "Drag the bar's ends or the whole night. Slept and Woke up, the active one outlined green, the wheel under it."],
@@ -613,58 +726,71 @@ const CASES = {
     ["scroll=plan&now=21&" + ME + "&done=br:0,me:0,mood", "Rows ticked", "done=…", "A ticked row greys under the green check; a part reads All done."],
   ],
   mood1: [
-    ["sheet=mood", "Five faces", "sheet=mood", "Evening check-in, 9:00 PM. Five faces; picking one logs it."],
-    ["sheet=mood&mpick=3&mwait=1", "KAIRA reading it", "mwait=1", "Good picked. KAIRA's card shimmers in for under a second."],
-    ["mstate=happy&sheet=mood", "Logged on the tap", "mstate=happy", "KAIRA replies under the faces; Got It closes the sheet."],
-    ["now=13&done=mood&scroll=plan", "Logged", "done=mood", "“🙂 Good, at 1:00 PM” on the row."],
-    ["mstate=change&sheet=mood", "Reopened", "mstate=change", "Good still picked, KAIRA's reply under it; Got It closes."],
-    ["mstate=change&sheet=mood&mpick=4", "Changing the face", "mpick=4", "The new face is logged on the tap, with KAIRA's new reply; the first time, 1:06 PM, is kept."],
+    ["now=21&sheet=mood", "Five faces", "sheet=mood", "How are you feeling? Five faces, no other lines; picking one logs it."],
+    ["scroll=plan", "Two check-ins, one open", "default", "The sample plan has two: 8:00 AM (open) and 9:00 PM. At 3 PM both rows read as usual; each opens 3 hours before its time and stays open until midnight."],
+    ["sheet=mood:1", "Tapped before it opens", "sheet=mood:1", "A sheet, not a toast: “Check in from 6:00 PM”, and in the quote card “Your coach has suggested logging your evening mood after 6:00 PM, so please come back and log it then.” Okay closes it."],
+    ["now=21&sheet=mood&mpick=3&mwait=1", "The reply loading", "mwait=1", "Good picked. The quote card shimmers in for under a second."],
+    ["now=21&mstate=happy&sheet=mood", "Logged on the tap", "mstate=happy", "A supportive line in a quote card under the faces; Done closes the sheet."],
+    ["now=13&done=mood&scroll=plan", "Logged", "done=mood", "“Feeling good” on the row: no time, no emoji."],
+    ["mstate=change&sheet=mood", "Tapping a logged check-in", "mstate=change", "Not the check-in sheet: Eat's item menu, titled Morning check-in, with Change your mood and Remove this check-in (red). Remove takes it off at once, no confirm, and the row goes back to “How are you feeling today?”."],
+    ["mstate=change&sheet=mood&medit=1", "Change your mood", "medit=1", "Good still picked, its reply under it; Done closes."],
+    ["mstate=change&sheet=mood&medit=1&mpick=4", "Changing the face", "mpick=4", "The new face is logged on the tap, with its new reply; the first time, 1:06 PM, is kept."],
   ],
   mood2: [
-    ["mstate=low&sheet=mood", "Low", "mstate=low", "KAIRA suggests something small they enjoy."],
-    ["mstate=vlow&sheet=mood", "Very low", "mstate=vlow", "KAIRA suggests five minutes of slow breathing when they are ready."],
+    ["now=21&mstate=low&sheet=mood", "Low", "mstate=low", "Thanks them for being honest, then suggests something small they enjoy."],
+    ["now=21&mstate=vlow&sheet=mood", "Very low", "mstate=vlow", "Gentle words, then a few minutes of slow breathing when they are ready."],
   ],
   mood3: [
-    ["t=t-calm&mstate=two&now=21&scroll=plan", "Two check-ins", "mstate=two", "One row each, 1 PM and 8:30 PM, each worth half."],
-    ["t=t-calm&now=17&scroll=plan", "A missed slot", "now=17", "“You can still check in today”. It still counts."],
-    ["state=past&date=2026-9-10&scroll=plan", "A past day", "state=past", "“Not logged. You can still add it”."],
-    ["state=past&date=2026-9-10&sheet=mood&mpick=3", "How did you feel?", "state=past", "It counts for that day, and reads “added later”."],
+    ["t=t-calm&mstate=two&now=21&scroll=plan", "Two check-ins", "mstate=two", "One row each, 1 PM and 8:30 PM, each worth half. The 8:30 PM one opens at 5:30 PM (3 hours before); if two windows overlap, the later one opens at the midpoint."],
+    ["t=t-calm&now=17&scroll=plan", "A missed slot", "now=17", "“How are you feeling today?”, the same line on every check-in not yet logged. It still counts."],
+    ["state=past&date=2026-9-10&scroll=plan", "A past day", "state=past", "The row reads “How are you feeling today?”. Tapping it opens a sheet: “This check-in has closed. Check-ins close at midnight… Your next check-in counts the same.”"],
   ],
   br1: [
-    ["sheet=breath", "Ready", "sheet=breath", "Coherent Breathing: the orb, in 5, out 5, 5 min session, Start."],
-    ["bfstate=len", "Session length", "bfstate=len", "1, 2, 3, 5 or 10 min; the coach's marked Recommended by your coach."],
-    ["bx=box&bfstate=run&bfel=20", "Running", "bfstate=run", "The pearl walks the square; the phase word and its count. End and Pause."],
-    ["bx=box&bfstate=paused", "Paused", "bfstate=paused", "The time is locked once a session begins. End and Resume."],
-    ["bx=box&bfstate=ask", "The X while running", "bfstate=ask", "Stop breathing? Keep Breathing or Leave."],
-    ["bx=box&bfstate=early", "Ended early", "bfstate=early", "You breathed for 2 min 10 s. Keep Breathing, or Save 2 Min."],
-    ["bx=box&bfstate=short", "Under a minute", "bfstate=short", "A session needs a minute to save. End Here."],
-    ["bx=box&bfstate=done", "Done", "bfstate=done", "3 calm minutes. Do It Again, or Back to Mind."],
+    ["sheet=breath", "Ready", "sheet=breath", "Simple Breathing: the breath clock with its bloom, In 5, out 5, 5 min session. The sound button left of Start, the same one as while breathing."],
+    ["bfstate=len", "Session length", "bfstate=len", "1, 2, 3, 5 or 10 min, the coach's marked Recommended by your coach, and last No time limit, “As long as you like”."],
+    ["bfstate=lenfree", "No time limit picked", "bfstate=lenfree", "The button reads Use no time limit; once used, the pill reads No limit and the line under the pattern No time limit."],
+    ["bfstate=free", "No time limit, running", "bfstate=free", "The pill counts up from 0:00 (here 2:11) until they end it. Nothing ends on its own."],
+    ["bx=box&bfstate=run&bfel=20", "Running", "bfstate=run", "The bead walks the square while the flower opens and folds; the phase word and its count. Sound on or off, and Pause."],
+    ["bfstate=tick", "1 minute: the row ticks", "bfstate=tick", "Starts at 0:55. At 1:00 the breathing row is ticked behind the player and Rhythm moves, while the session carries on."],
+    ["bx=box&bfstate=paused", "Paused", "bfstate=paused", "The time is locked once a session begins. Sound stays; End appears beside Resume."],
+    ["bx=box&bfstate=ask", "X or End, a minute or more", "bfstate=ask", "“2 min saved”. “Your 2 minutes count and Box Breathing (4-4-4-4) is ticked in your plan.” Save and exit, or Keep breathing."],
+    ["bx=box&bfstate=askshort", "X or End, under a minute", "bfstate=askshort", "“Stop breathing?” “Breathe for at least 1 minute for it to count.” Keep breathing, or Leave (nothing counts)."],
+    ["bx=box&bfstate=done", "Done", "bfstate=done", "5 calm minutes. Do It Again, or Back to Mind."],
   ],
   br2: [
-    ["bx=box&bfstate=run&bfel=20", "Box Breathing", "bx=box", "In 4, hold 4, out 4, hold 4, traced on a square."],
-    ["bx=star&bfstate=run&bfel=20", "Star Breathing", "bx=star", "Up 4, pause 2, down 6, traced on a star."],
-    ["bx=finger&bfstate=run&bfel=20", "5 Finger Breathing", "bx=finger", "Up 4, down 6, finger by finger."],
-    ["bx=478&bfstate=run&bfel=20", "Sleep Breathing", "bx=478", "In 4, hold 7, out 8, as the orb with its glow."],
-    ["bfstate=run&bfel=20", "Zen Flow Breathing", "bx=zen", "In 4, out 6, as the orb with its glow."],
-    ["bx=star&bfstate=run&bfel=20&rm=1", "Reduced motion", "rm=1", "The shape stays still; the word and the count change."],
+    ["bx=simple&bfstate=run&bfel=2", "Simple Breathing", "bx=simple", "In 5, out 5. The breath clock in two equal halves, the flower opening and folding."],
+    ["bx=478&bfstate=run&bfel=2", "4-7-8 Breathing", "bx=478", "In 4, hold 7, out 8. The ring is dotted for the hold; the flower stays open through it."],
+    ["bx=box&bfstate=run&bfel=2", "Box Breathing (4-4-4-4)", "bx=box", "In 4, hold 4, out 4, hold 4. A square, one side a step, the holds dotted."],
+    ["bx=exhale&bfstate=run&bfel=2", "Extended Exhale (2:1)", "bx=exhale", "In 4, out 8. A short arc in, an arc twice as long out."],
+    ["bx=belly&bfstate=run&bfel=2", "Belly Breathing", "bx=belly", "In 4, out 6. The filmed side profile, her belly rising and settling inside the ring."],
+    ["bx=hum&bfstate=run&bfel=2", "Humming Bee Breath (Bhramari)", "bx=hum", "In 4, hum 7. The illustrated woman, hands over her face, inside the ring."],
+    ["bx=pursed&bfstate=run&bfel=2", "Pursed Lip Breathing", "bx=pursed", "In 2, out 4. The close-up with a gold arrow in at the nose and out from the lips."],
+    ["bx=box&bfstate=run&bfel=2&rm=1", "Reduced motion", "rm=1", "Each picture holds a still end state and changes only when the phase changes; the word and the count still change."],
   ],
   br3: [
-    ["t=t-calm&sheet=brask", "Mark as done?", "sheet=brask", "Tapping the circle: “Box Breathing, 5 min. Mark it done if you have already breathed it on your own.” Mark as Done, or Not Now. A ticked circle unticks straight away, with a toast."],
-    ["scroll=plan", "Not done", "default", "Coherent Breathing (5-5), 5 min under the name, 7:00 AM before the chevron. The row opens the player; the circle asks first."],
-    ["bx=box&bfstate=saved&scroll=plan", "2 of 3 min saved", "bfstate=saved", "Still unticked; saved minutes add up through the day."],
+    ["sheet=brask", "Tapping the circle, not done", "sheet=brask", "A sheet titled Simple Breathing: “In 5, out 5 · 5 min, suggested by your coach”. Start breathing opens the player's ready screen; I've already done it ticks the row, with “Marked as done”."],
+    ["scroll=plan", "Not done", "default", "Simple Breathing, 5 min under the name, 7:00 AM before the chevron. The row opens the player; the circle asks how."],
+    ["bx=box&bfstate=saved&scroll=plan", "2 min saved", "bfstate=saved", "Save and exit at 2 min: the row is ticked, 2 whole minutes saved."],
     ["bstate=donerow&scroll=plan", "Done", "bstate=donerow", "Ticked."],
+    ["done=br:0&sheet=brask", "Tapping a done row", "done=br:0", "Eat's item menu titled Simple Breathing: Breathe again (opens the player, a fresh session) and Mark as not done (unticks at once, no confirm, “Marked as not done”). The row's body opens the same menu."],
   ],
   rows: [
     ["t=t-sleep&now=21&scroll=plan", "Wind-down", "t=t-sleep", "Three small evening steps, each with its time."],
-    ["t=t-sleep&now=22&done=wd:0,wd:1&act=wd:2&scroll=plan", "Ticking one", "act=wd:2", "Ticks in place, with a small burst."],
-    [ME + "&now=18&scroll=plan", "Me-time", "me=…", "The coach's one activity, with its time."],
-    [ME + "&now=18&act=me:0&scroll=plan", "Ticking it", "act=me:0", "Ticks in place, like wind-down."],
+    ["t=t-sleep&now=22&done=wd:0,wd:1&act=wd:2&scroll=plan", "Ticking one", "act=wd:2", "One tap ticks it in place, with a small burst."],
+    ["done=wd:0&untick=wd:0", "Tapping a ticked step", "untick=wd:0", "Eat's item menu titled with the task, one row: Mark as not done. It unticks at once, no confirm, with “Marked as not done”. The row's body does the same."],
+    [ME + "&now=18&scroll=plan", "Me-time", "me=…", "The coach's one activity, “Time for yourself”, with its time."],
+    [ME + "&now=18&act=me:0&scroll=plan", "Ticking it", "act=me:0", "One tap ticks it in place, like wind-down."],
+    [ME + "&done=me:0&untick=me:0", "Tapping it, ticked", "untick=me:0", "The same menu as wind-down: Mark as not done."],
   ],
   practices: [
     ["tab=practices", "Practices", "tab=practices", "The coach's templates from the reflection app, outside the score."],
+    ["state=noplan&tab=practices", "Waiting for a plan", "state=noplan", "Practices is there for people waiting for a plan too."],
+    ["state=free&tab=practices", "Free user: no Practices", "state=free", "No Practices button in the bar (Back, Mind, Trend, Learn) and no way in: ?tab=practices opens Mind."],
   ],
   date: [
-    ["sheet=1", "Open on today", "sheet=1", "A ring per day for Rhythm, a medal at 80% or more."],
+    ["sheet=1", "Open on today", "sheet=1", "A gold ring per day for Rhythm, a medal at 80% or more, dashed for a day with nothing logged. The key: “The ring is your Rhythm out of 100. A medal is a day at 80% or more. A dashed ring is a day with nothing logged.”"],
+    ["state=noplan&sheet=1", "Waiting for a plan", "state=noplan", "No score, so no rings and no medal: a dot for a night with sleep logged. “A dot is a night with sleep logged. Your Rhythm rings start once your coach sets your plan.”"],
+    ["state=free&sheet=1", "Free user", "state=free", "No score, so no rings and no medal; they can still move between days for their sleep. “A dot is a night with sleep logged. Pick a day to see it.” A day picked stays a free user's day."],
     ["state=past&date=2026-9-10", "An earlier day", "date=2026-9-10", "Thursday 10 September."],
     ["state=past&date=2026-9-10&sheet=1", "Opened from that day", "date=…&sheet=1", "With today still marked."],
   ],
@@ -681,6 +807,8 @@ const SECTIONS = [
   ["say", "The line under the score"],
   /* ["tiles", "What shaped your score?"],   parked */
   ["sleep", "Last night"],
+  ["sleepwin", "Sleep window"],
+  ["who", "Who sees what"],
   ["plan", "Your mind plan"],
   ["mood", "Mood check-in"],
   ["breath", "Breathing"],

@@ -885,6 +885,7 @@ if (window.MVOFF.all) document.write("<style>#railSect[hidden]{display:none}#rai
   .dsretry:hover { background: var(--g-50); }
   /* logged, but before the plan existed: indigo is this system's colour for logging */
   .dsdot { width: 8px; height: 8px; border-radius: 9999px; background: var(--in-400); margin: 12px 0; }
+  .dsdot.hollow { background: none; box-shadow: inset 0 0 0 1.5px var(--g-300); }
   /* a loading day keeps the ring's shape, so the grid does not change size when the month lands */
   .dsshim { position: relative; width: 32px; height: 32px; border-radius: 9999px; }
   .dsshim i { position: absolute; inset: 3px; border-radius: 9999px; background: #fff; }
@@ -1354,7 +1355,9 @@ if (window.MVOFF.all) document.write("<style>#railSect[hidden]{display:none}#rai
   /* Move: the design system's Movement pictogram (the calorie-burn flame) in place of Kaira's mark */
   document.getElementById("kairaMark").innerHTML = '<img src="/v7/icons/orbs/mind.svg" alt="">';
 </script>
-<script src="assets/flipcoin-toast.js?v=2"></script>
+<script>/* FlipCoins are off on Mind until the PM decides they exist: no Earn chip, no coin toast, no earn sheet. ?coins=1 brings them back (one switch) */
+window.MD_COINS = new URLSearchParams(location.search).get("coins") === "1";
+if (window.MD_COINS) document.write('<script src="assets/flipcoin-toast.js?v=2"><\/script>');</script>
 <script src="assets/plan-tray.js?v=112"></script>
 <script>
   /* the Earn sheet in Move's words: a workout logged today keeps the streak, one FlipCoin a day */
@@ -1365,7 +1368,7 @@ if (window.MVOFF.all) document.write("<style>#railSect[hidden]{display:none}#rai
     today: function () { var P = window.MVPLAN; return P ? P.RT.some(function (rt, r) { return P.burned(r) > 0; }) ? 1 : 0 : 0; },
     go: function () { window.openLogWorkout && window.openLogWorkout(); } };
 </script>
-<script src="assets/flipcoin-earn.js?v=8"></script>
+<script>if (window.MD_COINS) document.write('<script src="assets/flipcoin-earn.js?v=8"><\/script>');</script>
 <script>
 /* ============================================================
    One table, every state. Everything below reads from it: the
@@ -1722,30 +1725,32 @@ document.getElementById("dayLabel").textContent = S.day;
     return '<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true">' +
       '<circle cx="16" cy="16" r="13" fill="none" style="stroke:var(' + (o.faint ? "--g-100" : "--g-200") + ')" stroke-width="3"' +
         (o.open ? ' stroke-dasharray="3 4" stroke-linecap="round"' : "") + "/>" +
-      (pct > 0 ? '<circle cx="16" cy="16" r="13" fill="none" style="stroke:var(--in-600)" stroke-width="3" stroke-linecap="round" ' +
+      (pct > 0 ? '<circle cx="16" cy="16" r="13" fill="none" style="stroke:#CDA935" stroke-width="3" stroke-linecap="round" ' +
         'stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + (C * (1 - pct)).toFixed(1) + '" transform="rotate(-90 16 16)"/>' : "") +
-      (o.full ? '<circle cx="16" cy="16" r="3" style="fill:var(--in-200)"/>' : "") + "</svg>";
+      (o.full ? '<circle cx="16" cy="16" r="3" style="fill:#F9DD80"/>' : "") + "</svg>";
   }
 
   function cell(y, m, d) {
     var k = dayKind(y, m, d);
-    /* today's ring is the live Momentum; before a plan there is none, so today reads as movement logged before the plan */
+    /* today's ring is the live Rhythm, in Rhythm's gold (the gauge's 700); before a plan, and for free users, there is no score, so no rings at all */
     var sc = k === "today" ? window.MVMOM && window.MVMOM.score() : CAL.score[dkey(y, m, d)];
     var off = k === "future" || k === "before";
     var sel = VIEW.y === y && VIEW.m === m && VIEW.d === d && !off;
-    /* before a plan (?state=noplan…) no day has a score: a day with a workout logged is a dot, a day with none is dashed.
-       ponytail: past pre-plan days are all read as logged; real history comes with real data */
-    var P0 = window.MVPLAN, NP = P0 && P0.noplan;
-    var todayLogged = !NP || P0.S.extra.some(function (a) { return a.length; });
+    /* before a plan (?state=noplan…) and for free users (?state=free) no day has a score: a night with sleep logged is a dot,
+       today with nothing yet a hollow dot, a day ahead nothing. ponytail: past days are all read as logged; real history comes with real data */
+    var MP0 = window.MDPLAN, NP = !!(MP0 && MP0.noplan);
+    var todayLogged = !NP || MP0.logged() || !!(window.MDRHYTHM && window.MDRHYTHM.parts().raw.self > 0);
     var pre = k === "preplan" || (NP && !off && !(k === "today" && !todayLogged)) || (!NP && k === "today" && sc == null);
     var vis = pre ? '<span class="dsdot"></span>'
+      : NP && off ? '<span class="dsdot" style="visibility:hidden"></span>'
+      : NP ? '<span class="dsdot hollow"></span>'
       : off ? ring(0, { faint: true })
-      : k === "missed" || (NP && k === "today") ? ring(0, { open: true })
+      : k === "missed" ? ring(0, { open: true })
       /* a day at 80% or more earned the medal, so the calendar shows it, small and without its ribbon */
       : sc >= 80 ? '<img class="dsmed" src="' + window.MV_MEDAL.src + '" alt="">'
       : ring(sc / 100, { full: sc >= 100 });
     var says = k === "future" ? "not yet" : k === "before" ? "before you joined"
-      : pre ? "movement logged, before your plan" : k === "missed" || (NP && k === "today") ? "no movement logged"
+      : pre ? (NP ? "sleep logged" : "logged before your plan") : k === "missed" || NP ? "nothing logged"
       : "Rhythm " + sc + " out of 100" + (sc >= 80 ? ", medal earned" : "");
     return '<button class="dsd' + (k === "today" ? " today" : "") + (sel ? " sel" : "") + '"' + (off ? " disabled" : "") +
       ' data-d="' + d + '" aria-label="' + d + " " + MONTHS[m - 1] + ", " + says + '"' + (sel ? ' aria-current="date"' : "") + '>' +
@@ -1782,15 +1787,20 @@ document.getElementById("dayLabel").textContent = S.day;
       document.getElementById("dsRetry").onclick = function () { mode = "grid"; draw(); };
       return;
     }
-    bodyEl.innerHTML = grid() +
-      '<p class="dsl">The ring is your Rhythm out of 100. A medal is a day at 80% or more.</p>';
+    /* the key says what the marks mean for this person: rings and the medal only where there is a score */
+    var M0 = window.MDPLAN;
+    bodyEl.innerHTML = grid() + '<p class="dsl">' + (M0 && M0.free ? "A dot is a night with sleep logged. Pick a day to see it."
+      : M0 && M0.noplan ? "A dot is a night with sleep logged. Your Rhythm rings start once your coach sets your plan."
+      : "The ring is your Rhythm out of 100. A medal is a day at 80% or more. A dashed ring is a day with nothing logged.") + "</p>";
   }
 
   function go(y, m, d) {
     var k = dayKind(y, m, d);
     if (k === "future" || k === "before") return;
     var q = new URLSearchParams(location.search);
-    q.set("state", STATE_FOR[k]);
+    /* free users and people waiting for a plan stay who they are on any day; only plan users' days carry a scored state */
+    var who = /^(free|noplan)/.test(q.get("state") || "") ? (/^free/.test(q.get("state")) ? "free" : "noplan") : "";
+    q.set("state", who || STATE_FOR[k]);
     if (k === "today") q.delete("date"); else q.set("date", dkey(y, m, d));
     q.delete("sheet");
     location.search = q.toString();
@@ -3435,6 +3445,8 @@ function mealsIn() {
       4: '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>',
       5: '<path d="M9.94 14.06 4 20M2 22l2-2"/><path d="M14 4l1.5 3.5L19 9l-3.5 1.5L14 14l-1.5-3.5L9 9l3.5-1.5z"/><path d="M20 3v4M22 5h-4M5 3v2M6 4H4"/>'
     };
+    /* free users have no Practices: no tab and no way in (?tab=practices included). People waiting for a plan and plan users keep it */
+    if (/^free/.test(new URLSearchParams(location.search).get("state") || "")) { pr.remove(); pv.remove(); return; }
     pr.querySelector(".pr-ic").outerHTML = SV(PI[new URLSearchParams(location.search).get("pricon")] || PI[1]);
     pr.onclick = function () { show(true); };
     mind.onclick = function () { show(false); };
@@ -3853,14 +3865,20 @@ function mealsIn() {
 
 
 
-<script src="/v7/mind/layouts.js?v=12"></script>
+<script src="/v7/mind/layouts.js?v=13"></script>
 <script src="/v7/coach-mind/data.js"></script>
-<script src="/v7/mind/plan.js?v=14"></script>
+<script src="/v7/mind/sleep-rule.js?v=1"></script>   <!-- which sleep is the night, and how it scores: rhythm.js and variants/sleep.js read it -->
+<script src="/v7/mind/plan.js?v=15"></script>
 <script>
   /* ?vmood=b, ?vsleep=c, ?vbreath=a: a variant from the research docs, drawn on this screen, loaded before the score so it starts from the variant's day (variants/<topic>.js) */
   (function () { var q = window.MDPLAN ? MDPLAN.Q : new URLSearchParams(location.search);   /* plan.js's defaults: the finals, J and A */
-    ["mood", "sleep", "breath", "tiles"].forEach(function (k) { if (q.get("v" + k)) document.write('<script src="/v7/mind/variants/' + k + '.js?t=' + Date.now() + '"><\/script>'); }); })();
+    ["mood", "sleep", "breath", "tiles", "lib"].forEach(function (k) { if (!q.get("v" + k)) return;
+      /* breathing draws the final seven's pictures: the lab's clock, visuals and list first (mind/breath-lab/FINAL.md) */
+      if (k === "breath") ["lab", "final", "ai-frames", "final-list"].forEach(function (f) { document.write('<script src="/v7/mind/breath-lab/' + f + '.js"><\/script>'); });
+      document.write('<script src="/v7/mind/variants/' + k + '.js?t=' + Date.now() + '"><\/script>'); }); })();
 </script>
-<script src="/v7/mind/rhythm.js?v=9"></script>
+<script src="/move/kaira-sheet.js?v=7"></script>
+<script src="/v7/mind/rhythm-say.js?v=1"></script>
+<script src="/v7/mind/rhythm.js?v=10"></script>
 </body>
 </html>

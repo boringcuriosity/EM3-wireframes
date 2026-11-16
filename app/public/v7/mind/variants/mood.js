@@ -1,7 +1,7 @@
 /* Mood check-in variants on the real Mind screen (?vmood=a..e), for research/mood.html.
    One question only, then a reply. Each check-in slot in the coach's plan (?t=t-calm has two) is its own row
-   ("mood" and "mood:1") with its own answer. Picking a face logs it at once: KAIRA's card shimmers in and answers it,
-   and the button under it closes the sheet ("Thank You, KAIRA" after a low day, "Got It" otherwise). Another face replaces it.
+   ("mood" and "mood:1") with its own answer. Picking a face logs it at once: a quote card (the commentary's quote mark,
+   no KAIRA name) shimmers in with a supportive line, and one "Done" button closes the sheet. Another face replaces it.
    Doc states: ?mstate=start|happy|low|vlow (a face picked, not logged yet)|change|two|missed|offline, with ?now= for the clock. */
 (function () {
   var MD = window.MDPLAN;
@@ -31,26 +31,26 @@
   var label = function (f) { var x = SCALE.filter(function (s) { return s[0] === f; })[0]; return x ? x[1] : F[f][0]; };
   var faceOf = function (f) { return F[f][1]; };
 
-  /* what comes back. KAIRA speaks in a, c, d, e; b is a quiet line from the app */
+  /* what comes back. a quote card in a, c, d, e; b is a quiet line from the app */
   var LEAD = [
-    "I'm sorry today has been this hard, and thank you for telling me. You don't have to fix it all at once.",
-    "Thank you for being honest with me. Low days come to everyone, and they do pass.",
-    "Okay is a fair answer. Most days are like this, and they still tell us a lot over a few weeks.",
-    "Good to hear. What made today good? Noticing it makes it easier to have more days like this.",
-    "That's lovely to hear. Hold on to what went right today, it's worth doing again."
+    "Thank you for checking in. Hard days don't last, and being gentle with yourself today is enough.",
+    "Thank you for being honest. Low days come to everyone, and they do pass. Go easy on yourself.",
+    "Some days it's fine to be just okay. Thanks for checking in. Try to keep your day happy by doing activities you like.",
+    "Good to hear. Notice what made today good, it's worth doing again tomorrow.",
+    "That's wonderful. Enjoy it, and hold on to what went right today."
   ];
   /* on a past day, the same replies about that day */
   var PLEAD = [
-    "I'm sorry that day was this hard, and thank you for telling me. Hard days pass, and you got through this one.",
-    "Thank you for being honest with me. Low days come to everyone, and they do pass.",
-    "Okay is a fair answer. Most days are like this, and they still tell us a lot over a few weeks.",
-    "Good to hear. What made that day good? Noticing it makes it easier to have more days like it.",
-    "That's lovely to hear. Hold on to what went right that day, it's worth doing again."
+    "Thank you for checking in. That was a hard day, and you got through it.",
+    "Thank you for being honest. Low days come to everyone, and they do pass.",
+    "Some days it's fine to be just okay. Thanks for checking in. Doing activities you like helps keep your days happy.",
+    "Good to hear. Notice what made that day good, it's worth doing again.",
+    "That's wonderful. Hold on to what went right that day."
   ];
   if (PAST) LEAD = PLEAD;
   /* what to do, on a low answer only: plain and general, never a card to act on */
   var DO = [
-    "When you're ready, five minutes of slow breathing settles your body first, and the mind often follows.",
+    "When you're ready, a few minutes of slow breathing can help your body settle, and your mind often follows.",
     "Something small you enjoy, a song, a short walk or a call with someone you love, can lift a low day sooner than waiting it out."
   ];
   var QLEAD = ["Sorry today is hard.", "Thank you for telling us.", "Thank you. Okay days count too.", "Good to hear. Notice what made it good.", "Lovely. Notice what went right today."];
@@ -70,7 +70,7 @@
      ?me=<label>&meat=HH:MM  a me-time activity, as the coach portal would type it (the templates leave it blank)
      ?done=br:0,wd:0,me:0,mood  rows already done when the screen opens (mood logs Good at ?now=)
      ?act=br:0|wd:0|me:0|mood  one row done 1.6 s after the screen settles, so the score and the line under it move
-     ?mpick=0..4  the face picked when the check-in opens; ?mwait=1 holds KAIRA's shimmer; ?merr=1 shows the could-not-log line */
+     ?mpick=0..4  the face picked when the check-in opens; ?mwait=1 holds the reply's shimmer; ?merr=1 shows the could-not-log line */
   if (Q.get("me") && !P.me.length) P.me.push({ t: Q.get("me"), d: "", at: Q.get("meat") || "18:00" });
   var doc = function (key) {
     var q = key.split(":");
@@ -83,13 +83,56 @@
 
   function sync() { var a = VM.filter(Boolean); S.mood = a.length ? a[a.length - 1].f : -1; }
 
+  /* ---------- when a check-in can be logged ----------
+     It opens 3 hours before the coach's time and stays open until midnight, so a late check-in still counts.
+     When two check-ins' windows overlap, the later one opens at the midpoint between them. A past day is closed. */
+  function openM(i) { var m = SLOTS[i].m - 180; if (i && SLOTS[i - 1]) m = Math.max(m, Math.round((SLOTS[i - 1].m + SLOTS[i].m) / 2)); return Math.max(0, m); }
+  function hhmm(m) { return ("0" + Math.floor(m / 60)).slice(-2) + ":" + ("0" + m % 60).slice(-2); }
+  function shut(i) { return VM[i] ? "" : PAST ? "missed" : NOWM < openM(i) ? "early" : ""; }
+
+  var EDIT = false;
+  var MI = {
+    pen: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+    bin: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'
+  };
+  function menuSheet(i) {
+    var el = window.GFOpenSheet("vmMenu", SLOTS[i].name + " check-in",
+      '<button class="menurow" data-vmact="edit"><span class="mi">' + MI.pen + '</span>Change your mood</button>' +
+      '<button class="menurow warn" data-vmact="del"><span class="mi">' + MI.bin + '</span>Remove this check-in</button>');
+    el.querySelector(".sbody").onclick = function (e) {
+      var b = e.target.closest("[data-vmact]"); if (!b) return;
+      if (b.dataset.vmact === "edit") { EDIT = true; window.MDVAR.open.mood(i ? "mood:1" : "mood"); return; }
+      VM[i] = null; sync(); MD.cause = ""; window.closeSheets(); MD.render(); MD.toast("Mood check-in removed");
+    };
+  }
+
+  /* tapped before it opens, or on a past day: a sheet that says when, never a toast or the row's line */
+  function lockSheet(i, sh) {
+    var s0;
+    var t = MD.niceS(hhmm(openM(i))), part = SLOTS[i].name.toLowerCase();
+    /* the same quote card as the reply, with the commentary's quote mark */
+    var q = (s0 = document.createElement("div"), s0.innerHTML = reply(0), s0.querySelector(".vm-q").outerHTML);
+    var line = sh === "early"
+      ? "Your coach has suggested logging your " + part + " mood after " + t + ", so please come back and log it then."
+      : "Check-ins close at midnight, so this one can no longer be added. Your next check-in counts the same.";
+    var h = '<div class="vm"><div class="vm-k">' + q + '<p>' + line + '</p></div><button class="md-save" data-vmdone="1">Okay</button></div>';
+    window.GFOpenSheet("vmLock", sh === "early" ? "Check in from " + t : "This check-in has closed", h);
+  }
+
+  /* the row's line once logged: options for the designer (?mlog=1..5) */
+  var LOGGED = [
+    function (w) { return "Feeling " + w.toLowerCase(); },
+    function (w) { return "Checked in: " + w; },
+    function (w) { return "You said " + w.toLowerCase(); },
+    function () { return "Thanks for checking in"; },
+    function (w) { return w + " today"; }
+  ];
+
   /* ---------- the rows on the plan ---------- */
   function rowD(i) {
-    var a = VM[i], s = SLOTS[i];
-    if (a) return (VAR === "d" ? "" : faceOf(a.f) + " ") + label(a.f) + (a.late ? ", added later" : ", at " + a.at);
-    if (PAST) return "Not logged. You can still add it";
-    if (NOWM > s.m + 120) return "You can still check in today";
-    return "How are you feeling? Takes a few seconds";
+    var a = VM[i], s = SLOTS[i], sh = shut(i);
+    if (a) return LOGGED[(+Q.get("mlog") || 1) - 1](label(a.f));   /* no time, no emoji; ?mlog=1..5 previews the options */
+    return "How are you feeling today?";   /* one standard line for every check-in not yet logged, open or not */
   }
   function items(L) {
     L = L.filter(function (x) { return x.sheet !== "mood"; });
@@ -99,12 +142,13 @@
     return L;
   }
 
-  /* KAIRA's reply to the face picked: a shimmer first, as if she is reading it, then the words */
+  /* the reply to the face picked: a shimmer first, then the words */
   function reply(f) {
     var txt = VAR === "b" ? QLEAD[f] + (f <= 1 ? " " + QDO[f] : "") : LEAD[f] + (f <= 1 ? " " + DO[f] : "");
     if (VAR === "b") return wait ? '<div class="vm-q-sh" aria-hidden="true"><i></i><i></i></div>' : '<p class="vm-quiet" aria-live="polite">' + txt + '</p>';
-    var mark = window.GFKaira && GFKaira.mark ? GFKaira.mark(20, { halo: false }) : '<i class="vm-dot"></i>';
-    return '<div class="vm-k' + (wait ? " wait" : "") + '"><div class="vm-kw">' + mark + 'KAIRA</div>' +
+    /* the commentary card's quote mark, not KAIRA's (v7/r3/assets/score-say.js) */
+    var mark = '<svg class="vm-q" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4.6 18.7C3.5 17.5 3 16.3 3 14.3c0-3.5 2.5-6.6 6-8.2l.9 1.4C6.6 9.3 5.9 11.6 5.7 13.1c.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Zm10 0c-1.1-1.2-1.6-2.4-1.6-4.4 0-3.5 2.5-6.6 6-8.2l.9 1.4c-3.3 1.8-4 4.1-4.2 5.6.5-.3 1.2-.4 1.8-.3 1.8.2 3.2 1.6 3.2 3.4a3.4 3.4 0 0 1-3.4 3.4c-1 0-2.1-.4-2.7-.9Z"/></svg>';
+    return '<div class="vm-k' + (wait ? " wait" : "") + '">' + mark +
       (wait ? '<div class="vm-sh" aria-hidden="true"><i></i><i></i><i></i></div>' : '<p aria-live="polite">' + txt + '</p>') + '</div>';
   }
   function errLine() { return err ? '<div class="vm-err" role="alert"><span>Could not log your mood. Check your internet and try again.</span></div>' : ""; }
@@ -122,12 +166,11 @@
   }
   function body() {
     var a = VM[cur], s = SLOTS[cur], same = a && sel === a.f;
-    var h = '<div class="vm-top"><div class="vm-slot">' + (PAST ? DAYN + ", " + s.name.toLowerCase() : s.name) + " check-in, " + MD.niceS(s.at) + '</div><div class="vm-hint">' +
-      (PAST ? "Pick the one closest to how you felt then. It still counts for that day." : "Pick the one closest to how you feel. Every check-in counts the same.") + '</div></div>' + ask(a);
+    var h = ask(a);   /* no slot line or hint: the sheet title asks the question */
     if (sel != null) h += reply(sel);
-    /* a face is logged the moment it is picked: no Log button. KAIRA answers, and one warm button closes the sheet */
+    /* a face is logged the moment it is picked: no Log button. the reply shows, and one Done button closes the sheet */
     h += errLine() + (err ? '<button class="md-save" data-vmlog="1">Try Again</button>'
-      : same ? '<button class="md-save" data-vmdone="1">' + (sel <= 1 ? "Thank You, KAIRA" : "Got It") + '</button>' : "");
+      : same ? '<button class="md-save" data-vmdone="1">' + "Done" + '</button>' : "");
     return '<div class="vm">' + h + '</div>';
   }
   function draw() { window.GFOpenSheet("vmMood", PAST ? "How did you feel?" : "How are you feeling?", body()); }
@@ -143,7 +186,7 @@
     if (OFF) { OFF = false; err = true; return draw(); }   /* ponytail: the first try fails in the offline state, the retry goes through */
     var old = VM[cur];   /* changing the face keeps the time it was first logged */
     VM[cur] = { f: sel, at: old ? old.at : NOWT, late: old ? old.late : !!PAST }; err = false;
-    sync(); MD.cause = "mood"; MD.render();   /* the sheet stays open on KAIRA's reply; the screen behind updates */
+    sync(); MD.cause = "mood"; MD.render();   /* the sheet stays open on the reply; the screen behind updates */
   }
 
   document.addEventListener("click", function (ev) {
@@ -187,13 +230,14 @@
     ".vm-sl input{width:100%;height:44px;margin:0;accent-color:var(--p-600,#299D6B)}",
     ".vm-ends{width:100%;display:flex;justify-content:space-between;font:500 11px/16px Roboto,sans-serif;letter-spacing:.04em;text-transform:uppercase;color:var(--g-500,#667085)}",
     ".vm-err{display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;background:#FEF3F2;border:1px solid #FECDCA;font-size:13px;line-height:19px;color:#B42318}",
-    ".vm-k{padding:14px 16px 16px;border-radius:16px;background:linear-gradient(180deg,#EEF4FF 0%,#F8FAFF 100%);border:1px solid var(--in-100,#E0EAFF);min-height:96px;animation:vmIn .4s cubic-bezier(.4,0,.2,1) both}",
+    ".vm-k{padding:14px 16px 16px;border-radius:16px;background:linear-gradient(180deg,#EEF4FF 0%,#F8FAFF 100%);border:1px solid var(--in-100,#E0EAFF);animation:vmIn .4s cubic-bezier(.4,0,.2,1) both}",
     ".vm-sh{display:flex;flex-direction:column;gap:8px;padding:4px 0 2px}.vm-sh i,.vm-q-sh i{display:block;height:10px;border-radius:6px;background:linear-gradient(90deg,#E0EAFF 0%,#F5F8FF 40%,#E0EAFF 80%);background-size:200% 100%;animation:vmSh 1.1s linear infinite}",
     ".vm-sh i:nth-child(2){width:88%}.vm-sh i:nth-child(3){width:56%}",
     ".vm-q-sh{display:flex;flex-direction:column;gap:8px}.vm-q-sh i{background:linear-gradient(90deg,#F2F4F7 0%,#F9FAFB 40%,#F2F4F7 80%);background-size:200% 100%}.vm-q-sh i:nth-child(2){width:64%}",
     ".vm-k p{animation:vmIn .4s cubic-bezier(.4,0,.2,1) both}",
     "@keyframes vmSh{from{background-position:100% 0}to{background-position:-100% 0}}",
     ".vm-k p{margin:0;font-size:15px;line-height:23px;color:var(--g-800,#1D2939);text-wrap:pretty}",
+    ".vm-k{position:relative;padding-left:56px}.vm-k.wait{min-height:76px}.vm-q{position:absolute;left:12px;top:14px;width:32px;height:32px;color:#C7D7FE}" +
     ".vm-kw{display:flex;align-items:center;gap:6px;margin-bottom:6px;font:700 11px/16px Roboto,sans-serif;letter-spacing:.08em;color:var(--in-700,#3538CD)}",
     ".vm-dot{width:14px;height:14px;border-radius:50%;background:linear-gradient(135deg,#444CE7,#E7C144)}",
     ".vm-quiet{margin:0;font-size:14px;line-height:21px;color:var(--g-700,#344054);animation:vmIn .4s cubic-bezier(.4,0,.2,1) both}",
@@ -203,7 +247,12 @@
   document.head.appendChild(css);
 
   window.MDVAR = {
-    open: { mood: function (o) { cur = o === "mood:1" && SLOTS[1] ? 1 : 0; err = false; sl = null; wait = false;
+    open: { mood: function (o) { var c = o === "mood:1" && SLOTS[1] ? 1 : 0, sh = shut(c);
+      if (sh) { lockSheet(c, sh); return true; }
+      /* a logged check-in opens Eat's item menu first (v7/r3/eat.html itemMenu): edit it, or remove it. No confirm: the sheet was the asking */
+      if (VM[c] && !EDIT && Q.get("medit") !== "1") { menuSheet(c); return true; }   /* ?medit=1 skips the menu, for the doc */
+      EDIT = false;
+      cur = c; err = false; sl = null; wait = false;
       sel = VM[cur] ? VM[cur].f : PRE; PRE = null;
       if (MPICK != null) { sel = MPICK; MPICK = null; }   /* doc hooks, see above */
       if (MWAIT) { wait = true; MWAIT = false; }

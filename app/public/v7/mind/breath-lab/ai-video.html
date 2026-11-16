@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Breathing, Filmed</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600&display=swap">
+<style>
+  :root { --ink: #101828; --sub: #475467; --mute: #667085; --line: #EAECF0; --gold: #A68A2D; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #FFFFFF; color: var(--ink); font: 400 15px/22px Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 24px 96px; }
+  .eyebrow { font: 600 12px/16px Roboto; letter-spacing: 1.2px; text-transform: uppercase; color: var(--gold); }
+  h1 { font: 600 36px/44px "Playfair Display", serif; margin: 8px 0; }
+  .lede { max-width: 760px; color: var(--sub); margin: 0 0 24px; }
+  .row { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; }
+  .card { width: 320px; display: flex; flex-direction: column; gap: 10px; }
+  .card h3 { font: 600 16px/22px Roboto; margin: 0; }
+  .card p { font-size: 13px; line-height: 19px; color: var(--sub); margin: 0; }
+  .lp { position: relative; width: 320px; height: 640px; border-radius: 28px; border: 1px solid var(--line); overflow: hidden; background: #fff;
+    box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 12px 32px -12px rgba(16,24,40,.12); display: flex; flex-direction: column; align-items: center; color: #5C4E1F; }
+  .lp-top { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 44px 16px 0; font: 500 13px Roboto; }
+  .lp-x { width: 40px; height: 40px; display: grid; place-items: center; }
+  .lp-x svg { width: 20px; height: 20px; }
+  .lp-tm { min-width: 40px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .lp-stage { position: relative; width: 320px; height: 360px; margin-top: 8px; overflow: hidden; background: #FCFCFC; box-shadow: 0 0 0 40px #FCFCFC; }
+  .lp-stage video, .lp-stage img { position: absolute; background: #FCFCFC; transition: none; left: -10px; top: 10px; width: 340px; height: 340px; object-fit: cover; }
+  .lp-w { font: 300 32px/38px Roboto; margin-top: 4px; }
+  .lp-c { font: 500 15px/20px Roboto; color: #A68A2D; font-variant-numeric: tabular-nums; margin-top: 6px; min-height: 20px; }
+  .lp-s { font-size: 13px; line-height: 18px; color: #667085; margin-top: 2px; }
+  .raw video { width: 320px; border-radius: 16px; border: 1px solid var(--line); display: block; }
+  .empty { color: var(--mute); font-style: italic; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Mind · Breathing · Filmed</div>
+  <p class="lede" style="margin:4px 0 0"><a href="/v7/mind/breath-lab/ai-breaths.html" style="color:#2A805A">Back to the illustrated frames</a></p>
+  <h1>Breathing, as video</h1>
+  <p class="lede">One 12 second clip made in Magnific (Kling 4.0, keyframes) of a whole breath. The clean breathing-in and breathing-out parts were cut out and given extra in-between frames, then each plays stretched to its exact time: 4 s in through the nose, 6 s out as a gentle sigh through softly parted lips. A hold is a still picture. No air is drawn and there is no glow.</p>
+  <div class="row">
+    <div class="card"><h3>Belly breathing</h3><p>In through the nose for 4 s, out through the nose for 6 s.</p><div class="ph" data-seq="in:4,out:6" data-name="Belly Breathing"></div></div>
+    <div class="card"><h3>With a hold</h3><p>The same clips with a 4 s hold after breathing in, as in Box or 4-7-8.</p><div class="ph" data-seq="in:4,hold:4,out:6" data-name="Breathing with a hold"></div></div>
+  </div>
+  <div class="row" style="margin-top:40px">
+    <div class="card raw"><h3>Raw: the whole Kling clip</h3><p>In at 0.5 to 1.3 s, a long hold, an extra swell at 7 to 8.25 s (left out), out at 8.25 to 10 s.</p><video src="/v7/mind/breath-lab/video/breath-raw.mp4" muted playsinline loop autoplay></video></div>
+  </div>
+  <p class="lede" style="margin-top:40px">Earlier try, one Kling clip with air lines: <a href="/v7/mind/breath-lab/video/belly-raw.mp4" style="color:#2A805A">belly-raw.mp4</a></p>
+</div>
+<script>
+(function () {
+  /* From one 12 s Kling clip of a whole breath, two clean parts were cut and given in-between frames (96 fps):
+     k-in.mp4 (a separate 4 s Kling breath in that starts and ends on the breathing-out frames) and k-out.mp4 (8.25 to 10 s, the belly emptying,
+     lips parted in a sigh). The model's extra swell before breathing out (7 to 8.25 s) is left out. Each phase seeks
+     its part frame by frame, stretched to the exact seconds; a hold is the still last frame of breathing in.
+     The first .3 s of each phase cross-fades from where the last phase ended, so the lips ease open and closed. */
+  var DIR = "/v7/mind/breath-lab/video/", FADE = .3;
+  var LABEL = { "in": ["Breathe in", "Let your belly rise"], out: ["Breathe out", "Let it all go"], hold: ["Hold", "Stay soft and still"] };
+  var at = new URLSearchParams(location.search).get("at"), X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  function seek(v, t) { if (v.readyState < 1 || v.seeking) return; t = Math.max(.005, Math.min(v.duration - .005, t)); if (Math.abs(v.currentTime - t) > .004) v.currentTime = t; }
+  document.querySelectorAll(".ph").forEach(function (host) {
+    var seq = host.dataset.seq.split(",").map(function (p) { p = p.split(":"); return { k: p[0], d: +p[1] }; });
+    var cyc = seq.reduce(function (a, p) { return a + p.d; }, 0);
+    host.innerHTML = '<div class="lp"><div class="lp-top"><span class="lp-x">' + X + '</span><span>' + host.dataset.name + '</span><span class="lp-tm">5:00</span></div><div class="lp-stage"></div><div class="lp-w"></div><div class="lp-c"></div><div class="lp-s"></div></div>';
+    var stage = host.querySelector(".lp-stage"); stage.style.transformOrigin = "50% 300px"; stage.style.willChange = "transform"; var w = host.querySelector(".lp-w"), c = host.querySelector(".lp-c"), s = host.querySelector(".lp-s"), tm = host.querySelector(".lp-tm");
+    function vid(n) { var v = document.createElement("video"); v.src = DIR + n; v.muted = true; v.playsInline = true; v.preload = "auto"; stage.appendChild(v); return v; }
+    var L = { "in": vid("k-in.mp4"), out: vid("k-out.mp4") }, H = document.createElement("img"); H.src = DIR + "k-hold.png"; H.alt = ""; stage.appendChild(H);
+    /* where each layer should be: in and out by fraction of the phase, hold is still */
+    function place(k, frac) { if (k === "hold") return; var v = L[k]; if (v.duration) seek(v, frac * v.duration); }
+    var t0 = performance.now();
+    (function tick(now) {
+      var T = at != null ? +at : (now - t0) / 1000, r = T % cyc, i = 0;
+      while (r >= seq[i].d) { r -= seq[i].d; i++; }
+      var p = seq[i], q = seq[(i + seq.length - 1) % seq.length], frac = r / p.d;
+      var a = Math.min(1, r / FADE); a = .5 - Math.cos(Math.PI * a) / 2;
+      place(p.k, frac); if (a < 1 && q.k !== p.k) place(q.k, 1);
+      /* the breath lifts the body: from the cushion up, chest, shoulders and head rise a little while breathing in
+         and settle while breathing out, on the same smooth curve. ponytail: one transform, the cushion stays put */
+      var e = p.k === "hold" ? 1 : p.k === "in" ? .5 - Math.cos(Math.PI * frac) / 2 : .5 + Math.cos(Math.PI * frac) / 2;
+      stage.style.transform = "scale(" + (1 + .008 * e).toFixed(4) + "," + (1 + .028 * e).toFixed(4) + ")";
+      var op = { "in": 0, out: 0, hold: 0 }; op[p.k] += a; if (q.k !== p.k) op[q.k] += 1 - a; else op[p.k] = 1;
+      /* the incoming layer sits on top and fades in over the outgoing one */
+      [L["in"], L.out, H].forEach(function (el) { el.style.zIndex = 1; });
+      (p.k === "hold" ? H : L[p.k]).style.zIndex = 2;
+      L["in"].style.opacity = p.k === "in" ? a : op["in"] ? 1 : 0;
+      L.out.style.opacity = p.k === "out" ? a : op.out ? 1 : 0;
+      H.style.opacity = p.k === "hold" ? a : op.hold ? 1 : 0;
+      w.textContent = LABEL[p.k][0]; s.textContent = LABEL[p.k][1]; c.textContent = Math.max(1, Math.ceil(p.d - r));
+      var left = Math.max(0, 300 - T); tm.textContent = Math.floor(left / 60) + ":" + ("0" + Math.floor(left % 60)).slice(-2);
+      requestAnimationFrame(tick);
+    })(performance.now());
+  });
+})();
+</script>
+</body>
+</html>
