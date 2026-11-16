@@ -94,8 +94,8 @@
     return '<section class="rv-card rv-rhythm"><div class="rv-ch"><div><h3 class="rv-h">Rhythm, scored out of 100</h3>' +
       '<p class="rv-hs">This makes ' + (ctx.mode === "template" ? "the patient's" : esc(MP.PATIENT.name) + "'s") + ' Mind score each day. The points are fixed.</p></div></div>' +
       '<div class="rv-half rv-in"><div class="rv-hh"><span class="rv-hn">Sleep</span><span class="rv-hp">70 points</span>' + edit(ctx, "sleep", "sleep") + '</div>' +
-        line("hours", r.second ? hoursText(r.hours + r.second.hours) + " a day, in two windows" : hoursText(r.hours) + " a night") +
-        line("window", t12(r.bedtime) + " bedtime to " + t12(r.wake) + " wake" + (r.second ? ", and " + t12(r.second.bedtime) + " to " + t12(r.second.wake) : ""), '<div class="rv-ls">The standard for everyone: full marks within 30 minutes of each time, fewer until 2 hours off.</div>') +
+        line("hours", r.second ? hoursText(r.hours + r.second.hours) + " a day, in two windows" : hoursText(r.hours) + " a day, naps included") +
+        line("window", t12(r.bedtime) + " bedtime to " + t12(r.wake) + " wake" + (r.second ? ", and " + t12(r.second.bedtime) + " to " + t12(r.second.wake) : ""), '<div class="rv-ls">Judged on the main sleep; naps count towards hours, not the window. The standard for everyone: full marks within 30 minutes of each time, fewer until 2 hours off, none if the main sleep is under 3 hours.</div>') +
         line("winddown", wd.length ? (wd.length === 1 ? "1 task, it earns all 23" : wd.length + " tasks, each earns its share") : "", wdBody) +
       '</div>' +
       '<div class="rv-half rv-sc"><div class="rv-hh"><span class="rv-hn">Self-care</span><span class="rv-hp">30 points</span>' + edit(ctx, "selfcare", "self-care") + '</div>' +
@@ -148,7 +148,7 @@
   function phone(plan, ctx) {
     var who = ctx.mode === "template" ? "the patient" : esc(MP.PATIENT.name);
     var one = function (layout, name) {
-      return '<figure class="rv-fig"><div class="rv-phone"><div class="rv-scale"><iframe class="rv-app" title="The Mind screen with this plan, ' + name + '" src="/v7/mind/index.html?coach=1&layout=' + layout + '&day=start&sstate=none&now=15&tiles=0&t=' + Date.now() + '"></iframe></div></div></figure>';
+      return '<figure class="rv-fig"><div class="rv-phone"><div class="rv-scale"><iframe class="rv-app" title="The Mind screen with this plan, ' + name + '" src="/v7/mind/index.html?coach=1&layout=' + layout + '&day=start&sstate=none&tiles=0&t=' + Date.now() + '"></iframe></div></div></figure>';
     };
     return '<aside class="rv-side" aria-label="Preview of the app"><div class="rv-cap rv-sidecap">What ' + who + ' will see</div>' +
       '<div class="rv-phones">' + one("parts", "Parts of the day") + '</div>' +

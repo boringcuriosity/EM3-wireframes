@@ -46,7 +46,7 @@ How each length is worked out, with the start day counted:
 | Field | Default | Limits |
 |---|---|---|
 | Target sleep in a day | **7.5 hours** | 4 to 12 hours, steps of 0.5 h with the buttons, 15 minutes when dragged |
-| Bedtime | **10:30 PM** | Any quarter hour |
+| Bedtime | **10:30 PM** | Any quarter hour, at night or in the day. A night-shift sleeper gets a day window, for example 9:00 AM to 4:30 PM |
 | Wake time | **6:00 AM** | Always bedtime plus target duration, so changing one moves the other |
 | Wind-down tasks | None, one empty row to fill | Up to 6 |
 
@@ -60,8 +60,9 @@ These are fixed scoring settings for every plan. Coaches do not edit them.
 | Window, zero marks | 2 hours off |
 | Hours, zero marks | 3 hours short of the target |
 | Hours over the target | Up to 1 hour more keeps full marks. Past that, each extra hour loses 20%. |
-| Which sleep is judged | The night only: the longest sleep. Naps never change the window or the hours (16 Nov 2026, see the entry at the end) |
-| Shortest night for the window | 3 hours asleep. Under that, the window gives 0 |
+| Which sleep is judged | The window: the main sleep only (the longest sleep). Hours: the main sleep plus naps from the same 6 PM to 6 PM span (16 Nov 2026, see the entries at the end) |
+| Shortest night for the window | 3 hours asleep, a hard cut. Under that, the window gives 0 |
+| Sleep windows | One. The second window field (`rhythm.second`) is not used; a day window covers night shifts |
 
 **Templates:** a template's own sleep values replace these defaults. In the prototype, *Sleep reset, 4 weeks* uses 8 h and 10:00 PM to 6:00 AM, and *Calmer days* uses 11:00 PM to 6:30 AM.
 
@@ -197,6 +198,7 @@ Every text field in the Mind plan has a character limit. When the text reaches i
 
 | Date | Change |
 |---|---|
+| 16 Nov 2026 | Naps count towards sleep hours (not the window); the 3 h minimum stays a hard cut; a coach can set the one sleep window in the day for night shifts, and the portal explains, draws and previews it ("16 Nov 2026: naps count towards hours, day windows"). |
 | 16 Nov 2026 | Sleep window judged on the night only: naps and repeated sessions no longer move it, and a night needs 3 hours asleep for the window to count ("16 Nov 2026: which sleep the window judges"). |
 | 15 Nov 2026 | Breathing is final: the seven exercises, names, timings, visuals and player controls below ("15 Nov 2026: the final seven breathing exercises"). Coherent Breathing (5-5) is now Simple Breathing; Pursed Lip is out 4 s; Bhramari is in 4, hum 7; 4-7-8 drops "4 rounds". |
 | 5 Nov 2026 | The plan name defaults to "<Patient's name>'s Mind plan". |
@@ -393,14 +395,44 @@ Times below are minutes. `plan.bed` and `plan.wake` are the coach's bedtime and 
    - `asleep < T`: `max(0, 1 − (T − asleep) / 3)`
    - `asleep > T + 1`: `max(0, 1 − (asleep − T − 1) × 0.20)`
    - otherwise `1`
-   - points = `round(23 × that)`. Naps are not added (open decision: the prototype's `?naps=count` adds them).
+   - points = `round(23 × that)`. Naps are not added. *Superseded the same day: naps are added, see the next entry.*
 6. **Window points (24).** If the night has under 180 minutes asleep, window = 0. Otherwise, for bedtime `d = |night.bed − plan.bed|` and for wake-up `d = |night.wake − plan.wake|`, each edge scores `1` if `d <= 30`, `0` if `d >= 120`, else `1 − (d − 30) / 90`. Window = average of the two; points = `round(24 × window)`. Early and late count alike.
 
 **Examples, sample plan 7.5 h, 10:30 PM to 6:00 AM (hours / window, before then after):** night on plan plus a 20 min nap at 2:00 PM, 23/12 then 23/24. Slept 1 h late, 15/20 both. Awake 2 h at 1:30 AM inside the window, 8/24 both. A 2 h night, 0/12 then 0/0. Watch and phone sending the same night, 0/24 then 23/24. A night-shift sleeper (9:00 AM to 4:00 PM) on a night window, 19/0 both; with a coach-set day window, 19/24. The full table with links is in `v7/mind-rhythm.html`, "Sleep window: how it is judged".
 
 **What the patient sees.** The sleep card adds one line per nap: "Also a 20 min nap at 2:00 PM. Naps don’t change your sleep points." A night under 3 hours adds "Under 3 hours of sleep, so your sleep window gets no points today." (A short sync from Apple Health or Health Connect keeps its gold "fix it" ribbon instead.) "How last night counts" lists hours, bedtime and wake-up with their points and each nap, for example "Slept 11:30 PM, 1h late: 8 of 12."
 
-**Open for the designer.** Whether nap minutes count towards hours (recommended: no). Whether the 3 h minimum should ramp instead of cut (2h 59m gives 0 window points, 3h 00m can give 12).
+**Open for the designer.** Whether nap minutes count towards hours (recommended: no). Whether the 3 h minimum should ramp instead of cut (2h 59m gives 0 window points, 3h 00m can give 12). *Both decided the same day, see the next entry.*
 
 - For dev: send every sleep session Apple Health or Health Connect returns for the period, with its start and end; do the tidy, join and night steps on the server so the app and the score agree. Hand-logged sleep follows the same rule.
 - Code: `v7/mind/sleep-rule.js` (the rule, `MDSLEEP.split`, `score`, `words`), `v7/mind/rhythm.js` (`night()`), `v7/mind/variants/sleep.js` (card notes, "How last night counts", `?sleep=` cases). Self-check: `node app/public/v7/mind/sleep-rule.check.cjs`.
+
+## 16 Nov 2026: Mind medal
+
+- A day at 80%+ Rhythm earns the Mind medal: **Lotus at dawn** (icons/badge/mind/lotus-glow.svg), the same frame as Eat and Move. Chosen on mind-medal-options.html. It hangs on the score, shows small in the date calendar and opens the celebration sheet (badge-celebration-options.html?only=1&pillar=mind): "Yay! You earned a medal. Congratulations, you received a medal for looking after your mind today. Your sleep, wind-down and calm moments all added up." No FlipCoins line in it (?coins=0 hides them on any pillar).
+
+## 16 Nov 2026: naps count towards hours, day windows
+
+The designer decided three things after the entry above.
+
+1. **Naps count towards sleep hours.** In step 5, `asleep` is now the night's minutes asleep **plus every nap's** minutes asleep, all from the same span (sessions ending after 6:00 PM yesterday and at or before 6:00 PM today), divided by 60. The window (step 6) still reads the night only. Oversleep is unchanged: past target + 1 h, each extra hour loses 20%, so a long nap can cost hours points.
+2. **The 3 h minimum stays a hard cut.** A night (main sleep) under 180 minutes asleep gives the window 0. No ramp.
+3. **Night-shift sleepers: the coach sets a day window.** One sleep window, at any time of day. A coach sets, for example, Bedtime 9:00 AM; the wake time follows from the target (4:30 PM for 7.5 h). The window is judged exactly like a night window. To place the coach's window on the same clock as the sessions (minutes from 00:00 yesterday): wake-up = the wake time today (`wake + 1440`), or yesterday (`wake`) when today's would be after 6:00 PM; bedtime = wake-up minus the window's length. 10:30 PM to 6:00 AM is 1350 to 1800; 9:00 AM to 4:30 PM is 1980 to 2430. The second window field (`rhythm.second`) is not needed: one window, night or day, covers night shifts, and the score judges one main sleep. Its UI stays parked behind `?split=1`.
+
+**Examples, sample plan 7.5 h, 10:30 PM to 6:00 AM (hours / window, now):** night on plan plus a 20 min nap at 2:00 PM, 23/24 (7h 50m, inside the 1 h allowance). Plus a 90 min nap at 1:00 PM instead, 21/24 (9 h, 30 min past the allowance). Woke at 4:30 AM and dozed 6:30 to 7:30 AM, 19/16 (was 12/16 with the night only). Only a 90 min nap, 0/0. Night shift 9:00 AM to 4:00 PM: on the night window 19/0; with the coach's 9:00 AM to 4:30 PM window, 19/24.
+
+**What the patient sees.** The nap line on the sleep card: "Also a 20 min nap at 2:00 PM. It counts towards your hours, not your sleep window." "How last night counts": "Hours: 7h 50m asleep, your main sleep and a nap together, against your 7h 30m. 23 of 23." and "Your 20 min nap at 2:00 PM counts towards your hours, not your sleep window." When the hours go past the allowance, the hours line adds "More than 1h over your target takes some points off." The card's big number stays the night's own time asleep. With a day window, the card's bar runs 6 AM to 8 PM instead of 8 PM to 10 AM.
+
+**What the coach sees (Sleep step).** Under Bedtime and Wake time: "Judged on the main sleep. Naps count towards hours, not the window." The card's line: "Drag the bar to set the window, at night or in the day for night shifts." A day window gets a midnight to midnight bar so it sits whole. "How the 47 points work": Hours, "The main sleep and naps together ... so a long nap can cost points"; Window, "The main sleep only ... Under 3 hours asleep earns none"; and "The day runs 6 PM to 6 PM. The longest sleep is the main sleep, the rest are naps." Review: "7.5 hours a day, naps included" and "Judged on the main sleep; naps count towards hours, not the window ... none if the main sleep is under 3 hours." The review's phone preview runs the patient screen with the coach's window, so its points match the patient's.
+
+**Not supported.** A window whose wake time is after 6:00 PM (for example 2:00 PM to 10:00 PM): that sleep ends after the day closes, so it counts for the next day. Raise it if an evening-shift sleeper needs it.
+
+- Code: `v7/mind/sleep-rule.js` (`score` adds naps; `opts.night` for the night-only draft, `?naps=night`; `place` puts the coach's window on the clock), `v7/mind/plan.js` (`bedM`, `wakeM` use `place`; the prototype clock moves past a day window's wake-up), `v7/mind/variants/sleep.js` (copy, the bar's span), `v7/coach-mind/rhythm.js` (copy, the bar for a day window), `v7/coach-mind/review.js`, `v7/coach-mind/data.js`. Self-check: `node app/public/v7/mind/sleep-rule.check.cjs`, all 34 cases pass.
+
+- **16 Nov, later.** Removed the "How last night counts" sheet (?sheet=sleepinfo; nothing on the screen opened it) and the nap cards on the sleep card. Naps still count towards hours, quietly.
+
+- **Breathing library player, X (16 Nov).** Once breathing has begun, X pauses and asks "End this session?" ("You have breathed for 1 min 20 sec. You can keep going or end it here."): Keep breathing (resumes) or End session. During the 3, 2, 1 or after Done, X closes straight away. Nothing is saved, as library sessions do not count for Rhythm.
+
+- **Breathing library layout (16 Nov).** The section for free users and people waiting for a plan is now variant k3 (mind/variants/lib-k3.js, default ?vlib=k3 in mind/plan.js): seven full-width cards stacked vertically, each with its own scene (icons/mind/breath/<key>.webp), name, "pattern · minutes", and a footer with ▶ Start (left, green) and ⓘ Know more (right, quiet grey, opens how it works). No See all. Plan users still do not see the section.
+- **Info sheet (16 Nov).** No "Good for" chips: Why it helps ends with it ("Good for calm and stress."). No line under Start.
+- **Plan player title info (16 Nov).** The exercise name at the top of the plan player has an ⓘ; tapping it opens a sheet like the breathing library's (pattern, how it goes, the wave with its key, How it works, Why it helps with what it is good for) with one Got it. While breathing it pauses, and Got it carries on.

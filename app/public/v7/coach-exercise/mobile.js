@@ -36,7 +36,7 @@
       /* nothing to fix is ever folded away */
       var must = !!row.querySelector(".trig.empty, .num.bad");
       var open = must || row.id === OPEN;
-      if (row.classList.contains("open") !== open) row.classList.toggle("open", open);
+      if (row.classList.contains("xopen") !== open) row.classList.toggle("xopen", open);
       var b = row.querySelector(".mx-sum"), lab = (open ? "Close " : "Edit ") + name(row);
       if (b.getAttribute("aria-label") !== lab) { b.setAttribute("aria-label", lab); b.setAttribute("aria-expanded", open); }
       b.hidden = must;   /* it cannot close while something is missing */
@@ -46,7 +46,7 @@
   document.addEventListener("click", function (e) {
     var b = e.target.closest(".mx-sum"); if (!b) return;
     var row = b.closest(".row");
-    OPEN = row.classList.contains("open") ? "" : row.id;
+    OPEN = row.classList.contains("xopen") ? "" : row.id;
     decorate();
     if (OPEN) { row.scrollIntoView({ block: "nearest", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" }); }
   });

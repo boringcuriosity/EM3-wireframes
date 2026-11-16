@@ -129,6 +129,9 @@
       c.textContent = p.left; tm.textContent = SECS ? mm(SECS - T) : mm(T);
     }
     el._tick = tick;
+    /* for a host that asks before closing (the breathing library): seconds breathed, and pause or resume */
+    el._ctl = { t: function () { return Math.max(0, Math.min(T, SECS || T)); }, done: function () { return done; }, paused: function () { return paused; },
+      pause: function () { if (!paused && !done) pp.onclick(); }, resume: function () { if (paused && !done) pp.onclick(); } };
     /* only phones on screen run */
     new IntersectionObserver(function (es) { es.forEach(function (x) { if (x.isIntersecting && !on) { on = true; last = 0; requestAnimationFrame(tick); } else if (!x.isIntersecting) on = false; }); }, { rootMargin: "200px" }).observe(el);
     return el;

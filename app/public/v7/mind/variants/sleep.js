@@ -12,7 +12,7 @@
               and "+ Add another sleep" in the sheet. ?skin=white (default), soft, scene, deep changes only the look.
    ?sstate=   synced (default) | short | nap | none | manual | edited | noperm
    ?sleep=    doc only: every session as it came in (SLEEPS below), judged by mind/sleep-rule.js. ?ssrc=manual: typed in;
-              ?naps=count: nap time adds to hours (the open decision)
+              ?naps=night: the night alone counts towards hours, the rule before 16 Nov 2026 (naps now add to hours)
    ?spos=below puts the card under the plan, where Move keeps steps. ?os=android names Health Connect.
    ?sheet=sleep opens the sheet, ?sheet=sleepinfo the points, ?sheet=sleepperm the connect sheet.
    Hours count from falling asleep to waking, as rhythm.js does. */
@@ -67,7 +67,7 @@
     var raw = SLEEPS[SLK].map(function (x) { return { bed: x[0], wake: x[1] }; }), hand = Q.get("ssrc") === "manual";
     ST = { perm: true, src: hand ? "manual" : "health", night: { bed: raw[0].bed, wake: raw[raw.length - 1].wake, segs: raw }, health: null };
   }
-  var NAPS = Q.get("naps") === "count";   /* doc only: nap time counts towards hours, the open decision */
+  var NIGHT = Q.get("naps") === "night";   /* doc only: the night alone counts towards hours, the rule before 16 Nov 2026 */
   /* the night and the naps, as the rule sees them: the card always shows the night; every other sleep is in ST.naps */
   function norm() {
     var pieces = (ST.night ? (ST.night.segs || [ST.night]) : []);
@@ -121,9 +121,11 @@
   };
 
   /* ---------- the night as a bar against the window, 8 PM to 10 AM ---------- */
-  var A0 = 1200, A1 = 2040;
+  /* 14 hours from the hour 2.5 h before the coach's bedtime: 8 PM to 10 AM for 10:30 PM, 6 AM to 8 PM for a
+     night-shift 9:00 AM to 4:30 PM, so a day window sits on the bar as a night window does */
+  var A0 = Math.floor((PLAN.bed - 150) / 60) * 60, A1 = A0 + 840;
   var pc = function (m) { return Math.max(0, Math.min(100, (m - A0) / (A1 - A0) * 100)); };
-  var AX = [1200, 1440, 1680, 1920];
+  var AX = [A0, A0 + 240, A0 + 480, A0 + 720];
   function bar(n, o) {
     o = o || {};
     /* before a plan there is no coach's window to draw, only the night itself */
@@ -185,12 +187,9 @@
     var h = "", n = ST.night;
     if (J && ST.odd && ST.src === "health") h += ST.oddOk ? "" : oddNote(n);
     else if (ST.odd && ST.src === "health") h += '<div class="sv-note warn">' + I.warn + '<span>Only ' + dur(len(n)) + ' came through from ' + NAME + '. If you slept longer, <button class="sv-lk" data-sv="edit">fix the times</button>.</span></div>';
-    if (ST.nap) h += '<div class="sv-note">' + I.moon + '<span>' + NAME + ' also has a ' + gap(ST.nap[1] - ST.nap[0]) + ' nap yesterday at ' + clk(ST.nap[0]) + '. Your hours count the night.</span></div>';
-    /* mind/sleep-rule.js: a night under 3 hours asleep gets no window points; naps never touch the night's points */
+    /* mind/sleep-rule.js: a night under 3 hours asleep gets no window points; naps add to hours, never to the window */
     if (n && len(n) < window.MDSLEEP.R.minNight && !(ST.odd && ST.src === "health")) h += '<div class="sv-note">' + I.info + '<span>Under 3 hours of sleep, so your sleep window gets no points today.</span></div>';
-    (ST.naps || []).forEach(function (x) {
-      h += '<div class="sv-note">' + I.moon + '<span>Also a ' + gap(x.asleep) + ' nap at ' + clk(x.bed) + '. ' + (NAPS ? 'It adds to your hours, not your sleep window.' : 'Naps don’t change your sleep points.') + '</span></div>';
-    });
+    /* naps are counted quietly: no card on the screen (designer, 16 Nov 2026) */
     return h;
   }
   function empty() {
@@ -269,7 +268,6 @@
   function slimNote() {
     var n = ST.night;
     if (ST.odd && ST.src === "health") return '<div class="sv-sn warn">' + I.warn + '<span>Only ' + dur(len(n)) + ' came in. <button class="sv-lk" data-sv="edit">Fix times</button></span></div>';
-    if (ST.nap) return '<div class="sv-sn">' + I.moon + '<span>Also a ' + gap(ST.nap[1] - ST.nap[0]) + ' nap at ' + clk(ST.nap[0]) + '. Hours count the night.</span></div>';
     return "";
   }
   function slimEmpty(cls, dark) {
@@ -577,11 +575,11 @@
     put(ST.night); MD.cause = "sleep"; window.closeSheets(); MD.render(); place(); MD.toast("Last night saved.");
   }
   function info() {
-    var p = pts(), n = ST.night, why = p.s ? window.MDSLEEP.words(p.s, P, PLAN, P.w, { naps: NAPS }) : [];
+    var p = pts(), n = ST.night, why = p.s ? window.MDSLEEP.words(p.s, P, PLAN, P.w, { night: NIGHT }) : [];
     window.GFOpenSheet("svInfo", "How last night counts", '<div class="msub">Last night gives up to ' + (P.w.hours + P.w.window) + ' of your 100 Rhythm points, set from your coach’s plan: in bed by ' + clk(PLAN.bed) + ', up at ' + clk(PLAN.wake) + ', ' + dur(PLAN.hours) + ' of sleep.</div>' +
       '<div class="sv-pts"><div>Hours<b>' + (n ? p.h : 0) + ' of ' + P.w.hours + '</b>Full at ' + dur(PLAN.hours) + '</div><div>Timing<b>' + (n ? p.w : 0) + ' of ' + P.w.window + '</b>Full within ' + P.tol + ' min of both times</div></div>' +
       (why.length ? '<ul class="sv-why">' + why.map(function (t) { return '<li>' + t + '</li>'; }).join("") + '</ul>' : '') +
-      '<div class="msub" style="margin-top:16px">Both count on their own, so a full night at a late hour still earns its hours. Going to bed at the same time each night is what helps your sugar and energy most.</div>');
+      '<div class="msub" style="margin-top:16px">Hours and timing count on their own. Naps add to your hours; your timing comes from your main sleep only. Going to bed at the same time each night is what helps your sugar and energy most.</div>');
   }
   function perm() {
     if (J) return permJ();
@@ -681,7 +679,7 @@
   window.MDVAR = window.MDVAR || {};
   MDVAR.open = MDVAR.open || {};
   MDVAR.open.sleep = function () { sheet(); return true; };
-  MDVAR.open.sleepinfo = function () { info(); return true; };
+  /* "How last night counts" is not shown to people: nothing on the screen opens it, and the Rhythm sheet already shows the sleep points (designer, 16 Nov 2026) */
   MDVAR.open.sleepperm = function () { perm(); return true; };
   var prevItems = MDVAR.items;
   MDVAR.items = function (L, M) { L = prevItems ? prevItems(L, M) : L; return items(L); };

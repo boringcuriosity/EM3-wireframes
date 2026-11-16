@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
 <link rel="stylesheet" href="r3/goodflip-ui.css">
 <style>
-  /* The Mind medal: a day at 80% Rhythm or more earns one. Twelve medals, all built as Eat's and Move's are
+  /* The Mind medal: a day at 80% Rhythm or more earns one. Round two: the current lotus, five soft lotus refinements and four simple ideas, all built as Eat's and Move's are
      (the gold rosette edge, gold rim and Flip green enamel of icons/badge/simple/heart-apple.svg), each with
      its own Mind emblem in the centre. The artwork lives in icons/badge/mind/<name>.svg and is read from there,
      so this page always shows the files as they stand. A file that is not there yet shows an empty medal.
@@ -25,7 +25,7 @@
   h2.sh { margin: 56px 0 6px; font-size: 24px; line-height: 32px; font-weight: 600; }
   .shp { margin: 0 0 24px; max-width: 800px; font-size: 15px; line-height: 24px; color: var(--g-600); }
 
-  /* ---------- all twelve at a glance ---------- */
+  /* ---------- all at a glance ---------- */
   .strip { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; }
   .strip a { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 8px 14px; border: 1px solid var(--g-200); border-radius: 16px; text-decoration: none; color: var(--g-900); font: 600 14px/20px Roboto, sans-serif; text-align: center; }
   .strip a.rec { border-color: var(--brand-300); box-shadow: 2px 3px 0 0 var(--brand-100); }
@@ -158,11 +158,11 @@
 <div class="wrap">
   <h1>The Mind medal</h1>
   <p class="lede">Rhythm is Mind's score for the day: sleeping enough and on time, the wind-down, a breathing exercise, some me-time and a mood check-in. When today's Rhythm reaches <b>80% or more</b>, the day earns a medal.</p>
-  <p class="lede">Every Mind medal is built exactly like Eat's and Move's: the same gold rosette edge, the same gold rim and the same Flip green centre. Only the emblem in the centre changes, so the three read as one set. Twelve emblems follow, each shown four ways: large, hanging on the Mind screen, small in the date sheet calendar, and in the celebration sheet. Press Replay to play one again.</p>
+  <p class="lede">Every Mind medal is built exactly like Eat's and Move's: the same gold rosette edge, the same gold rim and the same Flip green centre. Only the emblem in the centre changes, so the three read as one set. After the designer's review, the lotus is refined in five softer ways and four simple ideas sit beside it, each shown four ways: large, hanging on the Mind screen, small in the date sheet calendar, and in the celebration sheet. Press Replay to play one again.</p>
   <div class="eatref"><span class="two"><img src="icons/badge/simple/heart-apple.svg" alt="Eat's medal"><img src="icons/badge/move/sneaker.svg" alt="Move's medal"></span><span><b>The shell comes from Eat's medal, as Move's does.</b> Rosette, rim, enamel, bevel, shadows and the raised glyph with its mint fill and white line are the same, part for part. Mind only draws a new centre.</span></div>
   <p class="callout"><b>The idea to carry:</b> a calm day and a good night's rest. The best emblem says "you looked after your mind" at a glance, at 28 pixels as well as at 200, and covers more than sleep alone.</p>
 
-  <h2 class="sh">All twelve at a glance</h2>
+  <h2 class="sh">At a glance</h2>
   <p class="shp">Each medal at full size, with its real calendar size beside it.</p>
   <div class="strip" id="strip"></div>
   <p class="recwhy" id="recwhy"></p>
@@ -190,58 +190,51 @@
 </div>
 
 <script>
-/* the twelve emblems, by file name in icons/badge/mind/ */
+/* round two: the current lotus for comparison, five soft lotus refinements, then four simple ideas.
+   The other eleven first-round emblems stay on disk in icons/badge/mind/ but are no longer shown. */
 const DIR = "icons/badge/mind/";
 const C = [
-  { k: "lotus", n: "Lotus", rec: true,
-    idea: "A lotus opening: a tall centre petal, two side petals in Eat's mint with Eat's white line, and two pale petals resting low. It is the Mind tab icon, drawn as a medal.",
-    off: "Calm and well-being rather than sleep, so the night's part of Rhythm is implied, not shown.",
-    why: "It is the only emblem that already means Mind in the app, as the heart means Eat. It covers the whole of Rhythm, calm, breathing, me-time and rest, rather than one part of it. Its symmetric silhouette holds at 28 pixels, and it sits beside Eat's heart and Move's sneaker as one set.",
+  { k: "lotus", n: "Current lotus",
+    idea: "The first-round lotus, kept here so the refinements can be compared with it.",
+    off: "The review found it sharp: pointed petal tips, thin flaring side petals and a wide, spiky silhouette that feels harder than Eat's heart and Move's sneaker.",
     motion: "The lotus resolves into the enamel, then one sheen crosses the medal." },
-  { k: "moon", n: "Crescent moon",
-    idea: "One crescent moon in Eat's mint with Eat's white line. The simplest shape of the twelve.",
+  { k: "lotus-soft", n: "Soft lotus", rec: true,
+    idea: "The same lotus, redrawn soft: a tall centre petal, two mint side petals and two pale petals resting low, every tip rounded and every curve gentle. Drawn a little smaller so it sits at the heart's and the sneaker's size.",
+    off: "The closest to the Mind tab icon, so it changes the least. The two pale low petals are quiet at 28 pixels, where it reads as a three petal lotus.",
+    why: "It keeps the shape that already means Mind in the app, as the heart means Eat, and answers the review directly: no sharp tips, softer curves and the same weight as Eat and Move. It covers the whole of Rhythm, not only sleep, and it is the clearest lotus of the five at 28 pixels.",
+    motion: "The lotus resolves into the enamel, then one sheen crosses the medal." },
+  { k: "lotus-round", n: "Round lotus",
+    idea: "Three plump petals with very round tips, side by side, for the friendliest and roundest silhouette.",
+    off: "The softest of the five and very bold at 28 pixels, but with only three broad petals it can read as a clover or a crown before a lotus.",
+    motion: "The lotus resolves into the enamel, then the sheen." },
+  { k: "lotus-water", n: "Lotus on water",
+    idea: "The soft lotus resting on one calm white water line: a still mind, floating.",
+    off: "The line adds calm and grounds the flower, but the lotus has to shrink to make room, and at 28 pixels the line is a thin stroke.",
+    motion: "The lotus resolves over the water line, then the sheen." },
+  { k: "lotus-bud", n: "Lotus bud",
+    idea: "A closed, rounded bud on a short stem with two soft leaves: a mind at rest, ready to open.",
+    off: "Gentle and different, but a closed bud on a stem reads as a tulip or a seedling before a lotus, and it loses the Mind tab link.",
+    motion: "The bud resolves into the enamel, then the sheen." },
+  { k: "lotus-glow", n: "Lotus at dawn",
+    idea: "The soft lotus with a small gold sun rising behind it, like dawn after a good night.",
+    off: "Adds the rest and morning part of Rhythm with one touch of gold, but the lotus is smaller, and at 28 pixels the sun reads as a gold dot.",
+    motion: "The lotus and sun resolve, then the sheen." },
+  { k: "simple-moon", n: "Moon and sparkle",
+    idea: "One plump crescent moon with blunt ends and a tiny soft gold sparkle. The simplest shape here.",
     off: "The clearest at 28 pixels, but it says sleep only, and sleep is about half of Rhythm.",
     motion: "The moon resolves into the enamel, then the sheen." },
-  { k: "crescent-star", n: "Moon and star",
-    idea: "The crescent moon with a small gold four point star beside it, the gold picking up the rim.",
-    off: "Warmer than the plain moon, but still a night medal, and the star shrinks to a speck in the calendar.",
-    motion: "The moon and star resolve, then the sheen." },
-  { k: "bloom", n: "Breathing bloom",
-    idea: "The six petal bloom from the breathing exercise, simplified: six soft mint circles around a gold centre.",
-    off: "Ties the medal to the breathing screen, but breathing is only 10 of the 100, and at 28 pixels the petals blur into a rosette inside a rosette.",
-    motion: "The bloom resolves into the enamel, then the sheen." },
-  { k: "sunrise", n: "Sunrise",
-    idea: "A gold sun rising over a white horizon: a good night's rest leading into the morning.",
-    off: "A hopeful picture of rest, but a sun reads as morning or energy before it reads as Mind.",
-    motion: "The sun resolves over the horizon, then the sheen." },
-  { k: "zzz", n: "Pillow",
-    idea: "A soft mint pillow with a white z above it and a small gold one beside.",
-    off: "Friendly and clear, but it is the most literal about sleep and can read as tiredness rather than rest.",
-    motion: "The pillow and the z resolve, then the sheen." },
-  { k: "leaf-breath", n: "Leaf breath",
-    idea: "A single leaf whose vein runs like a breath: calm, growth and breathing in one shape.",
-    off: "Gentle and natural, but a leaf alone can read as food or nature before it reads as Mind.",
+  { k: "simple-sunmoon", n: "Sun and moon face",
+    idea: "One round face, half gold sun and half mint moon, eyes closed and smiling: a calm day and a calm night.",
+    off: "Friendly and covers day and night, but the face is the most playful idea here, and the eyes and smile are too fine to see at 28 pixels.",
+    motion: "The face resolves into the enamel, then the sheen." },
+  { k: "simple-leafheart", n: "Heart leaf",
+    idea: "A single round leaf whose outline is a soft heart, with a midrib and a short stem: growing and caring for yourself.",
+    off: "Calm and natural, but a heart sits close to Eat's medal, and a leaf can read as food or nature before Mind.",
     motion: "The leaf resolves into the enamel, then the sheen." },
-  { k: "wave", n: "Calm wave",
-    idea: "Two soft waves, one above the other: the mind settling.",
-    off: "Says calm, but two wavy lines can also read as water or a heater, and they look alike at 28 pixels.",
-    motion: "The waves resolve into the enamel, then the sheen." },
-  { k: "hands-heart", n: "Hands and heart",
-    idea: "Two open hands holding a heart: looking after yourself.",
-    off: "Warm and caring, but the hands are fine lines at 28 pixels, and a heart in the centre sits close to Eat's.",
-    motion: "The hands and heart resolve, then the sheen." },
-  { k: "cloud-moon", n: "Cloud and moon",
-    idea: "A soft cloud with a gold moon behind it: a quiet night.",
-    off: "Clear and pleasant, but it can read as a weather icon, and it is about the night only.",
-    motion: "The cloud and moon resolve, then the sheen." },
-  { k: "mountain-calm", n: "Calm mountain",
-    idea: "A mountain at rest under a small gold sun: steadiness and a settled mind.",
-    off: "Says steady, but a mountain often means a climb or a challenge, the opposite feeling.",
-    motion: "The mountain resolves into the enamel, then the sheen." },
-  { k: "mind-heart", n: "Mind and heart",
-    idea: "A head or mind shape with a heart inside: well-being of the mind.",
-    off: "Says mental well-being directly, but a head profile is a busy shape at 28 pixels and can feel clinical.",
-    motion: "The emblem resolves into the enamel, then the sheen." },
+  { k: "simple-breath", n: "Breathing circle",
+    idea: "A soft mint circle inside a faint outer ring, a calm breath held in one shape.",
+    off: "Very calm and ties to the breathing exercise, but concentric circles can read as a target or a button.",
+    motion: "The circle resolves into the enamel, then the sheen." },
 ];
 
 const RE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4M3 3v5h5"/></svg>';

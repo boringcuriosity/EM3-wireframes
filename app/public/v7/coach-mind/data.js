@@ -12,8 +12,8 @@
 
   /* the Rhythm score: six parts, fixed weights out of 100 (Mind deck). Coaches set the plan inside each part, never the weights. */
   MP.PARTS = [
-    { key: "hours",    name: "Hours of sleep",    w: 23, group: "Sleep",     colour: "in",   hint: "Full marks at the target. Less sleep drops steadily. More sleep can lose marks too." },
-    { key: "window",   name: "Sleep window",      w: 24, group: "Sleep",     colour: "in",   hint: "How close bedtime and wake time were to the plan. Full marks inside the allowance, zero past the limit." },
+    { key: "hours",    name: "Hours of sleep",    w: 23, group: "Sleep",     colour: "in",   hint: "The main sleep and naps together. Full marks at the target. Less sleep drops steadily. More sleep can lose marks too." },
+    { key: "window",   name: "Sleep window",      w: 24, group: "Sleep",     colour: "in",   hint: "Judged on the main sleep only. How close its bedtime and wake time were to the plan. Full marks inside the allowance, zero past the limit." },
     { key: "winddown", name: "Wind-down tasks",   w: 23, group: "Sleep",     colour: "in",   hint: "Small steps before bed. Each task done earns its share." },
     { key: "breathing",name: "Breathing",         w: 10, group: "Self-care", colour: "teal", hint: "Each at its own time. Each one done earns its share of the 10." },
     { key: "metime",   name: "Me-time",           w: 10, group: "Self-care", colour: "gold", hint: "One activity a day, at a time that suits them. Doing it earns all 10." },
@@ -124,7 +124,8 @@
       rhythm: {
         hours: 7.5, shortZero: 3, excess: true, overAllowed: 1, overLose: 20,
         bedtime: "22:30", wake: "06:00", allowance: 30, zeroAt: 120,
-        second: null,   /* a second sleep window, { bedtime, hours }: night shifts or sleep in two parts. Up to two windows */
+        second: null,   /* not used (16 Nov 2026): one window, set at night or in the day, covers night shifts, and the
+                           patient's score judges one main sleep (mind/sleep-rule.js). The split UI stays parked behind ?split=1 */
         winddown: [], breathing: [], metime: [], mood: { checks: [{ at: "21:00" }] }   /* one by default, in the evening before wind-down; a second can be added in the morning */
       },
       practices: [],   /* { id, times: 1, habits: [] } */

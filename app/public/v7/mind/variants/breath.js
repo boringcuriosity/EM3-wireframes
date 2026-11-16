@@ -398,7 +398,7 @@
     function autoTick() { if (F.S && F.S.el >= 60 && !MD.S.br[B.i]) { MD.S.br[B.i] = true; MD.cause = "br"; MD.render(); } }
     function paint() {
       var S = F.S;
-      el.querySelector(".bf-ti").textContent = MD.P.br[B.i].n;
+      el.querySelector(".bf-ti").innerHTML = '<button class="bf-ib" data-bf="info" aria-label="How ' + MD.P.br[B.i].n + ' works">' + MD.P.br[B.i].n + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg></button>';
       var tl = el.querySelector(".bf-tl span"); if (tl) tl.textContent = !S ? (free() ? "No limit" : clock(target())) : free() ? clock(S.el) : S.el >= S.total ? "0:00" : clock(S.total - S.el);
       if (!S || F.state === "done") return;
       if (S.cd > 0) { word.textContent = Math.ceil(S.cd) + ""; cnt.textContent = "Get comfortable"; return; }
@@ -480,6 +480,19 @@
           : '<button class="md-save" data-bf="keep">Keep breathing</button><button class="md-sec" data-bf="leave">Leave</button>') + '</div></div>';
       el.classList.add("len");
     }
+    /* the title's info: how the exercise goes, as in the breathing library's sheet (pattern, the wave, steps, why it helps), one Got it.
+       It pauses nothing: before Start it is just reading; while breathing it pauses and Got it carries on */
+    function infoOpen() {
+      var k = kOf(B.i), Fx = LAB.FINAL[k], it = window.BLIB && BLIB.get ? BLIB.get(k) : null;
+      F.was = F.state; if (F.state === "run") { clearInterval(F.t); F.state = "paused"; buttons(); paint(); }
+      var good = it ? " " + it.good.map(function (g) { return { "Busy mind": "a busy mind", Breathless: "breathlessness" }[g] || g.toLowerCase(); }).reduce(function (a, w, i, l) { return a + (i ? (i === l.length - 1 ? " and " : ", ") : "") + w; }, "Good for ") + "." : "";
+      lsheet.innerHTML = '<div class="bf-sh"><h4 id="bfLenT">' + MD.P.br[B.i].n + '</h4><button class="bf-sx" data-bf="infox" aria-label="Close">' + XG + '</button></div>' +
+        '<div class="bf-sb bf-inf"><div class="pat">' + Fx.pat + '</div><p>' + Fx.how + '</p><div class="wv"></div><p class="wk">Up as you breathe in, flat while you hold, down as you breathe out.</p>' +
+        '<h5>How it works</h5><div class="steps">' + Fx.steps.map(function (x) { return '<div class="st"><b>' + x[0] + '</b><span>' + x[1] + '</span></div>'; }).join("") + '</div>' +
+        '<h5>Why it helps</h5><p>' + Fx.line + good + '</p><button class="md-save" data-bf="infox">Got it</button></div>';
+      var wv = lsheet.querySelector(".wv"); if (wv && it && BLIB.wave) wv.replaceWith(BLIB.wave(it)); else if (wv) { wv.nextSibling.remove(); wv.remove(); }
+      el.classList.add("len");
+    }
     function lenClose() { el.classList.remove("len"); }
 
     el.addEventListener("click", function (e) {
@@ -492,6 +505,8 @@
       if (a === "resume") { F.state = "run"; buttons(); return loop(); }
       if (a === "end") return askStop();
       if (a === "len") return lenOpen();
+      if (a === "info") return infoOpen();
+      if (a === "infox") { lenClose(); if (F.was === "run") { F.state = "run"; buttons(); loop(); } F.was = ""; return; }
       if (a === "lenx") { if (F.ask) { lenClose(); F.ask = false; if (F.was !== "run") return; F.state = "run"; buttons(); return loop(); } return lenClose(); }   /* dismissing the question goes back to where they were */
       if (a === "lenok") { F.len = F.lenPick; if (F.S) { F.S.total = target(); F.S.fin = F.S.el >= F.S.total; } else buttons(); lenClose(); paint(); MD.toast(F.len < 0 ? "Session set to no time limit." : "Session set to " + F.len + " min."); return; }
       if (a === "savexit") { lenClose(); F.ask = false; credit(Math.floor(F.S.el / 60) * 60); F.S = null; F.state = ""; return close(); }   /* the sheet said it, so no toast */
@@ -533,13 +548,16 @@
       ".bf-top{position:absolute;top:44px;left:0;right:0;height:56px;display:flex;align-items:center;gap:8px;padding:0 16px;z-index:5}",
       ".bf-x{width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.7);color:" + INK + ";display:grid;place-items:center;cursor:pointer}.bf-x svg{width:20px;height:20px}",
       ".bf-ti{flex:1;text-align:center;font:500 14px/20px Roboto;opacity:.85}",
+      ".bf-ib{position:relative;display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer}.bf-ib svg{width:16px;height:16px;opacity:.8}.bf-ib::after{content:'';position:absolute;inset:-12px -8px}",
+      ".bf-inf .pat{font:600 20px/26px Roboto;color:#A68A2D;margin-bottom:4px}.bf-inf h5{font:600 14px/20px Roboto;color:#101828;margin:16px 0 8px}.bf-inf .blw{margin-top:4px}.bf-inf .wk{font:400 12px/16px Roboto;color:#667085;margin:4px 0 0}" +
+      ".bf-inf .steps{border:1px solid #EAECF0;border-radius:12px;margin-bottom:4px}.bf-inf .st{display:flex;gap:12px;padding:12px 16px;font:400 14px/20px Roboto;color:#344054}.bf-inf .st+.st{border-top:1px dashed #EAECF0}.bf-inf .st b{min-width:32px;font-weight:600;color:#A68A2D}.bf-inf .md-save{margin-top:8px}",
       ".bf-tl{min-width:44px;height:36px;padding:0 8px 0 12px;border-radius:999px;border:1px solid rgba(92,78,31,.16);background:rgba(255,255,255,.7);color:" + INK + ";display:inline-flex;align-items:center;gap:2px;font:600 13px Roboto;font-variant-numeric:tabular-nums;cursor:pointer;position:relative}",
       ".bf-tl::after{content:'';position:absolute;left:50%;top:50%;width:max(100%,44px);height:44px;transform:translate(-50%,-50%)}.bf-tl svg{width:16px;height:16px}",
       ".bf-tl.lock{border-color:transparent;background:transparent;padding:0 4px;cursor:default}.bf-tl.lock::after{display:none}",
-      /* one template for every exercise and state: top bar, a fixed visual zone, a fixed instruction zone under it, actions pinned to the bottom */
-      ".bf-stage{position:absolute;left:50%;top:108px;width:300px;height:300px;transform:translateX(-50%);z-index:2;overflow:visible}",
+      /* one template for every exercise and state: top bar, the visual and its words centred together between the bar and the actions (never higher than before), actions pinned to the bottom */
+      ".bf-stage{position:absolute;left:50%;top:max(108px,calc(50% - 234px));width:300px;height:300px;transform:translateX(-50%);z-index:2;overflow:visible}",
       ".bf-fin{position:absolute;left:50%;top:50%;width:320px;height:360px;transform:translate(-50%,-50%) scale(.9375)}",
-      ".bf-txt{position:absolute;left:0;right:0;top:424px;height:124px;display:flex;flex-direction:column;align-items:center;text-align:center;z-index:4;pointer-events:none}",
+      ".bf-txt{position:absolute;left:0;right:0;top:max(424px,calc(50% + 82px));height:124px;display:flex;flex-direction:column;align-items:center;text-align:center;z-index:4;pointer-events:none}",
       ".bf-word{font:300 32px/38px Roboto;letter-spacing:.3px;padding:0 24px;max-height:76px;overflow:hidden}.bf.s-ready .bf-word,.bf.s-early .bf-word{font-size:26px;line-height:32px}.bf-cnt{margin-top:6px;font:500 15px/20px Roboto;font-variant-numeric:tabular-nums;color:#A68A2D;min-height:20px;padding:0 48px}",
       ".bf-bot{position:absolute;left:0;right:0;bottom:0;padding:0 24px calc(40px + env(safe-area-inset-bottom,0px));display:flex;gap:12px;z-index:5}",
       ".bf-bot>button{flex:1;width:auto}.bf-bot.stack{flex-direction:column}.bf-bot.stack>button{flex:none;width:100%}",

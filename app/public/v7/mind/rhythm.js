@@ -1,7 +1,9 @@
 /* Mind: the Rhythm score, worked out from the cards in mind/plan.js with the Mind deck weights (mind/sandbox-simple.html):
-     Sleep hours   23  full at the coach's target; drops to zero when short by 3 h; past target + 1 h, loses 20% an hour
+     Sleep hours   23  the main sleep and naps together (decided 16 Nov 2026): full at the coach's target; drops to zero
+                       when short by 3 h; past target + 1 h, loses 20% an hour, so a long nap can cost points
      Sleep window  24  bedtime and wake time each: full within 30 min of the plan, none past 2 h, early or late alike.
-                       Judged on the night only (mind/sleep-rule.js): naps never move it, and a night under 3 h asleep gives 0
+                       Judged on the main sleep only (mind/sleep-rule.js): naps never move it, and one under 3 h asleep
+                       gives 0. The coach's window may sit in the day, for a night-shift sleeper
      Wind-down     23  each task done earns its share
      Breathing     10  each exercise done earns its share
      Me-time       10  any one task is enough
@@ -13,13 +15,13 @@
   var P = M.P, S = M.S;
 
   /* every sleep session we hold for today: the night's pieces (S.segs, or bed to wake) and any naps (S.naps, from
-     variants/sleep.js). mind/sleep-rule.js picks the night out of them and scores it. ?naps=count (doc only) adds nap
-     time to the hours, the open decision */
-  var NAPS = M.Q && M.Q.get("naps") === "count";
+     variants/sleep.js). mind/sleep-rule.js picks the night out of them and scores it, naps adding to the hours.
+     ?naps=night (doc only) counts the night alone, the rule before 16 Nov 2026 */
+  var NIGHT = M.Q && M.Q.get("naps") === "night";
   function night() {
     var on = M.logged(), list = !on ? [] : (S.segs || [{ bed: S.bed, wake: S.wake }]).slice();
     (S.naps || []).forEach(function (x) { list = list.concat(x.segs || [x]); });
-    return window.MDSLEEP.score(list, P, { bed: M.bedM(P.bed), wake: M.wakeM(P.wake) }, { naps: NAPS });
+    return window.MDSLEEP.score(list, P, { bed: M.bedM(P.bed), wake: M.wakeM(P.wake) }, { night: NIGHT });
   }
   function parts() {
     var sl = night(), slept = sl.slept;

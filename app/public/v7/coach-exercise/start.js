@@ -175,7 +175,7 @@
       it("Other Trackers", "footsteps-outline") + sub("Incentive Spirometer") + sub("Steps") + sub("Water Intake") + sub("Sleep") +
       '<div class="cs-cap">CARE TRIAD</div>' +
       it('<span class="dot"></span>Diet Coach') +
-      it('<span class="dot ex"></span>Exercise Coach') + sub("Baseline Assessment") + sub("Follow-up Assessments") + sub("List of Exercise Plans", true) +
+      it('<span class="dot ex"></span>Exercise Coach') + sub("Baseline Assessment") + sub("Follow-up Assessments") + sub("List of Exercise Plans", true) + sub("Exercise Reports") +
       it('<span class="dot sc"></span>Success Coach') + "</nav>";
   }
 

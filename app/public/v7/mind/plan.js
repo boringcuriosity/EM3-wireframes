@@ -5,7 +5,7 @@
 (function () {
   var Q = new URLSearchParams(location.search), ST = Q.get("state") || "";
   /* /v7/mind opens as the coach portal's review preview, with "What shaped your score?" shown, and the final sleep card (J) and mood check-in (A, five faces, KAIRA replies) and the full-screen breathing player (f, Line look): Parts of the day, a coach's template (?t=, t-motivation by default) */
-  [["layout", "parts"], ["coach", "1"], ["day", "start"], ["vsleep", "j"], ["vmood", "a"], ["vbreath", "f"], ["blook", "1"], ["vlib", "k2"]].forEach(function (d) { if (!Q.has(d[0])) Q.set(d[0], d[1]); });
+  [["layout", "parts"], ["coach", "1"], ["day", "start"], ["vsleep", "j"], ["vmood", "a"], ["vbreath", "f"], ["blook", "1"], ["vlib", "k3"]].forEach(function (d) { if (!Q.has(d[0])) Q.set(d[0], d[1]); });
   var FREE = /^free/.test(ST), NOPLAN = FREE || /^noplan/.test(ST);
   var NOW = +Q.get("now") || 15;   /* the prototype's clock, in hours; ?now= for the case document */
 
@@ -50,11 +50,16 @@
 
   /* ?pbed=09:00&pwake=16:30 (doc only, v7/mind-rhythm.html): a coach's daytime sleep window, for a night-shift sleeper */
   if (/^\d\d:\d\d$/.test(Q.get("pbed") || "") && /^\d\d:\d\d$/.test(Q.get("pwake") || "")) { P.bed = Q.get("pbed"); P.wake = Q.get("pwake"); }
+  /* a daytime window (a night-shift sleeper) ends in the afternoon: unless ?now= says otherwise, the prototype's clock
+     moves to an hour past it, so the main sleep is over and can be logged */
+  if (!Q.get("now") && window.MDSLEEP) { var WK = window.MDSLEEP.place(P.bed, P.wake).wake - 1440; if (WK > NOW * 60 - 60 && WK < 1080) NOW = Math.min(23, Math.ceil(WK / 60 + 1)); }
 
   /* minutes from 00:00 yesterday: 1350 is 10:30 PM yesterday, 1485 is 12:45 AM today, 1800 is 6:00 AM today */
   function mins(s) { var p = s.split(":"); return +p[0] * 60 + +p[1]; }
-  function bedM(s) { var m = mins(s); return m < 720 ? m + 1440 : m; }
-  function wakeM(s) { return mins(s) + 1440; }
+  /* the coach's window, night or day, placed by mind/sleep-rule.js: 22:30 to 06:00 is 1350 to 1800, a night-shift
+     09:00 to 16:30 is 1980 to 2430. Both are only ever asked for P.bed and P.wake */
+  function bedM() { return window.MDSLEEP.place(P.bed, P.wake).bed; }
+  function wakeM() { return window.MDSLEEP.place(P.bed, P.wake).wake; }
 
   /* what the person has done today */
   var S = { bed: null, wake: null, wd: {}, br: {}, me: {}, mood: -1 };

@@ -26,7 +26,8 @@ function after(list, plan, opts) {
   return { h: Math.round(W.hours * s.hours), w: Math.round(W.window * s.window) };
 }
 
-/* key, sessions [bed, wake] in minutes from 00:00 yesterday, before [hours, window], after [hours, window], plan, opts */
+/* key, sessions [bed, wake] in minutes from 00:00 yesterday, before [hours, window], after [hours, window], plan, opts.
+   After: naps count towards hours (decided 16 Nov 2026); { night: true } is the rule before that, night only */
 var CASES = [
   ["plan", [[1350, 1800]], [23, 24], [23, 24]],
   ["synced", [[1370, 1810]], [22, 24], [22, 24]],
@@ -42,8 +43,8 @@ var CASES = [
   ["shift60", [[1410, 1860]], [23, 16], [23, 16]],
   ["shift120", [[1470, 1920]], [23, 0], [23, 0]],
   ["nap20", [[1350, 1800], [2280, 2300]], [23, 12], [23, 24]],
-  ["nap90", [[1350, 1800], [2220, 2310]], [21, 12], [23, 24]],
-  ["nap90 (naps count)", [[1350, 1800], [2220, 2310]], [21, 12], [21, 24], PLAN, { naps: true }],
+  ["nap90", [[1350, 1800], [2220, 2310]], [21, 12], [21, 24]],
+  ["nap90 (night only)", [[1350, 1800], [2220, 2310]], [21, 12], [23, 24], PLAN, { night: true }],
   ["napeve", [[1140, 1200], [1350, 1800]], [23, 12], [23, 24]],
   ["napin", [[1350, 1370], [1500, 1800]], [6, 24], [6, 24]],
   ["naponly", [[2220, 2310]], [0, 0], [0, 0]],
@@ -51,8 +52,8 @@ var CASES = [
   ["tomorrow", [[1350, 1800], [2460, 2580]], [18, 12], [23, 24]],
   ["split", [[1370, 1590], [1630, 1810]], [17, 24], [17, 24]],
   ["split2h", [[1350, 1530], [1650, 1800]], [8, 24], [8, 24]],
-  ["dozeback", [[1350, 1710], [1830, 1890]], [19, 16], [12, 16]],
-  ["dozeback (naps count)", [[1350, 1710], [1830, 1890]], [19, 16], [19, 16], PLAN, { naps: true }],
+  ["dozeback", [[1350, 1710], [1830, 1890]], [19, 16], [19, 16]],
+  ["dozeback (night only)", [[1350, 1710], [1830, 1890]], [19, 16], [12, 16], PLAN, { night: true }],
   ["short2h", [[1350, 1470]], [0, 12], [0, 0]],
   ["short3h", [[1350, 1530]], [0, 12], [0, 12]],
   ["partial", [[1690, 1815]], [0, 12], [0, 0]],
@@ -86,6 +87,10 @@ assert.strictEqual(R.split([{ bed: 1140, wake: 1200 }, { bed: 1250, wake: 1800 }
 assert.strictEqual(R.score([{ bed: 1350, wake: 1529 }], P, PLAN).judged, false, "under 3 h asleep, the window is not judged");
 assert.strictEqual(R.score([{ bed: 1350, wake: 1530 }], P, PLAN).judged, true, "3 h asleep, it is");
 assert.strictEqual(R.words(R.score([{ bed: 1350, wake: 1800 }, { bed: 2280, wake: 2300 }], P, PLAN), P, PLAN, W).length, 4, "hours, bedtime, wake-up and the nap, in words");
+assert.strictEqual(R.score([{ bed: 1350, wake: 1800 }, { bed: 2280, wake: 2300 }], P, PLAN).slept * 60, 470, "a nap adds to the hours: 7h 30m and 20 min");
+assert.strictEqual(R.score([{ bed: 1350, wake: 1800 }, { bed: 2280, wake: 2300 }], P, PLAN, { night: true }).slept * 60, 450, "night only leaves it out");
+assert.strictEqual(R.score([{ bed: 1350, wake: 1800 }, { bed: 2220, wake: 2310 }], P, PLAN).window, 1, "a nap never moves the window");
+assert.strictEqual(R.score([{ bed: 1980, wake: 2430 }, { bed: 1380, wake: 1410 }], P, DAYPLAN).window, 1, "a day window: the day sleep is the main sleep, an evening nap stays a nap");
 
 console.log(bad ? "\n" + bad + " case(s) differ from the table" : "\nAll " + CASES.length + " cases match the table, and the rule's parts pass.");
 process.exit(bad ? 1 : 0);

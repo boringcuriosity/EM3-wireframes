@@ -60,6 +60,13 @@
     ".bl-pl .lp-stage{position:relative;width:320px;height:360px;margin-top:8px;overflow:hidden}.bl-pl .lp-w{font:300 32px/38px Roboto;margin-top:4px}" +
     ".bl-pl .lp-c{font:500 15px/20px Roboto;color:#A68A2D;font-variant-numeric:tabular-nums;margin-top:6px;min-height:20px}.bl-pl .lp-s{font-size:13px;line-height:18px;color:#667085;margin-top:2px}" +
     ".bl-pl .lp-b{position:absolute;left:16px;right:16px;bottom:24px;display:flex;gap:12px}.bl-pl .lp-b button{height:48px;border-radius:8px;font:600 15px Roboto;cursor:pointer}" +
+    ".bl-ask{position:absolute;inset:0;z-index:5;background:rgba(16,24,40,.4);display:flex;align-items:flex-end;justify-content:center}" +
+    ".bl-ask-s{width:100%;max-width:420px;background:#fff;border-radius:24px 24px 0 0;padding:20px 16px 24px;box-shadow:0 -8px 24px rgba(16,24,40,.12)}" +
+    ".bl-ask-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}.bl-ask-h h4{margin:0;font:600 18px/24px Roboto;color:#101828}" +
+    ".bl-ask-x{width:32px;height:32px;border:0;border-radius:50%;background:#98A2B3;color:#fff;display:grid;place-items:center;cursor:pointer}.bl-ask-x svg{width:16px;height:16px}" +
+    ".bl-ask-s p{margin:0 0 20px;font:400 14px/20px Roboto;color:#475467}" +
+    ".bl-ask-go{width:100%;height:48px;border:0;border-radius:8px;background:#299D6B;color:#fff;font:600 15px Roboto;cursor:pointer;margin-bottom:12px}" +
+    ".bl-ask-end{width:100%;height:48px;border:1px solid #A6E9C9;border-radius:8px;background:#fff;color:#2A805A;font:600 15px Roboto;cursor:pointer}" +
     ".bl-pl .lp-end{flex:1;border:1px solid #A6E9C9;background:#fff;color:#2A805A}.bl-pl .lp-pp{flex:1;border:0;background:#299D6B;color:#fff}";
   document.head.appendChild(css);
 
@@ -92,16 +99,20 @@
   function durs(b) { var m = [1, 2, 3, 5, 10]; if (m.indexOf(b.min) < 0) m.push(b.min); return m.sort(function (x, y) { return x - y; }).concat([0]); }
   function pick(b) { return BLIB.dur[b.key] != null ? BLIB.dur[b.key] : b.min; }
   function goLabel(m) { return m ? "Start, " + m + " min" : "Start, no time limit"; }
+  /* what it is good for, said once in Why it helps (no chips): "Good for calm and stress." */
+  function goodFor(b) {
+    var w = b.good.map(function (g) { return { "Busy mind": "a busy mind", Breathless: "breathlessness" }[g] || g.toLowerCase(); });
+    return "Good for " + (w.length > 1 ? w.slice(0, -1).join(", ") + " and " + w[w.length - 1] : w[0]) + ".";
+  }
   BLIB.info = function (k) {
     var b = BLIB.get(k);
     var html = '<div class="bl-sh"><div class="hero"><div><div class="pat">' + b.pat + '</div><div class="sub">' + b.how + '</div></div></div>' +
       '<div class="bl-wslot"></div><p class="wkey">Up as you breathe in, flat while you hold, down as you breathe out.</p>' +
-      '<div class="chips">' + b.good.map(function (g) { return '<span class="chip">Good for ' + g.toLowerCase() + '</span>'; }).join("") + '</div>' +
       '<h5>How long</h5><div class="durs" role="radiogroup" aria-label="How long">' + durs(b).map(function (m) { var on = m === pick(b); return '<button class="dur' + (on ? ' on' : '') + '" role="radio" aria-checked="' + on + '" data-bldur="' + m + '">' + (m ? m + ' min' : 'No time limit') + (m === b.min ? '<i>Suggested</i>' : '') + '</button>'; }).join('') + '</div>' +
       '<h5>How it works</h5><div class="steps">' + b.steps.map(function (s) { return '<div class="st"><b>' + s[0] + '</b><span>' + s[1] + '</span></div>'; }).join("") + '</div>' +
-      '<h5>Why it helps</h5><p>' + b.line + '</p>' +
+      '<h5>Why it helps</h5><p>' + b.line + ' ' + goodFor(b) + '</p>' +
       '<div class="foot"><button class="go" data-blplay="' + k + '">' + goLabel(pick(b)) + '</button>' +
-      (b.inPlan ? '<div class="note">This one is in your mind plan, so it counts towards Rhythm.</div>' : '<div class="note">Practise any time. It does not change your Rhythm score.</div>') + '</div></div>';
+      '</div></div>';
     var el = window.GFOpenSheet ? window.GFOpenSheet("blSheet", b.name, html) : null;
     if (!el) el = document.getElementById("blSheet");
     if (el) { var slot = el.querySelector(".bl-wslot"); if (slot && BLIB.wave) slot.replaceWith(BLIB.wave(b)); }
@@ -113,7 +124,23 @@
     var m = pick(BLIB.get(k)), el = LAB.phone(o, k, LAB.FINAL[k].visual(), { secs: m * 60, countdown: true, onEnd: function () { shut(); } });
     var z = Math.min(innerWidth / 320, innerHeight / 640); el.style.transform = "scale(" + z + ")";
     var shut = function () { o.remove(); };
-    el.querySelector(".lp-x").onclick = shut;
+    /* the X asks first once breathing has begun: pause, then Keep breathing or End (nothing to save here, it does not count for Rhythm) */
+    el.querySelector(".lp-x").onclick = function () {
+      var c = el._ctl, t = c ? c.t() : 0;
+      if (!c || c.done() || t <= 0) return shut();
+      var was = c.paused(); c.pause();
+      var m = Math.floor(t / 60), sec = Math.floor(t % 60), said = m ? m + " min" + (sec ? " " + sec + " sec" : "") : sec + " sec";
+      var a = document.createElement("div"); a.className = "bl-ask";
+      a.innerHTML = '<div class="bl-ask-s" role="dialog" aria-modal="true" aria-labelledby="blAskT"><div class="bl-ask-h"><h4 id="blAskT">End this session?</h4>' +
+        '<button class="bl-ask-x" aria-label="Close">' + X + '</button></div><p>You have breathed for ' + said + '. You can keep going or end it here.</p>' +
+        '<button class="bl-ask-go" data-k="keep">Keep breathing</button><button class="bl-ask-end" data-k="end">End session</button></div>';
+      o.appendChild(a);
+      a.onclick = function (e) {
+        var k = e.target.closest("[data-k]"), x = e.target.closest(".bl-ask-x"), out = e.target === a;
+        if (k && k.dataset.k === "end") return shut();
+        if (k || x || out) { a.remove(); if (!was) c.resume(); }
+      };
+    };
   };
   document.addEventListener("click", function (e) {
     var d = e.target.closest("[data-bldur]");

@@ -8,10 +8,14 @@
    3. Pieces join into one sleep when the break between them is 1 hour or less, or up to 3 hours when the break sits
       wholly inside the coach's sleep window (awake in the night).
    4. The night is the sleep with the most time asleep. Every other sleep is a nap.
-   5. Hours: time asleep in the night, breaks left out. Naps are left out too (opts.naps adds them, for the decision).
+   5. Hours: time asleep in the night plus every nap in the same span, breaks left out (decided 16 Nov 2026).
+      Oversleep still reduces past target + 1 h, so a long nap can cost hours points. opts.night counts the night
+      only, the rule before that decision (doc only, ?naps=night).
    6. Window: judged only when the night has at least 3 hours asleep, otherwise 0. Bedtime is the night's first
       sleep, wake-up its last. Each edge scores 1 within 30 min of the plan (P.tol), 0 at 2 h or more (P.zero), a
-      straight line between; the two are averaged. Early and late count alike. */
+      straight line between; the two are averaged. Early and late count alike. The 3 h minimum is a hard cut (decided).
+   7. The coach's window can sit at any time of day (a night-shift sleeper: 9:00 AM to 4:30 PM). It is judged the same
+      way; mind/plan.js places it in the span by its wake time. */
 (function (root) {
   var R = { from: 1080, to: 2520, minPiece: 10, join: 60, joinIn: 180, minNight: 180 };
 
@@ -45,12 +49,21 @@
     opts = opts || {};
     var r = split(list, plan), n = r.night, napMin = r.naps.reduce(function (t, x) { return t + x.asleep; }, 0);
     if (!n) return { night: null, naps: [], napMin: 0, slept: 0, hours: 0, window: 0, judged: false, bed: 0, wake: 0, db: 0, dw: 0 };
-    var slept = (n.asleep + (opts.naps ? napMin : 0)) / 60, T = P.hours, h;
+    var slept = (n.asleep + (opts.night ? 0 : napMin)) / 60, T = P.hours, h;
     if (slept < T) h = Math.max(0, 1 - (T - slept) / P.short);
     else if (P.exOn && slept > T + P.grace) h = Math.max(0, 1 - (slept - T - P.grace) * P.exPen / 100); else h = 1;
     var judged = n.asleep >= R.minNight, db = n.bed - plan.bed, dw = n.wake - plan.wake;
     var bed = judged ? edge(db, P) : 0, wake = judged ? edge(dw, P) : 0;
     return { night: n, naps: r.naps, napMin: napMin, slept: slept, hours: h, window: (bed + wake) / 2, judged: judged, bed: bed, wake: wake, db: db, dw: dw };
+  }
+
+  /* 7: the coach's window ("22:30", "06:00") in minutes of the span. The wake-up sits where it ends inside 6 PM yesterday
+     to 6 PM today, the bedtime the window's length before it: 10:30 PM to 6:00 AM is 1350 to 1800, a night-shift
+     9:00 AM to 4:30 PM is 1980 to 2430 */
+  function place(bed, wake) {
+    var hm = function (t) { var p = String(t).split(":"); return +p[0] * 60 + +p[1]; };
+    var w = hm(wake), b = hm(bed), W = w + 1440 > R.to ? w : w + 1440, len = ((w - b) % 1440 + 1440) % 1440 || 1440;
+    return { bed: W - len, wake: W };
   }
 
   /* the same result in plain words, for "How last night counts". w: the two weights { hours, window } */
@@ -62,7 +75,9 @@
     if (!s.night) return ["Nothing for last night yet, so sleep has no points so far."];
     var n = s.night, L = [], half = w.window / 2;
     var aw = n.wake - n.bed - n.asleep;
-    L.push("Hours: " + dur(s.slept * 60) + " asleep" + (opts.naps && s.napMin ? ", naps included" : "") + (aw > 0 ? " (the " + gap(aw) + " awake in the night is left out)" : "") + ", against your " + dur(P.hours * 60) + ". " + Math.round(w.hours * s.hours) + " of " + w.hours + ".");
+    var nn = s.naps.length, withNaps = !opts.night && s.napMin;
+    L.push("Hours: " + dur(s.slept * 60) + " asleep" + (withNaps ? ", your main sleep and " + (nn === 1 ? "a nap" : nn + " naps") + " together" : "") + (aw > 0 ? " (the " + gap(aw) + " awake in the night is left out)" : "") + ", against your " + dur(P.hours * 60) + ". " + Math.round(w.hours * s.hours) + " of " + w.hours + "." +
+      (P.exOn && s.slept > P.hours + P.grace ? " More than " + gap(P.grace * 60) + " over your target takes some points off." : ""));
     if (!s.judged) L.push("Sleep window: your longest sleep was " + dur(n.asleep) + ". A night needs at least 3 hours asleep for the window to count, so it gives 0 of " + w.window + ".");
     else {
       var one = function (l, at, d, v) {
@@ -71,12 +86,12 @@
       L.push(one("Slept", n.bed, s.db, s.bed)); L.push(one("Woke up", n.wake, s.dw, s.wake));
     }
     s.naps.forEach(function (x) {
-      L.push("Your " + gap(x.asleep) + " nap at " + clk(x.bed) + " is not part of the night, so " +
-        (opts.naps ? "it does not change your sleep window. Its time counts towards your hours." : "it changes neither your hours nor your sleep window."));
+      L.push("Your " + gap(x.asleep) + " nap at " + clk(x.bed) + (opts.night ? " is not part of the night, so it changes neither your hours nor your sleep window."
+        : " counts towards your hours, not your sleep window."));
     });
     return L;
   }
 
-  var API = { R: R, tidy: tidy, blocks: blocks, split: split, edge: edge, score: score, words: words, clk: clk, gap: gap, dur: dur };
+  var API = { R: R, place: place, tidy: tidy, blocks: blocks, split: split, edge: edge, score: score, words: words, clk: clk, gap: gap, dur: dur };
   root.MDSLEEP = API;
 })(window);

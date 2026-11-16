@@ -502,9 +502,9 @@
       '<span class="rt-r"><b>Window, 24</b>12 points for each window, for sleeping and waking within 30 minutes of its times. Further off earns fewer, down to zero at 2 hours off.</span>' +
       '<span class="rt-n">The same standard for every patient.</span>';
     return '<b class="rt-h">How the 47 points work</b>' +
-      '<span class="rt-r"><b>Hours, 23</b>Full marks for ' + hrs(r.hours) + " to " + over + " of sleep. Less sleep earns fewer, down to zero at " + zero + " or less. Past " + over + ", each extra hour loses 20%.</span>" +
-      '<span class="rt-r"><b>Window, 24</b>Full marks for sleeping within 30 minutes of ' + H.t12(r.bedtime) + " and waking within 30 minutes of " + H.t12(r.wake) + ". Further off earns fewer, down to zero at 2 hours off.</span>" +
-      '<span class="rt-n">The same standard for every patient.</span>';
+      '<span class="rt-r"><b>Hours, 23</b>The main sleep and naps together. Full marks for ' + hrs(r.hours) + " to " + over + ". Less earns fewer, down to zero at " + zero + " or less. Past " + over + ", each extra hour loses 20%, so a long nap can cost points.</span>" +
+      '<span class="rt-r"><b>Window, 24</b>The main sleep only. Full marks for sleeping within 30 minutes of ' + H.t12(r.bedtime) + " and waking within 30 minutes of " + H.t12(r.wake) + ". Further off earns fewer, down to zero at 2 hours off. Under 3 hours asleep earns none.</span>" +
+      '<span class="rt-n">The day runs 6 PM to 6 PM. The longest sleep is the main sleep, the rest are naps. The same standard for every patient.</span>';
   }
   function wdLine(n, w) {
     return '<b class="rt-h">How the ' + w + " points work</b>" +
@@ -512,11 +512,15 @@
          : '<span class="rt-r">Add tasks and the ' + w + " points are shared between them. Each task done earns its share.</span>");
   }
 
-  /* the night bar: noon to noon, the planned sleep, full marks band and the fall to zero around each time */
+  /* the night bar: noon to noon, the planned sleep, full marks band and the fall to zero around each time. A window
+     whose middle falls between 6 AM and 6 PM (a night-shift sleeper) gets a midnight to midnight bar instead, so it
+     sits whole in the middle. ORG is set on each full render, never mid-drag, so the bar does not jump under a finger */
+  var ORG = 720;
+  function setOrg(r) { var mid = (mins(r.bedtime) + durM(r) / 2) % 1440; ORG = !r.second && mid >= 360 && mid < 1080 ? 0 : 720; }
   var NB = { W: 960, L: 8, w: 944, y: 34, h: 24, VH: 86 };
   var X = function (m) { return NB.L + m / 1440 * NB.w; };
   var pct = function (m) { return X(m) / NB.W * 100; };
-  var fromNoon = function (hmv) { return (mins(hmv) - 720 + 1440) % 1440; };
+  var fromNoon = function (hmv) { return (mins(hmv) - ORG + 1440) % 1440; };
   var onAxis = function (m) { return m > 1440 ? m - 1440 : m; };   /* wake past the right edge wraps to the left */
   function night(r) {
     var W = NB.W, y = NB.y, h = NB.h, A = r.allowance, Z = r.zeroAt;
@@ -536,7 +540,7 @@
     };
     var ticks = "";
     for (var i = 0; i <= 8; i++) {
-      var tm = i * 180, lab = ["12 PM", "3 PM", "6 PM", "9 PM", "12 AM", "3 AM", "6 AM", "9 AM", "12 PM"][i];
+      var tm = i * 180, lab = ["12 PM", "3 PM", "6 PM", "9 PM", "12 AM", "3 AM", "6 AM", "9 AM", "12 PM"][(i + (ORG ? 0 : 4)) % 8];
       ticks += '<line x1="' + X(tm) + '" x2="' + X(tm) + '" y1="' + (y + h) + '" y2="' + (y + h + 5) + '" stroke="#D0D5DD"/>' +
         '<text x="' + X(tm) + '" y="' + (y + h + 20) + '" text-anchor="' + (i === 0 ? "start" : i === 8 ? "end" : "middle") + '" font-family="Onest,sans-serif" font-size="12" fill="#667085">' + lab + "</text>";
     }
@@ -575,7 +579,7 @@
       css("sl");
       var r = plan.rhythm, tpl = ctx && ctx.mode === "template"; sleepMode = tpl ? "template" : "plan";
       if (tpl && plan.about == null) plan.about = "";
-      settle(r);
+      settle(r); setOrg(r);
 
       function topCard() {
         if (tpl) return '<section class="sl-card"><div class="sl-grid" style="grid-template-columns:1fr 2fr">' +
@@ -594,7 +598,7 @@
       function sleepCard() {
         var pts = part("hours").w + part("window").w;
         return '<section class="sl-card" style="' + vars("in") + '">' +
-          cardHead("sl", "hours", "Sleep", pts, "Full marks for the target hours, in bed close to the planned times. Drag the bar to set the window.", tipMark("sl-hl", hoursLine(r))) +
+          cardHead("sl", "hours", "Sleep", pts, "Full marks for the target hours, in bed close to the planned times. Drag the bar to set the window, at night or in the day for night shifts.", tipMark("sl-hl", hoursLine(r))) +
           '<div class="sl-grid" id="sl-steps">' + steppers(r) + "</div>" +
           '<div class="sl-night"><div class="sl-bar" id="sl-bar"><div id="sl-svg">' + night(r) + "</div>" +
           '<div class="sl-blk" data-drag="blk" tabindex="0" role="slider"></div><div class="sl-blk" data-drag="blk" tabindex="-1" aria-hidden="true"></div>' +
@@ -612,9 +616,10 @@
         if (!r.second) return '<div class="sl-grid">' +
           '<div class="sl-f"><span class="sl-lab">Bedtime</span>' + tpBtn('data-tk="bedtime"', r.bedtime, "Bedtime", true) + "</div>" +
           '<div class="sl-f"><span class="sl-lab">Wake time</span>' + tpBtn('data-tk="wake"', r.wake, "Wake time", true) + "</div></div>" +
+          '<span class="sl-note sl-wnote">Judged on the main sleep. Naps count towards hours, not the window.</span>' +
           /* ponytail: two sleep windows are parked for now; ?split=1 brings the option back */
           (!/[?&]split=1/.test(location.search) ? "" : '<div class="sl-addw"><button type="button" class="sl-more" data-w2="add" data-fk="w2add">+ Split into two sleep windows</button>' +
-          '<span class="sl-note">For night shifts, or sleep in two parts of the day. The ' + hrs(r.hours) + ' target is shared between them.</span></div>');
+          '<span class="sl-note">For sleep in two parts of the day. A night shift needs only one window, set in the day. The ' + hrs(r.hours) + ' target is shared between them.</span></div>');
         return '<div class="sl-wins">' + winRow(1) + winRow(2) + "</div>" +
           '<div class="sl-tot' + (tooClose(r) ? " bad" : "") + '" id="sl-tot" role="status">' + totLine() + "</div>";
       }
@@ -717,7 +722,7 @@
         h2w.setAttribute("aria-label", "Second wake time, " + sw + ". Left and Right arrows change it 15 minutes.");
       }
       function sync(src) {
-        settle(r);
+        settle(r); if (src) setOrg(r);   /* a typed time may move the window into the day; a drag keeps the bar still */
         document.getElementById("sl-svg").innerHTML = night(r);
         document.getElementById("sl-leg").innerHTML = legend(r);
         document.getElementById("sl-hl").innerHTML = hoursLine(r);
