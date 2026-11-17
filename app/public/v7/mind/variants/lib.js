@@ -56,7 +56,7 @@
     /* the player, full screen over the Mind screen */
     ".bl-pl{position:fixed;inset:0;z-index:300;background:#fff;display:grid;place-items:start center;overflow:hidden}" +
     ".bl-pl .lp{position:relative;width:320px;height:640px;overflow:hidden;background:linear-gradient(180deg,#FFFDF5 0%,#FFF 46%);display:flex;flex-direction:column;align-items:center;color:#5C4E1F;transform-origin:50% 0}" +
-    ".bl-pl .lp-top{width:100%;display:flex;align-items:center;justify-content:space-between;padding:44px 16px 0;font:500 13px Roboto}.bl-pl .lp-x{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;cursor:pointer}.bl-pl .lp-x svg{width:20px;height:20px}" +
+    ".bl-pl .lp-top{width:100%;display:flex;align-items:center;justify-content:space-between;padding:58px 16px 0;font:500 13px Roboto}.bl-pl .lp-x{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;cursor:pointer}.bl-pl .lp-x svg{width:20px;height:20px}" +
     ".bl-pl .lp-n{flex:1;text-align:center;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bl-pl .lp-tm{min-width:40px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}" +
     ".bl-pl .lp-stage{position:relative;width:320px;height:360px;margin-top:8px;overflow:hidden}.bl-pl .lp-w{font:300 32px/38px Roboto;margin-top:4px}" +
     ".bl-pl .lp-c{font:500 15px/20px Roboto;color:#A68A2D;font-variant-numeric:tabular-nums;margin-top:6px;min-height:20px}.bl-pl .lp-s{font-size:13px;line-height:18px;color:#667085;margin-top:2px}" +

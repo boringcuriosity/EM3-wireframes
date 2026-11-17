@@ -18,13 +18,19 @@
   var when = function (x) { var k = K(x); return k === "sleep" ? "Morning" : k === "br" || k === "me" ? "Any time" : x.at; };
 
   /* the one checklist row: the tick (or the sheet it opens), the words, and a chevron when it opens a sheet or the time when it is set */
+  /* a row that opens a sheet is one target (17 Nov 2026): a tap anywhere on it but the tick acts as a tap on its title */
+  document.addEventListener("click", function (e) {
+    var r = e.target.closest(".ly-open"); if (!r || e.target.closest("button")) return;
+    var b = r.querySelector(".ly-rb"); if (b) b.click();
+  });
   function row(x, right) {
     /* the time the coach set sits at the right of every activity, before the chevron when the row opens something */
     var tm = x.at && /\d/.test(x.at) ? x.at : "";
-    var r = right != null ? right : x.sheet && K(x) !== "mood" ? (tm ? '<span class="ly-at">' + tm + '</span>' : "") + CHEV : x.at;   /* mood check-in: the time only, no chevron (16 Nov) */
-    return '<div class="mv-tip tip ly-row' + (x.on ? " done" : "") + '" data-tiprow="' + id(x) + '">' +
+    /* a row that opens a sheet (breathing, mood check-in) carries its chevron just after the title (17 Nov 2026), so every row's time lines up at the right */
+    var r = right != null ? right : x.at, opens = !!x.sheet && right == null;
+    return '<div class="mv-tip tip ly-row' + (x.on ? " done" : "") + (opens ? " ly-open" : "") + '" data-tiprow="' + id(x) + '">' +
       '<button class="mv-tb tickbtn" ' + (K(x) === "br" ? 'data-brask="' + x.sheet.split(":")[1] + '"' : tag(x)) + ' aria-pressed="' + x.on + '" aria-label="' + x.t + '">' + mark(x.on) + '</button>' +
-      '<button class="ly-rb" ' + tag(x) + '><span class="tt">' + x.t + '</span>' + (x.d ? '<span class="td">' + x.d + '</span>' : "") + '</button>' +
+      '<button class="ly-rb" ' + tag(x) + '><span class="tt">' + x.t + (opens ? '<span class="ly-chv" aria-hidden="true">' + CHEV + '</span>' : "") + '</span>' + (x.d ? '<span class="td">' + x.d + '</span>' : "") + '</button>' +
       (r ? '<span class="ly-tm">' + r + '</span>' : "") + '</div>';
   }
   var list = function (rows, right) { return '<div class="mv-tiplist">' + rows.map(function (x) { return row(x, right && right(x)); }).join("") + '</div>'; };
@@ -156,6 +162,9 @@
     ".ly-row .td{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}",
     ".ly-tm{flex:0 0 auto;font:500 12px/20px Roboto;color:var(--g-500);font-variant-numeric:tabular-nums}.ly-tm svg{width:16px;height:16px;color:var(--g-400);margin-top:2px}",
     ".ly-tm{display:inline-flex;align-items:flex-start;gap:4px}.ly-at{line-height:20px}",
+    /* a row that opens a sheet is one target: the title button stretches over the whole row, the tick stays its own button above it */
+    ".ly-open{cursor:pointer}",
+    ".ly-chv{display:inline-block;vertical-align:-3px;margin-left:2px;color:var(--g-400)}.ly-chv svg{width:16px;height:16px}",
     ".ly-grp+.ly-grp{margin-top:16px;padding-top:12px;border-top:1px solid var(--g-100)}",
     /* Eat and Move's picture slot, drawn as the practice's glyph on the soft indigo wash */
     ".mv-th.ly-th{display:grid;place-items:center;background:linear-gradient(150deg,var(--in-50),var(--in-100))}",

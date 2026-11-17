@@ -548,7 +548,7 @@
       ".bf.on{opacity:1;visibility:visible;transition:opacity .5s cubic-bezier(.4,0,.2,1)}",
       ".bf:not(.on){pointer-events:none}",   /* fading out: a tap goes to the row under it */
       ".bf-bg{position:absolute;inset:0}",
-      ".bf-top{position:absolute;top:44px;left:0;right:0;height:56px;display:flex;align-items:center;gap:8px;padding:0 16px;z-index:5}",
+      ".bf-top{position:absolute;top:54px;left:0;right:0;height:56px;display:flex;align-items:center;gap:8px;padding:0 16px;z-index:5}",
       ".bf-x{width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.7);color:" + INK + ";display:grid;place-items:center;cursor:pointer}.bf-x svg{width:20px;height:20px}",
       ".bf-ti{flex:1;text-align:center;font:500 14px/20px Roboto;opacity:.85}",
       ".bf-ib{position:relative;display:inline-flex;align-items:center;gap:6px;border:0;background:none;padding:0;font:inherit;color:inherit;cursor:pointer}.bf-ib svg{width:16px;height:16px;opacity:.8}.bf-ib::after{content:'';position:absolute;inset:-12px -8px}",
@@ -558,9 +558,9 @@
       ".bf-tl::after{content:'';position:absolute;left:50%;top:50%;width:max(100%,44px);height:44px;transform:translate(-50%,-50%)}.bf-tl svg{width:16px;height:16px}",
       ".bf-tl.lock{border-color:transparent;background:transparent;padding:0 4px;cursor:default}.bf-tl.lock::after{display:none}",
       /* one template for every exercise and state: top bar, the visual and its words centred together between the bar and the actions (never higher than before), actions pinned to the bottom */
-      ".bf-stage{position:absolute;left:50%;top:max(108px,calc(50% - 234px));width:300px;height:300px;transform:translateX(-50%);z-index:2;overflow:visible}",
+      ".bf-stage{position:absolute;left:50%;top:max(118px,calc(50% - 234px));width:300px;height:300px;transform:translateX(-50%);z-index:2;overflow:visible}",
       ".bf-fin{position:absolute;left:50%;top:50%;width:320px;height:360px;transform:translate(-50%,-50%) scale(.9375)}",
-      ".bf-txt{position:absolute;left:0;right:0;top:max(424px,calc(50% + 82px));height:124px;display:flex;flex-direction:column;align-items:center;text-align:center;z-index:4;pointer-events:none}",
+      ".bf-txt{position:absolute;left:0;right:0;top:max(434px,calc(50% + 82px));height:124px;display:flex;flex-direction:column;align-items:center;text-align:center;z-index:4;pointer-events:none}",
       ".bf-word{font:300 32px/38px Roboto;letter-spacing:.3px;padding:0 24px;max-height:76px;overflow:hidden}.bf.s-ready .bf-word,.bf.s-early .bf-word{font-size:26px;line-height:32px}.bf-cnt{margin-top:6px;font:500 15px/20px Roboto;font-variant-numeric:tabular-nums;color:#A68A2D;min-height:20px;padding:0 48px}",
       ".bf-bot{position:absolute;left:0;right:0;bottom:0;padding:0 24px calc(40px + env(safe-area-inset-bottom,0px));display:flex;gap:12px;z-index:5}",
       ".bf-bot>button{flex:1;width:auto}.bf-bot.stack{flex-direction:column}.bf-bot.stack>button{flex:none;width:100%}",

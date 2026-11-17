@@ -42,7 +42,7 @@
     avg: '<b>Average score</b>The average of the daily scores on days with anything logged. Today is left out until the day is over.<ul class="tags"><li><span class="pill ok">🏅 Great</span><span>80 and above. A medal day in the app.</span></li><li><span class="pill solid">✨ Solid</span><span>70 to 79.</span></li><li><span class="pill warn">⛅ Room to grow</span><span>50 to 69.</span></li><li><span class="pill bad">⚠️ Needs attention</span><span>Below 50.</span></li></ul>',
     nights: "<b>Nights logged</b>Nights with sleep logged. A night with no data is not a bad night: it scores no sleep points, and it is shown apart so you can ask about it.",
     medal: "<b>Medal days</b>Days at 80 or more, out of the days with anything logged. On each one the person earned the Lotus at dawn medal in the app.",
-    chart: "<b>Reading the chart</b>Each column is a day, or the average of a week or month.<ul><li><b>Top, the sleep:</b> the shaded band is the coach's window. The bar is the main sleep from bedtime to wake-up; a thin line inside it is time awake. Lighter bars are naps. <b>Dashed:</b> no sleep logged.</li><li><b>Below, self-care:</b> each row fills by how much was done. Dashed is planned, not done. Mood shows the lowest face that day.</li><li>Grey columns are weekends. The number on top is the score.</li></ul>A week or month shows the average bedtime and wake-up, with thin lines for the earliest and latest.",
+    chart: "<b>Reading the chart</b>Each column is a day, or the average of a week or month.<ul><li><b>Top, the sleep:</b> the shaded band is the coach's window. The bar is the main sleep from bedtime to wake-up; a thin line inside it is time awake. Lighter bars are naps. <b>Dashed:</b> no sleep logged.</li><li><b>Below, self-care:</b> each row fills by how much was done. Dashed is planned, not done. Mood shows the lowest face that day. The number on top is the score.</li></ul>A week or month shows the average bedtime and wake-up, with thin lines for the earliest and latest.",
     side: "<b>Behind the score</b>Each part's average, with the points it earned out of what it can earn. Tap a day or week on the chart to see it alone."
   };
 
@@ -293,8 +293,7 @@
     var y = function (t) { return pt + (t - lo) / (hi - lo) * SH; };
     var g = '<div class="cscroll"><svg viewBox="0 0 ' + W + " " + H + '" height="' + H + '"' + (W > CW ? ' style="width:' + W + 'px"' : "") + ' role="group" aria-label="' + $("chart-title").textContent + '">';
     g += '<defs><pattern id="hatch" width="4" height="4" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="4" height="4" fill="#C7D7FE"/><line x1="0" y1="0" x2="0" y2="4" stroke="#444CE7" stroke-width="2"/></pattern></defs>';
-    /* weekends first, behind everything */
-    if (daily) B.forEach(function (b, i) { if (b.days[0].x.we) g += '<rect x="' + (pl + step * i) + '" y="' + (pt - 6) + '" width="' + step + '" height="' + (H - pt - pb + 6) + '" fill="#F2F4F7" rx="4"/>'; });
+    /* no weekend shading (17 Nov 2026): the S under the date says it */
     /* hour lines and the window band */
     var hs = (hi - lo) / 60 > 12 ? 180 : 120;
     for (var t = Math.ceil(lo / hs) * hs; t <= hi; t += hs) g += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(t) + '" y2="' + y(t) + '" stroke="#EAECF0"/><text class="yl" x="' + (pl - 8) + '" y="' + (y(t) + 3.5) + '" text-anchor="end">' + clk(t).replace(":00", "") + "</text>";
@@ -463,7 +462,7 @@
   function legend() {
     var sw = function (st) { return '<i style="width:12px;height:12px;border-radius:3px;' + st + '"></i>'; };
     $("legend").innerHTML = '<span class="plain">' + sw("background:#EEF4FF;border:1px dashed #A4BCFD") + "Coach's window</span>" + '<span class="plain">' + sw("background:#444CE7") + "Asleep</span>" + '<span class="plain">' + sw("background:#A4BCFD") + "Nap</span>" +
-      (state.v === "daily" ? '<span class="plain">' + sw("background:#fff;border:1.5px dashed #A4BCFD") + 'Not logged or not done</span><span class="plain">' + sw("background:#F2F4F7") + 'Weekend</span>' : '<span class="plain"><i style="width:2px;height:12px;background:#8098F9"></i>Earliest to latest</span>');
+      (state.v === "daily" ? '<span class="plain">' + sw("background:#fff;border:1.5px dashed #A4BCFD") + 'Not logged or not done</span>' : '<span class="plain"><i style="width:2px;height:12px;background:#8098F9"></i>Earliest to latest</span>');
   }
 
   /* ---------- date range (as Momentum) ---------- */
