@@ -67,6 +67,8 @@
 
   /* ---------- sound: soft sine cues, as the reflection app ---------- */
   var actx = null;
+  /* the house sound (breath-lab/sounds.js, 17 Nov 2026): singing bowl cues and Breathing Calm at half level; the tones below are the fallback */
+  function HS() { return window.SOUNDS && window.SOUNDS.house; }
   function prime() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); actx.resume(); } catch (e) {} }
   function tone(a, b, d, peak) {
     if (!actx) return;
@@ -408,6 +410,7 @@
     }
     function buttons() {
       var st = F.state;
+      if (HS()) HS().music(B.sound && st === "run" && el.classList.contains("on"));   /* Breathing Calm while breathing, quiet otherwise */
       if (st === "") { word.textContent = F7[kOf(B.i)].pat; cnt.textContent = free() ? "No time limit" : (F.len || plan()) + " min session"; bot.innerHTML = sndBtn("bf", "bf-snd") + '<button class="md-save" data-bf="go">Start</button>'; }   /* sound from the start, where it sits while breathing */
       else if (st === "run" || st === "paused") bot.innerHTML = ctl(st === "paused", "bf", "bf-snd");
       else if (st === "done") { word.textContent = calm(Math.round(F.S.total / 60)); cnt.textContent = EX[kOf(B.i)].line; bot.innerHTML = '<button class="md-sec" data-bf="again">Do It Again</button><button class="md-save" data-bf="close">Back to Mind</button>'; }
@@ -423,7 +426,7 @@
       if (AUTO && !F.S) { AUTO = false; setTimeout(start, 500); }   /* the doc's frames only, once; a tap on the row always waits for Start */
     }
     function close() {
-      clearInterval(F.t); lenClose(); el.classList.remove("on"); document.documentElement.classList.remove("bf-lock");
+      clearInterval(F.t); lenClose(); el.classList.remove("on"); document.documentElement.classList.remove("bf-lock"); if (HS()) HS().music(false);
       if (F.state === "run") F.state = "paused";
       B.S = F.S && F.state !== "done" ? F.S : null; B.state = F.state; MD.render();
     }
@@ -447,14 +450,14 @@
         paint();
       }, 33);
     }
-    function enter(P) { if (B.sound && CUE[P.k]) CUE[P.k](); haptic(P.k); }
+    function enter(P) { if (B.sound) { if (HS()) HS().phase(P.k, P.s, kOf(B.i) === "hum"); else if (CUE[P.k]) CUE[P.k](); } haptic(P.k); }
     function credit(sec) {   /* whole minutes breathed, saved today; a minute or more ticks the row */
       var i = B.i; B.saved[i] = (B.saved[i] || 0) + sec;
       if (B.saved[i] >= 60 && !MD.S.br[i]) { MD.S.br[i] = true; MD.cause = "br"; }
     }
     function done() {
       clearInterval(F.t); credit(Math.floor(F.S.el / 60) * 60);
-      F.state = "done"; if (B.sound) CUE.done(); haptic("done"); buttons();
+      F.state = "done"; if (B.sound) HS() ? HS().done() : CUE.done(); haptic("done"); buttons();
     }
 
     /* ---------- the length sheet: house rules (title top left, grey circle X, no handle, at most 90%) ---------- */
@@ -500,7 +503,7 @@
       if (m) { F.lenPick = +m.dataset.bfm; [].forEach.call(lsheet.querySelectorAll("[data-bfm]"), function (x) { var on = +x.dataset.bfm === F.lenPick; x.classList.toggle("on", on); x.setAttribute("aria-checked", on); }); lsheet.querySelector("[data-bf=lenok]").textContent = useL(F.lenPick); return; }
       var b = e.target.closest("[data-bf]"); if (!b) return; var a = b.dataset.bf;
       if (a === "go") return start();
-      if (a === "snd") { B.sound = !B.sound; if (B.sound) prime(); b.setAttribute("aria-pressed", B.sound); b.setAttribute("aria-label", B.sound ? "Sound on" : "Sound off"); b.innerHTML = B.sound ? SND.on : SND.off; return; }
+      if (a === "snd") { B.sound = !B.sound; if (B.sound) prime(); if (HS()) HS().music(B.sound && F.state === "run"); b.setAttribute("aria-pressed", B.sound); b.setAttribute("aria-label", B.sound ? "Sound on" : "Sound off"); b.innerHTML = B.sound ? SND.on : SND.off; return; }
       if (a === "pause") { clearInterval(F.t); F.state = "paused"; buttons(); return paint(); }
       if (a === "resume") { F.state = "run"; buttons(); return loop(); }
       if (a === "end") return askStop();

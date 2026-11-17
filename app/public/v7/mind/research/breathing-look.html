@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Breathing Looks</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&display=swap">
+<style>
+  /* Six looks for the full-screen breathing player, each the real Mind screen (?vbreath=f&blook=n) playing Box */
+  :root { --ink: #101828; --body: #475467; --mute: #667085; --line: #E4E7EC; --teal: #1F7A7A; --brand: #1D4D38; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #FFFFFF; font: 400 14px/21px Roboto, Arial, sans-serif; color: var(--body); }
+  main { max-width: 1320px; margin: 0 auto; padding: 40px 24px 96px; }
+  h1 { margin: 0; font: 800 28px/36px Roboto; color: var(--brand); }
+  .lede { margin: 8px 0 0; font-size: 15px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 16px 0 0; }
+  .grid { margin-top: 28px; }
+  .bar span { font: 600 12px Roboto; color: var(--mute); margin-right: 4px; }
+  .bar button { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font: 600 13px Roboto; color: #344054; cursor: pointer; }
+  .bar button[aria-pressed=true] { border-color: var(--teal); background: #F5FFFF; color: var(--teal); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, 312px); gap: 40px 28px; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .fr { width: 312px; height: 675px; border-radius: 34px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 24px 48px -16px rgba(16,24,40,.18); background: #fff; }
+  .fr iframe { width: 390px; height: 844px; border: 0; transform: scale(.8); transform-origin: 0 0; }
+  figcaption { width: 312px; }
+  .n { display: flex; align-items: center; gap: 8px; font: 800 16px/22px Roboto; color: var(--ink); }
+  .k { font: 800 12px/18px Roboto; color: #fff; background: var(--brand); border-radius: 6px; padding: 1px 7px; }
+  .pick { font: 700 11px/16px Roboto; letter-spacing: .06em; text-transform: uppercase; color: var(--teal); background: #E0FFFF; border-radius: 999px; padding: 3px 9px; }
+  figcaption p { margin: 4px 0 0; font-size: 13px; line-height: 19px; }
+  figcaption a { font-size: 11px; color: var(--mute); word-break: break-all; }
+  figure.is-pick .fr { border-color: #5CC9C9; box-shadow: 0 0 0 3px #E0FFFF, 0 24px 48px -16px rgba(16,24,40,.18); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Breathing, two looks</h1>
+  <p class="lede">The real Mind screen with the full-screen player open, playing the exercise you pick. Before Start, tap the time at the top right to change the length. The teal pearl is the Rhythm score's own orb.</p>
+  <div class="bar" role="group" aria-label="Exercise"><span>Exercise</span><button data-bx="box" aria-pressed="true">Box</button><button data-bx="478">Sleep 4-7-8</button><button data-bx="zen">Zen Flow</button><button data-bx="star">Star</button><button data-bx="finger">5 Finger</button></div>
+  <div class="bar" role="group" aria-label="Controls">
+    <span>Speed</span><button data-sp="1">1× real</button><button data-sp="2" aria-pressed="true">2×</button><button data-sp="4">4×</button>
+    <span style="margin-left:12px">Motion</span><button data-rm="0" aria-pressed="true">Full</button><button data-rm="1">Reduced</button>
+    <span style="margin-left:12px">Start</span><button data-auto="1" aria-pressed="true">Playing</button><button data-auto="0">At Start button</button>
+  </div>
+  <div class="grid" id="grid"></div>
+</main>
+<script>
+(function () {
+  var LOOKS = [
+    [1, "Line", "An even hairline in the exercise's own shape. The pearl walks it and leaves a faint trail. Sleep 4-7-8 and Zen Flow are the orb alone.", true],
+    [3, "Glass", "A frosted pane in the route's shape whose light fills with the breath, the pearl on its edge. Sleep 4-7-8 and Zen Flow are the orb behind a glass sheen."]
+  ];
+  var o = { bx: "box", sp: 2, rm: 0, auto: 1 };
+  function src(n) { return "/v7/mind/index.html?vbreath=f&blook=" + n + "&bx=" + o.bx + "&bmin=5&sheet=breath" + (o.auto ? "&bauto=1" : "") + (o.sp > 1 ? "&bspeed=" + o.sp : "") + (o.rm ? "&rm=1" : ""); }
+  var g = document.getElementById("grid");
+  g.innerHTML = LOOKS.map(function (l) {
+    return '<figure' + (l[3] ? ' class="is-pick"' : "") + '><div class="fr"><iframe title="' + l[1] + ' look" data-n="' + l[0] + '"></iframe></div><figcaption><div class="n"><span class="k">' + l[0] + '</span>' + l[1] + (l[3] ? '<span class="pick">My pick</span>' : "") + '</div><p>' + l[2] + '</p><a target="_blank" rel="noopener"></a></figcaption></figure>';
+  }).join("");
+  function load() { [].forEach.call(g.querySelectorAll("iframe"), function (f) { var u = src(f.dataset.n); f.src = u; var a = f.closest("figure").querySelector("a"); a.href = u; a.textContent = u; }); }
+  document.querySelector("main").addEventListener("click", function (e) {
+    var b = e.target.closest(".bar button"); if (!b) return;
+    var key = Object.keys(b.dataset)[0]; o[key] = key === "bx" ? b.dataset[key] : +b.dataset[key];
+    [].forEach.call(document.querySelectorAll("[data-" + key + "]"), function (x) { x.setAttribute("aria-pressed", x === b); });
+    load();
+  });
+  load();
+})();
+</script>
+</body>
+</html>

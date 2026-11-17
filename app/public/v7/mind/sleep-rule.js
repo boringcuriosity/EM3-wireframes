@@ -73,17 +73,18 @@
   function words(s, P, plan, w, opts) {
     opts = opts || {};
     if (!s.night) return ["Nothing for last night yet, so sleep has no points so far."];
-    var n = s.night, L = [], half = w.window / 2;
+    var n = s.night, L = [];
     var aw = n.wake - n.bed - n.asleep;
     var nn = s.naps.length, withNaps = !opts.night && s.napMin;
-    L.push("Hours: " + dur(s.slept * 60) + " asleep" + (withNaps ? ", your main sleep and " + (nn === 1 ? "a nap" : nn + " naps") + " together" : "") + (aw > 0 ? " (the " + gap(aw) + " awake in the night is left out)" : "") + ", against your " + dur(P.hours * 60) + ". " + Math.round(w.hours * s.hours) + " of " + w.hours + "." +
+    L.push("Sleep duration: " + dur(s.slept * 60) + " asleep" + (withNaps ? ", your main sleep and " + (nn === 1 ? "a nap" : nn + " naps") + " together" : "") + (aw > 0 ? " (the " + gap(aw) + " awake in the night is left out)" : "") + ", against your " + dur(P.hours * 60) + ". " + Math.round(w.hours * s.hours) + " of " + w.hours + "." +
       (P.exOn && s.slept > P.hours + P.grace ? " More than " + gap(P.grace * 60) + " over your target takes some points off." : ""));
-    if (!s.judged) L.push("Sleep window: your longest sleep was " + dur(n.asleep) + ". A night needs at least 3 hours asleep for the window to count, so it gives 0 of " + w.window + ".");
+    if (!s.judged) L.push("Sleep consistency: your longest sleep was " + dur(n.asleep) + ". A night needs at least 3 hours asleep for the window to count, so it gives 0 of " + w.window + ".");
     else {
       var one = function (l, at, d, v) {
-        return l + " " + clk(at) + ", " + (Math.abs(d) <= P.tol ? "on time" : gap(d) + (d > 0 ? " late" : " early")) + ": " + Math.round(half * v) + " of " + half + ".";
+        return l + " " + clk(at) + ", " + (Math.abs(d) <= P.tol ? "on time" : gap(d) + (d > 0 ? " late" : " early"));
       };
-      L.push(one("Slept", n.bed, s.db, s.bed)); L.push(one("Woke up", n.wake, s.dw, s.wake));
+      /* 25 does not halve into whole points, so the two edges are said in words and the window gets one total */
+      L.push(one("Slept", n.bed, s.db, s.bed) + ". " + one("Woke up", n.wake, s.dw, s.wake) + ". Sleep consistency: " + Math.round(w.window * s.window) + " of " + w.window + ".");
     }
     s.naps.forEach(function (x) {
       L.push("Your " + gap(x.asleep) + " nap at " + clk(x.bed) + (opts.night ? " is not part of the night, so it changes neither your hours nor your sleep window."

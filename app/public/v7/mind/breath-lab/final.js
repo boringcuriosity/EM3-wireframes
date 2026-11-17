@@ -31,6 +31,15 @@
         var ins = inner && inner.build(stage);
         /* ponytail: shrink the inner canvas so the figure sits inside the ring */
         if (ins && ins.c) { var z = inner.size || 250; ins.c.style.cssText = "position:absolute;left:" + (160 - z / 2) + "px;top:" + (180 - z / 2) + "px;width:" + z + "px;height:" + z + "px"; }
+        /* inner.glow: a very soft indigo glow behind the figure (17 Nov 2026). The frames are opaque white, so the glow is its
+           own layer underneath and the picture layer multiplies over it as one group: the frames cross-fade normally inside
+           it first, so nothing is multiplied twice mid-fade (white takes the tint, the figure stays as it is) */
+        if (ins && ins.c && inner.glow) {
+          var gl = document.createElement("div");
+          gl.style.cssText = ins.c.style.cssText + ";border-radius:50%;pointer-events:none;background:radial-gradient(circle at 50% 54%, rgb(224 231 255 / .9) 0%, rgb(232 238 255 / .55) 38%, rgb(240 244 255 / .2) 62%, rgb(255 255 255 / 0) 74%), #fff";
+          ins.c.parentNode.insertBefore(gl, ins.c);
+          ins.c.style.isolation = "isolate"; ins.c.style.mixBlendMode = "multiply";
+        }
         var n = ++uid, s = L.svg("svg", { class: "bf-svg", viewBox: "0 0 320 360" }), d = L.svg("defs"), cx = 160, cy = 180, r = 134, G = square ? 1.6 : 4;
         var f = L.svg("filter", { id: "bf-g" + n, x: "-100%", y: "-100%", width: "300%", height: "300%" });
         f.appendChild(L.svg("feGaussianBlur", { stdDeviation: 3.5 }));

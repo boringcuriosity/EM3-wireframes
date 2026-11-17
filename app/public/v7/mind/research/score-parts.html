@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score Parts</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&display=swap">
+<style>
+  /* "What shaped your score?" as two parts, Sleep quality of 70 and Self-care of 30: five places for the explanation,
+     each the real Mind screen (?vparts=a to e, mind/variants/parts.js), the card beside what a tap opens */
+  :root { --ink: #101828; --body: #475467; --mute: #667085; --line: #E4E7EC; --accent: #3538CD; --brand: #1D4D38; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #FFFFFF; font: 400 14px/21px Roboto, Arial, sans-serif; color: var(--body); }
+  main { max-width: 1320px; margin: 0 auto; padding: 40px 24px 96px; }
+  h1 { margin: 0; font: 800 28px/36px Roboto; color: var(--brand); }
+  .lede { margin: 8px 0 0; font-size: 15px; max-width: 800px; }
+  .split { margin: 16px 0 0; display: flex; flex-wrap: wrap; gap: 12px; }
+  .split div { padding: 12px 16px; border-radius: 14px; background: #F5F8FF; border: 1px solid #E0EAFF; font-size: 13px; line-height: 20px; }
+  .split b { color: #2D3282; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 20px 0 0; }
+  .bar span { font: 600 12px Roboto; color: var(--mute); margin-right: 4px; }
+  .bar button { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font: 600 13px Roboto; color: #344054; cursor: pointer; }
+  .bar button[aria-pressed=true] { border-color: var(--accent); background: #F5F8FF; color: var(--accent); }
+  .grid { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fill, 652px); gap: 48px 40px; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .pair { display: flex; gap: 28px; }
+  .fr { width: 312px; height: 520px; border-radius: 34px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 24px 48px -16px rgba(16,24,40,.18); background: #fff; }
+  .fr iframe { width: 390px; height: 650px; border: 0; transform: scale(.8); transform-origin: 0 0; }
+  .cap { font: 600 11px/16px Roboto; letter-spacing: .06em; text-transform: uppercase; color: var(--mute); margin: 0 0 6px 4px; }
+  figcaption { max-width: 652px; }
+  .n { display: flex; align-items: center; gap: 8px; font: 800 16px/22px Roboto; color: var(--ink); }
+  .k { font: 800 12px/18px Roboto; color: #fff; background: var(--brand); border-radius: 6px; padding: 1px 7px; text-transform: uppercase; }
+  .pick { font: 700 11px/16px Roboto; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); background: #E0EAFF; border-radius: 999px; padding: 3px 9px; }
+  figcaption p { margin: 4px 0 0; font-size: 13px; line-height: 19px; }
+  figcaption .why { color: var(--ink); }
+  figcaption a { font-size: 11px; color: var(--mute); word-break: break-all; display: block; }
+  figure.is-pick .fr { border-color: #A4BCFD; box-shadow: 0 0 0 3px #E0EAFF, 0 24px 48px -16px rgba(16,24,40,.18); }
+  .tip { margin-top: 10px; font-size: 13px; color: var(--mute); }
+  @media (max-width: 700px) { main { padding: 24px 16px 64px; } .grid { grid-template-columns: 1fr; } .pair { flex-direction: column; align-items: center; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>What shaped your score? Two parts</h1>
+  <p class="lede">The card now has two parts in Move's and Eat's indigo glass, each filling to what was earned. The options differ only in where the patient finds out how each part is worked out. Every frame is the real Mind screen: the card on the left, what a tap opens on the right.</p>
+  <div class="split">
+    <div><b>Sleep quality, 70</b><br>Sleep duration 25 · Sleep consistency 25 · Wind-down 20</div>
+    <div><b>Self-care, 30</b><br>Breathing 10 · Me-time 10 · Mood check-in 10</div>
+  </div>
+  <div class="bar" role="group" aria-label="State">
+    <span>State</span>
+    <button data-st="synced" aria-pressed="true">Synced, on time</button>
+    <button data-st="late">Late bedtime</button>
+    <button data-st="short">Short night</button>
+    <button data-st="none">Nothing logged</button>
+    <button data-st="evening">Evening, most done</button>
+  </div>
+  <p class="tip">The screens are live: tap a tile or the info button inside a frame, or scroll down and tick a row, and the card and sheet update. The Rhythm sheet (tap the score) shows the same two parts in every option.</p>
+  <div class="grid" id="grid"></div>
+</main>
+<script>
+(function () {
+  var ST = {
+    synced: "&sstate=synced&day=noon&now=13",
+    late: "&sstate=edited&day=noon&now=13",
+    short: "&sstate=short&day=noon&now=13",
+    none: "&sstate=none&day=start&now=8",
+    evening: "&sstate=synced&day=night&now=21"
+  };
+  /* key, name, what it is, why or the catch, the sheet the right frame opens, my pick */
+  var V = [
+    ["f&vib=1", "Info on the tiles and the strip", "Each tile shows its number on one line with an ⓘ in its corner, and the indigo strip under them reads \"Learn more about your Rhythm breakdown ⓘ\". A tile opens its own part, the strip opens both. The sheet: your daily Rhythm is 70% sleep quality and 30% self-care, then each group with why it matters, each part with its bar, what it is and what earns a good score.",
+      "Every way in says it can be tapped. Catch: three ⓘ in a small card.", "both", true, "F1"],
+    ["f", "Indigo strip", "The same, without the ⓘ on the tiles: the indigo strip alone says there is more to learn. The tiles still open their own part.",
+      "Quietest card, one clear way in. Catch: the tiles do not show they can be tapped.", "both", false, "F2"],
+    ["f&vrs=gold", "Gold strip", "The same as F2 with the strip in gold, exactly as Move's rest-day strip.",
+      "Matches Move. Catch: gold on the Mind card, which is otherwise indigo.", "both", false, "F3"],
+    ["a", "An info button on each tile", "Each tile has its own ⓘ, and the whole tile is the button. Sleep quality opens a sheet about sleep only, Self-care one about self-care only.",
+      "The patient asks \"why only 49?\" while looking at that tile, and the answer is right there, about that part alone. Short sheets, nothing to scroll past.", "sleep"],
+    ["b", "One info button by the title", "A single ⓘ beside \"What shaped your score?\" opens one sheet with both parts, row by row.",
+      "Catch: the button sits away from the numbers it explains, and the sheet is long. The tiles also open it.", "both"],
+    ["c", "A strip under the tiles", "\"How your Rhythm adds up\" runs along the bottom of the card, with a chevron, and opens the same full sheet.",
+      "Clear words instead of a symbol, so nobody has to guess what ⓘ means. Catch: the card grows by one row.", "both"],
+    ["d", "Only in the Rhythm sheet", "Nothing extra on the card. Tapping a tile, or the score, opens the Rhythm sheet, which now has \"How your Rhythm is shaped\" under its tiles.",
+      "One place for everything about the score. Catch: the split sits under the hero and is easy to miss, and the sheet gets long.", "rhythm"],
+    ["e", "The split on the tiles", "Each tile lists its parts with their share, so the card answers the question without a tap. A tap explains what each part means.",
+      "Most informative at a glance. Catch: busier, with small numbers, and \"Consistency\" needs the sheet to make sense.", "care"]
+  ];
+  var st = "synced";
+  var base = function (k) { return "/v7/mind/index.html?tiles=1&vparts=" + k + "" + ST[st]; };
+  document.getElementById("grid").innerHTML = V.map(function (v) {
+    return '<figure' + (v[5] ? ' class="is-pick"' : "") + '><div class="pair"><div><div class="cap">On the screen</div><div class="fr"><iframe title="Option ' + (v[6] || v[0].toUpperCase()) + ', the card" data-k="' + v[0] + '" data-m="card"></iframe></div></div>' +
+      '<div><div class="cap">After a tap</div><div class="fr"><iframe title="Option ' + (v[6] || v[0].toUpperCase()) + ', the sheet" data-k="' + v[0] + '" data-m="' + v[4] + '"></iframe></div></div></div>' +
+      '<figcaption><div class="n"><span class="k">' + (v[6] || v[0]) + '</span>' + v[1] + (v[5] ? '<span class="pick">My pick</span>' : "") + '</div><p>' + v[2] + '</p><p class="why">' + v[3] + '</p><a target="_blank" rel="noopener"></a></figcaption></figure>';
+  }).join("");
+  function load() {
+    [].forEach.call(document.querySelectorAll("#grid iframe"), function (f) {
+      var u = base(f.dataset.k) + (f.dataset.m === "card" ? "&scroll=tiles" : "&vpsheet=" + f.dataset.m);
+      f.src = u;
+      if (f.dataset.m === "card") { var a = f.closest("figure").querySelector("figcaption > a"); a.href = u + ""; a.textContent = location.origin + u; }
+    });
+  }
+  document.querySelector(".bar").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    st = b.dataset.st;
+    [].forEach.call(document.querySelectorAll("[data-st]"), function (x) { x.setAttribute("aria-pressed", x === b); });
+    load();
+  });
+  load();
+})();
+</script>
+</body>
+</html>

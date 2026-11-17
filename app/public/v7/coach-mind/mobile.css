@@ -8,7 +8,7 @@
   input, select, textarea { font-size: 16px !important; }   /* 16px stops iOS zooming into a field on focus */
 
   /* ---------- shell: no patient rail, the page takes the width ---------- */
-  .mp-shell { grid-template-columns: 1fr; }
+  .mp-shell { grid-template-columns: 1fr; grid-template-rows: auto 1fr; align-content: start; }   /* the strip keeps its height; the spare room goes below the list, not above it */
   /* the sidebar folds into a patient strip with a menu button; open, it slides in from the left over a scrim */
   .mp-nav { position: sticky; top: 0; z-index: 5; height: 66px; padding: 12px 16px; overflow: hidden; border-right: 0; border-bottom: 1px solid var(--mp-line); }
   .mp-nav > :not(.mp-pt) { display: none; }
@@ -35,6 +35,8 @@
   .mp-row { flex-wrap: wrap; align-items: flex-start; gap: 12px; padding: 14px; }
   .mp-row-a { flex: 1 1 100%; }
   .mp-row-a .mp-btn { flex: 1; height: 40px; }
+  .mp-row-x { display: none; }   /* the plan card says its dates; bedtime and counts live in View */
+  .mp-row-m { font-size: 13px; line-height: 18px; }
   .mp-empty { margin-top: 16px; padding: 28px 20px; }
 
   /* ---------- full-screen frame: title and X on one row, the steps under them ---------- */
@@ -58,7 +60,9 @@
 
   /* bottom bar: the summary on its own line, then the actions as full-width buttons */
   .mp-fbot { flex-wrap: wrap; gap: 8px; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); }
-  .mp-sum { flex: 1 1 100%; font-size: 12.5px; }
+  .mp-sum { display: none; }
+  .mp-nx { display: none; }
+  .mp-table td.mp-tsc { display: none; }   /* the library card keeps the sleep window and practices; self-care counts are in Edit */   /* the one-line plan summary: the steps and View already say it, and on a phone it only fits cut short */
   .mp-acts { flex: 1 1 100%; }
   .mp-acts .mp-btn { flex: 1 1 auto; height: 44px; padding: 0 12px; }
   .mp-acts .mp-btn.is-primary { flex: 2 1 auto; }
@@ -78,6 +82,7 @@
   .mp-table .mp-ta { flex: 1 1 100%; max-width: none; margin: 2px 0 6px; }
   .mp-table td.mp-nowrap { font-size: 12.5px; line-height: 18px; color: #344054; }
   .mp-table td.mp-nowrap + td.mp-nowrap::before { content: "·"; margin: 0 6px; color: #98A2B3; }
+  .mp-table td.mp-by::before { content: "By "; }   /* on a card: "By GoodFlip · 10:30 PM to 6:00 AM" */
   .mp-table td.mp-tact { flex: 1 1 100%; display: flex; gap: 8px; margin-top: 12px; text-align: left; }
   .mp-table td.mp-tact .mp-btn { flex: 1; height: 40px; }
   .mp-table td.mp-tact .mp-btn + .mp-btn { margin-left: 0; }
@@ -129,10 +134,13 @@
   .pr-side > .pr-note { order: 1; }
 }
 @media (max-width: 760px) {
-  /* review: the patient's phone sits centred under the summary, not stuck to the side */
-  .rv-wrap .rv-side { position: static; justify-self: center; text-align: center; }
-}
-@media (max-width: 760px) {
-  /* ponytail: fixed scale fits a 350px-wide phone; the desktop fit-to-height script is beaten by !important */
-  .rv-wrap .rv-side { --s: .78 !important; }
+  /* start screen and library: the blank plan as a compact card, the pager across the foot */
+  .mp-blank.is-top { margin-bottom: 20px; }
+  .mp-pager { justify-content: space-between; }
+  .mp-pager span { margin-right: auto; }
+  /* assign: the radio cards fill the sheet; the actions stack, the choice's button first */
+  .mp-dlg.is-assign .mp-dlg-a { flex-direction: column-reverse; }
+  .mp-dlg.is-assign .mp-dlg-a .mp-btn { width: 100%; }
+  /* review: the scoring rows breathe a little more */
+  .rv-half { padding: 2px 12px 6px; }
 }

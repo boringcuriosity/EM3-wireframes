@@ -11,7 +11,7 @@ var assert = require("assert");
 /* the coach's sample plan: 7.5 h, 10:30 PM to 6:00 AM, and the fixed scoring settings */
 var P = { hours: 7.5, short: 3, exOn: true, grace: 1, exPen: 20, tol: 30, zero: 120 };
 var PLAN = { bed: 1350, wake: 1800 }, DAYPLAN = { bed: 1980, wake: 2430 };   /* 9:00 AM to 4:30 PM for the night-shift case */
-var W = { hours: 23, window: 24 };
+var W = { hours: 25, window: 25 };
 
 function before(list, plan) {
   if (!list.length) return { h: 0, w: 0 };
@@ -29,39 +29,39 @@ function after(list, plan, opts) {
 /* key, sessions [bed, wake] in minutes from 00:00 yesterday, before [hours, window], after [hours, window], plan, opts.
    After: naps count towards hours (decided 16 Nov 2026); { night: true } is the rule before that, night only */
 var CASES = [
-  ["plan", [[1350, 1800]], [23, 24], [23, 24]],
-  ["synced", [[1370, 1810]], [22, 24], [22, 24]],
-  ["late15", [[1365, 1800]], [21, 24], [21, 24]],
-  ["late30", [[1380, 1800]], [19, 24], [19, 24]],
-  ["late60", [[1410, 1800]], [15, 20], [15, 20]],
-  ["late120", [[1470, 1800]], [8, 12], [8, 12]],
-  ["early15", [[1350, 1785]], [21, 24], [21, 24]],
-  ["early30", [[1350, 1770]], [19, 24], [19, 24]],
-  ["early60", [[1350, 1740]], [15, 20], [15, 20]],
-  ["early120", [[1350, 1680]], [8, 12], [8, 12]],
-  ["bedearly60", [[1290, 1800]], [23, 20], [23, 20]],
-  ["shift60", [[1410, 1860]], [23, 16], [23, 16]],
-  ["shift120", [[1470, 1920]], [23, 0], [23, 0]],
-  ["nap20", [[1350, 1800], [2280, 2300]], [23, 12], [23, 24]],
-  ["nap90", [[1350, 1800], [2220, 2310]], [21, 12], [21, 24]],
-  ["nap90 (night only)", [[1350, 1800], [2220, 2310]], [21, 12], [23, 24], PLAN, { night: true }],
-  ["napeve", [[1140, 1200], [1350, 1800]], [23, 12], [23, 24]],
-  ["napin", [[1350, 1370], [1500, 1800]], [6, 24], [6, 24]],
+  ["plan", [[1350, 1800]], [25, 25], [25, 25]],
+  ["synced", [[1370, 1810]], [24, 25], [24, 25]],
+  ["late15", [[1365, 1800]], [23, 25], [23, 25]],
+  ["late30", [[1380, 1800]], [21, 25], [21, 25]],
+  ["late60", [[1410, 1800]], [17, 21], [17, 21]],
+  ["late120", [[1470, 1800]], [8, 13], [8, 13]],
+  ["early15", [[1350, 1785]], [23, 25], [23, 25]],
+  ["early30", [[1350, 1770]], [21, 25], [21, 25]],
+  ["early60", [[1350, 1740]], [17, 21], [17, 21]],
+  ["early120", [[1350, 1680]], [8, 13], [8, 13]],
+  ["bedearly60", [[1290, 1800]], [25, 21], [25, 21]],
+  ["shift60", [[1410, 1860]], [25, 17], [25, 17]],
+  ["shift120", [[1470, 1920]], [25, 0], [25, 0]],
+  ["nap20", [[1350, 1800], [2280, 2300]], [25, 13], [25, 25]],
+  ["nap90", [[1350, 1800], [2220, 2310]], [23, 13], [23, 25]],
+  ["nap90 (night only)", [[1350, 1800], [2220, 2310]], [23, 13], [25, 25], PLAN, { night: true }],
+  ["napeve", [[1140, 1200], [1350, 1800]], [25, 13], [25, 25]],
+  ["napin", [[1350, 1370], [1500, 1800]], [7, 25], [7, 25]],
   ["naponly", [[2220, 2310]], [0, 0], [0, 0]],
-  ["yday", [[900, 940], [1350, 1800]], [23, 12], [23, 24]],
-  ["tomorrow", [[1350, 1800], [2460, 2580]], [18, 12], [23, 24]],
-  ["split", [[1370, 1590], [1630, 1810]], [17, 24], [17, 24]],
-  ["split2h", [[1350, 1530], [1650, 1800]], [8, 24], [8, 24]],
-  ["dozeback", [[1350, 1710], [1830, 1890]], [19, 16], [19, 16]],
-  ["dozeback (night only)", [[1350, 1710], [1830, 1890]], [19, 16], [12, 16], PLAN, { night: true }],
-  ["short2h", [[1350, 1470]], [0, 12], [0, 0]],
-  ["short3h", [[1350, 1530]], [0, 12], [0, 12]],
-  ["partial", [[1690, 1815]], [0, 12], [0, 0]],
-  ["nightshift", [[1980, 2400]], [19, 0], [19, 0]],
-  ["nightshift, day window", [[1980, 2400]], [19, 24], [19, 24], DAYPLAN],
-  ["dup", [[1370, 1810], [1360, 1800]], [0, 24], [23, 24]],
-  ["overlap", [[1370, 1600], [1560, 1810]], [23, 24], [22, 24]],
-  ["crumb", [[1350, 1800], [2100, 2105]], [23, 12], [23, 24]],
+  ["yday", [[900, 940], [1350, 1800]], [25, 13], [25, 25]],
+  ["tomorrow", [[1350, 1800], [2460, 2580]], [20, 13], [25, 25]],
+  ["split", [[1370, 1590], [1630, 1810]], [18, 25], [18, 25]],
+  ["split2h", [[1350, 1530], [1650, 1800]], [8, 25], [8, 25]],
+  ["dozeback", [[1350, 1710], [1830, 1890]], [21, 17], [21, 17]],
+  ["dozeback (night only)", [[1350, 1710], [1830, 1890]], [21, 17], [13, 17], PLAN, { night: true }],
+  ["short2h", [[1350, 1470]], [0, 13], [0, 0]],
+  ["short3h", [[1350, 1530]], [0, 13], [0, 13]],
+  ["partial", [[1690, 1815]], [0, 13], [0, 0]],
+  ["nightshift", [[1980, 2400]], [21, 0], [21, 0]],
+  ["nightshift, day window", [[1980, 2400]], [21, 25], [21, 25], DAYPLAN],
+  ["dup", [[1370, 1810], [1360, 1800]], [0, 25], [25, 25]],
+  ["overlap", [[1370, 1600], [1560, 1810]], [25, 25], [24, 25]],
+  ["crumb", [[1350, 1800], [2100, 2105]], [25, 13], [25, 25]],
   ["none", [], [0, 0], [0, 0]]
 ];
 
@@ -86,7 +86,7 @@ assert.strictEqual(R.split([{ bed: 1350, wake: 1500 }, { bed: 1700, wake: 1800 }
 assert.strictEqual(R.split([{ bed: 1140, wake: 1200 }, { bed: 1250, wake: 1800 }], PLAN).naps.length, 0, "a break of 1 hour or less joins, outside the window too");
 assert.strictEqual(R.score([{ bed: 1350, wake: 1529 }], P, PLAN).judged, false, "under 3 h asleep, the window is not judged");
 assert.strictEqual(R.score([{ bed: 1350, wake: 1530 }], P, PLAN).judged, true, "3 h asleep, it is");
-assert.strictEqual(R.words(R.score([{ bed: 1350, wake: 1800 }, { bed: 2280, wake: 2300 }], P, PLAN), P, PLAN, W).length, 4, "hours, bedtime, wake-up and the nap, in words");
+assert.strictEqual(R.words(R.score([{ bed: 1350, wake: 1800 }, { bed: 2280, wake: 2300 }], P, PLAN), P, PLAN, W).length, 3, "hours, bedtime and wake-up together, and the nap, in words");
 assert.strictEqual(R.score([{ bed: 1350, wake: 1800 }, { bed: 2280, wake: 2300 }], P, PLAN).slept * 60, 470, "a nap adds to the hours: 7h 30m and 20 min");
 assert.strictEqual(R.score([{ bed: 1350, wake: 1800 }, { bed: 2280, wake: 2300 }], P, PLAN, { night: true }).slept * 60, 450, "night only leaves it out");
 assert.strictEqual(R.score([{ bed: 1350, wake: 1800 }, { bed: 2220, wake: 2310 }], P, PLAN).window, 1, "a nap never moves the window");

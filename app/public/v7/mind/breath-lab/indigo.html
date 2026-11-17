@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Indigo Character</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600&display=swap">
+<style>
+  /* the Mind indigo, the same family as the scene illustrations (icons/mind/bg, icons/mind/breath) */
+  :root { --ink: #101828; --sub: #475467; --mute: #667085; --line: #EAECF0;
+    --in25: #F5F8FF; --in50: #EEF4FF; --in100: #E0EAFF; --in300: #A4BCFD; --in600: #444CE7; --in700: #3538CD; --in900: #2D3282; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #FFFFFF; color: var(--ink); font: 400 15px/22px Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1440px; margin: 0 auto; padding: 32px 24px 96px; }
+  .eyebrow { font: 600 12px/16px Roboto; letter-spacing: 1.2px; text-transform: uppercase; color: var(--in700); }
+  h1 { font: 600 36px/44px "Playfair Display", serif; margin: 8px 0 8px; }
+  .lede { max-width: 780px; color: var(--sub); margin: 0 0 8px; }
+  .lede a { color: var(--in700); }
+  .ctl { display: flex; gap: 8px; flex-wrap: wrap; position: sticky; top: 0; z-index: 5; background: rgba(255,255,255,.92); backdrop-filter: blur(8px); padding: 12px 0; border-bottom: 1px solid var(--line); margin-top: 16px; }
+  .ctl button { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font: 500 13px Roboto; color: var(--sub); cursor: pointer; }
+  .ctl button[aria-pressed=true] { background: var(--in50); border-color: var(--in300); color: var(--in900); }
+  .grid { display: flex; flex-wrap: wrap; gap: 32px 28px; margin-top: 24px; }
+  .card { width: 320px; display: flex; flex-direction: column; }
+  .card h3 { font: 600 16px/22px Roboto; margin: 0 0 2px; }
+  .card .pat { font: 400 13px/18px Roboto; color: var(--mute); }
+  .card p { font-size: 13px; line-height: 19px; color: var(--sub); margin: 4px 0 12px; min-height: 96px; }
+  .sheet { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+  .sheet figure { margin: 0; width: 120px; text-align: center; font: 400 12px/16px Roboto; color: var(--mute); }
+  .sheet img { width: 120px; height: 120px; border-radius: 16px; border: 1px solid var(--line); display: block; margin-bottom: 4px; object-fit: cover; }
+
+  /* the phone: the Mind player's frame (v7/mind/variants/breath.js, look f), in indigo */
+  .lp { position: relative; width: 320px; height: 640px; border-radius: 28px; border: 1px solid var(--line); overflow: hidden;
+    background: linear-gradient(180deg, var(--in25) 0%, #FFFFFF 46%, #FFFFFF 100%) !important; box-shadow: 0 1px 2px rgba(16,24,40,.05), 0 12px 32px -12px rgba(16,24,40,.12);
+    display: flex; flex-direction: column; align-items: center; color: var(--in900); }
+  .lp-top { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 44px 16px 0; font: 500 13px Roboto; position: relative; z-index: 2; }
+  .lp-x { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.7); }
+  .lp-x svg { width: 20px; height: 20px; }
+  .lp-n { flex: 1; text-align: center; padding: 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lp-tm { min-width: 40px; text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+  .lp-stage { position: relative; width: 320px; height: 360px; margin-top: 8px; overflow: hidden; }
+  .lp-w { font: 300 32px/38px Roboto; letter-spacing: .3px; margin-top: 4px; position: relative; z-index: 2; }
+  .lp-c { font: 500 15px/20px Roboto; color: var(--in600); font-variant-numeric: tabular-nums; margin-top: 6px; min-height: 20px; position: relative; z-index: 2; }
+  .lp-s { font-size: 13px; line-height: 18px; color: #667085; margin-top: 2px; position: relative; z-index: 2; }
+  .lp-b { position: absolute; left: 16px; right: 16px; bottom: 24px; display: flex; gap: 12px; z-index: 2; }
+  .lp-b button { height: 48px; border-radius: 8px; font: 600 15px Roboto; cursor: pointer; }
+  .lp-snd { flex: 0 0 48px; border: 1px solid var(--line); background: #fff; color: #475467; display: grid; place-items: center; }
+  .lp-snd svg { width: 20px; height: 20px; }
+  .lp-end { flex: 1; border: 1px solid #A6E9C9; background: #fff; color: #2A805A; }
+  .lp-pp { flex: 1; border: 0; background: #299D6B; color: #fff; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .lp-pp svg { width: 18px; height: 18px; }
+  /* the figure inside the ring: a white disc so the ring reads as a frame around the person */
+  .ic-fig { position: absolute; border-radius: 50%; overflow: hidden; background: #fff; }
+  .ic-fig img { position: absolute; inset: 0; width: 100%; height: 100%; transform-origin: 50% 100%; }
+  .ic-arrow { position: absolute; inset: 0; width: 320px; height: 360px; pointer-events: none; z-index: 1; }
+  @media (max-width: 600px) { .wrap { padding: 20px 16px 64px; } h1 { font-size: 28px; line-height: 36px; } .grid { justify-content: center; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Mind · Breathing · Indigo character</div>
+  <h1>One indigo person for every breath</h1>
+  <p class="lede">A different approach to the final seven (<a href="/v7/mind/breath-lab/final.html">final.html</a> stays as it is). One gender-neutral person, drawn in the same style and indigo as the Mind scene illustrations, sits inside the same breath clock with the same words and timings. The four drawn breaths (Simple, 4-7-8, Box, Extended Exhale) now show the person seated, with a gentle rise on each breath in. Humming Bee uses the simple pose, fingers closing the ears, cropped at the chest so the belly never shows. No air, mist or smoke is drawn; Pursed Lip keeps one clean tapered arrow, as in the final.</p>
+  <div class="sheet" id="sheet"></div>
+  <div class="ctl"><button id="rm" aria-pressed="false">Reduced motion</button><button id="sp" aria-pressed="false">2× speed</button></div>
+  <div class="grid" id="grid"></div>
+</div>
+<script src="/v7/mind/breath-lab/lab.js"></script>
+<script src="/v7/mind/breath-lab/final.js"></script>
+<script>
+(function () {
+  /* this page only: the breath clock's gold becomes the Mind indigo (lab.js keeps its own palette for every other page) */
+  Object.assign(LAB.L.C, { gold900: "#2D3282", gold700: "#3538CD", gold600: "#444CE7", gold500: "#6172F3", gold400: "#8098F9", gold300: "#C7D7FE", gold100: "#E0EAFF", gold50: "#F5F8FF" });
+  var D = "/v7/mind/breath-lab/frames/indigo/", ease = LAB.L.ease;
+
+  /* the person in a white disc inside the ring.
+     still: one picture that lifts a little on each breath in (chest and head rise, the base stays put)
+     blend: two aligned pictures, the in-picture fading in with the breath's fullness (belly)
+     swap:  two pictures, the phase's own picture cross-fading in over the first .5 s (pursed lips) */
+  function fig(mode, a, b, arrow) {
+    return {
+      bg: "#FFFFFF",
+      build: function (stage) {
+        var c = document.createElement("div"); c.className = "ic-fig"; stage.appendChild(c);
+        var im = [a, b].filter(Boolean).map(function (s) { var i = new Image(); i.src = D + s; i.alt = ""; c.appendChild(i); return i; });
+        var ar = null;
+        if (arrow) {   /* one clean tapered indigo arrow: into the nose on the breath in, away from the lips on the breath out */
+          ar = LAB.L.svg("svg", { class: "ic-arrow", viewBox: "0 0 320 360" });
+          ar.innerHTML = '<path d="M296 128 C276 140 262 146 236 149" fill="none" stroke="#6172F3" stroke-width="3.5" stroke-linecap="round"/><path d="M244 141 L233 149 L245 155" fill="none" stroke="#6172F3" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
+          var o = LAB.L.svg("g", {}); o.innerHTML = '<path d="M238 186 C258 190 274 198 296 214" fill="none" stroke="#6172F3" stroke-width="3.5" stroke-linecap="round"/><path d="M285 214 L297 215 L292 203" fill="none" stroke="#6172F3" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
+          ar.appendChild(o); stage.appendChild(ar); ar._in = ar.firstChild; ar._in2 = ar.childNodes[1]; ar._out = o;
+        }
+        return { c: c, im: im, ar: ar };
+      },
+      frame: function (s, p) {
+        var E = p.reduced ? (p.k === "out" ? 0 : 1) : p.e;
+        if (mode === "still") {
+          s.im[0].style.transform = "scale(" + (1 + .012 * E).toFixed(4) + "," + (1 + .03 * E).toFixed(4) + ")";
+        } else if (mode === "blend") {
+          s.im[0].style.opacity = 1; s.im[1].style.opacity = ease(E).toFixed(3);
+        } else {
+          var f = p.reduced ? 1 : ease(Math.min(1, p.sec / .5)), on = p.k === "out" ? s.im[1] : s.im[0], off = on === s.im[1] ? s.im[0] : s.im[1];
+          on.style.opacity = 1; on.style.zIndex = 1; off.style.zIndex = 2; off.style.opacity = (1 - f).toFixed(3);
+          s.im[0].style.transform = "rotate(" + (-2 * (p.k === "out" ? 1 - E : E)).toFixed(2) + "deg)";   /* the head lifts a touch on the breath in */
+          if (s.ar) {
+            var t = p.reduced ? 1 : Math.min(1, p.t * 1.6), vis = function (n, v) { n.style.opacity = v; };
+            vis(s.ar._in, p.k === "in" ? t : 0); vis(s.ar._in2, p.k === "in" ? t : 0); vis(s.ar._out, p.k === "out" ? t : 0);
+          }
+        }
+      }
+    };
+  }
+  var LIST = [
+    ["coherent", "Seated, breath clock", "The person sits cross-legged, hands resting on the knees, and rises a little with each breath in. The ring is cut in two equal halves, 5 s in and 5 s out.", fig("still", "seated.png"), 0, 220],
+    ["sleep", "Seated, breath clock", "The same seated person inside the 4, 7 and 8 ring: solid for breathing, dotted for the hold. The rise stays up through the hold and settles slowly.", fig("still", "seated.png"), 0, 220],
+    ["box", "Seated, breath square", "The same seated person inside the square, one side for each step: in, hold, out, hold.", fig("still", "seated.png"), 1, 210],
+    ["exhale", "Seated, breath clock", "The same seated person with a short in-arc and an out-arc twice as long, so the long breath out has room to go.", fig("still", "seated.png"), 0, 220],
+    ["belly", "Standing side profile", "The person stands, one hand on the chest and one on the belly. Breathing in, the belly rises a little under the hand; breathing out, it settles. A small, natural change.", fig("blend", "belly-out.png", "belly-in.png"), 0, 250],
+    ["hum", "Fingers closing the ears", "The simple pose the coach confirmed: index fingers gently closing the ears, eyes closed. Cropped at the chest, so the belly is not shown. The person lifts a little on the breath in and stays still for the hum.", fig("still", "hum.png"), 0, 250],
+    ["pursed", "Close-up side profile", "A close side profile. Breathing in, the head lifts a touch and an arrow flows into the nose. Breathing out, the lips purse as if blowing out a candle and the arrow flows away from the mouth.", fig("swap", "pursed-in.png", "pursed-out.png", true), 0, 240]
+  ];
+  var grid = document.getElementById("grid");
+  LIST.forEach(function (f) {
+    var P = LAB.PAT[f[0]], card = document.createElement("div"); card.className = "card"; card.id = f[0];
+    card.innerHTML = "<h3>" + P.name + "</h3><div class=\"pat\">" + P.seq.map(function (x) { return x[2] + " " + x[1] + " s"; }).join(" · ") + "</div><p><b>" + f[1] + ".</b> " + f[2] + "</p>";
+    grid.appendChild(card);
+    var inner = f[3], z = f[5], v = LAB.clockBloom(f[0], { bg: "#FFFFFF", size: z, build: inner.build, frame: inner.frame }, !!f[4]);
+    LAB.phone(card, f[0], v);
+  });
+  /* the frames, so the character can be checked side by side */
+  document.getElementById("sheet").innerHTML = [["seated.png", "Seated"], ["hum.png", "Humming Bee"], ["pursed-in.png", "Pursed, in"], ["pursed-out.png", "Pursed, out"], ["belly-out.png", "Belly, out"], ["belly-in.png", "Belly, in"]]
+    .map(function (x) { return '<figure><img src="' + D + x[0] + '" alt="' + x[1] + '">' + x[1] + "</figure>"; }).join("");
+  var rm = document.getElementById("rm"), sp = document.getElementById("sp");
+  LAB.reduced = matchMedia("(prefers-reduced-motion: reduce)").matches; rm.setAttribute("aria-pressed", LAB.reduced);
+  rm.onclick = function () { LAB.reduced = !LAB.reduced; rm.setAttribute("aria-pressed", LAB.reduced); };
+  sp.onclick = function () { LAB.speed = LAB.speed === 2 ? 1 : 2; sp.setAttribute("aria-pressed", LAB.speed === 2); };
+  if (LAB.kick) LAB.kick();
+})();
+</script>
+</body>
+</html>

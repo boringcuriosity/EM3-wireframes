@@ -55,6 +55,8 @@
     f.type = "lowpass"; f.frequency.value = 1200; o.connect(f).connect(g).connect(actx.destination); o.start(n); o.stop(n + d + .05);
   }
   var CUE = { in: function (lo) { tone(lo ? 196 : 220, lo ? 262 : 330, 1.4); }, hold: function () { tone(300, 300, .7, .03); }, out: function (lo) { tone(lo ? 262 : 330, lo ? 165 : 196, 1.8); }, done: function () { tone(392, 523, 1.2, .04); } };
+  /* the house sound (sounds.js: singing bowl and Breathing Calm), when the page has it */
+  function H() { return !LAB.noHouse && window.SOUNDS && window.SOUNDS.house; }
   var LAB = window.LAB = { cue: CUE, prime: prime, L: L, PAT: PAT, V: {}, add: function (tech, v) { (this.V[tech] = this.V[tech] || []).push(v); } };
 
   /* where a pattern is at time s */
@@ -108,10 +110,10 @@
       if (on) requestAnimationFrame(tick);
       var dt = last ? Math.min(.1, (now - last) / 1000) : 0; last = now;
       if (!paused) T += dt * (LAB.speed || 1);
-      if (!el.isConnected) on = false;
+      if (!el.isConnected) { on = false; if (H()) H().music(false); }
       if (LAB.at0 != null) T = LAB.at0;   /* ?at=N: every phone frozen at second N, for review */
       if (SECS && T >= SECS && !done) {   /* time is up: rest on Done, End closes */
-        done = true; paused = true; if (sOn) CUE.done(); pp.hidden = true; end.hidden = false; end.textContent = "Done";
+        done = true; paused = true; if (sOn) H() ? H().done() : CUE.done(); pp.hidden = true; end.hidden = false; end.textContent = "Done";
         w.textContent = "Well done"; s.textContent = Math.round(SECS / 60) + (SECS >= 120 ? " calm minutes" : " calm minute"); c.textContent = ""; tm.textContent = "0:00";
       }
       if (done) return;
@@ -123,7 +125,9 @@
         w.textContent = Math.ceil(-T); s.textContent = "Get comfortable"; c.textContent = ""; lastK = "";
         tm.textContent = mm(SECS || 0); return;
       }
-      if (p.k !== lastK && sOn && !paused) CUE[p.k] && CUE[p.k](tech === "sleep" || tech === "hum");   /* a tone as each part begins */
+      if (H()) H().music(sOn && !paused && el.isConnected);   /* music while breathing; pause, sound off or closing stops it */
+      if (p.k !== lastK && sOn && !paused) { if (H()) H().phase(p.k, LAB.PAT[tech] ? (LAB.PAT[tech].seq.filter(function (x) { return x[0] === p.k; })[0] || [0, 4])[1] : 4, tech === "hum");
+        else CUE[p.k] && CUE[p.k](tech === "sleep" || tech === "hum"); }   /* a sound as each part begins */
       if (p.word !== w.textContent || p.k !== lastK) { w.textContent = p.word; s.textContent = p.sub; }
       lastK = p.k;
       c.textContent = p.left; tm.textContent = SECS ? mm(SECS - T) : mm(T);

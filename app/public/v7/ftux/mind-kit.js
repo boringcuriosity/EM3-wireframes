@@ -8,8 +8,8 @@
    MINDK.breaths(el) free, step 2: three of the seven breathing exercises, the front one breathing in 5 and out 5.
    Each returns { play(), still(), reset() }.
    Numbers are one sample night on the coach portal's default plan (coach-mind/data.js, mind/rhythm.js): 7.5 h asleep,
-   10:30 PM to 6:00 AM. Slept 10:50 PM to 6:10 AM, 7h 20m: hours 23 x (1 - 10/180) = 21.7, window on time 24, so 46.
-   Simple Breathing adds 10 (56), a mood check-in 10 (66). Wind-down and me-time are still to come. */
+   10:30 PM to 6:00 AM. Slept 10:50 PM to 6:10 AM, 7h 20m: duration 25 x (1 - 10/180) = 23.6, consistency on time 25, so 49.
+   Simple Breathing adds 10 (59), a mood check-in 10 (69). Wind-down and me-time are still to come. */
 (function () {
   var css = document.createElement("style");
   css.textContent =
@@ -124,11 +124,11 @@
       '<div class="nk-gain"></div></div>';
     var root = el.firstChild, tks = root.querySelectorAll(".nk-tk"), face = root.querySelector(".nk-face"), n = root.querySelector(".nk-score .n"),
       rg = root.querySelector(".nk-score .f"), gain = root.querySelector(".nk-gain"), T = timers(), stop = null, at = 0;
-    /* the score after each tick: sleep 46, breathing 56, a mood check-in 66 */
-    var STEPS = [46, 56, 66], GAINS = ["+46 for last night", "+10 for breathing", "+10 for checking in"];
+    /* the score after each tick: sleep 49, breathing 59, a mood check-in 69 */
+    var STEPS = [49, 59, 69], GAINS = ["+49 for last night", "+10 for breathing", "+10 for checking in"];
     function set(v) { if (!n) return; at = v; n.textContent = Math.round(v); rg.setAttribute("stroke-dasharray", (RC * v / 100) + " " + RC); rg.style.opacity = v < .5 ? 0 : 1; }
     function reset() { T.clear(); if (stop) stop(); root.classList.remove("nk-on"); tks.forEach(function (t) { t.classList.remove("on"); }); if (face) face.classList.remove("on"); gain.classList.remove("on"); set(0); }
-    function still() { reset(); root.classList.add("nk-on"); tks.forEach(function (t) { t.classList.add("on"); }); if (face) face.classList.add("on"); set(locked ? 0 : 66); }
+    function still() { reset(); root.classList.add("nk-on"); tks.forEach(function (t) { t.classList.add("on"); }); if (face) face.classList.add("on"); set(locked ? 0 : 69); }
     function play() {
       if (REDUCED) return still();
       reset(); void root.offsetWidth; root.classList.add("nk-on");

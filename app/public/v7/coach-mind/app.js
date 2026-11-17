@@ -110,6 +110,7 @@
       item('<span class="mp-dot is-sc"></span>Success Coach', "is-open", '<span class="mp-ni-chev">' + IC.chev + "</span>") +
       item("Baseline Assessment", "is-sub") + item("Follow-up Assessments", "is-sub") +
       '<li><button type="button" class="mp-ni is-sub is-on" aria-current="page" data-act="home">Mind Plan<span class="mp-new">New</span></button></li>' +
+      '<li><a class="mp-ni is-sub" href="coach-mind-rhythm.html" style="text-decoration:none;cursor:pointer">Rhythm</a></li>' +   /* the coach's Rhythm overview, how the plan is going */
       "</ul></nav>";
   }
   function coachChip() {
@@ -162,7 +163,7 @@
         return '<article class="mp-row' + (S.fresh === p.id ? " is-fresh" : "") + '" data-id="' + esc(p.id) + '">' +
           '<span class="mp-row-ic">' + IC.moon + "</span>" +
           '<div class="mp-row-main"><div class="mp-row-t"><span class="mp-row-n">' + esc(p.name) + '</span><span class="mp-st is-' + p.status + '">' + LABEL[p.status] + "</span></div>" +
-          '<div class="mp-row-m">' + esc(dates(p)) + ". " + esc(summary(p)) + "</div></div>" +
+          '<div class="mp-row-m">' + esc(dates(p)) + '<span class="mp-row-x">. ' + esc(summary(p)) + "</span></div></div>" +
           '<div class="mp-row-a">' + (p.status === "draft" ? '<button type="button" class="mp-btn is-sm" data-act="edit" data-id="' + esc(p.id) + '" aria-label="Edit ' + esc(p.name) + '">Edit</button>' : "") +
           '<button type="button" class="mp-btn is-sm" data-act="view" data-id="' + esc(p.id) + '" aria-label="View ' + esc(p.name) + '">' + IC.eye + "View</button></div></article>";
       }).join("");
@@ -216,24 +217,40 @@
       '<button type="button" class="mp-x" data-f="close" aria-label="Close">' + IC.x + "</button></div></header>";
   }
 
-  /* Start screen: templates table and the blank plan */
-  function openStart() {
+  /* the template lists page through 5 at a time, on the start screen and in the library alike */
+  var PAGE = 5;
+  function pageOf(list, pg) { var n = Math.max(1, Math.ceil(list.length / PAGE)); pg = Math.min(Math.max(1, pg || 1), n); return { pg: pg, n: n, rows: list.slice((pg - 1) * PAGE, pg * PAGE) }; }
+  function pager(P, total, act) {
+    var from = (P.pg - 1) * PAGE + 1, to = Math.min(total, P.pg * PAGE);
+    var b = function (to2, label, path, off) { return '<button type="button" class="mp-pgb" data-f="' + act + '" data-pg="' + to2 + '" aria-label="' + label + '"' + (off ? " disabled" : "") + '><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + path + '"/></svg></button>'; };
+    return '<nav class="mp-pager" aria-label="Template pages"><span>' + from + "–" + to + " of " + total + "</span>" +
+      b(P.pg - 1, "Previous page", "M15 6l-6 6 6 6", P.pg <= 1) + b(P.pg + 1, "Next page", "M9 6l6 6-6 6", P.pg >= P.n) + "</nav>";
+  }
+
+  /* who made a template: the coach's name, "You" for the coach signed in */
+  function byOf(t) { return !t.by || t.by === MP.COACH.name ? (t.own || t.by ? "You" : "GoodFlip") : t.by; }
+
+  /* Start screen: the blank plan first, then the templates, a page at a time. Each row says only what helps choose:
+     the name, who made it and the sleep window (17 Nov 2026); what is inside shows once it is opened */
+  function openStart(pg) {
     S.view = "create"; S.flow = { kind: "start", mode: "plan" };
     var f = frame(); f.setAttribute("aria-label", "Create Mind Plan");
-    var rows = S.templates.map(function (t) {
-      return "<tr><td><span class=\"mp-tn\">" + esc(t.name) + "</span>" + (t.own ? '<span class="mp-tag">Yours</span>' : "") + '</td><td class="mp-ta">' + esc(t.about || "") + "</td>" +
-        '<td class="mp-nowrap">' + esc(window12(t)) + '</td><td class="mp-nowrap">' + (t.practices.length ? plural(t.practices.length, "practice") : "None") + "</td>" +
+    var P = pageOf(S.templates, pg); S.startPg = P.pg;
+    var rows = P.rows.map(function (t) {
+      return "<tr><td><span class=\"mp-tn\">" + esc(t.name) + "</span></td>" +
+        '<td class="mp-nowrap mp-by">' + esc(byOf(t)) + '</td><td class="mp-nowrap">' + esc(window12(t)) + "</td>" +
         '<td class="mp-tact"><button type="button" class="mp-btn is-sm" data-f="use" data-id="' + esc(t.id) + '" aria-label="Use template ' + esc(t.name) + '">Use Template</button></td></tr>';
     }).join("");
     f.innerHTML = bar("Create Mind Plan") + '<div class="mp-fscroll"><main class="mp-fmain mp-step-el">' +
-      '<div class="mp-head"><div><h2>Start from a template</h2><p>Its sleep, self-care and practices fill the plan. You can change anything before you assign it.</p></div></div>' +
-      '<table class="mp-table"><thead><tr><th scope="col">Template</th><th scope="col">About</th><th scope="col">Sleep window</th><th scope="col">Practices</th><th scope="col"><span class="mp-sr">Action</span></th></tr></thead><tbody>' + rows + "</tbody></table>" +
-      '<section class="mp-blank"><div><h3>Start a blank plan</h3><p>Every part starts empty, and you choose each one yourself. The score weights stay the same.</p></div>' +
+      '<section class="mp-blank is-top"><div><h3>Start a blank plan</h3><p>Every part starts empty and you choose each one. The score weights stay the same.</p></div>' +
       '<button type="button" class="mp-btn" data-f="blank">Start a Blank Plan</button></section>' +
+      '<div class="mp-head"><div><h2>Or start from a template</h2><p>It fills the plan. You can change anything before you assign it.</p></div></div>' +
+      '<table class="mp-table"><thead><tr><th scope="col">Template</th><th scope="col">Created by</th><th scope="col">Sleep window</th><th scope="col"><span class="mp-sr">Action</span></th></tr></thead><tbody>' + rows + "</tbody></table>" +
+      pager(P, S.templates.length, "spg") +
       '<p class="mp-foot">Change a starting point for future plans in <button type="button" class="mp-link" data-f="manage">Manage Templates</button></p>' +
       "</main></div>";
     sync();
-    var first = f.querySelector('[data-f="use"]'); if (first) first.focus();
+    var first = f.querySelector(pg ? '[data-f="spg"]:not([disabled])' : '[data-f="blank"]'); if (first) first.focus({ preventScroll: true });
   }
 
   /* Steps: plan mode or template mode */
@@ -273,7 +290,7 @@
       '<div class="mp-sum"><i aria-hidden="true"></i><span data-sum>' + esc(summary(F.plan)) + "</span></div>" +
       '<div class="mp-acts">' + (i > 0 ? '<button type="button" class="mp-btn is-ghost" data-f="back">Back</button>' : "") +
       (F.mode === "plan" ? '<button type="button" class="mp-btn" data-f="draft">Save as Draft</button>' : "") +
-      '<button type="button" class="mp-btn is-primary" data-f="' + (last ? "finish" : "next") + '">' + esc(primary) + "</button></div></footer>";
+      '<button type="button" class="mp-btn is-primary" data-f="' + (last ? "finish" : "next") + '">' + (last ? esc(primary) : 'Next<span class="mp-nx">' + esc(primary.slice(4)) + "</span>") + "</button></div></footer>";   /* a phone shows just Next: the stepper names the step */
   }
   function placeholder(el, k) {
     el.innerHTML = '<section class="mp-ph"><div class="mp-ph-ic">' + IC.moon + "</div><h2>" + esc(stitle(k)) + "</h2><p>" + esc(FALLBACK[k].lead) +
@@ -340,9 +357,58 @@
     toast("Draft saved. Find it under Drafts when you are ready to finish.");
     fadeFresh();
   }
+  /* Assign asks how: to the patient only, also update the template it came from, or also save it as a new template */
   function assign() {
     var F = S.flow, bad = firstProblem();
     if (bad) { goStep(bad.k); showMsg(bad.v); return; }
+    var t = F.tId ? tplById(F.tId) : null, who = esc(patient());
+    var LBL = { only: "Assign to " + patient(), master: "Update and Assign", copy: "Save and Assign" };
+    var opt = function (v, title, sub, extra, off) {
+      return '<label class="mp-arc' + (off ? " is-off" : "") + '"><input type="radio" name="mp-how" value="' + v + '"' + (v === "only" ? " checked" : "") + (off ? " disabled" : "") + '><span><b>' + title + "</b><small>" + sub + "</small>" + (extra || "") + "</span></label>";
+    };
+    var nameVal = t ? t.name + ", " + patient() + "'s version" : "";
+    dialog({
+      title: "Assign this plan",
+      body: '<div class="mp-arcs" role="radiogroup" aria-label="How to assign">' +
+        opt("only", "Assign to " + who + " only", "Templates stay as they are.") +
+        /* names the master template and who made it, so the coach knows whose template they are changing */
+        opt("master", t ? "Update the master template \u201c" + esc(t.name) + "\u201d created by " + (byOf(t) === "You" ? "you" : esc(byOf(t))) : "Update the master template",
+          t ? "Then assigns this plan to " + who + ". Future plans from it get these changes; plans already assigned stay as they are." : "This plan did not start from a template.", "", !t) +
+        opt("copy", "Save as a new template and assign", "Adds it to your templates to reuse.",
+          '<span class="mp-fld mp-arc-fld" data-fld hidden><label for="mp-ntn">Template name</label><input id="mp-ntn" maxlength="60" value="' + esc(nameVal) + '" placeholder="For example, Gentle sleep reset"><span class="mp-err" data-err hidden></span></span>') +
+        "</div>",
+      actions: [
+        { label: "Cancel" },
+        { label: LBL.only, cls: "is-primary", fn: function (d) {
+          var how = d.querySelector('input[name="mp-how"]:checked').value;
+          if (how === "copy") {
+            var inp = d.querySelector("#mp-ntn"), name = inp.value.trim(), err = d.querySelector("[data-err]");
+            var clash = S.templates.some(function (x) { return x.name.trim().toLowerCase() === name.toLowerCase(); });
+            if (!name || clash) { d.querySelector("[data-fld]").classList.add("is-bad"); err.textContent = name ? "You already have a template with this name." : "Give the template a name."; err.hidden = false; inp.focus(); return false; }
+          }
+          setTimeout(function () { doAssign(how, name); }, 0);
+        } }
+      ]
+    });
+    var d = document.querySelector(".mp-dlg"), go = d.querySelector(".mp-dlg-a .is-primary");
+    d.classList.add("is-assign");
+    d.querySelector("#mp-ntn").addEventListener("input", function () { d.querySelector("[data-fld]").classList.remove("is-bad"); d.querySelector("[data-err]").hidden = true; });
+    d.querySelector(".mp-arcs").addEventListener("change", function () {
+      var how = d.querySelector('input[name="mp-how"]:checked').value, fld = d.querySelector("[data-fld]");
+      go.textContent = LBL[how]; fld.hidden = how !== "copy";
+      if (how === "copy") { var i = d.querySelector("#mp-ntn"); i.focus(); i.select(); }
+    });
+  }
+  function doAssign(how, name) {
+    var F = S.flow, t = F.tId ? tplById(F.tId) : null, saved = "";
+    if (how === "master" && t) {
+      var u = clone(F.plan); u.id = t.id; u.name = t.name; u.about = t.about; u.own = t.own; u.status = "draft"; u.from = null; delete u.start; delete u.end;
+      S.templates[S.templates.indexOf(t)] = u; saved = "\u201c" + t.name + "\u201d updated";
+    }
+    if (how === "copy") {
+      var c = clone(F.plan); c.id = newId("t"); c.name = name; c.about = t ? t.about : ""; c.own = true; c.by = MP.COACH.name; c.status = "draft"; c.from = null; delete c.start; delete c.end;
+      S.templates.push(c); saved = "\u201c" + name + "\u201d added to your templates";
+    }
     var p = clone(F.plan), replaced = [];
     p.id = F.editId || newId("mp"); p.status = "active"; p.saved = Date.now();
     if (!String(p.name || "").trim()) p.name = MP.defaultName();
@@ -357,6 +423,7 @@
       "<h2>Assigned to " + esc(patient()) + "</h2>" +
       "<p>" + esc(p.name) + " starts on " + esc(H.date(p.start)) + ". " + esc(patient()) + " sees it in the app from that day.</p>" +
       (replaced.length ? "<p>" + esc(replaced.join(", ")) + (replaced.length === 1 ? " is" : " are") + " now inactive.</p>" : "") +
+      (saved ? "<p>" + esc(saved) + ".</p>" : "") +
       '<button type="button" class="mp-btn is-primary" data-f="close">Back to Mind Plans</button></div></div>';
     f.querySelector(".mp-done .mp-btn").focus();
     var mine = S.flow;
@@ -372,7 +439,7 @@
     function put(name, about) {
       var t = clone(F.plan);
       t.name = name; t.about = about; t.status = "draft"; t.from = null;
-      t.id = F.editId || newId("t"); t.own = cur ? cur.own : true;
+      t.id = F.editId || newId("t"); t.own = cur ? cur.own : true; t.by = cur && cur.by || MP.COACH.name;
       if (cur) S.templates[S.templates.indexOf(cur)] = t; else S.templates.push(t);
       openLibrary(S.libFrom, t.id); toast(cur ? "Template saved" : "Template added to your list");
     }
@@ -442,16 +509,18 @@
   }
 
   /* ---------- template library ---------- */
-  function openLibrary(from, freshId) {
+  function openLibrary(from, freshId, pg) {
     S.libFrom = from || "list"; S.view = "library";
     S.flow = { kind: "library" };
     var f = frame(); f.setAttribute("aria-label", "Mind Plan Templates");
-    var rows = S.templates.map(function (t) {
+    if (freshId) S.templates.forEach(function (t, i) { if (t.id === freshId) pg = Math.floor(i / PAGE) + 1; });   /* land on the page that holds the new one */
+    var P = pageOf(S.templates, pg); S.libPg = P.pg;
+    var rows = P.rows.map(function (t) {
       var r = t.rhythm || {};
       return "<tr" + (t.id === freshId ? ' style="background:#F6FEF9"' : "") + '><td><span class="mp-tn">' + esc(t.name) + "</span>" + (t.own ? '<span class="mp-tag">Yours</span>' : "") + "</td>" +
         '<td class="mp-ta">' + esc(t.about || "") + '</td><td class="mp-nowrap">' + esc(window12(t)) + "</td>" +
-        '<td class="mp-nowrap">' + (r.breathing || []).length + " breathing, " + (r.metime || []).length + " me-time</td>" +
-        '<td class="mp-nowrap">' + (t.practices.length ? plural(t.practices.length, "practice") : "None") + "</td>" +
+        '<td class="mp-nowrap mp-tsc">' + (r.breathing || []).length + " breathing, " + (r.metime || []).length + " me-time</td>" +
+        '<td class="mp-nowrap">' + (t.practices.length ? plural(t.practices.length, "practice") : "No practices") + "</td>" +
         '<td class="mp-tact"><button type="button" class="mp-btn is-sm" data-f="tedit" data-id="' + esc(t.id) + '" aria-label="Edit ' + esc(t.name) + '">Edit</button>' +
         '<button type="button" class="mp-btn is-sm" data-f="tdup" data-id="' + esc(t.id) + '" aria-label="Duplicate ' + esc(t.name) + '">Duplicate</button></td></tr>';
     }).join("");
@@ -459,9 +528,9 @@
       '<div class="mp-head"><div><h2>Templates</h2><p>Starting points for new Mind plans. Changing one leaves assigned plans as they are.</p></div>' +
       '<button type="button" class="mp-btn is-primary" data-f="tnew">' + IC.plus + "New Template</button></div>" +
       '<table class="mp-table"><thead><tr><th scope="col">Template</th><th scope="col">About</th><th scope="col">Sleep window</th><th scope="col">Self-care</th><th scope="col">Practices</th><th scope="col"><span class="mp-sr">Actions</span></th></tr></thead><tbody>' + rows + "</tbody></table>" +
-      "</main></div>";
+      pager(P, S.templates.length, "lpg") + "</main></div>";
     sync();
-    var x = f.querySelector('[data-f="tnew"]'); if (x) x.focus();
+    var x = f.querySelector(pg && !freshId ? '[data-f="lpg"]:not([disabled])' : '[data-f="tnew"]'); if (x) x.focus({ preventScroll: true });
   }
   function duplicate(t) {
     var c = clone(t); c.id = newId("t"); c.name = t.name + " (copy)"; c.own = true;
@@ -483,6 +552,8 @@
     if (a === "use") { var t = tplById(b.dataset.id); if (t) startFlow(fromTemplate(t), { mode: "plan", tId: t.id }); }
     if (a === "blank") { var bp = MP.blankPlan(); bp.name = MP.defaultName(); startFlow(bp, { mode: "plan" }); }
     if (a === "manage") openLibrary("start");
+    if (a === "spg") openStart(+b.dataset.pg);
+    if (a === "lpg") openLibrary(S.libFrom, null, +b.dataset.pg);
     if (a === "step") goStep(b.dataset.k);
     if (a === "next") next();
     if (a === "back") goStep(KEYS[KEYS.indexOf(F.step) - 1]);

@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mood check-in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<style>
+  /* Research doc: how the Mind screen asks for mood, saves it, and answers back.
+     Five live variants share one engine (bottom of the file). Tokens from the GoodFlip design system. */
+  :root {
+    --brand-25:#fafffd; --brand-50:#f3fcf8; --brand-100:#e6faf1; --brand-200:#cbf0e0; --brand-600:#299d6b; --brand-700:#2a805a; --brand-900:#1d4d38;
+    --g-25:#fcfcfd; --g-50:#f9fafb; --g-100:#f2f4f7; --g-200:#e4e7ec; --g-300:#d0d5dd; --g-400:#98a2b3; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-800:#1d2939; --g-900:#101828;
+    --in-25:#f5f8ff; --in-50:#eef4ff; --in-100:#e0eaff; --in-200:#c7d7fe; --in-600:#444ce7; --in-700:#3538cd;
+    --teal-50:#eeffff; --teal-100:#e0ffff; --teal-200:#c7fefe; --teal-800:#2da6a6; --teal-900:#2d8282;
+    --gold-25:#fffdf5; --gold-50:#fffbee; --gold-200:#fef1c7; --gold-800:#a68a2d;
+    --err-50:#fef3f2; --err-200:#fecdca; --err-700:#b42318;
+    --warn-50:#fffaeb; --warn-700:#b54708;
+    --ease: cubic-bezier(.4,0,.2,1);
+  }
+  * { box-sizing: border-box; }
+  html, body { background: #fff; }
+  body { margin: 0; font: 400 15px/23px Roboto, system-ui, sans-serif; color: var(--g-600); }
+  main { max-width: 1240px; margin: 0 auto; padding: 40px 24px 120px; }
+  @media (max-width: 620px) { main { padding: 24px 16px 80px; } }
+  h1 { margin: 0; font: 800 30px/38px Roboto, sans-serif; color: var(--brand-900); }
+  h2 { margin: 56px 0 8px; font: 700 22px/30px Roboto, sans-serif; color: var(--brand-900); }
+  h3 { margin: 24px 0 8px; font: 700 16px/24px Roboto, sans-serif; color: var(--g-900); }
+  p { margin: 0 0 12px; max-width: 780px; }
+  b, strong { color: var(--g-900); font-weight: 600; }
+  a { color: var(--in-600); }
+  .lede { margin-top: 10px; font-size: 16px; line-height: 25px; }
+  .ask { margin: 20px 0 0; padding: 16px 20px; border-radius: 12px; background: var(--g-50); border: 1px solid var(--g-200); max-width: 820px; }
+  .ask small { display: block; font: 700 11px/16px Roboto, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--g-500); margin-bottom: 4px; }
+  .call { margin: 16px 0 0; padding: 14px 18px; border-radius: 12px; background: var(--brand-50); border: 1px solid var(--brand-200); max-width: 820px; color: var(--g-700); }
+  ul.tight { margin: 0 0 12px; padding-left: 20px; max-width: 820px; }
+  ul.tight li { margin: 4px 0; }
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .toc a { font: 500 13px/20px Roboto, sans-serif; color: var(--g-700); text-decoration: none; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--g-200); }
+  .toc a:hover { border-color: var(--brand-600); color: var(--brand-700); }
+
+  /* short answers */
+  .qa { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 16px; }
+  .qa div { border: 1px solid var(--g-200); border-radius: 14px; padding: 16px; }
+  .qa h4 { margin: 0 0 6px; font: 700 14px/20px Roboto, sans-serif; color: var(--g-900); }
+  .qa p { margin: 0; font-size: 14px; line-height: 21px; }
+
+  /* scenarios */
+  .scen { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-top: 16px; }
+  .scen section { border: 1px solid var(--g-200); border-radius: 14px; padding: 16px; }
+  .scen h4 { margin: 0 0 8px; font: 700 13px/18px Roboto, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--brand-700); }
+  .scen ol { margin: 0; padding-left: 18px; font-size: 14px; line-height: 20px; }
+  .scen li { margin: 6px 0; }
+
+  /* others */
+  .apps { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; margin-top: 16px; }
+  .app { border: 1px solid var(--g-200); border-radius: 14px; padding: 16px; font-size: 14px; line-height: 21px; display: flex; flex-direction: column; gap: 8px; }
+  .app h4 { margin: 0; font: 700 15px/22px Roboto, sans-serif; color: var(--g-900); display: flex; justify-content: space-between; gap: 8px; }
+  .app h4 a { font: 500 12px/22px Roboto, sans-serif; text-decoration: none; }
+  .app p { margin: 0; }
+  .take, .avoid { display: flex; gap: 8px; }
+  .take::before { content: "Take"; flex: none; width: 46px; font: 700 11px/21px Roboto, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: var(--brand-700); }
+  .avoid::before { content: "Avoid"; flex: none; width: 46px; font: 700 11px/21px Roboto, sans-serif; letter-spacing: .05em; text-transform: uppercase; color: var(--warn-700); }
+  .ev { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-top: 16px; }
+  .ev div { border-left: 3px solid var(--in-200); padding: 4px 0 4px 14px; font-size: 14px; line-height: 21px; }
+  .ev b { display: block; margin-bottom: 2px; }
+
+  /* variants */
+  .var { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--g-200); display: grid; grid-template-columns: 360px minmax(0, 1fr); gap: 20px 40px; align-items: start; }
+  @media (max-width: 900px) { .var { grid-template-columns: minmax(0, 1fr); } }
+  .vhead { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .vk { font: 800 13px/18px Roboto, sans-serif; color: #fff; background: var(--brand-900); border-radius: 7px; padding: 3px 9px; }
+  .vn { font: 800 20px/28px Roboto, sans-serif; color: var(--brand-900); }
+  .rec { font: 700 11px/16px Roboto, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--brand-700); background: var(--brand-100); border-radius: 999px; padding: 4px 10px; }
+  .stage { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .sw { display: flex; flex-wrap: wrap; gap: 6px; }
+  .sw button { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--g-200); background: #fff; font: 500 13px Roboto, sans-serif; color: var(--g-700); cursor: pointer; position: relative; }
+  .sw button::after { content: ""; position: absolute; left: 50%; top: 50%; width: 100%; height: 44px; transform: translate(-50%, -50%); }
+  .sw button[aria-pressed="true"] { border-color: var(--brand-600); background: var(--brand-50); color: var(--brand-700); font-weight: 600; }
+  .notes h4 { margin: 20px 0 6px; font: 700 12px/16px Roboto, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--g-500); }
+  .notes h4:first-child { margin-top: 0; }
+  .notes p, .notes li { font-size: 14px; line-height: 21px; }
+  .notes ol, .notes ul { margin: 0; padding-left: 18px; }
+  .notes li { margin: 4px 0; }
+  .heur { display: grid; grid-template-columns: 1fr; gap: 4px; font-size: 13px; line-height: 19px; }
+  .heur div { display: grid; grid-template-columns: 22px 150px 1fr; gap: 8px; align-items: baseline; }
+  @media (max-width: 520px) { .heur div { grid-template-columns: 22px 1fr; } .heur div span:last-child { grid-column: 2; } }
+  .heur i { font-style: normal; font-weight: 700; text-align: center; border-radius: 6px; }
+  .heur i.ok { color: var(--brand-700); background: var(--brand-100); }
+  .heur i.mid { color: var(--warn-700); background: var(--warn-50); }
+  .heur i.no { color: var(--err-700); background: var(--err-50); }
+  .heur b { font-weight: 600; }
+  .pros { list-style: none; padding: 0 !important; display: grid; gap: 4px; }
+  .pros li::before { content: "+"; display: inline-block; width: 16px; font-weight: 700; color: var(--brand-600); }
+  .pros li.con::before { content: "\2212"; color: var(--warn-700); }
+
+  /* recommendation, open questions */
+  .recbox { margin-top: 16px; padding: 20px 24px; border-radius: 16px; border: 1.5px solid var(--brand-600); background: var(--brand-25); max-width: 900px; }
+  .recbox p:last-child { margin-bottom: 0; }
+  .oq { display: grid; gap: 14px; margin-top: 16px; max-width: 900px; }
+  .oq section { border: 1px solid var(--g-200); border-radius: 14px; padding: 16px 18px; }
+  .oq h4 { margin: 0 0 8px; font: 700 15px/22px Roboto, sans-serif; color: var(--g-900); }
+  .oq ol { margin: 0; padding-left: 20px; font-size: 14px; line-height: 21px; }
+  .oq li { margin: 5px 0; }
+  .oq .r { font: 700 10.5px/16px Roboto, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--brand-700); background: var(--brand-100); border-radius: 999px; padding: 1px 8px; margin-left: 6px; }
+  .src { font-size: 13px; line-height: 20px; }
+  .src li { margin: 4px 0; }
+
+  /* ---------------- the real screen, in a frame ---------------- */
+  .fr { width: 332px; max-width: 100%; height: 718px; border-radius: 28px; border: 1px solid var(--g-200); overflow: hidden; background: #fff; box-shadow: 0 12px 32px rgba(16,24,40,.10), 0 2px 6px rgba(16,24,40,.05); }
+  .fr iframe { width: 390px; height: 844px; border: 0; transform: scale(.851); transform-origin: 0 0; display: block; }
+  .open { font: 500 12px/16px Roboto, sans-serif; color: var(--g-500); word-break: break-all; }
+  .open a { color: var(--in-600); }
+  .lines { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; margin-top: 16px; }
+  .lines div { border: 1px solid var(--g-200); border-radius: 14px; padding: 16px; font-size: 14px; line-height: 21px; }
+  .lines h4 { margin: 0 0 8px; font: 700 14px/20px Roboto, sans-serif; color: var(--g-900); }
+  .lines .k { padding: 10px 12px; border-radius: 4px 12px 12px 12px; background: var(--in-25); border: 1px solid var(--in-100); color: var(--g-800); }
+  .lines .q { margin-top: 8px; color: var(--g-600); }
+  .lines .q b { font-weight: 600; color: var(--g-500); font-size: 12px; letter-spacing: .04em; text-transform: uppercase; margin-right: 6px; }
+  @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+  :focus-visible { outline: 2px solid var(--in-600); outline-offset: 2px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Mood check-in</h1>
+  <p class="lede">What happens when a patient taps their mood check-in on the Mind screen: how the sheet asks, whether a tap is enough to save, what we say back on a low day, and how the row looks afterwards. Five variants below, each running on the real Mind screen with the coach's "Calmer days" plan (two check-ins, 1:00 PM and 8:30 PM). A state switcher above each screen jumps to the happy path, the low path and the edge cases; everything inside is live.</p>
+  <div class="ask"><small>The question, in Shaheer's words</small>"When Moodcheckin task is clicked then in bottom sheet how do we ask Mood then does it require confirmation or How do we encourage/motivate etc when they are sad or what kind of communication shall be there."</div>
+  <div class="call"><b>Already decided:</b> the sheet asks the mood question only, with no follow-up questions. After the answer comes a short, warm reply that says what to do or offers support. When the mood is low, it gently suggests one practice from the patient's own plan (a breathing exercise or a me-time activity), right there in the sheet. Checking in earns the points; the answer is never scored.</div>
+  <nav class="toc" aria-label="Sections">
+    <a href="#short">The answers in short</a><a href="#problem">The problem</a><a href="#scen">Scenarios</a><a href="#others">What others do</a><a href="#evidence">Evidence</a><a href="#variants">Variants</a><a href="#rec">Recommendation</a><a href="#copy">What we say back</a><a href="#oq">Open questions</a>
+  </nav>
+
+  <h2 id="short">The answers in short</h2>
+  <div class="qa">
+    <div><h4>1. How to ask</h4><p>One question, "How are you feeling?", answered with five faces, each with its word underneath (variant A). One tap. Faces carry meaning across languages, and the word under each removes any doubt about what a face means.</p></div>
+    <div><h4>2. Confirmation</h4><p>Picking a face is a draft. KAIRA's card shimmers in and answers it, and only "Log Mood" logs the mood and adds its points. The sheet closes and a toast says "Mood logged. Thank you for checking in." Reopened, the sheet shows the logged face and reply with Done; picking another face brings back Log Mood. Each check-in slot keeps its own answer.</p></div>
+    <div><h4>3. What to say back</h4><p>A short KAIRA message on an indigo card, one fixed template per face. Low and very low: comfort first, then one general thing that helps, in words only ("When you're ready, five minutes of slow breathing settles your body first, and the mind often follows."). No practice card.</p></div>
+    <div><h4>4. Encouragement</h4><p>The same Log Mood step and the same toast for every face, and the hint "Every check-in counts the same." Replies for good days point at noticing what helped, so a happy answer earns nothing extra.</p></div>
+    <div><h4>5. "What shaped today" tags</h4><p>Dropped. The sheet asks one question only. Causes, if the coach needs them, belong in the coach's call or a weekly reflection.</p></div>
+    <div><h4>6. End state</h4><p>The row keeps its title, "Mood check-in", and its time, and gets a tick. The line under it becomes the answer: "🙂 Good, at 1:12 PM". With two check-ins each row shows its own answer; a passed slot reads "You can still check in today" in grey.</p></div>
+  </div>
+
+  <h2 id="problem">The problem</h2>
+  <p><b>Who.</b> A person in India living with type 2 diabetes or obesity, usually 35 to 60, on a GoodFlip program. Many read English slowly or prefer Hindi or another language. Many use a mid-range Android phone, often with one hand, sometimes with reading glasses away.</p>
+  <p><b>When.</b> Once or twice a day at a time their coach set, most often after lunch and after dinner. They arrive from a reminder or from the Mind screen's plan, between other things: the kitchen, the office, the TV.</p>
+  <p><b>State of mind.</b> Anything from fine to drained. Diabetes distress is common in India, and so is a low mood (figures under Evidence). A low answer will be frequent, so the low path is a main path and has to feel calm and useful. A patient who taps a sad face and gets a cheerful line, or a phone number, learns to tap "Okay" next time.</p>
+  <p><b>What the check-in is for.</b> A few seconds of noticing how they feel, a kind word back, and a pattern over weeks that the patient and coach can see. The score rewards showing up, so the answer can be honest.</p>
+
+  <h2 id="scen">Scenarios</h2>
+  <p>Every case the sheet and the row have to handle, grouped. The variants below are built against this list.</p>
+  <div class="scen">
+    <section><h4>Opening the check-in</h4><ol>
+      <li>Patient taps the Mood check-in row on the Mind screen.</li>
+      <li>Patient taps the reminder notification at the slot time and lands in the open sheet.</li>
+      <li>Plan has one check-in (evening) or two (often afternoon and evening).</li>
+      <li>Patient opens the later slot before its time.</li>
+      <li>Patient opens a slot whose time has passed, later the same day.</li>
+      <li>Patient opens yesterday's check-in from history: read only.</li>
+    </ol></section>
+    <section><h4>Answering</h4><ol>
+      <li>Taps a face: saved at once, the sheet stays and answers.</li>
+      <li>Taps a different face: the answer updates in place.</li>
+      <li>Closes the sheet without answering: nothing saved, the row is unchanged.</li>
+      <li>Closes after answering: the answer is kept, the row shows it.</li>
+      <li>No internet when tapping: the choice stays marked, an inline message offers Try Again.</li>
+      <li>Reopens later the same day and changes the answer: it still counts once.</li>
+    </ol></section>
+    <section><h4>What the app says back</h4><ol>
+      <li>Very low, low, okay, good, great: one fixed reply each.</li>
+      <li>Very low: comfort, then slow breathing in words.</li>
+      <li>Low: comfort, then something small they enjoy, in words.</li>
+      <li>The reply shimmers in first, as KAIRA reads the answer, and changes when another face is picked.</li>
+      <li>The toast after Log Mood reads the same for every answer.</li>
+      <li>Several very low days in a row (see Open questions).</li>
+    </ol></section>
+    <section><h4>Logging</h4><ol>
+      <li>Log Mood stays disabled until a face is picked, and while KAIRA's card shimmers.</li>
+      <li>Closing the sheet before Log Mood logs nothing.</li>
+      <li>Offline: Log Mood fails, the error shows above it, and the button reads Try Again.</li>
+    </ol></section>
+    <section><h4>On the Mind screen afterwards</h4><ol>
+      <li>One check-in done: the row ticks and shows the face, the word and the time.</li>
+      <li>Two check-ins, first done: the second waits at its time.</li>
+      <li>Both done: each row shows its own answer.</li>
+      <li>A slot passed unanswered: "You can still check in today", in neutral grey.</li>
+      <li>The Mind score rises the same for any face.</li>
+    </ol></section>
+    <section><h4>Across days</h4><ol>
+      <li>At midnight both slots reset to empty.</li>
+      <li>Past answers are kept for the weekly pattern.</li>
+      <li>The coach sees the answers (see Open questions).</li>
+    </ol></section>
+  </div>
+
+  <h2 id="others">What others do</h2>
+  <p>From Mobbin (iOS). Links open the exact screen.</p>
+  <div class="apps">
+    <div class="app"><h4>How We Feel <a href="https://mobbin.com/screens/f9ceceaf-c436-470d-9631-64654365efda" target="_blank" rel="noopener">Screen</a></h4>
+      <p>Four colour circles (high or low energy, pleasant or unpleasant), then a wall of over a hundred feeling words, then "Complete check-in" with notes and activities.</p>
+      <p class="take">Naming the feeling, which is research backed. Our word under each face does it in one tap.</p>
+      <p class="avoid">A hundred words and three screens. Too much for a twice-a-day task and for a reader in a second language.</p></div>
+    <div class="app"><h4>Apple Health, State of Mind <a href="https://mobbin.com/screens/e83aac55-b6f2-4aa2-a058-9b4f06a25a02" target="_blank" rel="noopener">Screen</a></h4>
+      <p>A slider from Very Unpleasant to Very Pleasant with a shape that changes, then Next to words, then what is having the biggest impact.</p>
+      <p class="take">One question per step, and calm, neutral colour.</p>
+      <p class="avoid">A slider asks for precision people do not have about a feeling, and Next adds a step.</p></div>
+    <div class="app"><h4>Withings, Bloom, Me+ <a href="https://mobbin.com/screens/98e239fd-87b0-46eb-8ac8-dab48df1ced5" target="_blank" rel="noopener">Bloom</a></h4>
+      <p>Five faces in a row. <a href="https://mobbin.com/screens/3cebb30c-04e5-4ecd-b473-40518e6ff541" target="_blank" rel="noopener">Withings</a> has no words under them; Bloom labels them (terrible to awesome) and asks for Apply; <a href="https://mobbin.com/screens/282aeedc-81aa-430c-929a-468fb71fd664" target="_blank" rel="noopener">Me+</a> uses large rounded faces.</p>
+      <p class="take">Five faces with a word under each, the most familiar mood question there is.</p>
+      <p class="avoid">Unlabelled faces (ambiguous), and an Apply button after a single choice.</p></div>
+    <div class="app"><h4>Calm <a href="https://mobbin.com/screens/8579b7b8-b7f3-4ae5-b787-d9cf94665dc7" target="_blank" rel="noopener">Screen</a></h4>
+      <p>"Good morning, Alex! How are you feeling?" and a grid of twelve feelings with emoji.</p>
+      <p class="take">A question that knows the time of day.</p>
+      <p class="avoid">Twelve options at once, before any first choice narrows them.</p></div>
+    <div class="app"><h4>Insight Timer <a href="https://mobbin.com/screens/77eb0993-1ef5-4fe4-9a40-a8447fc58d25" target="_blank" rel="noopener">Screen</a></h4>
+      <p>After the face, the same sheet shows "1st check-in complete" and "For your mood", a row of meditations.</p>
+      <p class="take">The suggestion lives in the same sheet, right after the answer. The closest match to Shaheer's decision.</p>
+      <p class="avoid">A catalogue to browse. We offer one practice, from the coach's plan.</p></div>
+    <div class="app"><h4>Noom and Oura <a href="https://mobbin.com/screens/425e978e-5f24-4546-b155-e491c41e0dbb" target="_blank" rel="noopener">Noom</a></h4>
+      <p>Noom asks "What might be contributing to your mood?" with emoji tags and a free-text box. <a href="https://mobbin.com/screens/268d6262-a98a-4704-a6cb-1b1d25a691db" target="_blank" rel="noopener">Oura</a> has a searchable tag list you can edit later.</p>
+      <p class="take">Little to take: both ask a second question, which our one-question rule leaves out.</p>
+      <p class="avoid">Asking for causes is analysis work; neither app acts on the tags in the moment.</p></div>
+    <div class="app"><h4>Finch <a href="https://mobbin.com/screens/3e0d0b14-5daf-4e15-aef9-f5e2d48f600e" target="_blank" rel="noopener">Screen</a></h4>
+      <p>Before Calm Breathing: inhale 4 seconds through the nose, exhale 6 through the mouth, and "Stop if you ever feel overexerted."</p>
+      <p class="take">A plain how-to and a gentle safety line before the breathing starts.</p>
+      <p class="avoid">A separate screen to read before starting.</p></div>
+    <div class="app"><h4>Wysa <a href="https://mobbin.com/screens/007a4906-b1d0-4be8-a526-0525cf195cb0" target="_blank" rel="noopener">Screen</a></h4>
+      <p>In a chat, after the person shares distress, it suggests breathing and shows an evidence card.</p>
+      <p class="take">Offering one concrete thing to do when the feeling is low.</p>
+      <p class="avoid">Reading-heavy evidence at the worst moment for reading.</p></div>
+    <div class="app"><h4>QUITTR <a href="https://mobbin.com/screens/59134907-0ef4-4c1e-958b-a09aca5b0099" target="_blank" rel="noopener">Screen</a></h4>
+      <p>Three full-width colour bars, green to red, each with one emoji.</p>
+      <p class="take">Very large targets.</p>
+      <p class="avoid">Red for a sad mood reads as a warning or a wrong answer.</p></div>
+  </div>
+
+  <h2 id="evidence">Evidence</h2>
+  <div class="ev">
+    <div><b>Naming a feeling calms it</b>Putting a feeling into a word lowered the amygdala's response to upsetting images in brain scans (Lieberman and colleagues, 2007). The word under each face does this job, in the same tap.</div>
+    <div><b>Low answers will be common</b>In Indian adults with type 2 diabetes, 53% had diabetes distress and 20% depression in one 1,925-person study; a review of 59 Indian studies put depression at 38%, higher in women (39%) than men (31%).</div>
+    <div><b>One question works</b>Single items were used in 92% of studies measuring daily low mood in older adults, and adherence ran from 61% to 95% with brief, predefined answers. A one-tap question fits this audience.</div>
+    <div><b>Five minutes of breathing lifts mood</b>In a month-long trial, five minutes a day of slow, exhale-led breathing (cyclic sighing) improved mood more than mindfulness meditation (Balban and colleagues, 2023).</div>
+    <div><b>Doing something you enjoy lifts mood</b>Behavioural activation, scheduling pleasant activities, is an effective way to lift low mood across many trials (Cuijpers and colleagues, 2007). It is what the plan's me-time already is.</div>
+  </div>
+
+
+  <h2 id="variants">Variants</h2>
+  <p>Every variant asks the one question and then replies. They differ in two ways only: how the question is answered (five faces, a slider, a row of words, three faces) and how the reply reads (a KAIRA message or a quiet line). Each screen below is the real Mind screen with the variant switched on. Tap anywhere: the Mood check-in rows, the faces, then Log Mood (it logs the mood and moves the Mind score). The link under each screen opens it full size.</p>
+  <div id="vars"></div>
+
+  <h2 id="rec">Recommendation</h2>
+  <div class="recbox">
+    <p><b>Variant A, five faces and a KAIRA message.</b> One tap answers and saves, so the check-in takes two seconds, and the saved line is identical for every face. The word under each face makes the answer clear to someone reading slowly, and it is the patient naming their own feeling. KAIRA's reply is short, warm and specific: on a low day it comforts first, then gives one reason a practice helps, then puts that practice one tap away.</p>
+    <p><b>The catch:</b> KAIRA speaking on every check-in, twice a day, can start to feel like a lot on good days. If it does, mix A and B: KAIRA's message on low and very low, B's quiet line on okay, good and great (open question 6). Face art should come from Figma; the emoji here are placeholders.</p>
+  </div>
+
+  <h2 id="copy">What we say back</h2>
+  <p>Fixed templates, one per answer. KAIRA's message (A, C, D, E) opens with how she takes the answer, and on a low day adds one plain reason the practice helps. B's quiet line is the app speaking, one sentence. No contractions, so the lines translate cleanly.</p>
+  <div id="copytab"></div>
+  <h3>Lines every answer shares</h3>
+  <ul class="tight">
+    <li><b>Hint, before answering:</b> "Pick the one closest to how you feel. Every check-in counts the same."</li>
+    <li><b>Button:</b> "Log Mood". After logging, a toast: "Mood logged. Thank you for checking in." Identical for every answer.</li>
+    <li><b>Offline:</b> "Could not log your mood. Check your internet and try again." with Try Again.</li>
+    <li><b>Row after:</b> "🙂 Good, at 1:12 PM". A passed slot: "You can still check in today".</li>
+  </ul>
+
+  <h2 id="oq">Open questions</h2>
+  <div class="oq">
+    <section><h4>1. Should several very low days in a row lead to something more?</h4><ol>
+      <li><b>Nothing more.</b> The sheet stays the same every day. Simplest, but a patient who is struggling goes unseen until the next coach call.</li>
+      <li><b>The coach sees a quiet flag.</b> After three very low or low answers in seven days, the coach portal marks the patient; the patient's screen is unchanged and the coach reaches out in their usual way.<span class="r">Recommended</span> Keeps the sheet gentle and puts a person in the loop.</li>
+      <li><b>KAIRA's message changes.</b> On the third low day in a week, her reply adds: "You have had a few heavy days. Your coach Sahana would be glad to hear from you." with a Message Sahana link under the practice. Visible to the patient, which some may find intrusive.</li>
+      <li><b>A quiet helpline line on very low only.</b> Under the practice, in small text: "Need someone to talk to right now? Tele-MANAS, 14416, free, any time." There for the rare emergency, never the main path.</li>
+    </ol></section>
+    <section><h4>2. With two check-ins, how does the mood score count?</h4><ol>
+      <li><b>Half for each.</b> Both slots matter equally.<span class="r">Recommended</span></li>
+      <li><b>Either one earns it all.</b> How the screen scores today. Kinder on busy days, but the second check-in then earns nothing and will fade.</li>
+      <li><b>All for the first, the second is a bonus without points.</b> Clear, but the evening slot becomes optional by design.</li>
+    </ol></section>
+    <section><h4>3. Can a check-in be done before its time?</h4><ol>
+      <li><b>Any time today.</b> How these screens work now. Both slots could be answered at 1 PM, which defeats the second.</li>
+      <li><b>From the start of its part of the day.</b> The afternoon slot opens at 12 PM, the evening slot at 5 PM; earlier, the row reads "Opens at 5 PM".<span class="r">Recommended</span></li>
+      <li><b>Only within two hours of its time.</b> Most accurate, and the most likely to be missed.</li>
+    </ol></section>
+    <section><h4>4. Which language for the labels and replies?</h4><ol>
+      <li><b>English only.</b> Faces carry the meaning.</li>
+      <li><b>Follow the app's language setting.</b> Labels and KAIRA's replies are all translated.<span class="r">Recommended</span></li>
+      <li><b>English with Hindi under it.</b> Helps mixed readers, crowds the face row.</li>
+    </ol></section>
+    <section><h4>5. Who sees the answer?</h4><ol>
+      <li><b>The coach sees each check-in, and the sheet says so</b> once, in the hint line: "Your coach sees your check-ins."<span class="r">Recommended</span> Honest, and it makes the flag in question 1 possible.</li>
+      <li><b>The coach sees the weekly pattern only.</b></li>
+      <li><b>Private to the patient.</b> More candid answers, and no way for anyone to notice a hard week.</li>
+    </ol></section>
+    <section><h4>6. Who speaks the reply?</h4><ol>
+      <li><b>KAIRA, every time</b> (A). Warm and consistent; can feel like a lot on good days.</li>
+      <li><b>A quiet line, every time</b> (B). Light; on a hard day it can feel thin.</li>
+      <li><b>KAIRA on low and very low, the quiet line on okay and better.</b> Support where it matters, lightness where it does not.<span class="r">Recommended</span></li>
+    </ol></section>
+    <section><h4>7. Face art</h4><ol>
+      <li><b>Emoji</b> as in today's prototype. They look different on every phone.</li>
+      <li><b>GoodFlip's own face set from Figma,</b> in one style, calm colours, never red for sad.<span class="r">Recommended</span></li>
+    </ol></section>
+  </div>
+
+  <h2>Sources</h2>
+  <ul class="src">
+    <li>Lieberman MD et al. (2007). <a href="https://collaborate.princeton.edu/en/publications/putting-feelings-into-words-affect-labeling-disrupts-amygdala-act/" target="_blank" rel="noopener">Putting feelings into words: affect labeling disrupts amygdala activity.</a> Psychological Science.</li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13504853/" target="_blank" rel="noopener">Psychological burden in Indian adults with type 2 diabetes: diabetes distress, depression and anxiety.</a></li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13262222/" target="_blank" rel="noopener">Systematic review and meta-analysis on depression burden among type 2 diabetes patients in India.</a></li>
+    <li><a href="https://mental.jmir.org/2020/6/e13247" target="_blank" rel="noopener">Ecological momentary assessment of older adults' daily depressive mood: integrative review.</a> JMIR Mental Health, 2020.</li>
+    <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC13392534/" target="_blank" rel="noopener">Smartphone-based EMA among community-dwelling older adults: feasibility and acceptability.</a></li>
+    <li>Balban MY et al. (2023). <a href="https://doi.org/10.1016/j.xcrm.2022.100895" target="_blank" rel="noopener">Brief structured respiration practices enhance mood and reduce physiological arousal.</a> Cell Reports Medicine.</li>
+    <li>Cuijpers P et al. (2007). <a href="https://doi.org/10.1016/j.cpr.2006.11.001" target="_blank" rel="noopener">Behavioral activation treatments of depression: a meta-analysis.</a> Clinical Psychology Review.</li>
+    <li>Mobbin screens linked above; GoodFlip design system (UX principles and colour tokens); the current sheet in <code>v7/mind/plan.js</code> (moodSheet, FACES, MOODSAY, TAGS); the variants in <code>v7/mind/variants/mood.js</code>.</li>
+  </ul>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var BASE = "/v7/mind/index.html?t=t-calm&vmood=";
+  var STATES = [
+    ["start", "Start", "now=13.2&sheet=mood"],
+    ["happy", "Happy path", "now=13.2&sheet=mood&mstate=happy"],
+    ["low", "Low path", "now=13.2&sheet=mood&mstate=low"],
+    ["vlow", "Very low", "now=13.2&sheet=mood&mstate=vlow"],
+    ["change", "Change later", "now=15.3&sheet=mood&mstate=change"],
+    ["two", "Two check-ins", "now=20.7&scroll=plan&mstate=two"],
+    ["missed", "Missed slot", "now=20.7&scroll=plan&mstate=missed"],
+    ["offline", "Offline", "now=13.2&sheet=mood&mstate=offline"]
+  ];
+  var V = [
+    { k: "A", rec: true, n: "Five faces, KAIRA replies",
+      d: "Five faces in a row, each with its word underneath (Awful, Low, Okay, Good, Great). A tap picks; KAIRA's indigo card shimmers in and answers, and Log Mood logs it. Low and very low add one general thing that helps, in words.",
+      heur: [["ok", "Status", "The shimmer shows KAIRA is answering; the toast confirms the log."], ["ok", "Real world", "Faces read across languages, and the word removes doubt."], ["ok", "Control", "Tap another face to change it; X closes at any point."], ["ok", "Consistency", "Same sheet anatomy as every GoodFlip sheet."], ["ok", "Error prevention", "Every face is a valid answer."], ["ok", "Recognition", "All five options visible at once."], ["ok", "Efficiency", "A tap and Log Mood."], ["ok", "Minimalist", "One question, one reply."], ["ok", "Recovery", "Offline keeps the face marked with Try Again."], ["ok", "Help", "The hint says every check-in counts the same."]],
+      pros: ["Log Mood makes the answer a choice they confirm", "KAIRA's reply feels personal, and they read it before logging", "Closest to today's sheet, least to change", "-KAIRA on every check-in can feel heavy on good days"],
+      best: "The default. Warm where it matters, still one tap." },
+    { k: "B", n: "Five faces, a quiet line",
+      d: "The same five faces and the same Log Mood step. The reply is one quiet sentence from the app.",
+      heur: [["ok", "Status", "Saved line on the first tap."], ["ok", "Real world", "Short, plain sentences."], ["ok", "Control", "Change in place."], ["ok", "Consistency", "Same sheet anatomy."], ["ok", "Error prevention", "Every face is valid."], ["ok", "Recognition", "All options visible."], ["ok", "Efficiency", "One tap."], ["ok", "Minimalist", "The lightest reply of the five."], ["ok", "Recovery", "Offline with Try Again."], ["mid", "Help", "One sentence gives little reason to try the practice."]],
+      pros: ["Light enough for twice a day, every day", "Easy to translate and keep consistent", "-On a hard day one line can feel thin", "-The practice is easier to miss without a reason beside it"],
+      best: "Good days, or patients who want the check-in done and gone." },
+    { k: "C", n: "A slider, then Save",
+      d: "Like Apple Health. Drag along a line from Awful to Great; the face and its word change as you go. Letting go picks the nearest face, KAIRA replies, then Log Mood.",
+      heur: [["mid", "Status", "Nothing is saved until Save; easy to close the sheet thinking it was."], ["mid", "Real world", "A line between feelings is abstract for many patients."], ["ok", "Control", "Drag again, Save again."], ["ok", "Consistency", "Save matches other GoodFlip sheets."], ["mid", "Error prevention", "Save stays disabled until the thumb moves."], ["mid", "Recognition", "Only one word visible at a time."], ["no", "Efficiency", "A drag and a tap; hard with a shaky hand."], ["ok", "Minimalist", "One control."], ["ok", "Recovery", "Offline error on Save, with Try Again."], ["ok", "Help", "End labels under the line."]],
+      pros: ["One calm control on screen", "-Slower, and harder for older hands", "-An explicit Save adds a step and a way to lose the answer", "-Finer grain has no use: the reply has five levels anyway"],
+      best: "A younger, very app-fluent audience. Weak fit for ours." },
+    { k: "D", n: "A row of words",
+      d: "Five words as large pills, no faces: Very low, Low, Okay, Good, Very good. A tap picks, KAIRA replies, then Log Mood.",
+      heur: [["ok", "Status", "Saved on the tap."], ["mid", "Real world", "Words need reading; nothing to see at a glance."], ["ok", "Control", "Change in place."], ["ok", "Consistency", "Pills match the screen's chips."], ["ok", "Error prevention", "Every word is valid."], ["ok", "Recognition", "All five visible."], ["ok", "Efficiency", "One tap."], ["ok", "Minimalist", "Plainest of the five."], ["ok", "Recovery", "Offline with Try Again."], ["ok", "Help", "Hint line."]],
+      pros: ["The feeling is named in plain words", "Translates exactly; no emoji that look different on each phone", "-Slower to read than to see, for people less at ease with English", "-The pills wrap onto two lines on small phones"],
+      best: "A fully translated app, or if face art cannot be made in time." },
+    { k: "E", n: "Three faces, KAIRA replies",
+      d: "Three large faces: Not great, Okay, Good. A tap picks, KAIRA replies, then Log Mood. Not great gets the low reply.",
+      heur: [["ok", "Status", "Saved on the tap."], ["ok", "Real world", "Three plain choices anyone can make."], ["ok", "Control", "Change in place."], ["ok", "Consistency", "Same sheet anatomy."], ["ok", "Error prevention", "Very large targets."], ["ok", "Recognition", "All three visible."], ["ok", "Efficiency", "One tap, fastest to decide."], ["ok", "Minimalist", "Fewest choices."], ["ok", "Recovery", "Offline with Try Again."], ["mid", "Help", "Not great covers both low and very low, so the reply cannot tell them apart."]],
+      pros: ["Fastest decision and the largest targets", "-Loses very low: the hardest days get the same reply as an ordinary low one", "-A coarser weekly pattern for the coach"],
+      best: "Patients who find five choices too many, or a first week of using the app." }
+  ];
+
+  var vars = document.getElementById("vars");
+  V.forEach(function (v) {
+    var el = document.createElement("section"), letter = v.k.toLowerCase();
+    el.className = "var"; el.id = "v" + v.k;
+    el.innerHTML = '<div class="vhead"><span class="vk">' + v.k + '</span><span class="vn">' + v.n + "</span>" + (v.rec ? '<span class="rec">Recommended</span>' : "") + "</div>" +
+      '<div class="stage"><div class="sw" role="group" aria-label="Jump to a state">' + STATES.map(function (s, i) { return '<button data-s="' + i + '" aria-pressed="' + (i === 0) + '">' + s[1] + "</button>"; }).join("") + "</div>" +
+      '<div class="fr"><iframe title="Mind screen, variant ' + v.k + '" loading="lazy"></iframe></div><div class="open">Open full size: <a target="_blank" rel="noopener"></a></div></div>' +
+      '<div class="notes"><h4>How it works</h4><p>' + v.d + "</p>" +
+      '<h4>Heuristic check</h4><div class="heur">' + v.heur.map(function (h, n) {
+        return '<div><i class="' + h[0] + '" aria-label="' + (h[0] === "ok" ? "Passes" : h[0] === "mid" ? "Partly" : "Fails") + '">' + (h[0] === "ok" ? "✓" : h[0] === "mid" ? "~" : "×") + "</i><b>" + (n + 1) + ". " + h[1] + "</b><span>" + h[2] + "</span></div>";
+      }).join("") + "</div>" +
+      '<h4>Trade-offs</h4><ul class="pros">' + v.pros.map(function (p) { return p[0] === "-" ? '<li class="con">' + p.slice(1) + "</li>" : "<li>" + p + "</li>"; }).join("") + "</ul>" +
+      "<h4>Best for</h4><p>" + v.best + "</p></div>";
+    vars.appendChild(el);
+    var fr = el.querySelector("iframe"), a = el.querySelector(".open a");
+    function go(i) {
+      var src = BASE + letter + "&" + STATES[i][2];
+      fr.src = src; a.href = src; a.textContent = src;
+      [].forEach.call(el.querySelectorAll(".sw button"), function (b) { b.setAttribute("aria-pressed", +b.dataset.s === i); });
+    }
+    el.querySelector(".sw").addEventListener("click", function (ev) { var b = ev.target.closest("button[data-s]"); if (b) go(+b.dataset.s); });
+    go(0);
+  });
+
+  /* the copy, as variants/mood.js says it */
+  var F = [["😣", "Awful"], ["😕", "Low"], ["😐", "Okay"], ["🙂", "Good"], ["😄", "Great"]];
+  var LEAD = [
+    "I am sorry today has been so hard, and thank you for telling me. Let us take it one small step at a time.",
+    "Thank you for being honest with me. Low days come to everyone, and they do pass.",
+    "Thank you for checking in. Okay days count too: over a few weeks they show you what lifts a day and what pulls it down.",
+    "Good to hear. Take a moment to notice what made today good. Naming it makes it easier to do again.",
+    "Lovely to hear. Days like this are worth remembering. Notice what went right, so you can plan more of it."
+  ];
+  var PR = ["Five minutes of slow breathing settles your body first, and the mind often follows. It is ready below whenever you are.", "One small thing you enjoy tends to lift a low mood sooner than waiting it out. Here is the one from your plan."];
+  var Q = ["Sorry today is hard. A few slow breaths can help your body settle.", "Thank you for telling us. Something small you enjoy can lift a low day.", "Thank you. Okay days count too.", "Good to hear. Notice what made it good.", "Lovely. Notice what went right today."];
+  document.getElementById("copytab").innerHTML = '<div class="lines">' + F.map(function (f, i) {
+    return "<div><h4>" + f[0] + " " + f[1] + (i === 0 ? ", with breathing" : i === 1 ? ", with me-time" : "") + '</h4><div class="k">' + LEAD[i] + (i < 2 ? " " + PR[i] : "") + '</div><p class="q"><b>Quiet line</b>' + Q[i] + "</p></div>";
+  }).join("") + "</div>" +
+    '<p style="margin-top:12px">If the suggested practice is already done today, very low falls back to the me-time activity and low falls back to the next breathing exercise, with the matching second sentence.</p>';
+})();
+</script>
+</body>
+</html>

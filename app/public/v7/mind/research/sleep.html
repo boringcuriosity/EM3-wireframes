@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Last night's sleep</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<style>
+  /* Research doc: how last night's sleep shows on the Mind screen, how it is entered and edited.
+     Four live phones share one engine (states, scoring, sheet); each variant swaps the card and the time picker.
+     Scoring copied from v7/mind/rhythm.js: hours 23 (full at target, zero when 3 h short, past target + 1 h loses 20% an hour),
+     window 24 (bedtime and wake time each full within 30 min of plan, zero past 2 h). */
+  :root {
+    --brand-25:#FAFFFD; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-600:#299D6B; --brand-700:#2A805A; --brand-900:#1D4D38;
+    --g-25:#FCFCFD; --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-800:#1D2939; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-200:#C7D7FE; --in-300:#A4BCFD; --in-400:#8098F9; --in-500:#6172F3; --in-600:#444CE7; --in-700:#3538CD;
+    --teal-100:#E0FFFF; --teal-800:#2DA6A6; --gold-50:#FFFBEE; --gold-200:#FEF1C7; --olive-700:#826E2D;
+    --red-600:#D92D20; --amber-50:#FFFAEB; --amber-600:#DC6803;
+    --deep:#4F50B8;   /* the GoodFlip ring file's Deep sleep colour */
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px;
+    --ease:cubic-bezier(.4,0,.2,1);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: #fff; font: 400 14px/21px Roboto, system-ui, sans-serif; letter-spacing: .25px; color: var(--g-600); -webkit-font-smoothing: antialiased; }
+  main { max-width: 1240px; margin: 0 auto; padding: 40px 24px 120px; display: flex; flex-direction: column; gap: 56px; }
+  h1 { margin: 0; font: 800 30px/38px Roboto, sans-serif; color: var(--brand-900); letter-spacing: 0; }
+  h2.dh { margin: 0; font: 800 22px/30px Roboto, sans-serif; color: var(--brand-900); letter-spacing: 0; }
+  h3.dh { margin: 0; font: 700 16px/24px Roboto, sans-serif; color: var(--g-900); }
+  .lede { margin: 0; max-width: 780px; font-size: 15px; line-height: 23px; }
+  .blk { display: flex; flex-direction: column; gap: 12px; }
+  .blk > p { margin: 0; max-width: 820px; }
+  b, strong { color: var(--g-900); font-weight: 600; }
+  .top { display: flex; flex-direction: column; gap: 12px; }
+  .os { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--g-100); align-self: flex-start; }
+  .os button { height: 36px; padding: 0 16px; border: 0; border-radius: 999px; background: none; font: 600 13px Roboto, sans-serif; color: var(--g-600); cursor: pointer; }
+  .os button[aria-pressed=true] { background: #fff; color: var(--g-900); box-shadow: 0 1px 2px rgba(16,24,40,.1); }
+  .ans { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+  .an { border: 1px solid var(--g-200); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 4px; }
+  .an .q { font: 700 11px/16px Roboto, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--g-500); }
+  .an .a { font: 600 15px/22px Roboto, sans-serif; color: var(--g-900); }
+
+  /* scenarios */
+  .scn { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .sg { border: 1px solid var(--g-200); border-radius: 16px; padding: 16px 16px 12px; }
+  .sg h4 { margin: 0 0 8px; font: 700 14px/20px Roboto, sans-serif; color: var(--brand-900); }
+  .sg ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 13px; line-height: 19px; }
+
+  /* what others do */
+  .refs { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .ref { border: 1px solid var(--g-200); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+  .ref .im { height: 220px; background: var(--g-50); display: flex; justify-content: center; overflow: hidden; border-bottom: 1px solid var(--g-100); }
+  .ref .im img { height: 100%; width: auto; display: block; }
+  .ref .im .alt { align-self: center; padding: 16px; font-size: 12px; color: var(--g-500); text-align: center; }
+  .ref .tx { padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 4px; font-size: 13px; line-height: 19px; }
+  .ref .ap { font: 700 14px/20px Roboto, sans-serif; color: var(--g-900); }
+  .ref .ap a { color: inherit; text-decoration: none; }
+  .ref .ap a:hover { text-decoration: underline; }
+  .take::before { content: "Take: "; font-weight: 700; color: var(--brand-600); }
+  .avoid::before { content: "Avoid: "; font-weight: 700; color: var(--amber-600); }
+
+  /* placement */
+  .pl { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
+  .po { border: 1px solid var(--g-200); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .po.on { border-color: var(--brand-600); box-shadow: 0 0 0 3px var(--brand-100); }
+  .po .sk { border-radius: 12px; background: var(--g-50); padding: 10px; display: flex; flex-direction: column; gap: 6px; font-size: 11px; line-height: 14px; }
+  .po .sk i { display: block; border-radius: 8px; padding: 6px 8px; background: #fff; border: 1px solid var(--g-200); font-style: normal; color: var(--g-500); }
+  .po .sk i.hl { border-color: var(--in-300); background: var(--in-25); color: var(--in-700); font-weight: 700; }
+  .po .sk i.sc { text-align: center; color: var(--teal-800); font-weight: 700; }
+
+  /* variant layout, the house style of v7/coach-mind/add-variants.html */
+  .vars { display: flex; flex-direction: column; gap: 64px; }
+  .v { display: grid; grid-template-columns: 380px 1fr; gap: 32px; align-items: start; }
+  @media (max-width: 900px) { .v { grid-template-columns: 1fr; } }
+  .vh { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .vk { font: 800 13px/18px Roboto, sans-serif; color: #fff; background: var(--brand-900); border-radius: 7px; padding: 2px 8px; }
+  .vn { font: 800 20px/26px Roboto, sans-serif; color: var(--brand-900); }
+  .liked, .nw { font: 700 11px/16px Roboto, sans-serif; letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: 3px 9px; color: #3538CD; background: #EEF4FF; }
+  .nw { color: #2D8282; background: #fff; box-shadow: inset 0 0 0 1px #C7FEFE; }
+  .dropb { font: 700 11px/16px Roboto, sans-serif; letter-spacing: .06em; text-transform: uppercase; border-radius: 999px; padding: 3px 9px; color: #B42318; background: #FEF3F2; }
+  .frames { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 32px 24px; }
+  .ftl { font: 600 14px/20px Roboto, sans-serif; color: var(--g-900); }
+  details.dropbox { border: 1px solid var(--g-200); border-radius: 18px; padding: 16px 20px; }
+  details.dropbox summary { cursor: pointer; font: 800 18px/26px Roboto, sans-serif; color: var(--g-600); min-height: 44px; display: flex; align-items: center; }
+  details.dropbox > p { margin: 8px 0 24px; }
+  .hgt { font: 600 12px/16px Roboto, sans-serif; color: var(--g-700); font-variant-numeric: tabular-nums; }
+  .rec { font: 700 11px/16px Roboto, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--brand-600); background: var(--brand-100); border-radius: 999px; padding: 3px 9px; }
+  .vt { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+  .vt p { margin: 0; }
+  .vt h5 { margin: 0 0 4px; font: 700 11px/16px Roboto, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--g-500); }
+  .pros { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 13px; line-height: 19px; }
+  .pros li { padding-left: 18px; position: relative; }
+  .pros li::before { content: "+"; position: absolute; left: 0; font-weight: 700; color: var(--brand-600); }
+  .pros li.con::before { content: "\2212"; color: var(--amber-600); }
+  .heur { width: 100%; border-collapse: collapse; font-size: 12.5px; line-height: 18px; }
+  .heur td { padding: 6px 8px; border-top: 1px solid var(--g-100); vertical-align: top; }
+  .heur td:first-child { width: 170px; font-weight: 600; color: var(--g-800); white-space: nowrap; }
+  .heur .ok { color: var(--brand-600); font-weight: 700; }
+  .heur .so { color: var(--amber-600); font-weight: 700; }
+
+  /* the state chips above each phone */
+  .stw { display: flex; flex-direction: column; gap: 12px; }
+  .sts { display: flex; flex-wrap: wrap; gap: 6px; width: 360px; max-width: 100%; }
+  .sts button { height: 32px; padding: 0 12px; border: 1px solid var(--g-200); border-radius: 999px; background: #fff; font: 500 12px Roboto, sans-serif; color: var(--g-600); cursor: pointer; position: relative; }
+  .sts button::after { content: ""; position: absolute; left: 0; right: 0; top: -6px; bottom: -6px; }
+  .sts button[aria-pressed=true] { background: var(--g-900); border-color: var(--g-900); color: #fff; }
+
+  /* the real Mind screen in a frame: 390 by 844, scaled to fit */
+  .fw { width: 332px; height: 718px; border-radius: 36px; border: 1px solid var(--g-200); box-shadow: 0 24px 48px -12px rgba(16,24,40,.18); overflow: hidden; position: relative; background: #fff; }
+  .fw iframe { position: absolute; left: 0; top: 0; width: 390px; height: 844px; border: 0; transform: scale(.8513); transform-origin: 0 0; }
+  a.open { font-size: 12px; color: var(--brand-600); word-break: break-all; max-width: 360px; }
+  /* ---------- the phone ---------- */
+  .ph { width: 360px; max-width: 100%; height: 740px; border-radius: 40px; border: 1px solid var(--g-200); box-shadow: 0 24px 48px -12px rgba(16,24,40,.18); position: relative; overflow: hidden; background: #fff; }
+  .scr { position: absolute; inset: 0; overflow-y: auto; padding: 0 16px 32px; scrollbar-width: none; }
+  .scr::-webkit-scrollbar { display: none; }
+  .sb { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font: 600 14px Roboto, sans-serif; color: var(--g-900); }
+  .sb i { display: inline-block; width: 22px; height: 11px; border-radius: 3px; border: 1.5px solid var(--g-900); position: relative; }
+  .sb i::after { content: ""; position: absolute; inset: 1.5px 5px 1.5px 1.5px; background: var(--g-900); border-radius: 1px; }
+  .ah { display: flex; align-items: center; gap: 8px; height: 40px; font: 700 17px Roboto, sans-serif; color: var(--g-900); }
+  .ah span { font-weight: 400; font-size: 13px; color: var(--g-500); }
+  .hero { display: flex; align-items: center; gap: 16px; padding: 8px 0 4px; }
+  .ring { width: 72px; height: 72px; flex: none; position: relative; }
+  .ring svg { width: 72px; height: 72px; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 7; }
+  .ring .bg { stroke: var(--teal-100); }
+  .ring .fg { stroke: var(--teal-800); stroke-linecap: round; transition: stroke-dashoffset .8s var(--ease); }
+  .ring b { position: absolute; inset: 0; display: grid; place-items: center; font: 700 20px Roboto, sans-serif; color: var(--g-900); font-variant-numeric: tabular-nums; }
+  .hero .ht { font-size: 12px; line-height: 17px; color: var(--g-500); }
+  .hero .ht b { display: block; font-size: 15px; line-height: 21px; color: var(--g-900); }
+  .sec { display: flex; align-items: center; justify-content: space-between; padding: 24px 0 8px; }
+  .sec h2 { margin: 0; font: 400 14px/20px Roboto, sans-serif; color: var(--g-900); }
+  .ib { width: 44px; height: 44px; margin: -12px -12px -12px 0; border: 0; background: none; display: grid; place-items: center; color: var(--g-400); cursor: pointer; border-radius: 999px; }
+  .ib svg { width: 18px; height: 18px; }
+
+  /* the sleep card: Move's steps card (move/plan.css .mv-sc) with its source strip */
+  .sc { position: relative; z-index: 1; border-radius: var(--r-xl); padding: 16px; border: 1px solid var(--in-100); background: linear-gradient(180deg, var(--in-25), #fff 45%);
+    box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 6px 16px -8px rgba(16,24,40,.12); display: flex; flex-direction: column; gap: 12px; }
+  .shd { display: flex; align-items: flex-start; gap: 12px; }
+  .shd .t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .big { font-size: 28px; line-height: 34px; font-weight: 700; color: var(--in-700); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+  .big span { font-size: 14px; font-weight: 400; color: var(--g-500); letter-spacing: .25px; }
+  .big.mute { font-size: 18px; line-height: 24px; color: var(--g-900); }
+  .sub { font-size: 13px; line-height: 18px; color: var(--g-600); font-variant-numeric: tabular-nums; }
+  .logbtn { position: relative; flex: none; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0; margin-top: 2px; border: 0; background: none; color: var(--brand-600); font: 600 14px/1 Roboto, sans-serif; letter-spacing: .25px; cursor: pointer; }
+  .logbtn::after { content: ""; position: absolute; inset: -6px -8px; }
+  .logbtn svg { width: 20px; height: 20px; }
+  .sync { position: relative; z-index: 0; display: flex; align-items: center; gap: 8px; margin-top: -16px; padding: 26px 16px 10px; border: 1px solid var(--in-100); border-top: 0;
+    border-radius: 0 0 var(--r-xl) var(--r-xl); background: var(--in-25); font-size: 12px; line-height: 16px; color: var(--g-600); }
+  .sync .src { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; color: var(--g-800); min-width: 0; }
+  .sync .at { margin-left: auto; color: var(--g-500); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .hk { width: 20px; height: 20px; border-radius: 6px; flex: none; background: #fff url(/v7/icons/health/apple-health-heart.png) center / 13px no-repeat; box-shadow: 0 0 0 1px var(--g-200); }
+  .hk.hc { background: url(/v7/icons/health/health-connect.png) center / cover no-repeat; }
+  .hk.me { background: var(--brand-50); box-shadow: 0 0 0 1px var(--brand-100); display: grid; place-items: center; color: var(--brand-600); }
+  .hk.me svg { width: 12px; height: 12px; }
+  button.sync { width: 100%; font-family: inherit; text-align: left; cursor: pointer; gap: 12px; padding-top: 28px; padding-bottom: 12px; }
+  button.sync .hk { width: 32px; height: 32px; border-radius: 9px; background-size: 20px; }
+  button.sync .hk.hc { background-size: cover; }
+  button.sync .tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  button.sync .tx b { font-size: 14px; line-height: 20px; color: var(--brand-600); }
+  button.sync .tx span { font-size: 12px; line-height: 16px; color: var(--g-500); }
+  button.sync > svg { width: 20px; height: 20px; flex: none; color: var(--brand-600); }
+
+  /* the night as a bar against the coach's window */
+  .tl { position: relative; padding-top: 18px; }
+  .tl .tr { position: relative; height: 28px; border-radius: 8px; background: var(--g-50); }
+  .tl .band { position: absolute; top: -4px; bottom: -4px; border-radius: 10px; background: var(--in-50); border: 1.5px dashed var(--in-200); }
+  .tl .bar { position: absolute; top: 4px; bottom: 4px; border-radius: 6px; background: linear-gradient(90deg, var(--in-500), var(--deep)); transition: left .5s var(--ease), width .5s var(--ease); }
+  .tl .gap { position: absolute; top: 4px; bottom: 4px; background: repeating-linear-gradient(90deg, #fff 0 2px, var(--in-100) 2px 4px); }
+  .tl .bar.ghost { background: repeating-linear-gradient(135deg, var(--in-100) 0 6px, var(--in-50) 6px 12px); }
+  .tl .bar.wait { background: linear-gradient(90deg, var(--in-50), var(--in-100), var(--in-50)); background-size: 200% 100%; animation: shim 1.6s linear infinite; }
+  @keyframes shim { to { background-position: -200% 0; } }
+  .tl .pin { position: absolute; top: 0; transform: translateX(-50%); font: 600 10px/14px Roboto, sans-serif; color: var(--in-600); white-space: nowrap; }
+  .tl .ax { position: relative; height: 16px; margin-top: 6px; }
+  .tl .ax span { position: absolute; transform: translateX(-50%); font-size: 10px; line-height: 14px; color: var(--g-400); white-space: nowrap; }
+  .tl .ax span:first-child { transform: none; }
+
+  .reads { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .rd { border: 1px solid var(--in-100); border-radius: 14px; background: #fff; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .rd .l { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; color: var(--g-600); }
+  .rd .l svg { width: 14px; height: 14px; color: var(--in-600); flex: none; }
+  .rd .v2 { display: flex; align-items: center; gap: 4px; font: 700 15px/21px Roboto, sans-serif; color: var(--g-900); font-variant-numeric: tabular-nums; }
+  .rd .v2 svg { width: 16px; height: 16px; color: var(--brand-600); flex: none; }
+  .rd .s2 { font-size: 11.5px; line-height: 16px; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .rd .mt { height: 4px; border-radius: 4px; background: var(--in-50); margin-top: 6px; overflow: hidden; }
+  .rd .mt i { display: block; height: 100%; border-radius: inherit; background: var(--in-500); transition: width .6s var(--ease); }
+  .note { display: flex; gap: 8px; align-items: flex-start; border-radius: 12px; padding: 10px 12px; font-size: 12.5px; line-height: 18px; background: var(--g-50); color: var(--g-700); }
+  .note svg { width: 16px; height: 16px; flex: none; margin-top: 1px; color: var(--g-500); }
+  .note.warn { background: var(--amber-50); color: #7A2E0E; }
+  .note.warn svg { color: var(--amber-600); }
+  .note .lk { border: 0; background: none; padding: 0; font: 600 12.5px Roboto, sans-serif; color: var(--brand-600); cursor: pointer; position: relative; }
+  .note .lk::after { content: ""; position: absolute; inset: -12px -8px; }
+  .cta { height: 44px; width: 100%; border: 0; border-radius: 6px; background: var(--brand-600); color: #fff; font: 600 15px Roboto, sans-serif; cursor: pointer; box-shadow: 0 4px 0 var(--brand-700); }
+  .cta.sec2 { background: #fff; color: var(--brand-600); border: 1px solid var(--brand-600); box-shadow: none; }
+  .cta:active { transform: translateY(2px); }
+
+  /* B: the clock */
+  .ck { display: flex; gap: 16px; align-items: center; }
+  .ck svg.dial { width: 128px; height: 128px; flex: none; }
+  .ck .cr { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+  .ckl { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; line-height: 18px; color: var(--g-600); }
+  .ckl div { display: flex; align-items: center; gap: 6px; }
+  .ckl svg { width: 14px; height: 14px; flex: none; }
+  .ckl .okc { color: var(--brand-600); }
+  .ckl .ofc { color: var(--in-600); }
+
+  /* C: hours hero and two time tiles */
+  .prog { height: 6px; border-radius: 999px; background: var(--in-50); overflow: hidden; }
+  .prog i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--in-400), var(--in-600)); transition: width .6s var(--ease); }
+  .tt2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tt2 .rd .v2 { font-size: 18px; line-height: 24px; }
+
+  /* D: a row in the plan */
+  .pc { border-radius: var(--r-xl); border: 1px solid var(--in-100); background: linear-gradient(180deg, var(--in-25), #fff 30%); box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 6px 16px -8px rgba(16,24,40,.12); padding: 4px 16px 8px; }
+  .pc .ph2 { padding: 12px 0 4px; font: 600 15px/22px Roboto, sans-serif; color: var(--g-900); }
+  .pc .ph2 span { display: block; font: 400 12px/16px Roboto, sans-serif; color: var(--g-500); }
+  .pc .gl { font: 700 11px/16px Roboto, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--g-500); padding: 12px 0 4px; }
+  .row { display: flex; align-items: flex-start; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--g-100); width: 100%; border-left: 0; border-right: 0; border-top: 0; background: none; text-align: left; font-family: inherit; cursor: pointer; min-height: 56px; }
+  .row:last-child { border-bottom: 0; }
+  .row .tm { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--g-300); flex: none; margin-top: 2px; display: grid; place-items: center; }
+  .row .tm.on { background: var(--brand-600); border-color: var(--brand-600); color: #fff; }
+  .row .tm svg { width: 14px; height: 14px; }
+  .row .rb { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .row .tt { font: 600 14px/20px Roboto, sans-serif; color: var(--g-900); }
+  .row .td { font-size: 12px; line-height: 18px; color: var(--g-500); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+  .row .td .hk { width: 14px; height: 14px; border-radius: 4px; background-size: 9px; }
+  .row .td .hk.me svg { width: 9px; height: 9px; }
+  .row .chv { color: var(--g-400); width: 20px; height: 20px; margin-top: 10px; flex: none; }
+  .row .mini { margin-top: 6px; }
+  .row .mini .tl { padding-top: 0; }
+  .row .mini .tr { height: 10px; border-radius: 4px; }
+  .row .mini .band { top: -2px; bottom: -2px; border-radius: 5px; border-width: 1px; }
+  .row .mini .bar { top: 2px; bottom: 2px; border-radius: 3px; }
+  .row .tdw { color: var(--amber-600); }
+
+  /* the rest of the plan, quietly */
+  .rest { display: flex; flex-direction: column; gap: 8px; }
+  .part { border: 1px solid var(--g-200); border-radius: 18px; padding: 12px 16px; display: flex; flex-direction: column; gap: 2px; }
+  .part b { font-size: 14px; }
+  .part span { font-size: 12px; line-height: 17px; color: var(--g-500); }
+
+  /* ---------- the house sheet (v7/mind/index.html .sheet), inside the phone ---------- */
+  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: opacity .3s var(--ease); z-index: 40; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; display: flex; flex-direction: column; background: #fff; border-radius: var(--r-lg) var(--r-lg) 0 0;
+    transform: translateY(100%); transition: transform .3s var(--ease); z-index: 41; box-shadow: 0 -8px 24px -8px rgba(16,24,40,.10); }
+  .ph.open .scrim { opacity: 1; pointer-events: auto; }
+  .ph.open .sheet { transform: translateY(0); }
+  .shead { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 8px; }
+  .shead h4 { margin: 0; font: 600 18px/24px Roboto, sans-serif; color: var(--g-900); letter-spacing: 0; }
+  .shead .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex: none; border-radius: 999px; }
+  .sbody { overflow-y: auto; padding: 0 16px 24px; display: flex; flex-direction: column; gap: 16px; }
+  .msub { font-size: 13px; line-height: 19px; color: var(--g-600); font-variant-numeric: tabular-nums; }
+  .flds { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .fld { border: 1px solid var(--g-200); border-radius: 12px; background: #fff; padding: 10px 12px; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 2px; font-family: inherit; min-height: 72px; }
+  .fld .fl { display: flex; align-items: center; gap: 6px; font-size: 12px; line-height: 16px; color: var(--g-600); font-weight: 600; }
+  .fld .fl svg { width: 14px; height: 14px; color: var(--in-600); }
+  .fld .fv { font: 700 20px/26px Roboto, sans-serif; color: var(--g-900); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+  .fld .fd { font-size: 11.5px; line-height: 16px; color: var(--g-500); }
+  .fld[aria-pressed=true] { border-color: var(--in-600); box-shadow: 0 0 0 3px var(--in-100); }
+  .fld.bad { border-color: var(--red-600); }
+  /* wheels */
+  .whs { position: relative; display: flex; gap: 4px; height: 200px; border-radius: 14px; background: var(--g-50); padding: 0 8px; }
+  .whs::before { content: ""; position: absolute; left: 8px; right: 8px; top: 80px; height: 40px; border-radius: 10px; background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.08); pointer-events: none; }
+  .whs::after { content: ""; position: absolute; inset: 0; border-radius: 14px; pointer-events: none; background: linear-gradient(180deg, var(--g-50), rgba(249,250,251,0) 35%, rgba(249,250,251,0) 65%, var(--g-50)); }
+  .wh { position: relative; flex: 1; overflow-y: scroll; scroll-snap-type: y mandatory; scrollbar-width: none; padding: 80px 0; outline: none; border-radius: 10px; }
+  .wh::-webkit-scrollbar { display: none; }
+  .wh:focus-visible { box-shadow: inset 0 0 0 2px var(--in-300); }
+  .wh button { display: block; width: 100%; height: 40px; border: 0; background: none; scroll-snap-align: center; font: 500 20px/40px Roboto, sans-serif; color: var(--g-900); cursor: pointer; font-variant-numeric: tabular-nums; }
+  .wh button[tabindex] { outline: none; }
+  /* dial in the sheet */
+  .dwrap { display: flex; justify-content: center; }
+  .dwrap svg { width: 248px; height: 248px; touch-action: none; }
+  .dwrap .hd { cursor: grab; outline: none; }
+  .dwrap .hd:focus-visible circle:first-child { stroke: var(--in-300); stroke-width: 6; }
+  .nud { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .nu { display: flex; align-items: center; justify-content: space-between; gap: 4px; border: 1px solid var(--g-200); border-radius: 12px; padding: 6px; }
+  .nu b { font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .nu .nl { font-size: 11px; color: var(--g-500); display: block; font-weight: 400; }
+  .nu .c { text-align: center; }
+  .nu .lbl { display: block; font-size: 12px; line-height: 16px; font-weight: 600; color: var(--g-600); }
+  .sp { width: 44px; height: 44px; border: 1px solid var(--g-200); border-radius: 10px; background: #fff; color: var(--g-700); font-size: 20px; cursor: pointer; flex: none; touch-action: manipulation; user-select: none; }
+  .sp:active { background: var(--g-50); }
+  /* drag bar in the sheet */
+  .dbar { position: relative; padding: 22px 0 0; touch-action: none; }
+  .dbar .tr { height: 44px; border-radius: 12px; }
+  .dbar .band { border-radius: 14px; }
+  .dbar .bar { top: 6px; bottom: 6px; border-radius: 9px; transition: none; }
+  .dbar .hh { position: absolute; top: 22px; width: 44px; height: 44px; margin-left: -22px; display: grid; place-items: center; cursor: ew-resize; outline: none; z-index: 2; }
+  .dbar .hh i { width: 22px; height: 34px; border-radius: 8px; background: #fff; border: 2px solid var(--in-600); box-shadow: 0 2px 6px rgba(16,24,40,.18); display: grid; place-items: center; }
+  .dbar .hh i::before { content: ""; width: 2px; height: 14px; border-left: 2px solid var(--in-300); border-right: 2px solid var(--in-300); width: 6px; box-sizing: border-box; }
+  .dbar .hh:focus-visible i { box-shadow: 0 0 0 4px var(--in-200); }
+  /* presets, summary, errors */
+  .pre { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pre button { min-height: 36px; padding: 0 12px; border: 1px solid var(--g-200); border-radius: 999px; background: #fff; font: 500 13px Roboto, sans-serif; color: var(--g-700); cursor: pointer; position: relative; }
+  .pre button::after { content: ""; position: absolute; left: 0; right: 0; top: -4px; bottom: -4px; }
+  .pre button:active { background: var(--in-25); border-color: var(--in-200); }
+  .sum { display: flex; flex-direction: column; gap: 6px; }
+  .sum .h { font-size: 15px; line-height: 22px; color: var(--g-700); font-variant-numeric: tabular-nums; }
+  .sum .h b { font-size: 17px; }
+  .msg { display: flex; gap: 6px; align-items: flex-start; font-size: 13px; line-height: 18px; }
+  .msg svg { width: 16px; height: 16px; flex: none; margin-top: 1px; }
+  .msg.err { color: var(--red-600); }
+  .msg.wrn { color: var(--amber-600); }
+  .save { width: 100%; height: 48px; border: 0; border-radius: 6px; background: var(--brand-600); color: #fff; font: 600 16px Roboto, sans-serif; cursor: pointer; box-shadow: 0 4px 0 var(--brand-700); transition: transform .2s var(--ease), box-shadow .2s var(--ease); }
+  .save:active { transform: translateY(4px); box-shadow: 0 0 0 var(--brand-700); }
+  .save[disabled] { background: var(--g-100); color: var(--g-400); box-shadow: none; cursor: not-allowed; }
+  .rst { align-self: center; min-height: 44px; border: 0; background: none; font: 600 14px Roboto, sans-serif; color: var(--brand-600); cursor: pointer; }
+  .help p { margin: 0; font-size: 14px; line-height: 21px; color: var(--g-600); }
+  .pts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pts div { border: 1px solid var(--g-200); border-radius: 12px; padding: 10px 12px; font-size: 12px; color: var(--g-500); }
+  .pts b { display: block; font-size: 18px; line-height: 24px; color: var(--g-900); font-variant-numeric: tabular-nums; }
+  .perm { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; padding: 8px 0; }
+  .perm .pair { display: flex; align-items: center; gap: 10px; }
+  .perm .pair .hk { width: 48px; height: 48px; border-radius: 12px; background-size: 30px; }
+  .perm .pair .hk.hc { background-size: cover; }
+  .perm .pair .gf { width: 48px; height: 48px; border-radius: 12px; background: var(--brand-600); color: #fff; display: grid; place-items: center; font: 800 18px Roboto, sans-serif; }
+  .perm ul { margin: 0; padding: 0; list-style: none; text-align: left; display: grid; gap: 8px; align-self: stretch; }
+  .perm li { display: flex; gap: 10px; font-size: 13px; line-height: 19px; }
+  .perm li svg { width: 18px; height: 18px; color: var(--brand-600); flex: none; }
+
+  /* the toast: GoodFlip's, at the top, light, no action inside */
+  .toast { position: absolute; left: 16px; right: 16px; top: 52px; z-index: 50; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #fff;
+    box-shadow: 0 12px 24px -6px rgba(16,24,40,.18), 0 0 0 1px var(--g-100); font: 500 14px/20px Roboto, sans-serif; color: var(--g-900); opacity: 0; transform: translateY(-8px); transition: opacity .3s var(--ease), transform .3s var(--ease); pointer-events: none; }
+  .toast.on { opacity: 1; transform: none; }
+  .toast svg { width: 20px; height: 20px; color: var(--brand-600); flex: none; }
+
+  /* tables */
+  .tbl { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 19px; }
+  .tbl th { text-align: left; font: 700 11px/16px Roboto, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--g-500); padding: 8px 10px; border-bottom: 1px solid var(--g-200); }
+  .tbl td { padding: 10px; border-bottom: 1px solid var(--g-100); vertical-align: top; }
+  .tbl td:first-child { font-weight: 600; color: var(--g-900); white-space: nowrap; }
+  .tw { overflow-x: auto; border: 1px solid var(--g-200); border-radius: 16px; }
+  .qs { display: grid; gap: 16px; }
+  .qq { border: 1px solid var(--g-200); border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .qq h4 { margin: 0; font: 700 15px/22px Roboto, sans-serif; color: var(--g-900); }
+  .qq ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 13.5px; line-height: 20px; }
+  .rbox { border: 1px solid var(--brand-600); background: var(--brand-25); border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .rbox p { margin: 0; }
+  .rbox ul { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+  :focus-visible { outline: 2px solid var(--brand-600); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: 1ms !important; animation: none !important; }
+  }
+  /* accordions: everything but J and the recommendation folds away */
+  main > details.acc { margin: -44px 0 0; }   /* main spaces its blocks 56px apart; folded ones sit 12px apart */
+  details.acc { margin: 12px 0; border: 1px solid var(--g-200, #E4E7EC); border-radius: 14px; background: #fff; }
+  details.acc > summary { list-style: none; display: flex; align-items: center; gap: 10px; min-height: 52px; padding: 0 20px; cursor: pointer; font: 600 15px/20px Roboto, sans-serif; color: #101828; }
+  details.acc > summary::-webkit-details-marker { display: none; }
+  details.acc > summary::after { content: ""; margin-left: auto; width: 8px; height: 8px; border-right: 2px solid #667085; border-bottom: 2px solid #667085; transform: rotate(45deg); transition: transform .2s cubic-bezier(.4,0,.2,1); }
+  details.acc[open] > summary::after { transform: rotate(-135deg); }
+  details.acc > summary b { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: #F2F4F7; font-size: 13px; }
+  details.acc > :not(summary) { margin: 0 20px 20px; }
+</style>
+</head>
+<body>
+<main>
+
+<section class="top">
+  <h1>Last night's sleep on the Mind screen</h1>
+  <p class="lede">How last night shows, where it sits, and how a patient enters or fixes it. Sleep is 47 of the 100 Rhythm points: hours 23 and timing 24, both measured against the bedtime, wake time and hours the coach sets. Times come from Apple Health or Health Connect when they are connected, and the patient can always enter or edit them. Each variant below runs on the real Mind screen (the coach portal's preview, with this variant switched on). Pick a state above it, tap the card, change the times, save.</p>
+  <div class="os" role="group" aria-label="Phone">
+    <button aria-pressed="true" data-os="ios">iPhone, Apple Health</button>
+    <button aria-pressed="false" data-os="and">Android, Health Connect</button>
+  </div>
+  <div class="ans">
+    <div class="an"><span class="q">1. Where it sits</span><span class="a">Its own "Last night" card above the plan, like steps. Tonight's bedtime stays a row in the Night part.</span></div>
+    <div class="an"><span class="q">2. Best visual</span><span class="a">Hours as the hero number, with the night drawn as a bar over the coach's window and a legend for last night and the plan (J).</span></div>
+    <div class="an"><span class="q">3. Entering and editing</span><span class="a">A sheet whose bar is dragged by its ends, two time fields with a scroll wheel for exact minutes, and "Add another sleep" for a split night. Midnight is worked out for them.</span></div>
+    <div class="an"><span class="q">4. Points</span><span class="a">Targets live in "What shaped your score?" above the card: Sleep hours, Sleep window ("On time" or "45 min late") and Self-care.</span></div>
+  </div>
+</section>
+
+<section class="blk">
+  <h2 class="dh">The problem</h2>
+  <p><b>Who and when.</b> A patient with a metabolic condition opens Mind in the morning, often still in bed or over the first chai, somewhere between 6 and 9 AM. They want one thing: did last night count, and is it right? Most open the screen on a phone without a watch, so for many of them nothing fills in by itself (see the platform notes in <code>sleep-data-health-platforms</code>: sleep needs a watch or another app that writes it).</p>
+  <p><b>State of mind.</b> Groggy and short on patience. If the night was poor they may feel a little guilty already. If the numbers look wrong (a watch taken off at 4 AM shows two hours) they feel judged by a machine. So the card has to be readable at a glance, easy to correct in a few taps, and kind about a bad night.</p>
+  <p><b>What the coach set.</b> In bed by 10:30 PM, up at 6:00 AM, 7h 30m of sleep. Full hours points at 7h 30m, dropping to zero when 3 hours short. Full timing points when both times fall within 30 minutes of the plan, dropping to zero at 2 hours away.</p>
+</section>
+
+<section class="blk">
+  <h2 class="dh">Scenarios</h2>
+  <p>Listed before designing, grouped by what they belong to. Every one of these is either a state in the phones below or a rule in the sheet.</p>
+  <div class="scn">
+    <div class="sg"><h4>Where the data comes from</h4><ol>
+      <li>Health is connected and last night came through.</li>
+      <li>Health is connected but has nothing for last night (no watch, watch not worn, watch flat).</li>
+      <li>Health is connected but last night has not arrived yet (the watch has not synced, or Health Connect writes the night only once it ends).</li>
+      <li>Health is not connected: permission was never asked, or was turned down.</li>
+      <li>The patient turned off sleep in Health's own settings after connecting.</li>
+      <li>Two sources write sleep (a watch and a sleep app): use what Health lists as the night, never add them up.</li>
+    </ol></div>
+    <div class="sg"><h4>What last night looks like</h4><ol>
+      <li>A normal night inside or near the window.</li>
+      <li>A night with a wake-up in the middle (awake 20 minutes at 3 AM).</li>
+      <li>A very short night that is real (a late flight).</li>
+      <li>A very short night that is wrong (watch taken off, only 2h 05m came through).</li>
+      <li>Asleep after midnight (bed at 1:15 AM is still last night).</li>
+      <li>A long lie-in past the coach's hours plus one.</li>
+      <li>Night shift sleep in the day: out of scope here, flagged for the coach.</li>
+    </ol></div>
+    <div class="sg"><h4>Entering and editing</h4><ol>
+      <li>Entering last night with nothing synced.</li>
+      <li>Fixing a synced night (the card then says it was edited by you).</li>
+      <li>Going back to Health's times after an edit.</li>
+      <li>Woke up a moment ago: one tap sets the wake time to now.</li>
+      <li>Slept as planned: one tap fills the coach's times.</li>
+      <li>Closing the sheet without saving keeps the card as it was.</li>
+      <li>Health sends new data after a manual entry: the patient's times stay.</li>
+    </ol></div>
+    <div class="sg"><h4>Times that need a check</h4><ol>
+      <li>Wake-up before fell asleep.</li>
+      <li>Wake-up later than now.</li>
+      <li>A night over 14 hours (usually AM and PM swapped).</li>
+      <li>A night under 3 hours (allowed, with a gentle check).</li>
+      <li>Crossing midnight, worked out from the clock: an evening time is yesterday, a morning time is today.</li>
+    </ol></div>
+    <div class="sg"><h4>The score</h4><ol>
+      <li>Before last night is in, the sleep part of the score waits; the rest of the day still counts.</li>
+      <li>Hours and timing count separately: a full night at the wrong time still earns its hours.</li>
+      <li>Points move as soon as times are saved, and move back if an edit is undone.</li>
+      <li>The patient never sees a minus.</li>
+    </ol></div>
+    <div class="sg"><h4>Plan and day</h4><ol>
+      <li>No coach plan yet: last night still shows, with no window drawn and no score.</li>
+      <li>The coach changed the window yesterday: last night is measured against the plan that was live last night.</li>
+      <li>Looking at an earlier day: that night's card, read only after 7 days.</li>
+      <li>Opening Mind in the evening: the card still shows last night; tonight's bedtime is in the Night part.</li>
+    </ol></div>
+  </div>
+</section>
+
+<section class="blk">
+  <h2 class="dh">What others do</h2>
+  <p>From Mobbin (iOS) and the GoodFlip ring file in Figma. Pictures load from Mobbin; each name opens the screen there.</p>
+  <div class="refs" id="refs"></div>
+</section>
+
+<section class="blk">
+  <h2 class="dh">Where sleep sits</h2>
+  <p>Sleep is different from everything else on the Mind plan: it already happened, it is mostly measured by the phone, and it is half of the score. Steps on Move are the nearest match: they come from Health, can be entered by hand, and have their own card ("Your steps", under the plan, with a source strip at its foot). Three places it could live:</p>
+  <div class="pl">
+    <div class="po on"><h3 class="dh">Its own card, above the plan <span class="rec">Recommended</span></h3>
+      <div class="sk"><i class="sc">Rhythm score</i><i>KAIRA</i><i class="hl">Last night: 7h 05m, on time</i><i>Your mind plan: Morning, Afternoon, Evening</i><i>Night: wind-down, bed by 10:30 PM</i></div>
+      <ul class="pros"><li>Seen first in the morning, which is when it matters</li><li>Room for a picture of the night and a source strip, the same anatomy as steps</li><li>Tonight's bedtime stays in Night, so last night and tonight never share a row</li><li class="con">Above the plan rather than under it as steps is, so Move and Mind differ in order</li></ul></div>
+    <div class="po"><h3 class="dh">A row in the plan</h3>
+      <div class="sk"><i class="sc">Rhythm score</i><i>KAIRA</i><i>Your mind plan</i><i class="hl">Morning: Last night's sleep, 7h 05m</i><i>Night: wind-down</i></div>
+      <ul class="pros"><li>Smallest change from today's screen (plan.js)</li><li>Reads as one more thing to tick</li><li class="con">A row cannot show the night against the window</li><li class="con">In the Night part it would sit beside tonight's tasks and read as tonight</li><li class="con">47 points looks the same weight as a 3-point wind-down tick</li></ul></div>
+    <div class="po"><h3 class="dh">Both</h3>
+      <div class="sk"><i class="sc">Rhythm score</i><i class="hl">Last night card</i><i>Your mind plan</i><i class="hl">Morning: Last night's sleep row</i><i>Night: wind-down</i></div>
+      <ul class="pros"><li>Covers people who only scan the plan</li><li class="con">The same fact twice, and two places to edit it</li><li class="con">Ticks done on the row can disagree with the card for a moment while syncing</li></ul></div>
+  </div>
+</section>
+
+<section class="blk">
+  <h2 class="dh">Variants</h2>
+  <p><b>J is the current pick:</b> I with each fact said once, the score tiles above holding the targets, and a sheet whose bar can be dragged. A to D, I and J run on the real Mind screen at 7:30 AM, from <code>v7/mind/variants/sleep.js</code>. They share the same states, the same rules for midnight and checks, and the house sheet. They differ in the card and in the time picker inside the sheet, so the picker can be swapped between them. A, B and C sit as their own card above the parts of the day; D stays a row in Morning.</p>
+</section>
+<div class="vars" id="vars"></div>
+
+<section class="blk" id="split">
+  <h2 class="dh">A split night</h2>
+  <p>Some nights go: asleep, awake for a while, asleep again. Most people only ever enter a bedtime and a wake time, so that stays the default. A split night is one quiet link away.</p>
+  <div class="tw"><table class="tbl">
+    <thead><tr><th>Part</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr><td>Entering it</td><td>Under the two fields sits "+ Add another sleep", with "Woke in the night and slept again?" under it. A tap splits the last sleep in two around its middle, 40 minutes apart, so both pairs start close to right and only need a nudge. The pairs get small "Sleep 1" and "Sleep 2" labels; the wheel opens under the pair in use. At most 3 sleeps.</td></tr>
+      <tr><td>Taking one away</td><td>"Remove" on Sleep 2 or 3 joins it back into the sleep before, the exact reverse of adding, so nothing is lost by a mis-tap. Sleep 1 has no Remove.</td></tr>
+      <tr><td>Why this way</td><td>Chosen over a separate "awake from, to" field (one more idea to learn) and over a second sheet (leaves the place the person is in). The pair is the same control they already used, repeated.</td></tr>
+      <tr><td>On the card</td><td>The bar shows two indigo segments with a hatched gap between them. The hours are time asleep only ("6h 40m of sleep, 50 min short"). The awake time is noted once, on the times line: "10:50 PM to 6:10 AM, awake 40 min at 2:30 AM, on time".</td></tr>
+      <tr><td>Timing</td><td>The first bedtime and the last wake, against the coach's window, as for any night.</td></tr>
+      <tr><td>From Health</td><td>Health Connect sends each session as its own record that cannot overlap; Apple Health sends asleep samples with gaps. Sessions that start between 6 PM and noon and sit less than 3 hours apart become one night with a gap. A longer gap, or a sleep in the day, is a nap.</td></tr>
+      <tr><td>Checks</td><td>Each sleep in order ("Sleep 2: woke up has to come after fell asleep"). No overlaps ("Sleep 2 starts before sleep 1 ends. Move it later"). Last wake before now. Under 14 hours from first to last ("Check AM and PM"). The field at fault gets the red edge.</td></tr>
+    </tbody>
+  </table></div>
+  <p><b>What others do.</b> Oura shows awake time as gaps in the night's bar, and treats its longest period as the night without adding shorter ones (<a href="https://support.ouraring.com/hc/en-us/articles/4403155260307-Sleep-Graphs" target="_blank" rel="noopener">Oura, Sleep Graphs</a>). Fitbit merges two sleeps less than an hour apart by itself, and otherwise asks people to delete and re-edit logs to join them (<a href="https://community.fitbit.com/t5/Android-App/Combine-two-sleep-logs-in-one-night/td-p/2604040" target="_blank" rel="noopener">Fitbit Community</a>). That is the clumsy path we avoid with Add and Remove. Rise lets people edit when they fell asleep and woke, then recalculates the night (<a href="https://www.risescience.com/blog/rise-app-review" target="_blank" rel="noopener">Rise</a>).</p>
+  <div class="frames" id="splitFrames"></div>
+</section>
+
+<section class="blk" id="skins">
+  <h2 class="dh">Skins for I</h2>
+  <p>Same content, same layout; only the look changes. Pick a state and all four follow. <code>?skin=white</code> (today's card), <code>soft</code>, <code>scene</code> or <code>deep</code>.</p>
+  <div class="tw"><table class="tbl">
+    <thead><tr><th>Skin</th><th>What changes, and the tokens</th></tr></thead>
+    <tbody>
+      <tr><td>White</td><td>A's card as it is: indigo 25 into white, indigo 100 border, the dashed indigo window.</td></tr>
+      <tr><td>Soft indigo</td><td>The whole card in indigo 50 with an indigo 200 border, strip in indigo 100. The coach's window turns teal (teal 100 fill, teal 900 edge and pins, 4.54:1 on white) so it reads as Mind's colour and as "this is what counts".</td></tr>
+      <tr><td>Night scene</td><td>The plan cards' own night art (<code>/v7/icons/meals/bg/bed.webp</code>, the Night card's scene) at the right, faded to white under the words so every line stays on near-white.</td></tr>
+      <tr><td>Deep night</td><td>Indigo 900 into 800. Hours and Edit in white (11.1:1), secondary text in indigo 200 (7.71:1), the window and "on time" in teal 300 (9.55:1), the night bar from indigo 200 to white. The strip stays light so the source reads as in A.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="sts" role="group" aria-label="State for all skins" id="skinStates"></div>
+  <div class="frames" id="skinFrames"></div>
+</section>
+
+<section class="blk">
+  <h2 class="dh">Your picks so far, and how tall each card is</h2>
+  <p>You liked <b>A</b>, <b>C</b> and <b>D</b>; they stay exactly as they were. <b>E</b> to <b>H</b> are dropped (in the closed section at the end). <b>I</b> is A without its tiles. Heights are the card itself (with its source strip, without the "Last night" heading), measured on the real 390 px wide screen. D is a row inside the plan, so its height is the row.</p>
+  <div class="tw"><table class="tbl">
+    <thead><tr><th>Variant</th><th>Synced</th><th>Odd: 2h</th><th>Nap</th><th>Nothing</th><th>On its way</th><th>By hand</th><th>Edited</th><th>Not connected</th><th>Against A, synced</th></tr></thead>
+    <tbody>
+      <tr><td>A Night bar card (liked)</td><td>323</td><td>391</td><td>391</td><td>273</td><td>289</td><td>323</td><td>323</td><td>295</td><td>100%</td></tr>
+      <tr><td>B Clock card</td><td>251</td><td>319</td><td>319</td><td>227</td><td>243</td><td>251</td><td>251</td><td>249</td><td>78%</td></tr>
+      <tr><td>C Hours first (liked)</td><td>248</td><td>332</td><td>316</td><td>273</td><td>289</td><td>248</td><td>264</td><td>295</td><td>77%</td></tr>
+      <tr><td>D Row in the plan (liked)</td><td>61</td><td>82</td><td>61</td><td>58</td><td>58</td><td>59</td><td>61</td><td>58</td><td>a row</td></tr>
+      <tr><td>I A without the tiles</td><td>216</td><td>284</td><td>284</td><td>273</td><td>289</td><td>216</td><td>216</td><td>295</td><td>67%</td></tr>
+      <tr><td>E A, slimmed (dropped)</td><td>158</td><td>182</td><td>182</td><td>82</td><td>104</td><td>158</td><td>158</td><td>62</td><td>49%</td></tr>
+      <tr><td>F Night card (dropped)</td><td>106</td><td>146</td><td>130</td><td>82</td><td>88</td><td>106</td><td>122</td><td>62</td><td>33%</td></tr>
+      <tr><td>G One row (dropped)</td><td>84</td><td>108</td><td>108</td><td>82</td><td>80</td><td>84</td><td>84</td><td>62</td><td>26%</td></tr>
+      <tr><td>H The bar is the card (dropped)</td><td>118</td><td>142</td><td>142</td><td>82</td><td>88</td><td>118</td><td>134</td><td>62</td><td>37%</td></tr>
+    </tbody>
+  </table></div>
+  <h3 class="dh">Indigo and teal, and why each goes where it does</h3>
+  <p><b>Indigo is the night itself:</b> the hours number and the bar of last night. Sleep happens in the dark, and indigo is already the colour of the sleep bar in A and in the GoodFlip ring file. <b>Teal is the coach's window and "on time":</b> teal is Mind's score colour, and the window is what earns the timing points, so a bar sitting inside teal reads as "this counted". Green stays for actions (Edit, Enter Times), as everywhere in the app.</p>
+  <p>Tokens used, all from the GoodFlip design system (<code>color.indigo</code>, <code>color.teal</code>, <code>color.semantic</code>): indigo 25 #F5F8FF, 50 #EEF4FF, 100 #E0EAFF (border-indigo-subtle), 200 #C7D7FE, 500 #6172F3, 600 #444CE7, 700 #3538CD, 800 #2D31A6, 900 #2D3282; teal 50 #EEFFFF, 100 #E0FFFF, 200 #C7FEFE (border-teal), 300 #A4FDFD, 900 #2D8282; warning 700 #B54708 for the odd-data line. Contrast: teal 900 text on white 4.54:1; teal 300 on indigo 900 9.55:1; indigo 200 on indigo 900 7.71:1; white on indigo 900 11.1:1; indigo 700 on white 8.1:1. Teal 800 (#2DA6A6) is only 2.95:1 on white, so it is never used for text or edges.</p>
+</section>
+
+<section class="blk">
+  <h2 class="dh">States, one table</h2>
+  <div class="tw"><table class="tbl">
+    <thead><tr><th>State</th><th>The card shows</th><th>Source strip</th><th>Main action</th><th>Score</th></tr></thead>
+    <tbody>
+      <tr><td>Synced</td><td>Hours, the night as a bar over the window, Hours and Timing tiles</td><td>From Apple Health, updated 7:32 AM</td><td>Edit</td><td>Counts</td></tr>
+      <tr><td>Synced, very short</td><td>As above, plus an amber note: only 2h 05m came through</td><td>From Apple Health</td><td>Fix Times (in the note)</td><td>Counts as it is until fixed</td></tr>
+      <tr><td>Connected, nothing for last night</td><td>The window drawn empty, why it is empty, Enter Last Night</td><td>From Apple Health, nothing for last night</td><td>Enter Last Night</td><td>Waits</td></tr>
+      <tr><td>Waiting for last night</td><td>A soft moving bar in the window, Enter It Yourself</td><td>Waiting for Apple Health</td><td>Enter It Yourself</td><td>Waits</td></tr>
+      <tr><td>Entered by hand</td><td>As synced</td><td>Entered by you</td><td>Edit</td><td>Counts</td></tr>
+      <tr><td>Edited after sync</td><td>As synced, with the patient's times</td><td>From Apple Health, edited by you</td><td>Edit, and Use Apple Health's Times in the sheet</td><td>Counts the edit; the coach sees it was edited</td></tr>
+      <tr><td>Health not connected</td><td>The window drawn empty, Enter Last Night</td><td>Connect Apple Health (a button)</td><td>Enter Last Night</td><td>Waits</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="blk">
+  <h2 class="dh">The sheet: picking times on a phone</h2>
+  <div class="tw"><table class="tbl">
+    <thead><tr><th>Rule</th><th>How it works</th></tr></thead>
+    <tbody>
+      <tr><td>Title</td><td>"Last night's sleep", top left, the filled grey close circle top right, no handle, at most 90% tall. The title never changes between enter and edit.</td></tr>
+      <tr><td>Two fields</td><td>"Fell asleep" and "Woke up", side by side, each a big time with its day under it. One is active at a time and the picker works on it.</td></tr>
+      <tr><td>Midnight</td><td>Worked out from the clock: an evening time (noon to midnight) is last night, a morning time is after midnight. The day is printed under the time ("last night", "after midnight", "this morning"), so nothing has to be chosen.</td></tr>
+      <tr><td>Steps</td><td>Five minutes. Times from Health keep their exact minute until the patient changes them.</td></tr>
+      <tr><td>Presets</td><td>"As planned" (the coach's times), "Same as the night before", "Woke up just now" (now, rounded down to 5 minutes).</td></tr>
+      <tr><td>Live total</td><td>"That is 7h 30m of sleep" updates as they scroll, so the result is clear before saving.</td></tr>
+      <tr><td>Checks that stop saving</td><td>Wake-up before fell asleep. Wake-up later than now. Over 14 hours ("Check AM and PM"). The message sits under the total and names the fix; the field at fault gets a red edge.</td></tr>
+      <tr><td>Check that allows saving</td><td>Under 3 hours: "That is a short night. Save it if it is right."</td></tr>
+      <tr><td>Saving</td><td>Save Sleep closes the sheet; the card moves to the new times; a light toast says it is saved. Closing without saving changes nothing.</td></tr>
+      <tr><td>Going back</td><td>After an edit, the sheet offers "Use Apple Health's times" with those times printed on it.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="blk">
+  <h2 class="dh">Showing the points without a points chase</h2>
+  <p>The worry: if the card says "+21 points", people will learn to edit times up to 7h 30m. Three ways to show it:</p>
+  <div class="pl">
+    <div class="po on"><h3 class="dh">Words on the card, numbers one tap away <span class="rec">Recommended</span></h3>
+      <p>Hours tile: "7h 05m, of your 7h 30m". Timing tile: "On time" or "1h 40m late". The info button opens "How last night counts" with Hours 20 of 23 and Timing 24 of 24. The Rhythm score above moves on save, which is the reward.</p></div>
+    <div class="po"><h3 class="dh">Numbers on the card</h3>
+      <p>"Hours 20/23 · Timing 24/24" on the tiles. Honest and quick, but it puts the score in the patient's eyeline every morning and invites topping it up with edits.</p></div>
+    <div class="po"><h3 class="dh">Only the Rhythm score</h3>
+      <p>No sleep numbers anywhere; the score just changes. Calmest, but the patient cannot tell whether hours or timing held them back, so they cannot act on it.</p></div>
+  </div>
+</section>
+
+<section class="blk">
+  <h2 class="dh">Recommendation</h2>
+  <div class="rbox">
+    <p><b>J, in White or Night scene.</b> It builds on I with your edits: each fact once, the targets in "What shaped your score?", and a sheet whose bar can be dragged. I stays below as it was.</p>
+    <ul>
+      <li><b>It is A,</b> the card you liked: same number, same bar over the coach's window, same times, same Edit, same source strip.</li>
+      <li><b>Nothing is lost.</b> The tiles' two meanings come back as words in A's own lines: "10 min short" after the hours, "on time" or "bed 1h 40m late" after the times.</li>
+      <li><b>A split night fits without a new screen:</b> "+ Add another sleep" in the same sheet, two segments on the same bar, the awake time noted once.</li>
+      <li><b>Skin:</b> soft indigo is my pick. It keeps the white page, and the teal window ties sleep to the Mind score. Deep night if you want sleep to stand apart.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="blk">
+  <h2 class="dh">Open questions</h2>
+  <div class="qs">
+    <div class="qq"><h4>1. Do naps count toward hours?</h4><p><b>Decided, 2 Nov:</b> no separate nap case. A second sleep is added as a split night in the same sheet.</p></div>
+    <div class="qq"><h4>2. Should an edit to synced data count in full?</h4><ol>
+      <li><b>Yes, and the coach sees "edited" (recommended).</b> Trusts the patient, keeps a light check.</li>
+      <li>Yes, but only edits made the same morning; older nights stay as synced.</li>
+      <li>Synced times are locked; only an empty night can be entered.</li>
+    </ol></div>
+    <div class="qq"><h4>3. Time in bed or time asleep for hours?</h4><ol>
+      <li><b>Asleep, minus awake gaps, when Health has them (recommended).</b> Matches what the coach means by hours of sleep.</li>
+      <li>Time in bed, the same for synced and entered nights.</li>
+    </ol></div>
+    <div class="qq"><h4>4. Show a week of nights?</h4><ol>
+      <li><b>Not on the card; a 7-night strip inside "How last night counts" (recommended).</b> Timing is about steadiness, and a week shows it best.</li>
+      <li>A small 7-night strip under the bar on the card.</li>
+      <li>Leave it to the Trend tab.</li>
+    </ol></div>
+    <div class="qq"><h4>5. How far back can a patient enter or edit?</h4><ol>
+      <li><b>Last night, plus the 6 nights before from the date picker (recommended).</b></li>
+      <li>Last night only.</li>
+      <li>Any night since joining.</li>
+    </ol></div>
+    <div class="qq"><h4>6. Card placement against Move.</h4><ol>
+      <li><b>Mind puts last night above the plan; Move keeps steps under it (recommended).</b> Each sits where it is needed in the day.</li>
+      <li>Move it under the plan to match Move.</li>
+    </ol></div>
+  </div>
+</section>
+
+<details class="dropbox">
+  <summary>Dropped: E, F, G and H</summary>
+  <p>You said that making the card shorter made it odd and muddled the content, so these four are set aside. Their code stays in <code>variants/sleep.js</code> (<code>?vsleep=e</code> to <code>h</code>).</p>
+  <div class="vars" id="dropped"></div>
+</details>
+
+<section class="blk">
+  <h2 class="dh">Sources</h2>
+  <p>Mobbin iOS screens linked above. GoodFlip ring file in Figma (HPGqUxq2QEJLMjIjWd8vJ2, node 375:6349): the sleep score landing, the "What shaped your score?" tiles, the stage colours (Deep #4F50B8 is used for the bar's end), and its named states (No data available, Partial data, Nap detected, No baseline set, Skeleton loader). Move's steps card in <code>app/public/move/plan.js</code> and <code>plan.css</code>. Scoring from <code>v7/mind/rhythm.js</code>. Platform facts from the memory note on Apple HealthKit and Health Connect (28 Oct 2026). GoodFlip design system UX principles (Nielsen's 10, Fitts, Jakob, Postel, Peak-End).</p>
+</section>
+</main>
+
+<script>
+(function () {
+  var OS = "ios";
+
+  /* ---------- the variants ---------- */
+  var V = [
+    { k: "A", n: "Night bar card", liked: true, picker: "wheel",
+      how: "Its own card under a \"Last night\" heading, above the plan. Hours of sleep is the hero number. Under it the night is drawn as a bar over the coach's window, drawn as a dashed band. Two tiles say Hours and Timing in words. Edit sits at the top right as Log steps does, and the source strip sits at the foot. The sheet uses two time fields and a scroll wheel, with presets.",
+      heur: [["Status visible", "ok", "Source strip says where the times came from and when."], ["Real world", "ok", "\"Fell asleep\", \"Woke up\", clock times, an evening to morning axis."], ["Control and freedom", "ok", "Close without saving; Health's times one tap away after an edit."], ["Consistency", "ok", "The steps card's anatomy and Edit placement."], ["Error prevention", "ok", "Midnight inferred; checks stop impossible nights."], ["Recognition", "ok", "The plan printed in the sheet and on the bar."], ["Efficiency", "ok", "Three presets; wheels flick fast."], ["Minimalist", "so", "Bar plus two tiles is the busiest card here."], ["Error recovery", "ok", "Messages under the total name the fix."], ["Help", "ok", "Info button opens How last night counts."]],
+      pros: ["Answers how long and when in one look", "Same card as steps, so it is already learnt", "Words in the tiles, so the bar is never the only signal", "-Two tiles repeat what the bar shows, by design", "-A wide axis (8 PM to 10 AM) leaves a lie-in past 10 AM clipped"],
+      best: "The default. Works for synced and entered nights alike." },
+    { k: "B", n: "Clock card", picker: "dial",
+      how: "The night as an arc on a 24-hour clock (midnight at the top), over the coach's window drawn faint. Hours in the centre. Two lines beside it say fell asleep and woke up against the plan. The sheet uses a bigger clock with moon and sun handles to drag, plus minus and plus buttons for each time.",
+      heur: [["Status visible", "ok", "Source strip as A."], ["Real world", "ok", "A clock face is the most literal picture of a night."], ["Control and freedom", "ok", "Same as A."], ["Consistency", "so", "Calm and Bevel use it; nothing in GoodFlip does yet."], ["Error prevention", "so", "Dragging past midnight is easy to overshoot."], ["Recognition", "ok", "Plan arc always visible."], ["Efficiency", "so", "Dragging is quick, fine control needs the buttons."], ["Minimalist", "ok", "One picture, two lines."], ["Error recovery", "ok", "Same messages as A."], ["Help", "ok", "Info button."]],
+      pros: ["Most beautiful, matches the ring file's hero feel", "Midnight is just the top of the clock", "-Small arcs are hard to compare by eye", "-Dragging handles is hard with shaky hands; needs the buttons", "-Takes more height on the card"],
+      best: "A Sleep detail screen later, or users who like to drag." },
+    { k: "C", n: "Hours first, two time tiles", liked: true, picker: "stepper",
+      how: "No picture of the night. Hours is the hero with a progress line to the coach's hours, as steps shows its goal. Two tiles below hold the two times with the plan under each and a word on how close they were. The sheet uses minus and plus buttons in 5 minute steps (hold to move faster).",
+      heur: [["Status visible", "ok", "Source strip as A."], ["Real world", "ok", "Plain times and words."], ["Control and freedom", "ok", "Same as A."], ["Consistency", "ok", "Steps' number and progress line."], ["Error prevention", "ok", "Steppers cannot produce a nonsense time."], ["Recognition", "ok", "The plan under each time."], ["Efficiency", "so", "A big change (an hour) is twelve taps or a hold."], ["Minimalist", "ok", "The calmest card."], ["Error recovery", "ok", "Same messages as A."], ["Help", "ok", "Info button."]],
+      pros: ["Easiest to read for older patients", "Steppers are the most accessible picker", "-Timing is words only; a late night does not look late", "-Big changes are slow without presets"],
+      best: "Fallback if the bar tests as hard to read." },
+    { k: "D", n: "A row in the plan", liked: true, picker: "drag",
+      how: "No separate card. \"Last night's sleep\" is the first row of the plan's Morning part, as plan.js has it today, with a tiny bar under the times and a small source mark. Tapping the row opens a sheet where the bar is big and its two ends are dragged, with minus and plus buttons for each end.",
+      heur: [["Status visible", "so", "The source is a 14px mark; easy to miss."], ["Real world", "ok", "Clock times."], ["Control and freedom", "ok", "Same as A."], ["Consistency", "ok", "Same row as every other plan item."], ["Error prevention", "ok", "The ends cannot cross."], ["Recognition", "so", "The window is only seen in the sheet."], ["Efficiency", "ok", "One tap from the row, drag once."], ["Minimalist", "ok", "Adds nothing to the screen."], ["Error recovery", "ok", "Same messages as A."], ["Help", "so", "No room for an info button on the row."]],
+      pros: ["Smallest change to today's screen", "Dragging the ends of the night is direct and fun", "-47 points weighs the same as a wind-down tick", "-No room for odd-data notes or the window on the screen", "-Ticking a row that the phone filled feels odd"],
+      best: "A lighter plan with no score, or patients who never sync." },
+    { k: "I", n: "A without the tiles", picker: "wheel", skins: true,
+      how: "A exactly, with only the Hours and Timing tiles taken out. The big hours number, the times line, Edit, the bar over the coach's window with its pins and axis, and the source strip at the foot are all as they are in A. The same Edit sheet, which now also takes a split night.",
+      changed: ["Removed: the Hours tile and the Timing tile. The hours number and the bar already show both", "Put back, because only the tiles said it: how short the night was, now after the hours (\"7h 20m of sleep, 10 min short\"). It shows only when the night was short", "Put back, because only the tiles said it: timing, now at the end of the times line (\"10:50 PM to 6:10 AM, on time\" in teal, or \"bed 1h 40m late\" in indigo)", "A split night adds its awake time to the same line (\"awake 40 min at 2:30 AM\")", "Checked in all 10 states: odd data, nap, nothing, on its way, by hand, edited and not connected read as in A, because their notes and empty states never used the tiles"],
+      heur: [["Status visible", "ok", "A's source strip, unchanged."], ["Real world", "ok", "Clock times, evening to morning."], ["Control and freedom", "ok", "Close without saving; Health's times one tap away."], ["Consistency", "ok", "The steps card's anatomy, as A."], ["Error prevention", "ok", "Midnight inferred; pairs cannot overlap."], ["Recognition", "ok", "Plan pins on the bar, as A."], ["Efficiency", "ok", "Presets; one tap to add a second sleep."], ["Minimalist", "ok", "Every fact once, without changing A's lines."], ["Error recovery", "ok", "Each error names the sleep and the fix."], ["Help", "ok", "Info button."]],
+      pros: ["Exactly A, so nothing new to learn", "Shorter than A without squeezing anything", "-The times line can run to two lines on a split night"],
+      best: "The default card, in whichever skin you pick below." },
+    { k: "J", n: "I, each fact once", picker: "jdrag", isNew: true, rec: true, skins: true, liked: true,
+      how: "I, cut down to what the score tiles above do not already say. Line one: \"7h 20m of sleep\". Line two: \"From 10:50 PM to 6:10 AM\". The bar is thinner and has no plan pins above it; the 8 PM to 8 AM scale stays under it, and two legends sit below: Last night and Your plan, with the plan's times. The source strip is as in A. The targets (hours, window, self-care) now live in \"What shaped your score?\" above the card. The Edit sheet's bar can be dragged, as in the coach portal.",
+      changed: ["Removed \"10 min short\" and \"on time\": the Sleep hours and Sleep window tiles above the card now say both, against the coach's targets", "Times line reads \"From 10:50 PM to 6:10 AM\", plain and once", "Plan pins (10:30 PM, 6:00 AM) above the bar removed; the plan is named once in the legend under the bar", "Bar made thinner: track 18px, night 12px (was 28px and 20px)", "Edit pencil 16px, the size of its word", "Sheet: the bar has grips at each end of each sleep and the sleep itself moves, in 5 minute steps, live with the fields; arrows work on each grip", "Sheet: quick fill chips (As planned, Same as the night before, Woke up just now) removed; the bar and the wheel are enough", "Sheet: the plan is said once at the top; the legend under its bar reads just Your plan", "Sheet: filled moon (Mind's own sleep glyph) and filled sun on the two fields; the field in use is outlined in GoodFlip green", "Sheet: Add another sleep with Eat's square plus, and the hint \"Slept more than once? Add each sleep here.\"", "No info button and no How last night counts sheet: the targets sit in What shaped your score? above", "Top lines: \"7h 20m of sleep\", then a moon with Slept 10:50 PM and a sun with Woke 6:10 AM, in indigo as on the sheet's fields", "The legend names the band Sleep window, as the tile above does", "Nothing logged: Log sleep at the top right, as Move's Log steps, over the empty sleep window", "Odd data (only 2h synced): a slim ribbon in the gold of Eat's logging-in-future ribbon, \"Apple Health shows 2h 05m. If you slept more, fix it.\" Fix opens the sheet; X keeps Health's times and puts the note away"],
+      heur: [["Status visible", "ok", "Source strip, as A."], ["Real world", "ok", "\"From 10:50 PM to 6:10 AM\", an evening to morning scale."], ["Control and freedom", "ok", "Drag, wheel or arrows; close without saving."], ["Consistency", "ok", "The coach portal's drag bar; Eat's square plus; GoodFlip green for focus."], ["Error prevention", "ok", "Grips cannot cross; checks name the sleep and the fix."], ["Recognition", "ok", "Legend names the night and the plan; targets in the tiles above."], ["Efficiency", "ok", "One drag for a whole night."], ["Minimalist", "ok", "Each fact said once on the screen."], ["Error recovery", "ok", "Red edge on the field at fault, Save off until fixed."], ["Help", "ok", "Info button."]],
+      pros: ["Each fact once: hours here, targets in the tiles, the plan in the legend", "Dragging the night is the fastest edit, the wheel stays for exact minutes", "-How short or late a night was is now only in the tiles above, not on the card", "-Dragging on a real phone is not tested yet"],
+      best: "The current pick, in White or Night scene." },
+    { k: "E", n: "A, slimmed", picker: "wheel", dropped: true,
+      how: "A without its tiles. Line one: hours, with how far short of the coach's hours it fell, and Edit. Line two: timing in words, and where the times came from. Then the bar over the coach's window, with last night's two times under its two ends.",
+      changed: ["Hours and Timing tiles gone: the big number and the bar already said both", "\"10:50 PM to 6:10 AM\" under the number gone: the times now sit under the ends of the bar, once", "The 7h 30m target written once, beside the hours (A had it in the tile and in the sheet)", "Axis labels (8 PM, 12 AM, 4 AM, 8 AM) gone: the plan pins and the bar ends give the scale", "The source strip under the card folded into one short phrase on line two (\"Apple Health, 7:22 AM\")", "The odd-data and nap notes cut to one line each"],
+      heur: [["Status visible", "ok", "Source still on the card, as a short phrase."], ["Real world", "ok", "Clock times at the ends of the night."], ["Consistency", "ok", "Same Edit button and sheet as A."], ["Recognition", "ok", "Plan pins on the band; target beside the hours."], ["Minimalist", "ok", "Every fact said once."], ["Help", "ok", "Info button kept beside the heading."]],
+      pros: ["Keeps A's picture and A's sheet", "Both meanings stay: \"On time\" and \"10 min short of 7h 30m\"", "-Loses the steps card's separate source strip, so it reads less like Move"],
+      best: "A straight swap for A when the screen feels long." },
+    { k: "F", n: "Night card, indigo with teal", picker: "wheel", dropped: true,
+      how: "A deep indigo card for the night. Line one: a moon, the hours in white, last night's times beside them, Edit. A thin bar with the coach's window outlined in teal. Line two: timing and hours in words (teal when on time) and the source.",
+      changed: ["Same cuts as E", "The bar has no pins: the teal window is the plan, and the words on line two say how close it was", "Target hours appear only in the words (\"On time, 10 min short\")"],
+      colour: "Indigo 900 to 800 for the night itself; teal 300 (#A4FDFD) for the window outline and \"on time\", 9.55:1 on indigo 900; indigo 200 (#C7D7FE) for secondary text, 7.71:1.",
+      heur: [["Status visible", "ok", "Source on line two."], ["Real world", "ok", "A dark card reads as night."], ["Consistency", "so", "The only dark card on the screen."], ["Recognition", "so", "Plan times are not printed; the info button has them."], ["Minimalist", "ok", "Three short lines."], ["Help", "ok", "Info button."]],
+      pros: ["The most distinct; sleep reads as night at a glance", "Teal ties it to the Mind score", "-A dark block on a white page competes with the score above", "-The coach's times are only shown as a shape"],
+      best: "If sleep should stand apart from the day's tasks." },
+    { k: "G", n: "One row, hairline bar", picker: "wheel", dropped: true,
+      how: "Like a list row: a moon tile, hours with how short it was, last night's times and source under them, a teal \"On time\" chip, and a pencil. A hairline bar runs under the row, the coach's window in teal.",
+      changed: ["Same cuts as E", "Timing becomes one chip on the right, so the row stays one line tall", "Edit becomes the pencil alone, with a 44px target and a label for screen readers"],
+      colour: "Indigo 700 (#3538CD) for the hours, indigo 600 bar; teal 900 (#2D8282) for the chip text and window edge, 4.54:1 on white, with a teal 200 border and teal 100 window fill.",
+      heur: [["Status visible", "ok", "Source in the second line."], ["Real world", "ok", "Times in words."], ["Consistency", "ok", "Reads like the plan's rows."], ["Recognition", "so", "Plan times not printed; the band shows them as a shape."], ["Minimalist", "ok", "The shortest card."], ["Help", "ok", "Info button."]],
+      pros: ["Shortest of all", "Teal chip is the one thing the eye lands on", "-When late, the chip says \"45 min late\" without saying bed or waking (the times beside it tell)", "-The bar is a hairline, so how late a night was is felt more than read", "-A pencil with no word is less obvious than Edit"],
+      best: "If Mind's screen needs sleep to take the least room." },
+    { k: "H", n: "The bar is the card", picker: "wheel", dropped: true,
+      how: "Line one: hours, timing in teal when on time, and how short. Then one thick bar: the coach's window is a teal band, last night is the indigo bar inside it with its two times written inside. Line two: the plan's times in teal, and the source.",
+      changed: ["Same cuts as E", "Last night's times move inside the bar, so they cost no line", "The plan is written once, in teal, under the bar (A had it as pins and in the tile)"],
+      colour: "Indigo 600 to 800 for the night bar, white times inside it (8:1 and up); teal 50 window with a teal 900 dashed edge; plan text in teal 900, 4.54:1 on white.",
+      heur: [["Status visible", "ok", "Source on line two."], ["Real world", "ok", "The night drawn where it happened."], ["Consistency", "ok", "A's bar, made the hero."], ["Recognition", "ok", "Plan and night both written."], ["Minimalist", "ok", "Three short lines."], ["Help", "ok", "Info button."]],
+      pros: ["Reads like A with half the height", "Teal is the plan, indigo is the night, and the overlap shows the fit", "-Times inside the bar drop away on a very short night"],
+      best: "The closest to A's meaning in the least room." }
+  ];
+
+  /* ---------- each variant on the real Mind screen (v7/mind/index.html + variants/sleep.js) ---------- */
+  var STATES = [["synced", "Synced"], ["short", "Odd: 2h only"], ["none", "Nothing synced"], ["manual", "Entered by hand"], ["edited", "Edited after sync"], ["noperm", "Not connected"]];
+  var VIEWS = [["card", "On the screen"], ["sheet", "Sheet open"], ["info", "How it counts"]];
+  var frames = [];
+  var HA = { synced: 323, short: 391, nap: 391, none: 273, wait: 289, manual: 323, edited: 323, noperm: 295 };   /* A's card, measured 2 Nov on the 390 wide screen */
+  function url(f) {
+    var v = f.v.k.toLowerCase();
+    return "/v7/mind/index.html?vsleep=" + v + "&now=7.5&sstate=" + f.st + (OS === "and" ? "&os=android" : "") + (f.below ? "&spos=below" : "") +
+      (f.view === "sheet" ? "&sheet=sleep" : f.view === "info" ? "&sheet=sleepinfo" : "") + (f.v.skins && f.skin !== "white" ? "&skin=" + f.skin : "") + "&scroll=sleep";
+  }
+  var host = document.getElementById("vars"), dhost = document.getElementById("dropped");
+  var STI = STATES.concat([["split", "Split night"], ["split-synced", "Split, from Health"]]), SKINS = [["white", "White"], ["soft", "Soft indigo"], ["scene", "Night scene"], ["deep", "Deep night"]];
+  V.forEach(function (v) {
+    var s = document.createElement("section"); s.className = "v"; s.id = "v" + v.k;
+    var f = { v: v, st: "synced", view: "card", below: false, skin: "white", head: "a", empty: "a" };
+    var chips = function (list, key, lbl) { return '<div class="sts" role="group" aria-label="' + lbl + '">' + list.map(function (x) { return '<button data-k="' + key + '" data-val="' + x[0] + '" aria-pressed="' + (f[key] === x[0]) + '">' + x[1] + '</button>'; }).join("") + '</div>'; };
+    var left = '<div class="stw">' + chips(v.skins ? STI : STATES, "st", "State") + chips(v.k === "J" ? VIEWS.filter(function (x) { return x[0] !== "info"; }) : VIEWS, "view", "View") + (v.skins ? chips(v.k === "J" ? SKINS.filter(function (x) { return x[0] === "white" || x[0] === "scene"; }) : SKINS, "skin", "Skin") : "") +
+      (v.k === "D" || v.k === "B" || v.k === "C" ? "" : '<div class="sts"><button data-k="below" aria-pressed="false">Under the plan, as Move puts steps</button></div>') +
+      '<div class="fw"><iframe title="Mind screen, variant ' + v.k + '" loading="lazy"></iframe></div><span class="hgt" aria-live="polite"></span><a class="open" target="_blank" rel="noopener">Open this screen on its own</a></div>';
+    s.innerHTML = '<div>' + left + '</div><div class="vt"><div class="vh"><span class="vk">' + v.k + '</span><span class="vn">' + v.n + '</span>' + (v.rec ? '<span class="rec">Recommended</span>' : "") + (v.liked ? '<span class="liked">You liked this</span>' : "") + (v.isNew ? '<span class="nw">New</span>' : "") + (v.dropped ? '<span class="dropb">Dropped</span>' : "") + '</div>' +
+      '<div><h5>How it works</h5><p>' + v.how + '</p></div>' +
+      (v.changed ? '<div><h5>What changed and why</h5><ul class="pros">' + v.changed.map(function (c) { return '<li>' + c + '</li>'; }).join("") + '</ul></div>' : "") +
+      (v.colour ? '<div><h5>Colour</h5><p>' + v.colour + '</p></div>' : "") +
+      '<div><h5>Try</h5><p>' + ({ wheel: "Tap Edit, tap Woke up, pick PM on the wheel to see the check, then tap Woke up just now and Save Sleep.", dial: "Tap Edit and drag the moon or the sun around the clock, or use minus and plus.", stepper: "Tap Edit and hold plus on Woke up to move fast.", jdrag: "Tap Edit and drag a grip at either end of the bar, or the bar itself. Tap + Add another sleep for a split night. Pick Split night to see two sleeps.", drag: "Tap the Last night\u2019s sleep row in Morning and drag either end of the bar." })[v.picker] + ' Change the state above the screen.</p></div>' +
+      '<div><h5>Trade-offs</h5><ul class="pros">' + v.pros.map(function (p) { return p[0] === "-" ? '<li class="con">' + p.slice(1) + '</li>' : '<li>' + p + '</li>'; }).join("") + '</ul></div>' +
+      '<div><h5>Heuristic check</h5><table class="heur">' + v.heur.map(function (h) { return '<tr><td>' + h[0] + '</td><td><span class="' + h[1] + '">' + (h[1] === "ok" ? "Passes" : "Watch") + '</span> ' + h[2] + '</td></tr>'; }).join("") + '</table></div>' +
+      '<div><h5>Best for</h5><p>' + v.best + '</p></div></div>';
+    (v.dropped ? dhost : host).appendChild(s);
+    f.ifr = s.querySelector("iframe"); f.a = s.querySelector("a.open"); f.s = s;
+    f.hg = s.querySelector(".hgt");
+    f.load = function () { var u = url(f); f.ifr.src = u; f.a.href = u; f.a.textContent = "Open on its own: " + u; f.hg.textContent = ""; };
+    /* the card's own height on the 390 wide screen, measured once the screen is up */
+    f.ifr.addEventListener("load", function () { setTimeout(function () {
+      try { var d = f.ifr.contentDocument, c = d.querySelector("#svCard .sv-steps") || d.querySelector('[data-tiprow="sleep"]');
+        if (c) f.hg.textContent = (v.k === "D" ? "Row height: " : "Card height: ") + Math.round(c.getBoundingClientRect().height) + " px" + (HA[f.st] && v.k !== "A" && v.k !== "D" ? ", A is " + HA[f.st] + " px" : ""); } catch (e) {}
+    }, 900); });
+    s.querySelectorAll("[data-k]").forEach(function (b) { b.onclick = function () {
+      var k = b.dataset.k;
+      if (k === "below") { f.below = !f.below; b.setAttribute("aria-pressed", f.below); }
+      else { f[k] = b.dataset.val; s.querySelectorAll('[data-k="' + k + '"]').forEach(function (x) { x.setAttribute("aria-pressed", x === b); }); }
+      f.load();
+    }; });
+    f.load(); frames.push(f);
+  });
+  /* J leads, open; every other variant folds into an accordion */
+  var vJ = document.getElementById("vJ"); host.insertBefore(vJ, host.firstChild);
+  function fold(el, label) {
+    var d = document.createElement("details"); d.className = "acc";
+    d.innerHTML = '<summary>' + label + '</summary>';
+    el.parentNode.insertBefore(d, el); d.appendChild(el);
+  }
+  /* J and the recommendation first, right under the intro */
+  var top = document.querySelector("section.top"), vh = host.previousElementSibling, rec = [].filter.call(document.querySelectorAll("section.blk"), function (b) { var h = b.querySelector("h2"); return h && h.textContent.trim() === "Recommendation"; })[0];
+  top.after(vh, host, rec);
+  [].forEach.call(document.querySelectorAll("section.blk"), function (b) {
+    var h = b.querySelector("h2"); if (!h || /^(Variants|Recommendation)$/.test(h.textContent.trim())) return;
+    fold(b, h.textContent);
+  });
+  V.forEach(function (v) { if (v.k !== "J") fold(document.getElementById("v" + v.k), '<b>' + v.k + '</b> ' + v.n + (v.liked ? ' <span class="liked">You liked this</span>' : "") + (v.dropped ? ' <span class="dropb">Dropped</span>' : "")); });
+  document.querySelectorAll("[data-os]").forEach(function (b) { b.onclick = function () {
+    OS = b.dataset.os; document.querySelectorAll("[data-os]").forEach(function (x) { x.setAttribute("aria-pressed", x === b); });
+    frames.forEach(function (f) { f.load(); });
+  }; });
+
+  /* ---------- the split night and the skins, each a real screen ---------- */
+  function frame(hostEl, title) {
+    var w = document.createElement("div"); w.className = "stw";
+    w.innerHTML = '<b class="ftl">' + title + '</b><div class="fw"><iframe title="Mind screen, ' + title + '" loading="lazy"></iframe></div><span class="hgt"></span><a class="open" target="_blank" rel="noopener"></a>';
+    hostEl.appendChild(w);
+    var o = { ifr: w.querySelector("iframe"), a: w.querySelector("a"), hg: w.querySelector(".hgt") };
+    o.ifr.addEventListener("load", function () { setTimeout(function () { try { var c = o.ifr.contentDocument.querySelector("#svCard .sv-steps"); if (c) o.hg.textContent = "Card height: " + Math.round(c.getBoundingClientRect().height) + " px"; } catch (e) {} }, 900); });
+    o.go = function (u) { o.ifr.src = u; o.a.href = u; o.a.textContent = "Open on its own: " + u; o.hg.textContent = ""; };
+    return o;
+  }
+  var base = function () { return "/v7/mind/index.html?vsleep=i&now=7.5" + (OS === "and" ? "&os=android" : ""); };
+  var SPL = [["Two sleeps from " + "Health", "&sstate=split-synced&scroll=sleep"], ["Entered by hand, sheet open", "&sstate=split&sheet=sleep&scroll=sleep"], ["One night, sheet open: try + Add another sleep", "&sstate=synced&sheet=sleep&scroll=sleep"]].map(function (x) { var o = frame(document.getElementById("splitFrames"), x[0]); o.q = x[1]; return o; });
+  var skinSt = "synced", SKF = SKINS.map(function (x) { var o = frame(document.getElementById("skinFrames"), x[1]); o.sk = x[0]; return o; });
+  function loadExtra() {
+    SPL.forEach(function (o) { o.go(base() + o.q); });
+    SKF.forEach(function (o) { o.go(base() + "&sstate=" + skinSt + (o.sk !== "white" ? "&skin=" + o.sk : "") + "&scroll=sleep"); });
+  }
+  var sst = document.getElementById("skinStates");
+  sst.innerHTML = STI.map(function (x) { return '<button data-ss="' + x[0] + '" aria-pressed="' + (x[0] === skinSt) + '">' + x[1] + '</button>'; }).join("");
+  sst.querySelectorAll("button").forEach(function (b) { b.onclick = function () { skinSt = b.dataset.ss; sst.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", x === b); }); SKF.forEach(function (o) { o.go(base() + "&sstate=" + skinSt + (o.sk !== "white" ? "&skin=" + o.sk : "") + "&scroll=sleep"); }); }; });
+  loadExtra();
+  document.querySelectorAll("[data-os]").forEach(function (b) { b.addEventListener("click", loadExtra); });
+
+  /* ---------- what others do ---------- */
+  var R = [
+    ["Apple Health", "Add data: sleep", "BWPvjJrs", "https://mobbin.com/screens/57705efc-8494-4d4c-b82a-79d6035674f9", "Date and time wheels for start and end.", "Choosing In Bed, Asleep, Core, Deep and REM before the times: too many terms for a quick morning entry."],
+    ["Fitbit", "Log sleep", "srEixtIw", "https://mobbin.com/screens/cce4a50f-bb62-4bb9-83ce-2f309f82afb2", "Bedtime and wake up as two clear groups; the wheel pops over the field.", "A separate date row for each time; midnight becomes the user's problem."],
+    ["Fitbit", "Sleep day view", "J4IC4c83", "https://mobbin.com/screens/46f91b44-4e87-4c1c-835d-d73ca1cd43f4", "\"11 min of 8h goal\" as the hero, bedtime and wake up in big type.", "Shows 11 minutes with no hint that the data may be wrong."],
+    ["Eight Sleep", "Schedule", "oSfaqII6", "https://mobbin.com/screens/d1379400-dfe1-489b-8522-b513131756b3", "The window drawn as a dashed band, nights as bars across it: timing reads at a glance.", "A dark, dense chart for a morning glance."],
+    ["WHOOP", "Hours of sleep", "WQqzS3Ej", "https://mobbin.com/screens/6a60b3ef-32e9-4a59-80a4-bc1a1db61685", "A dashed goal line and plain \"5:58\" values.", "Crossed circles for missed days read as failure."],
+    ["WHOOP", "Edit time in bed", "kvScAMzA", "https://mobbin.com/screens/cca58186-5e9c-4804-a203-a63ba0abe0d0", "Editing synced data in a sheet with two rows, Save and Delete.", "A drag handle and full caps labels."],
+    ["Calm", "Hours slept", "IxlyNSPQ", "https://mobbin.com/screens/9b587268-2c91-4e40-bc99-0a62928c32da", "Moon and sun handles on a clock, total in the middle.", "A drag-only control; no way to type or step."],
+    ["Pillow", "Edit session", "qjZVkmMc", "https://mobbin.com/screens/261e2ede-a25d-41f2-8994-588803face59", "Drag the ends on the night itself, with From and To steppers under it.", "Stage colours and two buttons (Done, Apply) that look alike."],
+    ["How We Feel", "Sleep amount", "8bEG0m9H", "https://mobbin.com/screens/cda324e1-c09e-4986-b97e-7ab4c8ff08ee", "Fast: one wheel for hours and minutes.", "Duration alone loses bedtime, which is half of our score."],
+    ["Garmin Connect", "Sleep coach and naps", "2vTiaKhm", "https://mobbin.com/screens/8e778f66-1bf4-47a1-aa26-9fc718e6e85c", "Naps listed on their own, apart from the night.", "A recommendation with no link to what the coach set."],
+    ["Bevel", "Sleep plan", "noEjlLm6", "https://mobbin.com/screens/623a0ad4-5b2d-4c22-863c-2b62fe74d151", "A 24-hour clock with target bedtime and wake up marked.", "Too much on one dial for a small card."],
+    ["GoodFlip ring (Figma)", "Sleep score landing", null, "https://www.figma.com/design/HPGqUxq2QEJLMjIjWd8vJ2/GoodFlip-ring-designs?node-id=375-6349", "\"What shaped your score?\" tiles (\"You slept for 7h 50m\"), stage colours with Deep in indigo #4F50B8, and named states: No data, Partial data, Nap detected, Skeleton loader.", "Stages, vitals and a hypnogram need a ring; phones syncing from Health often have none of that."]
+  ];
+  document.getElementById("refs").innerHTML = R.map(function (r) {
+    var im = r[2] ? '<img src="https://mobbin.com/api/mcp/short/' + r[2] + '" alt="' + r[0] + ': ' + r[1] + '" referrerpolicy="no-referrer" onerror="this.outerHTML=\'<span class=alt>Picture did not load. Open it on Mobbin.</span>\'">' : '<span class="alt">GoodFlip ring designs: sleep score hero, "What shaped your score?" tiles, sleep summary bar, hypnogram, vitals.</span>';
+    return '<article class="ref"><div class="im">' + im + '</div><div class="tx"><span class="ap"><a href="' + r[3] + '" target="_blank" rel="noopener">' + r[0] + ' · ' + r[1] + '</a></span><span class="take">' + r[4] + '</span><span class="avoid">' + r[5] + '</span></div></article>';
+  }).join("");
+})();
+</script>
+</body>
+</html>

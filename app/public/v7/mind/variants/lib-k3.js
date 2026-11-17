@@ -27,13 +27,13 @@
     ".blk3-t::before{content:'';position:absolute;inset:0 0 auto 0;height:128px;z-index:-1;border-radius:inherit;opacity:.9;background:var(--scene) right 0 top var(--sy) / var(--sz) auto no-repeat;" +
       "-webkit-mask:linear-gradient(90deg,transparent 22%,#000 70%),linear-gradient(180deg,#000 30%,transparent 74%);-webkit-mask-composite:source-in;mask-composite:intersect}",
     ".blk3-h{padding:16px 16px 12px;min-height:128px;display:flex;flex-direction:column;justify-content:flex-end}",
-    ".blk3-n{font:600 16px/22px Roboto;white-space:nowrap}",
+    ".blk3-n{display:flex;align-items:center;font:600 16px/22px Roboto;white-space:nowrap}",
     ".blk3-s{margin-top:2px;font:400 12px/18px Roboto;color:var(--g-500)}",
     ".blk3-f{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 16px;padding:4px 0;min-height:48px;border-top:1px solid var(--g-100)}",
     ".blk3-mn{font:400 12px/16px Roboto;color:var(--g-500);font-variant-numeric:tabular-nums}",
     ".blk3-in{display:inline-flex;align-items:center;height:24px;padding:0 8px;border-radius:var(--r-pill);background:var(--in-50);color:var(--in-700);font:500 12px/16px Roboto;white-space:nowrap}",
     ".blk3-l{display:flex;align-items:center;gap:8px;min-width:0}",
-    ".blk3-km{position:relative;display:inline-flex;align-items:center;gap:4px;height:32px;margin-right:-4px;padding:0 4px;border:0;background:none;border-radius:var(--r-sm);font:400 13px/18px Roboto;color:var(--g-500);cursor:pointer}.blk3-km svg{width:14px;height:14px}.blk3-km::after{content:'';position:absolute;inset:-6px -4px}.blk3-ip{color:var(--in-700);font-weight:500}",
+    ".blk3-km{position:relative;display:inline-flex;align-items:center;gap:4px;height:32px;margin-right:-4px;padding:0 4px;border:0;background:none;border-radius:var(--r-sm);font:400 13px/18px Roboto;color:var(--g-500);cursor:pointer}.blk3-km svg{width:14px;height:14px}.blk3-km::after{content:'';position:absolute;inset:-6px -4px}.blk3-ip{margin-left:8px;display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border-radius:6px;border:1px solid transparent;font:400 12px/14px Roboto,sans-serif;letter-spacing:.25px;white-space:nowrap;vertical-align:middle;color:#826E2D;background:linear-gradient(90deg,#FEF1C7,#FFFBEE 30%,#FFFBEE 70%,#FEF1C7) padding-box,conic-gradient(from 180deg,#826E2D,#E7C144 25%,#E7C144 50%,#826E2D 75%,#E7C144) border-box}",
     ".blk3-go{position:relative;display:inline-flex;align-items:center;gap:4px;height:32px;margin-left:-4px;padding:0 4px;border:0;background:none;border-radius:var(--r-sm);font:600 14px/20px Roboto;color:var(--brand-600);cursor:pointer}",
     ".blk3-go::after{content:'';position:absolute;inset:-6px -4px}.blk3-go svg{width:16px;height:16px}.blk3-go:active{background:var(--g-50)}",
     /* See all: the plan's row, a scene thumb first */
@@ -51,7 +51,7 @@
     t.setAttribute("data-blinfo", b.key); t.style.setProperty("--scene", url(b.key));
     var sz = (SZ[b.key] || 250) + 30; t.style.setProperty("--sz", sz + "px"); t.style.setProperty("--sx", Math.round(286 - FX[b.key] * sz) + "px"); t.style.setProperty("--sy", (SY[b.key] || -54) + "px");
     t.setAttribute("aria-label", b.name + ", " + b.pat + ", " + b.min + " minutes. How it works");
-    t.innerHTML = '<div class="blk3-h"><div class="blk3-n">' + nm(b) + '</div><div class="blk3-s">' + b.pat + ' · ' + b.min + ' min' + (B.state === "plan" && b.inPlan ? ' · <span class="blk3-ip">In your plan</span>' : "") + '</div></div>' +
+    t.innerHTML = '<div class="blk3-h"><div class="blk3-n">' + nm(b) + (B.state === "plan" && b.inPlan ? '<span class="blk3-ip">In your plan</span>' : "") + '</div><div class="blk3-s">' + b.pat + ' · ' + b.min + ' min</div></div>' +
       '<div class="blk3-f"><button class="blk3-go" data-blplay="' + b.key + '" aria-label="Start ' + b.name + '">' + PLAY + 'Start</button>' +
       '<button class="blk3-km" data-blinfo="' + b.key + '" aria-label="Know more about ' + b.name + '">' + INFO + 'Know more</button></div>';
     return t;

@@ -12,9 +12,9 @@
 
   /* the Rhythm score: six parts, fixed weights out of 100 (Mind deck). Coaches set the plan inside each part, never the weights. */
   MP.PARTS = [
-    { key: "hours",    name: "Hours of sleep",    w: 23, group: "Sleep",     colour: "in",   hint: "The main sleep and naps together. Full marks at the target. Less sleep drops steadily. More sleep can lose marks too." },
-    { key: "window",   name: "Sleep window",      w: 24, group: "Sleep",     colour: "in",   hint: "Judged on the main sleep only. How close its bedtime and wake time were to the plan. Full marks inside the allowance, zero past the limit." },
-    { key: "winddown", name: "Wind-down tasks",   w: 23, group: "Sleep",     colour: "in",   hint: "Small steps before bed. Each task done earns its share." },
+    { key: "hours",    name: "Sleep duration",    w: 25, group: "Sleep",     colour: "in",   hint: "The main sleep and naps together. Full marks at the target. Less sleep drops steadily. More sleep can lose marks too." },
+    { key: "window",   name: "Sleep consistency", w: 25, group: "Sleep",     colour: "in",   hint: "Judged on the main sleep only. How close its bedtime and wake time were to the plan. Full marks inside the allowance, zero past the limit." },
+    { key: "winddown", name: "Wind-down tasks",   w: 20, group: "Sleep",     colour: "in",   hint: "Small steps before bed. Each task done earns its share." },
     { key: "breathing",name: "Breathing",         w: 10, group: "Self-care", colour: "teal", hint: "Each at its own time. Each one done earns its share of the 10." },
     { key: "metime",   name: "Me-time",           w: 10, group: "Self-care", colour: "gold", hint: "One activity a day, at a time that suits them. Doing it earns all 10." },
     { key: "mood",     name: "Mood check-in",     w: 10, group: "Self-care", colour: "pink", hint: "Each at its own time. The face the person picks never changes the score." }
@@ -136,7 +136,9 @@
   MP.clone = clone;
 
   /* sample Mind templates a coach might keep. Prototype content, for the library. */
-  var T = function (id, name, about, fill) { var p = MP.blankPlan(); p.id = id; p.name = name; p.about = about; fill(p); return p; };
+  /* who made each master template (sample coaches); "Coach A" is the coach signed in, so theirs reads "You" */
+  var BY = { "t-default": "Dr. Meera Iyer", "t-sleep": "Rohan Kapoor", "t-calm": "Coach A", "t-motivation": "Ananya Desai" };
+  var T = function (id, name, about, fill) { var p = MP.blankPlan(); p.id = id; p.name = name; p.about = about; p.by = BY[id] || ""; fill(p); return p; };
   MP.TEMPLATES = [
     T("t-default", "Rhythm starter", "The Mind framework's defaults. A good first plan for anyone.", function (p) {
       p.rhythm.winddown = [{ label: "Last caffeine (tea, coffee or cola)", at: "16:00" }, { label: "Last heavy meal, dinner cut-off", at: "19:30" }, { label: "Screen-free wind-down begins (60 min)", at: "21:30" }];

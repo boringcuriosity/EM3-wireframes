@@ -155,7 +155,7 @@
     app.classList.toggle("cs-on", v !== "edit"); app.classList.toggle("cs-edit", v === "edit");
     list.hidden = v !== "list"; pick.hidden = v !== "pick";
     if (v === "list") drawList();
-    if (v === "pick") { drawPick(); setTimeout(function () { var f = document.getElementById("csq"); if (f) f.focus(); }, 50); }
+    if (v === "pick") { drawPick(); setTimeout(function () { var f = document.getElementById("csq"); if (f && !matchMedia("(max-width: 760px)").matches) f.focus(); }, 50); }
     if (v === "edit") main.scrollTop = 0;
   }
 
@@ -242,6 +242,16 @@
     st.filter = "all"; show("list");
     var tt = document.getElementById("toast"); if (tt) { tt.textContent = "Saved as a draft. Find it under Drafts when you are ready to finish."; tt.classList.add("on"); setTimeout(function () { tt.classList.remove("on"); }, 3000); }
   }
+  /* Assign (the builder's Preview and Assign): the plan goes live for this patient and the coach lands back on the list.
+     One active plan at a time: the one that was active becomes inactive. Its draft, if any, is now the plan itself */
+  window.CS_ASSIGN = function (from, to, msg) {
+    var n = planName();
+    PLANS = PLANS.filter(function (p) { return !(p.name === n && p.status === "draft"); });
+    PLANS.forEach(function (p) { if (p.status === "active") p.status = "inactive"; });
+    PLANS.unshift({ name: n, status: "active", from: from, to: to });
+    st.filter = "all"; show("list");
+    var tt = document.getElementById("toast"); if (tt) { tt.textContent = msg; tt.classList.add("on"); setTimeout(function () { tt.classList.remove("on"); }, 3200); }
+  };
   /* the X: nothing is lost by accident */
   function leave() {
     var d = document.createElement("div"); d.className = "cs-dlg"; d.id = "csdlg";

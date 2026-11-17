@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score Tiles</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&display=swap">
+<style>
+  /* Six ways of explaining "What shaped your score?", each the real Mind screen (?vtiles=a to f) scrolled to the card */
+  :root { --ink: #101828; --body: #475467; --mute: #667085; --line: #E4E7EC; --accent: #3538CD; --brand: #1D4D38; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #FFFFFF; font: 400 14px/21px Roboto, Arial, sans-serif; color: var(--body); }
+  main { max-width: 1320px; margin: 0 auto; padding: 40px 24px 96px; }
+  h1 { margin: 0; font: 800 28px/36px Roboto; color: var(--brand); }
+  .lede { margin: 8px 0 0; font-size: 15px; max-width: 760px; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 16px 0 0; }
+  .bar span { font: 600 12px Roboto; color: var(--mute); margin-right: 4px; }
+  .bar button { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font: 600 13px Roboto; color: #344054; cursor: pointer; }
+  .bar button[aria-pressed=true] { border-color: var(--accent); background: #F5F8FF; color: var(--accent); }
+  .grid { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fill, 312px); gap: 40px 28px; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+  .fr { width: 312px; height: 520px; border-radius: 34px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 24px 48px -16px rgba(16,24,40,.18); background: #fff; }
+  .fr iframe { width: 390px; height: 650px; border: 0; transform: scale(.8); transform-origin: 0 0; }
+  figcaption { width: 312px; }
+  .n { display: flex; align-items: center; gap: 8px; font: 800 16px/22px Roboto; color: var(--ink); }
+  .k { font: 800 12px/18px Roboto; color: #fff; background: var(--brand); border-radius: 6px; padding: 1px 7px; text-transform: uppercase; }
+  .pick { font: 700 11px/16px Roboto; letter-spacing: .06em; text-transform: uppercase; color: var(--accent); background: #E0EAFF; border-radius: 999px; padding: 3px 9px; }
+  figcaption p { margin: 4px 0 0; font-size: 13px; line-height: 19px; }
+  figcaption a { font-size: 11px; color: var(--mute); word-break: break-all; }
+  figure.is-pick .fr { border-color: #A4BCFD; box-shadow: 0 0 0 3px #E0EAFF, 0 24px 48px -16px rgba(16,24,40,.18); }
+  h2 { margin: 36px 0 0; font: 800 20px/28px Roboto; color: var(--ink); }
+  .sub { margin: 4px 0 0; font-size: 14px; max-width: 760px; }
+  details { margin-top: 40px; border-top: 1px solid var(--line); padding-top: 20px; }
+  summary { cursor: pointer; font: 800 18px/26px Roboto; color: var(--ink); }
+  summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+  .tip { margin-top: 10px; font-size: 13px; color: var(--mute); }
+  @media (max-width: 400px) { main { padding: 24px 16px 64px; } .grid { grid-template-columns: 1fr; justify-items: center; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>What shaped your score?</h1>
+  <p class="lede">Each frame is the real Mind screen. The sleep window is your coach's bedtime to wake-up, 10:30 PM to 6 AM, and within 30 minutes of either reads as on time, the same rule the points use.</p>
+  <div class="bar" role="group" aria-label="State">
+    <span>State</span>
+    <button data-st="synced" aria-pressed="true">Synced, on time</button>
+    <button data-st="late">Late bedtime</button>
+    <button data-st="short">Short night</button>
+    <button data-st="none">Nothing logged</button>
+    <button data-st="morning">Morning, nothing done</button>
+    <button data-st="evening">Evening, most done</button>
+  </div>
+  <p class="tip">The screens are live: scroll down inside one and tick a row, or log sleep, and the card updates.</p>
+  <h2>Slept and Woke up, slim</h2>
+  <p class="sub">Row 1 stays: Sleep duration, Self-care and Wind-down. The strip under it says how last night's two ends went, in the same words as the sleep card: Slept and Woke up. Within 30 minutes of the plan reads on time. The hairline timeline (SB) is dropped: it needed decoding.</p>
+  <div class="grid" id="grid3"></div>
+  <details class="acc">
+    <summary>Earlier strips, SA to SF</summary>
+    <p class="sub">Three tiles and a window strip: Sleep duration, Self-care and Wind-down in a row, then one slim strip for the sleep window.</p>
+    <div class="grid" id="grid2"></div>
+  </details>
+  <details id="old" class="acc">
+    <summary>Earlier variants, A to K</summary>
+    <p class="sub">A to F rework the whole card; G to K change only the Sleep window tile.</p>
+    <div class="grid" id="grid"></div>
+  </details>
+</main>
+<script>
+(function () {
+  var V = [
+    ["a", "Edge gauges", "Today's tiles. The Sleep window tile adds two tiny scales, bedtime and wake-up, each with an outlined on-time zone around the plan and a dot for last night, hollow when it falls outside."],
+    ["b", "Rows", "One row per part, as Oura does it. The window row says its rule under the name, then Slept and Woke up, each beside its planned time."],
+    ["c", "Both edges", "Sleep window gets the full width: Slept and Woke up, each said on time or how late, with the plan beside the title and one line on what on time means."],
+    ["d", "Points", "Each tile shows the points it earned out of what it can earn, the plain fact under them. A note names the window and says points add up to Rhythm."],
+    ["e", "Tap to learn", "Today's tiles, each one opens a sheet. \"What is the sleep window?\" draws last night against it, judges both edges and says how it counts."],
+    ["f", "Questions", "Each tile asks what it checks: \"In your sleep window?\" answered Yes, or \"45 min late\", with the plan under it."],
+    ["g", "Window: one sentence", "Clear because it reads like a person talking: \"Bed 45 min late, up on time\", with the plan right under it."],
+    ["h", "Window: clock chips", "Clear because it puts last night's time next to the plan time, twice, with a tick when they match. Nothing to decode.", true],
+    ["i", "Window: mini timeline", "Clear because the picture is the definition: the outlined band is the window, the solid band is your night, and the words say how they line up."],
+    ["j", "Window: yes or no", "Clear because it asks the two questions the score asks, \"To bed on time?\" and \"Up on time?\", and answers each in one word."],
+    ["k", "Window: plan over you", "My own idea. Two bars on one scale, Plan above You, with the times written inside them, so a shift shows in the picture and in the numbers."]
+  ];
+  var ST = {
+    synced: "&sstate=synced&day=noon&now=13",
+    late: "&sstate=edited&day=noon&now=13",
+    short: "&sstate=short&day=noon&now=13",
+    none: "&sstate=none&day=start&now=8",
+    morning: "&sstate=synced&day=start&now=8",
+    evening: "&sstate=synced&day=night&now=21"
+  };
+  var V3 = [
+    ["wa", "Words only", "Your idea. \"Slept on time\" and \"Woke up 40 min early\", side by side on one line. Nothing to read off a scale or work out against the plan.", true],
+    ["wb", "Two slim tiles", "Slept and Woke up as two slim glass tiles, each filling by its own edge's points: full within 30 minutes, less as it drifts. The time and the words sit inside."],
+    ["wf", "Two slim tiles, fill only", "WB without the tick and the words: each tile shows Slept or Woke up and the time, and its fill says how close it was. Full means on time. Only a miss adds a small line, such as 45 min late."],
+    ["wc", "From Eight Sleep", "Eight Sleep's Schedule shows each time large with \"In range (±30m)\" under it. Here: the time, then \"Within 30 min of plan\" or \"45 min late\"."],
+    ["wd", "From WHOOP", "<a href=\"https://mobbin.com/screens/4396ddf2-9aba-45c3-a3aa-8695e6fa697a\" target=\"_blank\" rel=\"noopener\">WHOOP's Sleep Planner</a> puts bedtime and wake time at the two ends of a bracket. Here: Slept on the left, Woke up on the right, each with its words under it."],
+    ["we", "From Apple Health", "Apple Health's Your Schedule card: a small BEDTIME label over the time. Here: SLEPT and WOKE UP over last night's times, with the plan in grey under each, or how far off when it is off."]
+  ];
+  var V2 = [
+    ["sa", "Times in one line", "Last night's two times, each with its plan time beside it and a tick when on time. Nothing to work out."],
+    ["sb", "Hairline timeline", "A thin track with the window outlined and the night solid over it, and the answer in words on the right."],
+    ["sc", "A sentence", "Names the window and its times, then says it plainly: \"Bed and wake-up on time\"."],
+    ["sd", "Bed and Wake halves", "Each half compares one time with the window's edge: \"Window opens 10:30 PM\", or \"45 min after 10:30 PM\"."],
+    ["se", "1 of 2 on time", "Leads with the count the points use, then the two times with a tick or a hollow ring, and the plan."],
+    ["sf", "Window over last night", "Two aligned lines, the window's times above last night's, so the comparison is literal, with the answer at the end."]
+  ];
+  var st = "synced";
+  /* the Rhythm starter template: three wind-down steps, one breathing and a mood check-in, so self-care has room to move */
+  var src = function (k) { return "/v7/mind/index.html?tiles=1&vtiles=" + k + "&t=t-default" + ST[st] + "&scroll=tiles"; };
+  function fig(v) {
+    return '<figure' + (v[3] ? ' class="is-pick"' : "") + '><div class="fr"><iframe title="Variant ' + v[0].toUpperCase() + ', ' + v[1] + '" data-k="' + v[0] + '"></iframe></div><figcaption><div class="n"><span class="k">' + v[0] + '</span>' + v[1] + (v[3] ? '<span class="pick">My pick</span>' : "") + '</div><p>' + v[2] + '</p><a target="_blank" rel="noopener"></a></figcaption></figure>';
+  }
+  var g2 = document.getElementById("grid2"), g = document.getElementById("grid"), old = document.getElementById("old");
+  var g3 = document.getElementById("grid3");
+  g3.innerHTML = V3.map(fig).join("");
+  g2.innerHTML = V2.map(fig).join("");
+  g.innerHTML = V.map(function (v) { return fig(v.slice(0, 3)); }).join("");
+  /* the earlier variants load only once their section is open */
+  [].forEach.call(document.querySelectorAll("details.acc"), function (x) { x.addEventListener("toggle", function () { if (x.open) load(); }); });
+  function load() { [].forEach.call(document.querySelectorAll("#grid3 iframe, details.acc[open] iframe"), function (f) { var u = src(f.dataset.k); f.src = u; var a = f.closest("figure").querySelector("figcaption > a"); a.href = u; a.textContent = u; }); }
+  document.querySelector(".bar").addEventListener("click", function (e) {
+    var b = e.target.closest("button"); if (!b) return;
+    st = b.dataset.st;
+    [].forEach.call(document.querySelectorAll("[data-st]"), function (x) { x.setAttribute("aria-pressed", x === b); });
+    load();
+  });
+  load();
+})();
+</script>
+</body>
+</html>

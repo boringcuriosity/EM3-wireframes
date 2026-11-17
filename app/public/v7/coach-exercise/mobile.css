@@ -42,6 +42,7 @@
   .cs-ph .csb { width: 100%; height: 44px; }
   .cs-tools { flex-wrap: wrap; gap: 8px; }
   .cs-find { flex: 1 1 100%; max-width: none; height: 44px; }
+  .cs-find input { font-size: 16px; }
   /* the table becomes a list of cards: the radio, the name, then length, author and date on one quiet line */
   .cs-tbl, .cs-tbl tbody { display: block; }
   .cs-tbl thead { display: none; }
@@ -143,28 +144,34 @@
        the exercise and its delete
        Reps · Set · Duration
        Rest post set · Rest post exercise
+       Intensity
        its type, and the kcal it burns */
   .rt .cols { display: none; }
   .rt .row { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px 8px; position: relative; align-items: start; margin: 0 0 8px; padding: 10px 10px 8px 6px; border: 1px solid #E4E7EC; border-radius: 12px; background: #fff; min-height: 0; }
   .rt .row:hover { background: #fff; }
   .rt .row > div { flex-wrap: wrap; justify-content: flex-start; gap: 4px; }
   .rt .row > div:nth-child(1) { grid-column: 1 / -1; grid-row: 1; padding-right: 38px; flex-wrap: nowrap; }
-  .rt .row > div:nth-child(9) { position: absolute; top: 8px; right: 6px; }
+  .rt .row > div:nth-child(10) { position: absolute; top: 8px; right: 6px; }
   .rt .row > div:nth-child(3) { grid-column: 1 / 3; grid-row: 2; padding-left: 4px; }
   .rt .row > div:nth-child(4) { grid-column: 3 / 5; grid-row: 2; }
   .rt .row > div:nth-child(7) { grid-column: 5 / 7; grid-row: 2; align-items: center; }
   .rt .row > div:nth-child(5) { grid-column: 1 / 4; grid-row: 3; padding-left: 4px; }
   .rt .row > div:nth-child(6) { grid-column: 4 / 7; grid-row: 3; }
-  .rt .row > div:nth-child(2) { grid-column: 1 / 3; grid-row: 4; padding: 8px 0 0 4px; border-top: 1px solid #F2F4F7; font-size: 13px; color: #667085; }
-  .rt .row > div:nth-child(8) { grid-column: 3 / 7; grid-row: 4; padding-top: 8px; border-top: 1px solid #F2F4F7; justify-content: flex-end; flex-wrap: nowrap; }
-  .rt .row > div:nth-child(n+3):nth-child(-n+7)::before { flex: 1 1 100%; font-size: 10.5px; line-height: 13px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; color: #667085; white-space: nowrap; }
+  .rt .row > div:nth-child(2) { grid-column: 1 / 3; grid-row: 5; padding: 8px 0 0 4px; border-top: 1px solid #F2F4F7; font-size: 13px; color: #667085; }
+  .rt .row > div:nth-child(9) { grid-column: 3 / 7; grid-row: 5; padding-top: 8px; border-top: 1px solid #F2F4F7; justify-content: flex-end; flex-wrap: nowrap; }
+  .rt .row > div:nth-child(n+3):nth-child(-n+8)::before { flex: 1 1 100%; font-size: 10.5px; line-height: 13px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; color: #667085; white-space: nowrap; }
   .rt .row > div:nth-child(3)::before { content: "Reps"; }
   .rt .row > div:nth-child(4)::before { content: "Set"; }
   .rt .row > div:nth-child(5)::before { content: "Rest post set"; }
   .rt .row > div:nth-child(6)::before { content: "Rest post exercise"; }
   .rt .row > div:nth-child(7)::before { content: "Duration"; }
+  .rt .row > div:nth-child(8) { grid-column: 1 / -1; grid-row: 4; padding-left: 4px; justify-content: flex-start; }
+  .rt .row > div:nth-child(8)::before { content: "Intensity"; }
+  .rt .row .isel { max-width: none; height: 40px; }
+  .rt .row .isel .v { flex-direction: row; align-items: baseline; gap: 6px; }
+  .rt .row .isel .panel { left: 0; right: 0; min-width: 0; }
   .rt .row > div:nth-child(7) .dur { min-width: 0; height: 36px; line-height: 36px; text-align: left; }
-  .rt .row > div:nth-child(8)::before { content: "Kcal burned"; flex: none; white-space: nowrap; margin-right: 6px; font-size: 13px; color: #667085; }
+  .rt .row > div:nth-child(9)::before { content: "Kcal burned"; flex: none; white-space: nowrap; margin-right: 6px; font-size: 13px; color: #667085; }
   .rt .row .kc { font-size: 14px; }
   .rt .row .lbl { display: none; }   /* the label above says it */
   .rt .row .msel { min-width: 0; flex: 1; }
@@ -196,10 +203,10 @@
   .rt .row.xcard.xopen .mx-sum { inset: 4px 2px auto auto; width: 44px; height: 44px; }
   .rt .row.xcard.xopen .mx-sum::after { right: 17px; margin-top: -6px; transform: rotate(-135deg); }
   /* open: the delete moves to the foot, next to the kcal, so the top corner can close the card */
-  .rt .row.xcard.xopen > div:nth-child(9) { position: static; grid-column: 6 / 7; grid-row: 4; padding-top: 2px; border-top: 1px solid #F2F4F7; justify-content: flex-end; }
-  .rt .row.xcard.xopen > div:nth-child(8) { grid-column: 3 / 6; }
+  .rt .row.xcard.xopen > div:nth-child(10) { position: static; grid-column: 6 / 7; grid-row: 5; padding-top: 2px; border-top: 1px solid #F2F4F7; justify-content: flex-end; }
+  .rt .row.xcard.xopen > div:nth-child(9) { grid-column: 3 / 6; }
   .rt .row.xcard.xopen > div:nth-child(1) { padding-right: 44px; }
-  .rt .row.xcard.xopen > div:nth-child(2), .rt .row.xcard.xopen > div:nth-child(8), .rt .row.xcard.xopen > div:nth-child(9) { border-top: 0; padding-top: 0; align-items: center; }
+  .rt .row.xcard.xopen > div:nth-child(2), .rt .row.xcard.xopen > div:nth-child(9), .rt .row.xcard.xopen > div:nth-child(10) { border-top: 0; padding-top: 0; align-items: center; }
   .rtfoot { flex-wrap: wrap; gap: 8px; }
   .rtfoot .addex { height: 40px; }
   .rtot { flex: 1 1 100%; font-size: 13px; }
@@ -243,4 +250,70 @@
   .pvhead { width: auto; margin: 16px; }
   .pvrow { grid-template-columns: 1fr; gap: 4px; }
   .phone { width: auto; min-width: 0; margin: 0 16px 20px; }
+}
+
+/* ---------- progressive disclosure on a phone (coach-exercise/mobile.js): every field and action stays, the rarer ones one tap away ---------- */
+.mx-plan, .mx-more, .mx-intro { display: none; }
+@media (max-width: 760px) {
+  /* template picker: one way to choose. Tap a template, then Next; the per-row button only repeated it */
+  .cs-tbl td:nth-child(6) { display: none; }
+  .cs-tbl tbody tr { cursor: pointer; }
+
+  /* plan details: one line with the name, start, disease and indication; Edit opens the fields under it */
+  .mx-plan { display: flex; align-items: center; gap: 12px; width: 100%; margin: 0 0 12px; padding: 12px 14px; border: 1px solid #E4E7EC; border-radius: 12px; background: #fff; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+  .mx-pt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .mx-pt b { font-size: 15px; line-height: 20px; font-weight: 700; color: #101828; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mx-pt small { font-size: 12.5px; line-height: 17px; color: #667085; }
+  .mx-pt small:empty { display: none; }
+  .mx-pe { flex: none; display: inline-flex; align-items: center; min-height: 32px; padding: 0 4px; font-size: 14px; font-weight: 600; color: var(--primary); }
+  .step[data-step="1"]:not(.mx-fopen) > .fields { display: none; }
+  .step[data-step="1"].mx-fopen > .mx-plan { margin-bottom: 0; border-color: var(--primary); border-bottom-color: #E4E7EC; border-radius: 12px 12px 0 0; }
+  .step[data-step="1"].mx-fopen > .fields { margin-bottom: 14px; padding: 12px 14px 14px; border: 1px solid var(--primary); border-top: 0; border-radius: 0 0 12px 12px; }
+
+  /* each step's day tools sit behind Day options, beside the main action */
+  .mx-tools .mx-more { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 42px; padding: 0 14px; border: 1px solid #D0D5DD; border-radius: 10px; background: #fff; color: #344054; font-size: 14px; font-weight: 600; line-height: 1; white-space: nowrap; cursor: pointer; }
+  .mx-more svg { width: 16px; height: 16px; color: #667085; }
+  .mx-more[aria-expanded="true"] { border-color: var(--primary); background: var(--primary-l); color: var(--primary-d, var(--primary)); }
+  .mx-more[aria-expanded="true"] svg { color: currentColor; }
+  /* step 1: Add a Routine and Day options on one row; open, the four tools list under them */
+  .acts.mx-tools { grid-template-columns: minmax(0, 1fr) auto; }
+  .acts.mx-tools .addr { grid-column: 1; }
+  .acts.mx-tools:not(.mx-open) > .b:not(.pr), .acts.mx-tools:not(.mx-open) .gacts { display: none; }
+  .acts.mx-open > .b:not(.pr), .acts.mx-open .ctip { grid-column: 1 / -1; }
+  .acts.mx-open > .b:not(.pr), .acts.mx-open .cbtn { justify-content: flex-start; height: 42px; padding: 0 14px; }
+  /* open, the tools read as one quiet list; only Clear keeps its red */
+  .acts.mx-open > .b:not(.pr), .acts.mx-open .cbtn, .sofft.mx-open .b, .sofft.mx-open .cbtn { border: 1px solid #E4E7EC; background: #fff; color: #344054; box-shadow: none; }
+  .acts.mx-open > .b.red { color: #D92D20; }
+  /* steps 2 and 3: the day's place is already in the tabs, so the bar is just Day options */
+  .gbar .gwhere { display: none; }
+  .sofft.mx-tools { flex: 1 1 100%; }
+  .sofft.mx-tools:not(.mx-open) > :not(.mx-more) { display: none; }
+  .sofft.mx-open { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .sofft.mx-open > .mx-more { justify-self: start; }
+  .sofft.mx-open .gacts { display: grid; grid-template-columns: 1fr; gap: 8px; }
+  .sofft.mx-open .b, .sofft.mx-open .cbtn { width: 100%; justify-content: flex-start; height: 42px; }
+
+  /* said once: the bottom bar already has the day's total and Next */
+  .daytot { display: none; }
+  .step .center, #step2 .center, #step3 .center { display: none; }
+
+  /* a routine's head: number, name, then Copy and delete as icons; the time of day under them */
+  .rthd .ctip .cbtn { width: 36px; height: 36px; padding: 0; justify-content: center; font-size: 0; }
+  .rthd .ctip .cbtn .ic { width: 18px; height: 18px; margin: 0; }
+
+  /* step introductions: two lines, More for the rest */
+  .s-head > div:first-child p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 0; }
+  .s-head > div.mx-iopen p { display: block; }
+  .mx-intro { display: inline; padding: 4px 0; border: 0; background: none; color: var(--primary); font-size: 13px; font-weight: 600; line-height: 18px; cursor: pointer; }
+
+  /* small moves: an empty part of the day is one slim row with its Add; a part with moves opens as before */
+  .pcard:not(:has(.mlist)):not(:has(.sugp)) { flex-direction: row; align-items: center; gap: 8px; padding: 10px 10px 10px 12px; background: #fff; }
+  .pcard:not(:has(.mlist)):not(:has(.sugp)) .ph { flex: 1; min-width: 0; margin: 0; }
+  .pcard:not(:has(.mlist)):not(:has(.sugp)) .addbox { flex: none; width: auto; height: 38px; padding: 0 12px; border-style: solid; font-size: 0; gap: 6px; }
+  .pcard:not(:has(.mlist)):not(:has(.sugp)) .addbox::after { content: "Add"; font-size: 14px; }   /* its full name stays as its aria-label (mobile.js) */
+  .pcard .pt small { white-space: nowrap; font-size: 12px; }
+
+  /* steps: the rare "can't walk" switch sits under the goal */
+  #step3 { display: flex; flex-direction: column; }
+  #step3 > .advbox { order: 2; margin: 16px 0 0; }
 }

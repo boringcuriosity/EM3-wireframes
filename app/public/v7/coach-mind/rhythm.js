@@ -51,6 +51,8 @@
       ".P-in{height:44px;width:100%;background:#F3FCF8;border:1px solid #E4E7EC;border-radius:11px;padding:0 14px;font:600 14px Onest,sans-serif;color:#101828}",
       ".P-in:focus{outline:none;border-color:#299D6B;box-shadow:0 0 0 3px rgba(41,157,107,.18)}",
       ".P-in::placeholder{color:#98A2B3;font-weight:500}",
+      "textarea.P-in.rt-grow{display:block;height:auto;min-height:44px;padding:11px 14px;line-height:20px;resize:none;overflow:hidden;field-sizing:content;white-space:pre-wrap;word-break:break-word}",
+      ".P-row textarea.P-in.rt-grow{min-height:36px;padding:7px 12px}",
       ".P-stp{display:flex;align-items:center;gap:8px;max-width:280px}",
       ".P-sb{width:36px;height:36px;flex:none;border:1px solid #299D6B;border-radius:11px;background:#fff;color:#299D6B;font:600 18px/1 Onest,sans-serif;cursor:pointer;display:grid;place-items:center;padding:0}",
       ".P-sb:hover{background:#F3FCF8}",
@@ -143,8 +145,8 @@
   /* the points chip is the explainer: an info mark inside it says the number can be opened */
   function tipMark(id, html) { return { id: id, html: html }; }
   function ptsTip(p, pts, t) {
-    var chip = '<span class="rt-ii" aria-hidden="true">' + ICON.info + "</span>" + pts + " of 100";
-    if (!t) return '<span class="' + p + '-pts">' + pts + " of 100</span>";
+    var chip = '<span class="rt-ii" aria-hidden="true">' + ICON.info + "</span>" + pts + " pts";
+    if (!t) return '<span class="' + p + '-pts">' + pts + " pts</span>";
     return '<span class="rt-tw"><button type="button" class="rt-i ' + p + '-pts" aria-describedby="' + t.id + '">' + chip + "</button>" +
       '<span class="rt-tip" role="tooltip" id="' + t.id + '">' + t.html + "</span></span>";
   }
@@ -352,6 +354,8 @@
 
   /* a text field that offers suggestions: clicking it lists them, typing filters, a pick fills the text and it stays editable.
      sugs() gives [[label, aside]]; pick(label) and edit(text) report back. */
+  /* a one-row textarea grows to hold its whole text (where field-sizing is missing) */
+  function grow(f) { if (f.tagName !== "TEXTAREA" || CSS.supports("field-sizing", "content")) return; f.style.height = "auto"; f.style.height = f.scrollHeight + 2 + "px"; }
   function suggestField(f, sugs, pick, edit) {
     var show = function () {
       var t = f.value.trim(), lt = t.toLowerCase(), all = sugs(), exact = all.filter(function (x) { return same(x[0], t); })[0];
@@ -360,7 +364,8 @@
       POP.open(f, L, exact ? exact[0] : null, function (v) { f.value = v; clearErr(f); pick(v); f.focus(); }, { typing: true });
     };
     f.onfocus = f.onclick = function () { if (!POP.isOpen(f)) show(); };
-    f.oninput = function () { edit(f.value); show(); };
+    f.oninput = function () { if (/\n/.test(f.value)) f.value = f.value.replace(/\s*\n\s*/g, " "); grow(f); edit(f.value); show(); };
+    if (f.tagName === "TEXTAREA") { f.onkeydown = function (e) { if (e.key === "Enter") e.preventDefault(); }; grow(f); requestAnimationFrame(function () { grow(f); }); }
     f.onblur = function () { f.value = f.value.trim(); edit(f.value); POP.close(false); };
   }
 
@@ -497,13 +502,13 @@
   }
   function hoursLine(r) {
     var T = totalH(r), zero = hrs(Math.max(0, T - r.shortZero)), over = hrs(T + 1);
-    if (r.second) return '<b class="rt-h">How the 47 points work</b>' +
-      '<span class="rt-r"><b>Hours, 23</b>The two windows together: full marks for ' + hrs(T) + " to " + over + " of sleep in the day. Less earns fewer, down to zero at " + zero + " or less.</span>" +
-      '<span class="rt-r"><b>Window, 24</b>12 points for each window, for sleeping and waking within 30 minutes of its times. Further off earns fewer, down to zero at 2 hours off.</span>' +
+    if (r.second) return '<b class="rt-h">How the 50 points work</b>' +
+      '<span class="rt-r"><b>Sleep duration, 25</b>The two windows together: full marks for ' + hrs(T) + " to " + over + " of sleep in the day. Less earns fewer, down to zero at " + zero + " or less.</span>" +
+      '<span class="rt-r"><b>Sleep consistency, 25</b>Half for each window, for sleeping and waking within 30 minutes of its times. Further off earns fewer, down to zero at 2 hours off.</span>' +
       '<span class="rt-n">The same standard for every patient.</span>';
-    return '<b class="rt-h">How the 47 points work</b>' +
-      '<span class="rt-r"><b>Hours, 23</b>The main sleep and naps together. Full marks for ' + hrs(r.hours) + " to " + over + ". Less earns fewer, down to zero at " + zero + " or less. Past " + over + ", each extra hour loses 20%, so a long nap can cost points.</span>" +
-      '<span class="rt-r"><b>Window, 24</b>The main sleep only. Full marks for sleeping within 30 minutes of ' + H.t12(r.bedtime) + " and waking within 30 minutes of " + H.t12(r.wake) + ". Further off earns fewer, down to zero at 2 hours off. Under 3 hours asleep earns none.</span>" +
+    return '<b class="rt-h">How the 50 points work</b>' +
+      '<span class="rt-r"><b>Sleep duration, 25</b>The main sleep and naps together. Full marks for ' + hrs(r.hours) + " to " + over + ". Less earns fewer, down to zero at " + zero + " or less. Past " + over + ", each extra hour loses 20%, so a long nap can cost points.</span>" +
+      '<span class="rt-r"><b>Sleep consistency, 25</b>The main sleep only. Full marks for sleeping within 30 minutes of ' + H.t12(r.bedtime) + " and waking within 30 minutes of " + H.t12(r.wake) + ". Further off earns fewer, down to zero at 2 hours off. Under 3 hours asleep earns none.</span>" +
       '<span class="rt-n">The day runs 6 PM to 6 PM. The longest sleep is the main sleep, the rest are naps. The same standard for every patient.</span>';
   }
   function wdLine(n, w) {
@@ -523,6 +528,9 @@
   var fromNoon = function (hmv) { return (mins(hmv) - ORG + 1440) % 1440; };
   var onAxis = function (m) { return m > 1440 ? m - 1440 : m; };   /* wake past the right edge wraps to the left */
   function night(r) {
+    /* on a phone the bar is drawn at phone width, so its words stay readable instead of shrinking with a 960 wide drawing */
+    var PH = matchMedia("(max-width: 760px)").matches, FS = PH ? 15 : 12, FM = PH ? 16 : 13;
+    NB.W = PH ? 420 : 960; NB.w = NB.W - 2 * NB.L;
     var W = NB.W, y = NB.y, h = NB.h, A = r.allowance, Z = r.zeroAt;
     var bed = fromNoon(r.bedtime), wake = bed + durM(r);
     var spans = function (a, b, attr) {   /* draw [a,b] in minutes from noon, wrapping across the frame */
@@ -533,16 +541,24 @@
     var edge = function (m) {
       return spans(m - Z, m - A, 'fill="url(#sl-fl)"') + spans(m + A, m + Z, 'fill="url(#sl-fr)"') + spans(m - A, m + A, 'fill="#444CE7"');
     };
-    var mark = function (m, label) {
-      var x = X(onAxis(m)), anchor = x < 70 ? "start" : x > W - 70 ? "end" : "middle";
+    var mark = function (m, label, side) {
+      var x = X(onAxis(m)), anchor = x < 70 ? "start" : x > W - 70 ? "end" : "middle", tx = x;
+      /* a phone: the words sit beside the handle (bed to its left, wake to its right), never under it */
+      if (PH) {
+        var lw = label.length * FM * .58;   /* the words' width, near enough for Onest */
+        anchor = side < 0 ? "end" : "start"; tx = x + side * 16;
+        if (side < 0 && tx - lw < 0) { anchor = "start"; tx = x + 16; }
+        if (side > 0 && tx + lw > W) { anchor = "end"; tx = x - 16; }
+      }
       return '<line x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '" y1="' + (y - 6) + '" y2="' + (y + h + 4) + '" stroke="#101828" stroke-width="1.5"/>' +
-        '<text x="' + x.toFixed(1) + '" y="' + (y - 12) + '" text-anchor="' + anchor + '" font-family="Onest,sans-serif" font-size="13" font-weight="700" fill="#101828">' + label + "</text>";
+        '<text x="' + tx.toFixed(1) + '" y="' + (y - 12) + '" text-anchor="' + anchor + '" font-family="Onest,sans-serif" font-size="' + FM + '" font-weight="700" fill="#101828">' + label + "</text>";
     };
     var ticks = "";
     for (var i = 0; i <= 8; i++) {
+      if (PH && i % 2) continue;   /* a phone: every six hours */
       var tm = i * 180, lab = ["12 PM", "3 PM", "6 PM", "9 PM", "12 AM", "3 AM", "6 AM", "9 AM", "12 PM"][(i + (ORG ? 0 : 4)) % 8];
       ticks += '<line x1="' + X(tm) + '" x2="' + X(tm) + '" y1="' + (y + h) + '" y2="' + (y + h + 5) + '" stroke="#D0D5DD"/>' +
-        '<text x="' + X(tm) + '" y="' + (y + h + 20) + '" text-anchor="' + (i === 0 ? "start" : i === 8 ? "end" : "middle") + '" font-family="Onest,sans-serif" font-size="12" fill="#667085">' + lab + "</text>";
+        '<text x="' + X(tm) + '" y="' + (y + h + 20) + '" text-anchor="' + (i === 0 ? "start" : i === 8 ? "end" : "middle") + '" font-family="Onest,sans-serif" font-size="' + FS + '" fill="#667085">' + lab + "</text>";
     }
     return '<svg viewBox="0 0 ' + W + " " + NB.VH + '" role="img" aria-label="Sleep window from ' + H.t12(r.bedtime) + " to " + H.t12(r.wake) + ", full marks within " + A + " minutes, zero at " + Z + ' minutes off">' +
       '<defs><linearGradient id="sl-fl"><stop offset="0" stop-color="#444CE7" stop-opacity="0"/><stop offset="1" stop-color="#444CE7" stop-opacity=".55"/></linearGradient>' +
@@ -550,7 +566,7 @@
       '<clipPath id="sl-clip"><rect x="' + NB.L + '" y="' + y + '" width="' + NB.w + '" height="' + h + '" rx="8"/></clipPath></defs>' +
       '<g clip-path="url(#sl-clip)"><rect x="' + NB.L + '" y="' + y + '" width="' + NB.w + '" height="' + h + '" fill="#F2F4F7"/>' +
       spans(bed, wake, 'fill="#C7D7FE"') + edge(bed) + edge(wake) + sec("g") + "</g>" + ticks +
-      (r.second ? midMark(bed, wake, "1", r.bedtime, r.wake) : mark(bed, "Bed " + H.t12(r.bedtime)) + mark(wake, "Wake " + H.t12(r.wake))) + sec("m") + "</svg>";
+      (r.second ? midMark(bed, wake, "1", r.bedtime, r.wake) : mark(bed, "Bed " + H.t12(r.bedtime), -1) + mark(wake, "Wake " + H.t12(r.wake), 1)) + sec("m") + "</svg>";
     /* two windows: each window's two lines and one label over its middle, numbered as in the rows below */
     function midMark(a, b, n, t1, t2) {
       var tick = function (m) { var x = X(onAxis(m)).toFixed(1); return '<line x1="' + x + '" x2="' + x + '" y1="' + (y - 6) + '" y2="' + (y + h + 4) + '" stroke="#101828" stroke-width="1.5"/>'; };
@@ -616,7 +632,7 @@
         if (!r.second) return '<div class="sl-grid">' +
           '<div class="sl-f"><span class="sl-lab">Bedtime</span>' + tpBtn('data-tk="bedtime"', r.bedtime, "Bedtime", true) + "</div>" +
           '<div class="sl-f"><span class="sl-lab">Wake time</span>' + tpBtn('data-tk="wake"', r.wake, "Wake time", true) + "</div></div>" +
-          '<span class="sl-note sl-wnote">Judged on the main sleep. Naps count towards hours, not the window.</span>' +
+          '<span class="sl-note sl-wnote">Naps add to the sleep hours but never change bedtime or wake-up.</span>' +
           /* ponytail: two sleep windows are parked for now; ?split=1 brings the option back */
           (!/[?&]split=1/.test(location.search) ? "" : '<div class="sl-addw"><button type="button" class="sl-more" data-w2="add" data-fk="w2add">+ Split into two sleep windows</button>' +
           '<span class="sl-note">For sleep in two parts of the day. A night shift needs only one window, set in the day. The ' + hrs(r.hours) + ' target is shared between them.</span></div>');
@@ -636,7 +652,7 @@
       }
       function wireMerge() { var b = el.querySelector('[data-w2="merge"]'); if (b) b.onclick = function () { merge(); done("w2add"); }; }
       function totLine() {
-        if (!tooClose(r)) return "Each window carries 12 of the 24 window points.";
+        if (!tooClose(r)) return "Each window carries half of the 25 Sleep consistency points.";
         var g = apart(r);
         return '<span class="sl-cw">' + ICON.info + "<span><b>" + (overlap(r) ? "The two windows overlap." : g ? "The two windows are only " + len(g) + " apart." : "The two windows touch.") + "</b> " +
           "Sleep this close together is one sleep. Merge them into one window, or move one at least 1 hour away.</span></span>" +
@@ -653,8 +669,8 @@
       function wdCard() {
         var n = r.winddown.length, w = part("winddown").w;
         var rows = r.winddown.map(function (t, i) {
-          return '<div class="sl-row sl-trow"><input class="sl-in sl-tin" data-wdt="' + i + '" data-fk="wdt' + i + '" role="combobox" aria-autocomplete="list" aria-expanded="false" autocomplete="off" maxlength="100"' +
-            ' aria-label="Wind-down task ' + (i + 1) + '" placeholder="Type a small step before bed" value="' + esc(t.label) + '">' +
+          return '<div class="sl-row sl-trow"><textarea rows="1" class="sl-in sl-tin rt-grow" data-wdt="' + i + '" data-fk="wdt' + i + '" role="combobox" aria-autocomplete="list" aria-expanded="false" autocomplete="off" maxlength="100"' +
+            ' aria-label="Wind-down task ' + (i + 1) + '" placeholder="Type a small step before bed">' + esc(t.label) + '</textarea>' +
             tpBtn('data-wdat="' + i + '" data-fk="wdat' + i + '"', t.at, "Time for " + (t.label || "this task")) +
             '<button type="button" class="sl-x" data-wdel="' + i + '" data-fk="wdel' + i + '" aria-label="Remove ' + esc(t.label || "this task") + '">×</button></div>';
         }).join("");
@@ -893,8 +909,8 @@
       r.metime.length = 1;
       function meRow() {
         var m = r.metime[0];
-        return '<div class="sc-row sc-merow"><input class="sc-in sc-mein" id="me-in" role="combobox" aria-autocomplete="list" aria-expanded="false" autocomplete="off" maxlength="80"' +
-          ' aria-label="Me-time activity" placeholder="Type an activity that helps them feel happy or calm" value="' + esc(m.label) + '">' +
+        return '<div class="sc-row sc-merow"><textarea rows="1" class="sc-in sc-mein rt-grow" id="me-in" role="combobox" aria-autocomplete="list" aria-expanded="false" autocomplete="off" maxlength="80"' +
+          ' aria-label="Me-time activity" placeholder="Type an activity that helps them feel happy or calm">' + esc(m.label) + '</textarea>' +
           tpBtn('data-meat="1" data-fk="meat"', m.at, "Time for me-time") + "</div>";
       }
       function meBind() {

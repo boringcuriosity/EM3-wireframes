@@ -174,7 +174,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .mp-done .mp-btn { margin-top: 20px; }
 
 /* read-only view */
-.mp-ro-note { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 10px 14px; border-radius: 12px; background: #fff; border: 1px solid var(--mp-line); font-size: 13px; }
+.mp-ro-note { display: flex; align-items: center; gap: 10px; max-width: 720px; margin: 0 auto 16px; padding: 10px 14px; border-radius: 12px; background: #fff; border: 1px solid var(--mp-line); font-size: 13px; }
 .mp-readonly [data-go], .mp-readonly .rv-edit { display: none !important; }
 
 /* dialog */
@@ -193,6 +193,30 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .mp-fld input:focus, .mp-fld textarea:focus { outline: none; border-color: var(--mp-green); box-shadow: 0 0 0 3px rgba(41,157,107,.16); }
 .mp-fld .mp-err { color: var(--mp-warn); font-size: 12.5px; font-weight: 600; }
 .mp-fld.is-bad input { border-color: #FDA29B; background: #FFFBFA; }
+
+/* Assign this plan: three radio cards (the exercise portal's .arc), the name field opens under the third */
+.mp-dlg.is-assign { max-width: 480px; }
+.mp-arcs { display: grid; gap: 8px; margin: 4px 0 18px; }
+.mp-arc { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border: 1px solid #D0D5DD; border-radius: 12px; background: #fff; cursor: pointer; transition: border-color .15s var(--mp-ease), background .15s var(--mp-ease); }
+.mp-arc:has(input:checked) { border-color: var(--mp-green); background: #F6FEF9; box-shadow: inset 0 0 0 1px var(--mp-green); }
+.mp-arc.is-off { cursor: default; background: #F9FAFB; }
+.mp-arc.is-off b, .mp-arc.is-off small { color: #98A2B3; }
+.mp-arc input[type=radio] { width: 18px; height: 18px; margin: 1px 0 0; flex: none; accent-color: var(--mp-green); cursor: inherit; }
+.mp-arc > span { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mp-arc b { font: 600 14px/20px Onest, sans-serif; color: var(--mp-ink); }
+.mp-arc small { font-size: 13px; line-height: 18px; color: var(--mp-body); }
+.mp-arc .mp-arc-fld { margin: 10px 0 0; }
+.mp-arc .mp-arc-fld[hidden] { display: none; }
+
+/* template pages */
+.mp-pager { display: flex; align-items: center; justify-content: flex-end; gap: 4px; margin-top: 10px; font-size: 13px; color: var(--mp-muted); font-variant-numeric: tabular-nums; }
+.mp-pager span { margin-right: 8px; }
+.mp-pgb { width: 36px; height: 36px; display: grid; place-items: center; border: 1px solid var(--mp-line); border-radius: 10px; background: #fff; color: var(--mp-green-deep); cursor: pointer; }
+.mp-pgb:hover:not(:disabled) { background: #F2F4F7; }
+.mp-pgb:disabled { color: #D0D5DD; cursor: default; }
+
+/* the blank plan leads the start screen; the templates follow under their own heading */
+.mp-blank.is-top { margin: 0 0 24px; }
 
 /* toast with optional action */
 .mp-toast { position: fixed; left: 50%; bottom: 96px; z-index: 40; transform: translate(-50%, 12px); display: flex; align-items: center; gap: 14px; padding: 10px 14px 10px 16px; border-radius: 12px; background: #101828; color: #fff; font: 600 13px/18px Onest, sans-serif; box-shadow: 0 10px 30px rgba(16,24,40,.24); opacity: 0; pointer-events: none; transition: opacity .2s var(--mp-ease), transform .2s var(--mp-ease); }

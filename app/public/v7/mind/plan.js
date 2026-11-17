@@ -13,7 +13,7 @@
   var P = {
     hours: 7.5, short: 3, exOn: true, grace: 1, exPen: 20,   /* hours of sleep: target, zero when short by, oversleep allowance and penalty */
     bed: "22:30", wake: "06:00", tol: 30, zero: 120,          /* sleep window: full marks within tol minutes, none past zero */
-    w: { hours: 23, window: 24, wd: 23, br: 10, me: 10, mood: 10 },   /* the Mind deck weights: sleep 70, self-care 30 */
+    w: { hours: 25, window: 25, wd: 20, br: 10, me: 10, mood: 10 },   /* sleep quality 70 (duration 25, consistency 25, wind-down 20), self-care 30; 23/24/23 until 17 Nov 2026 */
     wd: [
       { t: "Last tea or coffee before 2 PM", at: "14:00", d: "Caffeine stays in your body for hours and keeps sleep light." },
       { t: "Dinner 2 hours before bed", at: "20:30", d: "An early dinner keeps your sugar steadier through the night." },

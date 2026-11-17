@@ -7,6 +7,7 @@
   "use strict";
   var MD = window.MDPLAN, Q = MD ? MD.Q : new URLSearchParams(location.search), V = (Q.get("vlib") || "").toLowerCase();
   if (!V || !window.LAB || !LAB.FINAL) return;
+  var VP = (Q.get("vlibp") || "e").toLowerCase().replace(/[^a-e]/g, "").slice(0, 1);   /* E, folded with its own screen, is the default for plan users (17 Nov 2026); ?vlibp=a..d for the others */
   var ST = Q.get("state") || "", FREE = /^free/.test(ST), NOPLAN = FREE || /^noplan/.test(ST);
 
   /* what each one is good for (the info sheet and filters), and a sensible first session length */
@@ -158,9 +159,11 @@
   /* mount: after the plan, before the footer art; the variant file draws inside */
   function mount() {
     var v = BLIB.V[V]; if (!v) return;
-    /* only for people without a Mind plan yet: free users and those waiting for their coach. Plan users breathe from their plan.
+    /* plan users get their own slim rail when ?vlibp=a..e is set (variants/lib-pl.js, research/breath-rail-plan.html) */
+    if (BLIB.state === "plan" && VP && BLIB.V["p" + VP]) v = BLIB.V["p" + VP];
+    /* otherwise only for people without a Mind plan yet: free users and those waiting for their coach. Plan users breathe from their plan.
        ?lshow=1 shows it to plan users too, for the comparison page */
-    if (BLIB.state === "plan" && Q.get("lshow") !== "1") { var old = document.getElementById("blib"); if (old) old.remove(); return; }
+    else if (BLIB.state === "plan" && Q.get("lshow") !== "1") { var old = document.getElementById("blib"); if (old) old.remove(); return; }
     var host = document.getElementById("blib");
     if (!host) { host = document.createElement("div"); host.id = "blib"; var f = document.querySelector(".gf-footer"); f.parentNode.insertBefore(host, f); }
     host.innerHTML = ""; v.render(host, BLIB);
@@ -170,6 +173,7 @@
     if (Q.get("lplay")) BLIB.start(Q.get("lplay"));
   }
   document.write('<script src="/v7/mind/variants/lib-wave.js"><\/script>');
+  if (VP && BLIB.state === "plan") document.write('<script src="/v7/mind/variants/lib-pl.js?t=' + Date.now() + '"><\/script>');
   document.write('<script src="/v7/mind/variants/lib-' + V.replace(/[^a-z0-9]/g, "") + '.js?t=' + Date.now() + '"><\/script>');
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { setTimeout(mount, 0); }); else setTimeout(mount, 0);
 })();

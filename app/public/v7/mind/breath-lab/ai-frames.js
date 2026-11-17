@@ -19,7 +19,8 @@
     belly: [F.nin, F.mouth],
     hum: [F.earIn, F.earHum],
     humFace: [F.faceIn, F.faceHum],
-    humFaceOne: [F.faceIn, ["sh-2"]],   /* final page: the hum holds one still picture */
+    humFaceOne: [F.faceIn, ["sh-2"]],   /* final page until 17 Nov 2026: the hum holds one still picture */
+    humEar: [["hum-base"], ["hh-2"]],   /* final from 17 Nov 2026 (coach): fingers closing the ears, one still picture per phase */
     exhale: [F.nin, F.nout],
     pursed: [F.nin, F.pursed]
   };
@@ -30,6 +31,9 @@
     sleep: ["hold-e", "side-mouth"], belly: ["hold-e", "side-mouth"], pursed: ["hold-e", "side-pursed"],
     hum: ["hum-base", "ear"], humFace: ["hs-base", "face"], humFaceOne: ["hs-base", "face"]
   };
+  /* CROP: a source square [x, y, size] of the 1024 image, and where a white fade starts and ends (0..1 down the square).
+     humEar is cut at the chest, so the belly is never shown: head, shoulders and arms only */
+  var CROP = { humEar: [182, 10, 660, .66, .8] };
   /* *-al copies: si/sh nudged onto the face base, in-* with the base's closed lips */
   var ALIGNED = { "si-0": 1, "si-2": 1, "sh-0": 1, "in-0": 1, "in-1": 1, "in-2": 1, "in-3": 1, "in-4": 1 };
   if (LAB.steady == null) LAB.steady = true;
@@ -59,9 +63,11 @@
   }
   LAB.aiPlayer = function (specKey, tech) {
     var seq = LAB.PAT[tech].seq, phases = SPEC[specKey];
-    var st = STEADY[specKey];
+    var st = STEADY[specKey], cr = CROP[specKey];
     phases.forEach(function (l) { l.forEach(function (k) { img(k); if (ALIGNED[k]) img(k + "-al"); }); });
-    img(st[0]); img("mask-" + st[1]);
+    if (st) { img(st[0]); img("mask-" + st[1]); }
+    /* draw an image to the full canvas, through the crop when there is one */
+    var put = function (x, im, W) { if (cr) x.drawImage(im, cr[0], cr[1], cr[2], cr[2], 0, 0, W, W); else x.drawImage(im, 0, 0, W, W); };
     return {
       build: function (stage) {
         var d = Math.min(2, window.devicePixelRatio || 1), c = document.createElement("canvas");
@@ -79,18 +85,19 @@
         /* the frame the last phase ended on: full after breathing in, empty after breathing out */
         var pi = (p.idx + seq.length - 1) % seq.length, pk = seq[pi][0], pe = pk === "in" ? 1 : pk === "out" ? 0 : (p.k === "out" ? 1 : 0);
         if (a < 1) pick(phases[pi], pk === "hold" ? 0 : pe, w, 1 - a);
-        var W = s.c.width, base = img(st[0]), m = LAB.steady && base.complete && base.naturalWidth && mask(st[1]);
+        var W = s.c.width, base = st && img(st[0]), m = st && LAB.steady && base.complete && base.naturalWidth && mask(st[1]);
         /* blend the frames additively; with steady frames on, on a side canvas cut to the mask, over the still base */
         var x = m ? s.o : s.x;
         x.globalCompositeOperation = "source-over"; x.globalAlpha = 1; x.fillStyle = "#000"; x.fillRect(0, 0, W, W);
         x.globalCompositeOperation = "lighter";
-        Object.keys(w).forEach(function (k) { if (w[k] > .001) { x.globalAlpha = Math.min(1, w[k]); x.drawImage(img(m && ALIGNED[k] ? k + "-al" : k), 0, 0, W, W); } });
+        Object.keys(w).forEach(function (k) { if (w[k] > .001) { x.globalAlpha = Math.min(1, w[k]); put(x, img(m && ALIGNED[k] ? k + "-al" : k), W); } });
         x.globalAlpha = 1;
         if (m) {
           x.globalCompositeOperation = "destination-in"; x.drawImage(m, 0, 0, W, W);
           x = s.x; x.globalCompositeOperation = "source-over"; x.drawImage(base, 0, 0, W, W); x.drawImage(s.o.canvas, 0, 0);
         }
         x.globalCompositeOperation = "source-over";
+        if (cr) { var fg = x.createLinearGradient(0, W * cr[3], 0, W * cr[4]); fg.addColorStop(0, "rgba(255,255,255,0)"); fg.addColorStop(1, "#fff"); x.fillStyle = fg; x.fillRect(0, W * cr[3], W, W * (1 - cr[3])); }
         if (hold) {   /* the hold ring: a dotted track and a gold arc closing over the hold */
           var r = W * .44, cx = W / 2, cy = W / 2, t = p.reduced ? 1 : p.t, lw = W / 170;
           x.lineCap = "round"; x.lineWidth = lw; x.strokeStyle = "rgba(243,209,97,.55)"; x.setLineDash([.1, lw * 4]);

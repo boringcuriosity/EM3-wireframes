@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Breathing Exercises</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<style>
+  /* Research doc: how each of the five coach-assigned breathing exercises should play on the Mind screen.
+     Four live variants share one engine (real timings) and differ only in how they draw and guide. */
+  :root {
+    --brand-25:#FAFFFD; --brand-50:#F3FCF8; --brand-100:#E6FAF1; --brand-200:#CBF0E0; --brand-300:#ABE6CC; --brand-600:#299D6B; --brand-700:#2A805A; --brand-900:#1D4D38;
+    --g-25:#FCFCFD; --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-400:#98A2B3; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-800:#1D2939; --g-900:#101828;
+    --in-25:#F5F8FF; --in-50:#EEF4FF; --in-100:#E0EAFF; --in-200:#C7D7FE; --in-300:#A4BCFD; --in-400:#8098F9; --in-500:#6172F3; --in-600:#444CE7; --in-700:#3538CD; --in-900:#2D31A6;
+    --gold-50:#FFFBEE; --gold-100:#FFF8E0; --gold-200:#FEF1C7; --gold-600:#E7C144; --gold-700:#CDA935; --gold-800:#A68A2D;
+    --teal-100:#E0FFFF; --teal-800:#2DA6A6;
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px;
+    --ease: cubic-bezier(.4,0,.2,1);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: #FFFFFF; font: 400 14px/21px Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: .1px; color: var(--g-700); -webkit-font-smoothing: antialiased; }
+  main { max-width: 1240px; margin: 0 auto; padding: 40px 24px 120px; }
+  h1 { margin: 0; font: 800 30px/38px Roboto, sans-serif; color: var(--brand-900); letter-spacing: -.3px; }
+  h2 { margin: 56px 0 8px; font: 800 22px/30px Roboto, sans-serif; color: var(--brand-900); }
+  h3 { margin: 24px 0 8px; font: 700 16px/24px Roboto, sans-serif; color: var(--g-900); }
+  p { margin: 0 0 12px; }
+  .lede { margin: 10px 0 0; max-width: 800px; font-size: 16px; line-height: 25px; color: var(--g-600); }
+  .callout { margin: 24px 0 0; max-width: 860px; background: var(--g-50); border: 1px solid var(--g-200); border-radius: var(--r-md); padding: 16px 20px; color: var(--g-700); }
+  .callout b { color: var(--g-900); }
+  .sub { color: var(--g-500); font-size: 13px; }
+  .num { display: inline-block; min-width: 26px; height: 26px; border-radius: 8px; background: var(--brand-900); color: #fff; font: 800 13px/26px Roboto; text-align: center; margin-right: 10px; vertical-align: 2px; }
+  a { color: var(--brand-700); }
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .toc a { text-decoration: none; font: 600 13px/32px Roboto; padding: 0 12px; border: 1px solid var(--g-200); border-radius: 999px; color: var(--g-700); }
+  .toc a:hover { border-color: var(--brand-600); color: var(--brand-700); }
+
+  /* cards and grids */
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 16px; margin-top: 16px; }
+  .box { border: 1px solid var(--g-200); border-radius: var(--r-lg); padding: 16px 18px; background: #fff; }
+  .box h4 { margin: 0 0 8px; font: 700 15px/22px Roboto; color: var(--g-900); display: flex; align-items: center; gap: 8px; }
+  .box ul { margin: 0; padding-left: 18px; }
+  .box li { margin: 4px 0; }
+  .tag { display: inline-block; font: 700 11px/18px Roboto; letter-spacing: .05em; text-transform: uppercase; border-radius: 999px; padding: 0 8px; background: var(--in-50); color: var(--in-700); }
+  .tag.g { background: var(--brand-100); color: var(--brand-700); }
+  .tag.o { background: var(--gold-100); color: var(--gold-800); }
+  .tag.r { background: #FEF3F2; color: #B42318; }
+  .take, .avoid { display: block; margin-top: 6px; font-size: 13px; line-height: 19px; }
+  .take::before { content: "Take: "; font-weight: 700; color: var(--brand-700); }
+  .avoid::before { content: "Leave: "; font-weight: 700; color: #B54708; }
+  .shot { display: block; width: 100%; max-width: 150px; border-radius: 12px; border: 1px solid var(--g-200); margin: 8px 0; background: var(--g-50); }
+  .appgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin-top: 16px; }
+  .app { display: grid; grid-template-columns: 96px 1fr; gap: 12px; border: 1px solid var(--g-200); border-radius: var(--r-lg); padding: 12px; }
+  .app img { width: 96px; border-radius: 10px; border: 1px solid var(--g-100); }
+  .app b { color: var(--g-900); }
+  .app p { margin: 4px 0 0; font-size: 13px; line-height: 19px; }
+
+  table { border-collapse: collapse; width: 100%; margin-top: 12px; font-size: 13px; line-height: 19px; }
+  th, td { text-align: left; vertical-align: top; padding: 10px 12px; border-bottom: 1px solid var(--g-200); }
+  th { font: 700 12px/16px Roboto; letter-spacing: .04em; text-transform: uppercase; color: var(--g-500); background: var(--g-50); }
+  td b { color: var(--g-900); }
+  .tw { overflow-x: auto; border: 1px solid var(--g-200); border-radius: var(--r-md); }
+  .tw table { margin: 0; }
+  .y { color: var(--brand-700); font-weight: 700; }
+  .n { color: #B54708; font-weight: 700; }
+  .m { color: var(--g-500); font-weight: 700; }
+
+  /* the variants */
+  .vgrid { display: grid; grid-template-columns: 1fr; gap: 64px; margin-top: 24px; }
+  .v { display: grid; grid-template-columns: 400px 1fr; gap: 32px; align-items: start; }
+  @media (max-width: 900px) { .v { grid-template-columns: 1fr; } }
+  .vh { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
+  .vk { font: 800 13px/18px Roboto; color: #fff; background: var(--brand-900); border-radius: 7px; padding: 2px 8px; }
+  .vn { font: 800 20px/26px Roboto; color: var(--brand-900); }
+  .rec { font: 700 11px/16px Roboto; letter-spacing: .06em; text-transform: uppercase; color: var(--brand-700); background: var(--brand-100); border-radius: 999px; padding: 3px 9px; }
+  .pros { margin: 8px 0 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: 13px; line-height: 19px; }
+  .pros li::before { content: "+"; display: inline-block; width: 16px; font-weight: 700; color: var(--brand-600); }
+  .pros li.con::before { content: "\2212"; color: #B54708; }
+  .score { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; font-size: 13px; line-height: 20px; margin-top: 8px; max-width: 520px; }
+  .score span:nth-child(even) { font-weight: 700; }
+
+  /* the controls above each phone */
+  .ctl { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; width: 360px; max-width: 100%; }
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+  .seg button, .ctl select, .ctl .tg, .ctl .bt { height: 32px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--g-200); background: #fff; font: 600 12px Roboto; color: var(--g-700); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+  .seg button[aria-pressed=true] { border-color: var(--in-600); background: var(--in-50); color: var(--in-700); }
+  .ctl .row2 { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .ctl .tg[aria-pressed=true] { border-color: var(--brand-600); background: var(--brand-50); color: var(--brand-700); }
+  .feel { width: 360px; max-width: 100%; margin-top: 10px; font: 500 12px/18px Roboto; color: var(--g-500); display: flex; gap: 8px; align-items: center; min-height: 22px; }
+  .feel b { font-weight: 700; color: var(--in-700); }
+  .feel .hz { display: inline-block; padding: 0 8px; border-radius: 999px; background: var(--in-50); color: var(--in-700); font-weight: 700; opacity: 0; transition: opacity .2s; }
+  .feel .hz.on { opacity: 1; }
+  :focus-visible { outline: 2px solid var(--brand-600); outline-offset: 2px; }
+
+  /* ---------- the real screen in a frame (390 by 844, scaled to fit) ---------- */
+  .frame { width: 332px; height: 718px; border-radius: 32px; border: 1px solid var(--g-200); overflow: hidden; box-shadow: 0 24px 48px -12px rgba(16,24,40,.14); background: #fff; }
+  .frame iframe { width: 390px; height: 844px; border: 0; transform: scale(.851); transform-origin: 0 0; }
+  .full { display: block; width: 332px; margin-top: 8px; font-size: 11px; line-height: 16px; color: var(--g-500); word-break: break-all; }
+  /* ---------- the phone ---------- */
+  .phone { position: relative; width: 360px; height: 740px; max-width: 100%; border-radius: 36px; border: 1px solid var(--g-200); background: #fff; overflow: hidden; box-shadow: 0 24px 48px -12px rgba(16,24,40,.14); }
+  .ps { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; font: 600 14px Roboto; color: var(--g-900); }
+  .pscroll { position: absolute; top: 44px; left: 0; right: 0; bottom: 0; overflow-y: auto; padding: 4px 16px 24px; }
+  .ah { display: flex; align-items: center; justify-content: space-between; margin: 4px 0 12px; }
+  .ah h5 { margin: 0; font: 700 22px/28px Roboto; color: var(--g-900); }
+  .chip { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; background: var(--teal-100); color: #1F7A7A; font: 700 13px Roboto; font-variant-numeric: tabular-nums; }
+  .kl { border: 1px solid var(--g-200); border-radius: var(--r-md); padding: 12px 14px; font-size: 13px; line-height: 19px; color: var(--g-700); margin-bottom: 20px; }
+  .kl b { font: 800 11px Roboto; letter-spacing: .08em; color: var(--in-700); display: block; margin-bottom: 2px; }
+  .sh { font: 700 16px/24px Roboto; color: var(--g-900); margin: 0 0 8px; }
+  .pc { border: 1px solid var(--g-200); border-radius: var(--r-lg); padding: 4px 14px 8px; }
+  .gl { font: 600 12px/16px Roboto; color: var(--g-500); margin: 12px 0 4px; letter-spacing: .02em; }
+  .pr { display: flex; align-items: center; gap: 14px; padding: 10px 0; }
+  .pr + .pr { border-top: 1px solid var(--g-100); }
+  .pr .t { flex: 1; min-width: 0; text-align: left; background: none; border: 0; padding: 0; font: inherit; cursor: pointer; display: flex; flex-direction: column; gap: 2px; }
+  .pr .t b { font: 600 14px/20px Roboto; color: var(--g-900); }
+  .pr .t span { font-size: 12px; line-height: 16px; color: var(--g-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pr.static .t { cursor: default; }
+  .tmk { width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--g-300); flex: 0 0 auto; display: grid; place-items: center; margin: 0 8px; }
+  .tmk.on { background: var(--brand-600); border-color: var(--brand-600); }
+  .tmk svg { width: 12px; height: 12px; }
+  .gi { position: relative; width: 40px; height: 40px; border-radius: 12px; flex: 0 0 auto; display: grid; place-items: center; background: var(--in-25); color: var(--in-600); border: 1px solid var(--in-100); }
+  .gi svg.g { width: 20px; height: 20px; }
+  .gi svg.ring { position: absolute; inset: -4px; width: 48px; height: 48px; transform: rotate(-90deg); }
+  .gi.on { background: var(--brand-50); color: var(--brand-700); border-color: var(--brand-100); }
+  .act { height: 40px; padding: 0 16px; border-radius: 6px; border: 1px solid var(--brand-600); background: #fff; color: var(--brand-700); font: 600 14px Roboto; cursor: pointer; flex: 0 0 auto; box-shadow: 0 3px 0 var(--brand-200); }
+  .act:active { transform: translateY(3px); box-shadow: none; }
+  .okb { width: 24px; height: 24px; border-radius: 50%; background: var(--brand-600); display: grid; place-items: center; flex: 0 0 auto; margin-right: 8px; }
+  .okb svg { width: 12px; height: 12px; }
+
+  /* the sheet, as GFOpenSheet draws it */
+  .scrim { position: absolute; inset: 0; background: rgba(0,0,0,.5); opacity: 0; pointer-events: none; transition: opacity .3s ease-out; z-index: 4; }
+  .phone.open .scrim { opacity: 1; pointer-events: auto; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; max-height: 90%; display: flex; flex-direction: column; background: #fff; border-radius: 16px 16px 0 0; transform: translateY(100%); transition: transform .3s ease-out, background-color .6s var(--ease), color .6s var(--ease); z-index: 5; box-shadow: 0 20px 25px -5px rgba(0,0,0,.1); }
+  .phone.open .sheet { transform: translateY(0); }
+  .shead { flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 16px 8px; }
+  .shead h4 { margin: 0; font: 600 18px/24px Roboto; color: inherit; }
+  .shead .x { width: 44px; height: 44px; margin: 0 -6px 0 0; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; border-radius: 999px; }
+  .sbody { overflow-y: auto; padding: 0 16px 24px; }
+  .msub { margin: -4px 0 12px; font-size: 12px; line-height: 18px; color: var(--g-500); }
+  .steps { margin: 4px 0 12px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .steps li { display: flex; gap: 12px; align-items: baseline; font-size: 14px; line-height: 20px; color: var(--g-800); }
+  .steps b { min-width: 34px; color: var(--in-700); font-variant-numeric: tabular-nums; }
+  .tip { font-size: 13px; line-height: 19px; color: var(--g-700); background: var(--gold-50); border: 1px solid var(--gold-200); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px; }
+  .opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; border-top: 1px solid var(--g-100); font-size: 14px; color: var(--g-800); }
+  .opt small { display: block; font-size: 12px; color: var(--g-500); }
+  .sw { position: relative; width: 44px; height: 26px; border-radius: 999px; border: 0; background: var(--g-200); cursor: pointer; flex: 0 0 auto; transition: background .2s var(--ease); }
+  .sw::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(16,24,40,.2); transition: transform .2s var(--ease); }
+  .sw[aria-checked=true] { background: var(--brand-600); }
+  .sw[aria-checked=true]::after { transform: translateX(18px); }
+  .disc { border: 0; background: none; padding: 0; font: 600 13px/32px Roboto; color: var(--brand-700); cursor: pointer; }
+  .save { width: 100%; height: 48px; border: 0; border-radius: 6px; background: var(--brand-600); color: #fff; font: 600 16px Roboto; cursor: pointer; box-shadow: 0 4px 0 var(--brand-700); }
+  .save:active { transform: translateY(4px); box-shadow: none; }
+  .sec { height: 48px; border-radius: 6px; border: 1px solid var(--brand-600); background: #fff; color: var(--brand-700); font: 600 16px Roboto; cursor: pointer; box-shadow: 0 4px 0 var(--brand-200); }
+  .sec:active { transform: translateY(4px); box-shadow: none; }
+  .two { display: flex; gap: 10px; margin-top: 8px; }
+  .two > * { flex: 1; }
+  .ib { width: 48px; flex: 0 0 48px !important; height: 48px; border-radius: 6px; border: 1px solid var(--g-200); background: #fff; color: var(--g-700); display: grid; place-items: center; cursor: pointer; }
+  .ib svg { width: 20px; height: 20px; }
+  .ib[aria-pressed=true] { color: var(--in-700); border-color: var(--in-200); background: var(--in-25); }
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--g-200); background: #fff; font: 500 13px Roboto; color: var(--g-700); cursor: pointer; }
+  .pill[aria-pressed=true] { border-color: var(--brand-200); background: var(--brand-50); color: var(--brand-700); }
+
+  /* the player */
+  .pl { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .vis { position: relative; width: 248px; height: 248px; display: grid; place-items: center; transition: opacity 1.2s var(--ease); }
+  .vis.sm { width: 168px; height: 168px; }
+  .vis svg.p { width: 100%; height: 100%; overflow: visible; }
+  .word { margin-top: 12px; font: 600 22px/28px Roboto; color: var(--g-900); min-height: 28px; }
+  .hint { margin-top: 4px; font-size: 14px; line-height: 20px; color: var(--g-600); min-height: 20px; }
+  .cnt { font: 700 15px/20px Roboto; color: var(--gold-800); font-variant-numeric: tabular-nums; min-height: 20px; margin-top: 2px; }
+  .sess { width: 100%; margin: 14px 0 6px; display: flex; align-items: center; gap: 10px; font: 500 12px Roboto; color: var(--g-500); font-variant-numeric: tabular-nums; }
+  .bar { flex: 1; height: 4px; border-radius: 999px; background: var(--g-100); overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--in-500); border-radius: 999px; }
+  .orbw { position: absolute; inset: 0; display: grid; place-items: center; }
+  .orb { width: 200px; height: 200px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, var(--in-200), var(--in-500) 70%, var(--in-600)); transform: scale(.56); will-change: transform; }
+  .orb.zen { background: radial-gradient(circle at 38% 32%, var(--brand-200), var(--brand-600) 75%, var(--brand-700)); }
+  .orbw svg { position: absolute; width: 228px; height: 228px; transform: rotate(-90deg); }
+  .orbw .ow { position: absolute; font: 600 18px Roboto; color: #fff; opacity: 0; transition: opacity 1.2s var(--ease); }
+  .orbw .ow.on { opacity: 1; }
+  .done .orb { background: radial-gradient(circle at 38% 32%, var(--brand-200), var(--brand-600) 80%); }
+  .big { font: 700 24px/30px Roboto; color: var(--g-900); margin-top: 8px; }
+  .line { font-size: 14px; line-height: 21px; color: var(--g-600); margin: 6px 0 16px; max-width: 300px; }
+  .lab { font: 600 12px/16px Roboto; color: var(--g-500); margin: 0 0 8px; text-align: left; width: 100%; }
+  .cdn { position: absolute; font: 700 44px Roboto; color: var(--in-700); font-variant-numeric: tabular-nums; }
+
+  /* variant C, Sleep at night */
+  .sheet.night { background: #101828; color: #F2F4F7; }
+  .sheet.night .word { color: #F2F4F7; }
+  .sheet.night .hint, .sheet.night .sess, .sheet.night .msub, .sheet.night .line { color: #98A2B3; }
+  .sheet.night .orb { background: radial-gradient(circle at 38% 32%, #3E4784, #2D31A6 70%, #1F235B); }
+  .sheet.night .bar { background: #1D2939; }
+  .sheet.night .bar i { background: #3538CD; }
+  .sheet.night .sec, .sheet.night .ib { background: transparent; border-color: #344054; color: #D0D5DD; box-shadow: none; }
+  .sheet.night .save { background: #2D31A6; box-shadow: none; }
+  .sheet.night .steps li { color: #D0D5DD; }
+  .sheet.night .steps b { color: #A4BCFD; }
+  .sheet.night .tip { background: #1D2939; border-color: #344054; color: #D0D5DD; }
+  .sheet.night .opt { border-color: #1D2939; color: #D0D5DD; }
+  .sheet.dim .vis { opacity: .35; }
+  .sheet.dim .two, .sheet.dim .sess { opacity: .3; transition: opacity 1.2s var(--ease); }
+  .settle .vis { opacity: .22; }
+  .settle .word { opacity: .5; }
+  .zenw { position: absolute; font: 300 34px/40px Roboto; color: var(--brand-900); letter-spacing: .5px; opacity: 0; transition: opacity 1.5s var(--ease); }
+  .zenw.on { opacity: 1; }
+  .withu { color: var(--brand-700) !important; }
+
+  /* the toast inside the phone */
+  .ptoast { position: absolute; left: 16px; right: 16px; top: 52px; z-index: 6; display: flex; gap: 10px; align-items: center; padding: 10px 14px; border-radius: 12px; border: 1px solid #039855; background: #ECFDF3; color: var(--g-800); font-size: 13px; line-height: 18px; opacity: 0; transform: translateY(-8px); transition: opacity .3s ease-out, transform .3s ease-out; pointer-events: none; }
+  .ptoast.on { opacity: 1; transform: none; }
+  .ptoast i { width: 22px; height: 22px; border-radius: 50%; background: #039855; display: grid; place-items: center; flex: 0 0 auto; }
+
+  /* before and after rows */
+  .ba { display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 24px; margin-top: 16px; }
+  .ba .pc { padding: 4px 14px; }
+  .ba .pr .t span { white-space: normal; }
+  .stl { font: 700 11px/16px Roboto; letter-spacing: .06em; text-transform: uppercase; color: var(--g-400); margin: 12px 0 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sheet, .scrim, .ptoast, .vis, .orbw .ow, .zenw, .sw::after { transition-duration: .01s !important; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Breathing: one player, or one for each exercise?</h1>
+  <p class="lede">A coach can assign five breathing exercises, each with minutes and a time of day. This doc studies how each one should play on the Mind screen: what the reflection app does today, what the techniques actually ask of the body, what other apps do, and four live ways to build it. Every frame below is the real Mind screen playing the variant, with all five exercises at their real timings.</p>
+  <div class="callout"><b>The principle at stake.</b> Breathing is the one task in the plan the person does with their body, often with their eyes half closed. The screen has to lead the breath, then get out of the way. Consistency matters for the controls they touch (Start, Pause, End). The picture they follow can differ, because tracing a star and holding for seven counts are different jobs.</div>
+  <nav class="toc" aria-label="Sections">
+    <a href="#problem">The problem</a><a href="#scenarios">Scenarios</a><a href="#today">Reflection app today</a><a href="#tech">The five techniques</a><a href="#others">What others do</a><a href="#compare">Comparison</a><a href="#variants">Variants</a><a href="#row">The row, before and after</a><a href="#feel">Haptics and sound</a><a href="#rec">Recommendation</a><a href="#open">Open questions</a>
+  </nav>
+
+  <!-- 1 -->
+  <h2 id="problem"><span class="num">1</span>The problem</h2>
+  <div class="cols">
+    <div class="box"><h4>Who</h4><p>Adults in India managing diabetes, weight or blood pressure, most between 30 and 60. Breathing exercises are new to many of them. Some have tried pranayama and know "hold" and "slow out" from yoga class, which helps with 4-7-8 and Box.</p></div>
+    <div class="box"><h4>When</h4><ul><li>After lunch at a desk, or in a short break at work.</li><li>Before a stressful moment: a meeting, a sugar test, a doctor visit.</li><li>In bed with the lights low (Sleep Breathing is made for this).</li><li>At the coach's time of day, nudged by a reminder.</li></ul></div>
+    <div class="box"><h4>State of mind</h4><ul><li>Often tense or tired, short of time, and a little unsure whether they are "doing it right".</li><li>Likely in company: sound may be off, so the phone must guide by sight and touch.</li><li>Interruptions are normal: a call, a child, a colleague.</li><li>Holding the breath can feel uncomfortable for people with high blood pressure or anxiety.</li></ul></div>
+    <div class="box"><h4>What they need from the screen</h4><ul><li>Know exactly what to do before starting, in one look.</li><li>While breathing, one thing to follow and one word to read.</li><li>Stop any time without losing what they did.</li><li>A clear "done" that counts towards their Rhythm score.</li></ul></div>
+  </div>
+
+  <!-- 2 -->
+  <h2 id="scenarios"><span class="num">2</span>Scenarios</h2>
+  <p class="sub">Listed before designing. Every variant below handles all of them; the variant notes call out where one handles a scenario better.</p>
+  <div class="cols">
+    <div class="box"><h4>The row on the Mind screen</h4><ul>
+      <li>Not started today, coach's time is later.</li><li>Coach's time has arrived (reminder brought them in).</li><li>Paused earlier, sheet closed mid-session.</li><li>Part done: some minutes saved, the rest still open.</li><li>Done for today.</li><li>Two or three exercises assigned on the same day.</li><li>No breathing in the plan (the row is absent).</li><li>The coach changes the exercise mid-day: the new one shows, saved minutes stay.</li></ul></div>
+    <div class="box"><h4>Ready (before starting)</h4><ul>
+      <li>First time ever with this exercise.</li><li>Done it before: wants to start fast.</li><li>Holds feel too long: a shorter count (Sleep and Box).</li><li>In public: sound off, buzz on.</li><li>Eyes closed preferred (Sleep, 5 Finger).</li><li>Changes their mind and closes the sheet.</li></ul></div>
+    <div class="box"><h4>Running</h4><ul>
+      <li>Phase changes: in, hold, out, rest.</li><li>Loses their place and needs the next step.</li><li>Feels light-headed during a hold.</li><li>Phone call or app goes to the background.</li><li>Screen locks or dims.</li><li>Closes the sheet with the X.</li><li>Time is up mid-breath: finish the breath out.</li></ul></div>
+    <div class="box"><h4>Paused and ending early</h4><ul>
+      <li>Paused, then resumes where they were.</li><li>Ends under a minute: too short to save.</li><li>Ends after a minute or more: save those minutes.</li><li>Comes back later the same day to finish the rest.</li><li>Leaves it paused overnight: the next day starts fresh.</li></ul></div>
+    <div class="box"><h4>Done</h4><ul>
+      <li>Finishes the coach's minutes: saved straight away.</li><li>Answers "How do you feel now?" or skips it.</li><li>Closes with the X on the done screen: still saved.</li><li>Rhythm score moves by the breathing share.</li><li>Wants to do it again: extra minutes are welcome and change nothing.</li></ul></div>
+    <div class="box"><h4>Access and edge cases</h4><ul>
+      <li>Reduced motion is on.</li><li>Screen reader: each phase is announced once.</li><li>Large text: phase word and controls still fit.</li><li>Offline: the session plays and saves later.</li><li>Battery saver blocks haptics: the visual still leads.</li></ul></div>
+  </div>
+
+  <!-- 3 -->
+  <h2 id="today"><span class="num">3</span>The reflection app today</h2>
+  <p>Studied two ways, read only. In Chrome, the public home and the demo account's Templates page (it shows the Zen Flow card; I did not press Start, because starting writes a session row to the app's database). The other four exercises are documented from the app's own source code in <code>mind-lovable/src/components/modules/</code>, which is the same app. Each is a separate card with its own colour, one shared timing engine (<code>useBreathingEngine</code>) and the same control row.</p>
+  <div class="cols">
+    <div class="box"><h4><span class="tag">Indigo card</span> Sleep Breathing</h4>
+      <p><b>What you see.</b> Title "Sleep-Inducing Breathing Technique". Three circles in a row reading 4s, 7s, 8s (Inhale, Hold, Exhale) joined by arrows. Below, a soft indigo bubble with "Ready" in it. When running, the bubble grows over 4 s, holds big for 7 s, shrinks over 8 s, with a big countdown number inside, a thin bar filling per phase and "Completed cycles". The active step circle gets a ring. Footer: "Repeat this cycle 3-4 times before sleep for best results."</p>
+      <p><b>Timing.</b> 4 in, 7 hold, 8 out. 19 s a cycle. Runs until Stop.</p>
+      <span class="take">The three step circles: the pattern in one look.</span>
+      <span class="avoid">Three progress signals at once (step ring, countdown, bar). The footer says 3 to 4 cycles, yet nothing stops or rests after four.</span></div>
+    <div class="box"><h4><span class="tag g">Green card</span> Zen Flow Breathing</h4>
+      <p><b>What you see</b> (seen live). A pale green circle with "Ready" in it, inside a faint outer ring. Under it a teal "Start Exercise" button with a speaker icon beside it. Then four numbered steps: Breathe In, Breathe Out (repeat a calming word), Stay Present, Repeat for 1 to 5 minutes. Below a rule, "Calming words to use" with three chips: Peace, Relax, Let go.</p>
+      <p><b>Timing.</b> 4 in, 6 out. 6 breaths a minute.</p>
+      <span class="take">The calming word. It is the whole point of this exercise.</span>
+      <span class="avoid">The word never appears during the breathing; it sits in chips below the fold.</span></div>
+    <div class="box"><h4><span class="tag o">Amber card</span> Star Breathing</h4>
+      <p><b>What you see.</b> Three written steps (trace up and breathe in, hold at the point, breathe out down the other side). A five-point star outline in amber with small labels around it: "Breathe in" at the top tip, "Hold" at the side tips, "Breathe out" at the bottom right. A dot travels the outline. Under it, "Breathe in, 4s" style text and "Completed stars". A colour legend (amber in, purple hold, blue out).</p>
+      <p><b>Timing.</b> Each point: 4 s down, 4 s up, 2 s hold at the tip. 50 s a star.</p>
+      <span class="take">A path to follow is the right idea for tracing.</span>
+      <span class="avoid">The dot starts at the top tip and goes down first, so the session opens on a breath out. The colour legend does not match the path, which is all amber. Labels sit at only some tips.</span></div>
+    <div class="box"><h4><span class="tag">Teal card</span> 5 Finger Breathing</h4>
+      <p><b>What you see.</b> Title "5 Finger Breathing, Calm Brain Break". A spiky hand outline (straight lines, pointed fingertips) with a teal dot. Text like "Breathe in, Thumb, 3s". Below the controls, a stock photo of a hand and five written steps ending "Continue across all five fingers, then reverse."</p>
+      <p><b>Timing.</b> 4 s up each finger, 4 s down. 40 s a hand.</p>
+      <span class="take">Naming the finger: it tells you where you are.</span>
+      <span class="avoid">The steps say reverse, the dot jumps from the little finger back to the thumb. Pointed fingertips do not look like a hand. The photo repeats what the outline already shows.</span></div>
+    <div class="box"><h4><span class="tag">Teal card</span> Box Breathing</h4>
+      <p><b>What you see.</b> A pale square outline with "Ready" in the middle. When running, a green dot travels the edges with a big countdown in the centre and the phase word above it. Footer: "Use anytime you need a reset".</p>
+      <p><b>Timing.</b> 4 in, 4 hold, 4 out, 4 hold. 16 s a box.</p>
+      <span class="take">Four sides, four steps: the shape is the pattern.</span>
+      <span class="avoid">The dot starts top left and travels along the top while you breathe in, so "in" moves sideways and "out" moves along the bottom. Up for in and down for out is the natural map.</span></div>
+    <div class="box"><h4>Shared by all five</h4><ul>
+      <li>No length: the session runs until Stop, so the coach's minutes cannot be honoured.</li>
+      <li>Stop is a red, destructive button, and it resets to zero. There is no pause.</li>
+      <li>Nothing marks a session as done or counted.</li>
+      <li>Sound on by default: soft rising tone on in, falling tone on out, a low tick on hold. No haptics.</li>
+      <li>No reduced-motion handling; the countdown changes every second throughout.</li>
+      <li>Five colour themes for one kind of task.</li></ul></div>
+  </div>
+
+  <!-- 4 -->
+  <h2 id="tech"><span class="num">4</span>The five techniques, by the evidence</h2>
+  <p>What the body is asked to do decides what the screen should draw. Timings in bold are what the prototypes use. Where they differ from the reflection app, the reason is given.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Exercise</th><th>Timing</th><th>Pace</th><th>What it asks of you</th><th>Best for</th><th>Care</th><th>So the screen should</th></tr></thead>
+    <tbody>
+      <tr><td><b>Sleep Breathing</b><br>4-7-8</td><td><b>4 in, 7 hold, 8 out</b>. Rounds of 4 breaths, then 15 s of normal breathing.</td><td>19 s a breath, about 3 a minute</td><td>A long hold and a very long, slow breath out through the mouth.</td><td>Falling asleep, in bed. Lowered heart rate and raised heart rate variability after three sets in a lab study of 43 adults.</td><td>Dr Weil, who made it, advises four breaths at a time for the first month. Some people feel light-headed. Holds raise blood pressure briefly; shorten them with uncontrolled high blood pressure or in pregnancy. A faster count is fine if the 4:7:8 ratio holds.</td><td>Count the hold (there is nothing to follow in a hold). Draw the long breath out. Rest after four. Offer a shorter count.</td></tr>
+      <tr><td><b>Zen Flow</b></td><td><b>4 in, 6 out</b></td><td>6 a minute</td><td>Slow breathing with a longer breath out, and a calming word said silently on the way out.</td><td>Anyone, any time, even walking. About six breaths a minute shows the most reliable calming effect across studies (Zaccaro 2018).</td><td>Very low. The easiest of the five for a first-timer.</td><td>Put the chosen word on screen during the breath out. Keep everything else quiet.</td></tr>
+      <tr><td><b>Star Breathing</b></td><td><b>4 in up a side, 2 hold at the point, 6 out down</b>. Starts at an inner corner.</td><td>12 s a point, one star a minute</td><td>Follow a shape. Up is in, the tip is a pause, down is out.</td><td>A busy or anxious mind: the shape gives attention a job. Visual learners, and anyone who finds counting stressful.</td><td>No trial on star breathing itself; its benefit comes from slow breathing. The reflection app's 4 out matched 4 in; a longer breath out is the calmer choice, and it makes a neat one star per minute.</td><td>Draw the star and a guide that climbs and slides. Start low so the first breath is in.</td></tr>
+      <tr><td><b>5 Finger Breathing</b></td><td><b>4 in up a finger, 6 out down</b>. Thumb to little finger, then back.</td><td>10 s a finger, 100 s there and back</td><td>Trace your own hand with a finger of the other hand. Touch adds grounding.</td><td>Discreet: in a meeting, a waiting room, before a test. Eyes can leave the screen once learned.</td><td>No trial on its own; the benefit comes from slow breathing and grounding.</td><td>Teach on the screen, then let the hand take over. Name the finger. Reverse at the little finger, as the steps say.</td></tr>
+      <tr><td><b>Box Breathing</b></td><td><b>4 in, 4 hold, 4 out, 4 hold</b></td><td>16 s a box, under 4 a minute</td><td>Four equal steps, two of them holds.</td><td>Steadying focus before something stressful. In the 2023 Stanford trial (Balban), five minutes a day helped mood; cyclic sighing helped more.</td><td>Same as 4-7-8 on holds. Shorten them to 2 if they feel tight.</td><td>Up the left side for in, across the top to hold, down for out, across the bottom to hold. Count the holds.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="sub" style="margin-top:10px">Note: the Mind screen's sample plan (<code>plan.js</code>) uses "Cyclic sighing", which the coach cannot pick from the five. It has the strongest evidence of all for mood in five minutes a day. See the open questions.</p>
+
+  <!-- 5 -->
+  <h2 id="others"><span class="num">5</span>What others do</h2>
+  <p class="sub">Screens from Mobbin (iOS). Images are hotlinked previews and may expire; each card links to the screen.</p>
+  <div class="appgrid" id="apps"></div>
+
+  <!-- 6 -->
+  <h2 id="compare"><span class="num">6</span>The spectrum, side by side</h2>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>A. One orb</th><th>B. One shell, own guide</th><th>C. Five rooms</th><th>D. Learn, then let go</th></tr></thead>
+    <tbody>
+      <tr><td><b>What changes per exercise</b></td><td>Only the rhythm and the words</td><td>The picture inside the same sheet</td><td>Everything: picture, colours, ready screen, layout</td><td>The picture, plus the guide fades once you have the rhythm</td></tr>
+      <tr><td><b>Star and 5 Finger</b></td><td class="n">An orb; the path is only described</td><td class="y">A path with a guide on it</td><td class="y">Trace the star yourself; a hand with named fingers</td><td class="y">A path, then eyes off the screen</td></tr>
+      <tr><td><b>4-7-8 hold</b></td><td class="m">Count shown throughout</td><td class="y">Ring and count on holds only</td><td class="y">Night sheet, no numbers</td><td class="y">Ring and count, then sound and buzz</td></tr>
+      <tr><td><b>Controls</b></td><td class="y">Same everywhere</td><td class="y">Same everywhere</td><td class="n">Placed per exercise</td><td class="y">Same everywhere</td></tr>
+      <tr><td><b>Eyes-closed use</b></td><td class="m">Possible with sound</td><td class="m">Possible with sound</td><td class="y">Sleep only</td><td class="y">Designed for it</td></tr>
+      <tr><td><b>Build</b></td><td class="y">One component</td><td class="y">One shell, five small visuals</td><td class="n">Five screens to build and keep in step</td><td class="m">B, plus a settle mode</td></tr>
+    </tbody>
+  </table></div>
+
+  <!-- 7 -->
+  <h2 id="variants"><span class="num">7</span>Variants</h2>
+  <p>Each frame is the real Mind screen (<code>/v7/mind/index.html</code>) drawing the variant from <code>variants/breath.js</code>. Pick the exercise, the state, the coach's minutes, first time or done before, reduced motion, and a faster speed for review; the frame reloads in that state. Everything inside is live: Start, Pause, End, the X (it pauses), and the row after you close. Timings are real at 1×. Haptics fire on Android through the vibration API; on a laptop they are silent.</p>
+  <div class="vgrid" id="variantsHost"></div>
+
+  <!-- 8 -->
+  <h2 id="row"><span class="num">8</span>The row on the Mind screen, before and after</h2>
+  <p>Today the breathing row borrows the tick circle from steps that tick in place, yet tapping it opens a player, and it describes the technique in the same words for every state. After: the exercise's own glyph leads the row (the same glyph the player uses), a thin ring around it fills with saved minutes, the title stays put, and only the line under it and the one button change.</p>
+  <div class="ba" id="ba"></div>
+
+  <!-- 9 -->
+  <h2 id="feel"><span class="num">9</span>Haptics and sound</h2>
+  <div class="cols">
+    <div class="box"><h4>Haptics (on by default)</h4><ul>
+      <li><b>Breathe in:</b> one light tap at the start; on iOS a soft continuous rise across the breath (Core Haptics), like Apple Watch Breathe.</li>
+      <li><b>Hold:</b> two quick light taps at the start, nothing during.</li>
+      <li><b>Breathe out:</b> one medium tap; on iOS a slow fade across the breath.</li>
+      <li><b>Rest (4-7-8):</b> nothing; the quiet is the cue.</li>
+      <li><b>Done:</b> three gentle taps.</li>
+      <li>Off when the phone is on silent? Apple keeps haptics on silent; so should we. A setting turns them off.</li></ul></div>
+    <div class="box"><h4>Sound (off by default, remembered)</h4><ul>
+      <li>Soft sine tones, as the reflection app has: rising on in, a low single tone on hold, falling on out. Volume follows the phone.</li>
+      <li>Sleep Breathing at night: tones one step lower and quieter.</li>
+      <li>Later: a recorded voice in Hindi and English for first-timers ("Breathe in through your nose").</li>
+      <li>Default off because most sessions happen in company; variant D asks for sound when the guide fades.</li></ul></div>
+    <div class="box"><h4>Screen and system</h4><ul>
+      <li>Keep the screen awake while running (Wake Lock).</li>
+      <li>App to background, call, lock: pause at that second, save nothing yet.</li>
+      <li>Screen reader: announce the phase word once per phase, never the countdown.</li>
+      <li>Reduced motion: the orb stops scaling and brightens and dims instead; the path draws in one-second steps with no moving dot.</li></ul></div>
+  </div>
+
+  <!-- 10 -->
+  <h2 id="rec"><span class="num">10</span>Recommendation</h2>
+  <div class="callout" style="max-width:none"><b>B, one shell with a guide made for each exercise.</b> The person learns one set of controls (Start, Pause, End, the same session bar) and one way of ending early, so a second or third exercise feels familiar. Inside that shell each exercise gets the picture its technique needs: a hold ring and count for 4-7-8, the calming word for Zen Flow, a star and a hand to trace, four sides for Box. It fixes every problem found in the reflection app at the cost of five small drawings inside one screen.<br><br>
+  Take two things from the others. From <b>C</b>, the night look for Sleep Breathing after 9 PM, because a bright sheet in a dark bedroom works against the exercise. From <b>D</b>, the settle mode as an option the person turns on, for Sleep and 5 Finger first, where eyes-off is the goal.<br><br>
+  <b>The catch:</b> five visuals means five things to test with reduced motion, large text and a screen reader. The engine stays one, which keeps timings honest.</div>
+  <h3>Finishing early, in all variants</h3>
+  <p>Minutes add up through the day. A session of a minute or more saves its whole minutes, and the row shows "2 of 5 min" with Finish to do the rest later. The breathing share of the score (10 points) fills in proportion; on the prototype screen only a full session counts for now, since the score reads breathing as done or not done. Under a minute is too short to save. When the time is up mid-breath, the guide finishes the breath out before ending, so nobody is cut off holding.</p>
+
+  <!-- 11 -->
+  <h2 id="open"><span class="num">11</span>Open questions</h2>
+  <div class="cols">
+    <div class="box"><h4>1. What counts when someone ends early?</h4><ul>
+      <li><b>Minutes add up (recommended).</b> Save whole minutes, score in proportion, finish later. Honest and kind.</li>
+      <li><b>Any session counts in full.</b> Simplest, but two seconds earns the same as fifteen minutes.</li>
+      <li><b>Half or more counts in full.</b> One rule to explain; anything under half is lost.</li>
+      <li><b>Only the full time counts.</b> Clear, but punishes interruptions.</li></ul></div>
+    <div class="box"><h4>2. 4-7-8 longer than a few minutes</h4><ul>
+      <li><b>Rounds of 4 with rests (recommended).</b> Follows Dr Weil; 5 min is about 3 rounds.</li>
+      <li><b>Cap at 4 breaths in the coach portal.</b> Sleep Breathing becomes a 2 minute item only.</li>
+      <li><b>Play straight through.</b> As today; risks light-headedness for beginners.</li></ul></div>
+    <div class="box"><h4>3. Cyclic sighing</h4><ul>
+      <li><b>Add it as a sixth exercise (recommended).</b> Best evidence for daily mood; easy shared-shell visual (two short climbs, one long fall).</li>
+      <li><b>Replace Zen Flow with it.</b> Keeps five; loses the calming word.</li>
+      <li><b>Leave the five as they are.</b> Change plan.js's sample to one of the five.</li></ul></div>
+    <div class="box"><h4>4. Night look for Sleep Breathing</h4><ul>
+      <li><b>Dark sheet after 9 PM (recommended).</b> Kind to eyes in bed; a deliberate exception to white.</li>
+      <li><b>Always dark for Sleep Breathing.</b> Consistent for that exercise; odd at 2 PM.</li>
+      <li><b>Always white.</b> Follows the white rule; bright in a dark room.</li></ul></div>
+    <div class="box"><h4>5. Calming words for Zen Flow</h4><ul>
+      <li><b>Peace, Relax, Let go, plus Shanti and Sukoon (recommended).</b> Familiar words in Hindi and Urdu feel personal.</li>
+      <li><b>Peace, Relax, Let go only.</b> As the reflection app.</li>
+      <li><b>Let the person type their own.</b> Most personal; more to design.</li></ul></div>
+    <div class="box"><h4>6. Settle mode (from D)</h4><ul>
+      <li><b>Off by default, offered on Sleep and 5 Finger (recommended).</b></li>
+      <li><b>On for everyone after the third session.</b> More eyes-off practice; some will think the screen froze.</li>
+      <li><b>Leave it out.</b> Simplest.</li></ul></div>
+  </div>
+
+  <h2>Sources</h2>
+  <ul class="sub">
+    <li>Reflection app: goodflip-reflection.lovable.app (home and demo Templates page, read only) and its source in mind-lovable/src (modules, useBreathingEngine, breathSounds).</li>
+    <li><a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9277512/">Effects of 4-7-8 breathing on heart rate variability and blood pressure (PMC9277512)</a>; <a href="https://www.breathingexercises.com/techniques/4-7-8-breathing/">4-7-8: four cycles for the first month</a>.</li>
+    <li><a href="https://www.cell.com/cell-reports-medicine/pdf/S2666-3791(22)00474-8.pdf">Balban et al. 2023, Cell Reports Medicine: brief structured respiration practices</a>.</li>
+    <li><a href="https://www.frontiersin.org/journals/human-neuroscience/articles/10.3389/fnhum.2018.00353/full">Zaccaro et al. 2018, slow breathing systematic review</a>.</li>
+    <li><a href="https://ggie.berkeley.edu/practice/finger-tracing-mindful-breathing-for-students">Finger tracing breathing (Greater Good in Education)</a>; <a href="https://www.uhd.nhs.uk/uploads/about/docs/wellbeing/take_5_breathing.pdf">Take 5 breathing (NHS)</a>.</li>
+    <li><a href="https://www.medicalnewstoday.com/articles/321805">Box breathing</a>; <a href="https://casrai.org/salud/en/guides/breathwork">Breathwork safety: holds and blood pressure</a>.</li>
+    <li><a href="https://support.apple.com/guide/watch/start-a-reflect-or-breathe-session-apd371dfe3d7/watchos">Apple Watch Breathe: haptics and breath rate</a>.</li>
+    <li>Mobbin screens linked on each card in section 5.</li>
+  </ul>
+</main>
+
+<script>
+(function () {
+  "use strict";
+  var APPS = [
+    ["Breathwrk", "https://mobbin.com/api/mcp/short/ufhOSz9o", "https://mobbin.com/screens/8e5f532d-9e5c-4e0d-9b9d-0dac373264ff", "Ready screen: a nose icon with 4 and a mouth icon with 6 sit at the top, the body cue under the name, a big Start, a duration chip (5 min) and a haptics button beside it. The same nose and mouth badge stays on screen while running.", "The nose 4, mouth 6 badge: the pattern without reading.", "Levels and streak counts on the done screen."],
+    ["Calm Sleep", "https://mobbin.com/api/mcp/short/inq34PWv", "https://mobbin.com/screens/54e3f825-c301-4fc9-a3d1-3b72bc658591", "A soft blurred orb with a thin ring around it; small dots on the ring mark where each phase starts. Breathe In below, then like, pause and sound buttons.", "Phase marks on a ring: you see a hold coming.", "A like button in the middle of a breath."],
+    ["Finch", "https://mobbin.com/api/mcp/short/QASZFWJP", "https://mobbin.com/screens/c5e3f554-cc6a-4b67-97a0-9685782907a7", "Inhale with Nose under it inside the orb. Before starting: length chips 1, 3, 5, 10 min and a breath type, Normal or Easier. Running: one progress bar and one Pause.", "An Easier option: our Shorter count.", "Choosing length in the player; our coach sets it."],
+    ["Life Reset", "https://mobbin.com/api/mcp/short/RVwDXxPS", "https://mobbin.com/screens/adc1b576-832c-4cfd-a116-1985ccd117e9", "Box Breathing ready screen: four steps with arrow and pause icons and their seconds (Inhale 4s, Hold 4s, Exhale 4s, Hold 4s), “3 minutes exercise”, one Start button. Running: a row of four step chips with the current one lit.", "Steps with seconds before starting.", "Dark heavy styling for a daytime task."],
+    ["QUITTR", "https://mobbin.com/api/mcp/short/8fRth6Mn", "https://mobbin.com/screens/259d1da6-1c86-4b17-baa2-99804e7e38b3", "A blue line like a mountain with a yellow ball riding it. “Breathe out when it goes down” at the top. Finish Exercise at the bottom.", "Up is in, down is out, said once: the rule for Star, Box and 5 Finger.", ""],
+    ["How We Feel", "https://mobbin.com/api/mcp/short/PnFlaESI", "https://mobbin.com/screens/a9c8abcf-2dfe-49e1-a5da-0cc11d636ab5", "Rings of small dots open and close. One italic line, “Inhale a bit more”, with a small nose drawing: the second sip of a cyclic sigh.", "Words tied to the body (nose, mouth).", ""],
+    ["Open", "https://mobbin.com/api/mcp/short/iNG8FZ0V", "https://mobbin.com/screens/17656470-e6ed-4fec-b2ff-365e0941b619", "Technique carousel: a line drawing per technique, the name, a mood tag (Balance, Rest), one line of how, then Technique, Duration and Sound tiles and a round Play.", "A distinct drawing per technique inside one layout: this is variant B.", "Skip 10 seconds buttons while running."],
+    ["Stoic", "https://mobbin.com/api/mcp/short/dQK72aYq", "https://mobbin.com/screens/a490b4e0-e90a-43cb-8b2f-716e6cd004a1", "Done: Good job, breaths and time in two small tiles, then “Did you enjoy this Breathing?” with No, A little, Yes, and Skip and Finish.", "One optional question at the end.", "Share and favourite prompts."],
+    ["Insight Timer", "https://mobbin.com/api/mcp/short/O8QISQb8", "https://mobbin.com/screens/7e0d32d9-0307-4a43-ba85-64f99c6a669f", "Paused: the time left large, a play button, Finish as the main button and Discard session as a quiet link.", "Finish saves what you did; throwing it away is the quiet choice.", ""],
+    ["Noom", "https://mobbin.com/api/mcp/short/3eZPQWuo", "https://mobbin.com/screens/1249f4d9-e15b-4e46-94de-3eba8fa7b478", "Breathing Complete with a cloud drawing and one line on what breathing does to your nervous system, a thumbs up or down, Return to Home.", "One line of mechanism at the end.", "The word parasympathetic."],
+    ["WHOOP", "https://mobbin.com/api/mcp/short/LZ68mbz3", "https://mobbin.com/screens/49be3a4c-ee84-4baf-b51e-bbb0b70723af", "A counter in a ring with “Round 2/3” in the header and the two steps written below.", "Rounds: right for 4-7-8.", ""],
+    ["Apple Mindfulness", "", "https://support.apple.com/guide/watch/start-a-reflect-or-breathe-session-apd371dfe3d7/watchos", "(Apple support page.) Breathe grows and shrinks a flower; haptics can be None, Minimal or Prominent; breath rate 4 to 10 a minute; 1 to 5 minutes.", "Haptics as a first-class guide, made for eyes off the screen.", ""]
+  ];
+  document.getElementById("apps").innerHTML = APPS.map(function (a) {
+    return '<div class="app">' + (a[1] ? '<a href="' + a[2] + '" target="_blank" rel="noopener"><img src="' + a[1] + '" alt="' + a[0] + ' breathing screen" loading="lazy" onerror="this.style.display=\'none\'"></a>' : '<span></span>') +
+      '<div><b><a href="' + a[2] + '" target="_blank" rel="noopener">' + a[0] + '</a></b><p>' + a[3] + '</p><span class="take">' + a[4] + '</span>' + (a[5] ? '<span class="avoid">' + a[5] + '</span>' : "") + '</div></div>';
+  }).join("");
+
+  var VARIANTS = [
+    { k: "A", n: "One orb for all", look: "orb",
+      d: "The player we have today, made complete. One orb grows on the breath in, rests on a hold, shrinks on the breath out. Only the rhythm and the words change per exercise. Star and 5 Finger describe the path in words under the orb.",
+      pros: ["One component, one test plan, cheapest to build", "Controls and layout never change", "-Tracing exercises lose their point: nothing to trace", "-Box looks the same as Zen Flow apart from the pauses", "-The countdown runs on every phase, so the eye watches numbers"],
+      sc: [["Consistency (4)", "Strong"], ["Match with the real world (2)", "Weak for Star, 5 Finger, Box"], ["Recognition over recall (6)", "Weak: the path must be remembered"], ["Minimalist (8)", "Strong"], ["User control (3)", "Strong"]],
+      best: "A first release with one engineer, if tracing exercises are rarely assigned." },
+    { k: "B", n: "One shell, a guide for each", look: "own", rec: true,
+      d: "The same sheet, controls, session bar and end states for all five. Inside, each exercise draws what its technique needs: 4-7-8 an orb with a ring that closes over the 7 s hold, Zen Flow an orb with your calming word on the breath out, Star and 5 Finger a path with a guide that climbs and slides, Box four sides walked up, across, down and across. Counts appear only on holds, where there is nothing else to follow.",
+      pros: ["Each picture matches what the body does", "One set of controls to learn across all five", "Fixes the reflection app's wrong starts and missing reverse", "-Five small visuals to build and test", "-Eyes still on the screen the whole time"],
+      sc: [["Consistency (4)", "Strong"], ["Match with the real world (2)", "Strong"], ["Recognition over recall (6)", "Strong"], ["Minimalist (8)", "Good"], ["User control (3)", "Strong"]],
+      best: "The default for every coach-assigned exercise." },
+    { k: "C", n: "Five rooms", look: "room",
+      d: "A separate experience for each. Sleep Breathing turns the sheet dark, hides the numbers and dims itself after two rounds. Zen Flow asks you to pick your word first and makes it the hero. Star lets you trace with your own finger; the guide glows when you are with it. 5 Finger shows a hand with named fingers and lights the one to trace. Box counts 1 to 4 along each side in the centre.",
+      pros: ["Each exercise can be at its best, especially Sleep at night", "Star tracing with your own finger is engaging", "-Five screens with different layouts: harder to learn a second one", "-Five times the design and build, and drift over time", "-Controls move between exercises"],
+      sc: [["Consistency (4)", "Weak"], ["Match with the real world (2)", "Strongest"], ["Recognition over recall (6)", "Good"], ["Minimalist (8)", "Mixed"], ["User control (3)", "Good"]],
+      best: "A breathing-first product, or if one exercise (likely Sleep) becomes the flagship." },
+    { k: "D", n: "Learn, then let go", look: "own", settle: true,
+      d: "My own idea, built on B. A breathing exercise is learned once, then done with the body. So the guide teaches first and then steps back: after about 45 seconds the picture fades to a faint glow, the sheet says the sound and buzz will keep time, and sound turns on by default. Tap the picture to bring it back for a few breaths. First-timers see the step words for longer before it fades.",
+      pros: ["Closest to how the techniques are really practised", "Best for Sleep in bed and 5 Finger in public", "Less staring at a screen, which helps calm", "-Depends on haptics and sound; some phones and settings block them", "-A faded screen can look frozen the first time"],
+      sc: [["Consistency (4)", "Strong"], ["Match with the real world (2)", "Strongest"], ["Recognition over recall (6)", "Good once learned"], ["Visibility of status (1)", "Weaker while faded"], ["User control (3)", "Strong"]],
+      best: "People who breathe daily; Sleep Breathing at night." }
+  ];
+
+
+  /* ---------- section 7: each variant is the real Mind screen in a frame ---------- */
+  var EXS = [["478", "Sleep (4-7-8)"], ["zen", "Zen Flow"], ["star", "Star"], ["finger", "5 Finger"], ["box", "Box"]];
+  var STS = [["ready", "Ready", "&sheet=breath"], ["run", "Running", ""], ["paused", "Paused", ""], ["early", "Ended early", ""], ["done", "Done", ""], ["part", "Row: part done", ""], ["rowdone", "Row: done", ""]];
+  function src(o) {
+    var st = STS.filter(function (x) { return x[0] === o.st; })[0];
+    return "/v7/mind/index.html?vbreath=" + o.v + "&bx=" + o.bx + "&bmin=" + o.min + (o.st === "rowdone" ? "&bstate=donerow" : "&bstate=" + o.st) + st[2] +
+      (o.rep ? "&brep=1" : "") + (o.rm ? "&rm=1" : "") + (o.sp > 1 ? "&bspeed=" + o.sp : "");
+  }
+  var host = document.getElementById("variantsHost");
+  var DEF = { A: "box", B: "478", C: "star", D: "478" };
+  VARIANTS.forEach(function (V) {
+    var o = { v: V.k.toLowerCase(), bx: DEF[V.k], min: 5, st: "ready", rep: false, rm: false, sp: 1 };
+    var w = document.createElement("section"); w.className = "v"; w.id = "v" + V.k;
+    w.innerHTML = '<div class="pbox"><div class="ctl">' +
+      '<div class="seg" role="group" aria-label="Exercise">' + EXS.map(function (e) { return '<button data-bx="' + e[0] + '" aria-pressed="' + (e[0] === o.bx) + '">' + e[1] + '</button>'; }).join("") + '</div>' +
+      '<div class="seg" role="group" aria-label="State">' + STS.map(function (e) { return '<button data-st="' + e[0] + '" aria-pressed="' + (e[0] === o.st) + '">' + e[1] + '</button>'; }).join("") + '</div>' +
+      '<div class="row2"><select data-k="min" aria-label="Coach minutes">' + [2, 3, 5, 10, 15].map(function (m) { return '<option value="' + m + '"' + (m === 5 ? " selected" : "") + '>' + m + ' min</option>'; }).join("") + '</select>' +
+      '<button class="tg" data-k="rep" aria-pressed="false">Done before</button><button class="tg" data-k="rm" aria-pressed="false">Reduced motion</button>' +
+      '<select data-k="sp" aria-label="Speed"><option value="1">1× real time</option><option value="4">4× for review</option><option value="10">10× for review</option></select></div></div>' +
+      '<div class="frame"><iframe title="Mind screen, variant ' + V.k + '" loading="lazy"></iframe></div><a class="full" target="_blank" rel="noopener">Open this state full size</a></div>' +
+      '<div><div class="vh"><span class="vk">' + V.k + '</span><span class="vn">' + V.n + '</span>' + (V.rec ? '<span class="rec">Recommended</span>' : "") + '</div>' +
+      '<p>' + V.d + '</p><ul class="pros">' + V.pros.map(function (p) { return p[0] === "-" ? '<li class="con">' + p.slice(1) + '</li>' : '<li>' + p + '</li>'; }).join("") + '</ul>' +
+      '<h3>Heuristic check</h3><div class="score">' + V.sc.map(function (s) { return '<span>' + s[0] + '</span><span class="' + (/Weak/.test(s[1]) ? "n" : /Strong|Good/.test(s[1]) ? "y" : "m") + '">' + s[1] + '</span>'; }).join("") + '</div>' +
+      '<h3>First time and repeat</h3><p>' + (V.k === "A" ? "First time: the steps with seconds, a tip, then Start. Repeat: one line of the pattern with How it works folded away. During the run the first-timer also sees the how under each word." : V.k === "C" ? "Each exercise has its own first screen: a word picker for Zen Flow, a trace-with-your-finger tip for Star, a night tip for Sleep. Repeat users get a short summary." : V.k === "D" ? "First time: steps, then a full minute of guided breathing with the how under each word before the picture fades. Repeat: the fade comes after 30 seconds." : "First time: the steps with seconds, a tip and the path previewed; the how sits under each phase word for the whole session. Repeat: one line and How it works folded away; during the run only the word, plus the finger or side for tracing.") + '</p>' +
+      '<h3>Reduced motion</h3><p>' + (V.k === "C" ? "Same as B, and Star's finger tracing still works, since the person does the moving." : "The orb stops scaling and brightens and dims instead. Paths draw in one-second steps with the moving guide hidden. Words and counts carry the timing.") + '</p>' +
+      '<h3>Best for</h3><p>' + V.best + '</p></div>';
+    host.appendChild(w);
+    var ifr = w.querySelector("iframe"), full = w.querySelector(".full");
+    var go = function () { var u = src(o); ifr.src = u; full.href = u; full.textContent = u; };
+    w.querySelector(".ctl").addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      if (b.dataset.bx) { o.bx = b.dataset.bx; w.querySelectorAll("[data-bx]").forEach(function (x) { x.setAttribute("aria-pressed", x === b); }); }
+      else if (b.dataset.st) { o.st = b.dataset.st; w.querySelectorAll("[data-st]").forEach(function (x) { x.setAttribute("aria-pressed", x === b); }); }
+      else if (b.dataset.k) { o[b.dataset.k] = !o[b.dataset.k]; b.setAttribute("aria-pressed", o[b.dataset.k]); }
+      go();
+    });
+    w.querySelectorAll("select").forEach(function (sel) { sel.addEventListener("change", function () { o[sel.dataset.k] = +sel.value; go(); }); });
+    go();
+  });
+
+  /* ---------- section 8: the row, before and after, on the real screen ---------- */
+  var ROWS = [["Before: today's row", "/v7/mind/index.html?vbreath=b&brow=before&bx=box"],
+    ["After: not started", "/v7/mind/index.html?vbreath=b&bx=box"],
+    ["After: paused mid-session", "/v7/mind/index.html?vbreath=b&bx=box&bstate=pausedrow"],
+    ["After: part done", "/v7/mind/index.html?vbreath=b&bx=box&bstate=part"],
+    ["After: done", "/v7/mind/index.html?vbreath=b&bx=box&bstate=donerow"],
+    ["After: two exercises (t-calm)", "/v7/mind/index.html?vbreath=b&t=t-calm"]];
+  document.getElementById("ba").innerHTML = ROWS.map(function (r) { return '<div><h3 style="margin-top:0">' + r[0] + '</h3><div class="frame"><iframe title="' + r[0] + '" loading="lazy" src="' + r[1] + '"></iframe></div><a class="full" href="' + r[1] + '" target="_blank" rel="noopener">' + r[1] + '</a></div>'; }).join("");
+})();
+</script>
+</body>
+</html>

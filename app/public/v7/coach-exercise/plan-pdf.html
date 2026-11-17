@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Move plan PDF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Onest:wght@400;500;600;700&display=swap">
+<!-- The Move plan as the patient keeps it: printed, or shared on WhatsApp as a PDF, and opened on the day.
+     Every day can differ, so the plan reads day by day: each day's steps goal, then its workouts and small moves
+     under the time of day they belong to, each with a box to tick.
+     Read from the builder (coach-exercise-template.html, Preview and Assign, Download PDF) through localStorage "gfMovePlanPdf".
+     ?sample=1 shows a two week sample where no two days are alike. ?plan=simple is the live portal's "simple plan.pdf" (Bhavan Test, 1 week), ?plan=exercise its "Exercise Plan.pdf" (2 weeks, two routines a day),
+     ?plan=cases (or ?sample=1) every kind of day: rest, no steps, no small moves, all of them off, and few to many small moves. ?print=1 opens the print dialog. -->
+<script src="/v7/data/exercise-lists.js"></script>
+<style>
+  /* colours: GoodFlip tokens only (goodflip-design.vercel.app/foundations/colors). Neutrals carry the page, colour is the exception */
+  :root {
+    --green: #299d6b;        /* text-flipgreen, border-flipgreen-active */
+    --deep: #2a805a;         /* background-flipgreen-highlight-strong */
+    --tint: #f3fcf8;         /* background-flipgreen-subtle */
+    --ink: #101828;          /* text-primary */
+    --body: #344054;         /* text-secondary */
+    --muted: #667085;        /* text-tertiary */
+    --faint: #98a2b3;        /* text-disabled */
+    --line: #e4e7ec;         /* border-strong */
+    --line2: #f2f4f7;        /* border-default */
+    --soft: #f9fafb;         /* background-secondary */
+    --page: #f2f4f7;         /* background-tertiary */
+    --morning: #dc6803; --morning-t: #fffaeb;     /* text-orange, background-orange */
+    --afternoon: #a68a2d; --afternoon-t: #fffbee; /* icon-gold-strong, background-gold */
+    --evening: #299d6b; --evening-t: #e6faf1;     /* text-flipgreen, background-flipgreen */
+    --night: #444ce7; --night-t: #eef4ff;         /* text-indigo, background-indigo */
+    --any: #667085; --any-t: #f2f4f7;             /* text-tertiary, background-tertiary */
+  }
+  @page { size: A4; margin: 13mm 13mm 15mm;
+    @bottom-left { content: var(--foot, "GoodFlip Move plan"); font: 500 8pt Onest, sans-serif; color: #98a2b3; }
+    @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 500 8pt Onest, sans-serif; color: #98a2b3; } }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; background: var(--page); font: 400 9.5pt/1.45 Onest, system-ui, sans-serif; color: var(--body); }
+  h1, h2 { font-family: Montserrat, Onest, sans-serif; color: var(--ink); margin: 0; }
+
+  /* screen: one A4 column, with a bar to save the PDF */
+  .bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: #fff; border-bottom: 1px solid var(--line); }
+  .bar b { flex: 1; font: 600 14px Onest, sans-serif; color: var(--ink); }
+  .bar button { height: 40px; padding: 0 18px; border: 0; border-radius: 10px; background: var(--green); color: #fff; font: 600 14px Onest, sans-serif; cursor: pointer; }
+  .bar button:hover { background: var(--deep); }
+  .doc { width: 210mm; margin: 24px auto 48px; padding: 13mm; background: #fff; border-radius: 4px; box-shadow: 0 1px 3px var(--line); }
+  @media print { body { background: #fff; } .bar { display: none; } .doc { width: auto; margin: 0; padding: 0; box-shadow: none; border-radius: 0; } }
+  @media screen and (max-width: 820px) { .doc { width: auto; margin: 12px; padding: 20px 16px; } }
+
+  /* the plan's head: who it is for, from whom, and when */
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 6mm; padding-bottom: 5mm; margin-bottom: 6mm; border-bottom: 1.5px solid var(--green); }
+  .head img { display: block; height: 22px; margin-bottom: 4mm; }
+  h1 { font-size: 20pt; line-height: 1.15; font-weight: 800; }
+  .who { margin-top: 1.5mm; font-size: 9.5pt; }
+  .who b { color: var(--ink); font-weight: 600; }
+  .dates { flex: none; text-align: right; font: 600 9.5pt Onest, sans-serif; color: var(--ink); }
+  .dates small { display: block; font-weight: 500; color: var(--muted); }
+
+  /* a day */
+  .day { margin-bottom: 7mm; }
+  .dh { display: flex; align-items: center; gap: 3.5mm; padding: 2.5mm 0 3mm; border-bottom: 1px solid var(--line); break-after: avoid; break-inside: avoid; }
+  .dd { flex: none; width: 13mm; padding: 1.2mm 0 1.5mm; border-radius: 8px; background: var(--deep); color: #fff; text-align: center; line-height: 1.05; }
+  .dd small { display: block; font: 700 6.5pt Onest, sans-serif; letter-spacing: .08em; text-transform: uppercase; opacity: .8; }
+  .dd b { display: block; font: 800 14pt Montserrat, sans-serif; }
+  .dti { flex: 1; min-width: 0; }
+  .dti h2 { font-size: 12pt; font-weight: 800; }
+  .dti h2 span { margin-left: 2mm; font: 600 8.5pt Onest, sans-serif; color: var(--faint); }
+  .dsum { margin-top: .5mm; font-size: 8.5pt; color: var(--muted); }
+  .dsum b { color: var(--ink); font-weight: 600; }
+  .stp { flex: none; display: flex; align-items: center; gap: 2mm; padding: 1.8mm 3mm; border-radius: 9px; background: var(--tint); color: var(--deep); font: 700 10pt Onest, sans-serif; font-variant-numeric: tabular-nums; }
+  .stp svg { width: 14px; height: 14px; }
+  .stp small { font-weight: 500; font-size: 7.5pt; color: var(--muted); margin-left: 1px; }
+  .stp.off { background: var(--any-t); color: var(--muted); font-size: 8.5pt; }
+  .bx { flex: none; display: inline-block; width: 3.8mm; height: 3.8mm; border: 1.3px solid var(--line2); border-radius: 3px; vertical-align: middle; }
+  .bx.o { border-radius: 50%; }
+
+  /* the parts of a day, in order, each with what happens in it */
+  .slot { display: grid; grid-template-columns: 24mm minmax(0, 1fr); gap: 4mm; padding: 3mm 0; border-bottom: 1px dashed var(--line); }
+  .ex thead { display: table-header-group; }   /* a long workout carries on over the page, with its column heads repeated */
+  .slot.short { break-inside: avoid; }   /* a short part of the day stays whole; a long workout may carry on over the page */
+  .keep { break-inside: avoid; }   /* a day's heading never sits alone at the foot of a page */
+  .slot:last-child { border-bottom: 0; }
+  .sl { padding-top: .6mm; font: 700 9pt Onest, sans-serif; }
+  .sl small { display: block; font-weight: 500; font-size: 7.5pt; color: var(--muted); }
+  .sl i { display: inline-block; width: 7px; height: 7px; margin-right: 5px; border-radius: 2px; vertical-align: 1px; }
+  .t-morning { color: var(--morning); } .t-morning i { background: var(--morning); }
+  .t-afternoon { color: var(--afternoon); } .t-afternoon i { background: var(--afternoon); }
+  .t-evening { color: var(--evening); } .t-evening i { background: var(--evening); }
+  .t-night { color: var(--night); } .t-night i { background: var(--night); }
+  .t-any { color: var(--any); } .t-any i { background: var(--any); }
+  .what { display: flex; flex-direction: column; gap: 3mm; min-width: 0; }
+
+  .wh { display: flex; align-items: baseline; gap: 2mm; font: 700 9pt Onest, sans-serif; color: var(--ink); }
+  .wh span { font-weight: 500; font-size: 8pt; color: var(--muted); }
+  table.ex { width: 100%; margin-top: 1mm; border-collapse: collapse; font-size: 8.5pt; table-layout: fixed; }
+  /* the same columns on every day, so the eye finds them in the same place */
+  .ex col.rs { width: 21mm; } .ex col.rb { width: 29mm; } .ex col.ra { width: 21mm; } .ex col.ef { width: 21mm; } .ex col.tm { width: 15mm; }
+  .ex th { padding: 1.4mm 2mm; font: 700 6.5pt Onest, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--faint); text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .ex td { padding: 2mm 2mm; border-bottom: 1px solid var(--line2); vertical-align: middle; font-variant-numeric: tabular-nums; }
+  .ex tr { break-inside: avoid; }
+  .ex tbody tr:last-child td { border-bottom: 0; }
+  .ex td.c, .ex th.c { width: 6mm; padding-right: 0; }
+  .ex td.nm { font-weight: 600; color: var(--ink); }
+  .ex .r { text-align: right; white-space: nowrap; }
+  /* the middle columns centre under their heads, so each value sits in the middle of its column */
+  .ex .m { text-align: center; white-space: nowrap; }
+  .ex .e { white-space: nowrap; color: var(--body); }
+  .ex .dash { color: var(--faint); }
+
+  .mvs { display: flex; flex-direction: column; gap: 1.6mm; }
+  .mv { display: flex; gap: 2.5mm; align-items: flex-start; }
+  .mv .dot { flex: none; width: 5px; height: 5px; margin-top: 1.9mm; border-radius: 50%; background: var(--faint); }
+  .mv b { font-weight: 600; color: var(--ink); }
+  .mv span { color: var(--muted); }
+  .mvl { font: 700 6.5pt Onest, sans-serif; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+
+  .rest { display: flex; align-items: center; gap: 3mm; margin-top: 3mm; padding: 3mm 4mm; border-radius: 10px; background: var(--soft); font-size: 9pt; color: var(--body); break-inside: avoid; }
+  .rest b { color: var(--ink); }
+
+  .notes { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm 6mm; margin-top: 4mm; padding: 4mm 4.5mm; border-radius: 12px; background: var(--soft); font-size: 8.5pt; break-inside: avoid; }
+  .notes b { display: block; color: var(--ink); font-weight: 600; }
+  .notes span { color: var(--muted); }
+  .help { margin-top: 4mm; display: flex; gap: 3mm; align-items: center; padding: 3.5mm 4.5mm; border-radius: 12px; background: var(--tint); color: var(--body); font-size: 9pt; break-inside: avoid; }
+  .help svg { width: 18px; height: 18px; flex: none; color: var(--green); }
+</style>
+</head>
+<body>
+<div class="bar"><b id="barT">Move plan</b><button type="button" onclick="window.print()">Save as PDF</button></div>
+<main class="doc" id="doc"></main>
+<script>
+(function () {
+  var Q = new URLSearchParams(location.search);
+  var P = null;
+  try { P = JSON.parse(localStorage.getItem("gfMovePlanPdf") || "null"); } catch (e) {}
+  var which = Q.get("plan") || (Q.get("sample") === "1" ? "cases" : "");
+  if (which === "simple") P = simple(); else if (which === "exercise") P = exercise(); else if (which === "cases" || !P) P = sample();
+
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var n = function (x) { return Math.round(x).toLocaleString("en-IN"); };
+  var plural = function (c, w) { return c + " " + w + (c === 1 ? "" : "s"); };
+  var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  var WDL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  var start = new Date(P.start + "T00:00:00");
+  var dateOf = function (wi, di) { var d = new Date(start); d.setDate(d.getDate() + wi * 7 + di); return d; };
+  var dmy = function (d) { return d.getDate() + " " + MON[d.getMonth()] + " " + d.getFullYear(); };
+  var t12 = function (hm) { var h = +hm.slice(0, 2), m = hm.slice(3, 5); return ((h % 12) || 12) + (m === "00" ? "" : ":" + m) + " " + (h < 12 ? "AM" : "PM"); };
+  var PARTS = P.parts.concat([{ k: "any", label: "Any time" }]);
+  var key = function (wi, di) { return P.weeks[wi].week_no + "-" + (di + 1); };
+
+  /* MET, effort and kcal, the builder's way: each exercise's own MET from the exercise list, or the level the coach picked */
+  var nk = function (t) { return String(t || "").toLowerCase().replace(/[^a-z0-9]/g, ""); };
+  var EXM = {}; ((window.EXL || {}).coach || []).forEach(function (c) { EXM[nk(c.orig)] = EXM[nk(c.n)] = c; });
+  function met(ex) {
+    var c = EXM[nk(ex.title)], L = c ? c.i : [];
+    if (ex.met != null && L.some(function (x) { return x.m === ex.met; })) return ex.met;
+    return c ? c.met : ex.exerciseType === "Breathing" ? 1.5 : 4.5;
+  }
+  /* an exercise with one fixed MET takes its effort from the standard MET bands (under 1.5, under 3, under 6, then vigorous), as the coach portal shows it */
+  function band(m) { return m < 1.5 ? "Very light" : m < 3 ? "Light" : m < 6 ? "Moderate" : "Vigorous"; }
+  function effort(ex) { var c = EXM[nk(ex.title)], m = met(ex), l = c ? c.i.filter(function (x) { return x.m === m; })[0] : null; return l ? l.n : band(m); }
+  var mins = function (ex) { var v = +ex.duration || 0; return ex.duration_units === "sec" ? v / 60 : v; };
+  var kcal = function (ex) { return Math.round(met(ex) * 3.5 * 65 / 200 * mins(ex)); };
+  var unit = function (v, u) { return v === "" || v == null ? '<span class="dash">–</span>' : v + " " + (u === "min" ? "min" : "sec"); };
+
+  var IC = {
+    st: '<svg viewBox="0 0 24 24" fill="currentColor"><ellipse cx="8" cy="7" rx="3" ry="4.2"/><ellipse cx="16" cy="12" rx="3" ry="4.2"/><rect x="5.6" y="12.5" width="4.8" height="3.4" rx="1.7"/><rect x="13.6" y="17.5" width="4.8" height="3.4" rx="1.7"/></svg>',
+    chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5.5h16v10H9l-5 4v-14z"/></svg>'
+  };
+
+  /* ---------- one day: its steps goal, then each part of the day with its workouts and small moves ---------- */
+  function dayHTML(wi, di) {
+    var D = P.weeks[wi].days[di], k = key(wi, di), date = dateOf(wi, di);
+    var rest = D.rest_day === "Y", st = P.nowalk ? null : P.steps[k], nm = (P.noff && P.noff[k]) ? null : P.neat[k];
+    var rs = rest ? [] : D.routines.map(function (r) { return { time: r.time || "", ex: r.exercises.filter(function (e) { return e.title; }) }; }).filter(function (r) { return r.ex.length; });
+    /* a routine with no time of day (older plans) takes the next free part of the day, in order: Morning, Afternoon, Evening, Night */
+    var used = rs.map(function (r) { return r.time; }), free = P.parts.map(function (p) { return p.k; }).filter(function (k) { return used.indexOf(k) < 0; });
+    rs.forEach(function (r) { if (!r.time) r.time = free.shift() || "any"; });
+    var noMoves = !!(P.noff && P.noff[k]);
+    var moves = {}; if (nm) P.parts.forEach(function (p) { moves[p.k] = (nm[p.k] || []).filter(function (m) { return m.title && m.title.trim(); }); });
+    var wMin = rs.reduce(function (s, r) { return s + r.ex.reduce(function (a, e) { return a + mins(e); }, 0); }, 0);
+    var nMov = Object.keys(moves).reduce(function (s, p) { return s + moves[p].length; }, 0);
+
+    var sum = [rest ? "<b>Rest day</b>" : wMin ? "<b>" + Math.round(wMin) + " min</b> of workout" + (rs.length > 1 ? " in " + rs.length + " parts of the day" : "") : "",
+      nMov ? "<b>" + plural(nMov, "small move") + "</b>" : noMoves ? "No small moves today" : ""].filter(Boolean).join(" · ");
+    var steps = P.nowalk ? "" : st === "off" ? '<div class="stp off">No steps goal today</div>' : st ? '<div class="stp">' + IC.st + n(+st) + '<small>steps</small></div>' : "";
+
+    var slots = PARTS.map(function (p) {
+      var R = rs.filter(function (r) { return r.time === p.k; }), M = moves[p.k] || [];
+      if (!R.length && !M.length) return "";
+      var w = R.map(function (r) {
+        var m = r.ex.reduce(function (a, e) { return a + mins(e); }, 0), kc = r.ex.reduce(function (a, e) { return a + kcal(e); }, 0);
+        return '<div><div class="wh">Workout<span>' + Math.round(m) + ' min · ' + plural(r.ex.length, "exercise") + ' · about ' + kc + ' kcal</span></div>' +
+          '<table class="ex"><colgroup><col><col class="rs"><col class="rb"><col class="ra"><col class="ef"><col class="tm"></colgroup>' +
+          '<thead><tr><th>Exercise</th><th class="m">Reps × sets</th><th class="m">Rest between sets</th><th class="m">Rest after</th><th class="m">Effort</th><th class="r">Time</th></tr></thead><tbody>' +
+          r.ex.map(function (e) {
+            return '<tr><td class="nm">' + esc(e.title) + '</td>' +
+              '<td class="m">' + (e.reps || "–") + ' × ' + (e.sets || "–") + '</td><td class="m">' + unit(e.rest_post_sets, e.rest_post_sets_unit) + '</td><td class="m">' + unit(e.rest_post_exercise, e.rest_post_exercise_unit) + '</td>' +
+              '<td class="m e">' + (esc(effort(e)) || '<span class="dash">–</span>') + '</td>' +
+              '<td class="r">' + (+e.duration || 0) + " " + (e.duration_units === "sec" ? "sec" : "min") + '</td></tr>';
+          }).join("") + '</tbody></table></div>';
+      }).join("");
+      var mv = M.length ? '<div class="mvs"><div class="mvl">Small moves</div>' + M.map(function (m) {
+        return '<div class="mv"><span class="dot"></span><div><b>' + esc(m.title.trim()) + '</b>' + (m.sub && m.sub.trim() ? ' <span>· ' + esc(m.sub.trim()) + '</span>' : "") + '</div></div>';
+      }).join("") + '</div>' : "";
+      var rows = R.reduce(function (a, r) { return a + r.ex.length; }, 0) + M.length;
+      return '<div class="slot' + (rows <= 8 ? " short" : "") + '"><div class="sl t-' + p.k + '"><i></i>' + p.label + (p.from ? '<small>' + t12(p.from) + ' to ' + t12(p.to) + '</small>' : "") + '</div><div class="what">' + w + mv + '</div></div>';
+    });
+    /* the heading travels with the first part of the day when that part is short; with a long one, with the rest-day note at least */
+    var firstShort = slots.length && /class="slot short"/.test(slots.filter(Boolean)[0] || "");
+    slots = slots.filter(Boolean);
+    var restNote = rest ? '<div class="rest"><b>Rest day.</b> Let your body recover today.' + (slots.length ? " Your small moves still count." : st && st !== "off" && !P.nowalk ? " A gentle walk toward your steps still counts." : "") + '</div>' : "";
+
+    return '<section class="day"><div class="keep"><header class="dh"><div class="dd"><small>' + WD[date.getDay()] + '</small><b>' + date.getDate() + '</b><small>' + MON[date.getMonth()] + '</small></div>' +
+      '<div class="dti"><h2>' + WDL[date.getDay()] + '<span>Week ' + P.weeks[wi].week_no + ', Day ' + (di + 1) + '</span></h2><div class="dsum">' + (sum || "Nothing planned") + '</div></div>' + steps + '</header>' +
+      restNote + (firstShort ? slots.shift() : "") + '</div>' + slots.join("") + '</section>';
+  }
+
+  var days = [];
+  P.weeks.forEach(function (w, wi) { w.days.forEach(function (_, di) { days.push(dayHTML(wi, di)); }); });
+  var first = dateOf(0, 0), last = dateOf(P.weeks.length - 1, P.weeks[P.weeks.length - 1].days.length - 1);
+
+  var head = '<header class="head"><div><img src="/v7/img/coach/goodflip_logo_large.png" alt="GoodFlip"><h1>' + esc(P.name || "Move plan") + '</h1>' +
+    '<div class="who">' + (P.patient ? 'For <b>' + esc(P.patient) + '</b>' : "") + (P.coach ? (P.patient ? " · " : "") + 'From your coach <b>' + esc(P.coach) + '</b>' : "") + '</div></div>' +
+    '<div class="dates">' + dmy(first) + ' to ' + dmy(last) + '<small>' + plural(P.weeks.length, "week") + ', day by day</small></div></header>';
+
+  var notes = '<div class="notes"><div><b>Reps × sets</b><span>12 × 3 means do it 12 times, rest, and do that 3 times in all.</span></div>' +
+    '<div><b>Rest between sets</b><span>The pause before you repeat the same exercise.</span></div>' +
+    '<div><b>Rest after</b><span>The pause before you start the next exercise.</span></div>' +
+    '<div><b>Effort</b><span>Light feels easy, moderate makes you breathe faster, vigorous makes talking hard.</span></div></div>' +
+    '<div class="help">' + IC.chat + '<span>If anything hurts or feels too hard, stop and message your coach' + (P.coach ? ", " + esc(P.coach) + "," : "") + ' in the GoodFlip app.</span></div>';
+
+  document.getElementById("doc").innerHTML = head + days.join("") + notes;
+  document.getElementById("barT").textContent = (P.name || "Move plan") + (P.patient ? " · " + P.patient : "");
+  document.title = (P.name || "Move plan") + (P.patient ? ", " + P.patient : "");
+  document.documentElement.style.setProperty("--foot", '"' + (P.name || "Move plan").replace(/"/g, "") + (P.patient ? " · " + P.patient.replace(/"/g, "") : "") + '"');
+  if (Q.get("print") === "1") addEventListener("load", function () { setTimeout(print, 300); });
+
+  /* ---------- "simple plan.pdf" from the live portal: one week, one routine a day, no time of day, no small moves or steps ---------- */
+  function simple() {
+    var e = function (t, ty, reps, sets, rs, re, d) { return { title: t, exerciseType: ty, reps: String(reps), sets: String(sets), rest_post_sets: String(rs), rest_post_sets_unit: "sec", rest_post_exercise: String(re), rest_post_exercise_unit: "sec", duration: String(d), duration_units: "min" }; };
+    var arm = e("Arm Circle - NAFLD", "Exercise", 10, 2, 30, 15, 2), scap = e("Scapular Retraction", "Exercise", 10, 2, 30, 15, 3), bridge = e("Bridging Exercise", "Exercise", 10, 2, 30, 15, 3);
+    var days = [
+      [arm, scap, bridge, e("Neck Pain stretches", "Breathing", 5, 1, 30, 30, 26), e("Neck Stretches", "Exercise", 5, 1, 30, 30, 5)],
+      [scap, e("Arm exercise with band", "Exercise", 5, 1, 30, 30, 31), e("Arm Circle - NAFLD", "Exercise", 10, 2, 30, 30, 2)],
+      [arm, scap, bridge, e("Leg Exercise with band", "Exercise", 5, 1, 30, 30, 26)],
+      [scap, e("Arm exercise with band", "Exercise", 5, 1, 30, 30, 31), e("Arm Circle - NAFLD", "Exercise", 10, 2, 30, 30, 2)],
+      [arm, scap, bridge, e("Neck Pain stretches", "Breathing", 5, 1, 30, 30, 26), e("Neck Stretches", "Exercise", 5, 1, 30, 30, 5)],
+      [arm, scap, bridge, e("Leg Exercise with band", "Exercise", 5, 1, 30, 30, 26)],
+      [arm, bridge, e("Chair Exercise with band", "Exercise", 5, 1, 30, 30, 26)]
+    ];
+    return { name: "Others plan", patient: "Bhavan Test", coach: "Dr. Iswarya V", start: "2026-10-23", steps: {}, neat: {}, noff: {}, nowalk: false,
+      weeks: [{ week_no: 1, days: days.map(function (x, i) { return { day_no: i + 1, rest_day: "N", routines: [{ routine_no: 1, time: "", exercises: x }] }; }) }],
+      parts: [{ k: "morning", label: "Morning", from: "06:00", to: "12:00" }, { k: "afternoon", label: "Afternoon", from: "12:00", to: "16:00" },
+        { k: "evening", label: "Evening", from: "16:00", to: "20:00" }, { k: "night", label: "Night", from: "20:00", to: "23:00" }] };
+  }
+
+  /* ---------- "Exercise Plan.pdf" from the live portal: two weeks, the same two routines every day of a week, no small moves or steps ---------- */
+  function exercise() {
+    var e = function (t, ty, d) { return { title: t, exerciseType: ty, reps: "10", sets: "2", rest_post_sets: "30", rest_post_sets_unit: "sec", rest_post_exercise: "15", rest_post_exercise_unit: "sec", duration: String(d), duration_units: "min" }; };
+    var A = [e("Box Breathing", "Breathing", 21), e("Plank to Push Up", "Exercise", 3), e("Spot Jump", "Exercise", 2), e("Lateral Coastal Breathing", "Breathing", 5), e("Side Leg Raise", "Exercise", 2),
+      e("Front Leg Raise", "Exercise", 2), e("Arm Circle - NAFLD", "Exercise", 2), e("Mid Back rotational stretch", "Breathing", 3), e("Scapular Retraction", "Exercise", 3), e("Bridging Exercise", "Exercise", 3), e("Side Lunge", "Exercise", 2)];
+    var B = [e("Arm circles", "Exercise", 2), e("Hamstring Curls", "Exercise", 2), e("Quadriceps Stretch", "Exercise", 3), e("Hamstring Stretch", "Exercise", 3), e("Bicycle Crunches", "Exercise", 2), e("Flutter Kick", "Exercise", 2),
+      e("Reverse Crunch", "Exercise", 2), e("Water Bottle / Dumbbell Punches", "Exercise", 2), e("Calf Stretch", "Exercise", 3), e("Mid Back rotational stretch", "Breathing", 3), e("Crunches - NAFLD", "Exercise", 2)];
+    return { name: "Others plan", patient: "", coach: "Sahana Physio", start: "2026-11-16", steps: {}, neat: {}, noff: {}, nowalk: false,
+      weeks: [A, B].map(function (L, wi) { return { week_no: wi + 1, days: [1, 2, 3, 4, 5, 6, 7].map(function (dn) {
+        return { day_no: dn, rest_day: "N", routines: [{ routine_no: 1, time: "", exercises: L }, { routine_no: 2, time: "", exercises: L }] }; }) }; }),
+      parts: [{ k: "morning", label: "Morning", from: "06:00", to: "12:00" }, { k: "afternoon", label: "Afternoon", from: "12:00", to: "16:00" },
+        { k: "evening", label: "Evening", from: "16:00", to: "20:00" }, { k: "night", label: "Night", from: "20:00", to: "23:00" }] };
+  }
+
+  /* ---------- every kind of day, in two weeks ---------- */
+  function sample() {
+    /* "Name|B or E|reps|sets|rest between sets|rest after|duration|met": rests as 30s or 1m, duration as 4 (min) or 45s */
+    var ex = function (s) {
+      var p = s.split("|"), r = function (v) { return v ? [v.replace(/[sm]$/, ""), /m$/.test(v) ? "min" : "sec"] : ["", "sec"]; }, a = r(p[4]), b = r(p[5]), sec = /s$/.test(p[6]);
+      var o = { title: p[0], exerciseType: p[1] === "B" ? "Breathing" : "Exercise", reps: p[2], sets: p[3], rest_post_sets: a[0], rest_post_sets_unit: a[1], rest_post_exercise: b[0], rest_post_exercise_unit: b[1],
+        duration: p[6].replace(/s$/, ""), duration_units: sec ? "sec" : "min" };
+      if (p[7]) o.met = +p[7];
+      return o;
+    };
+    var R = function (time, list) { return { time: time, exercises: list.map(ex) }; };
+    var M = function (t, s) { return { title: t, sub: s }; };
+    var plan = [
+      /* 1. a full day: workout in all four parts of the day, steps, and many small moves */
+      { r: [R("morning", ["Warm-up/cool down stretching|E|1|1|||5", "Squats|E|12|3|30s|45s|5", "Wall Push Up|E|10|3|30s|45s|4", "Plank|E|1|3|30s|1m|90s"]),
+            R("afternoon", ["Exercise in office|E|1|1|||8"]), R("evening", ["Jumping jack|E|20|3|20s|30s|4|2.8", "High Knees|E|20|3|20s|30s|3"]), R("night", ["Pranayama|B|1|1|||10"])], s: 8000,
+        m: { morning: [M("Step into the sunlight and stretch", "10 min outdoor walk and a 5 min stretch"), M("Take the stairs instead of the lift", "2 to 3 floors")],
+             afternoon: [M("Walk after lunch", "10 to 15 min"), M("Take a calf raise break", "20 calf raises")], evening: [M("Do 30 squats", "30 bodyweight squats")], night: [M("Walk after dinner", "15 to 20 min")] } },
+      /* 2. one workout, steps, one small move */
+      { r: [R("morning", ["Beginner Endurance-1|E|1|1|||20"])], s: 6000, m: { afternoon: [M("Walk after lunch", "10 to 15 min")] } },
+      /* 3. no steps day: workout and small moves only */
+      { r: [R("evening", ["Cat & camel|E|10|2|20s|30s|3", "Core Yoga -1|E|1|1||1m|15", "Lower Back rotational Stretch|E|10|2|20s|30s|3", "Diaphragmatic breathing|B|1|1|||5"])], s: "off",
+        m: { morning: [M("Walk while you take calls", "Walk during every call over 5 min")], evening: [M("Do wall push-ups", "15 against a wall")] } },
+      /* 4. no small moves day: workout and steps only */
+      { r: [R("morning", ["HIIT-5 EASY|E|1|1||1m|15", "Dead Bug|E|10|3|30s|45s|4", "Bicycle Crunches|E|15|3|30s|45s|4|3.8"])], s: 9000, off: 1, m: {} },
+      /* 5. rest day, steps and small moves still on */
+      { rest: 1, s: 5000, m: { afternoon: [M("Move while you wait", "Calf raises while the lift, kettle or microwave runs")], evening: [M("Go on a family walk", "30 to 45 min walk and stairs all day")] } },
+      /* 6. rest day with steps only (no small moves day) */
+      { rest: 1, s: 4000, off: 1, m: {} },
+      /* 7. a full day off: rest, no steps, no small moves */
+      { rest: 1, s: "off", off: 1, m: {} },
+      /* 8. two workouts, morning and night, steps, small moves in one part only */
+      { r: [R("morning", ["Leg Workout -1|E|1|1||1m|15", "Step-Ups|E|12|3|30s|45s|5", "Wall Squat|E|1|3|30s|1m|2"]), R("night", ["Pursed Lip Breathing|B|10|2|30s||5"])], s: 7000,
+        m: { night: [M("Walk after dinner", "15 to 20 min"), M("Move at every ad break", "March or stand at every ad break")] } },
+      /* 9. afternoon workout only, steps, no small moves set (not switched off) */
+      { r: [R("afternoon", ["Chair Mobility Exercise|E|1|1||30s|8", "Arm exercise with band|E|12|3|30s|45s|5", "Shoulder Lateral Raise|E|12|3|30s|45s|4", "Triceps Dip|E|10|2|30s|45s|3"])], s: 7500, m: {} },
+      /* 10. no steps day and no small moves day: workout only */
+      { r: [R("morning", ["Pilates - 1|E|1|1|||20"]), R("evening", ["Yoga For Back Pain -1|E|1|1|||15"])], s: "off", off: 1, m: {} },
+      /* 11. small moves with and without a line on why */
+      { r: [R("morning", ["Fat Loss -1|E|1|1|||20"])], s: 10000,
+        m: { morning: [M("Drink a glass of water on waking", "")], afternoon: [M("Stand up every hour", "Two minutes on your feet, every hour you sit")], evening: [M("Walk part of your commute", "Get off one stop early, or park far")] } },
+      /* 12. a light day: short workout, steps, one small move */
+      { r: [R("evening", ["Neck Stretches|E|5|2|15s|30s|4", "Chest Shoulder Stretch|E|5|2|15s|30s|3"])], s: 5000, m: { evening: [M("Do wall push-ups", "15 against a wall")] } },
+      /* 13. a long day: three workouts, the highest steps, many small moves */
+      { r: [R("morning", ["Strength and conditioning -1|E|1|1||1m|20"]), R("afternoon", ["Static & Dynamic Balance exercises|E|1|2|30s|1m|8", "Clamshell Exercise|E|12|3|20s|30s|4"]),
+            R("evening", ["Torso Rotation|E|15|2|20s|30s|3", "Side Stretch|E|10|2|15s|30s|2"])], s: 12000,
+        m: { morning: [M("Step into the sunlight and stretch", "10 min outdoor walk and a 5 min stretch")], afternoon: [M("Climb a quick flight of stairs", "Climb 2 floors up and down"), M("Walk after lunch", "10 to 15 min")],
+             evening: [M("Go on a family walk", "30 to 45 min walk and stairs all day")], night: [M("Walk after dinner", "15 to 20 min"), M("Move at every ad break", "March or stand at every ad break")] } },
+      /* 14. steps not set by the coach yet: workout and small moves */
+      { r: [R("morning", ["Dance Workout-1|E|1|1|||25"])], s: "", m: { morning: [M("Take the stairs instead of the lift", "2 to 3 floors")] } }
+    ];
+    var weeks = [0, 1].map(function (wi) {
+      return { week_no: wi + 1, days: plan.slice(wi * 7, wi * 7 + 7).map(function (d, di) {
+        return { day_no: di + 1, rest_day: d.rest ? "Y" : "N", routines: (d.r || []).map(function (r, i) { r.routine_no = i + 1; return r; }) };
+      }) };
+    });
+    var steps = {}, neat = {};
+    var noff = {};
+    plan.forEach(function (d, i) { var k = (Math.floor(i / 7) + 1) + "-" + (i % 7 + 1); if (d.s !== "") steps[k] = String(d.s); if (d.off) noff[k] = 1;
+      neat[k] = { morning: d.m.morning || [], afternoon: d.m.afternoon || [], evening: d.m.evening || [], night: d.m.night || [] }; });
+    return { name: "Every kind of day", patient: "Jhon Doe", coach: "Sahana Physio", start: "2026-11-16", weeks: weeks, steps: steps, neat: neat, noff: noff, nowalk: false,
+      parts: [{ k: "morning", label: "Morning", from: "06:00", to: "12:00" }, { k: "afternoon", label: "Afternoon", from: "12:00", to: "16:00" },
+        { k: "evening", label: "Evening", from: "16:00", to: "20:00" }, { k: "night", label: "Night", from: "20:00", to: "23:00" }] };
+  }
+})();
+</script>
+</body>
+</html>

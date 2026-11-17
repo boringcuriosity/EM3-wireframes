@@ -11,7 +11,9 @@
      visual()  a LAB variant { bg, build(stage, L), frame(state, p) } on a 320 x 360 stage; p from LAB.at(key, seconds) */
 (function () {
   var D = "/v7/mind/breath-lab/";
-  var VIDEO = D + "video/belly2/breath-loop.mp4", IN = D + "frames/pursed/in.png", OUT = D + "frames/pursed/out.png";
+  /* Belly, Humming Bee and Pursed Lip wear the Mind indigo (frames/indigo-outfit/, 17 Nov 2026): the same woman and frames,
+     her clothes recoloured, with a soft indigo glow behind her. The earlier peach frames stay in frames/ai, frames/pursed and video/belly2 */
+  var IO = D + "frames/indigo-outfit/";
   LAB.FINAL_ORDER = ["coherent", "sleep", "box", "exhale", "belly", "hum", "pursed"];
   LAB.FINAL = {
     coherent: { pat: "In 5, out 5", how: "In 5 s, out 5 s, 6 breaths a minute",
@@ -39,23 +41,23 @@
       line: "A breath out twice as long as the breath in tells your body it is safe to slow down.",
       visual: function () { return LAB.clockBloom("exhale"); } },
     belly: { pat: "In 4, out 6", how: "In 4 s as the belly rises, out 6 s as it falls",
-      look: "Filmed side profile", assets: [VIDEO],
+      look: "Filmed side profile", assets: [IO + "belly-loop.mp4"],
       desc: "The same woman standing, filmed from head to hips. Breathing in for 4 s her belly rises gently and her chin lifts a little; breathing out for 6 s both settle back along the same path. The breath clock goes round her: a shorter arc in, a longer arc out.",
       steps: [["", "One hand on your chest, one on your belly"], ["4 s", "Breathe in so the belly hand rises, the chest stays still"], ["6 s", "Breathe out slowly as the belly falls"]],
       line: "Breathing from the belly uses your diaphragm, the calmest way to breathe.",
-      visual: function () { return LAB.clockBloom("belly", Object.assign({ size: 250 }, LAB.loopBreath(VIDEO))); } },
+      visual: function () { return LAB.clockBloom("belly", Object.assign({ size: 250, glow: true }, LAB.loopBreath(IO + "belly-loop.mp4"))); } },
     hum: { pat: "In 4, hum 7", how: "In 4 s, then hum on the breath out for 7 s",
-      look: "Hands over the face (Shanmukhi)", assets: [D + "frames/ai/hs-base.png", D + "frames/ai/mask-face.png", D + "frames/ai/si-0.png", D + "frames/ai/si-2.png", D + "frames/ai/si-4.png", D + "frames/ai/sh-2.png"],
-      desc: "The illustrated woman breathes in through the nose, then hums with her thumbs closing the ears, fingers resting over the eyes. The face and lips change gently between breathing in and humming. The same breath clock goes round her: a short arc for breathing in, a longer one for the hum.",
+      look: "Fingers closing the ears, cut at the chest", assets: [IO + "hum-in.png", IO + "hum-hum.png"],
+      desc: "The illustrated woman, head, shoulders and arms only (cut at the chest, so the belly is not shown), with her fingers gently closing her ears. Breathing in she sits still; humming, soft sound arcs show by her ears. The same breath clock goes round her: a short arc for breathing in, a longer one for the hum.",
       steps: [["4 s", "Breathe in through your nose"], ["7 s", "Breathe out with a soft, low hum, lips closed"]],
       line: "The gentle hum on the breath out quietens a busy mind before bed.",
-      visual: function () { return LAB.clockBloom("hum", Object.assign({ bg: "#FFFFFF", size: 250 }, LAB.aiPlayer("humFaceOne", "hum"))); } },
+      visual: function () { return LAB.clockBloom("hum", Object.assign({ bg: "#FFFFFF", size: 250, glow: true }, LAB.twoFrames(IO + "hum-in.png", IO + "hum-hum.png"))); } },
     pursed: { pat: "In 2, out 4", how: "In 2 s through the nose, out 4 s through pursed lips, like blowing out a candle",
-      look: "Close-up with arrows", assets: [IN, OUT],
-      desc: "A close side profile of the same woman. Breathing in, her head lifts a little and a soft gold arrow flows into her nose. Breathing out, her lips purse as if blowing out a candle and the arrow flows away from her mouth. The breath clock goes round her: a short arc in, a longer arc out.",
+      look: "Close-up with arrows", assets: [IO + "pursed-in.png", IO + "pursed-out.png"],
+      desc: "A close side profile of the same woman. Breathing in, her head lifts a little and a soft indigo arrow flows into her nose. Breathing out, her lips purse as if blowing out a candle and the arrow flows away from her mouth. The breath clock goes round her: a short arc in, a longer arc out.",
       steps: [["2 s", "Breathe in through your nose"], ["4 s", "Breathe out through pursed lips, like blowing out a candle"]],
       line: "A slow breath out through pursed lips eases breathlessness and slows your breathing down.",
-      visual: function () { return LAB.clockBloom("pursed", Object.assign({ size: 240 }, LAB.twoFrames(IN, OUT))); } }
+      visual: function () { return LAB.clockBloom("pursed", Object.assign({ size: 240, glow: true }, LAB.twoFrames(IO + "pursed-in.png", IO + "pursed-out.png"))); } }
   };
   LAB.FINAL_ORDER.forEach(function (k) { LAB.FINAL[k].key = k; LAB.FINAL[k].name = LAB.PAT[k].name; });
 })();

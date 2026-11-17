@@ -1,10 +1,10 @@
 /* Mind: the Rhythm score, worked out from the cards in mind/plan.js with the Mind deck weights (mind/sandbox-simple.html):
-     Sleep hours   23  the main sleep and naps together (decided 16 Nov 2026): full at the coach's target; drops to zero
+     Sleep duration 25 the main sleep and naps together (decided 16 Nov 2026): full at the coach's target; drops to zero
                        when short by 3 h; past target + 1 h, loses 20% an hour, so a long nap can cost points
-     Sleep window  24  bedtime and wake time each: full within 30 min of the plan, none past 2 h, early or late alike.
+     Consistency   25  bedtime and wake time each: full within 30 min of the plan, none past 2 h, early or late alike.
                        Judged on the main sleep only (mind/sleep-rule.js): naps never move it, and one under 3 h asleep
                        gives 0. The coach's window may sit in the day, for a night-shift sleeper
-     Wind-down     23  each task done earns its share
+     Wind-down     20  each task done earns its share
      Breathing     10  each exercise done earns its share
      Me-time       10  any one task is enough
      Mood          10  checking in counts; the answer never does
@@ -37,13 +37,23 @@
         self: n("wd") + n("br") + (n("me") ? 1 : 0) + (S.vm ? S.vm.filter(Boolean).length : S.mood >= 0 ? 1 : 0) }
     };
   }
+  /* only the parts the coach's plan has count. A part left out shares its points with the rest of its own group, so
+     Sleep quality stays 70 and Self-care stays 30 on every plan (decided 17 Nov 2026; before, all parts scaled up) */
+  var GROUPS = [["hours", "window", "wd"], ["br", "me", "mood"]];
+  function weights() {
+    var has = { wd: P.wd.length, br: P.br.length, me: P.me.length }, w = {};
+    GROUPS.forEach(function (g) {
+      var on = g.filter(function (k) { return !(k in has) || has[k]; }), full = 0, part = 0;
+      g.forEach(function (k) { full += P.w[k]; }); on.forEach(function (k) { part += P.w[k]; });
+      on.forEach(function (k) { w[k] = P.w[k] * full / part; });
+    });
+    return w;
+  }
   function score() {
     if (M.noplan) return null;
-    var p = parts(), sum = 0, tot = 0;
-    /* only the parts the coach's plan has count, so a plan without me-time can still reach 100 */
-    var has = { wd: P.wd.length, br: P.br.length, me: P.me.length };
-    Object.keys(P.w).forEach(function (k) { if (k in has && !has[k]) return; sum += P.w[k]; tot += P.w[k] * p[k]; });
-    return Math.round(tot / sum * 100);
+    var p = parts(), w = weights(), tot = 0;
+    Object.keys(w).forEach(function (k) { tot += w[k] * p[k]; });
+    return Math.round(tot);
   }
 
   /* "What shaped your score?": the coach's three targets. Sleep hours against the target; the sleep window as bedtime and
@@ -126,7 +136,7 @@
     if (!M.noplan) { window.MOVEPART[0].T = P.hours; window.MOVEPART[2].T = selfT(); }
     window.paintMacros(null, "");
   }
-  window.MDRHYTHM = { score: score, parts: parts, night: night, update: update };
+  window.MDRHYTHM = { score: score, parts: parts, night: night, update: update, weights: weights };
   /* the screen's date sheet and medal read today's score from Move's object; Mind answers for it */
   window.MVMOM = { score: score, gain: function () { return 0; }, logged: function () {} };
   setTimeout(tiles, 300);

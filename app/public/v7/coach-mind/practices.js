@@ -156,7 +156,7 @@
           '<header><h1 class="pr-h1">Coach\'s practices</h1>' +
           '<p class="pr-intro">Exercises from you, outside the Rhythm score. Pick a few and set how often each is filled in.</p></header>' +
           '<div class="pr-card pr-top">' +
-            '<div class="pr-search">' + ICON.search + '<input class="pr-input" type="search" data-k="q" placeholder="Search practices, for example worry or sleep" aria-label="Search practices"></div>' +
+            '<div class="pr-search">' + ICON.search + '<input class="pr-input" type="search" data-k="q" placeholder="Search, for example worry" aria-label="Search practices"></div>' +
             '<div class="pr-pills" role="group" aria-label="Filter by theme"></div>' +
           '</div>' +
           '<div class="pr-cols"><div class="pr-lib" aria-label="Practice library"></div><aside class="pr-side" aria-label="Chosen for this plan"></aside></div>' +

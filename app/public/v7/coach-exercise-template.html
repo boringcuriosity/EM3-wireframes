@@ -203,6 +203,8 @@
   .pvcard{background:#fff;padding:10px 0 30px;margin-top:6px}
   .pvhead{width:30%;margin:16px;padding:16px;border:1px solid #d2d4d7}
   .pvhead h3{margin:0 0 16px;font-size:18px;font-weight:600}
+  .pvtop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}.pvtop h3{flex:1 1 auto}
+  .pvpdf{flex:none;display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;margin-top:-4px}.pvpdf .ic{width:16px;height:16px}
   .pvrow{display:grid;grid-template-columns:25% 75%;align-items:center;margin-bottom:10px}
   .pvrow b{font-weight:600}
   .pvrow div{border:1px solid #d2d4d7;padding:14px 16px}
@@ -380,7 +382,21 @@
   .hmb:hover{background:#f2f4f7}
   .hmb img{width:14px;opacity:.6;transition:transform .25s ease}
   /* the table: more room for names, and units readable in full */
-  .cols,.row{grid-template-columns:20% 9.5% 9% 9% 12.5% 12.5% 11.5% 9% 7%}
+  .cols,.row{grid-template-columns:17.5% 8% 8.5% 8.5% 11.5% 11.5% 10.5% 11.5% 7% 5.5%}
+  /* intensity: a small dropdown, the level over its MET value */
+  .isel{position:relative;display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%;max-width:132px;height:36px;padding:0 8px 0 10px;border:1px solid #d0d5dd;border-radius:6px;background:#fff;cursor:pointer;text-align:left}
+  .isel:hover{border-color:var(--primary)}
+  .isel .v{display:flex;flex-direction:column;min-width:0;line-height:14px}
+  .isel .v b{font-size:13px;font-weight:600;color:#101828;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .isel .v small{font-size:11px;color:#667085;font-variant-numeric:tabular-nums}
+  .isel .car{flex:none;width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:4px solid #888}
+  .isel .panel{position:absolute;z-index:40;right:0;top:40px;min-width:200px;padding:6px 0;background:#fff;border-radius:6px;box-shadow:0 2px 4px -1px rgba(0,0,0,.2),0 4px 5px 0 rgba(0,0,0,.14),0 1px 10px 0 rgba(0,0,0,.12);display:none}
+  .isel.open .panel{display:block}
+  .isel .opt{display:flex;align-items:center;justify-content:space-between;gap:16px;height:40px;padding:0 14px;font-size:14px;color:#101828}
+  .isel .opt:hover{background:#F9FAFB}.isel .opt.sel{background:#F3FCF8;font-weight:600}
+  .isel .opt i{font-style:normal;font-size:12.5px;color:#667085;font-variant-numeric:tabular-nums}
+  .isel.off{justify-content:center;border-color:#EAECF0;color:#98A2B3;cursor:default}
+  .isel.fixed{border-color:transparent;background:#F9FAFB;cursor:default}.isel.fixed:hover{border-color:transparent}
   /* kcal burned: what the exercise counts toward Momentum, the same unit a user's own logged workout counts in */
   .kc{font-weight:700;font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
   .kc small{margin-left:3px;font-size:12px;font-weight:500;color:#667085}
@@ -670,6 +686,10 @@
   .cc.from{background:var(--gold-bg);border:1.5px solid #E7C144;color:var(--gold-ink);cursor:default}
   .cc.from.has::after{display:none}
   .wmode .cc:not(.from):not(.on){cursor:pointer}
+  /* a routine's own day: pickable, to add the routine again at another time of day */
+  .cc.from.self:not(:disabled){cursor:pointer}.cc.from.self:not(:disabled):hover{border-color:var(--primary)}
+  .cc.from.self.on{background:var(--primary);border-color:var(--primary);color:#fff}
+  .cself .clab{width:auto;text-transform:none;letter-spacing:0;font-size:13px}
   .clegend{display:flex;gap:16px;font-size:12px;color:var(--ink3)}
   .clegend span{display:flex;align-items:center;gap:6px}
   .clegend .cc{display:inline-block;width:14px;height:14px;border-radius:4px}
@@ -727,7 +747,7 @@
   .kc-leg .w,.kb .w{background:#6172F3}.kc-leg .s,.kb .s{background:#5FE9D0}
   /* a long plan scrolls inside the table, its header and week names held */
   .kc-wrap{max-height:min(46vh,420px);overflow:auto;border:1px solid #E4E7EC;border-radius:12px}
-  .kc{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;font-variant-numeric:tabular-nums}
+  table.kc{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;font-variant-numeric:tabular-nums}
   .kc thead th{position:sticky;top:0;z-index:2;padding:8px;background:#F9FAFB;font-size:11.5px;font-weight:600;color:#667085;text-align:left;white-space:nowrap;border-bottom:1px solid #E4E7EC}
   .kc thead th:first-child{left:0;z-index:3}
   .kc tbody th{position:sticky;left:0;z-index:1;padding:8px 10px;background:#fff;font-size:12px;font-weight:600;color:#344054;text-align:left;white-space:nowrap;border-bottom:1px solid #F2F4F7}
@@ -852,6 +872,7 @@
   .opt.taken{opacity:.45;cursor:not-allowed}
   .opt.taken i{font-style:normal}
 </style>
+<script src="/v7/data/exercise-lists.js"></script>
 </head>
 <body>
 <div class="app mini" id="app">
@@ -1204,18 +1225,34 @@ Yoga for Back Pain -2|P|27|min`;
   /* kcal burned = MET x 3.5 x kg / 200 per minute. Momentum counts the workout in kcal, so the coach's exercises and
      anything the user logs from search add up in one unit.
      ponytail: one MET per type (breathing 1.5, exercise 4.5) and 65 kg; per-exercise METs and the user's weight come with real data */
-  function exKcal(ex) { return Math.round((ex.exerciseType === "Breathing" ? 1.5 : ex.exerciseType ? 4.5 : 0) * 3.5 * 65 / 200 * exMin(ex)); }
+  /* intensity and MET per exercise, from the exercise MET list (data/exercise-lists.js, Compendium of Physical Activities):
+     an exercise with levels gets a dropdown of its own levels, its default first picked; one with a single MET shows it fixed.
+     ponytail: matched by name until the API sends the MET with each exercise; an unmatched name falls back to 1.5 breathing, 4.5 other */
+  var nkey = function (t) { return String(t || "").toLowerCase().replace(/[^a-z0-9]/g, ""); };
+  var EXMET = {}; ((window.EXL || {}).coach || []).forEach(function (c) { EXMET[nkey(c.orig)] = EXMET[nkey(c.n)] = c; });
+  function exRef(ex) { return EXMET[nkey(ex.title)] || null; }
+  function exLevels(ex) { var c = exRef(ex); return c ? c.i.map(function (x) { return [x.n, x.m]; }) : []; }
+  function exMet(ex) {
+    if (!ex.exerciseType) return 0;
+    var c = exRef(ex), L = exLevels(ex);
+    if (ex.met != null && L.some(function (x) { return x[1] === ex.met; })) return ex.met;
+    return c ? c.met : ex.exerciseType === "Breathing" ? 1.5 : 4.5;
+  }
+  /* one fixed MET: its effort comes from the standard MET bands, the same words as the levels (and the patient's PDF) */
+  function band(m) { return m < 1.5 ? "Very light" : m < 3 ? "Light" : m < 6 ? "Moderate" : "Vigorous"; }
+  function exInt(ex) { var m = exMet(ex); return exLevels(ex).filter(function (x) { return x[1] === m; })[0] || [band(m), m]; }
+  function exKcal(ex) { return Math.round(exMet(ex) * 3.5 * 65 / 200 * exMin(ex)); }
   function routineKcal(r) { return r.exercises.reduce(function (n, ex) { return n + exKcal(ex); }, 0); }
   function dayKcal(D) { return D.rest_day === "Y" ? 0 : D.routines.reduce(function (n, r) { return n + routineKcal(r); }, 0); }
   /* the formula, on hover or focus of a small info icon in the column head */
   var KTIP = '<span class="ktip"><button type="button" aria-label="How kcal burned is worked out" aria-describedby="ktipT"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><circle cx="12" cy="7.8" r=".6" fill="currentColor"/></svg></button>' +
     '<span class="tt" role="tooltip" id="ktipT"><b>How kcal burned is worked out</b>' +
     '<code>kcal = MET × 3.5 × weight ÷ 200 × minutes</code>' +
-    '<dl><dt>MET</dt><dd>How hard the exercise is compared with sitting still. 1.5 for breathing exercises, 4.5 for other exercises.</dd>' +
+    '<dl><dt>MET</dt><dd>How hard the exercise is compared with sitting still, from the Intensity column. Each exercise has its own, from the Compendium of Physical Activities. Where it has levels, the one you pick sets it.</dd>' +
     '<dt>3.5 and 200</dt><dd>Fixed numbers that turn MET into calories per minute.</dd>' +
     '<dt>Weight</dt><dd>The user\'s weight in kg. 65 kg for now.</dd>' +
     '<dt>Minutes</dt><dd>The exercise\'s duration, from reps, sets and rest.</dd></dl>' +
-    '<em>Example: Lunges for 6 min<br>4.5 × 3.5 × 65 ÷ 200 × 6 = <b>31 kcal</b></em></span></span>';
+    '<em>Example: Lunges, Moderate (3 MET), for 6 min<br>3 × 3.5 × 65 ÷ 200 × 6 = <b>20 kcal</b></em></span></span>';
   function both(m, k) { return mins(m) + " · " + k + " kcal"; }
   function routineMin(r) { return r.exercises.reduce(function (n, ex) { return n + exMin(ex); }, 0); }
   function dayMin(D) { return D.rest_day === "Y" ? 0 : D.routines.reduce(function (n, r) { return n + routineMin(r); }, 0); }
@@ -1414,6 +1451,14 @@ Yoga for Back Pain -2|P|27|min`;
     return '<div class="usel" data-usel="' + path + '|' + key + '"><span class="v">' + (unit === "sec" ? "Sec" : "Min") + '</span><span class="car"></span>' +
       '<div class="panel"><div class="opt' + (unit === "sec" ? " sel" : "") + '" data-unit="sec">Sec</div><div class="opt' + (unit === "min" ? " sel" : "") + '" data-unit="min">Min</div></div></div>';
   }
+  function intSel(ex, path) {
+    if (!ex.exerciseType) return '<span class="isel off" aria-label="Intensity, pick an exercise first">–</span>';
+    var c = exInt(ex), L = exLevels(ex);
+    if (L.length < 2) return '<span class="isel fixed" title="This exercise has one intensity" aria-label="Intensity, ' + c[0] + ', ' + c[1] + ' MET, one level only"><span class="v"><b>' + c[0] + '</b><small>' + c[1] + ' MET</small></span></span>';
+    return '<div class="isel" data-isel="' + path + '" role="button" tabindex="0" aria-haspopup="listbox" aria-label="Intensity, ' + c[0] + ', ' + c[1] + ' MET">' +
+      '<span class="v"><b>' + c[0] + '</b><small>' + c[1] + ' MET</small></span><span class="car"></span><div class="panel" role="listbox">' +
+      L.map(function (x) { return '<div class="opt' + (x[1] === c[1] ? " sel" : "") + '" role="option" tabindex="-1" data-met="' + x[1] + '">' + x[0] + '<i>' + x[1] + ' MET</i></div>'; }).join("") + '</div></div>';
+  }
   function numBox(val, key, path) {
     return '<input class="num' + (val === "" ? " bad" : "") + '" value="' + val + '" data-num="' + path + '|' + key + '" inputmode="numeric">';
   }
@@ -1459,7 +1504,7 @@ Yoga for Back Pain -2|P|27|min`;
           '<div class="opt" data-copyr="' + ri + '|">Copy Routine To</div><div class="opt" data-copyr="' + ri + '|all">All routine</div>' +
           D.routines.map(function (o, oi) { return oi === ri ? "" : '<div class="opt" data-copyr="' + ri + '|' + oi + '">Routine ' + o.routine_no + '</div>'; }).join("") +
         '</div></div></div>') +
-        '<div class="cols"><div>Exercise</div><div>Exercise<br>Type</div><div>Reps</div><div>Set</div><div>Rest Post Set </div><div>Rest Post<br>Exercise</div><div>Duration</div><div>Kcal<br>burned' + KTIP + '</div><div>Delete</div></div>' +
+        '<div class="cols"><div>Exercise</div><div>Exercise<br>Type</div><div>Reps</div><div>Set</div><div>Rest Post Set </div><div>Rest Post<br>Exercise</div><div>Duration</div><div>Intensity</div><div>Kcal<br>burned' + KTIP + '</div><div>Delete</div></div>' +
         r.exercises.map(function (ex, ei) {
           var p = ri + "." + ei;
           /* a grip to drag the row within its routine; arrow keys move it one place for anyone not using a pointer */
@@ -1473,6 +1518,7 @@ Yoga for Back Pain -2|P|27|min`;
             '<div>' + numBox(ex.rest_post_sets, "rest_post_sets", p) + unitSel("rest_post_sets_unit", ex.rest_post_sets_unit, p) + '</div>' +
             '<div>' + numBox(ex.rest_post_exercise, "rest_post_exercise", p) + unitSel("rest_post_exercise_unit", ex.rest_post_exercise_unit, p) + '</div>' +
             '<div><span class="dur">' + ex.duration + '</span>' + unitSel("duration_units", ex.duration_units, p) + '</div>' +
+            '<div>' + intSel(ex, p) + '</div>' +
             '<div><span class="kc">' + exKcal(ex) + '<small>kcal</small></span></div>' +
             '<div><button class="trash" data-rmex="' + p + '" aria-label="Delete exercise"><img src="img/coach/icons/trash.svg" alt=""></button></div></div>';
         }).join("") +
@@ -1513,7 +1559,7 @@ Yoga for Back Pain -2|P|27|min`;
     var D = day(), p = path.split("."), r = D.routines[+p[0]], ex = r.exercises[+p[1]];
     var dup = r.exercises.some(function (o, i) { return i !== +p[1] && o.content_master_id === id; });
     var x = BYID[id];
-    ex.content_master_id = id; ex.exerciseType = x.exerciseType; ex.duration_unit = x.duration_unit; ex.time_duration = x.time_duration; ex.title = x.title;
+    ex.content_master_id = id; delete ex.met; ex.exerciseType = x.exerciseType; ex.duration_unit = x.duration_unit; ex.time_duration = x.time_duration; ex.title = x.title;
     if (dup) {
       toast("You cannot add the same exercise");
       ex.reps = ex.sets = ex.rest_post_sets = ex.rest_post_exercise = ""; ex.duration = "0";
@@ -1551,7 +1597,7 @@ Yoga for Back Pain -2|P|27|min`;
   }
   document.addEventListener("click", function (e) {
     var t = e.target;
-    if (!t.closest(".open")) { if (!t.closest("[data-drop],[data-msel],[data-usel],.rsel")) closeAll(); }
+    if (!t.closest(".open")) { if (!t.closest("[data-drop],[data-msel],[data-usel],[data-isel],.rsel")) closeAll(); }
     var a;
     if ((a = t.closest("[data-rmweek]"))) {
       /* the cross removes the week, then the click carries on to the week row, as the live page does */
@@ -1571,6 +1617,8 @@ Yoga for Back Pain -2|P|27|min`;
       } else { ex[key] = v; calc(ex); }
       closeAll(); drawDay(); return;
     }
+    if ((a = t.closest("[data-met]"))) { get(a.closest("[data-isel]").dataset.isel).met = +a.dataset.met; closeAll(); drawDay(); return; }
+    if ((a = t.closest("[data-isel]"))) { var wi = a.classList.contains("open"); closeAll(); if (!wi) a.classList.add("open"); return; }
     if ((a = t.closest("[data-usel]"))) { var was = a.classList.contains("open"); closeAll(); if (!was) a.classList.add("open"); return; }
     if ((a = t.closest("[data-copyday]"))) {
       var to = a.dataset.copyday; closeAll();
@@ -1632,7 +1680,7 @@ Yoga for Back Pain -2|P|27|min`;
       }
       return;
     }
-    if ((a = t.closest("#cscrim [data-cell],#cscrim [data-crow],#cscrim [data-ccol],#cscrim [data-cq],#cscrim [data-cwhat],#cscrim [data-cmode]"))) { copyClick(a); return; }
+    if ((a = t.closest("#cscrim [data-cell],#cscrim [data-crow],#cscrim [data-ccol],#cscrim [data-cq],#cscrim [data-cwhat],#cscrim [data-cmode],#cscrim [data-cat]"))) { copyClick(a); return; }
     if ((a = t.closest("[data-madd]"))) {
       nList(true)[a.dataset.madd].push({ title: "", sub: "" }); drawNeat(); drawBar();
       var ins = document.querySelectorAll('[data-mname^="' + a.dataset.madd + '|"]'); if (ins.length) ins[ins.length - 1].focus();
@@ -1728,12 +1776,28 @@ Yoga for Back Pain -2|P|27|min`;
     else if (x === "crumbcancel" || x === "home") toast("Outside this replica. The live portal opens " + (x === "home" ? "Home" : "Create New Exercise") + ".");
     else if (x === "logout") toast("Logout is not part of this replica.");
     else if (x === "menu") { var mini = $("app").classList.toggle("mini"); a.setAttribute("aria-expanded", String(!mini)); a.setAttribute("aria-label", mini ? "Show menu" : "Hide menu"); }
-    else if (x === "pvassign") { toast("Exercise plan " + (S.tpl.master ? "and master template " : "") + "updated successfully" + (S.tpl.copy ? ', copy saved as "' + S.tpl.copy + '"' : "")); setTimeout(function () { $("app").classList.remove("preview"); }, 800); }
+    else if (x === "pvpdf") { pdf(); }
+    else if (x === "pvassign") {
+      /* assigned: back to List of Exercise Plans (coach-exercise/start.js), the new plan on top as Active */
+      var msg = "Exercise plan assigned" + (S.tpl.master ? ", master template updated" : "") + (S.tpl.copy ? ', copy saved as "' + S.tpl.copy + '"' : "");
+      var st0 = $("sdate").value || iso(today), en = new Date(st0); en.setDate(en.getDate() + PLAN.length * 7 - 1);
+      $("app").classList.remove("preview");
+      if (window.CS_ASSIGN) window.CS_ASSIGN(st0, iso(en), msg); else toast(msg);
+    }
     else if (x === "pvcancel") ask("Exercise template!", "Are you sure you want to cancel exercise template?", function () { $("app").classList.remove("preview"); });
     else if (x === "pvback") $("app").classList.remove("preview");
   });
 
   /* the number boxes: digits only, four at most, the wheel nudges, and the row recalculates */
+  /* intensity by keyboard: Enter or Space opens it on the current level, arrows move, Enter picks */
+  $("right").addEventListener("keydown", function (e) {
+    var o = e.target.closest("[data-met]"), b = e.target.closest("[data-isel]"); if (!b) return;
+    if (o && (e.key === "ArrowDown" || e.key === "ArrowUp")) { e.preventDefault(); var n = e.key === "ArrowDown" ? o.nextElementSibling : o.previousElementSibling; if (n) n.focus(); return; }
+    if (e.key !== "Enter" && e.key !== " ") return;
+    e.preventDefault();
+    if (o) { o.click(); var k = document.querySelector('[data-isel="' + b.dataset.isel + '"]'); if (k) k.focus(); return; }
+    b.click(); if (b.classList.contains("open")) (b.querySelector(".opt.sel") || b.querySelector(".opt")).focus();
+  });
   $("right").addEventListener("keydown", function (e) {
     if (!e.target.matches(".num")) return;
     var ok = ["Backspace", "Tab", "ArrowLeft", "ArrowRight", "Delete"].indexOf(e.key) >= 0;
@@ -2060,10 +2124,17 @@ Yoga for Back Pain -2|P|27|min`;
   function srcOf(kind, k) { return kind === "n" ? NEAT[k] : STEPS[k]; }
   function openCopy(arg) {
     var g = arg.split("|"), w = g[0] === "n" ? S.nw : g[0] === "s" ? S.sw : S.w, d = g[0] === "n" ? S.nd : g[0] === "s" ? S.sd : S.d;
-    C = { g: g[0], what: g[1], w: w, d: d, sel: {}, mode: "replace" };
+    C = { g: g[0], what: g[1], w: w, d: d, sel: {}, mode: "replace", at: "" };
     drawCopy(); $("cscrim").classList.add("on");
   }
   function isWeek() { return C.what === "week"; }
+  /* one routine can also go to its own day, as another routine at a time of day that day has free (one routine per time of day) */
+  function selfRi() { return C.g === "e" && !isWeek() && C.what.charAt(0) === "r" ? +C.what.slice(1) : -1; }
+  function freeTimes() {
+    var D = PLAN[C.w].days[C.d]; if (selfRi() < 0 || D.rest_day === "Y") return [];
+    return PARTS.filter(function (p) { return !D.routines.some(function (r) { return r.time === p.k; }); });
+  }
+  function selfKey() { return dkey(C.w, C.d); }
   function selCount() { return Object.keys(C.sel).length; }
   /* whether a day already holds something, for the dots on the grid */
   function hasAt(wi, di) {
@@ -2082,7 +2153,7 @@ Yoga for Back Pain -2|P|27|min`;
     var src = C.g === "e" ? null : srcOf(C.g, dkey(C.w, C.d)), wk = PLAN[C.w].week_no, h = "";
     /* what to copy */
     var whats = [["day", "Day " + (C.d + 1)], ["week", "All of week " + wk]];
-    if (C.g === "e") { var ED = PLAN[C.w].days[C.d]; if (ED.rest_day !== "Y" && ED.routines.length > 1) ED.routines.forEach(function (r, ri) { whats.splice(whats.length - 1, 0, ["r" + ri, "Routine " + r.routine_no + " only"]); }); }
+    if (C.g === "e") { var ED = PLAN[C.w].days[C.d]; if (ED.rest_day !== "Y" && (ED.routines.length > 1 || C.what.charAt(0) === "r")) ED.routines.forEach(function (r, ri) { whats.splice(whats.length - 1, 0, ["r" + ri, "Routine " + r.routine_no + " only"]); }); }
     if (C.g === "n") PARTS.forEach(function (p) { var c = src ? src[p.k].length : 0; if (c) whats.splice(whats.length - 1, 0, [p.k, p.label + " only"]); });
     /* what to copy is a dropdown, not a row of tabs: a day with many routines, or small moves in every part, would run long */
     var tod = function (k) { return PS[k] ? '<span class="todi t-' + PS[k].tone + '">' + ico(PS[k].ic) + '</span>' : ""; };
@@ -2090,7 +2161,7 @@ Yoga for Back Pain -2|P|27|min`;
     h += '<div class="cq"><span class="clab">Copy</span><div class="drop cdd" data-drop="cwhat"><span class="v">' + tod(curW[0]) + curW[1] + '</span><span class="car"></span><div class="panel">' +
       whats.map(function (o) { return '<div class="opt' + (o[0] === C.what ? " sel" : "") + '" data-cwhat="' + o[0] + '">' + tod(o[0]) + o[1] + '</div>'; }).join("") + '</div></div></div>';
     h += '<p class="cfrom">' + (isWeek() ? "Every day of week " + wk + " goes to the same day in the weeks you pick."
-      : C.g === "e" ? "Week " + wk + ", Day " + (C.d + 1) + ": " + eFrom()
+      : C.g === "e" ? "Week " + wk + ", Day " + (C.d + 1) + ": " + eFrom() + (selfRi() >= 0 && freeTimes().length ? ". To repeat it on this same day, pick Day " + (C.d + 1) + " too." : "")
       : C.g === "s" ? "Week " + wk + ", Day " + (C.d + 1) + ": " + (src ? (src === "off" ? "no steps day" : (+src).toLocaleString("en-IN") + " steps") : "not set")
       : "Week " + wk + ", Day " + (C.d + 1) + ": " + (PS[C.what] ? src[C.what].map(function (m) { return m.title || "Untitled"; }).join(", ") : neatN(src) + " small moves")) + '</p>';
     /* quick picks */
@@ -2108,10 +2179,20 @@ Yoga for Back Pain -2|P|27|min`;
       var srcRow = wi === C.w;
       return '<div class="cgr"><button class="cwk" data-crow="' + wi + '"' + (isWeek() && srcRow ? " disabled" : "") + '>Week ' + w.week_no + '</button>' + DSHORT.map(function (_, di) {
         var k = dkey(wi, di), from = isWeek() ? srcRow : (srcRow && di === C.d), on = isWeek() ? C.sel[wi] : C.sel[k], has = hasAt(wi, di);
+        if (from && selfRi() >= 0) {
+          var fr = freeTimes().length;
+          return '<button class="cc from self' + (on ? " on" : "") + '" data-cell="' + wi + '|' + di + '"' + (fr ? ' aria-pressed="' + !!on + '" aria-label="Week ' + w.week_no + ' Day ' + (di + 1) + ', this same day, as another routine"' :
+            ' disabled aria-label="Copying from here. Every time of day already has a routine"') + ' title="' + (fr ? "This same day, as another routine" : "Every time of day on this day already has a routine") + '">' + (on ? ico("checkmark-outline") : ico("copy-outline")) + '</button>';
+        }
         return '<button class="cc' + (from ? " from" : on ? " on" : "") + (has ? " has" : "") + '" data-cell="' + wi + '|' + di + '"' + (from ? ' disabled aria-label="Copying from here"' : ' aria-pressed="' + !!on + '" aria-label="Week ' + w.week_no + ' Day ' + (di + 1) + '"') + '>' +
           (from ? ico("copy-outline") : on ? ico("checkmark-outline") : "") + '</button>';
       }).join("") + '</div>';
     }).join("") + '</div>';
+    if (selfRi() >= 0 && C.sel[selfKey()]) {
+      var ft = freeTimes(); if (!ft.some(function (p) { return p.k === C.at; })) C.at = ft.length ? ft[0].k : "";
+      h += '<div class="cq cself"><span class="clab">On Day ' + (C.d + 1) + ', the copy goes to</span><div class="cseg sm" role="radiogroup" aria-label="Time of day for the copy on Day ' + (C.d + 1) + '">' +
+        ft.map(function (p) { return '<button role="radio" aria-checked="' + (p.k === C.at) + '" class="' + (p.k === C.at ? "on" : "") + '" data-cat="' + p.k + '">' + tod(p.k) + p.label + '</button>'; }).join("") + '</div></div>';
+    }
     h += '<div class="clegend"><span><i class="cc from"></i>Copying from</span><span><i class="cc on"></i>Copying to</span><span><i class="cc has"></i>Already set</span></div>';
     if (C.g !== "s") h += '<div class="cq cmodeq"><span class="clab">On days already set</span><div class="cseg sm">' +
       '<button class="' + (C.mode === "replace" ? "on" : "") + '" data-cmode="replace">Replace what is there</button><button class="' + (C.mode === "add" ? "on" : "") + '" data-cmode="add">Add to it</button></div></div>';
@@ -2128,6 +2209,7 @@ Yoga for Back Pain -2|P|27|min`;
     else if (a.dataset.cwhat && (a.dataset.cwhat === "week") !== isWeek()) C.q = null;   /* days to weeks clears the pick */
     if ((x = a.dataset.cwhat)) { if ((x === "week") !== isWeek()) C.sel = {}; C.what = x; }
     else if ((x = a.dataset.cmode)) C.mode = x;
+    else if ((x = a.dataset.cat)) C.at = x;
     else if ((x = a.dataset.cq)) {
       C.sel = {};
       PLAN.forEach(function (w, wi) {
@@ -2192,6 +2274,13 @@ Yoga for Back Pain -2|P|27|min`;
   function putNoff(to, from) { if (NOFF[from]) NOFF[to] = 1; else delete NOFF[to]; }
   function fmtS(x) { return x === "off" ? "No steps" : (+x).toLocaleString("en-IN"); }
   function putSteps(k, v) { if (v) STEPS[k] = v; else delete STEPS[k]; }
+  /* a routine onto its own day: a new routine at the free time of day the coach picked */
+  function selfCopy(ri) {
+    var D = PLAN[C.w].days[C.d], c = deep(D.routines[ri]);
+    c.time = C.at; c.routine_no = D.routines.reduce(function (m, r) { return Math.max(m, r.routine_no); }, 0) + 1;
+    D.routines.push(c);
+    C.selfMsg = "Routine " + D.routines[ri].routine_no + " added again on Day " + (C.d + 1) + ", in the " + PARTS.filter(function (p) { return p.k === C.at; })[0].label + " as Routine " + c.routine_no;
+  }
   function doCopy() {
     var n = selCount(), unit;
     if (isWeek()) {
@@ -2203,12 +2292,14 @@ Yoga for Back Pain -2|P|27|min`;
       var from = dkey(C.w, C.d);
       var at = {}; PLAN.forEach(function (w, wi) { for (var di = 0; di < 7; di++) at[dkey(wi, di)] = [wi, di]; });
       var eri = C.what.charAt(0) === "r" ? +C.what.slice(1) : -1;
-      Object.keys(C.sel).forEach(function (k) { C.g === "e" ? putDay(at[k][0], at[k][1], C.w, C.d, eri) : C.g === "n" ? (putNeat(k, NEAT[from], PS[C.what] ? C.what : null), PS[C.what] || putNoff(k, from)) : putSteps(k, STEPS[from]); });
+      Object.keys(C.sel).forEach(function (k) { if (k === from && eri >= 0) return selfCopy(eri);
+        C.g === "e" ? putDay(at[k][0], at[k][1], C.w, C.d, eri) : C.g === "n" ? (putNeat(k, NEAT[from], PS[C.what] ? C.what : null), PS[C.what] || putNoff(k, from)) : putSteps(k, STEPS[from]); });
       unit = n === 1 ? "day" : "days";
     }
     $("cscrim").classList.remove("on");
     C.g === "n" ? drawNeat() : C.g === "s" ? drawSteps() : draw(); drawBar();
-    toast("Copied to " + n + " " + unit);
+    var sm = C.selfMsg; C.selfMsg = "";
+    toast(sm ? (n > 1 ? sm + ", and copied to " + (n - 1) + " more " + (n === 2 ? "day" : "days") : sm) : "Copied to " + n + " " + unit);
   }
 
   /* ================= the times editor ================= */
@@ -2229,6 +2320,14 @@ Yoga for Back Pain -2|P|27|min`;
     toast("Times saved for the whole plan");
   }
 
+  /* ================= the plan as a PDF (coach-exercise/plan-pdf.html): the whole plan, small moves and steps, handed over in localStorage ================= */
+  function pdf() {
+    var d = { name: $("pname").value.trim(), patient: "Jhon Doe", coach: "Design Test", start: $("sdate").value || iso(today),   /* ponytail: the portal's patient and coach until they come from the session */
+      weeks: PLAN, neat: NEAT, noff: NOFF, steps: STEPS, nowalk: !!S.nowalk, parts: PARTS };
+    try { localStorage.setItem("gfMovePlanPdf", JSON.stringify(d)); } catch (e) {}
+    window.open("/v7/coach-exercise/plan-pdf.html", "_blank");
+  }
+
   /* ================= the preview ================= */
   function fmt(d) { var m = d.split("-"); return m[2] + "-" + m[1] + "-" + m[0]; }
   function showPreview() {
@@ -2239,10 +2338,10 @@ Yoga for Back Pain -2|P|27|min`;
       return '<div class="pvex"><div class="t">' + ex.title + '<button>Done</button></div>' +
         '<div class="media"' + (img ? ' style="background-image:url(' + img + ')"' : "") + '></div>' +
         '<div class="facts"><span>Exercise type : <b>' + ex.exerciseType + '</b></span><span>Reps : <b>' + ex.reps + '</b></span><span>Sets : <b>' + ex.sets + '</b></span>' +
-        '<span class="w">Rest Post Sets : <b>' + ex.rest_post_sets + ' ' + ex.rest_post_sets_unit + '</b></span><span class="w">Rest Post Exercise : <b>' + ex.rest_post_exercise + ' ' + ex.rest_post_exercise_unit + '</b></span><span class="w">Burns about : <b>' + exKcal(ex) + ' kcal</b></span></div></div>';
+        '<span class="w">Rest Post Sets : <b>' + ex.rest_post_sets + ' ' + ex.rest_post_sets_unit + '</b></span><span class="w">Rest Post Exercise : <b>' + ex.rest_post_exercise + ' ' + ex.rest_post_exercise_unit + '</b></span><span class="w">Intensity : <b>' + exInt(ex)[0] + ' (' + exMet(ex) + ' MET)</b></span><span class="w">Burns about : <b>' + exKcal(ex) + ' kcal</b></span></div></div>';
     }).join("");
     $("pv").innerHTML = '<div class="crumb"><span data-x="home">Home</span><span>&gt;&gt;</span><span data-x="pvback">Exercise-template</span><span>&gt;&gt;</span><b>Exercise-template-preview</b></div>' +
-      '<div class="pvcard"><div class="pvhead"><h3>Preview and Assign Plan</h3>' +
+      '<div class="pvcard"><div class="pvhead"><div class="pvtop"><h3>Preview and Assign Plan</h3><button class="b ol sm pvpdf" data-x="pvpdf">' + ico("download-outline") + 'Download PDF</button></div>' +
         '<div class="pvrow"><b>Exercise Name</b><div>' + name + '</div></div><div class="pvrow"><b>Start Date</b><div>' + fmt(start) + '</div></div><div class="pvrow"><b>End Date</b><div>' + fmt(iso(end)) + '</div></div>' +
         '<div class="pvrow"><b>Small moves</b><div>' + neatSummary() + '</div></div><div class="pvrow"><b>Steps goal</b><div>' + stepsSummary() + '</div></div>' +
         '<div class="pvrow"><b>Master template</b><div>' + (S.tpl.master ? "Will be updated with these changes" : "Not changed") + '</div></div>' +
