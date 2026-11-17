@@ -111,14 +111,17 @@
       ? { lead: "Keep going through your day to grow your Rhythm.", rest: "", delta: "", tone: "calm" }
       : { lead: "Log last night’s sleep to start today’s Rhythm.", rest: "", delta: "", tone: "calm" });
   }
-  function say(d, n) {
-    var cm = document.getElementById("cm"); if (!cm || !window.GFSay || !window.GFSay.show) return;
+  /* on a slow page (the case doc loads many screens at once) the line can be ready before its card: wait for the card, never drop the line (17 Nov 2026) */
+  function say(d, n, tries) {
+    var cm = document.getElementById("cm");
+    if (!cm || !window.GFSay || !window.GFSay.show) { if ((tries || 0) < 100) setTimeout(function () { say(d, n, (tries || 0) + 1); }, 150); return; }
     if (d <= 0) return intro();
-    cm.classList.add("said");
+    cm.classList.add("said"); cm.dataset.gain = "1";
     window.GFSay.show(window.MDSAY ? window.MDSAY.line(d, n, M.cause)
       : { lead: "Your Rhythm went up by " + d + "%.", rest: "", delta: "+" + d + "%", tone: "up" });
   }
-  (function wait(n) { if (document.getElementById("cm")) intro(); else if (n < 40) setTimeout(function () { wait(n + 1); }, 100); })(0);
+  (function wait(n) { if (document.getElementById("cm") && window.GFSay && window.GFSay.show) { if (!said0()) intro(); } else if (n < 200) setTimeout(function () { wait(n + 1); }, 100); })(0);
+  function said0() { var cm = document.getElementById("cm"); return cm && cm.classList.contains("said") && cm.dataset.gain; }
 
   var t = 0;
   function update() {

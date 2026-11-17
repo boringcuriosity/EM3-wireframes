@@ -878,7 +878,7 @@
   /* doc-only URL hooks for v7/mind-rhythm.html; nothing here runs without them.
      ?act=sleep  last night arrives from Health 1.6 s after the screen settles, so the score and its line move
      ?serr=order|long|overlap  opens the sheet with times that fail a check (overlap needs ?sstate=split) */
-  if (Q.get("act") === "sleep") setTimeout(function () { ST = { perm: true, src: "health", night: SY, health: SY }; put(SY); MD.cause = "sleep"; MD.render(); place(); }, 1600);
+  if (Q.get("act") === "sleep") (function go(n) { if (!window.MDRHYTHM && n < 200) return setTimeout(function () { go(n + 1); }, 100); setTimeout(function () { ST = { perm: true, src: "health", night: SY, health: SY }; put(SY); MD.cause = "sleep"; MD.render(); place(); }, 1600); })(0);
   var SE = Q.get("serr");
   if (SE && V === "i") setTimeout(function () {
     sheet(); var g = draft.segs;
