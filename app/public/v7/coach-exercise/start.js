@@ -154,7 +154,7 @@
     VIEW = v;
     app.classList.toggle("cs-on", v !== "edit"); app.classList.toggle("cs-edit", v === "edit");
     list.hidden = v !== "list"; pick.hidden = v !== "pick";
-    if (v === "list") drawList();
+    if (v === "list") { drawList(); if (matchMedia("(max-width: 760px)").matches) main.scrollTop = 0; }   /* on a phone the list opens at its top, where a new plan lands */
     if (v === "pick") { drawPick(); setTimeout(function () { var f = document.getElementById("csq"); if (f && !matchMedia("(max-width: 760px)").matches) f.focus(); }, 50); }
     if (v === "edit") main.scrollTop = 0;
   }

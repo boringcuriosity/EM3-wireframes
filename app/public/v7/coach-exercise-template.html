@@ -204,6 +204,7 @@
   .pvhead{width:30%;margin:16px;padding:16px;border:1px solid #d2d4d7}
   .pvhead h3{margin:0 0 16px;font-size:18px;font-weight:600}
   .pvtop{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}.pvtop h3{flex:1 1 auto}
+  .ptop{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.ptop .ptabs{margin-bottom:0}.ptop + [data-ptp]{margin-top:14px}
   .pvpdf{flex:none;display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;margin-top:-4px}.pvpdf .ic{width:16px;height:16px}
   .pvrow{display:grid;grid-template-columns:25% 75%;align-items:center;margin-bottom:10px}
   .pvrow b{font-weight:600}
@@ -1370,7 +1371,8 @@ Yoga for Back Pain -2|P|27|min`;
     var check = o.html, init = o.init;
     return {
       xl: true, read: o.read,
-      html: '<div class="ptabs" role="tablist"><button role="tab" class="on" aria-selected="true" data-pt="check">Check and assign</button><button role="tab" aria-selected="false" data-pt="kcal">Calories by day</button></div>' +
+      html: '<div class="ptop"><div class="ptabs" role="tablist"><button role="tab" class="on" aria-selected="true" data-pt="check">Check and assign</button><button role="tab" aria-selected="false" data-pt="kcal">Calories by day</button></div>' +
+        '<button type="button" class="b ol sm pvpdf" data-x="pvpdf">' + ico("download-outline") + 'Download PDF</button></div>' +
         '<div data-ptp="check">' + check + '</div><div data-ptp="kcal" hidden>' + kcalTable() + "</div>",
       init: function () {
         if (init) init();
@@ -1382,6 +1384,13 @@ Yoga for Back Pain -2|P|27|min`;
         });
       }
     };
+  }
+  /* assigned: back to List of Exercise Plans (coach-exercise/start.js), the new plan on top as Active */
+  function assignNow() {
+    var msg = "Exercise plan assigned" + (S.tpl.master ? ", master template updated" : "") + (S.tpl.copy ? ', copy saved as "' + S.tpl.copy + '"' : "");
+    var st0 = $("sdate").value || iso(today), en = new Date(st0); en.setDate(en.getDate() + PLAN.length * 7 - 1);
+    $("app").classList.remove("preview");
+    if (window.CS_ASSIGN) window.CS_ASSIGN(st0, iso(en), msg); else toast(msg);
   }
   function previewOpts(name) { return withTabs(checkOpts(name)); }
   function checkOpts(name) {
@@ -1749,8 +1758,9 @@ Yoga for Back Pain -2|P|27|min`;
     else if (x === "preview") {
       if (!checkNeat()) { goStep(2); return; }
       if (!checkPlan()) { goStep(1); return; }
-      ask("Preview and assign", "Are you sure you want to preview and assign this exercise plan?", function (tpl) {
-        S.tpl = tpl; setTimeout(showPreview, 1000);
+      /* Yes assigns the plan and lands on List of Exercise Plans; the dialog itself is the preview (check, calories by day, PDF) */
+      ask("Preview and assign", "Are you sure you want to assign this exercise plan?", function (tpl) {
+        S.tpl = tpl; assignNow();
       }, previewOpts($("pname").value.trim()));
     } else if (x === "pclose") $("pscrim").classList.remove("on");
     else if (x === "psave") saveTimes();
@@ -1777,13 +1787,7 @@ Yoga for Back Pain -2|P|27|min`;
     else if (x === "logout") toast("Logout is not part of this replica.");
     else if (x === "menu") { var mini = $("app").classList.toggle("mini"); a.setAttribute("aria-expanded", String(!mini)); a.setAttribute("aria-label", mini ? "Show menu" : "Hide menu"); }
     else if (x === "pvpdf") { pdf(); }
-    else if (x === "pvassign") {
-      /* assigned: back to List of Exercise Plans (coach-exercise/start.js), the new plan on top as Active */
-      var msg = "Exercise plan assigned" + (S.tpl.master ? ", master template updated" : "") + (S.tpl.copy ? ', copy saved as "' + S.tpl.copy + '"' : "");
-      var st0 = $("sdate").value || iso(today), en = new Date(st0); en.setDate(en.getDate() + PLAN.length * 7 - 1);
-      $("app").classList.remove("preview");
-      if (window.CS_ASSIGN) window.CS_ASSIGN(st0, iso(en), msg); else toast(msg);
-    }
+    else if (x === "pvassign") assignNow();
     else if (x === "pvcancel") ask("Exercise template!", "Are you sure you want to cancel exercise template?", function () { $("app").classList.remove("preview"); });
     else if (x === "pvback") $("app").classList.remove("preview");
   });

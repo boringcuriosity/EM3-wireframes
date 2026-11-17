@@ -114,6 +114,18 @@
     /* a pick inside the open tools closes them */
     var o = e.target.closest(".mx-open button:not(.mx-more)");
     if (o) { var k = o.closest("#step2") ? "n" : o.closest("#step3") ? "s" : "e"; MORE[k] = false; setTimeout(dayTools, 0); }
+  }, true);   /* capture: read the pick before the builder redraws the day and detaches it */
+  /* a dropdown opened low on the page scrolls up just enough to clear the bottom bar, so none of its options sit hidden under it */
+  document.addEventListener("click", function () {
+    if (!phone.matches) return;
+    setTimeout(function () {
+      var main = document.querySelector(".main"), bar = document.querySelector(".sbar"); if (!main) return;
+      var floor = bar && bar.getBoundingClientRect().height ? bar.getBoundingClientRect().top - 8 : innerHeight - 8;
+      [].forEach.call(document.querySelectorAll(".open > .panel"), function (p) {
+        var r = p.getBoundingClientRect(); if (!r.height || r.bottom <= floor) return;
+        main.scrollBy({ top: Math.min(r.bottom - floor, r.top - 100), behavior: "smooth" });
+      });
+    }, 30);
   });
   document.addEventListener("input", function (e) { if (e.target.closest(".fields")) planLine(); });
   document.addEventListener("change", function (e) { if (e.target.closest(".fields")) planLine(); });
@@ -124,7 +136,34 @@
       var l = b.closest(".pcard").querySelector(".pt b"); b.setAttribute("aria-label", b.textContent.trim() + (l ? ", " + l.textContent.trim() : ""));
     });
   }
-  function phoneOnly() { if (!phone.matches) return; planLine(); dayTools(); intros(); addNames(); }
+  /* the long questions (Preview and assign) rise as a sheet on a phone: a circle X closes it, the same as No */
+  function alertX() {
+    var al = document.querySelector("#scrim .alert"); if (!al || al.querySelector(".mx-ax")) return;
+    var x = document.createElement("button"); x.type = "button"; x.className = "mx mx-ax"; x.setAttribute("aria-label", "Close");
+    x.innerHTML = '<i class="ic" aria-hidden="true" style="--ic:url(/v7/img/coach/icons/close-outline.svg)"></i>';
+    x.addEventListener("click", function () { var n = document.getElementById("aNo"); if (n) n.click(); });
+    al.insertBefore(x, al.firstChild);
+  }
+  /* the patient menu folds into a strip; a hamburger at its left slides the full menu in from the left, and closes it */
+  var NAVOPEN = false;
+  var BURGER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>';
+  function navMenu() {
+    var pn = document.querySelector(".cs-pn"), pp = pn && pn.querySelector(".cs-pp"); if (!pp) return;
+    var b = pp.querySelector(".mx-burger");
+    if (!b) { b = document.createElement("button"); b.type = "button"; b.className = "mx-burger"; b.innerHTML = BURGER; pp.insertBefore(b, pp.firstChild); }
+    if (pn.classList.contains("mx-navopen") !== NAVOPEN) pn.classList.toggle("mx-navopen", NAVOPEN);
+    document.documentElement.classList.toggle("mx-navlock", NAVOPEN);
+    b.setAttribute("aria-expanded", NAVOPEN); b.setAttribute("aria-label", NAVOPEN ? "Close menu" : "Open menu");
+  }
+  function setNav(o) { NAVOPEN = o; navMenu(); }
+  document.addEventListener("click", function (e) {
+    if (e.target.closest(".mx-burger")) { e.stopPropagation(); setNav(!NAVOPEN); return; }
+    if (NAVOPEN && !e.target.closest(".cs-pn")) setNav(false);   /* a tap on the dimmed page closes it */
+  }, true);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && NAVOPEN) setNav(false); });
+  phone.addEventListener && phone.addEventListener("change", function () { if (!phone.matches) setNav(false); });
+
+  function phoneOnly() { if (!phone.matches) return; planLine(); dayTools(); intros(); addNames(); alertX(); navMenu(); }
 
   /* the builder redraws the day on every change; decorate after each redraw */
   var t = 0;

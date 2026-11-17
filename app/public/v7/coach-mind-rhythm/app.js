@@ -405,7 +405,7 @@
       var d = one, o = head + '<div class="sc">' + d.x.score + "<small> of 100" + (d.today ? ", the evening still to come" : "") + "</small></div>";
       o += '<div class="tg">Sleep</div>' + nightLines(d);   /* where the sleep came from is left out (17 Nov 2026) */
       o += '<div class="tg">Self-care</div>';
-      if (P.wd.length) o += row("Wind-down", d.x.wdN + " of " + P.wd.length + (d.x.wdN && d.x.wdN < P.wd.length ? ": " + P.wd.filter(function (_, t) { return d.wd[t]; }).map(function (w) { return w.s.toLowerCase(); }).join(", ") : ""), d.x.wdN === P.wd.length);
+      if (P.wd.length) o += row("Wind-down", d.x.wdN + " of " + P.wd.length + " done", d.x.wdN === P.wd.length);
       if (P.br.length) o += row("Breathing", d.x.brMin ? (d.x.brMin >= d.x.brPlan ? "Done, " + d.x.brPlan + " min" : (d.x.brMin < 1 ? "Under 1 min" : d.x.brMin.toFixed(1).replace(".0", "") + " of " + d.x.brPlan + " min")) : "Not done", d.x.brMin >= d.x.brPlan);
       if (P.me.length) o += row("Me-time", d.me ? "Done" : "Not done", !!d.me);
       o += row("Mood", d.mood.map(function (v, k) { return clk(MR.hm(P.mood[k])).replace(":00", "") + " " + (v == null ? (d.today && k ? "not yet" : "missed") : FACE[v] + " " + FACEN[v]); }).join("<br>"), d.mood.every(function (v) { return v != null; }));

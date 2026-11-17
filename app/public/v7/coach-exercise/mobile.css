@@ -14,10 +14,10 @@
   input, select, textarea { font-size: 16px; }   /* 16px stops iOS zooming into a field on focus */
 
   /* ---------- List of Exercise Plans ---------- */
-  .cs-list { grid-template-columns: 1fr; }
+  .cs-list { grid-template-columns: 1fr; align-content: start; }   /* a short list never stretches the patient card into a gap */
   /* the patient stays on top as a card; the patient record menu is desktop navigation */
   .cs-pn { position: static; height: auto; overflow: visible; padding: 12px 16px 0; border-right: 0; background: #fff; }
-  .cs-pn > :not(.cs-pp) { display: none; }
+  .cs-pn:not(.mx-navopen) > :not(.cs-pp) { display: none; }
   .cs-pp { margin: 0; padding: 4px 0 12px; }
   .cs-lh { flex-wrap: wrap; height: auto; gap: 10px; padding: 12px 16px; top: 0; }
   .cs-lh h1 { flex: 1 1 100%; order: -1; font-size: 19px; line-height: 26px; }
@@ -248,12 +248,11 @@
 
   /* ---------- the preview ---------- */
   .pvhead { width: auto; margin: 16px; }
-  .pvrow { grid-template-columns: 1fr; gap: 4px; }
   .phone { width: auto; min-width: 0; margin: 0 16px 20px; }
 }
 
 /* ---------- progressive disclosure on a phone (coach-exercise/mobile.js): every field and action stays, the rarer ones one tap away ---------- */
-.mx-plan, .mx-more, .mx-intro { display: none; }
+.mx-plan, .mx-more, .mx-intro, .mx-ax { display: none; }
 @media (max-width: 760px) {
   /* template picker: one way to choose. Tap a template, then Next; the per-row button only repeated it */
   .cs-tbl td:nth-child(6) { display: none; }
@@ -314,6 +313,132 @@
   .pcard .pt small { white-space: nowrap; font-size: 12px; }
 
   /* steps: the rare "can't walk" switch sits under the goal */
-  #step3 { display: flex; flex-direction: column; }
+  #step3:not([hidden]) { display: flex; flex-direction: column; }   /* :not([hidden]) so step 3 never shows under step 1 or 2 */
   #step3 > .advbox { order: 2; margin: 16px 0 0; }
 }
+
+/* ---------- phone audit, round two: targets, field sizes, sheets and dropdowns that stay in view ---------- */
+@media (max-width: 760px) {
+  /* every field 16px, so iOS never zooms in on focus (these fields set their own size, which beat the rule above) */
+  .rt .row .num, .msel .panel .fl input, .datebox input, .prow input, input.fin, .fin input { font-size: 16px; }
+  .msel .panel .fl input { height: 40px; }
+  .rt .row .num { height: 40px; }
+  .rt .row .usel { height: 40px; }
+  .rt .row > div:nth-child(7) .dur { height: 40px; line-height: 40px; }
+
+  /* the steps on top are links to each step: a taller line to tap */
+  .stepper .sitem { min-height: 40px; }
+
+  /* the sticky top no longer covers an exercise that scrolls into view */
+  .main { scroll-padding-top: 120px; scroll-padding-bottom: 150px; }
+
+  /* weeks: a week's remove sits on the chosen week only, where it shows; an invisible one is never tapped by mistake */
+  .wk, .box .wk { height: 40px; }
+  .wk:not(.active) .rmw { display: none; }
+  .rmw { position: relative; }
+  .rmw::after { content: ""; position: absolute; inset: -10px; }
+
+  /* a routine's delete and copy, and an exercise's grip, get finger-sized hit areas without growing */
+  .rthd .ctip .cbtn { width: 40px; height: 40px; }
+  .rthd .n button, .rthd > button { min-width: 40px; min-height: 40px; }
+  .grip { position: relative; }
+  .grip::before { content: ""; position: absolute; inset: -8px -10px; }
+
+  /* the copy sheet: the grid grows with its weeks and the sheet scrolls, never a scroller inside a scroller */
+  .cmodal { display: flex; flex-direction: column; overflow: hidden; }
+  .cmodal > .mh, .cmodal > .cfoot { flex: none; }
+  .cmodal > :not(.mh):not(.cfoot) { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+  .cmodal .cgrid { flex: none; max-height: none; overflow: visible; }
+  .cc { height: 40px; }
+  .cgh button, .cwk { height: 36px; }
+  .cwk { padding: 0 2px; white-space: nowrap; }
+  .cseg button { height: 40px; }
+
+  /* yes or no questions: the answers stack full width, the main one on top, each a full finger tall */
+  .cs-dlg .row { flex-direction: column-reverse; align-items: stretch; gap: 8px; }
+  .cs-dlg .row .csb { width: 100%; height: 44px; justify-content: center; }
+  .cs-dlg .row .csb.tx { border: 1px solid #D0D5DD !important; }
+  .alert:not(.xl) .btns { flex-direction: column-reverse; align-items: stretch; gap: 8px; padding-bottom: 12px; }
+  .alert:not(.xl) .btns button { height: 44px; }
+
+  /* step intros: More is a real tap target */
+  .mx-intro { display: inline-block; padding: 10px 12px 10px 0; }
+
+  /* small moves: the bulb, the suggestion Adds and a move's remove, all finger-sized */
+  .sugtip { width: 40px; height: 40px; }
+  .sugadd { height: 36px; min-width: 64px; }
+  .mcard .mname, .mcard .msub2 { font-size: 16px; }
+  .mx2 { position: relative; }
+  .mx2::after { content: ""; position: absolute; inset: -6px; }
+
+  /* steps: the "can't walk" switch keeps its look, with a hit area a finger finds */
+  .sw::after { content: ""; position: absolute; inset: -11px -4px; }
+
+  /* the "needs fixing" banner sits at the top of step 1, where the coach lands, rather than under every routine */
+  .step[data-step="1"]:not([hidden]) { display: flex; flex-direction: column; }
+  .step[data-step="1"] > .bottom { order: -1; margin: 0; align-items: stretch; }
+  .banner.on { margin: 0 0 12px; padding: 6px 4px 6px 14px; gap: 8px; font-size: 14px; line-height: 20px; }
+  .banner button { flex: none; width: 40px; height: 40px; }
+
+  /* the copy sheet's quick picks */
+  .cdd .panel .opt { min-height: 44px; }
+
+  /* Preview and assign (and its tabs) as a bottom sheet: title top left, circle X top right, No and Yes pinned at the foot */
+  #scrim:has(.alert.xl) { align-items: flex-end; }
+  .alert.xl, .alert.xl:has(.ptabs) { position: relative; width: 100%; max-width: none; max-height: 90vh; padding: 20px 16px 0; border-radius: 20px 20px 0 0; }
+  .alert.xl .mx-ax { display: grid; position: absolute; top: 14px; right: 12px; z-index: 2; }
+  .alert.xl h2 { padding-right: 48px; font-size: 19px; line-height: 26px; }
+  .alert.xl p { font-size: 15px; line-height: 22px; }
+  .alert.xl .btns { position: sticky; bottom: 0; z-index: 2; gap: 8px; margin: 12px -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid #EAECF0; background: #fff; }
+  .alert.xl .btns button { flex: 1; height: 44px; border-radius: 10px; }
+  .alert.xl .btns #aNo { border: 1px solid #D0D5DD; color: #344054; }
+  .alert.xl .btns #aYes { background: var(--primary); color: #fff; }
+  .alert.xl .btns #aYes:disabled { opacity: .45; background: var(--primary); }
+  .ptabs { display: flex; }
+  .ptabs button { flex: 1; height: 40px; padding: 0 10px; }
+  /* Calories by day: the sheet scrolls, the table only sideways; tighter cells so more days fit */
+  .alert.xl .kc-wrap { max-height: none; }
+  .kc thead th { padding: 8px 5px; }
+  .kc tbody th { padding: 8px 6px; }
+  .kc td { padding: 7px 5px; }
+  .kc-leg { flex-wrap: wrap; row-gap: 4px; }
+  .kc-leg .u { flex-basis: 100%; margin-left: 0; }
+
+  /* the preview: the plan's details as quiet label and value lines, Assign held at the foot while the plan scrolls */
+  .pvtop { align-items: center; margin-bottom: 8px; }
+  .pvhead h3 { margin: 0; }
+  .pvtop .pvpdf { height: 40px; }
+  .pvrow { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); gap: 12px; margin: 0; padding: 10px 0; border-top: 1px solid #F2F4F7; font-size: 14px; line-height: 20px; }
+  .pvrow b { color: #475467; font-weight: 500; }
+  .pvrow div { padding: 0; border: 0; text-align: right; font-weight: 600; color: #101828; overflow-wrap: anywhere; }
+  .pvex .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pvex .facts .w { grid-column: span 1; }
+  .pvbtns { position: sticky; bottom: 0; z-index: 3; margin: 16px -16px 0; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); border-top: 1px solid #EAECF0; background: #fff; }
+  .pvbtns .b { height: 44px; }
+  .app.preview .main { padding-bottom: 0; }   /* no step bar on the preview, so its Assign can sit right at the foot */
+
+  /* list and picker: the filter pills and the in-text "clear the search" link get a full finger to hit */
+  .cs-pill { height: 40px; }
+  [data-cs="clear"] { position: relative; }
+  [data-cs="clear"]::after { content: ""; position: absolute; inset: -12px -6px; }
+
+  /* a rest day: its Add a Routine keeps the main place, Day options beside it, as on any other day */
+  .acts.mx-tools > .b.pr { grid-column: 1; order: -1; }
+  /* on the list there is no step bar, so the toast sits low, near the thumb, over less of the list */
+  body:has(.app.cs-on) .toast { bottom: calc(24px + env(safe-area-inset-bottom)); }
+}
+
+/* ---------- the patient menu on a phone: a strip with a hamburger; open, the full menu slides in from the left ---------- */
+.mx-burger { display: none; }
+@media (max-width: 760px) {
+  .cs-pp { align-items: center; }
+  .mx-burger { display: grid; place-items: center; flex: none; width: 44px; height: 44px; margin: 0 2px 0 -10px; padding: 0; border: 0; border-radius: 12px; background: none; color: #1D4D38; cursor: pointer; }
+  .mx-burger svg { width: 22px; height: 22px; }
+  .mx-burger:hover { background: #F2F4F7; }
+  .mx-burger:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+  .cs-pn.mx-navopen { position: fixed; inset: 0 auto 0 0; z-index: 60; width: min(320px, 86vw); height: 100%; overflow-y: auto; padding: 12px 16px 32px; box-shadow: 0 0 0 100vmax rgba(16, 24, 40, .38); animation: mx-drawer .24s cubic-bezier(.2, .7, .2, 1); }
+  .cs-pn.mx-navopen .cs-pp { margin-bottom: 8px; border-bottom: 1px solid #EAECF0; }
+  html.mx-navlock, html.mx-navlock body { overflow: hidden; }
+  @keyframes mx-drawer { from { transform: translateX(-100%); } to { transform: none; } }
+}
+@media (max-width: 760px) and (prefers-reduced-motion: reduce) { .cs-pn.mx-navopen { animation: none; } }
