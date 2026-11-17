@@ -34,8 +34,8 @@
       (r ? '<span class="ly-tm">' + r + '</span>' : "") + '</div>';
   }
   var list = function (rows, right) { return '<div class="mv-tiplist">' + rows.map(function (x) { return row(x, right && right(x)); }).join("") + '</div>'; };
-  function card(title, sub, body, scene) {
-    return '<section class="mv-card' + (scene ? ' scene" style="--scene:url(/v7/icons/mind/bg/' + scene + '.webp?v=1)' : "") + '"><div class="mv-mh"><div class="t"><div class="n">' + title + '</div><div class="s">' + sub + '</div></div></div>' +
+  function card(title, sub, body, scene, chip) {
+    return '<section class="mv-card' + (scene ? ' scene" style="--scene:url(/v7/icons/mind/bg/' + scene + '.webp?v=1)' : "") + '"><div class="mv-mh"><div class="t"><div class="n">' + title + '</div><div class="s">' + sub + '</div>' + (chip || "") + '</div></div>' +
       '<div class="mv-mbi">' + body + '</div></section>';
   }
   /* the sleep window as a bar, 9 PM to 8 AM: the plan as a soft band, last night drawn over it */
@@ -55,8 +55,48 @@
     ["Evening", "5 PM to 9 PM", "evening", ["me", "wd:1", "mood"]],
     ["Night", "9 PM to bedtime", "night", ["wd:2"]]
   ];
-  var span = function (A, p) { return p[0] === "Night" ? "9 PM to " + A.niceS(A.P.bed) + " bedtime" : p[1]; };
-  var partCards = function (A, parts) { var I = A.items(); return parts.map(function (p) { var rows = pick(I, p[3]); return !rows.length ? "" : card(p[0], span(A, p) + " · " + cnt(rows), list(rows), p[2]); }).join(""); };
+  var span = function (A, p) { return p[0] === "Night" ? "9 PM to " + A.niceS(A.P.bed) : p[1]; };   /* the night ends at the plan's bedtime, said like the other parts (17 Nov 2026) */
+  /* "Rhythm breakdown" under each part's title, as Eat's Nutrition breakdown and Move's Movement breakdown (17 Nov 2026):
+     the sheet lists what sits in that part of the day, each with its share of the Rhythm and what it has earned so far */
+  var INFOI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>';
+  var LASTP = null;
+  var partCards = function (A, parts) {
+    var I = A.items(); LASTP = { A: A, parts: parts };
+    return parts.map(function (p, i) {
+      var rows = pick(I, p[3]);
+      return !rows.length ? "" : card(p[0], span(A, p), list(rows), p[2],   /* no "x of y done" here: the Rhythm breakdown says it (17 Nov 2026) */
+        '<button class="minfo" data-rbd="' + i + '" aria-label="' + p[0] + ', Rhythm breakdown">' + INFOI + 'Rhythm breakdown</button>');
+    }).join("");
+  };
+  /* the sheet, as Move's Movement breakdown and Eat's Nutrition breakdown (17 Nov 2026): the standard parts in this part of the
+     day (not the tasks again, the card shows those), each as "x of y" against the plan with its bar, then what counts */
+  /* inside style="", so the url takes single quotes and the svg double quotes, which encodeURIComponent escapes */
+  var svgm = function (p) { return "url('data:image/svg+xml," + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + p.replace(/'/g, '"') + "</svg>") + "')"; };
+  var KIND = {
+    sleep: { n: "Last night's sleep", ic: "url(/mind/icons/moon.svg)", what: "Last night's sleep counts once it is logged or synced from your phone." },
+    wd: { n: "Wind-down tasks", ic: "url(/mind/icons/sunset.svg)", what: "Wind-down tasks are the evening steps your coach set to help you sleep. Tick each one when it is done." },
+    br: { n: "Breathing", ic: svgm("<path d='M12.8 19.6A2 2 0 1 0 14 16H2'/><path d='M17.5 8a2.5 2.5 0 1 1 2 4H2'/><path d='M9.8 4.4A2 2 0 1 1 11 8H2'/>"), what: "A breathing exercise counts once you have breathed for at least a minute." },
+    me: { n: "Me-time", ic: "url(/mind/icons/care.svg)", what: "Me-time is time just for you. Doing the activity your coach suggested counts." },
+    mood: { n: "Mood check-in", ic: svgm("<circle cx='12' cy='12' r='9'/><path d='M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01'/>"), what: "A mood check-in counts as soon as you answer. How you feel never lowers your score." }
+  };
+  var ORDER = ["sleep", "br", "me", "mood", "wd"];
+  function bdSheet(i) {
+    if (!LASTP || !window.GFOpenSheet) return;
+    var A = LASTP.A, p = LASTP.parts[i], rows = pick(A.items(), p[3]);
+    var kinds = ORDER.filter(function (k) { return rows.some(function (x) { return K(x) === k; }); });
+    var html = '<div class="msub">Suggested ' + span(A, p) + ' · what you did, against this part of the day\u2019s plan</div>' +
+      kinds.map(function (k) {
+        var L = rows.filter(function (x) { return K(x) === k; }), n = L.filter(function (x) { return x.on; }).length, t = L.length;
+        var v = k === "sleep" ? (n ? "Logged" : "Not yet") : n + " of " + t, pc = t ? n / t * 100 : 0;
+        return '<div class="ir rbd-r"><div class="top"><i class="gl" style="-webkit-mask-image:' + KIND[k].ic + ';mask-image:' + KIND[k].ic + '"></i>' + KIND[k].n + ' : <b>' + v + '</b><span class="ideal">Target: ' + (k === "sleep" ? "Logged" : t) + '</span></div>' +
+          '<div class="track"><span class="fill" style="width:' + pc + '%"></span><span class="val' + (pc > 62 ? " in" : "") + '" style="left:' + pc + '%">' + v + '</span></div></div>';
+      }).join("") +
+      '<div class="irex"><h5>What counts</h5><p>Your coach sets what to do in each part of the day.</p><ul>' + kinds.map(function (k) { return "<li>" + KIND[k].what + "</li>"; }).join("") + '</ul></div>' +
+      '<div class="rbd-foot"><button class="md-save" data-rbdx>Got it</button></div>';
+    window.GFOpenSheet("rbdSheet", p[0], html);
+    var el = document.getElementById("rbdSheet"), b = el && el.querySelector("[data-rbdx]"); if (b) b.onclick = function () { window.closeSheets(); };
+  }
+  document.addEventListener("click", function (e) { var b = e.target.closest("[data-rbd]"); if (b) { e.stopPropagation(); bdSheet(+b.dataset.rbd); } }, true);
 
   var L = window.MDLAYOUT = {};
 
@@ -164,6 +204,11 @@
     ".ly-tm{display:inline-flex;align-items:flex-start;gap:4px}.ly-at{line-height:20px}",
     /* a row that opens a sheet is one target: the title button stretches over the whole row, the tick stays its own button above it */
     ".ly-open{cursor:pointer}",
+    /* the tick is 24px, the title's line 20px: drop the title and time 2px so the first line sits on the tick's centre (17 Nov 2026) */
+    ".ly-row .ly-rb,.ly-row .ly-tm{padding-top:2px}",
+    /* the breakdown sheet: Eat's rows, the item's name in bold, the button kept in view */
+    ".rbd-r .top b{font-weight:400;color:#344054}",
+    ".rbd-foot{position:sticky;bottom:-24px;z-index:2;margin:12px -16px -24px;padding:12px 16px 24px;background:#fff;box-shadow:0 -8px 16px -12px rgba(16,24,40,.18)}.rbd-foot .md-save{width:100%;margin:0}",
     ".ly-chv{display:inline-block;vertical-align:-3px;margin-left:2px;color:var(--g-400)}.ly-chv svg{width:16px;height:16px}",
     ".ly-grp+.ly-grp{margin-top:16px;padding-top:12px;border-top:1px solid var(--g-100)}",
     /* Eat and Move's picture slot, drawn as the practice's glyph on the soft indigo wash */

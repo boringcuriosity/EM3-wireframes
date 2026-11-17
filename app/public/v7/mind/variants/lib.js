@@ -46,8 +46,8 @@
     /* the info sheet */
     ".bl-sh .hero{display:flex;gap:16px;align-items:center;margin:0 0 16px}.bl-sh .pat{font:600 20px/26px Roboto;color:#A68A2D}.bl-sh .sub{font:400 14px/20px Roboto;color:#475467;margin-top:4px}" +
     ".bl-sh .wkey{font:400 12px/16px Roboto;color:#667085;margin:4px 0 16px}" +
-    ".bl-sh .durs{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;margin:4px -16px 16px;padding:12px 16px 4px;scrollbar-width:none;scroll-padding:0 16px}.bl-sh .durs::-webkit-scrollbar{display:none}.bl-sh .dur{flex:none}.bl-sh .dur{position:relative;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid #D0D5DD;background:#fff;color:#344054;font:500 14px/20px Roboto;cursor:pointer}" +
-    ".bl-sh .dur.on{border-color:#299D6B;background:#F3FCF8;color:#2A805A}.bl-sh .dur i{position:absolute;left:50%;top:-8px;transform:translateX(-50%);font:600 10px/14px Roboto;font-style:normal;color:#2A805A;background:#fff;padding:0 4px;white-space:nowrap}" +
+    ".bl-sh .durs{display:flex;gap:8px;flex-wrap:nowrap;overflow-x:auto;margin:4px -16px 16px;padding:24px 16px 4px;scrollbar-width:none;scroll-padding:0 16px}.bl-sh .durs::-webkit-scrollbar{display:none}.bl-sh .dur{flex:none}.bl-sh .dur{position:relative;min-height:40px;padding:0 14px;border-radius:999px;border:1px solid #D0D5DD;background:#fff;color:#344054;font:500 14px/20px Roboto;cursor:pointer}" +
+    ".bl-sh .dur.on{border-color:#299D6B;background:#F3FCF8;color:#2A805A}.bl-sh .dur i{position:absolute;left:50%;top:-22px;transform:translateX(-50%);font:600 15px/20px Roboto;font-style:normal;color:#2A805A;background:#fff;padding:0 4px;white-space:nowrap}" +
     ".bl-sh .chips{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 16px}.bl-sh .chip{font:500 12px/16px Roboto;color:#5C4E1F;background:#FFF8E0;border-radius:999px;padding:4px 10px}" +
     ".bl-sh .steps{border:1px solid #EAECF0;border-radius:12px;margin:0 0 16px}.bl-sh .st{display:flex;gap:12px;padding:12px 16px;font:400 14px/20px Roboto;color:#344054}.bl-sh .st+.st{border-top:1px dashed #EAECF0}" +
     ".bl-sh .st b{min-width:32px;font-weight:600;color:#A68A2D;font-variant-numeric:tabular-nums}.bl-sh h5{font:600 14px/20px Roboto;margin:0 0 4px;color:#101828}.bl-sh p{font:400 14px/20px Roboto;color:#475467;margin:0 0 16px}" +
@@ -60,15 +60,15 @@
     ".bl-pl .lp-n{flex:1;text-align:center;padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bl-pl .lp-tm{min-width:40px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}" +
     ".bl-pl .lp-stage{position:relative;width:320px;height:360px;margin-top:8px;overflow:hidden}.bl-pl .lp-w{font:300 32px/38px Roboto;margin-top:4px}" +
     ".bl-pl .lp-c{font:500 15px/20px Roboto;color:#A68A2D;font-variant-numeric:tabular-nums;margin-top:6px;min-height:20px}.bl-pl .lp-s{font-size:13px;line-height:18px;color:#667085;margin-top:2px}" +
-    ".bl-pl .lp-b{position:absolute;left:16px;right:16px;bottom:24px;display:flex;gap:12px}.bl-pl .lp-b button{height:48px;border-radius:8px;font:600 15px Roboto;cursor:pointer}" +
+    ".bl-pl .lp-b{position:absolute;left:16px;right:16px;bottom:calc(32px + env(safe-area-inset-bottom,0px));display:flex;gap:12px}.bl-pl .lp-b button{height:48px;border-radius:6px;font:600 16px Roboto;cursor:pointer;transition:transform .2s cubic-bezier(.4,0,.2,1),box-shadow .2s cubic-bezier(.4,0,.2,1)}.bl-pl .lp-b button:active{transform:translateY(4px);box-shadow:none}" +
     ".bl-ask{position:absolute;inset:0;z-index:5;background:rgba(16,24,40,.4);display:flex;align-items:flex-end;justify-content:center}" +
     ".bl-ask-s{width:100%;max-width:420px;background:#fff;border-radius:24px 24px 0 0;padding:20px 16px 24px;box-shadow:0 -8px 24px rgba(16,24,40,.12)}" +
     ".bl-ask-h{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}.bl-ask-h h4{margin:0;font:600 18px/24px Roboto;color:#101828}" +
     ".bl-ask-x{width:32px;height:32px;border:0;border-radius:50%;background:#98A2B3;color:#fff;display:grid;place-items:center;cursor:pointer}.bl-ask-x svg{width:16px;height:16px}" +
-    ".bl-ask-s p{margin:0 0 20px;font:400 14px/20px Roboto;color:#475467}" +
+    ".bl-ask-s p{margin:0 0 20px;font:400 15px/22px Roboto;color:#475467}.bl-ask-btn{display:block;width:100%}.bl-ask-btn + .bl-ask-btn{margin-top:16px}" +
     ".bl-ask-go{width:100%;height:48px;border:0;border-radius:8px;background:#299D6B;color:#fff;font:600 15px Roboto;cursor:pointer;margin-bottom:12px}" +
     ".bl-ask-end{width:100%;height:48px;border:1px solid #A6E9C9;border-radius:8px;background:#fff;color:#2A805A;font:600 15px Roboto;cursor:pointer}" +
-    ".bl-pl .lp-end{flex:1;border:1px solid #A6E9C9;background:#fff;color:#2A805A}.bl-pl .lp-pp{flex:1;border:0;background:#299D6B;color:#fff}";
+    ".bl-pl .lp-end{flex:1;border:1px solid #299D6B;background:#fff;color:#2A805A;box-shadow:0 4px 0 #CBF0E0}.bl-pl .lp-snd{flex:0 0 48px;border:1px solid #299D6B;background:#fff;color:#2A805A;box-shadow:0 4px 0 #CBF0E0}.bl-pl .lp-pp{flex:1;border:0;background:#299D6B;color:#fff;box-shadow:0 4px 0 #2A805A}";
   document.head.appendChild(css);
 
   /* live minis share one clock; under reduced motion they rest at full */
@@ -123,7 +123,8 @@
     if (window.closeSheets) window.closeSheets();
     var o = document.createElement("div"); o.className = "bl-pl"; document.body.appendChild(o);
     var m = pick(BLIB.get(k)), el = LAB.phone(o, k, LAB.FINAL[k].visual(), { secs: m * 60, countdown: true, onEnd: function () { shut(); } });
-    var z = Math.min(innerWidth / 320, innerHeight / 640); el.style.transform = "scale(" + z + ")";
+    /* scaled to the width, then stretched to the full height so the buttons sit at the foot of any phone, as in the plan player (17 Nov 2026) */
+    var z = Math.min(innerWidth / 320, innerHeight / 640); el.style.transform = "scale(" + z + ")"; el.style.height = Math.max(640, innerHeight / z) + "px";
     var shut = function () { o.remove(); };
     /* the X asks first once breathing has begun: pause, then Keep breathing or End (nothing to save here, it does not count for Rhythm) */
     el.querySelector(".lp-x").onclick = function () {
@@ -134,7 +135,7 @@
       var a = document.createElement("div"); a.className = "bl-ask";
       a.innerHTML = '<div class="bl-ask-s" role="dialog" aria-modal="true" aria-labelledby="blAskT"><div class="bl-ask-h"><h4 id="blAskT">End this session?</h4>' +
         '<button class="bl-ask-x" aria-label="Close">' + X + '</button></div><p>You have breathed for ' + said + '. You can keep going or end it here.</p>' +
-        '<button class="bl-ask-go" data-k="keep">Keep breathing</button><button class="bl-ask-end" data-k="end">End session</button></div>';
+        '<button class="md-save bl-ask-btn" data-k="end">End session</button><button class="md-sec bl-ask-btn" data-k="keep">Keep breathing</button></div>';   /* the app's own CTAs; ending is the primary (17 Nov 2026) */
       o.appendChild(a);
       a.onclick = function (e) {
         var k = e.target.closest("[data-k]"), x = e.target.closest(".bl-ask-x"), out = e.target === a;

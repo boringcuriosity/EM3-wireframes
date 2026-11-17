@@ -67,11 +67,13 @@
   var SHORT = { hours: "Duration", window: "Consistency", mood: "Mood" };
 
   /* F's tiles: Move's .m glass from index.html, so the fill, its swell and the type are the same as Move's and Eat's */
+  /* each part as its own score out of 100 (17 Nov 2026): the 70 and 30 weights are never shown to the person */
+  var own = function (G) { return G.max ? Math.round(G.pts / G.max * 100) : 0; };
   function tileF(key, G) {
     var p = pct(G.pts, G.max), st = p >= 100 ? " done" : p <= 0 ? " still" : "";
-    var lbl = G.n + ", " + G.pts + "% of " + G.max + "% of your Rhythm. How it is shaped";
-    var val = VT !== "m" ? '<span class="mval"><strong>' + G.pts + '%</strong><span> of ' + G.max + '%</span></span>'
-      : '<span class="mval"><strong>' + G.pts + '%</strong></span><span class="mof">of ' + G.max + '%</span>';
+    var lbl = G.n + ", " + own(G) + "% of 100%. How it is shaped";
+    var val = VT !== "m" ? '<span class="mval"><strong>' + own(G) + '%</strong><span> of 100%</span></span>'
+      : '<span class="mval"><strong>' + own(G) + '%</strong></span><span class="mof">of 100%</span>';
     var split = VT === "s" ? '<span class="vp-seg">' + G.rows.map(function (r) {
       return '<i style="flex:' + r.max + '"><b style="width:' + pct(r.pts, r.max) + '%"></b></i>'; }).join("") + '</span>' : "";
     return '<button class="m vp-m' + st + (VT === "i" ? " nof" : "") + '" data-vp="' + key + '" aria-label="' + lbl + '">' +
@@ -83,44 +85,48 @@
     var ib = V === "a" ? '<span class="vp-ib" aria-hidden="true">' + INFO + '</span>' : "";
     var split = V === "e" ? '<span class="vp-mini">' + G.rows.map(function (r) { return '<span><em>' + (SHORT[r.k] || r.n) + '</em><b>' + r.pts + '<small>/' + r.max + '</small></b></span>'; }).join("") + '</span>'
       : '<span class="vp-sub">' + SUB[key] + '</span>';
-    var lbl = G.n + ", " + G.pts + "% of " + G.max + "% of your Rhythm. " + (V === "d" ? "Opens your Rhythm" : "How it is shaped");
+    var lbl = G.n + ", " + own(G) + "% of 100%. " + (V === "d" ? "Opens your Rhythm" : "How it is shaped");
     return '<button class="vp-t" data-vp="' + key + '" aria-label="' + lbl + '">' +
       '<span class="tpool"><span class="vf" data-k="' + key + '" style="--to:' + pct(G.pts, G.max) + '%"></span></span>' +
       '<span class="ttop"><span class="tgl ' + G.g + '"></span>' + G.n + '</span>' + ib +
-      '<span class="vp-v"><b>' + G.pts + '%</b><small> of ' + G.max + '%</small></span>' + split + '</button>';
+      '<span class="vp-v"><b>' + own(G) + '%</b><small> of 100%</small></span>' + split + '</button>';
   }
 
   /* one part as Eat's Nutrition breakdown: "Sleep duration : 24%", "Out of 25%" on the right, the bar, then what the part
      is and what earns a good score, one plain line each. A group opens with why it matters. */
+  /* the sheets explain, they do not track (17 Nov 2026): what each part is, how much of the Rhythm it is, and what helps.
+     No bars and no today's numbers: the card and the Rhythm breakdown already show progress */
+  var LEAD1 = { sleep: "Sleep quality shapes most of your Rhythm.", care: "Self-care makes up the rest of your Rhythm." };
   var WHY = {
-    sleep: "Good sleep steadies your mood, focus and energy for the whole day.",
-    care: "Small moments of care through the day keep stress low and your mind steady."
+    sleep: "A good night sets up everything after it: your focus and how much energy you have.",
+    care: "Small moments of care through the day keep stress low and help your mind stay steady."
   };
   function rowText(k) {
     var hrs = P.hours % 1 ? dur(P.hours * 60) : P.hours + " hours";
     return {
-      hours: ["How long you slept, against your coach\u2019s target.", "sleep about " + hrs + ". Naps count too."],
-      window: ["How close your bedtime and wake-up were to your plan.", "go to bed near " + t12(P.bed) + " and wake up near " + t12(P.wake) + "."],
-      wd: ["The evening steps your coach set to help you sleep.", "do each of them before bed."],
-      br: ["The breathing exercises in your plan.", "finish each one in full."],
-      me: ["Time you set aside for yourself.", "do any one thing your coach suggested."],
-      mood: ["Checking in on how you feel.", "check in each time. Any answer counts."]
+      hours: ["How long you slept. Naps count too.", "Aim for about " + hrs + " of sleep, the amount your coach set for you."],
+      window: ["How close your bedtime and wake-up were to your plan.", "Go to bed near " + t12(P.bed) + " and get up near " + t12(P.wake) + ", even on weekends."],
+      wd: ["The calm evening steps your coach picked to help you fall asleep.", "Tick each one off as you do it before bed."],
+      br: ["The breathing exercises in your plan.", "Finish each one. Even a few minutes help you feel calmer."],
+      me: ["A little time that is just for you.", "Do any one thing your coach suggested."],
+      mood: ["A quick note on how you feel.", "Check in each time. There is no wrong answer, every answer counts."]
     }[k];
   }
   function rowHTML(r) {
-    var pc = pct(r.pts, r.max), t = rowText(r.k);
-    return '<div class="ir"><div class="top"><span><strong>' + r.n + '</strong> : <b>' + r.pts + '%</b></span><span class="ideal">Out of ' + r.max + '%</span></div>' +
-      '<div class="track"><span class="fill" style="width:' + pc + '%"></span></div>' +
-      '<p class="vp-say">' + t[0] + '</p><p class="vp-good">For a good score, ' + t[1] + '</p></div>';
+    var t = rowText(r.k);
+    return '<div class="vp-ex"><div class="vp-exh"><i class="vp-ic vp-ic-' + r.k + '" aria-hidden="true"></i><strong>' + r.n + '</strong></div>' +
+      '<p class="vp-say">' + t[0] + '</p><p class="vp-good"><span>For a good score</span>' + t[1] + '</p></div>';
   }
   function part(key, G) {
-    return '<div class="vp-gh"><span class="tgl ' + G.g + '"></span><b>' + G.n + '</b><span class="vp-gp">' + G.pts + '% of ' + G.max + '%</span></div>' +
+    return '<div class="vp-gh"><span class="tgl ' + G.g + '"></span><b>' + G.n + '</b></div>' +
       '<p class="vp-why">' + WHY[key] + '</p>' + G.rows.map(rowHTML).join("");
   }
   function sheet(which) {
     var d = data(), title = which === "sleep" ? "Sleep quality" : which === "care" ? "Self-care" : "How your Rhythm is shaped";
-    var lead = '<div class="msub">Your daily Rhythm is made of ' + d.sleep.max + '% sleep quality and ' + d.care.max + '% self\u2011care.</div>';
-    var html = lead + (which === "both" ? part("sleep", d.sleep) + '<hr class="vp-hr">' + part("care", d.care) : part(which, d[which]));
+    var lead = '<div class="msub">Your daily Rhythm comes from two parts, sleep quality and self\u2011care. Sleep quality shapes most of it. Here is what each one means.</div>';
+    /* one part: its title is the sheet's, so one line says how much of the Rhythm it is and why it matters, then its pieces */
+    var html = which === "both" ? lead + part("sleep", d.sleep) + '<hr class="vp-hr">' + part("care", d.care)
+      : '<div class="msub">' + LEAD1[which] + " " + WHY[which] + '</div>' + d[which].rows.map(rowHTML).join("");
     window.GFOpenSheet("vpSheet", title, '<div class="vp-sh">' + html + '<div class="vp-foot"><button class="md-save vp-ok">Got it</button></div></div>');
     var el = document.getElementById("vpSheet"); el.querySelector(".vp-ok").onclick = function () { window.closeSheets(); };
   }
@@ -130,7 +136,7 @@
     var sb = document.querySelector("#es-suff .sbody"); if (!sb) return;
     var old = document.getElementById("vpSec"); if (old) old.remove();
     var sec = document.createElement("div"); sec.id = "vpSec"; sec.className = "esec vp-sh";
-    sec.innerHTML = '<h5>How your Rhythm is shaped</h5><div class="msub">Sleep quality makes up ' + d.sleep.max + '% and self-care ' + d.care.max + '%.</div>' + part("sleep", d.sleep) + '<hr class="vp-hr">' + part("care", d.care);
+    sec.innerHTML = '<h5>How your Rhythm is shaped</h5><div class="msub">Sleep quality shapes most of your Rhythm; self-care makes up the rest.</div>' + part("sleep", d.sleep) + '<hr class="vp-hr">' + part("care", d.care);
     var after = sb.querySelector(".echips") || sb.querySelector(".ebub-wrap");
     after ? after.after(sec) : sb.prepend(sec);
   }
@@ -146,11 +152,11 @@
   function chips(d) {
     var ec = document.querySelector("#es-suff .echips"); if (!ec) return;
     ec.className = "echips two";
-    ec.innerHTML = [d.sleep, d.care].map(function (G) { return '<div><span class="top"><span class="' + G.g + ' eglyph"></span>' + G.n + '</span><b>' + G.pts + '%<small> of ' + G.max + '%</small></b></div>'; }).join("");
+    ec.innerHTML = [d.sleep, d.care].map(function (G) { return '<div><span class="top"><span class="' + G.g + ' eglyph"></span>' + G.n + '</span><b>' + own(G) + '%<small> of 100%</small></b></div>'; }).join("");
   }
   (function watch(n) {
     var sh = document.getElementById("es-suff");
-    if (!sh) { if (n < 60) setTimeout(function () { watch(n + 1); }, 100); return; }
+    if (!sh) { setTimeout(function () { watch(n + 1); }, n < 60 ? 100 : 500); return; }   /* keep looking: on a busy page the sheet can be built late (17 Nov 2026) */
     new MutationObserver(function () { if (sh.classList.contains("on") && window.MDRHYTHM) setTimeout(function () { chips(data()); }, 0); }).observe(sh, { attributes: true, attributeFilter: ["class"] });
   })(0);
 
@@ -164,7 +170,7 @@
       "";
     /* F: Move's rest-day strip (move/rest-variants.js .rv-r.rv-r5), the same strip in indigo, under the card's tiles */
     var rs = document.getElementById("vpRs"); if (rs) rs.remove();
-    if (V === "f") box.insertAdjacentHTML("afterend", '<button class="vp-rs' + (GOLD ? " gold" : "") + '" id="vpRs" data-vp="both" aria-label="Learn more about your Rhythm breakdown"><span>Learn more about your Rhythm breakdown</span>' + INFO + '</button>');
+    if (V === "f" && Q.get("vstrip") !== "0") box.insertAdjacentHTML("afterend", '<button class="vp-rs' + (GOLD ? " gold" : "") + '" id="vpRs" data-vp="both" aria-label="Learn more about your Rhythm breakdown"><span>Learn more about your Rhythm breakdown</span>' + INFO + '</button>');
     [].forEach.call(box.parentNode.querySelectorAll("[data-vp]"), function (b) {
       b.onclick = function () { V === "d" ? window.openMomentum && window.openMomentum() : sheet(V === "b" || V === "c" ? "both" : b.dataset.vp); };
     });
@@ -209,6 +215,8 @@
     ".vp-hi{position:relative;display:inline-grid;place-items:center;width:24px;height:24px;margin-left:-6px;border:0;background:none;color:#475467;cursor:pointer;vertical-align:middle}.vp-hi::after{content:'';position:absolute;inset:-10px}.vp-hi svg{width:18px;height:18px}",
     /* Move's header row inside the card: the line Eat and Move use for calories, here it leads to the breakdown */
     /* Move's rest-day strip (move/rest-variants.js r5) in indigo: a soft glow from the centre, the words centred */
+    /* the card's indigo panel fades out at its foot, so Last night sits a little closer than the usual 40px (17 Nov 2026) */
+    "#railSect:not([hidden]) ~ #svCard{margin-top:28px}",
     /* F's tiles: index.html's .macros.tiles .m, as a button, two to a row */
     ".vp-f .vp-g2.mgrid{grid-template-columns:1fr 1fr}",
     ".vp-f .m.vp-m{border:0;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .2s cubic-bezier(.4,0,.2,1)}.vp-f .m.vp-m:active{transform:scale(.98)}",
@@ -228,6 +236,18 @@
     ".vp-sh .msub{margin:-4px 0 8px;font-size:14px;line-height:20px}",
     ".vp-sh .vp-why{margin:6px 0 4px;font:400 14px/20px Roboto,sans-serif;color:#475467}",
     ".vp-sh .ir .top strong{font-weight:600;color:#101828}",
+    ".vp-ex{padding:16px 0 4px}.vp-exh{display:flex;justify-content:space-between;gap:12px;font:600 15px/22px Roboto,sans-serif;color:#101828}.vp-exh span{font-weight:500;color:#667085;font-variant-numeric:tabular-nums}",
+    ".vp-sh .vp-ex .vp-say{margin:4px 0 0;font:400 15px/22px Roboto,sans-serif;color:#475467}",
+    ".vp-sh .vp-ex .vp-good{margin:8px 0 0;padding:10px 12px;border-radius:10px;background:#F5F8FF;font:400 15px/22px Roboto,sans-serif;color:#344054}.vp-good span{display:block;font:600 15px/22px Roboto,sans-serif;color:#3538CD;margin-bottom:2px}",
+    /* each part with its icon, and "For a good score" in a light gold box that fades out to the right, the label in dark gold (17 Nov 2026) */
+    ".vp-exh{align-items:center;justify-content:flex-start;gap:10px}.vp-ic{flex:none;width:20px;height:20px;background:#344054;-webkit-mask:var(--m) center/contain no-repeat;mask:var(--m) center/contain no-repeat}",
+    ".vp-ic-hours{--m:url(/mind/icons/moon.svg)}",
+    ".vp-ic-window{--m:url(/v7/mind/icons/clock.svg)}",
+    ".vp-ic-wd{--m:url(/mind/icons/sunset.svg)}",
+    ".vp-ic-br{--m:url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M12.8%2019.6A2%202%200%201%200%2014%2016H2%22/%3E%3Cpath%20d%3D%22M17.5%208a2.5%202.5%200%201%201%202%204H2%22/%3E%3Cpath%20d%3D%22M9.8%204.4A2%202%200%201%201%2011%208H2%22/%3E%3C/svg%3E\")}",
+    ".vp-ic-me{--m:url(/mind/icons/care.svg)}",
+    ".vp-ic-mood{--m:url(\"data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2024%22%3E%3Cpath%20fill%3D%22%23000%22%20fill-rule%3D%22evenodd%22%20d%3D%22M12%202a10%2010%200%201%201%200%2020%2010%2010%200%200%201%200-20Zm-3.5%207a1.3%201.3%200%201%200%200%202.6%201.3%201.3%200%200%200%200-2.6Zm7%200a1.3%201.3%200%201%200%200%202.6%201.3%201.3%200%200%200%200-2.6ZM7.6%2013.6a1%201%200%200%200-.2%201.4c1.1%201.5%202.8%202.5%204.6%202.5s3.5-1%204.6-2.5a1%201%200%201%200-1.6-1.2c-.7%201-1.8%201.7-3%201.7s-2.3-.7-3-1.7a1%201%200%200%200-1.4-.2Z%22/%3E%3C/svg%3E\")}",   /* filled, as the other icons */
+    ".vp-sh .vp-ex .vp-good{background:linear-gradient(90deg,#FFF8E0,#FFFBEE 55%,rgba(255,251,238,0))}.vp-good span{color:#826E2D !important}",
     ".vp-sh .ir .vp-say{margin:12px 0 0;font:400 14px/20px Roboto,sans-serif;color:#667085}",
     ".vp-sh .ir .vp-good{margin:4px 0 0;font:400 14px/20px Roboto,sans-serif;color:#667085}",
     ".vp-sh .ir{padding:20px 0 4px}.vp-sh .ir .track{margin-top:12px}",

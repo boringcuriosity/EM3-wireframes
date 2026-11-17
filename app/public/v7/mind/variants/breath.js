@@ -480,7 +480,7 @@
       lsheet.innerHTML = '<div class="bf-sh"><h4 id="bfLenT">' + (m ? m + " min saved" : "Stop breathing?") + '</h4><button class="bf-sx" data-bf="lenx" aria-label="Close">' + XG + '</button></div>' +
         '<div class="bf-sb"><p>' + (m ? "Your " + m + (m === 1 ? " minute counts" : " minutes count") + " and " + n + " is ticked in your plan." : "Breathe for at least 1 minute for it to count.") + '</p>' +
         '<div class="bf-ask">' + (m ? '<button class="md-save" data-bf="savexit">Save and exit</button><button class="md-sec" data-bf="keep">Keep breathing</button>'
-          : '<button class="md-save" data-bf="keep">Keep breathing</button><button class="md-sec" data-bf="leave">Leave</button>') + '</div></div>';
+          : '<button class="md-save" data-bf="leave">Leave</button><button class="md-sec" data-bf="keep">Keep breathing</button>') + '</div></div>';   /* ending is the primary, keep breathing the secondary (17 Nov 2026) */
       el.classList.add("len");
     }
     /* the title's info: how the exercise goes, as in the breathing library's sheet (pattern, the wave, steps, why it helps), one Got it.
@@ -565,7 +565,8 @@
       ".bf-bot{position:absolute;left:0;right:0;bottom:0;padding:0 24px calc(40px + env(safe-area-inset-bottom,0px));display:flex;gap:12px;z-index:5}",
       ".bf-bot>button{flex:1;width:auto}.bf-bot.stack{flex-direction:column}.bf-bot.stack>button{flex:none;width:100%}",
       /* the final player's controls: a square sound button, then Pause (or End and Resume) with its icon */
-      ".bf-bot>.bf-snd{flex:0 0 48px;height:48px;border-radius:6px;border:1px solid #D0D5DD;background:#fff;color:#344054;display:grid;place-items:center;cursor:pointer;padding:0}.bf-snd svg{width:20px;height:20px}.bf-snd[aria-pressed=false]{color:#98A2B3}",
+      /* the sound button is a secondary button, as End is (plan.js .md-sec): green outline, green icon, the soft green step under it (17 Nov 2026) */
+      ".bf-bot>.bf-snd{flex:0 0 48px;height:48px;border-radius:6px;border:1px solid #299D6B;background:#fff;color:#2A805A;display:grid;place-items:center;cursor:pointer;padding:0;box-shadow:0 4px 0 #CBF0E0}.bf-snd:active{transform:translateY(4px);box-shadow:none}.bf-snd svg{width:20px;height:20px}",
       ".bf-ask{display:flex;flex-direction:column;gap:12px}.bf-ask>button{width:100%}",
       ".l1 .bf-bg{background:linear-gradient(180deg," + T25 + " 0%,#FFFFFF 46%,#F5F8FF 100%)}",
       /* the length sheet */

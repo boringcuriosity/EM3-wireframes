@@ -990,6 +990,9 @@ if (window.MVOFF.all) document.write("<style>#railSect[hidden]{display:none}#rai
   #es-suff .edash { margin: 16px 0 0; }
   .efine { margin: 20px 0 0 !important; padding-top: 12px; border-top: 1px dashed var(--g-200); font-size: 12px !important; line-height: 18px !important; color: var(--g-500) !important; font-style: italic; }
   .efine b { font-style: normal; font-weight: 600; color: var(--g-600); }
+  .epart { margin-top: 14px; }
+  .epart h6 { margin: 0 0 6px; display: flex; align-items: baseline; gap: 8px; font: 600 15px/22px Roboto, sans-serif; color: var(--g-900); }
+  .epart h6 span { font-weight: 400; color: var(--g-500); }
   #es-suff .ecoach { gap: 10px; margin-top: 8px; padding: 10px 12px; border-radius: 14px; background: #fff; }
   #es-suff .ecoach .av { border-radius: 10px; background: var(--brand-100); color: var(--brand-700); font-size: 13px; }
   #es-suff .ecoach .t span { line-height: 16px; }
@@ -1254,6 +1257,12 @@ if (window.MVOFF.all) document.write("<style>#railSect[hidden]{display:none}#rai
   .kaira:not(.edu) .kact .kbtn { align-items: stretch; }
   .kaira:not(.edu) .kact .kbtn > span { padding: 8px 12px; white-space: nowrap; }
 </style>
+<script>
+  /* "What shaped your score?" is drawn by variants/parts.js once the score is worked out; until then the screen's own
+     older tiles would show for a moment, so the card stays invisible until parts.js marks it (.vp). ?tiles=0 or a
+     ?vtiles= variant draws its own card, so it is left alone (17 Nov 2026) */
+  if (!/[?&](tiles=0|vtiles=)/.test(location.search)) document.write('<style>#railSect #macros:not(.vp),#railSect #calstrip{visibility:hidden}</style>');
+</script>
 </head>
 <body>
 <div class="col" id="col">
@@ -2446,11 +2455,15 @@ function loadScripts(list, done) {
     { h: "What is Rhythm?", p: [
       "Rhythm shows how steady your night and your day were. It reads last night's sleep, your wind-down, your breathing, time for yourself and how you felt, and rewards a steady routine over a long lie-in."] },
     { h: "How your score works", p: [
-      "Your score starts fresh each morning. It grows when you:"], li: [
-      "<b>Log last night's sleep.</b> Close to the hours your coach set.",
-      "<b>Keep to your sleep window.</b> Bed and wake-up close to the planned times, early or late alike.",
-      "<b>Tick off your wind-down.</b> The small evening steps your coach set, each at its time.",
-      "<b>Breathe, do one thing for yourself and check in.</b> A few calm minutes, any one me-time task, and how your day felt."] },
+      "Your score starts fresh each morning. It comes from two parts, and grows as you do each thing below."], parts: [
+      ["Sleep quality", "Most of your score.", [
+        "<b>Log last night's sleep.</b> Close to the hours your coach set.",
+        "<b>Keep to your sleep window.</b> Bed and wake-up close to the planned times, early or late alike.",
+        "<b>Tick off your wind-down.</b> The small evening steps your coach set, each at its time."]],
+      ["Self-care", "The rest of your score.", [
+        "<b>Breathe.</b> A few calm minutes with your breathing exercise.",
+        "<b>Make time for yourself.</b> Any one me-time task your coach suggested.",
+        "<b>Check in.</b> How your day felt. Any answer counts."]]] },
     { h: "Why a steady rhythm matters", p: [
       "Going to bed and waking at the same times every day does more for your body than catching up on sleep. A calm evening helps the night that follows."] },
     { h: "How does a steady rhythm help?", p: [
@@ -2475,6 +2488,8 @@ function loadScripts(list, done) {
       (x.f ? '<p class="eformula">' + x.f + "</p>" : "") +
       (x.p ? x.p.map(function (t) { return "<p>" + t + "</p>"; }).join("") : "") +
       (x.li ? '<ul class="elist2">' + x.li.map(function (t) { return "<li>" + t + "</li>"; }).join("") + "</ul>" : "") +
+      /* the score's two parts, each with its own points (17 Nov 2026) */
+      (x.parts ? x.parts.map(function (g) { return '<div class="epart"><h6>' + g[0] + "<span>" + g[1] + '</span></h6><ul class="elist2">' + g[2].map(function (t) { return "<li>" + t + "</li>"; }).join("") + "</ul></div>"; }).join("") : "") +
       (x.coach ? COACHCARD : "") + "</div>";
   }).join("");
   secs += '<p class="efine"><b>Disclaimer:</b> Rhythm counts what you log. It does not measure sleep stages or diagnose sleep problems.</p>';
@@ -3880,5 +3895,30 @@ function mealsIn() {
 <script src="/move/kaira-sheet.js?v=7"></script>
 <script src="/v7/mind/rhythm-say.js?v=1"></script>
 <script src="/v7/mind/rhythm.js?v=11"></script>
+<script>
+  /* Every bottom sheet reads at 15px or more (17 Nov 2026). Sheets come from many places (the screen's own, the breathing
+     player's, mood, the library, the score breakdown), so one pass here lifts any smaller text in an open sheet to 15px
+     with room for its line, whenever a sheet opens or changes. SVG drawings (charts, waves) keep their own sizes.
+     ponytail: a scan on change, cheap at these sizes; the lasting fix is a 15px floor in each sheet's own styles */
+  (function () {
+    var SEL = ".sheet.on, .bf-sheet, .bl-pl .bl-ask, [role=dialog].on";
+    function lift() {
+      [].forEach.call(document.querySelectorAll(SEL), function (sh) {
+        [].forEach.call(sh.querySelectorAll("*"), function (el) {
+          if (el.closest("svg") || el.dataset.fs15) return;
+          var own = [].some.call(el.childNodes, function (n) { return n.nodeType === 3 && n.textContent.trim(); });
+          if (!own) return;
+          var cs = getComputedStyle(el), fs = parseFloat(cs.fontSize);
+          if (fs >= 15) return;
+          el.style.setProperty("font-size", "15px", "important"); el.dataset.fs15 = "1";
+          var lh = parseFloat(cs.lineHeight); if (!isNaN(lh) && lh < 20) el.style.setProperty("line-height", "20px", "important");
+        });
+      });
+    }
+    var q = 0;
+    new MutationObserver(function () { if (q) return; q = requestAnimationFrame(function () { q = 0; lift(); }); })
+      .observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "hidden"] });
+  })();
+</script>
 </body>
 </html>

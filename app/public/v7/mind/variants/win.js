@@ -8,7 +8,11 @@
      ?vwin=d  Shore: a soft indigo band rises behind the tab bar, the gain on it
      ?vwin=e  Scaled: Rise for a tick; a big log (last night's sleep, or 15% or more) gets Mind's own
               full moment, as Eat and Move do: lavender light from where it was tapped, "Sleep logged", +49%, one line
-     ?vwin=j..m  Every gain gets the full moment, as Eat's and Move's logs do (17 Nov, Shaheer): j Lavender sweep (recommended),
+     ?vwin=s..v  The green moment on a lotus, Mind's medal (17 Nov, Shaheer): s Lotus bloom, t Lotus rising (recommended),
+              u Petal halo, v Lotus heart; the petals are drawn in greenScreen() by petal()
+     ?vwin=n..r  The full moment in GoodFlip green, exactly Eat's and Move's (17 Nov, Shaheer; r3/assets/win-moment.js):
+              n Rising water, o Ribbons, p Green sweep, q Green dawn, r Breath rings; see greenScreen()
+     ?vwin=j..m  Every gain gets the full moment, as Eat's and Move's logs do (17 Nov, Shaheer): j Lavender sweep,
               k Gold dawn, l Frosted veil, m Ribbons; see fullScreen()
      ?vwin=f..i  Shore in gold (17 Nov, Shaheer liked D): f Horizon, g Rim light, h Ascent, i Halo; see goldShore()
    Rules for every variant: only a gain shows (an untick or a part already full shows nothing new, the tick alone says
@@ -17,7 +21,7 @@
    Hooks only: wraps window.setHeroScore (rhythm.js calls it with the gain) and reads MDPLAN.cause. */
 (function () {
   var MD = window.MDPLAN; if (!MD || MD.noplan) return;
-  var Q = MD.Q, V = (Q.get("vwin") || "e").toLowerCase(); if (!/^[a-m]$/.test(V)) V = "e";
+  var Q = MD.Q, V = (Q.get("vwin") || "e").toLowerCase(); if (!/^[a-v]$/.test(V)) V = "e";
   var RM = Q.get("rm") === "1" || matchMedia("(prefers-reduced-motion: reduce)").matches;
   var EASE = "cubic-bezier(.22,1,.36,1)", SOFT = "cubic-bezier(.4,0,.2,1)";
 
@@ -59,7 +63,7 @@
     var cause = MD.cause || "any";
     if (live && live.add) return live.add(d, cause, n);
     /* J to M: a full screen never opens over a sheet (the mood check-in answers in place); it waits until the sheet has closed */
-    if (/[j-m]/.test(V) && document.querySelector(".sheet.on")) {
+    if (/[j-v]/.test(V) && document.querySelector(".sheet.on")) {
       if (held) { held.d += d; held.n = n; held.cause = cause; return; }
       held = { d: d, cause: cause, n: n, was: n - d };
       (function wait() { if (document.querySelector(".sheet.on")) return setTimeout(wait, 120); var h = held; held = null; tap = null;
@@ -296,6 +300,199 @@
     return h;
   }
 
+  /* ---------- N to R: the full moment in GoodFlip green. Eat's and Move's own win (r3/assets/win-moment.js): Flip green
+     #299D6B, the ribbons' greens #6CE9A6 #32B27A #299D6B #A6F4C5 #3CCB8C, white words, layout B (the done pill with a white
+     tick disc, the gain counted up large, one line), eases eOut and eIO, a clock that never jumps more than 1/30 s a frame,
+     and the way out fades into white, the screen's own ground. Only the arrival changes:
+       n  Rising water: Eat's rise. A drop of green wells out of the tapped tick, pools, then rises over the screen with a
+          soft white surface line and a few bubbles
+       o  Ribbons: Move's aurora. Five green ribbons sweep in from the left, widen and melt into one green
+       p  Green sweep: the green opens out of the tapped tick as a circle, a lighter rim leading it
+       q  Green dawn: a soft green light rises from the bottom and deepens into the full green, no surface, no edge
+       r  Breath rings: three slow rings breathe out of the tick, as an exhale, the last becoming the screen ---------- */
+  var FREEZE = Q.get("winfreeze") != null ? +Q.get("winfreeze") : null;
+  var G = "#299D6B", RIBC = ["#6CE9A6", "#32B27A", "#299D6B", "#A6F4C5", "#3CCB8C"];
+  var cl = function (x, a, b) { return Math.min(b == null ? 1 : b, Math.max(a || 0, x)); }, seg = function (t, a, b) { return cl((t - a) / (b - a)); };
+  var eOut = function (x) { return 1 - Math.pow(1 - x, 3); }, eIO = function (x) { return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+  var mix = function (a, b, k) { return a + (b - a) * k; };
+  function greenScreen(m, kind) {
+    var o = m.o, c = col(), lay = el("div", "rw-gw");
+    lay.style.left = c.left + "px"; lay.style.width = c.width + "px";
+    lay.innerHTML = '<canvas></canvas><div class="rw-gwc"><span class="rw-gwp"><span class="rw-gwd"><svg viewBox="0 0 24 24" width="16" height="16"><path d="M20 6L9 17l-5-5"/></svg></span><span class="rw-pt"></span></span>' +
+      '<span class="rw-gwn"><b>+<span class="rw-n">0</span><span class="rw-pc">%</span></b><em>Rhythm</em></span><p class="rw-ln"></p></div>';
+    document.body.appendChild(lay);
+    var cv = lay.querySelector("canvas"), x = cv.getContext("2d"), W = c.width, H = innerHeight, DPR = Math.min(devicePixelRatio || 1, 2);
+    cv.width = W * DPR; cv.height = H * DPR; x.scale(DPR, DPR);
+    /* the lotus versions (17 Nov, Shaheer): fast. The whole arrival is drawn on a clock sped up so it lands in about 0.4 s, the
+       number counts up in 0.3 s, it holds about 1.1 s and leaves in 0.3 s, on Momentum's end screen (layout B) */
+    var LOTUS = /[stuv]/.test(kind), ARRIVE = .4;
+    m.count = 1;
+    var B = { x: cl(o.x - c.left, 0, W), y: cl(o.y, 0, H) };
+    /* a bloom from a tick near the edge would open lopsided, so S and V open halfway between the tick and the middle */
+    if (kind === "s" || kind === "v") { B.x = mix(B.x, W / 2, .5); B.y = mix(B.y, H * .47, .35); }
+    var ct = lay.querySelector(".rw-gwc"), pt = ct.querySelector(".rw-pt"), ln = ct.querySelector(".rw-ln"), num = ct.querySelector(".rw-n"), tk = ct.querySelector("path");
+    /* the gain already says Rhythm, so the line says why it matters: the score card's own second sentences (rhythm-say.js) */
+    var WHY = { sleep: "A steady night is the base of your day.", wd: "Small steps in the evening help you sleep steady.", br: "A few slow breaths help your body settle.",
+      me: "Time for yourself keeps stress low.", mood: "Naming how you feel helps you understand your day.", any: "Every small step keeps your day steady." };
+    var words = function () {
+      pt.textContent = LOTUS && m.count > 1 ? m.count + " tasks done" : DONE[m.cause] || DONE.any;
+      if (LOTUS) { ln.textContent = "added to your Rhythm score"; return; }
+      ln.textContent = m.n >= 100 && m.was < 100 ? "Your Rhythm is full for today" : line(m) === "your wind-down is complete" ? "Your wind-down is complete. Rest well tonight." : WHY[m.cause] || WHY.any;
+    };
+    words();
+    /* when the screen is covered and the words begin */
+    var COVER0 = { n: 1.15, o: 1.9, p: .85, q: 1.6, r: 1.5, s: 1.4, t: 1.75, u: .8, v: 1.5 }[kind];
+    var SPD = LOTUS ? COVER0 / ARRIVE : 1, COVER = RM ? 0 : LOTUS ? ARRIVE : COVER0;
+    /* the lotus versions wear Momentum's own end screen (r3/assets/win-moment.js layout B): the pill naming what was done,
+       the big "+X%" alone, "added to your Rhythm score" */
+    if (LOTUS) { lay.classList.add("rw-b"); ct.querySelector(".rw-gwn em").remove(); }
+    var bubbles = []; for (var i = 0; i < 26; i++) bubbles.push({ x: Math.random() * W, sp: 80 + Math.random() * 140, r: 2 + Math.random() * 4, ph: Math.random() * 6.28 });
+    var RIB = RIBC.map(function (cc, i) { return { y: H * (.1 + i * .19), a: 40 + i * 9, k: 120 + i * 30, ph: i * 1.3, c: cc }; });
+    var clock = 0, last = null, alive = true, exitAt = null, shown = 0, from = 0;
+    function cover(t) {   /* the whole screen in flat green with a slow breath of light, as Move's covered state */
+      x.fillStyle = G; x.fillRect(0, 0, W, H);
+      var g = x.createRadialGradient(W / 2, H * .44, 0, W / 2, H * .44, 260 + 10 * Math.sin(t * 1.4));
+      g.addColorStop(0, "rgba(108,233,166,.22)"); g.addColorStop(1, "rgba(108,233,166,0)"); x.fillStyle = g; x.fillRect(0, 0, W, H);
+    }
+    /* a lotus petal: a pointed oval from its base (px, py) out along angle a, length L, half-width w; deep green at the base
+       to a lighter tip, the edges soft against what is under it */
+    function petal(px, py, a, L, w, c0, c1, al) {
+      if (L < 1) return;
+      x.save(); x.translate(px, py); x.rotate(a); x.globalAlpha = al;
+      var g = x.createLinearGradient(0, 0, 0, -L); g.addColorStop(0, c0); g.addColorStop(1, c1); x.fillStyle = g;
+      x.beginPath(); x.moveTo(0, 0);
+      x.bezierCurveTo(w * 1.05, -L * .28, w * .78, -L * .78, 0, -L);
+      x.bezierCurveTo(-w * .78, -L * .78, -w * 1.05, -L * .28, 0, 0);
+      x.fill(); x.restore(); x.globalAlpha = 1;
+    }
+    /* three layers, back to front: pale mint, mid green, Flip green; each layer turns a little as it opens */
+    var LAYERS = [{ n: 8, c0: "#6CE9A6", c1: "#D1FADF", al: .55, sc: 1, rot: 0 }, { n: 8, c0: "#32B27A", c1: "#A6F4C5", al: .75, sc: .78, rot: Math.PI / 8 }, { n: 6, c0: "#299D6B", c1: "#6CE9A6", al: .95, sc: .56, rot: 0 }];
+    var DIAG = function (px, py) { return Math.hypot(Math.max(px, W - px), Math.max(py, H - py)); };
+    var DRAW = {
+      n: function (t) {   /* Eat's rise: the drop leaves the tick, pools, then surges over the top */
+        var pool = eOut(seg(t, 0, .45)) * .3, surge = eIO(seg(t, .35, 1.15)), level = mix(pool, 1.12, surge), top = H - level * H;
+        var amp = 9 + 12 * Math.sin(Math.PI * surge), bl = seg(t, 0, .4);
+        if (bl < 1) { x.fillStyle = "rgba(41,157,107," + (1 - bl) + ")"; x.beginPath(); x.ellipse(B.x, B.y, 14 * (1 + bl * .6), 14 * (1 + bl * 2.2), 0, 0, 7); x.fill(); }
+        if (t > 1.15) return cover(t);
+        var wave = function (px) { return top + Math.sin(px * .024 + t * 3.2) * amp + Math.sin(px * .057 - t * 2.2) * amp * .4 + (Math.abs(px - B.x) < 70 ? -Math.cos((px - B.x) / 70 * Math.PI / 2) * 16 * (1 - surge) : 0); };
+        x.beginPath(); x.moveTo(0, H + 40); for (var px = 0; px <= W; px += 6) x.lineTo(px, wave(px)); x.lineTo(W, H + 40); x.closePath(); x.fillStyle = G; x.fill();
+        x.beginPath(); for (px = 0; px <= W; px += 6) { var y = wave(px); px ? x.lineTo(px, y) : x.moveTo(px, y); } x.strokeStyle = "rgba(255,255,255,.85)"; x.lineWidth = 3; x.stroke();
+        bubbles.forEach(function (b) { var by = H - ((t * b.sp + b.ph * 60) % (H + 40)); if (by < top + 8) return; x.strokeStyle = "rgba(255,255,255,.5)"; x.lineWidth = 1.3; x.beginPath(); x.arc(b.x + Math.sin(t * 2 + b.ph) * 6, by, b.r, 0, 7); x.stroke(); });
+      },
+      o: function (t) {   /* Move's aurora, its own numbers */
+        var p = seg(t, 0, 1.9);
+        if (p >= 1) return cover(t);
+        var e = eIO(p), reach = e * (W + 200);
+        RIB.forEach(function (b, i) {
+          var th = 14 + eIO(seg(p, i * .06, .85)) * 260, gr = x.createLinearGradient(0, 0, reach, 0);
+          gr.addColorStop(0, b.c); gr.addColorStop(Math.max(.01, 1 - 120 / Math.max(reach, 121)), b.c); gr.addColorStop(1, "rgba(108,233,166,0)");
+          x.globalAlpha = .75; x.fillStyle = gr; x.beginPath();
+          for (var X = 0; X <= reach; X += 8) x.lineTo(X, b.y + b.a * Math.sin(X / b.k + t * 1.6 + b.ph) - th / 2);
+          for (X = reach; X >= 0; X -= 8) x.lineTo(X, b.y + b.a * Math.sin(X / b.k + t * 1.6 + b.ph + .6) + th / 2);
+          x.closePath(); x.fill();
+        });
+        x.globalAlpha = eIO(seg(p, .55, 1)); x.fillStyle = G; x.fillRect(0, 0, W, H); x.globalAlpha = 1;
+      },
+      p: function (t) {   /* a circle of green out of the tick, a lighter rim leading */
+        var k = eIO(seg(t, 0, .85)), R = k * Math.hypot(Math.max(B.x, W - B.x), Math.max(B.y, H - B.y)) * 1.05;
+        if (k >= 1) return cover(t);
+        var g = x.createRadialGradient(B.x, B.y, Math.max(0, R - 70), B.x, B.y, R);
+        g.addColorStop(0, G); g.addColorStop(.75, "#3CCB8C"); g.addColorStop(1, "rgba(108,233,166,0)");
+        x.fillStyle = g; x.beginPath(); x.arc(B.x, B.y, R + 1, 0, 7); x.fill();
+      },
+      q: function (t) {   /* green light from below, deepening into the full green */
+        var k = eIO(seg(t, 0, 1.6));
+        if (k >= 1) return cover(t);
+        var g = x.createRadialGradient(W / 2, H * 1.04, 0, W / 2, H * 1.04, mix(H * .16, H * 1.35, k));
+        g.addColorStop(0, G); g.addColorStop(.45, "#32B27A"); g.addColorStop(.72, "rgba(108,233,166,.6)"); g.addColorStop(.88, "rgba(166,244,197,.3)"); g.addColorStop(1, "rgba(166,244,197,0)");
+        x.fillStyle = g; x.fillRect(0, 0, W, H);
+        x.globalAlpha = eIO(seg(k, .78, 1)); x.fillStyle = G; x.fillRect(0, 0, W, H); x.globalAlpha = 1;
+      },
+      s: function (t) {   /* Lotus bloom: big soft petals unfold out of the tapped tick, layer by layer, until they are the screen */
+        if (t >= 1.4) return cover(t);
+        var R = DIAG(B.x, B.y) * 1.25;
+        LAYERS.forEach(function (ly, li) {
+          var k = eIO(seg(t, li * .14, .9 + li * .14));
+          for (var i = 0; i < ly.n; i++) petal(B.x, B.y, ly.rot + i * Math.PI * 2 / ly.n - (1 - k) * .5, k * R * ly.sc, k * R * ly.sc * .42, ly.c0, ly.c1, ly.al);
+        });
+        x.globalAlpha = eIO(seg(t, 1.05, 1.4)); x.fillStyle = G; x.fillRect(0, 0, W, H); x.globalAlpha = 1;
+      },
+      t: function (t) {   /* Lotus rising: Eat's water rises a third of the way, then a lotus opens upward out of it, from the bottom centre */
+        if (t >= 1.75) return cover(t);
+        var lvl = eOut(seg(t, 0, .7)) * .34, top = H - lvl * H, amp = 8 * (1 - seg(t, .7, 1.4));
+        var bx = W / 2, by = top + 10, open = eIO(seg(t, .45, 1.45)), L = H * 1.15;
+        /* the petals behind the water first, so the flower sits in it */
+        LAYERS.forEach(function (ly, li) {
+          var k = eIO(seg(open, li * .1, 1)), n = ly.n + 1, span = mix(.25, 1.35, k);
+          for (var i = 0; i < n; i++) { var f = n === 1 ? 0 : i / (n - 1) - .5; petal(bx, by, f * span * 2 + (li === 1 ? .08 : 0), k * L * (ly.sc * (1 - Math.abs(f) * .35)), k * L * ly.sc * .2, ly.c0, ly.c1, ly.al); }
+        });
+        var wave = function (px) { return top + Math.sin(px * .024 + t * 3) * amp + Math.sin(px * .057 - t * 2) * amp * .4; };
+        x.beginPath(); x.moveTo(0, H + 40); for (var px = 0; px <= W; px += 6) x.lineTo(px, wave(px)); x.lineTo(W, H + 40); x.closePath(); x.fillStyle = G; x.fill();
+        x.beginPath(); for (px = 0; px <= W; px += 6) { var y = wave(px); px ? x.lineTo(px, y) : x.moveTo(px, y); } x.strokeStyle = "rgba(255,255,255," + .85 * (1 - seg(t, 1, 1.5)) + ")"; x.lineWidth = 3; x.stroke();
+        x.globalAlpha = eIO(seg(t, 1.35, 1.75)); x.fillStyle = G; x.fillRect(0, 0, W, H); x.globalAlpha = 1;
+      },
+      u: function (t) {   /* Petal halo: the green opens from the tick, then a ring of light petals blooms around the number and stays */
+        var k = eIO(seg(t, 0, .8)), R = k * DIAG(B.x, B.y) * 1.05;
+        if (k < 1) { var g = x.createRadialGradient(B.x, B.y, Math.max(0, R - 70), B.x, B.y, R); g.addColorStop(0, G); g.addColorStop(.75, "#3CCB8C"); g.addColorStop(1, "rgba(108,233,166,0)"); x.fillStyle = g; x.beginPath(); x.arc(B.x, B.y, R + 1, 0, 7); x.fill(); }
+        else cover(t);
+        var hk = eIO(seg(t, .55, 1.75)), cx = W / 2, cy = H * .47;
+        for (var i = 0; i < 10; i++) petal(cx, cy, i * Math.PI / 5 + t * .025 - (1 - hk) * .4, hk * 170, hk * 52, "rgba(255,255,255,.02)", "rgba(255,255,255,.2)", 1);
+        for (i = 0; i < 10; i++) petal(cx, cy, i * Math.PI / 5 + Math.PI / 10 + t * .025 - (1 - hk) * .6, hk * 120, hk * 38, "rgba(255,255,255,.02)", "rgba(209,250,223,.16)", 1);
+      },
+      v: function (t) {   /* Lotus heart: a lotus opens round the tick, then its heart widens into the green screen */
+        if (t >= 1.5) return cover(t);
+        var open = eIO(seg(t, 0, .8)), M = Math.min(W, H) * .42;
+        LAYERS.forEach(function (ly, li) { for (var i = 0; i < ly.n; i++) petal(B.x, B.y, ly.rot + i * Math.PI * 2 / ly.n - (1 - open) * .45, open * M * ly.sc, open * M * ly.sc * .42, ly.c0, ly.c1, ly.al * (1 - seg(t, 1.1, 1.5))); });
+        var hk = eIO(seg(t, .55, 1.4)), R = mix(10, DIAG(B.x, B.y) * 1.05, hk);
+        var g = x.createRadialGradient(B.x, B.y, Math.max(0, R - 50), B.x, B.y, R); g.addColorStop(0, G); g.addColorStop(1, "rgba(41,157,107,0)");
+        x.fillStyle = g; x.beginPath(); x.arc(B.x, B.y, R, 0, 7); x.fill();
+      },
+      r: function (t) {   /* three slow rings breathe out from the tick; the last becomes the screen */
+        if (t >= 1.5) return cover(t);
+        var Rmax = Math.hypot(Math.max(B.x, W - B.x), Math.max(B.y, H - B.y)) * 1.05;
+        [0, .22, .44].forEach(function (d, i) {
+          var k = eIO(seg(t, d, d + 1.05)), R = k * Rmax * (i === 2 ? 1 : .55 + i * .2), a = i === 2 ? 1 : (1 - seg(t, d + .6, d + 1.05)) * .55;
+          if (R <= 0) return;
+          /* soft edges: each ring feathers out over its last fifth, so nothing reads as a hard circle */
+          var col2 = i === 2 ? [41, 157, 107] : i === 0 ? [166, 244, 197] : [108, 233, 166], g2 = x.createRadialGradient(B.x, B.y, R * .8, B.x, B.y, R);
+          g2.addColorStop(0, "rgba(" + col2 + ",1)"); g2.addColorStop(1, "rgba(" + col2 + ",0)");
+          x.globalAlpha = a; x.fillStyle = g2; x.beginPath(); x.arc(B.x, B.y, R, 0, 7); x.fill();
+          if (i === 2) { x.fillStyle = G; x.beginPath(); x.arc(B.x, B.y, R * .8, 0, 7); x.fill(); }
+        });
+        x.globalAlpha = 1;
+      }
+    };
+    function content(w) {   /* the tick lands first, then each line rises in on its own beat, and the number counts up */
+      ct.style.opacity = w > 0 ? 1 : 0;
+      var d = ct.querySelector(".rw-gwd"); d.style.transform = "scale(" + eOut(seg(w, 0, .3)) + ")";
+      tk.style.strokeDashoffset = 24 * (1 - eOut(seg(w, .15, .4)));
+      [[ct.querySelector(".rw-gwp"), 0], [ct.querySelector(".rw-gwn"), LOTUS ? .06 : .12], [ln, LOTUS ? .14 : .3]].forEach(function (q) { var k = eOut(seg(w, q[1], q[1] + (LOTUS ? .25 : .45))); q[0].style.opacity = k; q[0].style.transform = "translateY(" + (1 - k) * 12 + "px)"; });
+      var kk = LOTUS ? eOut(seg(clock / 1000 - cAt, 0, .3)) : eOut(seg(clock / 1000 - cAt, .1, .9)); num.textContent = Math.round(mix(from, m.d, kk));
+    }
+    var wAt = null, cAt = 0;
+    function frame(now) {
+      if (!alive) return;
+      if (last == null) last = now; clock += Math.min(now - last, 1000 / 30); last = now;
+      if (FREEZE != null && clock > FREEZE * 1000) { clock = FREEZE * 1000; clearTimeout(tm); }   /* doc only: hold the moment at one instant */
+      var t = clock / 1000;
+      x.clearRect(0, 0, W, H);
+      if (RM) cover(0); else DRAW[kind](t * SPD);
+      if (t >= COVER) { if (wAt == null) { wAt = t; cAt = t; buzz(); } content(t - wAt); }
+      if (exitAt != null) { var e = (now - exitAt) / 1000; var EX = LOTUS ? .3 : .55; lay.style.opacity = 1 - eIO(seg(e, .02, EX)); if (e > EX + .05) { alive = false; lay.remove(); return; } }
+      requestAnimationFrame(frame);
+    }
+    if (RM) { anim(lay, [{ opacity: 0 }, { opacity: 1 }], { duration: 300, easing: SOFT }); }
+    requestAnimationFrame(function () { requestAnimationFrame(frame); });
+    var gone = false, close = function () { if (gone) return; gone = true; live = null; exitAt = performance.now(); };
+    lay.addEventListener("click", close);
+    /* a gain while it is open counts on from where the number is */
+    var tm = null, ends = function (ms) { clearTimeout(tm); tm = setTimeout(close, ms); };
+    var HOLD = LOTUS ? (COVER + .3) * 1000 + 1100 : (COVER + .9) * 1000 + 2600;
+    ends(HOLD);
+    return { add: function (d, cause, n) { from = +num.textContent || 0; m.d += d; m.count++; m.n = n; if (cause !== m.cause) m.cause = cause; words(); if (wAt != null) cAt = clock / 1000 - (LOTUS ? 0 : .1); quietUntil = performance.now() + 900; ends(HOLD); } };
+  }
+  function buzz() { try { navigator.vibrate && navigator.vibrate(18); } catch (e) {} }
+
   /* ---------- E: Scaled. A tick rises; a big log gets the full moment ---------- */
   function full(m) {
     var o = m.o, c = col(), lay = el("div", "rw-full");
@@ -320,6 +517,10 @@
     a: rise, b: lift, c: inRow, d: shore,
     f: function (m) { return goldShore(m, "f"); }, g: function (m) { return goldShore(m, "g"); },
     h: function (m) { return goldShore(m, "h"); }, i: function (m) { return goldShore(m, "i"); },
+    n: function (m) { return greenScreen(m, "n"); }, o: function (m) { return greenScreen(m, "o"); }, p: function (m) { return greenScreen(m, "p"); },
+    q: function (m) { return greenScreen(m, "q"); }, r: function (m) { return greenScreen(m, "r"); },
+    s: function (m) { return greenScreen(m, "s"); }, t: function (m) { return greenScreen(m, "t"); },
+    u: function (m) { return greenScreen(m, "u"); }, v: function (m) { return greenScreen(m, "v"); },
     j: function (m) { return fullScreen(m, "j"); }, k: function (m) { return fullScreen(m, "k"); },
     l: function (m) { return fullScreen(m, "l"); }, m: function (m) { return fullScreen(m, "m"); },
     e: function (m) { return m.cause === "sleep" || m.d >= 15 ? full(m) : rise(m); }
@@ -371,6 +572,24 @@
     ".rw-pill.gold b{font-size:19px}",
     ".rw-gs-i .rw-pill{overflow:hidden}",
     ".rw-shine{position:absolute;top:0;bottom:0;left:0;width:40%;pointer-events:none;background:linear-gradient(90deg,rgb(255 255 255/0),rgb(255 248 224/.85) 50%,rgb(255 255 255/0));transform:translateX(-120%) skewX(-18deg)}",
+    /* N to R: Eat's and Move's green win, layout B, white words */
+    ".rw-gw{position:fixed;top:0;bottom:0;z-index:170;overflow:hidden;cursor:pointer}",
+    ".rw-gw canvas{position:absolute;inset:0;width:100%;height:100%}",
+    ".rw-gwc{position:absolute;left:0;right:0;top:50%;transform:translateY(-58%);text-align:center;color:#fff;opacity:0;padding:0 20px}",
+    ".rw-gwp{display:inline-flex;align-items:center;gap:10px;padding:6px 16px 6px 6px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.26);font:600 16px/20px Roboto,sans-serif}",
+    ".rw-gwd{width:30px;height:30px;border-radius:50%;background:#fff;display:grid;place-items:center;transform:scale(0)}",
+    ".rw-gwd path{fill:none;stroke:#299D6B;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:24;stroke-dashoffset:24}",
+    ".rw-gwn{display:flex;align-items:baseline;justify-content:center;gap:10px;margin-top:26px}",
+    ".rw-gwn b{font:700 88px/.9 Roboto,sans-serif;letter-spacing:-3px;font-variant-numeric:tabular-nums}",
+    ".rw-gwn .rw-pc{display:inline-block;vertical-align:top;margin-left:.06em;font-size:.4em;line-height:1;letter-spacing:0;opacity:.85}",
+    ".rw-gwn em{font-style:normal;font:600 26px/1 Roboto,sans-serif;opacity:.92}",
+    /* Momentum's layout B, exactly: pill 600 16/20 with a 30px white tick disc, the number 700 96/.9 at -3px, 28px under the
+       pill, the % at .4em, the line 400 17/25 at 90% white, 14px under; the block centred on the screen */
+    ".rw-b .rw-gwc{transform:translateY(-50%)}",
+    ".rw-b .rw-gwn{display:block;margin-top:28px}",
+    ".rw-b .rw-gwn b{font:700 96px/.9 Roboto,sans-serif;letter-spacing:-3px}",
+    ".rw-b .rw-gwc .rw-ln{margin:14px 0 0;white-space:nowrap}",
+    ".rw-gwc .rw-ln{margin:18px 0 0;font:400 17px/25px Roboto,sans-serif;color:rgba(255,255,255,.9)}",
     /* J to M: the full screen. Words: the pill in near-black, the gain in dark gold, the line in grey */
     ".rw-fs{position:fixed;top:0;bottom:0;z-index:170;overflow:hidden;cursor:pointer;display:grid;place-items:center;text-align:center}",
     ".rw-fsbg,.rw-fsfx{position:absolute;inset:0;pointer-events:none}",

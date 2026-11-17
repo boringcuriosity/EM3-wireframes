@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sleep Sources</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root { --ink:#101828; --sub:#475467; --mute:#667085; --line:#EAECF0; --soft:#F9FAFB; --green:#299D6B; --green-d:#2A805A; --green-t:#E6FAF1; --in:#444CE7; --in-t:#EEF4FF; --gold-t:#FFFBEE; --red-t:#FEF3F2; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #FFFFFF; color: var(--ink); font: 400 15px/23px Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 96px; }
+  .eyebrow { font: 600 12px/16px Roboto; letter-spacing: 1.2px; text-transform: uppercase; color: var(--green-d); }
+  h1 { font: 700 32px/40px Roboto; margin: 8px 0; }
+  h2 { font: 700 22px/30px Roboto; margin: 48px 0 8px; }
+  h3 { font: 600 16px/22px Roboto; margin: 24px 0 8px; }
+  p { margin: 0 0 12px; color: var(--sub); max-width: 820px; }
+  .lede { font-size: 16px; line-height: 25px; }
+  .three { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 16px 0; }
+  .src { border: 1px solid var(--line); border-radius: 16px; padding: 16px; background: #fff; }
+  .src b { display: block; font-size: 16px; margin-bottom: 4px; }
+  .src span { color: var(--sub); font-size: 14px; line-height: 21px; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; font-size: 14px; line-height: 20px; margin: 8px 0 4px; }
+  th { text-align: left; background: var(--soft); color: var(--sub); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--ink); }
+  tr:last-child td { border-bottom: 0; }
+  td.k { white-space: nowrap; font-weight: 600; }
+  td code, p code, li code { font: 500 12.5px/18px ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--soft); border: 1px solid var(--line); border-radius: 6px; padding: 1px 5px; color: var(--sub); white-space: nowrap; }
+  .grp td { background: var(--in-t); color: #2D3282; font-weight: 600; font-size: 13px; letter-spacing: .3px; }
+  .q { color: var(--mute); }
+  .flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+  .flow ol { margin: 8px 0 0; padding-left: 20px; color: var(--sub); }
+  .flow li { margin: 6px 0; }
+  .card { border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; }
+  .card.ring { background: linear-gradient(180deg, var(--green-t), #fff 60%); }
+  .frames { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 12px; }
+  figure { margin: 0; width: 312px; }
+  .fr { width: 312px; height: 420px; border: 1px solid var(--line); border-radius: 22px; overflow: hidden; box-shadow: 0 12px 32px -16px rgba(16,24,40,.18); background: #fff; }
+  .fr iframe { width: 390px; height: 525px; border: 0; transform: scale(.8); transform-origin: 0 0; }
+  figcaption { margin-top: 10px; font-size: 14px; line-height: 20px; color: var(--sub); }
+  figcaption b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 2px; }
+  figcaption a { color: var(--green-d); font-size: 13px; word-break: break-all; }
+  .pick { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 999px; background: var(--green-t); color: var(--green-d); font: 600 12px/20px Roboto; }
+  .open li { margin: 8px 0; color: var(--sub); }
+  .note { background: var(--gold-t); border: 1px solid #FEF1C7; border-radius: 12px; padding: 12px 14px; color: #826E2D; font-size: 14px; max-width: 820px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Mind · Sleep · Android</div>
+  <h1>Where last night's sleep comes from</h1>
+  <p class="lede">Three ways sleep reaches the Mind screen: the person types it, Health Connect brings it in from a watch or sleep app, or the Arc smart ring writes it to Health Connect and we read it from there. GoodFlip never reads the ring directly. Health Connect sits in the middle, so there is one permission and one path. Every frame below is the real Mind screen.</p>
+
+  <div class="three">
+    <div class="src"><b>Manual</b><span>The person types when they slept and woke up, from Log sleep on the card. Always there, whatever else is connected.</span></div>
+    <div class="src"><b>Health Connect</b><span>A watch or sleep app writes sleep to Health Connect, and GoodFlip reads it once allowed. Updated each morning; the person can still edit the times.</span></div>
+    <div class="src"><b>Arc ring, via Health Connect</b><span>The Arc app writes the ring's sleep to Health Connect. GoodFlip asks for Health Connect as it does for anyone, and the strip names both.</span></div>
+  </div>
+
+  <h2>The flows</h2>
+  <div class="flow">
+    <div class="card">
+      <h3>No ring: two options, kept simple</h3>
+      <ol>
+        <li>The sleep card offers two things: <b>Log sleep</b>, and the strip under it, <b>Turn on Health Connect</b>.</li>
+        <li>Turn on Health Connect opens our sheet ("Let your phone fill in your sleep"), then Android's own Health Connect permission screen.</li>
+        <li>Allowed: sleep comes in each morning. The strip reads "From Health Connect · Updated 7:22 AM".</li>
+        <li>Not allowed or Not now: the person types last night. The strip keeps offering Health Connect, never a nag elsewhere.</li>
+      </ol>
+    </div>
+    <div class="card ring">
+      <h3>With the Arc ring: same permission, the ring named</h3>
+      <ol>
+        <li>The ring is paired in the Arc app, which writes sleep to Health Connect.</li>
+        <li>GoodFlip still asks for Health Connect. The sheet says it plainly: "Let your Arc ring fill in your sleep".</li>
+        <li>Allowed: the ring's sleep comes in through Health Connect. The strip shows the ring and Health Connect together: "From Arc ring via Health Connect · 7:22 AM".</li>
+        <li>Not allowed: sleep is typed, as with no ring. The strip says "Turn on Health Connect · Your Arc ring's sleep fills in by itself".</li>
+      </ol>
+    </div>
+  </div>
+  <p class="note" style="margin-top:16px">The ring mark in the strip is the Arc ring image (<code>icons/mind/arc-ring.png</code>), set in the same small white tile as the Health Connect mark (<code>RINGI</code> in <code>mind/variants/sleep.js</code>).</p>
+
+  <h2>Every case</h2>
+  <p>Grouped as setup, then what came in. "Card", "Strip" and "Log sleep" are what the person sees; "Coach" is what the coach portal sees. The coach never sees where sleep came from (17 Nov 2026); only whether it was logged.</p>
+  <table>
+    <thead><tr><th style="width:15%">Case</th><th style="width:22%">Card</th><th style="width:25%">Strip under the card</th><th style="width:20%">Tap or Log sleep</th><th>Coach</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="5">No ring</td></tr>
+      <tr><td class="k">Health Connect never asked</td><td>Last night as typed, or "Add last night · Enter the times, or connect Health Connect to fill them in by itself."</td><td>"Turn on Health Connect · Your sleep fills in by itself" ›</td><td>Strip: our sheet, then Android's permission screen. Log sleep: the time sheet.</td><td>Night as typed, or not logged.</td></tr>
+      <tr><td class="k">Health Connect allowed, synced</td><td>Last night: hours, times, the bar.</td><td>"From Health Connect · Updated 7:22 AM"</td><td>Edit opens the times, with "Use Health Connect's times" after an edit.</td><td>The night.</td></tr>
+      <tr><td class="k">Allowed, nothing yet</td><td>"We haven't received last night's sleep yet · Wait for it to sync, or log it yourself."</td><td>"From Health Connect · No sleep synced yet"</td><td>Log sleep: the time sheet.</td><td>Not logged, until it comes in or is typed.</td></tr>
+      <tr><td class="k">Allowed, only part came in</td><td>The night, with the gold note: "Health Connect shows 2h 05m. If you slept more, fix it."</td><td>"From Health Connect · Updated 7:22 AM"</td><td>Fix opens the times; X keeps them.</td><td>The night as kept.</td></tr>
+      <tr><td class="k">Allowed, last sync yesterday</td><td>Last night as it came in.</td><td>"From Health Connect · Last synced yesterday, 9:14 PM"</td><td>Edit, as above.</td><td>The night.</td></tr>
+      <tr><td class="k">Allowed, edited by hand</td><td>The edited night.</td><td>"From Health Connect, edited by you"</td><td>Edit offers "Use Health Connect's times".</td><td>The edited night.</td></tr>
+      <tr><td class="k">Allowed, typed by hand</td><td>The typed night.</td><td>No strip (times they typed need no label).</td><td>Edit, as above.</td><td>The night.</td></tr>
+      <tr><td class="k">Denied, or turned off later</td><td>As never asked.</td><td>"Allow sleep in Health Connect · Your sleep fills in by itself" ›</td><td>Strip: "Allow sleep in Health Connect", how to turn Sleep on in Health Connect, Open Health Connect. Android will not show its own dialog again, so we explain.</td><td>As typed, or not logged.</td></tr>
+      <tr><td class="k">Health Connect not installed</td><td>As never asked.</td><td>"Get Health Connect · Your sleep fills in by itself" ›</td><td>Strip: "Get Health Connect", a line on what it is, Get it on Play Store. Android 13 and below; built in from Android 14.</td><td>As typed, or not logged.</td></tr>
+      <tr class="grp"><td colspan="5">With the Arc ring</td></tr>
+      <tr><td class="k">Ring, Health Connect allowed, synced</td><td>Last night from the ring.</td><td><b>Ring mark + Health Connect mark</b>, "From Arc ring via Health Connect · 7:22 AM" <span class="q">(option B: "Arc ring · Health Connect")</span></td><td>Edit, as above.</td><td>The night.</td></tr>
+      <tr><td class="k">Ring, nothing synced yet</td><td>"Your Arc ring hasn't synced last night yet · Open the Arc app to sync it, or log it yourself."</td><td>Both marks, "From Arc ring via Health Connect · Not synced yet"</td><td>Log sleep: the time sheet.</td><td>Not logged, until it syncs or is typed.</td></tr>
+      <tr><td class="k">Ring not synced: battery flat or off the finger</td><td>As nothing synced yet. The same words cover a flat battery, a ring left on the charger and the Arc app not opened.</td><td>As nothing synced yet.</td><td>Log sleep.</td><td>Not logged.</td></tr>
+      <tr><td class="k">Ring, last sync yesterday</td><td>Last night as it came in.</td><td>Both marks, "From Arc ring via Health Connect · Yesterday, 9:14 PM"</td><td>Edit.</td><td>The night.</td></tr>
+      <tr><td class="k">Ring, part of the night came in</td><td>The night with the gold note (as without the ring).</td><td>Both marks, as synced.</td><td>Fix or keep.</td><td>The night as kept.</td></tr>
+      <tr><td class="k">Ring, edited by hand</td><td>The edited night.</td><td>"From Arc ring via Health Connect, edited by you"</td><td>Edit offers Health Connect's times.</td><td>The edited night.</td></tr>
+      <tr><td class="k">Ring, Health Connect never asked</td><td>Typed, or "Add last night · Enter the times, or turn on Health Connect so your Arc ring fills them in."</td><td>"Turn on Health Connect · Your Arc ring's sleep fills in by itself" ›</td><td>Strip: "Let your Arc ring fill in your sleep", then Android's permission screen.</td><td>As typed, or not logged.</td></tr>
+      <tr><td class="k">Ring, Health Connect denied or turned off</td><td>As never asked.</td><td>"Allow sleep in Health Connect · Your Arc ring's sleep fills in by itself" ›</td><td>Strip: how to turn Sleep on in Health Connect, ending "Your Arc ring's sleep will then come in by itself."</td><td>As typed, or not logged.</td></tr>
+      <tr class="grp"><td colspan="5">First time and returning</td></tr>
+      <tr><td class="k">First open of Mind</td><td colspan="3">The card's empty state and the strip are the only ask: no pop-up on arrival. The first-time swipe intro can mention that sleep can fill in by itself.</td><td>Not logged.</td></tr>
+      <tr><td class="k">Returning, connected</td><td colspan="3">Nothing to ask. If no sleep has come in for 3 mornings in a row, the empty state stays as "We haven't received last night's sleep yet", without blame.</td><td>Not logged on those days.</td></tr>
+      <tr><td class="k">Returning, not connected</td><td colspan="3">The strip keeps the one offer. Typing is never made to feel second best.</td><td>As typed.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>On the Mind screen</h2>
+  <p>Add these to <code>/v7/mind/index.html</code>: <code>?src=manual|hc|hcring|ringnohc</code>, then <code>&amp;hc=none|denied|revoked|noapp</code> (why Health Connect is off) and <code>&amp;sdata=ok|missing|partial|stale|edited|manual</code> (what came in). <code>&amp;sstrip=b</code> shows the ring strip's second wording. Tap the strip in a frame to open its sheet.</p>
+  <h3>No ring</h3>
+  <div class="frames" data-set="a"></div>
+  <h3>With the Arc ring</h3>
+  <div class="frames" data-set="b"></div>
+
+  <h2>Open questions</h2>
+  <ol class="open">
+    <li>Ring strip words: "From Arc ring via Health Connect" (A, says how it travels) or "Arc ring · Health Connect" (B, shorter, fits beside "Updated 7:22 AM"). A is on the screen now.</li>
+    <li>How do we know someone has the ring? From the order, the Arc app being installed, or the Arc app's name on the sleep records in Health Connect? The screen needs a yes or no before it says "Arc ring".</li>
+    <li>When the ring's sleep and a watch's sleep both reach Health Connect for the same night, which wins? Suggest: the ring when present.</li>
+    <li>Should a ring owner who denies Health Connect see one nudge after a few typed nights, or only the strip?</li>
+    <li>iPhone: the same three, with Apple Health in place of Health Connect, when the Arc app writes to Apple Health.</li>
+  </ol>
+</div>
+<script>
+  var A = [
+    ["src=manual", "Never asked, typed", "The strip offers Health Connect; the night is what they typed."],
+    ["src=manual&sdata=missing", "Never asked, nothing typed", "Add last night, Log sleep, and the strip's one offer."],
+    ["src=hc", "Health Connect, synced", "From Health Connect · Updated 7:22 AM."],
+    ["src=hc&sdata=missing", "Health Connect, nothing yet", "We haven't received last night's sleep yet."],
+    ["src=hc&sdata=partial", "Only part came in", "The gold note to fix or keep."],
+    ["src=manual&hc=denied", "Denied", "Allow sleep in Health Connect; tap for the steps."],
+    ["src=manual&hc=noapp", "Not installed", "Get Health Connect; tap for the Play Store."]
+  ];
+  var B = [
+    ["src=hcring", "Ring, synced", "Both marks, From Arc ring via Health Connect.", 1],
+    ["src=hcring&sstrip=b", "Ring, option B words", "Arc ring · Health Connect."],
+    ["src=hcring&sdata=missing", "Ring, not synced yet", "Your Arc ring hasn't synced last night yet."],
+    ["src=hcring&sdata=stale", "Ring, last sync yesterday", "Yesterday, 9:14 PM."],
+    ["src=ringnohc", "Ring, Health Connect never asked", "Typed; the strip asks for Health Connect."],
+    ["src=ringnohc&hc=denied", "Ring, Health Connect denied", "Tap for how to turn Sleep on."]
+  ];
+  function fig(v) {
+    var u = "/v7/mind/index.html?" + v[0] + "&scroll=sleep";
+    return '<figure><div class="fr"><iframe title="' + v[1] + '" loading="lazy" data-u="' + u + '"></iframe></div><figcaption><b>' + v[1] + (v[3] ? '<span class="pick">On the screen now</span>' : "") + '</b>' + v[2] + '<br><a href="' + u + '" target="_blank" rel="noopener">' + location.origin + u + '</a></figcaption></figure>';
+  }
+  document.querySelector('[data-set="a"]').innerHTML = A.map(fig).join("");
+  document.querySelector('[data-set="b"]').innerHTML = B.map(fig).join("");
+  /* each frame opens at the sleep card */
+  [].forEach.call(document.querySelectorAll("iframe[data-u]"), function (f) {
+    f.addEventListener("load", function () {
+      var go = function () { try { var d = f.contentDocument, c = d.getElementById("svCard"); if (c) f.contentWindow.scrollTo(0, c.getBoundingClientRect().top + f.contentWindow.scrollY - 12); } catch (e) {} };
+      [300, 900, 1800, 3000, 5000, 8000].forEach(function (t) { setTimeout(go, t); });   /* late images push the card down, so settle it a few times */
+    });
+    f.src = f.dataset.u;
+  });
+</script>
+</body>
+</html>

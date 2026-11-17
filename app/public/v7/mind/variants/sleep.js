@@ -67,6 +67,33 @@
     var raw = SLEEPS[SLK].map(function (x) { return { bed: x[0], wake: x[1] }; }), hand = Q.get("ssrc") === "manual";
     ST = { perm: true, src: hand ? "manual" : "health", night: { bed: raw[0].bed, wake: raw[raw.length - 1].wake, segs: raw }, health: null };
   }
+  /* ---------- where sleep comes from, Android first (17 Nov 2026, v7/mind-sleep-sources.html) ----------
+     ?src=manual    no ring, Health Connect not on: the person types last night
+     ?src=hc        no ring, Health Connect on: a watch or sleep app writes to it, we read it
+     ?src=hcring    the Arc ring and Health Connect on: the ring writes to Health Connect, we read it from there
+     ?src=ringnohc  the Arc ring, Health Connect not on: sleep is typed, the strip asks for Health Connect
+     ?hc=none|denied|revoked|noapp   why Health Connect is off (none: never asked, the default when it is off)
+     ?sdata=ok|missing|partial|stale|edited|manual   what came in (stale: the last sync was yesterday evening)
+     ?sstrip=b      the ring strip's second wording, for the doc */
+  var SRCK = Q.get("src"), RING = false, HCS = "allowed", SD = Q.get("sdata") || "ok";
+  if (/^(manual|hc|hcring|ringnohc)$/.test(SRCK || "")) {
+    AND = true; NAME = "Health Connect"; RING = /ring/.test(SRCK);
+    HCS = SRCK === "hc" || SRCK === "hcring" ? "allowed" : (Q.get("hc") || "none");
+    var TYPED = { bed: PLAN.bed + 30, wake: PLAN.wake + 30 };
+    ST = HCS !== "allowed" ? { perm: false, src: SD === "missing" ? null : "manual", night: SD === "missing" ? null : TYPED, health: null }
+      : SD === "missing" ? { perm: true, src: null, night: null, health: null }
+      : SD === "partial" ? { perm: true, src: "health", night: SH, health: SH, odd: true }
+      : SD === "edited" ? { perm: true, src: "edited", night: { bed: PLAN.bed + 45, wake: PLAN.wake + 15 }, health: SY }
+      : SD === "manual" ? { perm: true, src: "manual", night: TYPED, health: null }
+      : { perm: true, src: "health", night: SY, health: SY, stale: SD === "stale" };
+  }
+  /* the Arc ring's mark: Shaheer's ring image (icons/mind/arc-ring.png, 30 x 40), in the same small white tile as Health Connect's (17 Nov 2026) */
+  var RINGI = '<i class="sv-ringi" aria-hidden="true"><img src="/v7/icons/mind/arc-ring.png" alt=""></i>';
+  /* the words the sources use */
+  var OFFT = { none: "Turn on Health Connect", denied: "Allow sleep in Health Connect", revoked: "Allow sleep in Health Connect", noapp: "Get Health Connect" };
+  var VIA = function () { return RING ? (Q.get("sstrip") === "b" ? "Arc ring \u00b7 Health Connect" : "From Arc ring via Health Connect") : "From " + NAME; };
+  /* ?scroll=sleep opens the screen at the sleep card, for v7/mind-sleep-sources.html; late images push it, so it settles a few times */
+  if (Q.get("scroll") === "sleep") [600, 1500, 3000, 5000].forEach(function (t) { setTimeout(function () { var c = document.getElementById("svCard"); if (c) window.scrollTo(0, c.getBoundingClientRect().top + window.scrollY - 12); }, t); });
   var NIGHT = Q.get("naps") === "night";   /* doc only: the night alone counts towards hours, the rule before 16 Nov 2026 */
   /* the night and the naps, as the rule sees them: the card always shows the night; every other sleep is in ST.naps */
   function norm() {
@@ -171,10 +198,11 @@
     var hk = '<i class="hk' + (AND ? " hc" : "") + '"></i>';
     if (J && ST.src === "manual" && ST.perm) return "";   /* J: times they typed need no label; not connected keeps the Connect strip */
     if (ST.src === "manual" && (ST.perm || !J)) return '<div class="mv-sync"><span class="src"><i class="hk sv-me">' + I.pencil + '</i>Entered by you</span><span class="at">' + (ST.at || "7:12 AM") + '</span></div>';
-    if (!ST.perm) return '<button class="mv-sync off" data-sv="perm">' + hk + '<span class="tx"><b>' + (AND ? "Turn on Health Connect" : "Connect Apple Health") + '</b><span>Your sleep fills in by itself</span></span>' + MD.IC.chev + '</button>';
-    if (!ST.night) return '<div class="mv-sync"><span class="src">' + hk + 'From ' + NAME + '</span><span class="at">No sleep synced yet</span></div>';
-    if (ST.src === "edited") return '<div class="mv-sync"><span class="src">' + hk + 'From ' + NAME + ', edited by you</span></div>';
-    return '<div class="mv-sync"><span class="src">' + hk + 'From ' + NAME + '</span><span class="at">Updated 7:22 AM</span></div>';
+    if (RING) hk = RINGI + hk;   /* the ring and Health Connect side by side */
+    if (!ST.perm) return '<button class="mv-sync off" data-sv="perm">' + hk + '<span class="tx"><b>' + (SRCK ? OFFT[HCS] || OFFT.none : AND ? "Turn on Health Connect" : "Connect Apple Health") + '</b><span>' + (RING ? "Your Arc ring\u2019s sleep fills in by itself" : "Your sleep fills in by itself") + '</span></span>' + MD.IC.chev + '</button>';
+    if (!ST.night) return '<div class="mv-sync' + (RING ? " ring" : "") + '"><span class="src">' + hk + '<span class="vt">' + VIA() + '</span></span><span class="at">' + (RING ? "Not synced yet" : "No sleep synced yet") + '</span></div>';
+    if (ST.src === "edited") return '<div class="mv-sync' + (RING ? " ring" : "") + '"><span class="src">' + hk + '<span class="vt">' + VIA() + ', edited by you</span></span></div>';
+    return '<div class="mv-sync' + (RING ? " ring" : "") + '"><span class="src">' + hk + '<span class="vt">' + VIA() + '</span></span><span class="at">' + (ST.stale ? (RING ? "Yesterday, 9:14 PM" : "Last synced yesterday, 9:14 PM") : RING ? "7:22 AM" : "Updated 7:22 AM") + '</span></div>';
   }
   /* J: the short-sync note, a slim ribbon in the gold of Eat's "logging in future" ribbon (v7/future-time-options.html, B).
      Fix opens the sheet; X keeps Health's times and puts the note away */
@@ -193,7 +221,8 @@
     return h;
   }
   function empty() {
-    if (!ST.perm) return { t: "Add last night", s: "Enter the times, or connect " + NAME + " to fill them in by itself.", b: "Enter Last Night", sec: false };
+    if (!ST.perm) return { t: "Add last night", s: RING ? "Enter the times, or turn on Health Connect so your Arc ring fills them in." : "Enter the times, or connect " + NAME + " to fill them in by itself.", b: "Enter Last Night", sec: false };
+    if (RING) return { t: "Your Arc ring hasn\u2019t synced last night yet", s: "Open the Arc app to sync it, or log it yourself.", b: "Enter Last Night", sec: false };
     return { t: "We haven’t received last night’s sleep yet", s: "Wait for it to sync, or log it yourself.", b: "Enter Last Night", sec: false };
   }
   function emptyCard(pic) {
@@ -322,7 +351,10 @@
   function cardHTML() {
     if (SLIM[V]) return '<div class="sec sv-sec"><h2>Last night</h2><button class="sv-ib" data-sv="info" aria-label="How last night counts">' + I.info + '</button></div><section class="sv-steps sv-slimw">' + SLIM[V]() + '</section>';
     var sk = (J ? " sv-j" : "") + (V === "i" ? " sk-" + (/^(soft|scene|deep)$/.test(Q.get("skin") || "") ? Q.get("skin") : "white") : "");
-    return '<div class="sec sv-sec"><h2>Last night</h2>' + (J ? "" : '<button class="sv-ib" data-sv="info" aria-label="How last night counts">' + I.info + '</button>') + '</div><section class="mv-steps sv-steps' + sk + '" style="margin-top:0">' + CARD[V]() + strip() + '</section>';
+    /* a free user sees the card right under the date: "Your last night", a little closer to the date (17 Nov 2026) */
+    var FREEU = /^free/.test(MD.Q.get("state") || "");
+    if (FREEU && !document.getElementById("svFreeGap")) { var fg = document.createElement("style"); fg.id = "svFreeGap"; fg.textContent = ".dateline.solo + #svCard,#svCard{margin-top:24px}"; document.head.appendChild(fg); }
+    return '<div class="sec sv-sec"><h2>' + (FREEU ? "Your last night" : "Last night") + '</h2>' + (J ? "" : '<button class="sv-ib" data-sv="info" aria-label="How last night counts">' + I.info + '</button>') + '</div><section class="mv-steps sv-steps' + sk + '" style="margin-top:0">' + CARD[V]() + strip() + '</section>';
   }
 
   /* ---------- where it goes: its own card beside the plan (a, b, c), or the Morning row (d) ---------- */
@@ -613,8 +645,16 @@
       : SB + '<div class="ds-ios"><div class="ds-nav"><span>Don\u2019t Allow</span><b>Health Access</b><span>Allow</span></div>' + PAIR('<span class="ds-app ah"><img src="/v7/icons/health/apple-health-heart.png" alt=""></span>') +
           '<p class="ds-lead">\u201cGoodFlip\u201d would like to access and update your Health data.</p>' +
           '<div class="ds-h">Allow \u201cGoodFlip\u201d to read</div><div class="ds-grp">' + row("bed", "Sleep", 1) + row("flame", "Steps", 1) + row("flame", "Workouts", 1) + row("flame", "Active Energy", 1) + row("heart", "Heart Rate", 1) + '</div></div>';
-    window.GFOpenSheet("mvHealth", "Let your phone fill in your sleep",
-      '<p class="hsub">Your watch or sleep app already saves it. Connect once, and last night comes in by itself every morning.</p>' +
+    /* Health Connect off for a reason it will not ask again about: say how to turn it on, no phone picture */
+    if (SRCK && (HCS === "denied" || HCS === "revoked" || HCS === "noapp")) {
+      var off = HCS === "noapp"
+        ? ["Get Health Connect", (RING ? "Your Arc ring saves your sleep to Health Connect. " : "") + "Health Connect is a free app from Google that keeps your health data in one place. Get it from the Play Store, then come back and turn it on.", "Get it on Play Store"]
+        : ["Allow sleep in Health Connect", (HCS === "revoked" ? "Health Connect stopped sharing your sleep with GoodFlip. " : "GoodFlip can\u2019t read your sleep yet. ") + "Open Health Connect, tap App permissions, then GoodFlip, and turn on Sleep." + (RING ? " Your Arc ring\u2019s sleep will then come in by itself." : ""), "Open Health Connect"];
+      window.GFOpenSheet("mvHealth", off[0], '<p class="hsub">' + off[1] + '</p><div class="hft"><button class="hgo" data-sv="permgo">' + off[2] + '</button><button class="hlater" data-sv="edit">I will enter my sleep myself</button></div>');
+      return;
+    }
+    window.GFOpenSheet("mvHealth", RING ? "Let your Arc ring fill in your sleep" : "Let your phone fill in your sleep",
+      '<p class="hsub">' + (RING ? "Your Arc ring saves your sleep to Health Connect. Allow GoodFlip to read it, and last night comes in by itself every morning." : "Your watch or sleep app already saves it. Connect once, and last night comes in by itself every morning.") + '</p>' +
       '<div class="dev-wrap" aria-hidden="true"><div class="flab">Next, your phone will ask</div><div class="dev' + (AND ? " and" : "") + '"><span class="dev-cam"></span><div class="dev-scr"><div class="ds">' + scr + '</div></div></div></div>' +
       '<div class="hft"><button class="hgo" data-sv="permgo">' + (AND ? "Allow Health Connect" : "Connect Apple Health") + '</button>' +
       '<button class="hlater" data-sv="edit">I will enter my sleep myself</button></div>');
@@ -735,6 +775,9 @@
     ".sv-lk{position:relative;border:0;background:none;padding:0;font:600 12.5px Roboto,sans-serif;color:var(--p-600,#299D6B);cursor:pointer}.sv-lk::after{content:'';position:absolute;inset:-12px -8px}",
     ".sv-cta{height:44px;width:100%;border:0;border-radius:6px;background:var(--p-600,#299D6B);color:#fff;font:600 15px Roboto,sans-serif;cursor:pointer;box-shadow:0 4px 0 #2A805A}",
     ".sv-cta.sec{background:#fff;color:var(--p-700,#2A805A);border:1px solid var(--p-600,#299D6B);box-shadow:0 3px 0 #CBF0E0}",
+    /* the ring strip: two marks and a longer source, so the words may wrap and the time stays on one line */
+    ".mv-sync.ring .src{flex:1;min-width:0;white-space:normal;gap:6px}.mv-sync.ring .vt{min-width:0}.mv-sync.off .sv-ringi{width:32px;height:32px;border-radius:9px}.mv-sync.off .sv-ringi svg{width:20px;height:20px}.mv-sync.off .sv-ringi img{height:22px}",
+    ".sv-ringi{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;background:#fff;box-shadow:0 0 0 1px #E4E7EC;color:#475467;flex:none;margin-right:4px}.sv-ringi svg{width:14px;height:14px}.sv-ringi img{width:auto;height:15px;display:block}",
     ".hk.sv-me{background:var(--p-50,#F3FCF8);box-shadow:0 0 0 1px var(--p-100,#E6FAF1);display:inline-grid;place-items:center;color:var(--p-600,#299D6B)}.hk.sv-me svg{width:12px;height:12px}",
     ".sv-ck{display:flex;gap:16px;align-items:center}.sv-ck svg.dial{width:124px;height:124px;flex:none}.sv-ck .cr{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}",
     ".sv-ckl{display:flex;flex-direction:column;gap:4px;font:400 12.5px/18px Roboto,sans-serif;color:var(--g-600)}.sv-ckl div{display:flex;align-items:center;gap:6px}.sv-ckl svg{width:14px;height:14px}.sv-ckl .ok{color:var(--p-600,#299D6B)}.sv-ckl .off{color:var(--in-600)}",

@@ -5,7 +5,7 @@
 (function () {
   var Q = new URLSearchParams(location.search), ST = Q.get("state") || "";
   /* /v7/mind opens as the coach portal's review preview, with "What shaped your score?" shown, and the final sleep card (J) and mood check-in (A, five faces, KAIRA replies) and the full-screen breathing player (f, Line look): Parts of the day, a coach's template (?t=, t-motivation by default) */
-  [["layout", "parts"], ["coach", "1"], ["day", "start"], ["vsleep", "j"], ["vmood", "a"], ["vbreath", "f"], ["blook", "1"], ["vlib", "k3"]].forEach(function (d) { if (!Q.has(d[0])) Q.set(d[0], d[1]); });
+  [["layout", "parts"], ["coach", "1"], ["day", "start"], ["vsleep", "j"], ["vmood", "a"], ["vbreath", "f"], ["blook", "1"], ["vlib", "k3"], ["tiles", "1"], ["vparts", "f"], ["vib", "1"], ["vstrip", "0"], ["vwin", "s"]].forEach(function (d) { if (!Q.has(d[0])) Q.set(d[0], d[1]); });   /* "What shaped your score?" on by default (17 Nov 2026): Sleep quality and Self-care tiles with an info icon (the strip under them is off: ?vstrip=1 shows it); ?tiles=0 parks it */
   var FREE = /^free/.test(ST), NOPLAN = FREE || /^noplan/.test(ST);
   var NOW = +Q.get("now") || 15;   /* the prototype's clock, in hours; ?now= for the case document */
 
