@@ -332,6 +332,12 @@
           <span class="pc-line">Why Rhythm: a steady night and a calm day, and the research behind it.</span>
           <span class="pc-go">Open the deck</span>
         </a>
+        <a class="protocard" href="mind-commentary.html" target="_blank">
+          <span class="pc-eyebrow">Commentary</span>
+          <span class="pc-title">Rhythm, case by case</span>
+          <span class="pc-line">Every line under the score on one live phone, the KAIRA notes, every bottom sheet and the prompt.</span>
+          <span class="pc-go">Open the commentary</span>
+        </a>
       </div>
     </section>
 
@@ -370,6 +376,7 @@
       <div class="snum">Section</div>
       <h2>The line under the score</h2>
       <p>One fixed sentence under the score; only the % changes. Before last night is in, it asks for it; after that, it says to keep going. After a log the score steps up first, then the line names what was logged and the gain in Momentum's green capsule (“Your breathing added <b>+10%</b>.”), one line per kind: sleep, wind-down, breathing, me-time, mood. Every gain line ends in <b>Learn more</b>, and a tap anywhere on the card opens <b>KAIRA analysis</b>: a shimmer while KAIRA writes, then one sentence on why the score moved and one or two next steps from what is still open today, with what each adds. The AI is not live yet, so the sheet shows a sample built from the same facts the AI will get; the prompt and the request JSON are in <code>mind/rhythm-say.js</code> (MDKAIRA) and in <code>coach-mind/mind-plan-defaults.md</code>. The nudges before a gain have no Learn more, as on Move. <code>&amp;kaira=1</code> opens the sheet by itself once the line lands.</p>
+      <p>Every situation on one phone, with the KAIRA notes, bottom sheets and prompt: <a href="mind-commentary.html" target="_blank">mind-commentary.html</a>.</p>
       <div class="cases" data-cases="say"></div>
       <div class="grouphead"><h3>Learn more · KAIRA analysis</h3><span></span></div>
       <div class="cases" data-cases="saykaira"></div>
@@ -575,7 +582,7 @@ const CASES = {
     ["act=wd:0", "Wind-down ticked", "act=wd:0", "“Your wind-down added +N%. Small steps in the evening help you sleep steady. Learn more”"],
     ["act=me:0", "Me-time done", "act=me:0", "“Your me-time added +N%. Time for yourself keeps stress low. Learn more”"],
     ["act=mood", "Mood logged", "act=mood", "“Your mood check-in added +N%. Naming how you feel helps you understand your day. Learn more”"],
-    ["now=21.5&done=br:0,me:0,mood:0,wd:0&act=wd:1", "The medal", "medal", "“You’ve earned today’s medal! Your Rhythm went up by +N%. Well done. Learn more”"],
+    ["now=21.5&done=br:0,me:0,mood:0&act=wd:0,wd:1", "The medal", "medal", "“You’ve earned today’s medal! Your Rhythm went up by +N%. Well done. Learn more”"],
     ["now=22.5&sstate=manual&done=br:0,me:0,mood:0,mood:1,wd:0,wd:1&act=wd:2", "100% Rhythm", "hundred", "“You reached 100% Rhythm! You looked after your night and your day. Learn more”"],
   ],
   saykaira: [
@@ -584,7 +591,7 @@ const CASES = {
     ["act=wd:0&kaira=1", "KAIRA on wind-down", "kaira=1", "“Your wind-down counted.” Names the task ticked, then what helps next with times and +N%."],
     ["act=me:0&kaira=1", "KAIRA on me-time", "kaira=1", "“Your me-time counted.”"],
     ["act=mood&kaira=1", "KAIRA on a check-in", "kaira=1", "“Thanks for checking in.” Never comments on the face picked."],
-    ["now=21.5&done=br:0,me:0,mood:0,wd:0&act=wd:1&kaira=1", "KAIRA on the medal", "kaira=1", "“Today’s medal is yours!” Then what is still open tonight."],
+    ["now=21.5&done=br:0,me:0,mood:0&act=wd:0,wd:1&kaira=1", "KAIRA on the medal", "kaira=1", "“Today’s medal is yours!” Then what is still open tonight."],
     ["now=22.5&sstate=manual&done=br:0,me:0,mood:0,mood:1,wd:0,wd:1&act=wd:2&kaira=1", "KAIRA at 100%", "kaira=1", "“You reached 100% Rhythm!” No next steps: “Rest well tonight. Tomorrow starts fresh.”"],
   ],
 
@@ -626,6 +633,7 @@ const CASES = {
     ["scroll=plan", "Steady motivation", "default", "Morning, Evening and Night. Afternoon has nothing, so it is hidden."],
     ["t=t-sleep&scroll=plan", "Sleep reset", "t=t-sleep", "Afternoon, Evening and Night. Morning is hidden."],
     ["t=t-calm&scroll=plan", "Calmer days", "t=t-calm", "All four parts."],
+    ["rbd=0", "Rhythm breakdown, a part of the day", "rbd=0", "The chip under Morning's title: what you did against this part's plan, one row per part with x of y and its bar, then What counts."],
     ["scroll=plan&now=21&" + ME + "&done=br:0,me:0,mood", "Rows ticked", "done=…", "A ticked row greys under the green check. The chip opens the part's Rhythm breakdown, now with 1 of 1 where done."],
   ],
   mood1: [

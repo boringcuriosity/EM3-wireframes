@@ -158,6 +158,7 @@
     window.KairaSheet.open(sample(c.mdk));
   }
   window.SAY_OPEN = function (s) { open(s && s.mdk ? s : cur); };
+  window.MDKAIRA.last = function () { return cur; };   /* the line on screen now, for v7/mind-commentary.html's facts */
   var st = document.createElement("style");
   st.textContent = "#cm.tap .in{cursor:pointer;transition:background .2s ease-out}#cm.tap .in:active{background:#F2F4F7}";
   document.head.appendChild(st);

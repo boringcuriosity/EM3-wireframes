@@ -97,6 +97,9 @@
     var el = document.getElementById("rbdSheet"), b = el && el.querySelector("[data-rbdx]"); if (b) b.onclick = function () { window.closeSheets(); };
   }
   document.addEventListener("click", function (e) { var b = e.target.closest("[data-rbd]"); if (b) { e.stopPropagation(); bdSheet(+b.dataset.rbd); } }, true);
+  /* ?rbd=<part> opens that part's breakdown once the plan is drawn (for the case doc and v7/mind-commentary.html) */
+  var RBD = new URLSearchParams(location.search).get("rbd");
+  if (RBD != null) (function wait(n) { var b = document.querySelector('[data-rbd="' + RBD + '"]'); if (b) bdSheet(+RBD); else if (n < 60) setTimeout(function () { wait(n + 1); }, 100); })(0);
 
   var L = window.MDLAYOUT = {};
 

@@ -79,7 +79,7 @@
   };
   (Q.get("done") || "").split(",").filter(Boolean).forEach(doc);
   /* doc only: ?act= ticks one item after the screen settles. It waits for the score (rhythm.js) so the gain is seen, even on a slow page (17 Nov 2026) */
-  if (Q.get("act")) (function go(n) { if (!window.MDRHYTHM && n < 200) return setTimeout(function () { go(n + 1); }, 100); setTimeout(function () { doc(Q.get("act")); MD.cause = Q.get("act").split(":")[0]; MD.render(); }, 1600); })(0);
+  if (Q.get("act")) (function go(n) { if (!window.MDRHYTHM && n < 200) return setTimeout(function () { go(n + 1); }, 100); setTimeout(function () { var ks = Q.get("act").split(","); ks.forEach(doc); MD.cause = ks.every(function (k) { return k.split(":")[0] === ks[0].split(":")[0]; }) ? ks[0].split(":")[0] : "any"; MD.render(); }, 1600); })(0);   /* two kinds at once (?act=br:0,me:0) say the "any" line */
   var MPICK = Q.get("mpick") != null ? +Q.get("mpick") : null, MWAIT = Q.get("mwait") === "1", MERR = Q.get("merr") === "1";
 
   function sync() { var a = VM.filter(Boolean); S.mood = a.length ? a[a.length - 1].f : -1; }

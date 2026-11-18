@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mind commentary</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  /* Mind, as v7/momentum-commentary.html: every case on the live Mind screen (mind/index.html), the line under the
+     Rhythm score, the KAIRA note behind Learn more, every bottom sheet, and the prompt. The cases are read from
+     v7/mind-rhythm.html (its CASES), so the two pages never drift apart. */
+  :root { --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
+    --in-50:#EEF4FF; --in-600:#444CE7; --brand:#299D6B; --brand-700:#2A805A; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g-900); font-family: Roboto, system-ui, sans-serif; letter-spacing: .2px; }
+  .page { max-width: 1400px; margin: 0 auto; padding: 56px 24px 96px; }
+  .eyebrow { font: 600 11px/16px Roboto; letter-spacing: .8px; text-transform: uppercase; color: var(--g-500); }
+  h1 { margin: 10px 0 10px; font: 600 34px/42px Roboto; }
+  h2 { margin: 64px 0 8px; font: 600 24px/32px Roboto; }
+  .lede { max-width: 860px; margin: 0; font-size: 16px; line-height: 26px; color: var(--g-600); }
+  a { color: var(--in-600); text-decoration: none; }
+  code { font: 500 13px ui-monospace, Menlo, monospace; color: var(--in-600); }
+  .nav { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 20px; }
+  .nav a { height: 34px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--g-200); display: inline-flex; align-items: center; font: 500 13px Roboto; color: var(--g-700); }
+  .formula { display: inline-flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-top: 18px; padding: 10px 14px; border: 1px solid var(--g-200); border-radius: 12px; font: 600 14px Roboto; }
+  .formula i { font-style: normal; color: var(--g-300); } .formula .sp { color: var(--in-600); }
+  .spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-top: 20px; }
+  .spec > div { padding: 16px 18px; border-radius: 16px; background: var(--g-50); }
+  .spec h4 { margin: 0 0 8px; font: 600 15px/22px Roboto; }
+  .spec table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 20px; color: var(--g-700); }
+  .spec td { padding: 7px 8px 7px 0; border-top: 1px solid var(--g-200); vertical-align: top; }
+  .spec td:first-child { color: var(--g-500); width: 38%; }
+  .phone { width: 302px; height: 600px; overflow: hidden; border-radius: 36px; border: 1px solid var(--g-200); position: relative; box-shadow: 0 24px 48px -18px rgba(16,24,40,.18); background: #fff; }
+  .phone iframe { width: 390px; height: 780px; border: 0; display: block; transform: scale(.7744); transform-origin: 0 0; }
+  .learn { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: none; font: 600 13px/20px Roboto; color: var(--brand-700); cursor: pointer; }
+  .open { font: 500 13px/18px Roboto; color: var(--g-500); }
+  /* every case: one big phone, the cases beside it as its switch */
+  .duo { display: flex; gap: 40px; align-items: flex-start; margin-top: 24px; flex-wrap: wrap; }
+  .col { width: 390px; position: sticky; top: 24px; }
+  .phone.big { width: 390px; height: 780px; border-radius: 44px; }
+  .phone.big iframe { transform: none; }
+  .pmeta { display: flex; gap: 16px; margin-top: 10px; align-items: center; }
+  .list { flex: 1; min-width: 320px; max-width: 640px; display: flex; flex-direction: column; gap: 8px; }
+  .list h3 { margin: 18px 0 2px; font: 600 12px/16px Roboto; letter-spacing: .6px; text-transform: uppercase; color: var(--g-500); }
+  .list h3:first-child { margin-top: 0; }
+  .list button { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; text-align: left; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--g-200); background: #fff; cursor: pointer; font: 400 13.5px/20px Roboto; color: var(--g-600); }
+  .list button:hover { border-color: #C7D7FE; }
+  .list button.on { border-color: var(--in-600); background: var(--in-50); box-shadow: 0 0 0 1px var(--in-600); }
+  .list .nm { font-weight: 600; color: var(--g-900); }
+  .list .ch { justify-self: end; height: 20px; padding: 0 6px; border-radius: 6px; display: inline-flex; align-items: center; font: 500 11.5px/1 ui-monospace, Menlo, monospace; background: var(--g-100); color: var(--g-600); }
+  .list .ds { grid-column: 1 / -1; }
+  /* grids of small phones */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(302px, 1fr)); gap: 40px 28px; margin-top: 24px; }
+  figure { margin: 0; }
+  figcaption { min-height: 84px; margin-bottom: 12px; }
+  figcaption b { display: block; font: 600 16px/22px Roboto; }
+  figcaption p { margin: 4px 0 0; font-size: 13px; line-height: 20px; color: var(--g-600); }
+  .gh { margin: 36px 0 0; font: 600 13px/18px Roboto; letter-spacing: .6px; text-transform: uppercase; color: var(--g-500); }
+  /* the prompt */
+  .bar { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; padding: 10px 14px; border-radius: 16px 16px 0 0; background: #1D2939; color: #fff; font: 500 13px Roboto; }
+  .bar button { height: 32px; padding: 0 14px; border: 0; border-radius: 8px; background: var(--brand); color: #fff; font: 600 13px Roboto; cursor: pointer; }
+  pre.prompt { margin: 0; max-height: 520px; overflow: auto; padding: 18px; border-radius: 0 0 16px 16px; background: #101828; color: #E4E7EC; font: 400 13px/21px ui-monospace, Menlo, monospace; white-space: pre-wrap; }
+  /* the facts sheet */
+  .scrim { position: fixed; inset: 0; z-index: 20; display: none; align-items: flex-end; justify-content: center; background: rgba(16,24,40,.45); }
+  .scrim.on { display: flex; }
+  .sheet { width: 420px; max-width: 100%; max-height: 90vh; display: flex; flex-direction: column; background: #fff; border-radius: 24px 24px 0 0; }
+  .shead { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px 4px; }
+  .shead h4 { margin: 0; font: 600 18px/24px Roboto; }
+  .x { width: 28px; height: 28px; border: 0; border-radius: 50%; background: var(--g-100); color: var(--g-600); display: grid; place-items: center; cursor: pointer; font: 600 14px Roboto; }
+  .sbody { overflow-y: auto; padding: 12px 20px 24px; }
+  .sbody p { margin: 0 0 10px; font-size: 15px; line-height: 22px; color: var(--g-600); }
+  .sbody pre { margin: 0; padding: 12px; border-radius: 12px; background: var(--g-50); font: 400 12px/18px ui-monospace, Menlo, monospace; color: var(--g-700); white-space: pre-wrap; }
+  @media (max-width: 640px) { .page { padding: 32px 16px 64px; } h1 { font-size: 26px; line-height: 34px; } .col, .phone.big { width: 100%; } .col { position: static; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <span class="eyebrow">Mind · Rhythm · Every case</span>
+  <h1>Rhythm, case by case</h1>
+  <p class="lede">Every case on the live Mind screen in one place: the line under the score, the KAIRA note behind Learn more, every bottom sheet, and the prompt KAIRA works from. Pick a case and the phone shows it; tap inside the phone as a patient would.</p>
+  <div class="formula">Rhythm <i>=</i> Sleep quality (Sleep duration 25 <i>+</i> Sleep consistency 25 <i>+</i> Wind-down 20) <i>+</i> <span class="sp">Self-care (Breathing 10 <i>+</i> Me-time 10 <i>+</i> Mood 10)</span></div>
+  <div class="nav"><a href="#cases">Every situation</a><a href="#line">The line under the score</a><a href="#notes">Every KAIRA note</a><a href="#sheets">Every bottom sheet</a><a href="#prompt">The prompt</a><a href="/v7/mind-rhythm.html">The case doc</a></div>
+
+  <h2 id="cases">Every situation</h2>
+  <p class="lede">One case for each line the score can say. Pick a situation; where the line has <b>Learn more</b>, tap it in the phone to open KAIRA, or read the facts the app would send.</p>
+  <div class="duo">
+    <div class="col"><div class="phone big"><iframe id="ph" title="Mind"></iframe></div>
+      <div class="pmeta"><button class="learn" type="button" id="facts">The facts KAIRA is given</button><a class="open" id="full" target="_blank">Open full size →</a></div></div>
+    <div class="list" id="list">Loading…</div>
+  </div>
+
+  <h2 id="line">The line under the score</h2>
+  <p class="lede">Written by the app, not the AI: a few fixed sentences, only the % changes. The detail lives in the KAIRA note behind Learn more.</p>
+  <div class="spec">
+    <div><h4>Every situation</h4><table>
+      <tr><td>No plan yet</td><td><b>Your Rhythm score unlocks after your first Mind Coach consultation, once your coach assigns you a plan.</b></td></tr>
+      <tr><td>Start of the day, no night yet</td><td><b>Log last night’s sleep to start today’s Rhythm.</b></td></tr>
+      <tr><td>Night in, nothing new</td><td><b>Keep going through your day to grow your Rhythm.</b></td></tr>
+      <tr><td>Sleep came in</td><td><b>Last night’s sleep added <code>+X%</code>.</b> A steady night is the base of your Rhythm.</td></tr>
+      <tr><td>Wind-down task</td><td><b>Your wind-down added <code>+X%</code>.</b> Small steps in the evening help you sleep steady.</td></tr>
+      <tr><td>Breathing</td><td><b>Your breathing added <code>+X%</code>.</b> A few slow breaths help your body settle.</td></tr>
+      <tr><td>Me-time</td><td><b>Your me-time added <code>+X%</code>.</b> Time for yourself keeps stress low.</td></tr>
+      <tr><td>Mood check-in</td><td><b>Your mood check-in added <code>+X%</code>.</b> Naming how you feel helps you understand your day.</td></tr>
+      <tr><td>Anything else</td><td><b>Your Rhythm went up by <code>+X%</code>.</b> Every small step keeps your Rhythm steady.</td></tr>
+      <tr><td>Crossed 80%</td><td><b>You’ve earned today’s medal!</b> Your Rhythm went up by <code>+X%</code>. Well done.</td></tr>
+      <tr><td>100%</td><td><b>You reached 100% Rhythm!</b> You looked after your night and your day.</td></tr>
+    </table></div>
+    <div><h4>How the app picks</h4><table>
+      <tr><td>First</td><td>100% reached, then the medal (crossed 80%)</td></tr>
+      <tr><td>Then</td><td>What was just logged: sleep, wind-down, breathing, me-time or mood</td></tr>
+      <tr><td>Learn more</td><td>On every gain line, and the whole line is tappable. Never on the start or keep-going lines</td></tr>
+      <tr><td>Never</td><td>A minus, or a judgement of the mood picked. Checking in counts, the face never does</td></tr>
+    </table></div>
+  </div>
+
+  <h2 id="notes">Every KAIRA note</h2>
+  <p class="lede">Each phone logs one thing and opens the note by itself, as the patient sees it after tapping Learn more: a shimmer first, then the note. Until the AI is live the app shows its own note in the same format the prompt asks for.</p>
+  <div class="grid" id="notesg"></div>
+
+  <h2 id="sheets">Every bottom sheet</h2>
+  <p class="lede">Every sheet the Mind screen opens, each in its own phone, grouped as in the case doc.</p>
+  <div id="sheetsg"></div>
+
+  <h2 id="prompt">The prompt</h2>
+  <p class="lede">One system prompt for every Rhythm note. The app sends only facts (what was just logged, the score before and now, last night against the plan, what is still open and what each would add). The AI never works out a number. Read from the live screen (<code>MDKAIRA.PROMPT</code> in <code>mind/rhythm-say.js</code>).</p>
+  <div class="bar"><span>Rhythm KAIRA prompt</span><button id="copy" type="button">Copy prompt</button></div>
+  <pre class="prompt" id="promptt">Loading…</pre>
+</div>
+
+<div class="scrim" id="scrim"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="fh"><div class="shead"><h4 id="fh">The facts KAIRA is given</h4><button class="x" id="fx" aria-label="Close">✕</button></div><div class="sbody" id="fb"></div></div></div>
+<iframe id="hid" title="Prompt source" src="/v7/mind/index.html" style="position:absolute;width:390px;height:780px;left:-9999px;top:0" aria-hidden="true" tabindex="-1"></iframe>
+
+<script>
+(function () {
+  var esc = function (t) { return String(t).replace(/[&<>"]/g, function (c) { return "&#" + c.charCodeAt(0) + ";"; }); };
+  var href = function (q) { return /\.html/.test(q) ? q : "/v7/mind/index.html" + (q ? "?" + q : ""); };
+  /* the case doc's groups, in its order, with the names this page shows */
+  var GROUPS = [["screen", "The screen"], ["health_ios", "Apple Health"], ["health_android", "Health Connect"], ["who", "Who sees what"], ["act0", "No plan yet"], ["act1", "Morning"], ["act2", "Evening"], ["act3", "Other days"],
+    ["say", "The line under the score"], ["saykaira", "KAIRA notes"], ["tiles", "What shaped your score?"], ["sleep", "Last night"], ["sleepsheet", "The sleep sheet"],
+    ["sleepwin", "Sleep window"], ["plan", "Your mind plan"], ["mood1", "Mood check-in"], ["mood2", "Mood check-in, more"], ["mood3", "Mood check-in, more"],
+    ["br1", "Breathing, a session"], ["br2", "All seven exercises"], ["brall", "All exercises for plan users"], ["br3", "The breathing row"],
+    ["rows", "Wind-down and Me-time"], ["practices", "The Practices tab"], ["date", "Past days"], ["rsheet", "The Rhythm sheet"]];
+  var SHEET = /(^|&)(sheet|vpsheet|lsheet|rbd)=|bfstate=(len|lenfree|ask|askshort)|serr=|mwait|merr|lopen=1|kaira=1/;
+
+  fetch("/v7/mind-rhythm.html").then(function (r) { return r.text(); }).then(function (t) {
+    /* ponytail: the case lists are read from the case doc's own source, one list for both pages */
+    var a = t.indexOf("const ME"), b = t.indexOf("const SECTIONS");
+    var CASES = new Function(t.slice(a, b).replace("const CASES", "var CASES") + "; return CASES;")();
+    var known = {}; GROUPS.forEach(function (g) { known[g[0]] = 1; });
+    Object.keys(CASES).forEach(function (k) { if (!known[k]) GROUPS.push([k, k]); });
+    var all = [];
+    GROUPS.forEach(function (g) { (CASES[g[0]] || []).forEach(function (c) { all.push({ g: g[0], q: c[0], name: c[1], chip: c[2], desc: c[3] }); }); });
+
+    /* every situation of the line under the score, one case each, as momentum-commentary.html */
+    var SIT = [
+      ["No plan yet", "state=noplanempty&sstate=none", "Your Rhythm score unlocks after your first Mind Coach consultation, once your coach assigns you a plan."],
+      ["Start of the day, no night yet", "sstate=none&now=7", "Log last night’s sleep to start today’s Rhythm."],
+      ["Night in, nothing new", "", "Keep going through your day to grow your Rhythm."],
+      ["Sleep came in", "sstate=none&now=7.5&act=sleep", "Last night’s sleep added +X%. A steady night is the base of your Rhythm.", 1],
+      ["Wind-down task", "act=wd:0", "Your wind-down added +X%. Small steps in the evening help you sleep steady.", 1],
+      ["Breathing", "act=br:0", "Your breathing added +X%. A few slow breaths help your body settle.", 1],
+      ["Me-time", "act=me:0", "Your me-time added +X%. Time for yourself keeps stress low.", 1],
+      ["Mood check-in", "act=mood", "Your mood check-in added +X%. Naming how you feel helps you understand your day.", 1],
+      ["Anything else", "act=br:0,me:0", "Your Rhythm went up by +X%. Every small step keeps your Rhythm steady. (Two different things landing together.)", 1],
+      ["Crossed 80%", "now=21.5&done=br:0,me:0,mood:0&act=wd:0,wd:1", "You’ve earned today’s medal! Your Rhythm went up by +X%. Well done.", 1],
+      ["100%", "now=22.5&sstate=manual&done=br:0,me:0,mood:0,mood:1,wd:0,wd:1&act=wd:2", "You reached 100% Rhythm! You looked after your night and your day.", 1]
+    ];
+    var list = document.getElementById("list"), ph = document.getElementById("ph"), cur = 0;
+    list.innerHTML = SIT.map(function (c, i) {
+      return "<h3>" + esc(c[0]) + '</h3><button type="button" data-i="' + i + '"><span class="nm">' + esc(c[2].split(/(?<=[.!])\s/)[0]) + '</span><span class="ch">' + (c[3] ? "Learn more" : "no note") + '</span><span class="ds">' + esc(c[2].split(/(?<=[.!])\s/).slice(1).join(" ")) + "</span></button>";
+    }).join("");
+    function pick(i) {
+      cur = i; history.replaceState(null, "", "#c" + i);
+      [].forEach.call(list.querySelectorAll("button"), function (x) { x.classList.toggle("on", +x.dataset.i === i); });
+      var u = href(SIT[i][1]); ph.src = u + (u.indexOf("?") < 0 ? "?" : "&") + "_=" + Date.now();
+      document.getElementById("full").href = u;
+    }
+    list.addEventListener("click", function (e) { var b = e.target.closest("button[data-i]"); if (b) pick(+b.dataset.i); });
+    var h = /^#c(\d+)$/.exec(location.hash); pick(h && SIT[+h[1]] ? +h[1] : 0);
+
+    /* the facts: what the app would send with Learn more, from the line on the phone now */
+    var scrim = document.getElementById("scrim");
+    document.getElementById("facts").onclick = function () {
+      var w = ph.contentWindow, c = w && w.MDKAIRA && w.MDKAIRA.last && w.MDKAIRA.last();
+      document.getElementById("fb").innerHTML = c && c.mdk ? "<pre>" + esc(JSON.stringify(w.MDKAIRA.context(c.mdk), null, 2)) + "</pre>"
+        : "<p>This case has no Learn more: the line under the score is a nudge, not a gain, so KAIRA is not asked. Pick a case from The line under the score or KAIRA notes.</p>";
+      scrim.classList.add("on");
+    };
+    var shut = function () { scrim.classList.remove("on"); };
+    document.getElementById("fx").onclick = shut; scrim.onclick = function (e) { if (e.target === scrim) shut(); };
+    addEventListener("keydown", function (e) { if (e.key === "Escape") shut(); });
+
+    /* small phones, loaded as they come into view */
+    var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { var f = e.target; f.src = f.dataset.src; io.unobserve(f); } }); }, { rootMargin: "400px" });
+    function fig(c) {
+      var u = href(c.q);
+      return '<figure><figcaption><b>' + esc(c.name) + '</b><p>' + esc(c.desc || "") + '</p><a class="open" href="' + u + '" target="_blank">Open full size →</a></figcaption><div class="phone"><iframe title="' + esc(c.name) + '" data-src="' + u + '"></iframe></div></figure>';
+    }
+    document.getElementById("notesg").innerHTML = all.filter(function (c) { return /kaira=1/.test(c.q); }).map(fig).join("");
+    document.getElementById("sheetsg").innerHTML = GROUPS.map(function (g) {
+      var cs = all.filter(function (c) { return c.g === g[0] && g[0] !== "saykaira" && SHEET.test(c.q); });
+      return cs.length ? '<div class="gh">' + esc(g[1]) + '</div><div class="grid">' + cs.map(fig).join("") + "</div>" : "";
+    }).join("");
+    [].forEach.call(document.querySelectorAll("iframe[data-src]"), function (f) { io.observe(f); });
+  });
+
+  /* framed Mind screens wait to be told they are on show before they draw the score */
+  addEventListener("message", function (e) { if (e.data === "hero:ready" && e.source) e.source.postMessage("hero:mount", "*"); });
+
+  /* the prompt, read from the screen itself */
+  var hid = document.getElementById("hid");
+  hid.addEventListener("load", function () {
+    (function get(n) { var k = hid.contentWindow.MDKAIRA; if (k && k.PROMPT) { document.getElementById("promptt").textContent = k.PROMPT; hid.remove(); } else if (n < 60) setTimeout(function () { get(n + 1); }, 100); })(0);
+  });
+  document.getElementById("copy").onclick = function () { var b = this; navigator.clipboard.writeText(document.getElementById("promptt").textContent).then(function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy prompt"; }, 1600); }); };
+})();
+</script>
+</body>
+</html>
