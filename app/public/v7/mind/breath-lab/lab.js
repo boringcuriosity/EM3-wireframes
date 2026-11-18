@@ -30,10 +30,14 @@
     sleep: { name: "4-7-8 Breathing", seq: [["in", 4, "Breathe in", "Through your nose"], ["hold", 7, "Hold", "Keep still"], ["out", 8, "Breathe out", "Slowly, through your mouth"]] },
     box: { name: "Box Breathing (4-4-4-4)", seq: [["in", 4, "Breathe in", "Through your nose"], ["hold", 4, "Hold", "Keep still"], ["out", 4, "Breathe out", "Through your mouth"], ["hold", 4, "Hold", "Keep still"]] },
     belly: { name: "Belly Breathing", seq: [["in", 4, "Breathe in", "Let your belly rise"], ["out", 6, "Breathe out", "Let it fall"]] },
-    hum: { name: "Humming Bee Breath (Bhramari)", seq: [["in", 4, "Breathe in", "Through your nose"], ["out", 7, "Hum", "A soft, low hum"]] },
+    hum: { name: "Humming Bee Breath", seq: [["in", 4, "Breathe in", "Through your nose"], ["out", 7, "Hum", "A soft, low hum"]] },
     exhale: { name: "Extended Exhale (2:1)", seq: [["in", 4, "Breathe in", "Through your nose"], ["out", 8, "Breathe out", "Twice as long"]] },
     pursed: { name: "Pursed Lip Breathing", seq: [["in", 2, "Breathe in", "Through your nose"], ["out", 4, "Breathe out", "Through pursed lips"]] }
   };
+  /* a quiet 2 s rest after breathing out (18 Nov 2026, the coach found it rushed), 4-7-8 included after its long breath out.
+     Not after breathing in (that would be a hold) and not in Box, whose second hold already is one. ?vrest=0 shows the old timing */
+  var REST = new URLSearchParams(location.search).get("vrest") === "0" ? {} : { coherent: 2, belly: 2, hum: 2, exhale: 2, pursed: 2, sleep: 2 };
+  Object.keys(REST).forEach(function (k) { PAT[k].seq.push(["rest", REST[k], "Rest", "Let the breath settle"]); });
   var ease = function (t) { return .5 - Math.cos(Math.PI * Math.max(0, Math.min(1, t))) / 2; };
   var hex = function (h) { h = h.replace("#", ""); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };
   var L = {
@@ -57,7 +61,7 @@
   var CUE = { in: function (lo) { tone(lo ? 196 : 220, lo ? 262 : 330, 1.4); }, hold: function () { tone(300, 300, .7, .03); }, out: function (lo) { tone(lo ? 262 : 330, lo ? 165 : 196, 1.8); }, done: function () { tone(392, 523, 1.2, .04); } };
   /* the house sound (sounds.js: singing bowl and Breathing Calm), when the page has it */
   function H() { return !LAB.noHouse && window.SOUNDS && window.SOUNDS.house; }
-  var LAB = window.LAB = { cue: CUE, prime: prime, L: L, PAT: PAT, V: {}, add: function (tech, v) { (this.V[tech] = this.V[tech] || []).push(v); } };
+  var LAB = window.LAB = { REST: REST, cue: CUE, prime: prime, L: L, PAT: PAT, V: {}, add: function (tech, v) { (this.V[tech] = this.V[tech] || []).push(v); } };
 
   /* where a pattern is at time s */
   function at(tech, s) {

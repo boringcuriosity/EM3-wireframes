@@ -9,10 +9,24 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Onest:wght@400;500;600;700&display=swap">
 <!-- The Move plan as the patient keeps it: printed, or shared on WhatsApp as a PDF, and opened on the day.
      Every day can differ, so the plan reads day by day: each day's steps goal, then its workouts and small moves
-     under the time of day they belong to, each with a box to tick.
-     Read from the builder (coach-exercise-template.html, Preview and Assign, Download PDF) through localStorage "gfMovePlanPdf".
-     ?sample=1 shows a two week sample where no two days are alike. ?plan=simple is the live portal's "simple plan.pdf" (Bhavan Test, 1 week), ?plan=exercise its "Exercise Plan.pdf" (2 weeks, two routines a day),
-     ?plan=cases (or ?sample=1) every kind of day: rest, no steps, no small moves, all of them off, and few to many small moves. ?print=1 opens the print dialog. -->
+     under the time of day they belong to.
+
+     FOR DEVELOPMENT
+     Render this page with the plan, then print it to PDF (A4, no browser header or footer), for example headless Chrome:
+       chrome --headless=new --no-pdf-header-footer --print-to-pdf=plan.pdf "file:///…/plan-pdf.html?plan=cases"
+     Data: one JSON object, read here from localStorage "gfMovePlanPdf" (swap that one line for your API response):
+       { name, patient, coach, start: "YYYY-MM-DD", nowalk: bool,
+         parts: [{ k: "morning", label: "Morning", from: "06:00", to: "12:00" }, …afternoon, evening, night],
+         weeks: [{ week_no, days: [{ day_no, rest_day: "Y"|"N", routines: [{ routine_no, time: part k or "",
+           exercises: [{ title, exerciseType, reps, sets, rest_post_sets, rest_post_sets_unit, rest_post_exercise, rest_post_exercise_unit,
+                         duration, duration_units: "min"|"sec", met (optional, the intensity level the coach picked) }] }] }] }],
+         steps: { "week_no-day_no": 8000 or "off" },            no key = not set
+         neat:  { "week_no-day_no": { morning: [{ title, sub }], … } },   small moves per part of the day
+         noff:  { "week_no-day_no": true } }                     a no small moves day
+     Effort, MET and kcal come from the exercise MET list (data/exercise-lists.js, inlined in the shareable copy):
+       kcal = MET × 3.5 × 65 ÷ 200 × minutes; effort = the picked level, else MET bands (under 1.5 Very light, under 3 Light, under 6 Moderate, else Vigorous).
+     Samples: ?plan=simple (1 week, as the live "simple plan.pdf"), ?plan=exercise (2 weeks, two routines a day), ?plan=cases (every kind of day:
+       rest, no steps, no small moves, all off, few to many small moves). ?print=1 opens the print dialog. -->
 <script src="/v7/data/exercise-lists.js"></script>
 <style>
   /* colours: GoodFlip tokens only (goodflip-design.vercel.app/foundations/colors). Neutrals carry the page, colour is the exception */
@@ -164,7 +178,8 @@
   function effort(ex) { var c = EXM[nk(ex.title)], m = met(ex), l = c ? c.i.filter(function (x) { return x.m === m; })[0] : null; return l ? l.n : band(m); }
   var mins = function (ex) { var v = +ex.duration || 0; return ex.duration_units === "sec" ? v / 60 : v; };
   var kcal = function (ex) { return Math.round(met(ex) * 3.5 * 65 / 200 * mins(ex)); };
-  var unit = function (v, u) { return v === "" || v == null ? '<span class="dash">–</span>' : v + " " + (u === "min" ? "min" : "sec"); };
+  /* every rest says something: the builder requires one, so an empty one only comes from an older plan, and reads as no rest */
+  var unit = function (v, u) { return v === "" || v == null || +v === 0 ? "No rest" : v + " " + (u === "min" ? "min" : "sec"); };
 
   var IC = {
     st: '<svg viewBox="0 0 24 24" fill="currentColor"><ellipse cx="8" cy="7" rx="3" ry="4.2"/><ellipse cx="16" cy="12" rx="3" ry="4.2"/><rect x="5.6" y="12.5" width="4.8" height="3.4" rx="1.7"/><rect x="13.6" y="17.5" width="4.8" height="3.4" rx="1.7"/></svg>',
@@ -286,17 +301,17 @@
     var M = function (t, s) { return { title: t, sub: s }; };
     var plan = [
       /* 1. a full day: workout in all four parts of the day, steps, and many small moves */
-      { r: [R("morning", ["Warm-up/cool down stretching|E|1|1|||5", "Squats|E|12|3|30s|45s|5", "Wall Push Up|E|10|3|30s|45s|4", "Plank|E|1|3|30s|1m|90s"]),
-            R("afternoon", ["Exercise in office|E|1|1|||8"]), R("evening", ["Jumping jack|E|20|3|20s|30s|4|2.8", "High Knees|E|20|3|20s|30s|3"]), R("night", ["Pranayama|B|1|1|||10"])], s: 8000,
+      { r: [R("morning", ["Warm-up/cool down stretching|E|1|1|15s|15s|5", "Squats|E|12|3|30s|45s|5", "Wall Push Up|E|10|3|30s|45s|4", "Plank|E|1|3|30s|1m|90s"]),
+            R("afternoon", ["Exercise in office|E|1|1|15s|15s|8"]), R("evening", ["Jumping jack|E|20|3|20s|30s|4|2.8", "High Knees|E|20|3|20s|30s|3"]), R("night", ["Pranayama|B|1|1|15s|15s|10"])], s: 8000,
         m: { morning: [M("Step into the sunlight and stretch", "10 min outdoor walk and a 5 min stretch"), M("Take the stairs instead of the lift", "2 to 3 floors")],
              afternoon: [M("Walk after lunch", "10 to 15 min"), M("Take a calf raise break", "20 calf raises")], evening: [M("Do 30 squats", "30 bodyweight squats")], night: [M("Walk after dinner", "15 to 20 min")] } },
       /* 2. one workout, steps, one small move */
-      { r: [R("morning", ["Beginner Endurance-1|E|1|1|||20"])], s: 6000, m: { afternoon: [M("Walk after lunch", "10 to 15 min")] } },
+      { r: [R("morning", ["Beginner Endurance-1|E|1|1|15s|15s|20"])], s: 6000, m: { afternoon: [M("Walk after lunch", "10 to 15 min")] } },
       /* 3. no steps day: workout and small moves only */
-      { r: [R("evening", ["Cat & camel|E|10|2|20s|30s|3", "Core Yoga -1|E|1|1||1m|15", "Lower Back rotational Stretch|E|10|2|20s|30s|3", "Diaphragmatic breathing|B|1|1|||5"])], s: "off",
+      { r: [R("evening", ["Cat & camel|E|10|2|20s|30s|3", "Core Yoga -1|E|1|1|15s|1m|15", "Lower Back rotational Stretch|E|10|2|20s|30s|3", "Diaphragmatic breathing|B|1|1|15s|15s|5"])], s: "off",
         m: { morning: [M("Walk while you take calls", "Walk during every call over 5 min")], evening: [M("Do wall push-ups", "15 against a wall")] } },
       /* 4. no small moves day: workout and steps only */
-      { r: [R("morning", ["HIIT-5 EASY|E|1|1||1m|15", "Dead Bug|E|10|3|30s|45s|4", "Bicycle Crunches|E|15|3|30s|45s|4|3.8"])], s: 9000, off: 1, m: {} },
+      { r: [R("morning", ["HIIT-5 EASY|E|1|1|15s|1m|15", "Dead Bug|E|10|3|30s|45s|4", "Bicycle Crunches|E|15|3|30s|45s|4|3.8"])], s: 9000, off: 1, m: {} },
       /* 5. rest day, steps and small moves still on */
       { rest: 1, s: 5000, m: { afternoon: [M("Move while you wait", "Calf raises while the lift, kettle or microwave runs")], evening: [M("Go on a family walk", "30 to 45 min walk and stairs all day")] } },
       /* 6. rest day with steps only (no small moves day) */
@@ -304,24 +319,24 @@
       /* 7. a full day off: rest, no steps, no small moves */
       { rest: 1, s: "off", off: 1, m: {} },
       /* 8. two workouts, morning and night, steps, small moves in one part only */
-      { r: [R("morning", ["Leg Workout -1|E|1|1||1m|15", "Step-Ups|E|12|3|30s|45s|5", "Wall Squat|E|1|3|30s|1m|2"]), R("night", ["Pursed Lip Breathing|B|10|2|30s||5"])], s: 7000,
+      { r: [R("morning", ["Leg Workout -1|E|1|1|15s|1m|15", "Step-Ups|E|12|3|30s|45s|5", "Wall Squat|E|1|3|30s|1m|2"]), R("night", ["Pursed Lip Breathing|B|10|2|30s|15s|5"])], s: 7000,
         m: { night: [M("Walk after dinner", "15 to 20 min"), M("Move at every ad break", "March or stand at every ad break")] } },
       /* 9. afternoon workout only, steps, no small moves set (not switched off) */
-      { r: [R("afternoon", ["Chair Mobility Exercise|E|1|1||30s|8", "Arm exercise with band|E|12|3|30s|45s|5", "Shoulder Lateral Raise|E|12|3|30s|45s|4", "Triceps Dip|E|10|2|30s|45s|3"])], s: 7500, m: {} },
+      { r: [R("afternoon", ["Chair Mobility Exercise|E|1|1|15s|30s|8", "Arm exercise with band|E|12|3|30s|45s|5", "Shoulder Lateral Raise|E|12|3|30s|45s|4", "Triceps Dip|E|10|2|30s|45s|3"])], s: 7500, m: {} },
       /* 10. no steps day and no small moves day: workout only */
-      { r: [R("morning", ["Pilates - 1|E|1|1|||20"]), R("evening", ["Yoga For Back Pain -1|E|1|1|||15"])], s: "off", off: 1, m: {} },
+      { r: [R("morning", ["Pilates - 1|E|1|1|15s|15s|20"]), R("evening", ["Yoga For Back Pain -1|E|1|1|15s|15s|15"])], s: "off", off: 1, m: {} },
       /* 11. small moves with and without a line on why */
-      { r: [R("morning", ["Fat Loss -1|E|1|1|||20"])], s: 10000,
+      { r: [R("morning", ["Fat Loss -1|E|1|1|15s|15s|20"])], s: 10000,
         m: { morning: [M("Drink a glass of water on waking", "")], afternoon: [M("Stand up every hour", "Two minutes on your feet, every hour you sit")], evening: [M("Walk part of your commute", "Get off one stop early, or park far")] } },
       /* 12. a light day: short workout, steps, one small move */
       { r: [R("evening", ["Neck Stretches|E|5|2|15s|30s|4", "Chest Shoulder Stretch|E|5|2|15s|30s|3"])], s: 5000, m: { evening: [M("Do wall push-ups", "15 against a wall")] } },
       /* 13. a long day: three workouts, the highest steps, many small moves */
-      { r: [R("morning", ["Strength and conditioning -1|E|1|1||1m|20"]), R("afternoon", ["Static & Dynamic Balance exercises|E|1|2|30s|1m|8", "Clamshell Exercise|E|12|3|20s|30s|4"]),
+      { r: [R("morning", ["Strength and conditioning -1|E|1|1|15s|1m|20"]), R("afternoon", ["Static & Dynamic Balance exercises|E|1|2|30s|1m|8", "Clamshell Exercise|E|12|3|20s|30s|4"]),
             R("evening", ["Torso Rotation|E|15|2|20s|30s|3", "Side Stretch|E|10|2|15s|30s|2"])], s: 12000,
         m: { morning: [M("Step into the sunlight and stretch", "10 min outdoor walk and a 5 min stretch")], afternoon: [M("Climb a quick flight of stairs", "Climb 2 floors up and down"), M("Walk after lunch", "10 to 15 min")],
              evening: [M("Go on a family walk", "30 to 45 min walk and stairs all day")], night: [M("Walk after dinner", "15 to 20 min"), M("Move at every ad break", "March or stand at every ad break")] } },
       /* 14. steps not set by the coach yet: workout and small moves */
-      { r: [R("morning", ["Dance Workout-1|E|1|1|||25"])], s: "", m: { morning: [M("Take the stairs instead of the lift", "2 to 3 floors")] } }
+      { r: [R("morning", ["Dance Workout-1|E|1|1|15s|15s|25"])], s: "", m: { morning: [M("Take the stairs instead of the lift", "2 to 3 floors")] } }
     ];
     var weeks = [0, 1].map(function (wi) {
       return { week_no: wi + 1, days: plan.slice(wi * 7, wi * 7 + 7).map(function (d, di) {

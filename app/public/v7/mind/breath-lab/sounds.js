@@ -174,7 +174,7 @@
       }
       S.playing = src;
     },
-    phase: function (k, d, prev, hum) { if (!ctx) return; open(); SETS[S.cue].play(k, d, prev, hum); },
+    phase: function (k, d, prev, hum) { if (!ctx || k === "rest") return;   /* the rest is quiet */ open(); SETS[S.cue].play(k, d, prev, hum); },
     done: function () { if (!ctx) return; open(); SETS[S.cue].done(); }
   };
   /* the house sound in the real players (variants/breath.js, lab.js's LAB.phone), decided 17 Nov 2026: singing bowl

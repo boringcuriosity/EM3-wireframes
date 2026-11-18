@@ -6,7 +6,7 @@
   css.textContent = ".bf-svg{position:absolute;inset:0;width:320px;height:360px;overflow:visible}";
   document.head.appendChild(css);
   var L = LAB.L, C = L.C, clamp = L.clamp, lerp = L.lerp, uid = 0;
-  function still(p) { return p.reduced ? { E: p.k === "out" ? 0 : 1, T: 1 } : { E: p.e, T: p.t }; }
+  function still(p) { return p.reduced ? { E: p.k === "out" || p.k === "rest" ? 0 : 1, T: 1 } : { E: p.e, T: p.t }; }
   function pt(cx, cy, r, a) { a = a * Math.PI / 180; return [cx + r * Math.sin(a), cy - r * Math.cos(a)]; }
   function arc(cx, cy, r, a0, a1) {
     if (a1 - a0 < .05) a1 = a0 + .05;
@@ -52,7 +52,7 @@
         /* ring segments, one per phase */
         var seq = LAB.PAT[tech].seq, tot = seq.reduce(function (a, x) { return a + x[1]; }, 0), a0 = 0;
         var ph = seq.map(function (x) {
-          var a1 = a0 + 360 * x[1] / tot, o = { st: [a0, a1], g: [a0 + G, a1 - G], dash: x[0] === "hold" ? { "stroke-dasharray": "0.1 9", "stroke-width": 4.5 } : { "stroke-width": 4 } };
+          var a1 = a0 + 360 * x[1] / tot, o = { st: [a0, a1], g: [a0 + G, a1 - G], dash: x[0] === "hold" || x[0] === "rest" ? { "stroke-dasharray": "0.1 9", "stroke-width": 4.5 } : { "stroke-width": 4 } };
           a0 = a1; return o;
         });
         ph.forEach(function (o) { var at = { d: A(cx, cy, r, o.g[0], o.g[1]), fill: "none", stroke: C.gold300, "stroke-linecap": "round", opacity: .55 }; for (var q in o.dash) at[q] = o.dash[q]; o.track = s.appendChild(L.svg("path", at)); });
@@ -92,17 +92,22 @@
 })();
 
 /* Two still pictures, one per phase, cross-fading over the first .6 s of each phase (Pursed Lip). */
-LAB.twoFrames = function (inSrc, outSrc) {
+LAB.twoFrames = function (inSrc, outSrc, restSrc) {
+  /* restSrc (optional): a third picture for the rest after breathing out (Pursed Lip, 18 Nov 2026); without it the rest keeps the out picture */
   return {
     bg: "#FFFFFF",
     build: function (stage) {
       var c = document.createElement("div"); stage.appendChild(c);
-      var im = [inSrc, outSrc].map(function (s) { var i = new Image(); i.src = s; i.alt = ""; i.style.cssText = "position:absolute;inset:0;width:100%;height:100%;border-radius:50%"; c.appendChild(i); return i; });
-      return { c: c, "in": im[0], out: im[1] };
+      var im = [inSrc, outSrc, restSrc].map(function (s) { if (!s) return null; var i = new Image(); i.src = s; i.alt = ""; i.style.cssText = "position:absolute;inset:0;width:100%;height:100%;border-radius:50%"; c.appendChild(i); return i; });
+      return { c: c, "in": im[0], out: im[1], rest: im[2], cur: "in", prev: "out" };
     },
     frame: function (s, p) {
-      var a = p.reduced ? 1 : LAB.L.ease(Math.min(1, p.sec / .6)), on = p.k === "out" ? s.out : s["in"], off = on === s.out ? s["in"] : s.out;
-      on.style.opacity = 1; off.style.opacity = (1 - a).toFixed(3); on.style.zIndex = 1; off.style.zIndex = 2;
+      var key = p.k === "rest" && s.rest ? "rest" : p.k === "out" || p.k === "rest" ? "out" : "in";
+      if (key !== s.cur) { s.prev = s.cur; s.cur = key; }
+      var a = p.reduced ? 1 : LAB.L.ease(Math.min(1, p.sec / .6)), on = s[s.cur], off = s[s.prev];
+      ["in", "out", "rest"].forEach(function (k) { var i = s[k]; if (i && i !== on && i !== off) { i.style.opacity = 0; i.style.zIndex = 0; } });
+      on.style.opacity = 1; on.style.zIndex = 1;
+      if (off && off !== on) { off.style.opacity = (1 - a).toFixed(3); off.style.zIndex = 2; }
     }
   };
 };
@@ -129,7 +134,7 @@ LAB.clipBreath = function (src, split, curve) {
     },
     frame: function (s, p) {
       var v = s.v, d = v.duration; if (!d || v.readyState < 1 || v.seeking) return;
-      var u = when(p.reduced ? (p.k === "out" ? 0 : 1) : p.e), t = p.k === "out" ? split + (1 - u) * (d - split) : u * split;
+      var u = when(p.reduced ? (p.k === "out" ? 0 : 1) : p.e), t = p.k === "out" || p.k === "rest" ? split + (1 - u) * (d - split) : u * split;
       t = Math.max(.01, Math.min(d - .02, t));
       if (Math.abs(v.currentTime - t) > .004) v.currentTime = t;
     }
@@ -150,7 +155,9 @@ LAB.loopBreath = function (src) {
     },
     frame: function (s, p) {
       var v = s.v, d = v.duration; if (!d || v.readyState < 1) return;
-      var want = p.reduced ? (p.k === "out" ? 0 : 4) : p.time % d, still = p.paused || p.reduced || LAB.at0 != null;
+      /* the clip is one in and out; a rest after it waits on the clip's first frame, which is breathed out */
+      var want = p.reduced ? (p.k === "out" ? 0 : 4) : p.k === "in" ? p.sec : p.k === "out" ? d - p.dur + p.sec : p.k === "rest" ? .01 : p.time % d,
+        still = p.paused || p.reduced || LAB.at0 != null || p.k === "rest";
       if (still) { if (!v.paused) v.pause(); if (!v.seeking && Math.abs(v.currentTime - want) > .03) v.currentTime = want; return; }
       if (v.paused) v.play().catch(function () {});
       var off = Math.abs(v.currentTime - want); off = Math.min(off, d - off);   /* wrap-aware drift */

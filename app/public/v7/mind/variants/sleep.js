@@ -91,6 +91,11 @@
   var RINGI = '<i class="sv-ringi" aria-hidden="true"><img src="/v7/icons/mind/arc-ring.png" alt=""></i>';
   /* the words the sources use */
   var OFFT = { none: "Turn on Health Connect", denied: "Allow sleep in Health Connect", revoked: "Allow sleep in Health Connect", noapp: "Get Health Connect" };
+  /* editing a night the ring recorded: our edit changes only GoodFlip, the Arc app keeps its own score (17 Nov 2026).
+     ?vedit=a note always in the sheet, b note once the times move, c ask on Save */
+  var VE = (Q.get("vedit") || "a").toLowerCase(), CONF = false;
+  function moved() { var h = ST.health, d = draft; if (!h || !d) return false; var g = d.segs || [d]; return g[0].bed !== h.bed || g[g.length - 1].wake !== h.wake; }
+  function rnote(on) { return RING && ST.health && on ? '<div class="sv-rn">' + RINGI + '<span>Changes here count toward your Rhythm only. The Arc app keeps its own sleep score, from what the ring recorded.</span></div>' : ""; }
   var VIA = function () { return RING ? (Q.get("sstrip") === "b" ? "Arc ring \u00b7 Health Connect" : "From Arc ring via Health Connect") : "From " + NAME; };
   /* ?scroll=sleep opens the screen at the sleep card, for v7/mind-sleep-sources.html; late images push it, so it settles a few times */
   if (Q.get("scroll") === "sleep") [600, 1500, 3000, 5000].forEach(function (t) { setTimeout(function () { var c = document.getElementById("svCard"); if (c) window.scrollTo(0, c.getBoundingClientRect().top + window.scrollY - 12); }, t); });
@@ -382,7 +387,7 @@
     var n = ST.night;
     draft = n ? { bed: n.bed, wake: n.wake } : { bed: PLAN.bed, wake: PLAN.wake }; active = k === "wake" ? "wake" : "bed";
     if (V === "i") draft = mkDraft(n ? (n.segs || [n]) : [{ bed: PLAN.bed, wake: PLAN.wake }]);
-    el = window.GFOpenSheet("svSleep", "Last night’s sleep", '<div class="sv-s' + (J ? " sv-j-sheet" : "") + '"><div class="msub">Your coach’s plan: ' + clk(PLAN.bed) + ' to ' + clk(PLAN.wake) + ', ' + dur(PLAN.hours) + '.</div><div data-svs="pick"></div>' +
+    el = window.GFOpenSheet("svSleep", "Last night’s sleep", '<div class="sv-s' + (J ? " sv-j-sheet" : "") + '"><div class="msub">Your coach’s plan: ' + clk(PLAN.bed) + ' to ' + clk(PLAN.wake) + ', ' + dur(PLAN.hours) + '.</div>' + rnote(VE === "a") + '<div data-svs="pick"></div>' +
       (J ? "" : '<div class="sv-pre" role="group" aria-label="Quick fill"><button data-svp="plan">As planned</button><button data-svp="prev">Same as the night before</button><button data-svp="now">Woke up just now</button></div>') +   /* J: the bar and the wheel are enough */
       '<div class="sv-sum" data-svs="sum" aria-live="polite"></div><button class="md-save" data-sv="save">Save Sleep</button>' +
       (ST.health && ST.src === "edited" ? '<button class="sv-rst" data-sv="reset">Use ' + NAME + '’s times (' + clk(ST.health.bed) + ' to ' + clk(ST.health.wake) + ')</button>' : "") + '</div>');
@@ -412,7 +417,7 @@
   function drawSumI() {
     var c = checkI(), g = draft.segs, sum = el.querySelector('[data-svs="sum"]'), aw = draft.segs[g.length - 1].wake - g[0].bed - len(draft);
     sum.innerHTML = (c.err ? "" : '<div class="h">That is <b>' + dur(len(draft)) + '</b> of sleep' + (g.length > 1 ? ', with ' + gap(aw) + ' awake in between' : '') + '.</div>') +
-      (c.err ? '<div class="sv-msg err">' + I.warn + '<span>' + c.err + '</span></div>' : c.wrn ? '<div class="sv-msg wrn">' + I.info + '<span>' + c.wrn + '</span></div>' : "");
+      (c.err ? '<div class="sv-msg err">' + I.warn + '<span>' + c.err + '</span></div>' : c.wrn ? '<div class="sv-msg wrn">' + I.info + '<span>' + c.wrn + '</span></div>' : "") + rnote(VE === "b" && moved());
     el.querySelector('[data-sv="save"]').disabled = !!c.err;
     el.querySelectorAll(".sv-fld").forEach(function (f) { var i = +f.dataset.i, k = f.dataset.f, m = g[i][k]; f.classList.toggle("bad", !!c.err && c.i === i && c.f === k); f.querySelector(".fv").textContent = clk(m); f.querySelector(".fd").textContent = dayOf(m, k); });
     var ok = !c.err, pv = el.querySelector('[data-svs="pv"]');
@@ -495,7 +500,7 @@
     if (draft && draft.segs) return drawSumI();
     var c = check(), sum = el.querySelector('[data-svs="sum"]');
     sum.innerHTML = (c.err ? "" : '<div class="h">That is <b>' + dur(draft.wake - draft.bed) + '</b> of sleep.</div>') +
-      (c.err ? '<div class="sv-msg err">' + I.warn + '<span>' + c.err + '</span></div>' : c.wrn ? '<div class="sv-msg wrn">' + I.info + '<span>' + c.wrn + '</span></div>' : "");
+      (c.err ? '<div class="sv-msg err">' + I.warn + '<span>' + c.err + '</span></div>' : c.wrn ? '<div class="sv-msg wrn">' + I.info + '<span>' + c.wrn + '</span></div>' : "") + rnote(VE === "b" && moved());
     el.querySelector('[data-sv="save"]').disabled = !!c.err;
     el.querySelectorAll(".sv-fld").forEach(function (f) { var k = f.dataset.f; f.classList.toggle("bad", !!c.err && c.f === k); f.querySelector(".fv").textContent = clk(draft[k]); f.querySelector(".fd").textContent = dayOf(draft[k], k); });
     el.querySelectorAll(".sv-nu").forEach(function (u) { var k = u.dataset.f; u.querySelector("b").textContent = clk(draft[k]); u.querySelector(".fd").textContent = dayOf(draft[k], k); });
@@ -599,6 +604,8 @@
   });
 
   function save() {
+    if (VE === "c" && RING && ST.health && moved() && !CONF) return window.GFOpenSheet("svRing", "Save your own times?", '<p class="hsub">Your Rhythm will use the times you set. The Arc app keeps its own sleep score from what the ring recorded, so the two may not match.</p><div class="hft"><button class="md-save" data-sv="rsave">Save my times</button><button class="md-sec" data-sv="close">Keep the ring\u2019s times</button></div>');
+    CONF = false;
     if (draft && draft.segs) return saveI();
     if (!draft || check().err) return;
     var h = ST.health, same = h && h.bed === draft.bed && h.wake === draft.wake;
@@ -692,6 +699,7 @@
     var a = t.dataset.sv;
     if (a === "edit") return sheet(t.dataset.f);
     if (a === "save") return save();
+    if (a === "rsave") { CONF = true; return save(); }
     if (a === "info") return info();
     if (a === "perm") return perm();
     if (a === "close") return window.closeSheets();
@@ -777,6 +785,7 @@
     ".sv-cta.sec{background:#fff;color:var(--p-700,#2A805A);border:1px solid var(--p-600,#299D6B);box-shadow:0 3px 0 #CBF0E0}",
     /* the ring strip: two marks and a longer source, so the words may wrap and the time stays on one line */
     ".mv-sync.ring .src{flex:1;min-width:0;white-space:normal;gap:6px}.mv-sync.ring .vt{min-width:0}.mv-sync.off .sv-ringi{width:32px;height:32px;border-radius:9px}.mv-sync.off .sv-ringi svg{width:20px;height:20px}.mv-sync.off .sv-ringi img{height:22px}",
+    ".sv-rn{display:flex;gap:8px;align-items:flex-start;margin:12px 0 4px;padding:10px 12px;border-radius:12px;background:#F9FAFB;border:1px solid #EAECF0;color:#475467;font:400 15px/21px Roboto,sans-serif}.sv-rn .sv-ringi{margin-top:1px}.sv-sum .sv-rn{margin-top:8px}",
     ".sv-ringi{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;background:#fff;box-shadow:0 0 0 1px #E4E7EC;color:#475467;flex:none;margin-right:4px}.sv-ringi svg{width:14px;height:14px}.sv-ringi img{width:auto;height:15px;display:block}",
     ".hk.sv-me{background:var(--p-50,#F3FCF8);box-shadow:0 0 0 1px var(--p-100,#E6FAF1);display:inline-grid;place-items:center;color:var(--p-600,#299D6B)}.hk.sv-me svg{width:12px;height:12px}",
     ".sv-ck{display:flex;gap:16px;align-items:center}.sv-ck svg.dial{width:124px;height:124px;flex:none}.sv-ck .cr{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}",

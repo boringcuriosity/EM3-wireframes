@@ -13,7 +13,7 @@
   /* what each one is good for (the info sheet and filters), and a sensible first session length */
   var GOOD = { coherent: ["Calm", "Focus"], sleep: ["Sleep"], box: ["Focus", "Stress"], exhale: ["Calm", "Stress"], belly: ["Calm", "Digestion"], hum: ["Sleep", "Busy mind"], pursed: ["Breathless"] };
   var MIN = { coherent: 5, sleep: 2, box: 4, exhale: 3, belly: 5, hum: 5, pursed: 3 };
-  var SHORT = { coherent: "Simple", sleep: "4-7-8", box: "Box", exhale: "Extended Exhale", belly: "Belly", hum: "Bhramari", pursed: "Pursed Lip" };
+  var SHORT = { coherent: "Simple", sleep: "4-7-8", box: "Box", exhale: "Extended Exhale", belly: "Belly", hum: "Humming Bee", pursed: "Pursed Lip" };
   var planNames = NOPLAN || !MD ? [] : (MD.P.br || []).map(function (b) { return (b.n || "").toLowerCase(); });
   function inPlan(k) { var n = LAB.FINAL[k].name.toLowerCase(); return planNames.some(function (p) { return p === n || (k === "coherent" && /coherent/.test(p)); }); }
 

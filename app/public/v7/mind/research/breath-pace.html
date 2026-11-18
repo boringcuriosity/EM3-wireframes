@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Breathing Pace</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root { --ink:#101828; --sub:#475467; --mute:#667085; --line:#EAECF0; --soft:#F9FAFB; --in:#444CE7; --in-t:#EEF4FF; --gold:#A68A2D; --gold-t:#FFF8E0; --green:#299D6B; --green-d:#2A805A; --green-t:#E6FAF1; --rest:#98A2B3; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--ink); font: 400 15px/23px Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 32px 24px 96px; }
+  .eyebrow { font: 600 12px/16px Roboto; letter-spacing: 1.2px; text-transform: uppercase; color: var(--in); }
+  h1 { font: 700 32px/40px Roboto; margin: 8px 0; }
+  h2 { font: 700 22px/30px Roboto; margin: 48px 0 8px; }
+  p { margin: 0 0 12px; color: var(--sub); max-width: 840px; }
+  .lede { font-size: 16px; line-height: 25px; }
+  .ctl { position: sticky; top: 0; z-index: 5; background: rgba(255,255,255,.94); backdrop-filter: blur(8px); padding: 12px 0; border-bottom: 1px solid var(--line); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 16px; }
+  .ctl button { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: #fff; font: 600 13px Roboto; color: var(--sub); cursor: pointer; }
+  .ctl button[aria-pressed=true] { background: var(--in-t); border-color: #C7D7FE; color: #2D3282; }
+  .key { display: flex; gap: 14px; margin-left: auto; font-size: 13px; color: var(--sub); flex-wrap: wrap; }
+  .key i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .ex { margin-top: 36px; }
+  .ex h3 { font: 700 18px/26px Roboto; margin: 0; }
+  .ex .why { margin: 2px 0 12px; font-size: 14px; line-height: 21px; }
+  .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .p { border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px 16px; background: #fff; display: flex; flex-direction: column; }
+  .p.pick { border-color: #A6E9C9; box-shadow: 0 0 0 3px var(--green-t); }
+  .p.same { opacity: .55; }
+  .tg { font: 600 12px/16px Roboto; letter-spacing: .6px; text-transform: uppercase; color: var(--mute); display: flex; justify-content: space-between; }
+  .p.pick .tg b { color: var(--green-d); }
+  .stage { height: 150px; display: grid; place-items: center; position: relative; }
+  .orb { width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle at 50% 45%, #E0E7FF, #C7D2FE 70%); box-shadow: 0 0 0 1px #C7D2FE inset; will-change: transform; }
+  .word { position: absolute; inset: 0; display: grid; place-items: center; font: 500 17px/22px Roboto; color: #2D3282; text-align: center; pointer-events: none; }
+  .word small { display: block; font: 500 13px Roboto; color: var(--mute); font-variant-numeric: tabular-nums; }
+  .bar { display: flex; height: 10px; border-radius: 5px; overflow: hidden; position: relative; margin-top: 4px; }
+  .bar span { height: 100%; }
+  .bar .nd { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); border-radius: 1px; }
+  .seq { font-size: 13px; color: var(--sub); margin-top: 8px; font-variant-numeric: tabular-nums; }
+  .num { font-size: 13px; color: var(--mute); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; font-size: 14px; line-height: 20px; }
+  th { text-align: left; background: var(--soft); color: var(--sub); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td.k { font-weight: 600; white-space: nowrap; }
+  .note { background: #FFFBEE; border: 1px solid #FEF1C7; border-radius: 12px; padding: 12px 14px; color: #826E2D; font-size: 14px; max-width: 840px; }
+  ol.v li { margin: 8px 0; color: var(--sub); max-width: 840px; }
+  ol.v b { color: var(--ink); }
+  .pair { display: flex; gap: 32px; flex-wrap: wrap; margin-top: 16px; }
+  .pair figure { margin: 0; width: 312px; }
+  .pair .tg { font: 600 13px/18px Roboto; color: var(--sub); display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+  .pair .tg b { font-size: 15px; color: var(--ink); }
+  .pair .pick .tg b { color: var(--green-d); }
+  .fr { width: 312px; height: 675px; border-radius: 34px; overflow: hidden; border: 1px solid var(--line); box-shadow: 0 24px 48px -16px rgba(16,24,40,.18); background: #fff; }
+  .pair .pick .fr { border-color: #A6E9C9; box-shadow: 0 0 0 3px var(--green-t), 0 24px 48px -16px rgba(16,24,40,.18); }
+  .fr iframe { width: 390px; height: 844px; border: 0; transform: scale(.8); transform-origin: 0 0; }
+  @media (max-width: 760px) { .wrap { padding: 20px 16px 64px; } .row { grid-template-columns: 1fr; } .key { margin-left: 0; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Mind · Breathing · Pace</div>
+  <h1>Does breathing feel too quick?</h1>
+  <p class="lede">The coach found breathing too quick and suggested a 1 second rest between breathing in and out, and 2 seconds between breaths. We kept the 2 second rest after breathing out and left out the pause after breathing in. It is now in the app; below, the real player shows today’s timing beside the new one.</p>
+
+  <h2>What I found</h2>
+  <ol class="v">
+    <li><b>The coach is right that it feels rushed.</b> Today each phase hands straight to the next with no gap, so the moment you finish breathing out you are told to breathe in. Pursed Lip is the quickest: a full breath every 6 seconds, 10 a minute.</li>
+    <li><b>The 2 second rest after breathing out is the natural one.</b> At rest we all pause briefly after breathing out before the next breath starts. Giving that pause a place makes the pace feel calm without changing the exercise.</li>
+    <li><b>The 1 second "rest" after breathing in is really a hold.</b> With full lungs you can't relax, you can only hold, and a hold is a different technique. For people who get breathless (Pursed Lip is often given for that) a hold at the top can feel uncomfortable. I'd leave it out and make the turn at the top gentler instead, so the circle slows into it rather than stopping.</li>
+    <li><b>4-7-8 gets the rest too, Box does not.</b> In 4-7-8 the rest comes after the long breath out, so its hold stays where it is. Box already pauses after breathing out (its second hold), so it stays as it is.</li>
+    <li><b>Slower breaths mean fewer per session.</b> The coach sets minutes, not breaths, so the session length stays the same with fewer breaths in it. At 4 a minute (coach's version of Extended Exhale) some people start to feel short of air; 5 to 6 a minute is the calm range most slow-breathing guidance aims for.</li>
+  </ol>
+
+  <h2>The real player, today and with the rest</h2>
+  <p>Both phones are the patient's breathing player on the Mind screen, started together. Left is today's timing (<code>?vrest=0</code>), right is what the app does now. Turn sound on in a player to hear that the rest stays quiet.</p>
+  <div class="ctl" role="group" aria-label="Exercise">
+    <button data-x="coherent" aria-pressed="true">Simple</button><button data-x="belly">Belly</button><button data-x="hum">Humming Bee</button><button data-x="exhale">Extended Exhale</button><button data-x="pursed">Pursed Lip</button><button data-x="sleep">4-7-8</button><button data-x="box">Box</button>
+    <button id="rs" style="margin-left:auto">Start both again</button>
+  </div>
+  <div class="pair">
+    <figure><div class="tg"><b>Today</b><span id="t0"></span></div><div class="fr"><iframe title="Today" id="f0"></iframe></div></figure>
+    <figure class="pick"><div class="tg"><b>With the rest (now in the app)</b><span id="t1"></span></div><div class="fr"><iframe title="With the rest" id="f1"></iframe></div></figure>
+  </div>
+  <p id="same" class="note" hidden style="margin-top:16px">Box is the same on both sides: its second hold already is the pause after breathing out.</p>
+
+  <h2>All in one table</h2>
+  <div id="tbl"></div>
+
+  <h2>What changed in the app</h2>
+  <ol class="v">
+    <li><b>A "Rest" step after breathing out</b>, 2 seconds, in Simple, Belly, Humming Bee, Extended Exhale, Pursed Lip and 4-7-8. Under the word: "Let the breath settle". In 4-7-8 it comes after the long breath out, so the hold stays where it is.</li>
+    <li><b>No pause after breathing in.</b> The picture already slows into the top of the breath, so the turn is gentle without a hold.</li>
+    <li><b>The rest is quiet</b>: the singing bowl rings on breathe in and breathe out only. No vibration either.</li>
+    <li><b>The picture rests too.</b> Pursed Lip has its own rest picture: lips closed and relaxed, no arrow. Humming Bee goes back to her quiet picture with no sound arcs. The belly film waits on its breathed-out frame, and the flower stays folded. On the breath clock the rest is a dotted arc, like a hold.</li>
+    <li><b>The words say it</b>: "In 5, out 5, rest 2" on the ready screen, a third step in How it works, and the coach portal's line for each exercise.</li>
+    <li><b>Session minutes stay the same</b>, so a session holds fewer, slower breaths.</li>
+  </ol>
+  <p class="note">Timings live in one place (<code>LAB.PAT</code> in <code>breath-lab/lab.js</code>), used by the plan player and the library player alike, so this is one list.</p>
+</div>
+<script>
+(function () {
+  var EX = [
+    ["Simple Breathing", "coherent", [["in", 5], ["out", 5]], 2],
+    ["Belly Breathing", "belly", [["in", 4], ["out", 6]], 2],
+    ["Humming Bee Breath", "hum", [["in", 4], ["out", 7, "Hum"]], 2],
+    ["Extended Exhale (2:1)", "exhale", [["in", 4], ["out", 8]], 2],
+    ["Pursed Lip Breathing", "pursed", [["in", 2], ["out", 4]], 2],
+    ["4-7-8 Breathing", "sleep", [["in", 4], ["hold", 7], ["out", 8]], 2],
+    ["Box Breathing", "box", [["in", 4], ["hold", 4], ["out", 4], ["hold", 4]], 0]
+  ];
+  var W = { in: "In", out: "Out", hold: "Hold", rest: "Rest" };
+  var cyc = function (s) { return s.reduce(function (a, x) { return a + x[1]; }, 0); };
+  var txt = function (s) { return s.map(function (x) { return (x[2] || W[x[0]]) + " " + x[1]; }).join(" · "); };
+  var per = function (s) { return (60 / cyc(s)).toFixed(1).replace(".0", ""); };
+  var now = function (e) { return e[3] ? e[2].concat([["rest", e[3]]]) : e[2]; };
+  document.getElementById("tbl").innerHTML = "<table><thead><tr><th>Exercise</th><th>Today</th><th>Now, with the rest</th></tr></thead><tbody>" + EX.map(function (e) {
+    var f = function (s) { return txt(s) + "<br><span style=\"color:var(--mute)\">" + cyc(s) + " s a breath, " + per(s) + " a minute</span>"; };
+    return "<tr><td class=\"k\">" + e[0] + "</td><td>" + f(e[2]) + "</td><td>" + (e[3] ? f(now(e)) : "Unchanged") + "</td></tr>";
+  }).join("") + "</tbody></table>";
+  var cur = "coherent";
+  function load() {
+    var e = EX.filter(function (x) { return x[1] === cur; })[0], u = "/v7/mind/index.html?bx=" + cur + "&bfstate=run&bfel=0.2";
+    document.getElementById("f0").src = u + "&vrest=0"; document.getElementById("f1").src = u + "&t=" + Date.now();
+    document.getElementById("t0").textContent = txt(e[2]); document.getElementById("t1").textContent = txt(now(e));
+    document.getElementById("same").hidden = !!e[3];
+  }
+  document.querySelector(".ctl").addEventListener("click", function (ev) {
+    var b = ev.target.closest("button"); if (!b) return;
+    if (b.dataset.x) { cur = b.dataset.x; [].forEach.call(document.querySelectorAll("[data-x]"), function (x) { x.setAttribute("aria-pressed", x === b); }); }
+    load();
+  });
+  load();
+})();
+</script>
+</body>
+</html>

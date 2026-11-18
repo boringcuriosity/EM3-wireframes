@@ -118,11 +118,73 @@
   <h3>With the Arc ring</h3>
   <div class="frames" data-set="b"></div>
 
+  <h2 id="overlap">When two or three sources have the same night</h2>
+  <p>Researched 17 Nov 2026 across consumer apps, the two phone platforms, data aggregators and Mobbin. The same rules work for steps, so both are here.</p>
+
+  <h3>What others do</h3>
+  <table>
+    <thead><tr><th style="width:18%">Who</th><th style="width:30%">Which source wins</th><th style="width:26%">When the device has a gap</th><th>Edits by hand</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Apple Health</td><td>Typed data first, then Apple devices, then other apps. The person reorders per data type.</td><td>The next source in the list covers that time.</td><td>Typed entries rank first. Each sample shows "Was User Entered".</td></tr>
+      <tr><td class="k">Health Connect</td><td>The person ranks apps for Activity and Sleep; totals keep only the top app for any overlap. The phone's own steps sit last.</td><td>Phone steps fill in by themselves.</td><td>Records carry "manual entry" or "recorded automatically".</td></tr>
+      <tr><td class="k">Oura</td><td>The ring. Tells people to put Oura first in Apple Health so steps aren't counted twice.</td><td>A night without the ring stays empty.</td><td>Bedtime and wake can be moved, shorten only, within 3 days, at least 3 h. Scores recalculate.</td></tr>
+      <tr><td class="k">WHOOP</td><td>The band. Never reads steps from the phone.</td><td>Nothing fills it.</td><td>Times can be edited; a broken night can be cut into two sleeps.</td></tr>
+      <tr><td class="k">Samsung, ring + watch</td><td>The watch when both are worn.</td><td>If the watch dies, the ring takes over.</td><td>Watch sleep often can't be edited; deleting and typing loses the stages.</td></tr>
+      <tr><td class="k">Garmin</td><td>One "primary wearable" the person picks.</td><td>Steps from other devices fill in (TrueUp), counted once.</td><td>Last night only.</td></tr>
+      <tr><td class="k">Aggregators (Junction, ROOK, Thryve, Sahha)</td><td>A priority per metric, one source per time window, never blended.</td><td>The next source fills an empty window.</td><td>Sahha: typed sleep never overrides a sensor.</td></tr>
+    </tbody>
+  </table>
+  <p style="margin-top:12px"><b>What people complain about most:</b> steps counted twice (ring or watch plus phone), "sleep" logged while the ring sat on the bedside table with no way to fix it, an edit undone by the next sync, and numbers that don't match between apps. <b>What no one does:</b> fill a missing night from the phone, or mark a value as edited where you see it. Our strip already says "edited by you".</p>
+
+  <h3>The rule, sleep</h3>
+  <div class="flow">
+    <div class="card ring">
+      <ol>
+        <li><b>One source per night, never blended.</b> In order: Arc ring, then a watch or band, then a sleep app on the phone. We read the records and choose by where they came from, not by Health Connect's own order.</li>
+        <li><b>A gap inside the night is filled from the next wearable only.</b> Ring battery died at 3 AM and a watch has the rest: the watch fills from 3 AM. A phone app's guess never fills a gap.</li>
+        <li><b>No device has the night:</b> the person types it, as now.</li>
+        <li><b>The person's edit beats every device, for that night only.</b> It is kept apart from the synced data, so a later sync never undoes it. "Use Arc ring's times" puts the device back.</li>
+        <li><b>Typed first, ring syncs later:</b> keep what they typed and offer once on the card, "Your Arc ring has last night. Use it?"</li>
+        <li><b>The device looks wrong</b> (under 2 h asleep, or it started after they woke up): the gold "fix it" note, never a silent change.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">The rule, steps</h3>
+      <ol>
+        <li><b>Use the platform's own total</b> (Health Connect and Apple Health already count overlapping steps once, by the person's order). No step merging of our own.</li>
+        <li><b>When the ring is connected, ask once to put it first</b> in that order. Phone steps then fill only the hours the ring was off.</li>
+        <li><b>Never add sources together.</b> Count the Arc app's records only once, even if the ring's steps reach us twice.</li>
+        <li><b>Steps typed by hand</b> (phone left at home): the day becomes the higher of the device total and what they typed, never the sum, marked "edited by you".</li>
+      </ol>
+      <p style="margin-top:12px" class="q">Per-minute merging, as aggregators do, only if the platform total proves wrong in testing.</p>
+    </div>
+  </div>
+
+  <h3>The one choice for you: does typed data or the device win?</h3>
+  <table>
+    <thead><tr><th style="width:24%">Option</th><th style="width:40%">How it works</th><th>Trade-off</th></tr></thead>
+    <tbody>
+      <tr><td class="k">A. Device first, your edit wins <span class="pick">Recommended</span></td><td>The ring or watch wins by default. Typing fills only nights with no device. An edit to a night beats the device, for that night.</td><td>Matches Oura, WHOOP and the aggregators; the score rests on measured sleep. A typed night is never quietly replaced.</td></tr>
+      <tr><td class="k">B. Typed always wins</td><td>As Apple Health: anything typed outranks every device, every night.</td><td>Simple to explain. But diaries usually add about half an hour of sleep, and a stray typed night hides the ring's.</td></tr>
+      <tr><td class="k">C. The person picks per metric</td><td>A Sources screen: Sleep and Steps each list their sources in order, top one wins (Bevel's and Apple's pattern).</td><td>Full control, but most people never open it. Worth adding only once someone has more than one device.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>What the person sees</h3>
+  <ol class="open">
+    <li><b>Where it came from</b> stays one line under the card (the strip), not a chip on the hours. Edited or typed nights say so there.</li>
+    <li><b>Edit</b> opens Bedtime and Wake time only; Save stays off until something changes; the score updates on save.</li>
+    <li><b>Ring not worn or flat</b>: the card stays in place, says the ring has nothing for last night, and offers Log sleep (Fitbit's "No data" with its log button). Already in the cases above.</li>
+    <li><b>Ring trouble</b> (not synced for 2 days, battery low): one card in the sleep section with the reason and one button, Open Arc app. No full-screen block.</li>
+  </ol>
+  <p class="note" style="margin-top:12px">Assumptions to check with the Arc team: whether the Arc app writes steps as well as sleep to Health Connect and Apple Health, and whether it marks nights the ring wasn't worn. The Arc ring has no published sleep validation. Health Connect only shares 30 days back from when the person allows it.</p>
+  <p class="q" style="font-size:13px">Sources: Apple support 108779 and DTS forum thread 842919; Android Health Connect aggregate, metadata and write-data guides; Oura support on editing sleep and naps; WHOOP community; Samsung ANS10003609; Garmin TrueUp; Junction, ROOK, Thryve, Sahha and Open Wearables docs; Mobbin (Bevel Data sources, WHOOP Edit time in bed, Eight Sleep Edit session, Fitbit Sleep no data, Apple Health sample details).</p>
+
   <h2>Open questions</h2>
   <ol class="open">
     <li>Ring strip words: "From Arc ring via Health Connect" (A, says how it travels) or "Arc ring · Health Connect" (B, shorter, fits beside "Updated 7:22 AM"). A is on the screen now.</li>
     <li>How do we know someone has the ring? From the order, the Arc app being installed, or the Arc app's name on the sleep records in Health Connect? The screen needs a yes or no before it says "Arc ring".</li>
-    <li>When the ring's sleep and a watch's sleep both reach Health Connect for the same night, which wins? Suggest: the ring when present.</li>
+    <li>Typed or device first: option A, B or C in <a href="#overlap">When two or three sources have the same night</a>. The ring beats a watch either way.</li>
     <li>Should a ring owner who denies Health Connect see one nudge after a few typed nights, or only the strip?</li>
     <li>iPhone: the same three, with Apple Health in place of Health Connect, when the Arc app writes to Apple Health.</li>
   </ol>

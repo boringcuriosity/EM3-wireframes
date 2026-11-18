@@ -466,7 +466,7 @@
       var pm = plan(), opts = [1, 2, 3, 5, 10]; if (opts.indexOf(pm) < 0) { opts.push(pm); opts.sort(function (a, b) { return a - b; }); }
       opts.push(-1);   /* last: no time limit */
       F.lenPick = F.len || pm;
-      var row = function (m) { var on = m === F.lenPick; return '<button class="bf-opt' + (on ? " on" : "") + '" data-bfm="' + m + '" role="radio" aria-checked="' + on + '"><span class="bf-rd"></span><b>' + (m < 0 ? 'No time limit<small>As long as you like</small>' : m + ' min') + '</b>' + (m === pm ? '<span class="bf-tag">Recommended by your coach</span>' : "") + '</button>'; };
+      var row = function (m) { var on = m === F.lenPick; return '<button class="bf-opt' + (on ? " on" : "") + '" data-bfm="' + m + '" role="radio" aria-checked="' + on + '"><span class="bf-rd"></span><b>' + (m < 0 ? 'No time limit' : m + ' min') + '</b>' + (m === pm ? '<span class="bf-tag">Recommended by your coach</span>' : "") + '</button>'; };
       lsheet.innerHTML = '<div class="bf-sh"><h4 id="bfLenT">Session length</h4><button class="bf-sx" data-bf="lenx" aria-label="Close">' + XG + '</button></div>' +
         '<div class="bf-sb"><p>Your coach recommends ' + pm + ' min. A shorter session still counts its minutes towards it.</p><div class="bf-opts" role="radiogroup" aria-label="Minutes">' + opts.map(row).join("") + '</div>' +
         '<button class="md-save" data-bf="lenok">' + useL(F.lenPick) + '</button></div>';

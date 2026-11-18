@@ -139,13 +139,13 @@ The coach picks from these seven exercises. Each comes in with its starting minu
 
 | Exercise | How it goes | Starting minutes | Usual time |
 |---|---|---|---|
-| Simple Breathing (coach note: Coherent, 5-5) | In 5 s, out 5 s, 6 breaths a minute | 5 (5 to 10) | 7:00 AM (morning) |
+| Simple Breathing (coach note: Coherent, 5-5) | In 5 s, out 5 s, rest 2 s | 5 (5 to 10) | 7:00 AM (morning) |
 | Box Breathing (4-4-4-4) | In 4 s, hold 4 s, out 4 s, hold 4 s | 5 | 6:30 AM |
-| Belly Breathing | In 4 s as the belly rises, out 6 s as it falls | 5 | 7:00 AM (morning or noon) |
-| Pursed Lip Breathing | In 2 s through the nose, out 4 s through pursed lips, like blowing out a candle | 2 (2 to 5) | 12:00 PM (noon or when needed) |
-| Extended Exhale (2:1) | In 4 s, out 8 s, no holds | 2 (2 to 5) | 12:00 PM (noon, night or when needed) |
-| Humming Bee Breath (Bhramari) | In 4 s, then hum on the breath out for 7 s | 5 (5 to 10) | 8:30 PM |
-| 4-7-8 Breathing | In 4 s, hold 7 s, out 8 s | 1 (1 to 2) | 9:30 PM |
+| Belly Breathing | In 4 s as the belly rises, out 6 s as it falls, rest 2 s | 5 | 7:00 AM (morning or noon) |
+| Pursed Lip Breathing | In 2 s through the nose, out 4 s through pursed lips, like blowing out a candle, rest 2 s | 2 (2 to 5) | 12:00 PM (noon or when needed) |
+| Extended Exhale (2:1) | In 4 s, out 8 s, rest 2 s | 2 (2 to 5) | 12:00 PM (noon, night or when needed) |
+| Humming Bee Breath (Bhramari) | In 4 s, then hum on the breath out for 7 s, rest 2 s | 5 (5 to 10) | 8:30 PM |
+| 4-7-8 Breathing | In 4 s, hold 7 s, out 8 s, rest 2 s | 1 (1 to 2) | 9:30 PM |
 
 Rules for turning the team's table into one value each: a range of minutes starts at its lower end, a range of times uses its first time, "Morning" is 7:00 AM and "Noon" is 12:00 PM.
 
@@ -507,3 +507,13 @@ The designer decided three things after the entry above.
 - 17 Nov 2026: the Self-care sheet's Mood check-in icon is a filled smile, like the other filled icons. The Rhythm sheet's "How your score works" keeps its points but splits them: Sleep quality (most of your score: log last night's sleep, keep to your sleep window, tick off your wind-down) and Self-care (the rest: breathe, make time for yourself, check in). The Sleep quality sheet's first line no longer mentions mood: "A good night sets up everything after it: your focus and how much energy you have."
 - 17 Nov 2026: /mind/sandbox-simple.html rebuilt on the current logic. The coach's plan uses the portal's own lists and defaults (start from the sample plan, any template or blank; target sleep, bedtime and wake incl. a day window, wind-down tasks with times, up to 3 of the final seven breathing exercises with minutes, one me-time task or none, one or two mood check-ins), the day is logged as in the app (main sleep, awake in the night, naps, ticks, breathing minutes, check-ins). It scores nothing itself: mind/sandbox-engine.js builds MDPLAN as plan.js does and the real v7/mind/sleep-rule.js and v7/mind/rhythm.js give the score, so the 25/25/20, 10/10/10 weights, the group share and the sleep rule are the app's. Shows the person's view (Rhythm, Sleep quality and Self-care each out of 100) and the team's points with plain reasons. Six presets (mind/sandbox-presets.js) with a self-check: node mind/sandbox-simple.check.cjs (all match). The old 23/24/23 and weight-preset controls and the sleep quality question are gone.
 - 17 Nov 2026: case doc Section 5 showed "Keep going…" in every frame: on a busy page the ?act= tick ran before rhythm.js had its starting score, so no gain was seen. ?act= now waits for the score (mood.js, sleep.js), and the line waits for its card instead of giving up after 4 s (rhythm.js v12). All gain cases now show their own line.
+
+### 18 Nov 2026: a quiet rest after each breath out
+- The coach found the breathing exercises rushed. Simple, Belly, Humming Bee and Extended Exhale now rest 2 s after breathing out; Pursed Lip rests 1 s. 4-7-8 and Box are unchanged (they already have holds). No pause after breathing in, since with full lungs that is a hold.
+- One list: `LAB.REST` in `mind/breath-lab/lab.js` adds a `rest` step to `LAB.PAT`, which both the plan player and the library player read. `?vrest=0` shows the old timing.
+- During the rest: words "Rest" / "Let the breath settle", no sound, no vibration, the picture stays breathed out, and the breath clock shows a dotted arc.
+- The coach portal's line for each exercise (`MP.BREATHS` in `coach-mind/data.js`) and the ready screen say the rest, e.g. "In 5 s, out 5 s, rest 2 s". Session minutes are unchanged, so a session holds fewer breaths.
+- Before and after on the real player: `/v7/mind/research/breath-pace.html`.
+- 18 Nov 2026: Pursed Lip has a rest picture, `breath-lab/frames/indigo-outfit/pursed-rest.png`: the breathe-in frame with the arrow removed, lips closed and relaxed. Humming Bee's rest shows `hum-in.png` (no sound arcs). `LAB.twoFrames(in, out, rest)` takes the optional third picture and cross-fades out, rest, in.
+- 18 Nov 2026: Pursed Lip's rest is 2 s (was 1 s), and 4-7-8 also rests 2 s after its 8 s breath out (in 4, hold 7, out 8, rest 2; 21 s a breath). Box stays as it is: its second hold already is the pause after breathing out.
+- 18 Nov 2026: the patient sees "Humming Bee Breath" (no "Bhramari"): `LAB.PAT.hum.name` in `breath-lab/lab.js` and the library's short name. The coach portal keeps "Humming Bee Breath (Bhramari)"; `MP.BREATH_ALIAS` maps one to the other. The session length sheet's No time limit has no subtext.
