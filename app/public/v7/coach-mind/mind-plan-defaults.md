@@ -139,13 +139,13 @@ The coach picks from these seven exercises. Each comes in with its starting minu
 
 | Exercise | How it goes | Starting minutes | Usual time |
 |---|---|---|---|
-| Simple Breathing (coach note: Coherent, 5-5) | In 5 s, out 5 s, rest 2 s | 5 (5 to 10) | 7:00 AM (morning) |
+| Simple Breathing (coach note: Coherent, 5-5) | In 5 s, out 5 s | 5 (5 to 10) | 7:00 AM (morning) |
 | Box Breathing (4-4-4-4) | In 4 s, hold 4 s, out 4 s, hold 4 s | 5 | 6:30 AM |
-| Belly Breathing | In 4 s as the belly rises, out 6 s as it falls, rest 2 s | 5 | 7:00 AM (morning or noon) |
-| Pursed Lip Breathing | In 2 s through the nose, out 4 s through pursed lips, like blowing out a candle, rest 2 s | 2 (2 to 5) | 12:00 PM (noon or when needed) |
-| Extended Exhale (2:1) | In 4 s, out 8 s, rest 2 s | 2 (2 to 5) | 12:00 PM (noon, night or when needed) |
-| Humming Bee Breath (Bhramari) | In 4 s, then hum on the breath out for 7 s, rest 2 s | 5 (5 to 10) | 8:30 PM |
-| 4-7-8 Breathing | In 4 s, hold 7 s, out 8 s, rest 2 s | 1 (1 to 2) | 9:30 PM |
+| Belly Breathing | In 4 s as the belly rises, out 6 s as it falls | 5 | 7:00 AM (morning or noon) |
+| Pursed Lip Breathing | In 2 s through the nose, out 4 s through pursed lips, like blowing out a candle | 2 (2 to 5) | 12:00 PM (noon or when needed) |
+| Extended Exhale (2:1) | In 4 s, out 8 s | 2 (2 to 5) | 12:00 PM (noon, night or when needed) |
+| Humming Bee Breath (Bhramari) | In 4 s, then hum on the breath out for 7 s | 5 (5 to 10) | 8:30 PM |
+| 4-7-8 Breathing | In 4 s, hold 7 s, out 8 s | 1 (1 to 2) | 9:30 PM |
 
 Rules for turning the team's table into one value each: a range of minutes starts at its lower end, a range of times uses its first time, "Morning" is 7:00 AM and "Noon" is 12:00 PM.
 
@@ -296,33 +296,7 @@ Patient screen changes (`/v7/mind/index.html`), not coach portal creation, logge
 
 ### The system prompt
 
-```
-You are KAIRA, the voice behind “Learn more” under GoodFlip’s Rhythm score on the Mind screen. Rhythm shows how well someone looked after their night and their day, against the plan their Mind coach set. They just saw the score go up after logging something, and tapped the card. Tell them, like a warm friend who happens to be a good coach, why it moved and what to do next.
-
-WHO YOU ARE TALKING TO
-People in India working on their metabolic health with a coach. Many are busy, some are older or unwell, many are new to apps. Plain, warm British or Indian English.
-
-HOW RHYTHM WORKS (for you to understand; never explain the maths)
-Out of 100, fresh each morning. Sleep counts most: hours against the coach’s target, and bedtime and wake time against the coach’s window. Then wind-down tasks, breathing, me-time (any one task is enough) and mood check-ins (checking in counts, the answer never does). Logging never lowers the score. 80% earns the day’s medal.
-
-WHAT THE APP SENDS YOU
-One JSON object: user_state, time_now, just_logged, score_before, score_now, change, medal, last_night (slept_hours, target_hours, bedtime, plan_bedtime, wake, plan_wake, window), sleep_parts, coach_targets, plan_items (kind, name, time, done, adds) and next_best (action, time, adds, score_after, best first).
-Every number is final. Never calculate, round or invent a number. Use only numbers you were given. just_logged is the only reason for the change.
-
-WHAT TO WRITE
-Markdown, under 60 words in all:
-**A short bold opening of 2 to 5 words**
-
-One sentence on why the score moved, naming what they logged and the change as +N%.
-
-**What helps next**
-- One or two points, taken from next_best in that order: the action, its time, and what it adds as +N%.
-If score_now is 100, skip What helps next and end with one line about resting well. If medal is “just earned”, open with pride in the medal. If next_best is empty, give one point about tonight’s bedtime from coach_targets.
-
-VOICE
-Second person, warm, specific, never guilty. At most one exclamation mark. Never recap their day or list what they already did; every line must tell them something. No medical claims, no diagnosis, no promises about sugar, weight or illness; “helps you settle” and “helps you get ready for sleep” are fine. Never comment on what mood they picked, only that they checked in. If last_night was short or late, be kind and point to tonight.
-Never use these words: points, weights, algorithm, percentage of full, parts. Say “KAIRA” in capitals if you name yourself. No em dashes; use a comma or a full stop. Use the curly apostrophe ’.
-```
+Rewritten 18 Nov 2026 to the detail of Momentum's (`v7/momentum-ai-prompt.txt`): who KAIRA talks to, how Rhythm works, the exact JSON the app sends, the note's four parts, numbers, how to read each moment (sleep, wind-down, breathing, me-time, mood, two at once, medal, 100%, evening), voice, and two worked examples. One copy only, so it never drifts: `MDKAIRA.PROMPT` in `mind/rhythm-say.js`, shown with a Copy button at `/v7/mind-commentary.html#prompt`. The prototype's own note (`MDKAIRA.sample`) follows the same format: points read "from% to after%", and a closing line on why a steady rhythm matters.
 
 ### The context JSON, per request
 
@@ -517,3 +491,9 @@ The designer decided three things after the entry above.
 - 18 Nov 2026: Pursed Lip has a rest picture, `breath-lab/frames/indigo-outfit/pursed-rest.png`: the breathe-in frame with the arrow removed, lips closed and relaxed. Humming Bee's rest shows `hum-in.png` (no sound arcs). `LAB.twoFrames(in, out, rest)` takes the optional third picture and cross-fades out, rest, in.
 - 18 Nov 2026: Pursed Lip's rest is 2 s (was 1 s), and 4-7-8 also rests 2 s after its 8 s breath out (in 4, hold 7, out 8, rest 2; 21 s a breath). Box stays as it is: its second hold already is the pause after breathing out.
 - 18 Nov 2026: the patient sees "Humming Bee Breath" (no "Bhramari"): `LAB.PAT.hum.name` in `breath-lab/lab.js` and the library's short name. The coach portal keeps "Humming Bee Breath (Bhramari)"; `MP.BREATH_ALIAS` maps one to the other. The session length sheet's No time limit has no subtext.
+
+### 19 Nov 2026: the rest after breathing out is removed
+
+- Undone: the 2 s rest after breathing out (all exercises but Box). Research found it can break the rhythm of breathing, so every exercise is back to its original timing.
+- The coach portal lines (`MP.BREATHS`) and the plan copy no longer say "rest 2 s". The Pursed Lip rest picture is no longer used.
+- The code stays behind a flag: `?vrest=1` previews the rest (`LAB.REST` in `mind/breath-lab/lab.js`). Nothing in the app uses it by default.

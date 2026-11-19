@@ -577,7 +577,8 @@ const LOCK = EMBED ? QS.get('lock') : null;
 // ?from= (embedded, arriving from a log): no intro. The day is shown as it stood, and the score steps up to SCORE.
 // ?still=1 (embedded): no intro and no step-up — the score is already settled (sufficiency sheet).
 const STILL = EMBED && QS.has('still');
-const FROM = !STILL && EMBED && QS.has('from') ? +QS.get('from') : null, LOADED = performance.now();
+const FROM = !STILL && EMBED && QS.has('from') ? +QS.get('from') : null;
+let LOADED = performance.now();   /* reset to the first drawn frame, so a slow load never eats the step-up */
 // ?blank=1 (embedded): a day with no score and no lock. The quiet mist pour, empty orbs, only the tag
 const BLANK = EMBED && !LOCK && QS.has('blank');
 if (BLANK) {
@@ -727,6 +728,7 @@ function frame(now) {
 
 
   B.fill(0);
+  if (!frame.began) { frame.began = 1; LOADED = now; }
   const since = (now - LOADED) / 1000;
   const prog = FROM != null ? 1 : eExpo(seg(t, 6.8, 8.8));
   const filled = FROM != null ? mix(FROM, SCORE, eIO(seg(since, .5, 1.9))) : SCORE * prog;
@@ -892,6 +894,8 @@ function frame(now) {
   });
   calNow.textContent = fmt(Math.round(CAL.eaten * eOut(seg(t, 9.9, 11))));
   bar.style.opacity = eOut(seg(t, 10.6, 11.3));
+  /* embedded: tell the page once the first frame is drawn, so a new score can take over from the old one without a blank gap (heroes/cloud.js swap) */
+  if (EMBED && !frame.told && window.parent !== window) { frame.told = 1; requestAnimationFrame(function () { parent.postMessage('cloud:drawn', '*'); }); }
   requestAnimationFrame(frame);
 }
 

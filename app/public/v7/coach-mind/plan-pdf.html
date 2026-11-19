@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mind plan PDF</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Onest:wght@400;500;600;700&display=swap">
+<!-- The Mind plan as the patient keeps it: printed, or shared on WhatsApp as a PDF, and kept by the bed.
+     A Mind plan is the same every day, so the PDF says once which dates it runs, then shows one day from waking to bedtime:
+     the sleep goal, and each wind-down task, breathing exercise, me-time activity and mood check-in at its time.
+     Only the scored Rhythm is in it. The coach's practices (reflection templates) and the coach's note stay out.
+
+     FOR DEVELOPMENT
+     Render this page with the plan, then print it to PDF (A4, no browser header or footer), for example headless Chrome:
+       chrome --headless=new --no-pdf-header-footer --print-to-pdf=plan.pdf "file:///…/plan-pdf.html?plan=sample"
+     Data: one JSON object, read here from localStorage "gfMindPlanPdf" (swap that one line for your API response).
+     It is the coach portal's plan (coach-mind/data.js, MP.blankPlan) plus who it is for and from:
+       { name, patient, coach, start: "YYYY-MM-DD", end: "YYYY-MM-DD",
+         rhythm: { hours: 7.5, bedtime: "22:30", wake: "06:00", allowance: 30,      times as 24 h "HH:MM", allowance in minutes
+                   winddown:  [{ label, at }],
+                   breathing: [{ name, mins, at }],                                 name as the portal saves it (old names work too)
+                   metime:    [{ label, at }],                                      an empty label prints "An activity you enjoy"
+                   mood:      { checks: [{ at }] } } }
+       Everything else in the plan (practices, note, scoring settings) is ignored.
+     The day starts at the wake time, so a night-shift plan reads in its own order. Parts of the day by clock time:
+       Morning 4 AM to 12 PM, Afternoon 12 to 4 PM, Evening 4 to 8 PM, Night 8 PM to 4 AM.
+     The Rhythm card at the end shows the score locked (rhythm-locked.png, the Mind tab before a plan) and asks the patient to log in the app.
+     Samples: ?plan=sample (the patient app's plan), ?plan=calm (two breathing, two check-ins), ?plan=full (the most a coach can set),
+       ?plan=late (bedtime after midnight). ?print=1 opens the print dialog. -->
+<style>
+  /* colours: GoodFlip tokens only (goodflip-design.vercel.app/foundations/colors) */
+  :root {
+    --green: #299d6b; --deep: #2a805a; --tint: #f3fcf8;
+    --ink: #101828; --body: #344054; --muted: #667085; --faint: #98a2b3;
+    --line: #e4e7ec; --line2: #f2f4f7; --soft: #f9fafb; --page: #f2f4f7;
+    --sleep: #444ce7; --sleep-t: #eef4ff;       /* text-indigo, background-indigo: sleep and wind-down */
+    --breath: #2d8282; --breath-t: #eeffff;     /* teal 900, teal 50: breathing */
+    --me: #826e2d; --me-t: #fffbee;             /* gold 900, background-gold: me-time */
+    --mood: #dc6803; --mood-t: #fffaeb;         /* text-orange, background-orange: mood check-in */
+  }
+  @page { size: A4; margin: 13mm 13mm 15mm;
+    @bottom-left { content: var(--foot, "GoodFlip Mind plan"); font: 500 8pt Onest, sans-serif; color: #98a2b3; }
+    @bottom-right { content: "Page " counter(page) " of " counter(pages); font: 500 8pt Onest, sans-serif; color: #98a2b3; } }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; background: var(--page); font: 400 9.5pt/1.45 Onest, system-ui, sans-serif; color: var(--body); }
+  h1, h2 { font-family: Montserrat, Onest, sans-serif; color: var(--ink); margin: 0; }
+
+  .bar { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: #fff; border-bottom: 1px solid var(--line); }
+  .bar b { flex: 1; font: 600 14px Onest, sans-serif; color: var(--ink); }
+  .bar button { height: 40px; padding: 0 18px; border: 0; border-radius: 10px; background: var(--green); color: #fff; font: 600 14px Onest, sans-serif; cursor: pointer; }
+  .bar button:hover { background: var(--deep); }
+  .doc { width: 210mm; margin: 24px auto 48px; padding: 13mm; background: #fff; border-radius: 4px; box-shadow: 0 1px 3px var(--line); }
+  @media print { body { background: #fff; } .bar { display: none; } .doc { width: auto; margin: 0; padding: 0; box-shadow: none; border-radius: 0; } }
+  @media screen and (max-width: 820px) { .doc { width: auto; margin: 12px; padding: 20px 16px; } }
+
+  /* head: who it is for, from whom, and the dates it runs */
+  .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 6mm; padding-bottom: 5mm; margin-bottom: 6mm; border-bottom: 1.5px solid var(--green); }
+  .head img { display: block; height: 22px; margin-bottom: 4mm; }
+  h1 { font-size: 20pt; line-height: 1.15; font-weight: 800; }
+  .who { margin-top: 1.5mm; font-size: 9.5pt; }
+  .who b { color: var(--ink); font-weight: 600; }
+  .dates { flex: none; text-align: right; font: 600 9.5pt Onest, sans-serif; color: var(--ink); }
+  .dates small { display: block; font-weight: 500; color: var(--muted); }
+
+  /* the sleep goal: three numbers */
+  .sleep { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3mm; padding: 4mm; border-radius: 14px; background: var(--sleep-t); break-inside: avoid; }
+  .sg { padding: 3mm 3.5mm; border-radius: 10px; background: #fff; }
+  .sg small svg { width: 10px; height: 10px; margin-right: 1.5mm; vertical-align: -1px; color: var(--sleep); }
+  .sg small { display: block; font: 700 6.5pt Onest, sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .sg b { display: block; margin-top: .8mm; font: 800 15pt Montserrat, sans-serif; color: var(--sleep); font-variant-numeric: tabular-nums; }
+  .sg span { display: block; font-size: 8pt; color: var(--muted); }
+
+  h2.sec { margin: 6mm 0 .5mm; font-size: 12pt; font-weight: 800; break-after: avoid; }
+  .secsub { font-size: 8.5pt; color: var(--muted); margin-bottom: 2mm; break-after: avoid; }
+
+  /* one day, from waking to bedtime, by part of the day */
+  .slot { display: grid; grid-template-columns: 24mm minmax(0, 1fr); gap: 4mm; padding: 2.2mm 0; border-bottom: 1px dashed var(--line); }
+  .slot:last-child { border-bottom: 0; }
+  .sl { padding-top: 1.6mm; font: 700 9pt Onest, sans-serif; color: var(--muted); }
+  .rows { display: flex; flex-direction: column; gap: .8mm; }
+  .it { display: grid; grid-template-columns: 17mm 7mm minmax(0, 1fr) auto; gap: 0 2.5mm; align-items: center; padding: .7mm 0; break-inside: avoid; }
+  .sl { break-after: avoid; }   /* a long part of the day carries on over the page row by row; each row stays whole */
+  .tm { font: 700 9pt Onest, sans-serif; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ic { width: 7mm; height: 7mm; border-radius: 50%; display: grid; place-items: center; }
+  .ic svg { width: 13px; height: 13px; }
+  .nm b { display: block; font-weight: 600; color: var(--ink); }
+  .nm span { display: block; font-size: 8pt; color: var(--muted); }
+  .kd { font: 700 6.5pt Onest, sans-serif; letter-spacing: .06em; text-transform: uppercase; padding: 1mm 2mm; border-radius: 6px; white-space: nowrap; }
+  .k-sleep .ic, .k-sleep .kd { background: var(--sleep-t); color: var(--sleep); }
+  .k-breath .ic, .k-breath .kd { background: var(--breath-t); color: var(--breath); }
+  .k-me .ic, .k-me .kd { background: var(--me-t); color: var(--me); }
+  .k-mood .ic, .k-mood .kd { background: var(--mood-t); color: var(--mood); }
+  .k-anchor .ic { background: var(--sleep-t); color: var(--sleep); }
+  .k-anchor .ic svg { width: 15px; height: 15px; }
+  .k-anchor .nm b { font-weight: 700; }
+
+  /* the Rhythm score, locked, and how logging fills it: one horizontal card */
+  .score { display: flex; align-items: center; gap: 5mm; margin-top: 4mm; padding: 3mm 5mm 3mm 3mm; border: 1px solid var(--line); border-radius: 14px; background: #fff; font-size: 8.5pt; break-inside: avoid; }
+  .score img { flex: none; width: 36mm; height: auto; display: block; }
+  .score h3 { margin: 0 0 1.2mm; font: 800 11pt Montserrat, sans-serif; color: var(--ink); }
+  .score p { margin: 0; color: var(--body); }
+  .score .go { margin-top: 2mm; font-weight: 600; color: var(--deep); }
+  .help { margin-top: 4mm; display: flex; gap: 3mm; align-items: center; padding: 3.5mm 4.5mm; border-radius: 12px; background: var(--tint); color: var(--body); font-size: 9pt; break-inside: avoid; }
+  .help svg { width: 18px; height: 18px; flex: none; color: var(--green); }
+</style>
+</head>
+<body>
+<div class="bar"><b id="barT">Mind plan</b><button type="button" onclick="window.print()">Save as PDF</button></div>
+<main class="doc" id="doc"></main>
+<script>
+(function () {
+  var Q = new URLSearchParams(location.search);
+  var P = null;
+  try { P = JSON.parse(localStorage.getItem("gfMindPlanPdf") || "null"); } catch (e) {}
+  var SAMPLES = { sample: sample, calm: calm, full: full, late: late };
+  if (SAMPLES[Q.get("plan")] || !P) P = (SAMPLES[Q.get("plan")] || sample)();
+  var R = P.rhythm || {};
+
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); };
+  var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var dmy = function (iso) { var d = new Date(iso + "T00:00"); return d.getDate() + " " + MON[d.getMonth()] + " " + d.getFullYear(); };
+  var t12 = function (hm) { var h = +hm.slice(0, 2), m = hm.slice(3, 5); return ((h % 12) || 12) + ":" + m + " " + (h < 12 ? "AM" : "PM"); };
+  var mn = function (hm) { return +hm.slice(0, 2) * 60 + +hm.slice(3, 5); };
+  var len = function (m) { return m < 60 ? m + " min" : (m % 60 ? Math.floor(m / 60) + " h " + (m % 60) + " min" : m / 60 + (m === 60 ? " hour" : " hours")); };
+  var hrs = function (h) { return (h % 1 ? String(h).replace(".5", "½") : h) + (h === 1 ? " hour" : " hours"); };
+
+  /* the seven breathing exercises (coach-mind/data.js MP.BREATHS) with the old names that still open them */
+  var BREATHS = {
+    "Simple Breathing": "In 5 s, out 5 s, rest 2 s",
+    "Box Breathing (4-4-4-4)": "In 4 s, hold 4 s, out 4 s, hold 4 s",
+    "Belly Breathing": "In 4 s as the belly rises, out 6 s as it falls, rest 2 s",
+    "Pursed Lip Breathing": "In 2 s through the nose, out 4 s through pursed lips, rest 2 s",
+    "Extended Exhale (2:1)": "In 4 s, out 8 s, rest 2 s",
+    "Humming Bee Breath (Bhramari)": "In 4 s, then hum on the breath out for 7 s, rest 2 s",
+    "4-7-8 Breathing": "In 4 s, hold 7 s, out 8 s, rest 2 s"
+  };
+  var ALIAS = { "Coherent Breathing (5-5)": "Simple Breathing", "Coherent Breathing": "Simple Breathing", "Zen Flow Breathing": "Simple Breathing",
+    "Box Breathing": "Box Breathing (4-4-4-4)", "Sleep Breathing": "4-7-8 Breathing", "Extended Exhale": "Extended Exhale (2:1)",
+    "Humming Bee Breath": "Humming Bee Breath (Bhramari)", "Bhramari": "Humming Bee Breath (Bhramari)" };
+
+  /* icons: the app's own, as "What shaped your score?" draws each part (mind/variants/parts.js), and the GoodFlip sun for waking */
+  var IC = {
+    sun: '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M8.00002 1.33331C8.27616 1.33331 8.50002 1.55717 8.50002 1.83331V2.16665C8.50002 2.44279 8.27616 2.66665 8.00002 2.66665C7.72388 2.66665 7.50002 2.44279 7.50002 2.16665V1.83331C7.50002 1.55717 7.72388 1.33331 8.00002 1.33331ZM5.33335 5.99998C5.33335 4.52722 6.52726 3.33331 8.00002 3.33331C9.47278 3.33331 10.6667 4.52722 10.6667 5.99998C10.6667 7.47274 9.47278 8.66665 8.00002 8.66665C6.52726 8.66665 5.33335 7.47274 5.33335 5.99998ZM8.50002 9.83331C8.50002 9.55717 8.27616 9.33331 8.00002 9.33331C7.72388 9.33331 7.50002 9.55717 7.50002 9.83331V10.1666C7.50002 10.4428 7.72388 10.6666 8.00002 10.6666C8.27616 10.6666 8.50002 10.4428 8.50002 10.1666V9.83331ZM3.83335 5.33331C3.55721 5.33331 3.33335 5.55717 3.33335 5.83331C3.33335 6.10946 3.55721 6.33331 3.83335 6.33331H4.16669C4.44283 6.33331 4.66669 6.10946 4.66669 5.83331C4.66669 5.55717 4.44283 5.33331 4.16669 5.33331H3.83335ZM11.3334 5.83331C11.3334 5.55717 11.5572 5.33331 11.8334 5.33331H12.1667C12.4428 5.33331 12.6667 5.55717 12.6667 5.83331C12.6667 6.10946 12.4428 6.33331 12.1667 6.33331H11.8334C11.5572 6.33331 11.3334 6.10946 11.3334 5.83331ZM4.4798 3.85354C4.67506 4.0488 4.99164 4.0488 5.18691 3.85354C5.38217 3.65828 5.38217 3.34169 5.18691 3.14643L4.85357 2.8131C4.65831 2.61784 4.34173 2.61784 4.14647 2.8131C3.9512 3.00836 3.9512 3.32494 4.14647 3.52021L4.4798 3.85354ZM5.18691 8.14642C4.99164 7.95116 4.67506 7.95116 4.4798 8.14642L4.14647 8.47975C3.9512 8.67502 3.9512 8.9916 4.14647 9.18686C4.34173 9.38212 4.65831 9.38212 4.85357 9.18686L5.18691 8.85353C5.38217 8.65827 5.38217 8.34168 5.18691 8.14642ZM11.5202 3.85354C11.325 4.0488 11.0084 4.0488 10.8131 3.85354C10.6179 3.65828 10.6179 3.34169 10.8131 3.14643L11.1465 2.8131C11.3417 2.61784 11.6583 2.61784 11.8536 2.8131C12.0488 3.00836 12.0488 3.32494 11.8536 3.52021L11.5202 3.85354ZM10.8131 8.14642C11.0084 7.95116 11.325 7.95116 11.5202 8.14642L11.8536 8.47975C12.0488 8.67502 12.0488 8.9916 11.8536 9.18686C11.6583 9.38212 11.3417 9.38212 11.1465 9.18686L10.8131 8.85353C10.6179 8.65827 10.6179 8.34168 10.8131 8.14642ZM2.14552 14.5573C1.92989 14.7296 1.61542 14.6945 1.44298 14.479C1.17084 14.1389 1.52173 13.7757 1.52173 13.7757L1.52262 13.775L1.53281 13.7669C1.53917 13.762 1.54797 13.7552 1.55916 13.7466C1.58154 13.7296 1.61351 13.7056 1.65474 13.6757C1.73719 13.616 1.85679 13.5327 2.01095 13.4336C2.31906 13.2355 2.76647 12.9738 3.33222 12.7127C4.46224 12.1911 6.07605 11.6666 8.00008 11.6666C9.92411 11.6666 11.5379 12.1911 12.6679 12.7127C13.2337 12.9738 13.6811 13.2355 13.9892 13.4336C14.1434 13.5327 14.263 13.616 14.3454 13.6757C14.3867 13.7056 14.4186 13.7296 14.441 13.7466C14.4522 13.7552 14.461 13.762 14.4673 13.7669L14.4751 13.773L14.4775 13.775L14.4791 13.7762C14.6947 13.9487 14.7297 14.2634 14.5572 14.479C14.3847 14.6945 14.07 14.7294 13.8544 14.5571L13.8516 14.5549L13.8345 14.5417C13.8185 14.5295 13.7932 14.5105 13.7589 14.4857C13.6903 14.436 13.586 14.3631 13.4485 14.2747C13.1732 14.0978 12.7665 13.8595 12.2489 13.6206C11.2122 13.1422 9.74271 12.6666 8.00008 12.6666C6.25745 12.6666 4.78792 13.1422 3.75128 13.6206C3.23369 13.8595 2.82694 14.0978 2.55171 14.2747C2.4142 14.3631 2.30985 14.436 2.24125 14.4857C2.20696 14.5105 2.18164 14.5295 2.16561 14.5417L2.14858 14.5549L2.14552 14.5573Z"/></svg>',
+    moon: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.3 2.05a1 1 0 0 1 .27 1.2A7 7 0 0 0 20.75 11.4a1 1 0 0 1 1.2.27A10 10 0 1 1 12.3 2.05Z"/></svg>',
+    wind: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a1 1 0 0 1 1 1v5a1 1 0 1 1-2 0V3a1 1 0 0 1 1-1ZM4.2 8.8a1 1 0 0 1 1.4 0l1.1 1.1a1 1 0 0 1-1.4 1.4L4.2 10.2a1 1 0 0 1 0-1.4Zm15.6 0a1 1 0 0 1 0 1.4l-1.1 1.1a1 1 0 0 1-1.4-1.4l1.1-1.1a1 1 0 0 1 1.4 0ZM12 11a6 6 0 0 1 6 6 1 1 0 0 1-1 1H7a1 1 0 0 1-1-1 6 6 0 0 1 6-6ZM2 17a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1Zm17 0a1 1 0 0 1 1-1h1a1 1 0 1 1 0 2h-1a1 1 0 0 1-1-1ZM2 21a1 1 0 0 1 1-1h18a1 1 0 1 1 0 2H3a1 1 0 0 1-1-1Z"/></svg>',
+    breath: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/><path d="M9.8 4.4A2 2 0 1 1 11 8H2"/></svg>',
+    me: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.3c-.3 0-.6-.1-.8-.3C5.6 16 2 12.8 2 8.7 2 5.5 4.5 3 7.6 3c1.7 0 3.3.8 4.4 2.1C13.1 3.8 14.7 3 16.4 3 19.5 3 22 5.5 22 8.7c0 4.1-3.6 7.3-9.2 12.3-.2.2-.5.3-.8.3Z"/></svg>',
+    mood: '<svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20Zm-3.5 7a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6Zm7 0a1.3 1.3 0 1 0 0 2.6 1.3 1.3 0 0 0 0-2.6ZM7.6 13.6a1 1 0 0 0-.2 1.4c1.1 1.5 2.8 2.5 4.6 2.5s3.5-1 4.6-2.5a1 1 0 1 0-1.6-1.2c-.7 1-1.8 1.7-3 1.7s-2.3-.7-3-1.7a1 1 0 0 0-1.4-.2Z"/></svg>',
+    clock: '<svg viewBox="0 0 256 256" fill="currentColor"><path fill-rule="evenodd" d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm56,112H128a8,8,0,0,1-8-8V72a8,8,0,0,1,16,0v48h48a8,8,0,0,1,0,16Z"/></svg>',
+    chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 5.5h16v10H9l-5 4v-14z"/></svg>'
+  };
+
+  /* every item of the day, each at its time */
+  var items = [];
+  var add = function (at, k, ic, name, sub, kind) { if (at) items.push({ at: at, k: k, ic: ic, name: name, sub: sub, kind: kind }); };
+  add(R.wake, "anchor", IC.sun, "Wake up", "", "");
+  (R.winddown || []).forEach(function (w) { add(w.at, "sleep", IC.wind, w.label, "", "Wind-down"); });
+  (R.breathing || []).forEach(function (b) { var n = ALIAS[b.name] || b.name; add(b.at, "breath", IC.breath, n, (b.mins ? b.mins + " min · " : "") + (BREATHS[n] || ""), "Breathing"); });
+  (R.metime || []).forEach(function (m) { add(m.at, "me", IC.me, (m.label || "").trim() || "An activity you enjoy", "Time just for you", "Me-time"); });
+  ((R.mood || {}).checks || []).forEach(function (c) { add(c.at, "mood", IC.mood, "Mood check-in", "Reflect on your mood and what may be causing it", "Mood"); });
+  add(R.bedtime, "anchor", IC.moon, "Lights out", "Your bedtime", "");
+
+  /* the day runs from the wake time; ties keep the order above, so waking comes first and bedtime last */
+  var wake = R.wake ? mn(R.wake) : 240;
+  items.forEach(function (it, i) { it.o = (mn(it.at) - wake + 1440) % 1440; it.i = i; });
+  if (R.bedtime) items[items.length - 1].o += .5;
+  items.sort(function (a, b) { return a.o - b.o || a.i - b.i; });
+  var part = function (hm) { var h = +hm.slice(0, 2); return h >= 4 && h < 12 ? "Morning" : h >= 12 && h < 16 ? "Afternoon" : h >= 16 && h < 20 ? "Evening" : "Night"; };
+  var groups = [];
+  items.forEach(function (it) { var p = part(it.at), g = groups[groups.length - 1]; if (!g || g.p !== p) groups.push(g = { p: p, L: [] }); g.L.push(it); });
+
+  var day = groups.map(function (g) {
+    return '<div class="slot"><div class="sl">' + g.p + '</div><div class="rows">' + g.L.map(function (it) {
+      return '<div class="it k-' + it.k + '"><span class="tm">' + t12(it.at) + '</span><span class="ic">' + it.ic + '</span>' +
+        '<span class="nm"><b>' + esc(it.name) + '</b>' + (it.sub ? '<span>' + esc(it.sub) + '</span>' : "") + '</span>' +
+        (it.kind ? '<span class="kd">' + it.kind + '</span>' : "<span></span>") + '</div>';
+    }).join("") + '</div></div>';
+  }).join("");
+
+  var days = Math.round((new Date(P.end + "T00:00") - new Date(P.start + "T00:00")) / 864e5) + 1;
+  var head = '<header class="head"><div><img src="/v7/img/coach/goodflip_logo_large.png" alt="GoodFlip"><h1>' + esc(P.name || "Mind plan") + '</h1>' +
+    '<div class="who">' + (P.patient ? 'For <b>' + esc(P.patient) + '</b>' : "") + (P.coach ? (P.patient ? " · " : "") + 'From your coach <b>' + esc(P.coach) + '</b>' : "") + '</div></div>' +
+    '<div class="dates">' + dmy(P.start) + ' to ' + dmy(P.end) + '<small>' + days + ' days</small></div></header>';
+
+  var sleep = R.bedtime && R.wake ? '<section class="sleep">' +
+    '<div class="sg"><small>' + IC.moon + 'Sleep</small><b>' + hrs(+R.hours) + '</b><span>a night, naps included</span></div>' +
+    '<div class="sg"><small>' + IC.clock + 'Bedtime</small><b>' + t12(R.bedtime) + '</b><span>lights out</span></div>' +
+    '<div class="sg"><small>' + IC.clock + 'Wake up</small><b>' + t12(R.wake) + '</b><span>out of bed</span></div>' +
+    '</section>' : "";
+
+  /* the Rhythm score, shown locked as the app shows it before anything is logged, and what fills it */
+  var score = '<section class="score"><img src="/v7/coach-mind/rhythm-locked.png" alt="">' +
+    '<div><h3>Your Rhythm score is waiting</h3>' +
+    '<p>Rhythm is your score for wellbeing for the day, out of 100, in the Mind tab of the GoodFlip app. Most of it comes from sleep: your hours, and going to bed and waking on time. The rest comes from the wind-down tasks, breathing, me-time and mood check-ins on this page.</p>' +
+    '<p class="go">Log each one in the app as you go, and your score fills through the day.</p></div></section>' +
+    '<div class="help">' + IC.chat + '<span>If something does not fit your day, message your coach' + (P.coach ? ", " + esc(P.coach) + "," : "") + ' and they will change it.</span></div>';
+
+  document.getElementById("doc").innerHTML = head + sleep +
+    '<h2 class="sec">Your day</h2><div class="secsub">Every day, from waking to bedtime.</div>' + day + score;
+  var title = (P.name || "Mind plan") + (P.patient ? " · " + P.patient : "");
+  document.getElementById("barT").textContent = title;
+  document.title = title.replace(" · ", ", ");
+  document.documentElement.style.setProperty("--foot", '"' + title.replace(/"/g, "") + '"');
+  if (Q.get("print") === "1") addEventListener("load", function () { setTimeout(print, 300); });
+
+  /* ---------- samples, in the portal's plan shape ---------- */
+  function base(o) {
+    var p = { name: "Patient A’s Mind plan", patient: "Patient A", coach: "Coach A", start: "2026-11-16", end: "2026-11-30",
+      rhythm: { hours: 7.5, bedtime: "22:30", wake: "06:00", allowance: 30, winddown: [], breathing: [], metime: [], mood: { checks: [{ at: "21:00" }] } },
+      practices: [{ id: "gratitude", times: 1 }], note: "" };   /* practices and note are in the data and never printed */
+    for (var k in o) if (k === "rhythm") for (var r in o.rhythm) p.rhythm[r] = o.rhythm[r]; else p[k] = o[k];
+    return p;
+  }
+  /* the patient app's plan (MP.SAMPLE) */
+  function sample() {
+    return base({ rhythm: {
+      winddown: [{ label: "Last caffeine (tea, coffee or cola)", at: "16:00" }, { label: "Screen-free wind-down begins (60 min)", at: "21:30" },
+        { label: "Positive sleep association: prepare the room, dark and at a comfortable temperature", at: "22:00" }],
+      breathing: [{ name: "Simple Breathing", mins: 5, at: "07:00" }],
+      metime: [{ label: "Walk in nature or a park (20 to 30 min)", at: "07:00" }],
+      mood: { checks: [{ at: "08:00" }, { at: "21:00" }] } } });
+  }
+  /* "Calmer days": two breathing exercises, two check-ins, a later night */
+  function calm() {
+    return base({ name: "Calmer days", patient: "Riya Sharma", coach: "Dr. Meera Iyer", start: "2026-11-18", end: "2026-12-17", rhythm: {
+      hours: 7.5, bedtime: "23:00", wake: "06:30",
+      winddown: [{ label: "Listen to calming music (15 to 30 min)", at: "22:15" }, { label: "Positive sleep association: prepare the room, dark and at a comfortable temperature", at: "22:30" }],
+      breathing: [{ name: "Box Breathing", mins: 5, at: "06:30" }, { name: "Humming Bee Breath (Bhramari)", mins: 5, at: "20:30" }],
+      metime: [{ label: "Gardening or plant care (15 to 20 min)", at: "17:30" }],
+      mood: { checks: [{ at: "07:00" }, { at: "21:00" }] } } });
+  }
+  /* the most a coach can set: every wind-down task, three breathing exercises, me-time, two check-ins */
+  function full() {
+    return base({ name: "Sleep reset, 4 weeks", patient: "Arjun Mehta", coach: "Rohan Kapoor", start: "2026-11-16", end: "2026-12-13", rhythm: {
+      hours: 8, bedtime: "22:00", wake: "06:00", allowance: 30,
+      winddown: [["Last caffeine (tea, coffee or cola)", "16:00"], ["Last alcohol or nicotine", "16:00"], ["Evening walk or light movement (20 to 30 min)", "18:30"],
+        ["Last heavy meal, dinner cut-off", "19:30"], ["Journalling or thought dump (5 to 10 min)", "21:00"], ["Last water or fluids", "21:00"],
+        ["Screen-free wind-down begins (60 min)", "21:30"], ["Gratitude practice, 3 things (3 to 5 min)", "21:30"], ["Reading a physical book (20 to 30 min)", "21:30"],
+        ["Listen to calming music (15 to 30 min)", "21:45"], ["Positive sleep association: prepare the room, dark and at a comfortable temperature", "22:00"]].map(function (w) { return { label: w[0], at: w[1] }; }),
+      breathing: [{ name: "Box Breathing (4-4-4-4)", mins: 5, at: "06:30" }, { name: "Pursed Lip Breathing", mins: 2, at: "12:00" }, { name: "4-7-8 Breathing", mins: 1, at: "21:30" }],
+      metime: [{ label: "", at: "18:00" }],
+      mood: { checks: [{ at: "08:00" }, { at: "21:00" }] } } });
+  }
+  /* a late sleeper: bedtime after midnight, so Night carries on past 12 AM */
+  function late() {
+    return base({ name: "Later nights, steadier", patient: "Kabir Rao", coach: "Ananya Desai", start: "2026-11-20", end: "2026-11-26", rhythm: {
+      hours: 7, bedtime: "00:30", wake: "07:30",
+      winddown: [{ label: "Last heavy meal, dinner cut-off", at: "21:00" }, { label: "Screen-free wind-down begins (60 min)", at: "23:30" }],
+      breathing: [{ name: "4-7-8 Breathing", mins: 1, at: "00:15" }],
+      metime: [{ label: "Listening to music (15 to 30 min)", at: "19:00" }],
+      mood: { checks: [{ at: "22:00" }] } } });
+  }
+})();
+</script>
+</body>
+</html>

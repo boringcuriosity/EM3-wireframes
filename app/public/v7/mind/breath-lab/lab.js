@@ -36,7 +36,7 @@
   };
   /* a quiet 2 s rest after breathing out (18 Nov 2026, the coach found it rushed), 4-7-8 included after its long breath out.
      Not after breathing in (that would be a hold) and not in Box, whose second hold already is one. ?vrest=0 shows the old timing */
-  var REST = new URLSearchParams(location.search).get("vrest") === "0" ? {} : { coherent: 2, belly: 2, hum: 2, exhale: 2, pursed: 2, sleep: 2 };
+  var REST = new URLSearchParams(location.search).get("vrest") !== "1" ? {} : /* ponytail: rest removed 19 Nov (breaks the breathing rhythm); ?vrest=1 previews it */ { coherent: 2, belly: 2, hum: 2, exhale: 2, pursed: 2, sleep: 2 };
   Object.keys(REST).forEach(function (k) { PAT[k].seq.push(["rest", REST[k], "Rest", "Let the breath settle"]); });
   var ease = function (t) { return .5 - Math.cos(Math.PI * Math.max(0, Math.min(1, t))) / 2; };
   var hex = function (h) { h = h.replace("#", ""); return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)]; };

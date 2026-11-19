@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
 <style>
   /* Mind, as v7/momentum-commentary.html: every case on the live Mind screen (mind/index.html), the line under the
-     Rhythm score, the KAIRA note behind Learn more, every bottom sheet, and the prompt. The cases are read from
+     Rhythm score, the KAIRA note behind Learn more and the prompt. The cases are read from
      v7/mind-rhythm.html (its CASES), so the two pages never drift apart. */
   :root { --g-50:#F9FAFB; --g-100:#F2F4F7; --g-200:#E4E7EC; --g-300:#D0D5DD; --g-500:#667085; --g-600:#475467; --g-700:#344054; --g-900:#101828;
     --in-50:#EEF4FF; --in-600:#444CE7; --brand:#299D6B; --brand-700:#2A805A; }
@@ -77,9 +77,9 @@
 <div class="page">
   <span class="eyebrow">Mind · Rhythm · Every case</span>
   <h1>Rhythm, case by case</h1>
-  <p class="lede">Every case on the live Mind screen in one place: the line under the score, the KAIRA note behind Learn more, every bottom sheet, and the prompt KAIRA works from. Pick a case and the phone shows it; tap inside the phone as a patient would.</p>
+  <p class="lede">Every case on the live Mind screen in one place: the line under the score, the KAIRA note behind Learn more, and the prompt KAIRA works from. Pick a case and the phone shows it; tap inside the phone as a patient would.</p>
   <div class="formula">Rhythm <i>=</i> Sleep quality (Sleep duration 25 <i>+</i> Sleep consistency 25 <i>+</i> Wind-down 20) <i>+</i> <span class="sp">Self-care (Breathing 10 <i>+</i> Me-time 10 <i>+</i> Mood 10)</span></div>
-  <div class="nav"><a href="#cases">Every situation</a><a href="#line">The line under the score</a><a href="#notes">Every KAIRA note</a><a href="#sheets">Every bottom sheet</a><a href="#prompt">The prompt</a><a href="/v7/mind-rhythm.html">The case doc</a></div>
+  <div class="nav"><a href="#cases">Every situation</a><a href="#line">The line under the score</a><a href="#notes">Every KAIRA note</a><a href="#prompt">The prompt</a><a href="/v7/mind-rhythm.html">The case doc</a></div>
 
   <h2 id="cases">Every situation</h2>
   <p class="lede">One case for each line the score can say. Pick a situation; where the line has <b>Learn more</b>, tap it in the phone to open KAIRA, or read the facts the app would send.</p>
@@ -117,10 +117,6 @@
   <p class="lede">Each phone logs one thing and opens the note by itself, as the patient sees it after tapping Learn more: a shimmer first, then the note. Until the AI is live the app shows its own note in the same format the prompt asks for.</p>
   <div class="grid" id="notesg"></div>
 
-  <h2 id="sheets">Every bottom sheet</h2>
-  <p class="lede">Every sheet the Mind screen opens, each in its own phone, grouped as in the case doc.</p>
-  <div id="sheetsg"></div>
-
   <h2 id="prompt">The prompt</h2>
   <p class="lede">One system prompt for every Rhythm note. The app sends only facts (what was just logged, the score before and now, last night against the plan, what is still open and what each would add). The AI never works out a number. Read from the live screen (<code>MDKAIRA.PROMPT</code> in <code>mind/rhythm-say.js</code>).</p>
   <div class="bar"><span>Rhythm KAIRA prompt</span><button id="copy" type="button">Copy prompt</button></div>
@@ -140,7 +136,6 @@
     ["sleepwin", "Sleep window"], ["plan", "Your mind plan"], ["mood1", "Mood check-in"], ["mood2", "Mood check-in, more"], ["mood3", "Mood check-in, more"],
     ["br1", "Breathing, a session"], ["br2", "All seven exercises"], ["brall", "All exercises for plan users"], ["br3", "The breathing row"],
     ["rows", "Wind-down and Me-time"], ["practices", "The Practices tab"], ["date", "Past days"], ["rsheet", "The Rhythm sheet"]];
-  var SHEET = /(^|&)(sheet|vpsheet|lsheet|rbd)=|bfstate=(len|lenfree|ask|askshort)|serr=|mwait|merr|lopen=1|kaira=1/;
 
   fetch("/v7/mind-rhythm.html").then(function (r) { return r.text(); }).then(function (t) {
     /* ponytail: the case lists are read from the case doc's own source, one list for both pages */
@@ -197,10 +192,6 @@
       return '<figure><figcaption><b>' + esc(c.name) + '</b><p>' + esc(c.desc || "") + '</p><a class="open" href="' + u + '" target="_blank">Open full size →</a></figcaption><div class="phone"><iframe title="' + esc(c.name) + '" data-src="' + u + '"></iframe></div></figure>';
     }
     document.getElementById("notesg").innerHTML = all.filter(function (c) { return /kaira=1/.test(c.q); }).map(fig).join("");
-    document.getElementById("sheetsg").innerHTML = GROUPS.map(function (g) {
-      var cs = all.filter(function (c) { return c.g === g[0] && g[0] !== "saykaira" && SHEET.test(c.q); });
-      return cs.length ? '<div class="gh">' + esc(g[1]) + '</div><div class="grid">' + cs.map(fig).join("") + "</div>" : "";
-    }).join("");
     [].forEach.call(document.querySelectorAll("iframe[data-src]"), function (f) { io.observe(f); });
   });
 

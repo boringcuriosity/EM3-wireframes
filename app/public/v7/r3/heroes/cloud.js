@@ -19,7 +19,6 @@
        history, loading) are blank: empty orbs, no number, a tag that says why. */
     var LOCKS = { noplanempty: "lit", noplan: "quiet" };
     var lock = opts.score == null ? LOCKS[opts.state] : null;
-    var blank = opts.score == null && !lock;
 
 
     /* the plate lives in a 342 x 320 box scaled to .65; the liquid score draws
@@ -43,21 +42,54 @@
     el.style.cssText += ";transform:none;width:100%;height:100%";
     if (tint) tint.style.display = "none";
 
-    var fr = document.createElement("iframe");
     /* Nothing logged is No Data Available; any day with food in it carries the
        score's own tag (Solid Day, Room To Grow, Needs Attention). Gathering
        data is not a general-purpose tag, so it is not used here. */
     /* nothing logged on a planned day is an invitation, not missing data */
-    var tag = lock ? "" : blank ? (opts.state === "loading" ? "gathering" : opts.rest ? "rest" : "none") : opts.mealsIn === 0 ? "log" : "";
-    fr.src = BASE + "cloud/index.html?build=34&embed=1&k=.88&er=.102&ey=-.095&y=.03&v=Cloud%20Drop&intro=murmuration" + (lock ? "&lock=" + lock : blank ? "&blank=1" : "&score=" + Math.round(opts.score)) + (tag ? "&tag=" + tag : "") +
-      (opts.from != null && !lock && !blank ? "&from=" + Math.round(opts.from) : "");
-    fr.title = ""; fr.tabIndex = -1; fr.setAttribute("aria-hidden", "true");
-    /* taps go to the hero wrap underneath, which opens the sufficiency sheet */
-    fr.style.cssText = "display:block;width:100%;height:100%;border:0;background:transparent;pointer-events:none";
+    function src(o) {
+      var lk = o.score == null ? LOCKS[o.state] : null, bl = o.score == null && !lk;
+      var tag = lk ? "" : bl ? (o.state === "loading" ? "gathering" : o.rest ? "rest" : "none") : o.mealsIn === 0 ? "log" : "";
+      return BASE + "cloud/index.html?build=35&embed=1&k=.88&er=.102&ey=-.095&y=.03&v=Cloud%20Drop&intro=murmuration" + (lk ? "&lock=" + lk : bl ? "&blank=1" : "&score=" + Math.round(o.score)) + (tag ? "&tag=" + tag : "") +
+        (o.from != null && !lk && !bl ? "&from=" + Math.round(o.from) : "");
+    }
+    function frame(o) {
+      var f = document.createElement("iframe");
+      f.src = src(o);
+      f.title = ""; f.tabIndex = -1; f.setAttribute("aria-hidden", "true");
+      /* taps go to the hero wrap underneath, which opens the sufficiency sheet */
+      f.style.cssText = "display:block;width:100%;height:100%;border:0;background:transparent;pointer-events:none";
+      return f;
+    }
+    var fr = frame(opts);
     el.appendChild(fr);
 
+    /* a new score, in place: the new gauge loads under the one on screen and takes over once it has drawn its first frame,
+       so the score never blanks while the next one loads. The wrap, stage and pill keep the styles this hero set on them */
+    var next = null, ready = null;
+    function swap(o) {
+      /* a padlock coming or going changes the hero's spacing too, so that one is a full remount (return false) */
+      if (!(o.score == null ? LOCKS[o.state] : null) !== !lock) return false;
+      if (next) { next.remove(); window.removeEventListener("message", ready); }
+      var f = next = frame(o), done = false;
+      if (getComputedStyle(el).position === "static") el.style.position = "relative";
+      f.style.position = "absolute"; f.style.inset = "0"; f.style.opacity = "0";
+      var take = function () {
+        if (done || next !== f) return; done = true; next = null;
+        window.removeEventListener("message", ready); clearTimeout(f.t);
+        f.style.position = ""; f.style.inset = ""; f.style.opacity = "";
+        fr.remove(); fr = f;
+      };
+      ready = function (e) { if (e.source === f.contentWindow && e.data === "cloud:drawn") take(); };
+      window.addEventListener("message", ready);
+      f.t = setTimeout(take, 2500);   /* never wait for ever: a frame that cannot say it drew still takes over */
+      el.appendChild(f);
+      return true;
+    }
+
     return {
+      swap: swap,
       dispose: function () {
+        if (next) { next.remove(); next = null; window.removeEventListener("message", ready); }
         el.innerHTML = "";
         wrap.style.cssText = was[0]; el.style.cssText = was[1];
         if (tint) tint.style.display = was[2] || "";

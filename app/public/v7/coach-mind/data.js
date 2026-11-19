@@ -40,13 +40,13 @@
      spec in mind/breath-lab/FINAL.md). The key picks the player's visual; the note shows only in the coach's picker.
      A range of minutes starts at its lower end; Morning is 7:00 AM, Noon 12:00 PM, and a time range uses its first time */
   MP.BREATHS = [
-    ["Simple Breathing", "In 5 s, out 5 s, rest 2 s", 5, "07:00", "coherent", "Coherent, 5-5"],
+    ["Simple Breathing", "In 5 s, out 5 s", 5, "07:00", "coherent", "Coherent, 5-5"],
     ["Box Breathing (4-4-4-4)", "In 4 s, hold 4 s, out 4 s, hold 4 s", 5, "06:30", "box"],
-    ["Belly Breathing", "In 4 s as the belly rises, out 6 s as it falls, rest 2 s", 5, "07:00", "belly"],
-    ["Pursed Lip Breathing", "In 2 s through the nose, out 4 s through pursed lips, like blowing out a candle, rest 2 s", 2, "12:00", "pursed"],
-    ["Extended Exhale (2:1)", "In 4 s, out 8 s, rest 2 s", 2, "12:00", "exhale"],
-    ["Humming Bee Breath (Bhramari)", "In 4 s, then hum on the breath out for 7 s, rest 2 s", 5, "20:30", "hum"],
-    ["4-7-8 Breathing", "In 4 s, hold 7 s, out 8 s, rest 2 s", 1, "21:30", "sleep"]
+    ["Belly Breathing", "In 4 s as the belly rises, out 6 s as it falls", 5, "07:00", "belly"],
+    ["Pursed Lip Breathing", "In 2 s through the nose, out 4 s through pursed lips, like blowing out a candle", 2, "12:00", "pursed"],
+    ["Extended Exhale (2:1)", "In 4 s, out 8 s", 2, "12:00", "exhale"],
+    ["Humming Bee Breath (Bhramari)", "In 4 s, then hum on the breath out for 7 s", 5, "20:30", "hum"],
+    ["4-7-8 Breathing", "In 4 s, hold 7 s, out 8 s", 1, "21:30", "sleep"]
   ];
   /* names saved in older plans, so they still open the right exercise. Never shown: MP.breathName gives today's name */
   MP.BREATH_ALIAS = { "Coherent Breathing (5-5)": "Simple Breathing", "Coherent Breathing": "Simple Breathing", "Zen Flow Breathing": "Simple Breathing",

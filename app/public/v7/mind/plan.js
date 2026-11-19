@@ -19,7 +19,7 @@
       { t: "Dinner 2 hours before bed", at: "20:30", d: "An early dinner keeps your sugar steadier through the night." },
       { t: "Phone away, lights low", at: "22:00", d: "Dim light tells your body it is time to sleep." }
     ],
-    br: [{ n: "Simple Breathing", min: 5, how: "In 5 s, out 5 s, rest 2 s" }],
+    br: [{ n: "Simple Breathing", min: 5, how: "In 5 s, out 5 s" }],
     me: [
       { t: "Do one enjoyable activity", d: "Music, a hobby, gardening, anything you look forward to." },
       { t: "Have one meaningful conversation", d: "A call or a chai with someone who matters to you." },
