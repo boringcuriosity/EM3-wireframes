@@ -351,8 +351,9 @@
       '<button class="md-save" data-dsave' + (ok ? "" : " disabled") + '>Save Last Night</button>';
   }
   function sleepSheet() {
-    draft = { bed: S.bed != null ? S.bed : bedM(P.bed), wake: S.wake != null ? S.wake : wakeM(P.wake) };
-    window.GFOpenSheet("mdSleep", "Last night’s sleep", sleepBody());
+    /* the sleep card's own sheet (variants/sleep.js) is the only one. The older house sheet (Save Last Night) is gone (Shaheer, 19 Nov 2026):
+       if the card's script is still loading, wait for it rather than fall back */
+    var tries = 0; (function go() { if (window.MDVAR && MDVAR.open && MDVAR.open.sleep) return MDVAR.open.sleep(); if (++tries < 40) setTimeout(go, 100); })();
   }
   function redrawSheet() { var b = document.querySelector("#mdSleep .sbody") || document.querySelector("#mdSleep"); var host = document.querySelector("#mdSleep [data-dsave]"); if (!host) return; host.parentNode.innerHTML = sleepBody(); }
 

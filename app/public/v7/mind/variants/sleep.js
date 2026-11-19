@@ -87,6 +87,30 @@
       : SD === "manual" ? { perm: true, src: "manual", night: TYPED, health: null }
       : { perm: true, src: "health", night: SY, health: SY, stale: SD === "stale" };
   }
+  /* ?sdev= the sleep card's sources on iPhone, each its own (v7/mind-sleep-card.html, 19 Nov 2026). Rhythm reads:
+     typed or edited times first, then the source picked in "Sleep data source" (the ring if paired), else Apple Health.
+     ?sdev=none|ah|ring|both   what is connected; new: nothing chosen yet, the strip under the card asks until they pick a source
+     ?suse=ring|ah|manual      the source picked in the sheet (default: ring if paired, else Apple Health)
+     ?sday=ok|missing|short|edited|typed|own|tiny|ringmiss   last night (tiny: they typed 2 hours; own: typed, the device had nothing; ringmiss: the ring has nothing, Apple Health has it) */
+  var DEV = /^(new|none|ah|ring|both)$/.test(Q.get("sdev") || "") ? Q.get("sdev") : null, HAS = {}, USE = null, FROM = null, SDAY = Q.get("sday") || "ok";
+  function build() {
+    var T = SDAY === "tiny" ? { bed: 1680, wake: 1800 } : { bed: PLAN.bed + 30, wake: PLAN.wake + 30 }, AHN = { bed: PLAN.bed + 35, wake: PLAN.wake + 5 };
+    if (!USE || (USE !== "manual" && !HAS[USE])) USE = HAS.ring ? "ring" : HAS.ah ? "ah" : "manual";
+    FROM = USE === "ring" && SDAY === "ringmiss" && HAS.ah ? "ah" : USE;
+    AND = false; RING = FROM === "ring"; NAME = RING ? "Arc smart ring" : "Apple Health";
+    var any = HAS.ring || HAS.ah;
+    ST = !any || UNSET ? { perm: false, src: SDAY === "missing" ? null : "manual", night: SDAY === "missing" ? null : T, health: null }
+      : USE === "manual" || SDAY === "typed" || SDAY === "own" ? { perm: true, src: SDAY === "missing" ? null : "manual", night: SDAY === "missing" ? null : T, health: USE === "manual" || SDAY === "own" ? null : SY }
+      : SDAY === "missing" || (SDAY === "ringmiss" && !HAS.ah) ? { perm: true, src: null, night: null, health: null }
+      : SDAY === "short" ? { perm: true, src: "health", night: SH, health: SH, odd: true }
+      : SDAY === "edited" ? { perm: true, src: "edited", night: { bed: PLAN.bed + 45, wake: PLAN.wake + 15 }, health: SY }
+      : SDAY === "ringmiss" ? { perm: true, src: "health", night: AHN, health: AHN, miss: true }
+      : { perm: true, src: "health", night: SY, health: SY };
+  }
+  /* waiting on a device: the loader says Syncing for 5 s, then says when it last checked */
+  var WAITED = false; if (DEV) setTimeout(function () { WAITED = true; if (typeof place === "function") place(); }, 5000);
+  var UNSET = DEV === "new" || Q.get("suse") === "none", FROMLOG = false;   /* suse=none: a device is already connected (say Apple Health from Move), the source is still theirs to choose */
+  if (DEV) { HAS = { ring: DEV === "ring" || DEV === "both", ah: DEV === "ah" || DEV === "both" }; USE = Q.get("suse"); build(); }
   /* the Arc ring's mark: Shaheer's ring image (icons/mind/arc-ring.png, 30 x 40), in the same small white tile as Health Connect's (17 Nov 2026) */
   var RINGI = '<i class="sv-ringi" aria-hidden="true"><img src="/v7/icons/mind/arc-ring.png" alt=""></i>';
   /* the words the sources use */
@@ -95,8 +119,12 @@
      ?vedit=a note always in the sheet, b note once the times move, c ask on Save */
   var VE = (Q.get("vedit") || "a").toLowerCase(), CONF = false;
   function moved() { var h = ST.health, d = draft; if (!h || !d) return false; var g = d.segs || [d]; return g[0].bed !== h.bed || g[g.length - 1].wake !== h.wake; }
-  function rnote(on) { return RING && ST.health && on ? '<div class="sv-rn">' + RINGI + '<span>Changes here count toward your Rhythm only. The Arc app keeps its own sleep score, from what the ring recorded.</span></div>' : ""; }
-  var VIA = function () { return RING ? (Q.get("sstrip") === "b" ? "Arc ring \u00b7 Health Connect" : "From Arc ring via Health Connect") : "From " + NAME; };
+  /* ?sdev: editing a ring night, the gold warning card of Eat and Move (r3/assets/plan-tray.js .fbn), 19 Nov 2026 */
+  var WARNI = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3z"/><path d="M12 10v4M12 17h.01"/></svg>';
+  function rnote(on) {
+    if (DEV && RING && ST.health) return "";   /* ?sdev: the ring warning is its own sheet before Edit (ringWarn) */
+    return RING && ST.health && on ? '<div class="sv-rn">' + RINGI + '<span>Changes here count toward your Rhythm only. The Arc app keeps its own sleep score, from what the ring recorded.</span></div>' : ""; }
+  var VIA = function () { if (DEV) return "From " + NAME; return RING ? (Q.get("sstrip") === "b" ? "Arc ring \u00b7 Health Connect" : "From Arc ring via Health Connect") : "From " + NAME; };
   /* ?scroll=sleep opens the screen at the sleep card, for v7/mind-sleep-sources.html; late images push it, so it settles a few times */
   if (Q.get("scroll") === "sleep") [600, 1500, 3000, 5000].forEach(function (t) { setTimeout(function () { var c = document.getElementById("svCard"); if (c) window.scrollTo(0, c.getBoundingClientRect().top + window.scrollY - 12); }, t); });
   var NIGHT = Q.get("naps") === "night";   /* doc only: the night alone counts towards hours, the rule before 16 Nov 2026 */
@@ -146,6 +174,7 @@
     clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
     hours: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 22h14M5 2h14M17 22v-4.2a2 2 0 0 0-.6-1.4L12 12l-4.4 4.4a2 2 0 0 0-.6 1.4V22M7 2v4.2a2 2 0 0 0 .6 1.4L12 12l4.4-4.4a2 2 0 0 0 .6-1.4V2"/></svg>',
     ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>',
+    penF: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.3 2.7a3.1 3.1 0 0 1 4.4 0l.6.6a3.1 3.1 0 0 1 0 4.4L8.6 20.4a2 2 0 0 1-.9.5l-4.6 1.2a1 1 0 0 1-1.2-1.2l1.2-4.6a2 2 0 0 1 .5-.9z"/></svg>',   /* filled, for the Manually added by you tag */
     pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>',
     info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
     warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>',
@@ -201,6 +230,8 @@
   /* ---------- the pieces of the card ---------- */
   function strip() {
     var hk = '<i class="hk' + (AND ? " hc" : "") + '"></i>';
+    if (DEV && UNSET) return '<button class="mv-sync off" data-sv="src">' + RINGI + hk + '<span class="tx"><b>Choose your sleep data source</b></span>' + MD.IC.chev + '</button>';   /* until they choose a source */
+    if (DEV) return devStrip(hk);
     if (J && ST.src === "manual" && ST.perm) return "";   /* J: times they typed need no label; not connected keeps the Connect strip */
     if (ST.src === "manual" && (ST.perm || !J)) return '<div class="mv-sync"><span class="src"><i class="hk sv-me">' + I.pencil + '</i>Entered by you</span><span class="at">' + (ST.at || "7:12 AM") + '</span></div>';
     if (RING) hk = RINGI + hk;   /* the ring and Health Connect side by side */
@@ -208,6 +239,13 @@
     if (!ST.night) return '<div class="mv-sync' + (RING ? " ring" : "") + '"><span class="src">' + hk + '<span class="vt">' + VIA() + '</span></span><span class="at">' + (RING ? "Not synced yet" : "No sleep synced yet") + '</span></div>';
     if (ST.src === "edited") return '<div class="mv-sync' + (RING ? " ring" : "") + '"><span class="src">' + hk + '<span class="vt">' + VIA() + ', edited by you</span></span></div>';
     return '<div class="mv-sync' + (RING ? " ring" : "") + '"><span class="src">' + hk + '<span class="vt">' + VIA() + '</span></span><span class="at">' + (ST.stale ? (RING ? "Yesterday, 9:14 PM" : "Last synced yesterday, 9:14 PM") : RING ? "7:22 AM" : "Updated 7:22 AM") + '</span></div>';
+  }
+  /* ?sdev: one source at a time. Typed times always say so; nothing connected asks to connect either */
+  function devStrip(hk) {
+    if (ST.src === "manual" || ST.src === "edited") return '<div class="mv-sync"><span class="src"><i class="hk sv-me">' + I.pencil + '</i>Manually added by you</span><span class="at">' + (ST.at || "7:12 AM") + '</span></div>';
+    if (!ST.perm) return "";   /* not connected: the card never asks again, connecting lives in the three dots (19 Nov 2026) */
+    var ic = RING ? RINGI : hk, at = !ST.night ? (WAITED ? "Updated 7:22 AM" : '<span class="sv-syn" role="status"><i class="sv-spin" aria-hidden="true"></i>Syncing</span>') : ST.miss ? "Your ring had no data" : ST.src === "edited" ? "" : "Updated 7:22 AM";
+    return '<div class="mv-sync"><span class="src">' + ic + '<span class="vt">' + VIA() + (ST.src === "edited" ? ", edited by you" : "") + '</span></span>' + (at ? '<span class="at">' + at + '</span>' : "") + '</div>';
   }
   /* J: the short-sync note, a slim ribbon in the gold of Eat's "logging in future" ribbon (v7/future-time-options.html, B).
      Fix opens the sheet; X keeps Health's times and puts the note away */
@@ -226,6 +264,9 @@
     return h;
   }
   function empty() {
+    if (DEV && ST.perm && USE !== "manual" && RING) return { t: "Your Arc ring hasn\u2019t synced last night yet", s: "Wait for it to sync, or log it yourself." };   /* the ring is GoodFlip's own, no other app to open */
+    if (DEV && ST.perm && USE !== "manual" && !RING) return { t: "We haven\u2019t received your sleep data yet", s: "Wait for it to sync, or log it yourself." };   /* the loader in the strip says the rest */
+    if (DEV && (!ST.perm || USE === "manual")) return { t: "Add your last night\u2019s sleep", s: "" };
     if (!ST.perm) return { t: "Add last night", s: RING ? "Enter the times, or turn on Health Connect so your Arc ring fills them in." : "Enter the times, or connect " + NAME + " to fill them in by itself.", b: "Enter Last Night", sec: false };
     if (RING) return { t: "Your Arc ring hasn\u2019t synced last night yet", s: "Open the Arc app to sync it, or log it yourself.", b: "Enter Last Night", sec: false };
     return { t: "We haven’t received last night’s sleep yet", s: "Wait for it to sync, or log it yourself.", b: "Enter Last Night", sec: false };
@@ -236,7 +277,8 @@
     return '<div class="mv-sc sv-sc"><div class="sv-et">' + (pic || "") + '<div><div class="sv-t">' + c.t + '</div><div class="mv-sub">' + c.s + '</div></div></div>' + (pic ? "" : bar(null, {})) +
       '<button class="sv-cta' + (c.sec ? " sec" : "") + '" data-sv="edit">' + c.b + '</button></div>';
   }
-  var EDIT = '<button class="mv-logbtn" data-sv="edit">' + I.pencil + 'Edit</button>';
+  var MENU = '<button class="sv-dots" data-sv="menu" aria-label="Last night options"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>';
+  var EDIT = DEV ? MENU : '<button class="mv-logbtn" data-sv="edit">' + I.pencil + 'Edit</button>';
   function tiles(n) {
     var h = hours(n), t = timing(n);
     return '<div class="sv-rds"><div class="sv-rd"><span class="l">' + I.hours + 'Hours</span><span class="v">' + h.v + '</span><span class="s">' + h.s + '</span><span class="mt"><i style="width:' + h.pct + '%"></i></span></div>' +
@@ -253,8 +295,8 @@
   /* J with nothing for last night: Log sleep at the top right, as Move's Log steps, over the empty sleep window */
   function jEmpty() {
     var c = empty();
-    return '<div class="mv-sc sv-sc"><div class="mv-sh"><div class="t"><div class="sv-t">' + c.t + '</div>' + (c.s ? '<div class="mv-sub">' + c.s + '</div>' : "") + '</div>' +
-      '<button class="mv-logbtn" data-sv="edit">' + PLUSQ + 'Log sleep</button></div>' + bar(null, {}) + '</div>';
+    return '<div class="mv-sc sv-sc"><div class="mv-sh"><div class="t"><div class="sv-t">' + c.t + '</div>' + (c.s && !DEV ? '<div class="mv-sub">' + c.s + '</div>' : "") + '</div>' +
+      (DEV && ST.perm && USE !== "manual" ? '<span class="sv-acts sv-acts-t"><button class="mv-logbtn" data-sv="edit">' + PLUSQ + 'Log sleep</button>' + MENU + '</span>' : DEV ? '<span class="sv-acts"><button class="' + (Q.get("slog") === "p" ? "sv-logp" : "sv-cn sv-logs") + '" data-sv="edit">' + PLUSQ + 'Log sleep</button>' + MENU + '</span>' : '<button class="mv-logbtn" data-sv="edit">' + PLUSQ + 'Log sleep</button>') + '</div>' + (c.s && DEV ? '<div class="mv-sub sv-sub1">' + c.s + '</div>' : "") + bar(null, {}) + '</div>';   /* ?sdev: the line under the title runs the card's full width, one line */
   }
   var CARD = {
     /* I: A exactly, without the Hours and Timing tiles. What the tiles said comes back in A's own two lines:
@@ -377,6 +419,14 @@
 
   /* ---------- the sheet ---------- */
   var draft = null, active = "bed", el = null;
+  /* ?vlog= the Log sleep sheet with less on it (v7/mind-sleep-log-options.html, 19 Nov 2026):
+     b  the two times only, the wheel opens under the time you tap; no bar
+     c  b, with the bar kept as the picture of the night
+     d  the common answers first (As planned, Same as the night before), the picker only for Different times
+     e  hours first: the total leads, the two times under it, the wheel on tap
+     f  drag the bar: a tall bar with handles is the picker, the times read back under it, the wheel on tap
+     every option: lifted time cards with a chevron, the moon in indigo and the sun in gold, the coach's plan as a soft chip */
+  var VL = /^[bcdef]$/.test(Q.get("vlog") || "") ? Q.get("vlog") : null;
   /* I's draft holds one to three sleeps; bed and wake read and write the sleep in use, so the wheel works unchanged */
   function mkDraft(segs) {
     var d = { segs: segs.map(function (x) { return { bed: x.bed, wake: x.wake }; }), ai: 0 };
@@ -387,11 +437,19 @@
     var n = ST.night;
     draft = n ? { bed: n.bed, wake: n.wake } : { bed: PLAN.bed, wake: PLAN.wake }; active = k === "wake" ? "wake" : "bed";
     if (V === "i") draft = mkDraft(n ? (n.segs || [n]) : [{ bed: PLAN.bed, wake: PLAN.wake }]);
-    el = window.GFOpenSheet("svSleep", "Last night’s sleep", '<div class="sv-s' + (J ? " sv-j-sheet" : "") + '"><div class="msub">Your coach’s plan: ' + clk(PLAN.bed) + ' to ' + clk(PLAN.wake) + ', ' + dur(PLAN.hours) + '.</div>' + rnote(VE === "a") + '<div data-svs="pick"></div>' +
+    el = window.GFOpenSheet("svSleep", "Last night’s sleep", '<div class="sv-s' + (J ? " sv-j-sheet" : "") + '"><div class="msub">' + (VL ? "Your coach suggests " + clk(PLAN.bed) + " to " + clk(PLAN.wake) : "Your coach\u2019s plan: " + clk(PLAN.bed) + " to " + clk(PLAN.wake) + ", " + dur(PLAN.hours) + ".") + '</div>' + rnote(DEV ? "sheet" : VE === "a") + '<div data-svs="pick"></div>' +
       (J ? "" : '<div class="sv-pre" role="group" aria-label="Quick fill"><button data-svp="plan">As planned</button><button data-svp="prev">Same as the night before</button><button data-svp="now">Woke up just now</button></div>') +   /* J: the bar and the wheel are enough */
       '<div class="sv-sum" data-svs="sum" aria-live="polite"></div><button class="md-save" data-sv="save">Save Sleep</button>' +
-      (ST.health && ST.src === "edited" ? '<button class="sv-rst" data-sv="reset">Use ' + NAME + '’s times (' + clk(ST.health.bed) + ' to ' + clk(ST.health.wake) + ')</button>' : "") + '</div>');
+      (ST.health && (ST.src === "edited" || (DEV && ST.src === "manual")) ? '<button class="sv-rst" data-sv="reset">Use ' + NAME + '’s times (' + clk(ST.health.bed) + ' to ' + clk(ST.health.wake) + ')</button>' : "") + '</div>');
     drawPick(); drawSum();
+    if (VL && !document.getElementById("svGlyphDefs")) document.body.insertAdjacentHTML("beforeend", '<svg id="svGlyphDefs" width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="svGlyph" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#667085"/><stop offset="1" stop-color="#1D2939"/></linearGradient></defs></svg>');   /* the moon and sun in a dark grey gradient */
+    var ss = el.querySelector(".sv-s"); if (VL && ss) { ss.classList.add("vl-" + VL); ss.classList.remove("wopen"); }
+    if (VL === "d" && ss) {   /* D: the common answers first, the time picker only for Different times */
+      var q = function (k, t, sub) { return '<button class="vlq" data-svp="' + k + '"' + (k === "more" ? ' data-vlx="more"' : "") + '><span><b>' + t + '</b>' + (sub ? '<span>' + sub + '</span>' : "") + '</span><i class="rd"></i></button>'; };
+      ss.querySelector('[data-svs="pick"]').insertAdjacentHTML("beforebegin", '<div class="vlqs" role="radiogroup">' +
+        q("plan", "As planned", clk(PLAN.bed) + " to " + clk(PLAN.wake)) + q("prev", "Same as the night before", clk(PREV.bed) + " to " + clk(PREV.wake)) + q("more", "Different times", "") + '</div>');
+    }
+    if (VL && ss && Q.get("vlopen") === "1") { ss.classList.add("wopen", "dmore"); var mo = ss.querySelector('.vlq[data-vlx="more"]'); if (mo) mo.classList.add("on"); }   /* doc: the wheel open */
   }
   function checkI() {
     var g = draft.segs, many = g.length > 1, last = g[g.length - 1];
@@ -416,7 +474,7 @@
   }
   function drawSumI() {
     var c = checkI(), g = draft.segs, sum = el.querySelector('[data-svs="sum"]'), aw = draft.segs[g.length - 1].wake - g[0].bed - len(draft);
-    sum.innerHTML = (c.err ? "" : '<div class="h">That is <b>' + dur(len(draft)) + '</b> of sleep' + (g.length > 1 ? ', with ' + gap(aw) + ' awake in between' : '') + '.</div>') +
+    sum.innerHTML = (c.err ? "" : VL === "e" ? '<div class="h vle"><b>' + dur(len(draft)) + '</b><span>of sleep' + (g.length > 1 ? ', ' + gap(aw) + ' awake' : '') + '</span></div>' : '<div class="h">' + (VL ? "You\u2019re logging " : "That is ") + '<b>' + dur(len(draft)) + '</b> of sleep' + (g.length > 1 ? ', with ' + gap(aw) + ' awake in between' : '') + '.</div>') +
       (c.err ? '<div class="sv-msg err">' + I.warn + '<span>' + c.err + '</span></div>' : c.wrn ? '<div class="sv-msg wrn">' + I.info + '<span>' + c.wrn + '</span></div>' : "") + rnote(VE === "b" && moved());
     el.querySelector('[data-sv="save"]').disabled = !!c.err;
     el.querySelectorAll(".sv-fld").forEach(function (f) { var i = +f.dataset.i, k = f.dataset.f, m = g[i][k]; f.classList.toggle("bad", !!c.err && c.i === i && c.f === k); f.querySelector(".fv").textContent = clk(m); f.querySelector(".fd").textContent = dayOf(m, k); });
@@ -552,7 +610,7 @@
         draft[active] = active === "bed" ? (c >= 720 ? c : 1440 + c) : 1440 + c;
         drawSum();
       };
-      w.addEventListener("scroll", function () { clearTimeout(t); t = setTimeout(function () { set(Math.round(w.scrollTop / 40)); }, 90); });
+      w.addEventListener("scroll", function () { clearTimeout(t); t = setTimeout(function () { var sv = w.closest(".sv-s"); if (VL && sv && (!sv.classList.contains("wopen") || sv.classList.contains("wanim"))) return; set(Math.round(w.scrollTop / 40)); }, 90); });   /* a folded wheel (?vlog) never sets a time */
       w.addEventListener("keydown", function (e) { if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return; e.preventDefault(); var j = Math.max(0, Math.min(max, wi[k] + (e.key === "ArrowDown" ? 1 : -1))); w.scrollTo({ top: j * 40, behavior: RD ? "auto" : "smooth" }); set(j); });
       w.querySelectorAll("button").forEach(function (b) { b.onclick = function () { var j = +b.dataset.i; w.scrollTo({ top: j * 40, behavior: RD ? "auto" : "smooth" }); set(j); }; });
     });
@@ -620,7 +678,41 @@
       (why.length ? '<ul class="sv-why">' + why.map(function (t) { return '<li>' + t + '</li>'; }).join("") + '</ul>' : '') +
       '<div class="msub" style="margin-top:16px">Hours and timing count on their own. Naps add to your hours; your timing comes from your main sleep only. Going to bed at the same time each night is what helps your sugar and energy most.</div>');
   }
+  /* ?sdev: the three dots. Edit is always there; the source is there once anything can be connected */
+  var SWAP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h15l-4-4M20 15H5l4 4"/></svg>';
+  var SRCN = { ring: "Arc smart ring", ah: "Apple Health", manual: "Manually" };
+  /* ?sdev: before editing a ring night, its own sheet: the gold warning card with Move's L arrows (move/rest-variants.js) */
+  function ringWarn() {
+    var li = function (b, t) { return '<li><span><b>' + b + '</b> ' + t + '</span></li>'; };
+    window.GFOpenSheet("svRingW", "Before you edit", '<div class="sv-fbn" role="note"><div class="rib">' + WARNI + 'Arc smart ring connected</div><div class="in"><b>Your edit changes sleep in Mind only</b><ul class="sv-la">' +
+      li("Your Rhythm score updates.", "It uses the times you set.") +
+      li("Your ring stays as it is.", "Its sleep data and sleep score don\u2019t change.") +
+      li("Edit only if the ring missed part of the night,", "for example you took it off to charge, removed it midway, or its battery ran out.") +
+      '</ul></div></div><button class="md-save" data-sv="redit">Edit Sleep Times</button><button class="sv-rst" data-sv="close">Keep the ring\u2019s times</button>');
+  }
+  function menu() {
+    var any = HAS.ring || HAS.ah, row = function (a, ic, t, s) { return '<button class="sv-mn" data-sv="' + a + '"><span class="ic">' + ic + '</span><span class="tx"><b>' + t + '</b>' + (s ? '<span>' + s + '</span>' : "") + '</span>' + MD.IC.chev + '</button>'; };
+    window.GFOpenSheet("svMenu", "Last night", '<div class="sv-mns">' +
+      row("edit", ST.night ? I.pencil : PLUSQ, ST.night ? "Edit sleep times" : "Log sleep", "") +
+      row("src", SWAP, "Sleep data source", UNSET ? "" : SRCN[USE]) + '</div>');
+  }
+  var PICKD = null;
+  function srcSheet() {
+    PICKD = UNSET ? null : USE;   /* nothing chosen yet: nothing selected */
+    var heart = '<img src="/v7/icons/health/apple-health-heart.png" alt="">', opt = function (k, ic, t, s) {
+      var can = k === "manual" || HAS[k];
+      return '<div class="sv-so' + (PICKD === k ? " on" : "") + '"' + (can ? ' role="radio" tabindex="0" aria-checked="' + (PICKD === k) + '" data-svk="' + k + '"' : "") + '><span class="ic">' + ic + '</span><span class="tx"><b>' + t + '</b>' + (s ? '<span>' + s + '</span>' : "") + '</span>' +
+        (can ? '<i class="rd" aria-hidden="true"></i>' : '<button class="sv-cn" data-sv="devgo" data-dev="' + k + '">Connect</button>') + '</div>';
+    };
+    window.GFOpenSheet("svSrc", "Sleep data source", '<div class="msub">Choose how your sleep gets filled in each day.</div><div class="sv-sos" role="radiogroup" aria-label="Sleep data source">' +
+      (true ? opt("ring", '<img src="/v7/icons/mind/arc-ring.png" alt="">', HAS.ring ? 'Arc smart ring<span class="gf-verdict sv-rec" data-fs15="1">Recommended</span>' : "Arc smart ring", HAS.ring ? "Paired" : "") : "") +
+      opt("ah", heart, "Apple Health", HAS.ah ? "Connected" : "") +
+      opt("manual", '<span class="me">' + I.pencil + '</span>', "I’ll enter sleep manually daily", "") +
+      '</div><p class="sv-hint"' + (PICKD === "manual" ? "" : " hidden") + '>You can change this anytime from <span class="sv-hd" role="img" aria-label="the three dots"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></span> on the Last night card.</p>' +
+      '<button class="md-save" data-sv="srcsave"' + (PICKD ? "" : " disabled") + '>Save</button>');
+  }
   function perm() {
+    if (DEV) return srcSheet();
     if (J) return permJ();
     window.GFOpenSheet("svPerm", AND ? "Turn on Health Connect" : "Connect Apple Health", '<div class="sv-perm"><div class="pair"><img src="/v7/icons/goodflip-logo-small.png" alt=""><i class="hk' + (AND ? " hc" : "") + '"></i></div><ul>' +
       ["GoodFlip reads when you fell asleep and woke up.", "You can still change the times yourself.", "Sleep needs a watch, or a sleep app, that writes to " + NAME + "."].map(function (t) { return '<li>' + I.check + '<span>' + t + '</span></li>'; }).join("") + '</ul></div>' +
@@ -670,7 +762,8 @@
   /* ---------- taps ---------- */
   document.addEventListener("click", function (e) {
     var p = e.target.closest("[data-svp]"), f = e.target.closest(".sv-fld"), t = e.target.closest("[data-sv]");
-    var x = e.target.closest("[data-svx]");
+    var x = e.target.closest("[data-svx]"), so = e.target.closest("[data-svk]");
+    if (so && !e.target.closest("[data-sv]")) { PICKD = so.dataset.svk; [].forEach.call(document.querySelectorAll("#svSrc [data-svk]"), function (o) { var on = o === so; o.classList.toggle("on", on); o.setAttribute("aria-checked", on); }); var sv = document.querySelector('#svSrc [data-sv="srcsave"]'); if (sv) sv.disabled = false; var hn = document.querySelector("#svSrc .sv-hint"); if (hn) hn.hidden = PICKD !== "manual"; return; }   /* picking manual says where to change it later */
     if (x && draft && draft.segs) {
       var g = draft.segs;
       if (x.dataset.svx === "add" && g.length < 3) {
@@ -681,6 +774,11 @@
       }
       if (x.dataset.svx === "rm") { var i = +x.dataset.i; g[i - 1].wake = g[i].wake; g.splice(i, 1); draft.ai = i - 1; active = "wake"; }   /* removing joins it back to the sleep before */
       drawPick(); drawSum(); return;
+    }
+    if (p && p.classList.contains("vlq")) {
+      var qs = p.closest(".sv-s"); [].forEach.call(qs.querySelectorAll(".vlq"), function (b) { b.classList.toggle("on", b === p); });
+      qs.classList.toggle("dmore", p.dataset.svp === "more"); qs.classList.toggle("wopen", p.dataset.svp === "more");
+      if (p.dataset.svp === "more") return;
     }
     if (p && draft && draft.segs) {
       if (p.dataset.svp === "plan") draft = mkDraft([{ bed: PLAN.bed, wake: PLAN.wake }]);
@@ -694,10 +792,27 @@
       if (p.dataset.svp === "now") { draft.wake = NOWM - NOWM % 5; active = "wake"; }
       drawPick(); drawSum(); return;
     }
+    if (f && VL) {   /* tap a time to open the wheel under it, tap it again to close */
+      var ss = f.closest(".sv-s"), same = ss.classList.contains("wopen") && active === f.dataset.f;
+      if (!ss.classList.contains("wopen") && !RD) { ss.classList.add("wanim"); setTimeout(function () { ss.classList.remove("wanim"); }, 400); }   /* the wheel unfolds as it opens */
+      ss.classList.toggle("wopen", !same);
+    }
     if (f) { if (draft && draft.segs && f.dataset.i != null) draft.ai = +f.dataset.i; active = f.dataset.f; drawPick(); drawSum(); return; }
     if (!t) return;
     var a = t.dataset.sv;
+    if (a === "edit" && UNSET) { FROMLOG = true; return srcSheet(); }   /* no source chosen yet: Log sleep asks how first; picking manual then opens Log sleep */
+    if (a === "edit" && DEV && RING && ST.health && ST.src !== "manual") return ringWarn();
+    if (a === "redit") return sheet(t.dataset.f);
     if (a === "edit") return sheet(t.dataset.f);
+    if (a === "menu") return menu();
+    if (a === "src") return srcSheet();
+    if (a === "devgo" && t.dataset.dev === "ah") return permJ();
+    if (a === "devgo" && UNSET) { HAS[t.dataset.dev] = true; USE = t.dataset.dev; UNSET = false; var kr = ST.night && ST.src === "manual" ? ST : null; build(); if (kr) { kr.perm = true; kr.health = ST.health; ST = kr; } window.closeSheets(); put(ST.night); MD.render(); place(); MD.toast("Your Arc ring is connected."); return; }
+    if (a === "devgo") { HAS[t.dataset.dev] = true; MD.toast(t.dataset.dev === "ring" ? "Your Arc ring is connected." : "Apple Health is connected."); var k0 = PICKD; srcSheet(); PICKD = k0; return; }   /* ponytail: the phone's own pairing and permission screens are left out here */
+    if (a === "srcsave" && !PICKD) return;
+    if (a === "srcsave" && FROMLOG && PICKD === "manual") { FROMLOG = false; UNSET = false; USE = "manual"; build(); MD.render(); place(); return sheet(); }
+    if (a === "srcsave") { UNSET = false; FROMLOG = false; var was = USE, keep = ST.night && (ST.src === "manual" || ST.src === "edited") ? ST : null; USE = PICKD; build();
+      if (keep) { keep.perm = ST.perm; keep.health = ST.health; ST = keep; }   /* times they typed or edited stay, whatever the source */ put(ST.night); window.closeSheets(); MD.render(); place(); if (USE !== was) MD.toast(USE === "manual" ? "You’ll enter your sleep yourself." : "Your sleep now comes from " + SRCN[USE] + "."); return; }
     if (a === "save") return save();
     if (a === "rsave") { CONF = true; return save(); }
     if (a === "info") return info();
@@ -705,6 +820,11 @@
     if (a === "close") return window.closeSheets();
     if (a === "oddok") { ST.oddOk = true; MD.render(); place(); MD.toast("Kept " + NAME + "’s times."); return; }
     if (a === "reset") { ST.night = ST.health.segs ? ST.health : { bed: ST.health.bed, wake: ST.health.wake }; ST.src = "health"; ST.odd = len(ST.night) < 180; put(ST.night); window.closeSheets(); MD.render(); place(); MD.toast("Back to " + NAME + "’s times."); return; }
+    if (a === "permgo" && DEV) {   /* the phone's own Health screen comes next; here it always says yes */
+      window.closeSheets(); HAS.ah = true; USE = "ah"; UNSET = false; var kp = ST.night && ST.src === "manual" ? ST : null; build(); if (kp) { kp.perm = true; kp.health = ST.health; ST = kp; }
+      if (!kp) { SDAY = "missing"; build(); WAITED = false; setTimeout(function () { SDAY = "ok"; WAITED = true; if (!(ST.night && ST.src === "manual")) build(); put(ST.night); MD.render(); place(); }, RD ? 50 : 5000); }   /* Syncing, then last night comes in */
+      put(ST.night); MD.render(); place(); MD.toast("Apple Health is connected."); return;
+    }
     if (a === "permgo") {
       /* the phone's own permission screen comes next; here it always says yes, then last night is read */
       window.closeSheets(); ST = { perm: true, src: null, night: null, health: null }; put(null); MD.render(); place();
@@ -729,12 +849,108 @@
   MDVAR.open.sleep = function () { sheet(); return true; };
   /* "How last night counts" is not shown to people: nothing on the screen opens it, and the Rhythm sheet already shows the sleep points (designer, 16 Nov 2026) */
   MDVAR.open.sleepperm = function () { perm(); return true; };
+  MDVAR.open.sleepask = function () { permJ(); return true; };   /* the first time on Mind: Apple Health's ask, once */
+  MDVAR.open.sleepring = function () { ringWarn(); return true; };
+  MDVAR.open.sleepmenu = function () { menu(); return true; };   /* ?sdev docs: the three dots, and the source sheet */
+  MDVAR.open.sleepsrc = function () { srcSheet(); return true; };
   var prevItems = MDVAR.items;
   MDVAR.items = function (L, M) { L = prevItems ? prevItems(L, M) : L; return items(L); };
 
   var css = document.createElement("style");
   css.textContent = [
     "#svCard .sv-sec{display:flex;align-items:center;justify-content:space-between}",
+    /* Save Sleep: the primary button of the Apple Health sheet (move/plan.css #mvHealth .hgo), its 7px depth, stuck to the bottom while the sheet scrolls */
+    "#svSleep .md-save{position:sticky;bottom:7px;z-index:3;height:52px;margin:24px 0 7px;border-radius:12px;font:700 15px/1 Roboto,sans-serif;letter-spacing:.25px;box-shadow:0 7px 0 #2A805A,0 0 0 16px #fff;transition:transform .2s ease-out,box-shadow .2s ease-out}",
+    "#svSleep .md-save:active{transform:translateY(5px);box-shadow:0 2px 0 #2A805A,0 0 0 16px #fff}",
+    "#svSleep .md-save[disabled]{box-shadow:0 7px 0 #E4E7EC,0 0 0 16px #fff}",
+    /* Sleep data source's Save: the same primary with its 7px depth; greyed, it keeps a grey ledge so it reads as the same button */
+    "#svSrc .md-save{height:52px;margin-bottom:7px;border-radius:12px;font:700 15px/1 Roboto,sans-serif;letter-spacing:.25px;box-shadow:0 7px 0 #2A805A;transition:transform .2s ease-out,box-shadow .2s ease-out}",
+    "#svSrc .md-save:active{transform:translateY(5px);box-shadow:0 2px 0 #2A805A}",
+    "#svSrc .md-save[disabled]{box-shadow:0 7px 0 #E4E7EC}",
+    ".sv-dots{width:36px;height:36px;margin:-6px -8px 0 0;border:0;border-radius:50%;background:transparent;color:#475467;display:grid;place-items:center;cursor:pointer;flex:none}",
+    ".sv-dots svg{width:20px;height:20px}.sv-dots:active{background:#F2F4F7}",
+    /* Log sleep: GoodFlip's primary with depth, small (as #mvHealth .hgo, sized for a card) */
+    ".sv-logp{flex:none;display:inline-flex;align-items:center;gap:6px;height:36px;margin-bottom:4px;padding:0 16px;border:0;border-radius:10px;background:#299D6B;color:#fff;font:700 15px/1 Roboto,sans-serif;letter-spacing:.25px;box-shadow:0 4px 0 #2A805A;cursor:pointer;transition:transform .2s ease-out,box-shadow .2s ease-out}",
+    ".sv-logp svg,.sv-logs svg{width:18px;height:18px}.sv-logs{display:inline-flex;align-items:center;gap:6px}",   /* Log sleep as the secondary with depth (default); ?slog=p the primary */
+    ".sv-logp:active{transform:translateY(4px);box-shadow:0 0 0 #2A805A}",
+    ".sv-spin{display:inline-block;width:16px;height:16px;border-radius:50%;border:2px solid #E4E7EC;border-top-color:#299D6B;animation:svSpin .9s linear infinite;vertical-align:middle}",
+    "@keyframes svSpin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.sv-spin{animation-duration:2.4s}}",
+    "#mvHealth .hlater[data-sv]{color:#299D6B}",   /* sleep's Apple Health sheet: I will enter my sleep myself in the primary green (Move's sheet keeps its own) */
+    ".sv-fbn{margin:16px 0 8px;border-radius:16px;overflow:hidden;background:#FFFDF5;border:1px solid #FEF1C7}",
+    ".sv-fbn .rib{display:flex;align-items:center;gap:6px;height:32px;padding:0 16px;font:600 15px/1 Roboto,sans-serif;color:#826E2D;background:repeating-linear-gradient(-45deg,#FFF8E0 0 10px,#FFFBEE 10px 20px);border-bottom:1px solid #FEF1C7}",
+    ".sv-fbn .rib svg{width:16px;height:16px;color:#A68A2D;flex:none}.sv-fbn .in{padding:12px 16px 16px}",
+    ".sv-fbn b{display:block;font:600 16px/22px Roboto,sans-serif;color:#101828}.sv-fbn p{margin:4px 0 0;font:400 15px/22px Roboto,sans-serif;color:#475467}",
+    ".sv-la{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:12px}",
+    ".sv-la li{position:relative;padding-left:24px;font:400 15px/22px Roboto,sans-serif;color:#475467}.sv-la li b{display:inline;font:600 15px/22px Roboto,sans-serif;color:#101828}",
+    ".sv-la li::before{content:'';position:absolute;left:0;top:3px;width:16px;height:16px;background:url(/v7/r3/assets/trend-bullet.svg) no-repeat center/16px}",
+    "#svRingW .sv-fbn{margin:8px 0 24px}",
+    "#svRingW .md-save{height:52px;margin-bottom:7px;border-radius:12px;font:700 15px/1 Roboto,sans-serif;letter-spacing:.25px;box-shadow:0 7px 0 #2A805A;transition:transform .2s ease-out,box-shadow .2s ease-out}#svRingW .md-save:active{transform:translateY(5px);box-shadow:0 2px 0 #2A805A}",
+    "#svRingW .sv-rst{margin-top:12px;font-size:15px}",
+    ".sv-hint{margin:-8px 0 16px;font:400 15px/22px Roboto,sans-serif;color:#475467}.sv-hint[hidden]{display:none}",
+    "#svSrc .sv-hd{position:static !important;display:inline-grid !important;place-items:center;width:22px;height:22px;margin:0 2px;vertical-align:-5px;border-radius:6px;background:#F2F4F7;color:#344054}#svSrc .sv-hd svg{display:block;width:14px;height:14px;fill:#344054}",
+    /* the ring, once paired, is the one we suggest: the app's tag (r3/goodflip-ui.css .gf-verdict, green; Coming soon is its gold .warn), beside the name */
+    "#svSrc .sv-so b{display:flex;align-items:center;white-space:nowrap}",
+    "#svSrc .sv-so b .sv-rec{flex:none;margin-left:8px;height:20px;padding:0 6px;font:500 12px/1 Roboto,sans-serif;letter-spacing:.25px;color:var(--ok-600,#299D6B)}",
+    /* ?vlog variants of the Log sleep sheet: shared polish */
+    "[class*=vl-] .msub{display:inline-flex;align-items:center;gap:8px;margin:4px 0 24px;padding:10px 12px;border-radius:12px;background:#F5F8FF;color:#2D3282;font:500 15px/20px Roboto,sans-serif}",
+    "[class*=vl-] .msub::before{content:'';width:16px;height:16px;flex:none;background:#444CE7;-webkit-mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='4' width='14' height='17' rx='2'/%3E%3Cpath d='M9 4V3h6v1M9 11h6M9 15h4'/%3E%3C/svg%3E\") center/contain no-repeat;mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='5' y='4' width='14' height='17' rx='2'/%3E%3Cpath d='M9 4V3h6v1M9 11h6M9 15h4'/%3E%3C/svg%3E\") center/contain no-repeat}",
+    "[class*=vl-] .sv-flds{gap:12px}",
+    "#svSleep [class*=vl-] .msub{margin-bottom:24px}#svSleep [class*=vl-]:not(.vl-e) .sv-sum{margin-top:-12px;padding:8px 0 0}#svSleep [class*=vl-] .sv-add{margin-bottom:0}",
+    "[class*=vl-] .sv-fld{position:relative;padding:14px 40px 14px 16px;border:1px solid #EAECF0;border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.06),0 6px 16px -6px rgba(16,24,40,.14);transition:box-shadow .2s ease-out,border-color .2s ease-out,transform .2s ease-out}",
+    "[class*=vl-] .sv-fld:active{transform:translateY(1px);box-shadow:0 1px 2px rgba(16,24,40,.06)}",
+    "[class*=vl-] .sv-fld::after{content:'';position:absolute;top:16px;right:14px;width:18px;height:18px;background:#98A2B3;-webkit-mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\") center/contain no-repeat;mask:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\") center/contain no-repeat;transition:transform .2s ease-out}",
+    "[class*=vl-].wopen .sv-fld[aria-pressed=true]::after{transform:rotate(180deg);background:#299D6B}",
+    "[class*=vl-] .sv-fld .fl svg path{fill:url(#svGlyph)}",
+    "[class*=vl-] .sv-fld .fl{font-size:15px;color:#475467;margin-bottom:4px}",
+    ".wanim .sv-whs{animation:svWh .32s cubic-bezier(.2,0,0,1) both}",
+    "@keyframes svWh{from{opacity:0;transform:translateY(-6px);clip-path:inset(0 0 100% 0 round 12px)}to{opacity:1;transform:none;clip-path:inset(0 0 0 0 round 12px)}}",
+    /* the total sits on Save, stuck with it at the bottom, centred */
+    "[class*=vl-]:not(.vl-e) .sv-sum{position:sticky;bottom:54px;z-index:3;margin:16px 0 0;padding:8px 0 4px;background:#fff;text-align:center;font:400 15px/22px Roboto,sans-serif;color:#475467}",
+    "[class*=vl-]:not(.vl-e) .sv-sum b{color:#101828}",
+    "#svSleep [class*=vl-] .md-save{margin-top:-4px;box-shadow:0 7px 0 #2A805A,0 7px 0 7px #fff}",
+    "[class*=vl-]:not(.wopen) .sv-fld[aria-pressed=true]{border-color:#EAECF0;box-shadow:0 1px 2px rgba(16,24,40,.06),0 6px 16px -6px rgba(16,24,40,.14)}",
+    "[class*=vl-] .sv-add{margin-top:4px}",
+    /* E: hours first */
+    ".vl-e{display:flex;flex-direction:column}.vl-e .sv-sum{order:-1;margin:0 0 12px}",
+    ".vl-e .vle{display:flex;align-items:baseline;gap:8px}#svSleep .vl-e .vle b{font:700 36px/44px Roboto,sans-serif;color:#7A5C14}.vl-e .msub{margin-top:0}.vl-e .vle span{font:400 16px/22px Roboto,sans-serif;color:#667085}",
+    ".vl-e .msub{align-self:flex-start}.vl-e .sv-dw{display:none}",
+    /* F: drag the bar */
+
+    
+    ".vl-f .sv-col::before{content:'Drag the ends of the bar to set your times';display:block;margin:0 0 4px;font:500 15px/20px Roboto,sans-serif;color:#475467}",
+
+    /* the variants */
+    ".vl-b .sv-dw,.vl-d .sv-dw{display:none}",
+    ".vl-e:not(.wopen) .sv-whs,.vl-f:not(.wopen) .sv-whs{max-height:0;margin:0;padding:0;overflow:hidden;visibility:hidden}",
+    ".vl-e:not(.wopen) .sv-fld[aria-pressed=true],.vl-f:not(.wopen) .sv-fld[aria-pressed=true]{border-color:#EAECF0}",
+    ".vl-e .sv-add small,.vl-f .sv-add small{display:none}",
+    ".vl-b:not(.wopen) .sv-whs,.vl-c:not(.wopen) .sv-whs,.vl-d:not(.wopen) .sv-whs{max-height:0;margin:0;padding:0;overflow:hidden;visibility:hidden}",   /* folded, not removed: the wheel keeps its place, so it never reads a time from an empty scroll */
+    ".vl-b:not(.wopen) .sv-fld[aria-pressed=true],.vl-c:not(.wopen) .sv-fld[aria-pressed=true],.vl-d:not(.wopen) .sv-fld[aria-pressed=true]{border-color:#EAECF0;box-shadow:0 1px 2px rgba(16,24,40,.06),0 6px 16px -6px rgba(16,24,40,.14)}",
+    ".vl-b .sv-add small,.vl-c .sv-add small,.vl-d .sv-add small{display:none}",
+    ".vl-d:not(.dmore) .sv-add{display:none}.vl-d:not(.dmore) .sv-pair{max-height:0;overflow:hidden;visibility:hidden}",
+    ".vlqs{display:flex;flex-direction:column;gap:12px;margin:16px 0}",
+    ".vlq{display:flex;align-items:center;gap:16px;width:100%;padding:16px;border:1px solid #EAECF0;border-radius:16px;background:#fff;text-align:left;font:inherit;cursor:pointer}",
+    ".vlq>span{flex:1;display:flex;flex-direction:column;gap:2px}.vlq b{font:600 16px/22px Roboto,sans-serif;color:#101828}.vlq span span{font:400 15px/22px Roboto,sans-serif;color:#667085}",
+    ".vlq .rd{width:22px;height:22px;border-radius:50%;border:2px solid #D0D5DD;box-sizing:border-box;flex:none}.vlq.on{border-color:#299D6B;background:#F3FBF7}.vlq.on .rd{border:7px solid #299D6B}",
+    ".sv-syn{display:inline-flex;align-items:center;gap:6px}",
+    ".sv-acts.sv-acts-t{gap:4px}.sv-sub1{margin-top:-8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
+    ".sv-acts{display:flex;align-items:center;gap:0;flex:none;margin-right:-4px}.sv-acts .sv-dots{width:28px;margin:0 -8px 0 0}",
+    ".sv-mns{display:flex;flex-direction:column;margin-top:8px}",
+    ".sv-mn{display:flex;align-items:center;gap:16px;width:100%;padding:16px 0;border:0;border-bottom:1px solid #EAECF0;background:none;text-align:left;font:inherit;color:#101828;cursor:pointer}",
+    ".sv-mn:last-child{border-bottom:0}.sv-mn .ic{width:40px;height:40px;border-radius:12px;background:#F2F4F7;display:grid;place-items:center;color:#344054;flex:none}",
+    ".sv-mn .ic svg{width:20px;height:20px}.sv-mn .tx{flex:1;display:flex;flex-direction:column;gap:2px}.sv-mn b{font-size:16px;font-weight:600}.sv-mn .tx span{font-size:15px;color:#667085}",
+    ".sv-mn>svg:last-child{width:20px;height:20px;color:#98A2B3}",
+    ".sv-sos{display:flex;flex-direction:column;gap:12px;margin:16px 0 24px}",
+    ".sv-so{display:flex;align-items:center;gap:16px;padding:16px;border:1px solid #EAECF0;border-radius:16px;background:#fff;cursor:pointer}",
+    ".sv-so.on{border-color:#299D6B;background:#F3FBF7}.sv-so:not([data-svk]){cursor:default}",
+    ".sv-so .ic{flex:none;width:40px;height:40px;border-radius:12px;border:1px solid #EAECF0;background:#fff;display:grid;place-items:center;color:#344054}.sv-so .ic img{max-width:22px;max-height:24px}.sv-so .ic svg{width:20px;height:20px}.sv-so .ic .me{display:grid;color:var(--p-600,#299D6B)}.sv-so .tx{flex:1;display:flex;flex-direction:column;gap:2px}.sv-so b{font-size:16px;font-weight:600;color:#101828}.sv-so .tx span{font-size:15px;color:#667085}",
+    ".sv-so .rd{width:22px;height:22px;border-radius:50%;border:2px solid #D0D5DD;flex:none;box-sizing:border-box}",
+    ".sv-so.on .rd{border:7px solid #299D6B}",
+    /* Connect: GoodFlip's secondary with depth (move/plan.css .mvt-keep), a white face over a pale green ledge, both outlined, sized for a row */
+    ".sv-cn{position:relative;isolation:isolate;flex:none;height:36px;margin-bottom:4px;padding:0 16px;border:0;border-radius:10px;background:none;color:#299D6B;font:700 15px/1 Roboto,sans-serif;cursor:pointer;transition:transform .2s ease-out}",
+    ".sv-cn::before{content:'';position:absolute;inset:0;z-index:-1;border:1px solid #299D6B;border-radius:10px;background:#fff}",
+    ".sv-cn::after{content:'';position:absolute;inset:4px 0 -4px;z-index:-2;border:1px solid #299D6B;border-radius:10px;background:#CBF0E0;transition:inset .2s ease-out}",
+    ".sv-cn:active{transform:translateY(4px)}.sv-cn:active::after{inset:0}",
     ".sv-ib{width:44px;height:44px;margin:-12px -12px -12px 0;border:0;background:none;display:grid;place-items:center;color:var(--g-400);cursor:pointer;border-radius:999px}.sv-ib svg{width:18px;height:18px}",
     ".sv-sc{display:flex;flex-direction:column;gap:12px}",
     ".sv-sc .mv-big span{font-weight:400}",
@@ -787,7 +1003,7 @@
     ".mv-sync.ring .src{flex:1;min-width:0;white-space:normal;gap:6px}.mv-sync.ring .vt{min-width:0}.mv-sync.off .sv-ringi{width:32px;height:32px;border-radius:9px}.mv-sync.off .sv-ringi svg{width:20px;height:20px}.mv-sync.off .sv-ringi img{height:22px}",
     ".sv-rn{display:flex;gap:8px;align-items:flex-start;margin:12px 0 4px;padding:10px 12px;border-radius:12px;background:#F9FAFB;border:1px solid #EAECF0;color:#475467;font:400 15px/21px Roboto,sans-serif}.sv-rn .sv-ringi{margin-top:1px}.sv-sum .sv-rn{margin-top:8px}",
     ".sv-ringi{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:6px;background:#fff;box-shadow:0 0 0 1px #E4E7EC;color:#475467;flex:none;margin-right:4px}.sv-ringi svg{width:14px;height:14px}.sv-ringi img{width:auto;height:15px;display:block}",
-    ".hk.sv-me{background:var(--p-50,#F3FCF8);box-shadow:0 0 0 1px var(--p-100,#E6FAF1);display:inline-grid;place-items:center;color:var(--p-600,#299D6B)}.hk.sv-me svg{width:12px;height:12px}",
+    ".hk.sv-me{background:#fff;box-shadow:0 0 0 1px #E4E7EC;display:inline-grid;place-items:center;color:var(--p-600,#299D6B)}.hk.sv-me svg{width:12px;height:12px}",
     ".sv-ck{display:flex;gap:16px;align-items:center}.sv-ck svg.dial{width:124px;height:124px;flex:none}.sv-ck .cr{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}",
     ".sv-ckl{display:flex;flex-direction:column;gap:4px;font:400 12.5px/18px Roboto,sans-serif;color:var(--g-600)}.sv-ckl div{display:flex;align-items:center;gap:6px}.sv-ckl svg{width:14px;height:14px}.sv-ckl .ok{color:var(--p-600,#299D6B)}.sv-ckl .off{color:var(--in-600)}",
     /* the sheet */

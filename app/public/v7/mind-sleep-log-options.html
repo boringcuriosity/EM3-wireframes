@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Log Sleep Options</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap">
+<style>
+  :root { --ink:#101828; --sub:#475467; --line:#EAECF0; --soft:#F9FAFB; --green-d:#2A805A; --green-t:#E6FAF1; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #FFFFFF; color: var(--ink); font: 400 15px/23px Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 32px 16px 96px; }
+  .eyebrow { font: 600 12px/16px Roboto; letter-spacing: 1.2px; text-transform: uppercase; color: var(--green-d); }
+  h1 { font: 700 32px/40px Roboto; margin: 8px 0; }
+  h2 { font: 700 22px/30px Roboto; margin: 40px 0 8px; }
+  p { margin: 0 0 12px; color: var(--sub); max-width: 820px; }
+  table { width: 100%; max-width: 1000px; border-collapse: separate; border-spacing: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; font-size: 14px; line-height: 20px; }
+  th { text-align: left; background: var(--soft); color: var(--sub); font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: 0; }
+  td.k { font-weight: 700; white-space: nowrap; }
+  .tw { overflow-x: auto; }
+  .frames { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 16px; }
+  figure { margin: 0; width: 312px; }
+  .fr { width: 312px; height: 675px; border: 1px solid var(--line); border-radius: 22px; overflow: hidden; box-shadow: 0 12px 32px -16px rgba(16,24,40,.18); background: #fff; }
+  .fr iframe { width: 390px; height: 844px; border: 0; transform: scale(.8); transform-origin: 0 0; background: #fff; }
+  figcaption { margin-top: 10px; font-size: 14px; line-height: 20px; color: var(--sub); }
+  figcaption b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 2px; }
+  .pick { display: inline-block; margin-left: 6px; padding: 0 8px; border-radius: 999px; background: var(--green-t); color: var(--green-d); font: 600 12px/20px Roboto; }
+  figcaption a { color: var(--green-d); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Mind · Log sleep sheet</div>
+  <h1>Less on the Log sleep sheet</h1>
+  <p>Today the sheet shows seven things at once: the coach's plan, a bar with its legend, two time tiles, an open time wheel, Add another sleep with its line, the total, and Save. Most mornings the person only needs two times. Each option below is the real sheet; tap the times in it.</p>
+
+  <div class="tw"><table>
+    <tr><th></th><th>What shows first</th><th>Hidden until needed</th><th>Taps for a usual night</th></tr>
+    <tr><td class="k">A, today</td><td>Plan, bar and legend, both times, open wheel, Add another sleep and its line, total, Save</td><td>Nothing</td><td>Wheel, then Save</td></tr>
+    <tr><td class="k">B <span class="pick">Recommended</span></td><td>Plan chip, two lifted time cards, Add another sleep, total, Save</td><td>The wheel (opens under the time you tap), the bar</td><td>Tap a time, wheel, Save</td></tr>
+    <tr><td class="k">C</td><td>B with the bar kept as the picture of the night</td><td>The wheel</td><td>Tap a time, wheel, Save</td></tr>
+    <tr><td class="k">D</td><td>As planned, Same as the night before, Different times</td><td>Times and wheel, until Different times</td><td>One tap, then Save</td></tr>
+    <tr><td class="k">E</td><td>The hours, big, then the plan chip and the two times</td><td>The wheel, the bar</td><td>Tap a time, wheel, Save</td></tr>
+    <tr><td class="k">F</td><td>A tall bar to drag, the two times read back under it</td><td>The wheel, for an exact time</td><td>Drag, then Save</td></tr>
+  </table></div>
+  <p style="margin-top:12px"><b>What changed in every option:</b> the time cards lift off the sheet with a soft shadow and a chevron, so they read as tappable; the chevron turns green and points up while its wheel is open. The moon is indigo and the sun gold, so bedtime and waking are told apart at a glance. The coach's plan sits in a soft indigo chip rather than a line of grey text. The line under Add another sleep goes.</p>
+  <p><b>Why B:</b> the times are the answer, so they lead; the wheel only appears for the one time being changed. E is B with the result first, good if the hours matter more than the times. D is fastest on an ordinary night but adds a step on any other. F suits people who think of the night as a stretch, but dragging is harder to get exact.</p>
+
+  <h2>All six, side by side</h2>
+  <div class="frames" id="F"></div>
+
+  <h2>Open, after tapping a time</h2>
+  <p>B to F with the wheel open. In the phones above, tap Slept or Woke up to see it live.</p>
+  <div class="frames" id="O"></div>
+</div>
+<script>
+  var V = [["A, today", ""], ["B, the wheel on tap (recommended)", "&vlog=b"], ["C, B with the bar", "&vlog=c"], ["D, common answers first", "&vlog=d"], ["E, hours first", "&vlog=e"], ["F, drag the bar", "&vlog=f"]];
+  document.getElementById("F").innerHTML = V.map(function (v) {
+    var u = "/v7/mind/index.html?only=sleep&sdev=none&sday=missing&sheet=sleep" + v[1];
+    return '<figure><div class="fr"><iframe loading="lazy" src="' + u + '" title="' + v[0] + '"></iframe></div><figcaption><b>' + v[0] + '</b><a href="' + u + '" target="_blank">Open</a></figcaption></figure>';
+  }).join("");
+  document.getElementById("O").innerHTML = V.slice(1).map(function (v) {
+    var u = "/v7/mind/index.html?only=sleep&sdev=none&sday=missing&sheet=sleep" + v[1] + "&vlopen=1";
+    return '<figure><div class="fr"><iframe loading="lazy" src="' + u + '" title="' + v[0] + ', open"></iframe></div><figcaption><b>' + v[0] + ', open</b><a href="' + u + '" target="_blank">Open</a></figcaption></figure>';
+  }).join("");
+</script>
+</body>
+</html>
