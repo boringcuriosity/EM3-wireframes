@@ -497,3 +497,11 @@ The designer decided three things after the entry above.
 - Undone: the 2 s rest after breathing out (all exercises but Box). Research found it can break the rhythm of breathing, so every exercise is back to its original timing.
 - The coach portal lines (`MP.BREATHS`) and the plan copy no longer say "rest 2 s". The Pursed Lip rest picture is no longer used.
 - The code stays behind a flag: `?vrest=1` previews the rest (`LAB.REST` in `mind/breath-lab/lab.js`). Nothing in the app uses it by default.
+
+### 19 Nov 2026: no note for a night under 3 hours
+
+- The sleep card no longer says "Under 3 hours of sleep, so your sleep window gets no points today." The rule is unchanged: a night under 3 hours asleep gives the sleep window 0. A short night from Apple Health or the ring keeps its gold "fix it" ribbon.
+
+### 19 Nov 2026: the Log sleep sheet
+
+- Last night's sleep is now version C of v7/mind-sleep-log-options.html everywhere: "Your coach suggests 10:30 PM to 6:00 AM" in a soft chip, the bar, two lifted time cards (Slept, Woke up) with a chevron, the time wheel folded until a card is tapped, Add another sleep, and "You're logging 7h 30m of sleep." stuck above Save Sleep.

@@ -76,5 +76,6 @@
 
   /* once, on arrival, while not connected; a case in the doc (?act=) decides for itself */
   var asked = false; try { asked = sessionStorage.getItem("mvHealthAsked") === "1"; } catch (x) {}
+  if (P.sx && P.sdev !== "new") asked = true;   /* ?sx=1: asked once, only on the first visit (?sdev=new) */
   if (!P.health() && !Q.get("act") && !asked) setTimeout(open, 1200);
 })();

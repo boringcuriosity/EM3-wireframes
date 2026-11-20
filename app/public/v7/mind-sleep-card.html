@@ -37,6 +37,8 @@
   figcaption .id { color: var(--green-d); font-weight: 700; margin-right: 4px; }
   figcaption a { color: var(--green-d); font-size: 13px; }
   ul.r li, ol.r li { margin: 6px 0; color: var(--sub); max-width: 820px; }
+  details.more { margin: 48px 0 24px; }
+  details.more > summary { cursor: pointer; display: inline-block; padding: 10px 16px; border: 1px solid var(--line); border-radius: 12px; font: 600 15px/20px Roboto; color: var(--green-d); }
   .note { background: var(--gold-t); border: 1px solid #FEF1C7; border-radius: 12px; padding: 12px 14px; color: #826E2D; font-size: 14px; max-width: 820px; }
 </style>
 </head>
@@ -56,7 +58,7 @@
     <li><b>Tapping it, or Log sleep,</b> opens Sleep data source with nothing selected. A connected device has a radio; one that is not connected has Connect. Once paired, the ring carries the green <i>Recommended</i> tag beside its name. Save works once one is picked.</li>
     <li><b>Manual picked:</b> a line above Save says they can change it anytime from the three dots. The strip goes; they log each morning. If they came from Log sleep, Save takes them straight to it.</li>
     <li><b>Connect on Apple Health</b> opens the Apple Health sheet, then Apple's own screen. Once allowed, Syncing for 5 s, then last night: <i>From Apple Health</i>.</li>
-    <li><b>Anything they type</b> says <i>Manually added by you</i>. <b>Three dots, always:</b> Edit sleep times (Log sleep when there is nothing yet), and Sleep data source.</li>
+    <li><b>Anything they type</b> says <i>Manually added by you</i>. <b>Three dots, always:</b> Edit your sleep (Log sleep when there is nothing yet), and Sleep data source.</li>
   </ol>
   <p class="note">On iPhone, Apple never tells an app whether reading sleep was refused; it just sends nothing. So "connected, nothing came in" also covers someone who said no on Apple's screen. Its words have to work for both: wait for it, or log it yourself.</p>
 
@@ -72,44 +74,52 @@
 1.6|sdev=ring&sday=missing|Arc smart ring|Your Arc ring hasn't synced last night yet. Wait for it to sync, or log it yourself. Syncing, then Updated."></div>
 
   <h3>Once last night is in, by source</h3>
-  <div class="frames" data-g="1.7|sdev=none|Manual, logged|Their times. Manually added by you.
-1.8|sdev=ah|Apple Health had last night|From Apple Health · Updated 7:22 AM.
-1.9|sdev=ring|Arc smart ring had last night|From Arc smart ring · Updated 7:22 AM."></div>
+  <div class="frames" data-g="1.7|sdev=none|Manual, logged|Their times. Manually added by you · Updated 7:12 AM.
+1.8|sdev=ah&stoast=1|Apple Health had last night|From Apple Health · Updated 7:22 AM. The toast: Your last night's sleep is updated.
+1.9|sdev=ring&stoast=1|Arc smart ring had last night|From Arc smart ring · Updated 7:22 AM. The toast: Your last night's sleep is updated."></div>
 
   <h3>Under 3 hours, by source</h3>
   <p>A typed short night is taken as it is. A short night from a device may be a missed part of the night, so the card asks them to check it.</p>
-  <div class="frames" data-g="1.10|sdev=none&sday=tiny|Manual, 2 hours typed|Taken as typed. The note says under 3 hours gives the sleep window no points.
+  <div class="frames" data-g="1.10|sdev=none&sday=tiny|Manual, 2 hours typed|Taken as typed, no note.
 1.11|sdev=ah&sday=short|Apple Health sent 2h 05m|Gold ribbon: Apple Health shows 2h 05m. If you slept more, fix it. Fix opens Edit; X keeps the times.
 1.12|sdev=ring&sday=short|Arc smart ring sent 2h 05m|The same ribbon for the ring. Fix opens Before you edit first, then Edit."></div>
 
+  <h3>When the ring and Apple Health disagree</h3>
+  <p>Both are connected and, in the background, we compare them. When last night differs by 3 hours or more (say the ring was off to charge), the card asks which is right, in the gold striped strip with an info mark. Check opens a sheet to pick one, for last night only; the source stays as chosen. X keeps the night as it is.</p>
+  <div class="frames" data-g="1.13|sdev=both&sday=differ|Ring is the source, Apple Health differs|The ring shows 3h 40m. Apple Health shows 7h 20m for last night. Which is right? Check.
+1.14|sdev=both&suse=ah&sday=differ|Apple Health is the source, the ring differs|Apple Health shows 4h 00m. Arc smart ring shows 7h 20m for last night. Which is right? Check.
+1.15|sdev=both&sday=differ&sheet=sleepalt|Which is right?|Both nights side by side, hours first. Use This Night, or Neither, I'll enter it. Once picked, the strip reads Picked by you."></div>
+
+  <details class="more">
+    <summary>Show the rest: other cases, every sheet, the ring, ring and Apple Health</summary>
   <h3>Other cases</h3>
-  <div class="frames" data-g="1.13|sdev=ah&sday=own|Apple Health, nothing came, they logged it|Manually added by you.
-1.14|sdev=ah&sday=edited|Apple Health, they edited it|Manually added by you: an edit counts as manual."></div>
+  <div class="frames" data-g="1.16|sdev=ah&sday=own|Apple Health, nothing came, they logged it|Manually added by you.
+1.17|sdev=ah&sday=edited|Apple Health, they edited it|Manually added by you: an edit counts as manual."></div>
 
   <h2 id="s1sheets">Step 1 sheets</h2>
   <div class="tw"><table>
     <tr><th>#</th><th>Sheet</th><th>What it shows</th></tr>
-    <tr><td class="k">1.15</td><td>Sleep data source, nothing connected, not chosen</td><td>Arc smart ring, Connect · Apple Health, Connect · I'll enter sleep manually daily · Save, greyed until one is picked</td></tr>
-    <tr><td class="k">1.16</td><td>Sleep data source, Apple Health allowed, not chosen</td><td>Arc smart ring, Connect · Apple Health, Connected, not selected · manual · Save greyed</td></tr>
-    <tr><td class="k">1.17</td><td>Sleep data source, ring paired, not chosen</td><td>Arc smart ring, Recommended, Paired, not selected · Apple Health, Connect · manual · Save greyed</td></tr>
-    <tr><td class="k">1.18</td><td>Apple Health (after Connect)</td><td>Let your phone fill in your sleep: Connect Apple Health, or I will enter my sleep myself</td></tr>
-    <tr><td class="k">1.19</td><td>Three dots, manually daily</td><td>Edit sleep times · Sleep data source, "Manually"</td></tr>
-    <tr><td class="k">1.20</td><td>Sleep data source, manually daily</td><td>Manual picked, and the line: you can change this anytime from the three dots</td></tr>
-    <tr><td class="k">1.21</td><td>Three dots, Apple Health</td><td>Edit sleep times · Sleep data source, "Apple Health"</td></tr>
-    <tr><td class="k">1.22</td><td>Sleep data source, Apple Health</td><td>Apple Health picked</td></tr>
-    <tr><td class="k">1.23</td><td>Log sleep</td><td>When they fell asleep and woke up, Save Sleep stuck to the bottom</td></tr>
-    <tr><td class="k">1.24</td><td>Edit, typed over Apple Health</td><td>Their times, with "Use Apple Health's times" under Save</td></tr>
+    <tr><td class="k">1.18</td><td>Sleep data source, nothing connected, not chosen</td><td>Arc smart ring, Connect · Apple Health, Connect · I'll enter sleep manually daily · Save, greyed until one is picked</td></tr>
+    <tr><td class="k">1.19</td><td>Sleep data source, Apple Health allowed, not chosen</td><td>Arc smart ring, Connect · Apple Health, Connected, not selected · manual · Save greyed</td></tr>
+    <tr><td class="k">1.20</td><td>Sleep data source, ring paired, not chosen</td><td>Arc smart ring, Recommended, Paired, not selected · Apple Health, Connect · manual · Save greyed</td></tr>
+    <tr><td class="k">1.21</td><td>Apple Health (after Connect)</td><td>Let your phone fill in your sleep: Connect Apple Health, or I will enter my sleep myself</td></tr>
+    <tr><td class="k">1.22</td><td>Three dots, manually daily</td><td>Edit your sleep · Sleep data source, "Manually"</td></tr>
+    <tr><td class="k">1.23</td><td>Sleep data source, manually daily</td><td>Manual picked, and the line: you can change this anytime from the three dots</td></tr>
+    <tr><td class="k">1.24</td><td>Three dots, Apple Health</td><td>Edit your sleep · Sleep data source, "Apple Health"</td></tr>
+    <tr><td class="k">1.25</td><td>Sleep data source, Apple Health</td><td>Apple Health picked</td></tr>
+    <tr><td class="k">1.26</td><td>Log sleep</td><td>When they fell asleep and woke up, Save Sleep stuck to the bottom</td></tr>
+    <tr><td class="k">1.27</td><td>Edit, typed over Apple Health</td><td>Their times, with "Use Apple Health's times" under Save</td></tr>
   </table></div>
-  <div class="frames" data-g="1.15|sdev=new&sday=missing&sheet=sleepsrc|Nothing connected, not chosen|Nothing selected; Save waits for a pick.
-1.16|sdev=ah&suse=none&sday=missing&sheet=sleepsrc|Apple Health allowed, not chosen|Connected, but not selected until they pick it.
-1.17|sdev=ring&suse=none&sday=missing&sheet=sleepsrc|Ring paired, not chosen|The ring is Recommended.
-1.18|sdev=new&sday=missing&sheet=sleepask|Apple Health sheet|Opens from Connect on Apple Health.
-1.19|sdev=none&sheet=sleepmenu|Three dots, manually daily|Sleep data source says Manually.
-1.20|sdev=none&sheet=sleepsrc|Sleep data source, manually daily|The change-anytime line above Save.
-1.21|sdev=ah&sheet=sleepmenu|Three dots, Apple Health|Sleep data source says Apple Health.
-1.22|sdev=ah&sheet=sleepsrc|Sleep data source, Apple Health|Apple Health picked.
-1.23|sdev=none&sday=missing&sheet=sleep|Log sleep|They enter last night.
-1.24|sdev=ah&sday=typed&sheet=sleep|Edit, typed over Apple Health|Use Apple Health's times."></div>
+  <div class="frames" data-g="1.18|sdev=new&sday=missing&sheet=sleepsrc|Nothing connected, not chosen|Nothing selected; Save waits for a pick.
+1.19|sdev=ah&suse=none&sday=missing&sheet=sleepsrc|Apple Health allowed, not chosen|Connected, but not selected until they pick it.
+1.20|sdev=ring&suse=none&sday=missing&sheet=sleepsrc|Ring paired, not chosen|The ring is Recommended.
+1.21|sdev=new&sday=missing&sheet=sleepask|Apple Health sheet|Opens from Connect on Apple Health.
+1.22|sdev=none&sheet=sleepmenu|Three dots, manually daily|Sleep data source says Manually.
+1.23|sdev=none&sheet=sleepsrc|Sleep data source, manually daily|The change-anytime line above Save.
+1.24|sdev=ah&sheet=sleepmenu|Three dots, Apple Health|Sleep data source says Apple Health.
+1.25|sdev=ah&sheet=sleepsrc|Sleep data source, Apple Health|Apple Health picked.
+1.26|sdev=none&sday=missing&sheet=sleep|Log sleep|They enter last night.
+1.27|sdev=ah&sday=typed&sheet=sleep|Edit, typed over Apple Health|Use Apple Health's times."></div>
 
   <h2 id="ring">2. Arc smart ring</h2>
   <p>Same card, with <i>From Arc smart ring</i> in place of Apple Health. Typed or edited times still win. An edit changes GoodFlip only; the Arc app keeps its own sleep score. Edit on a ring night first opens a Before you edit sheet that says so.</p>
@@ -118,7 +128,7 @@
 2.3|sdev=ring&sday=edited|Edited|Manually added by you. Their times count for Rhythm only.
 2.4|sdev=ring&sday=typed|Typed, ring has it too|Manually added by you. Edit offers the ring's times."></div>
   <div class="frames" data-t="1" data-g="2.5|sdev=ring&sheet=sleepsrc|Sleep data source|The ring picked, Apple Health can be connected.
-2.6|sdev=ring&sheet=sleepring|Before you edit, ring night|Its own sheet before Edit: the gold warning with L arrows. Edit Sleep Times, or keep the ring's times.
+2.6|sdev=ring&sheet=sleepring|Before you edit, ring night|Its own sheet before Edit: the gold warning with L arrows. Edit Your Sleep, or keep the ring's times.
 2.7|sdev=ring&sheet=sleep|Edit, ring night|The edit sheet itself, no warning inside."></div>
 
   <h2 id="both">3. Ring and Apple Health</h2>
@@ -138,13 +148,14 @@
     <li>If the Arc app also writes to Apple Health, the same night arrives twice. Rhythm should skip Apple Health entries that came from the Arc app.</li>
     <li>3.2 fills a missed ring night from Apple Health by itself. The other way is to leave it empty.</li>
   </ul>
+  </details>
   <p class="note">Dev: the states run from <code>?sdev=none|ah|ring|both</code>, <code>?suse=ring|ah|manual</code> and <code>?sday=ok|missing|short|edited|typed|own|ringmiss</code> on <code>/v7/mind/index.html</code> (<code>mind/variants/sleep.js</code>). <code>?sdev=new</code> or <code>?suse=none</code> is before they choose a source; <code>?sheet=sleepask</code> the Apple Health sheet.</p>
 </div>
 <script>
   /* one phone per case: id | query | name | what it shows */
   document.querySelectorAll(".frames").forEach(function (g) {
     g.innerHTML = g.dataset.g.trim().split("\n").map(function (l) {
-      var x = l.split("|"), u = "/v7/mind/index.html?only=sleep&" + x[1];
+      var x = l.split("|"), u = "/v7/mind/index.html?only=sleep&otop=1&" + x[1];
       return '<figure><div class="fr' + (g.dataset.t ? " tall" : "") + '"><iframe data-src="' + u + '" title="' + x[2] + '"></iframe></div><figcaption><b><span class="id">' + x[0] + '</span>' + x[2] + '</b>' + x[3] + ' <a href="' + u + '" target="_blank">Open</a></figcaption></figure>';
     }).join("");
   });
@@ -153,6 +164,9 @@
     es.forEach(function (e) { var f = e.target; if (e.isIntersecting) { if (!f.src || f.src === "about:blank") f.src = f.dataset.src; } else f.src = "about:blank"; });
   }, { rootMargin: "200px 0px" });
   document.querySelectorAll("iframe[data-src]").forEach(function (f) { io.observe(f); });
+  /* the rest stays folded so the page loads quickly; a link into it opens it */
+  function unfold() { var t = location.hash && document.querySelector(location.hash), d = t && t.closest("details"); if (d) { d.open = true; t.scrollIntoView(); } }
+  addEventListener("hashchange", unfold); unfold();
 </script>
 </body>
 </html>

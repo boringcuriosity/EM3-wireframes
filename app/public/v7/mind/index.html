@@ -1265,7 +1265,7 @@ if (window.MVOFF.all) document.write("<style>#railSect[hidden]{display:none}#rai
   /* no plan yet (or a free user): no tiles at all, from the first paint, so they never flash before rhythm.js hides them */
   if (/[?&]state=(noplan|free)/.test(location.search)) document.write('<style>#railSect{display:none !important}</style>');
   /* ?only=sleep: the Last night card and its sheets alone, for v7/mind-sleep-card.html (24 phones on one page) */
-  if (/[?&]only=sleep/.test(location.search)) document.write('<style>#col>:not(#svCard):not(#scrim):not(#eduSheets):not(.toast){display:none !important}#svCard{margin-top:16px !important}</style>');
+  if (/[?&]only=sleep/.test(location.search)) document.write('<style>#col>:not(#svCard):not(#scrim):not(#eduSheets):not(.toast){display:none !important}#svCard{margin-top:' + (/[?&]otop=1/.test(location.search) ? 88 : 16) + 'px !important}</style>');   /* otop=1: a little lower, for v7/mind-sleep-card.html */
 </script>
 </head>
 <body>
@@ -3894,6 +3894,8 @@ function mealsIn() {
     ["mood", "sleep", "breath", "tiles", "lib", "parts", "win"].forEach(function (k) { if (!q.get("v" + k)) return;
       /* breathing draws the final seven's pictures: the lab's clock, visuals and list first (mind/breath-lab/FINAL.md) */
       if (k === "breath") ["lab", "final", "ai-frames", "final-list", "sounds"].forEach(function (f) { document.write('<script src="/v7/mind/breath-lab/' + f + '.js"><\/script>'); });
+      /* ?sx=1: the smart sleep flow's parts register on window.SVX before sleep.js draws (v7/mind-sleep-smart.html) */
+      if (k === "sleep" && q.get("sx") === "1") ["sleep-card", "sleep-load", "sleep-track", "sleep-ask"].forEach(function (f) { document.write('<script src="/v7/mind/variants/' + f + '.js?t=' + Date.now() + '"><\/script>'); }); document.write('<script src="/v7/ring-ready.js?t=' + Date.now() + '"><\/script>');
       document.write('<script src="/v7/mind/variants/' + k + '.js?t=' + Date.now() + '"><\/script>'); }); })();
 </script>
 <script src="/move/kaira-sheet.js?v=7"></script>

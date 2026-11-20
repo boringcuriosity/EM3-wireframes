@@ -170,6 +170,10 @@
   /* ?health=off: Health is not connected yet, so only steps logged by hand are here, and the strip asks to connect
      (move/health.js opens the sheet). Connecting brings in the day Health already kept. */
   var HEALTH = new URLSearchParams(location.search).get("health") !== "off", HSTEPS = null;
+  /* ?sx=1 the smart steps strip (v7/move-steps-smart.html, 20 Nov 2026): ?sdev=new|none|ah|ring|both what is connected,
+     ?sday=missing a connected device sent no steps; the strip and its sheet are drawn by move/steps-smart.js */
+  var SXQ = new URLSearchParams(location.search), SX = SXQ.get("sx") === "1", SDEV = SX ? (SXQ.get("sdev") || "new") : null;
+  if (SX) { HEALTH = /^(ah|ring|both)$/.test(SDEV); if (HEALTH && SXQ.get("sday") === "missing") S.steps = {}; }
   if (!HEALTH) { HSTEPS = S.steps; S.steps = {}; }
   function connect() {
     if (HEALTH) return;
@@ -188,6 +192,7 @@
   }
   document.addEventListener("click", function (e) { if (e.target.closest('[data-x="logsteps"]')) stepsSheet(); });
   function syncHTML() {
+    if (SX && window.MVSX) { var lg = S.logs.length; return window.MVSX.strip(HEALTH, lg ? S.logs[S.logs.length - 1].at : null, Object.keys(S.steps).some(function (h) { return S.steps[h] > 0; })); }
     var NAME = ANDROID ? "Health Connect" : "Apple Health";
     /* the action in Flip green, the reason under it in grey, a green chevron: one row that reads as a tap */
     if (!HEALTH) return '<button class="mv-sync off" data-x="health"><i class="hk' + (ANDROID ? " hc" : "") + '"></i>' +
@@ -197,25 +202,35 @@
       '<span class="at">' + (ago < 1 ? "Updated just now" : "Updated " + ago + " min ago") + '</span></div>';
   }
   function logsAt(h) { return S.logs.filter(function (l) { return parseInt(l.at, 10) === h; }); }
+  /* ?sx=1 with a device connected: the three dots in place of Log steps; Log steps and Track steps automatically live inside them (20 Nov 2026) */
+  /* the house edit icon (?sx=1), in green on the hour's tip */
+  var PENH = '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path fill="currentColor" d="m14.208 4.586-2.794-2.793a1 1 0 0 0-1.414 0L2.293 9.5a1 1 0 0 0-.293.707V13a1 1 0 0 0 1 1h10.5a.5.5 0 0 0 0-1H7.208l7-7a1 1 0 0 0 0-1.414"/><path d="m8.6 4.6 2.8 2.8" stroke="#299D6B" stroke-width="1.1" stroke-linecap="round"/></svg>';   /* filled, white on primary green (20 Nov 2026) */
+  function logBtn() {
+    if (SX && HEALTH) return '<button class="mx-dots" data-mx="menu" aria-label="Steps options"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>';
+    return '<button class="mv-logbtn" data-log>' + IC.plusSq + 'Log steps</button>';
+  }
   function stepsHTML() {
     if (NOWALK) return "";   /* walking is off for good: no steps card */
+    if (SX && window.MVSX && window.MVSX.syncing()) return '<section class="mv-steps"><div class="sec"><h2>Your steps</h2></div>' + window.MVSX.skel() + syncHTML() + '</section>';   /* ?sx=1: the card in shimmer while it syncs */
     var tot = 0, max = 0;
     for (var k = 0; k <= NOW; k++) { var v = S.steps[k] || 0; tot += v; if (v > max) max = v; }
     var top = Math.max(max, 1000), left = GOAL - tot, bars = "";
     for (var b = 0; b <= 23; b++) {
       var val = S.steps[b] || 0, cls = b < NOW ? "past" : b === NOW ? "now" : "fut";
       if (cls === "fut") { bars += '<span class="mv-b fut" aria-hidden="true"><i></i></span>'; continue; }
-      bars += '<button class="mv-b ' + cls + (S.sel === b ? " sel" : "") + '" data-sel="' + b + '" style="--h:' + Math.round(val / top * 100) + '%"' +
+      /* ?sx=1: the part of an hour typed in by hand is striped, so it reads apart from what the phone counted (20 Nov 2026) */
+      var man = SX ? logsAt(b).reduce(function (t, l) { return t + l.n; }, 0) : 0;
+      bars += '<button class="mv-b ' + cls + (S.sel === b ? " sel" : "") + (man ? " man" : "") + '" data-sel="' + b + '" style="--h:' + Math.round(val / top * 100) + '%' + (man ? ';--m:' + Math.round(Math.min(1, man / Math.max(val, 1)) * 100) + '%' : "") + '"' +
         ' aria-label="' + hr(b) + ' to ' + hr(b + 1) + ', ' + fmt(val) + ' steps"><i></i>' +
         /* the tapped hour says its count in a small tip over its bar, held inside the card at the two ends */
         (S.sel === b ? '<span class="mv-htip' + (b < 4 ? " l" : b > 19 ? " r" : "") + '" role="status"><span><b>' + fmt(val) + ' steps</b>' + hr(b) + ' to ' + hr(b + 1) + (b === NOW ? ", so far" : "") + '</span>' +
           /* an hour with steps the person logged carries a pencil that opens those logs; the phone's steps are not ours to change */
-          (logsAt(b).length ? '<span class="mv-hedit" data-sedit="' + b + '" role="button" aria-label="Edit the steps you logged">' + IC.pen + '</span>' +
+          (logsAt(b).length ? '<span class="mv-hedit' + (SX ? " gr" : "") + '" data-sedit="' + b + '" role="button" aria-label="Edit the steps you logged">' + (SX ? PENH : IC.pen) + '</span>' +
             '<span class="mv-hedit rm" data-sdel="' + b + '" role="button" aria-label="Remove the steps you logged">' + IC.bin + '</span>' : "") + '</span>' : "") + '</button>';
     }
     /* no step target today: the phone still counts and the user can still log, so the card stays whole, with no goal and no bar */
     if (OFF.s) return '<section class="mv-steps"><div class="sec"><h2>Your steps</h2></div><div class="mv-sc">' +
-      '<div class="mv-sh"><div class="t"><div class="mv-big">' + fmt(tot) + ' <span>steps</span></div></div><button class="mv-logbtn" data-log>' + IC.plusSq + 'Log steps</button></div>' +
+      '<div class="mv-sh"><div class="t"><div class="mv-big">' + fmt(tot) + ' <span>steps</span></div></div>' + logBtn() + '</div>' +
       '<div class="mv-sub">No target set for today, so your steps don’t count toward your score.</div>' +
       '<div class="mv-chart" role="group" aria-label="Steps by hour">' + bars + '</div>' +
       '<div class="mv-bl" aria-hidden="true">' + TICKS.map(function (t) { return '<span>' + t + '</span>'; }).join("") + '</div>' +
@@ -223,7 +238,7 @@
     return '<section class="mv-steps"><div class="sec"><h2>Your steps</h2></div><div class="mv-sc">' +
       '<div class="mv-sh"><div class="t"><div class="mv-big">' + fmt(tot) + ' <span>' + (NOPLAN ? "steps" : "of " + fmt(GOAL) + " steps") + '</span></div>' +
         /* what is left, said plainly, the number carrying the weight */
-        '</div><button class="mv-logbtn" data-log>' + IC.plusSq + 'Log steps</button></div>' +
+        '</div>' + logBtn() + '</div>' +
         /* its own row under the number and the button, so it has the card's full width */
         '<div class="mv-sub">' + (FREE ? "Counted by your phone." : NOPLAN ? "Your coach sets your daily goal after your first consultation." : left > 0 ? '<b>' + fmt(left) + ' more</b> to reach today\'s goal' : "<b>Goal reached.</b> Every step from here is extra.") + '</div>' +
       (NOPLAN ? "" : '<div class="mv-prog"><i style="width:' + Math.min(100, tot / GOAL * 100) + '%"></i></div>') +
@@ -322,15 +337,18 @@
   function filled() { return draft.rows.filter(function (r) { return +r.n > 0; }).length; }
   function saveLabel() { var k = filled(); return draft.edit == null && k > 1 ? "Save " + k + " logs" : "Save"; }
   function canSave() { return draft.edit != null || filled(); }   /* editing may remove every log, so Save stays on */
+  /* ?sx=1, editing steps typed in by hand: a gold note says what can change, and each log has a bin that asks first (20 Nov 2026) */
+  /* one soft gold note for both sheets: Log steps and editing your log (20 Nov 2026) */
+  function gold(t) { return '<div class="mx-gold" role="note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg><span>' + t + '</span></div>'; }
   function stepsSheet(keep) {
     if (!keep) draft = { rows: [{ n: "", at: NOWT }], pick: 0 };
     var ED = draft.edit != null;
     var el = window.GFOpenSheet("mvSteps", ED ? (draft.rows.length > 1 ? "Your logs" : "Your log") : "Log steps",
-      (ED ? '<p class="mv-snote">Steps from ' + (ANDROID ? "Health Connect" : "Apple Health") + ' in this hour stay as they are.</p>' : "") +
+      (ED ? (SX ? gold('<b>' + fmt(phoneAt(draft.rows[0].at)) + ' steps</b> were counted by your smart devices and cannot be edited. You can only add more, or remove the ones you added.') : '<p class="mv-snote">Steps from ' + (ANDROID ? "Health Connect" : "Apple Health") + ' in this hour stay as they are.</p>') : "") +
       '<div class="mv-row2 mv-heads"><span class="mv-fl">Steps</span><span class="mv-fl">Around</span><span></span></div>' +
       '<div class="mv-srows">' + draft.rows.map(function (r, i) {
         return '<div class="mv-row2 mv-srow' + (keep === "new" && i === draft.rows.length - 1 ? " new" : "") + '"><input class="mv-in" data-row="' + i + '"' + (i ? "" : ' id="mvN"') + ' inputmode="numeric" placeholder="0" autocomplete="off" aria-label="Steps" value="' + r.n + '">' +
-          timeBtn("steps|" + i, r.at) + (i || ED ? '<button class="mv-srm" data-srm="' + i + '" aria-label="' + (ED ? "Remove this log" : "Remove this time") + '">' + IC.x + "</button>" : "<span></span>") + "</div>" +
+          timeBtn("steps|" + i, r.at) + (ED && SX ? '<button class="mv-srm mx-bin" data-sxdel="' + i + '" aria-label="Remove these steps">' + IC.bin + "</button>" : i || ED ? '<button class="mv-srm" data-srm="' + i + '" aria-label="' + (ED ? "Remove this log" : "Remove this time") + '">' + IC.x + "</button>" : "<span></span>") + "</div>" +
           (ED ? "" : phoneHint(r.at));
       }).join("") + "</div>" +
       (!ED && draft.rows.length < 6 ? '<button class="mv-addrow" data-addrow>' + IC.plusSq + "Add another time</button>" : "") +
@@ -343,6 +361,7 @@
   function phoneAt(at) { var h = parseInt(at, 10); return HEALTH ? Math.max(0, (S.steps[h] || 0) - logsAt(h).reduce(function (t, l) { return t + l.n; }, 0)) : 0; }
   function phoneHint(at) {
     var n = phoneAt(at), h = parseInt(at, 10);
+    if (SX) return n ? gold('<b>' + fmt(n) + ' steps</b> between ' + hr(h) + ' and ' + hr(h + 1) + ' were counted by your smart devices. Add a walk only if it seems to be missed.') : "";
     return n ? '<p class="mv-phint">' + IC.info + '<span>Your phone already counted <b>' + fmt(n) + ' steps</b> between ' + hr(h) + ' and ' + hr(h + 1) + '. Log only a walk it missed.</span></p>' : "";
   }
   function keepRows() { [].forEach.call(document.querySelectorAll("#mvSteps [data-row]"), function (x) { draft.rows[+x.dataset.row].n = x.value; }); }
@@ -423,7 +442,7 @@
   }
 
   document.addEventListener("click", function (ev) {
-    var t = ev.target.closest("[data-xrm],[data-burn],[data-tick],[data-tip],[data-sel],[data-log],[data-vid],[data-feel],[data-done],[data-undo],[data-save],[data-pick],[data-settime],[data-addrow],[data-srm],[data-sedit],[data-sdel],.mv-wi");
+    var t = ev.target.closest("[data-xrm],[data-burn],[data-tick],[data-tip],[data-sel],[data-log],[data-vid],[data-feel],[data-done],[data-undo],[data-save],[data-pick],[data-settime],[data-addrow],[data-srm],[data-sxdel],[data-sedit],[data-sdel],.mv-wi");
     if (!t || !(root.contains(t) || t.closest("#mvFeel,#mvSteps,#mvTime"))) return;
     var a = t.dataset;
     if (t.classList.contains("mv-wi")) { var c = t.parentNode; return c.scrollTo({ top: +a.i * ROW, behavior: "smooth" }); }
@@ -452,6 +471,14 @@
       return stepsSheet(true);
     }
     if (a.srm) { keepRows(); draft.rows.splice(+a.srm, 1); return stepsSheet(true); }
+    if (a.sxdel) {   /* ?sx=1: the log's bin asks in its own sheet, then only that log comes off */
+      var xi = +a.sxdel, xl = draft.was && draft.was[xi]; if (!xl || !window.MVTRAY) return;
+      window.closeSheets();   /* the edit sheet goes first, so the question sits in front */
+      return setTimeout(function () { window.MVTRAY.confirm(fmt(xl.n) + " steps you added", "They come off today's steps" + (NOPLAN ? "." : ", and your Momentum score updates.") + " Steps from Apple Health or your Arc ring stay as they are.",
+        ["Remove the steps you added?", "Remove", "Keep Them", IC.bin], function () {
+          var h = parseInt(xl.at, 10); S.steps[h] = Math.max(0, (S.steps[h] || 0) - xl.n); S.logs.splice(S.logs.indexOf(xl), 1);
+        }); }, 320);
+    }
     if (a.tick) { var p = a.tick.split("|"); return feelSheet(+p[0], p[1]); }
     if (a.burn) return burnSheet(+a.burn);
     if (a.xrm) {
@@ -522,6 +549,6 @@
   });
 
   /* for /move/player.js: the same plan, ticks and tick sheet */
-  window.MVPLAN = { noplan: NOPLAN, free: FREE, connect: connect, health: function () { return HEALTH; }, android: ANDROID, burned: burned, S: S, EX: EX, ORDER: ORDER, RT: RT, IC: IC, img: img, feelSheet: feelSheet, render: render, onDone: null };
+  window.MVPLAN = { stepsSheet: function () { stepsSheet(); }, sx: SX, sdev: SDEV, render: function () { render(); }, noplan: NOPLAN, free: FREE, connect: connect, health: function () { return HEALTH; }, android: ANDROID, burned: burned, S: S, EX: EX, ORDER: ORDER, RT: RT, IC: IC, img: img, feelSheet: feelSheet, render: render, onDone: null };
   render();
 })();

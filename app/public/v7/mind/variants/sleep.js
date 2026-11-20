@@ -91,8 +91,15 @@
      typed or edited times first, then the source picked in "Sleep data source" (the ring if paired), else Apple Health.
      ?sdev=none|ah|ring|both   what is connected; new: nothing chosen yet, the strip under the card asks until they pick a source
      ?suse=ring|ah|manual      the source picked in the sheet (default: ring if paired, else Apple Health)
-     ?sday=ok|missing|short|edited|typed|own|tiny|ringmiss   last night (tiny: they typed 2 hours; own: typed, the device had nothing; ringmiss: the ring has nothing, Apple Health has it) */
+     ?sday=ok|missing|short|edited|typed|own|tiny|ringmiss|differ   last night (tiny: they typed 2 hours; own: typed, the device had nothing; ringmiss: the ring has nothing, Apple Health has it) */
+  /* ?sx=1 the smart flow (v7/mind-sleep-smart.html, 19 Nov 2026): no source to choose. The ring is used if paired, else
+     Apple Health if allowed, else they log it. First time on Mind, Apple Health is asked for once (?sdev=new); X or
+     "I'll log it myself" leaves the log-it card. A device night shows a loader first (?swait=ms, hold), then the night or
+     the not-found card. The card, loader, not-found card, Track sleep from sheet and the questions sheet are drawn by
+     variants/sleep-card.js, sleep-load.js, sleep-track.js and sleep-ask.js through window.SVX (below). */
+  var SX = Q.get("sx") === "1"; if (SX && !Q.get("sdev")) Q.set("sdev", "new");
   var DEV = /^(new|none|ah|ring|both)$/.test(Q.get("sdev") || "") ? Q.get("sdev") : null, HAS = {}, USE = null, FROM = null, SDAY = Q.get("sday") || "ok";
+  if (SX && !Q.get("sday") && (DEV === "new" || DEV === "none")) SDAY = "missing";   /* SX: nothing typed yet unless ?sday=ok says so */
   function build() {
     var T = SDAY === "tiny" ? { bed: 1680, wake: 1800 } : { bed: PLAN.bed + 30, wake: PLAN.wake + 30 }, AHN = { bed: PLAN.bed + 35, wake: PLAN.wake + 5 };
     if (!USE || (USE !== "manual" && !HAS[USE])) USE = HAS.ring ? "ring" : HAS.ah ? "ah" : "manual";
@@ -108,9 +115,30 @@
       : { perm: true, src: "health", night: SY, health: SY };
   }
   /* waiting on a device: the loader says Syncing for 5 s, then says when it last checked */
-  var WAITED = false; if (DEV) setTimeout(function () { WAITED = true; if (typeof place === "function") place(); }, 5000);
-  var UNSET = DEV === "new" || Q.get("suse") === "none", FROMLOG = false;   /* suse=none: a device is already connected (say Apple Health from Move), the source is still theirs to choose */
-  if (DEV) { HAS = { ring: DEV === "ring" || DEV === "both", ah: DEV === "ah" || DEV === "both" }; USE = Q.get("suse"); build(); }
+  var SWAIT = SX ? (Q.get("swait") === "hold" ? -1 : +(Q.get("swait") || 4000)) : 5000;
+  var WAITED = false; if (DEV && SWAIT >= 0) setTimeout(function () { WAITED = true; if (typeof place === "function") place(); }, SWAIT);
+  /* ?stoast=1 (doc): the toast a synced night brings, held on screen */
+  if (DEV && Q.get("stoast") === "1") setTimeout(function () { MD.toast("Your last night\u2019s sleep is updated."); setInterval(function () { var t = document.querySelector(".toast"); if (t) t.classList.add("on"); }, 400); }, 1200);
+  var UNSET = !SX && (DEV === "new" || Q.get("suse") === "none"), FROMLOG = false;   /* suse=none: a device is already connected (say Apple Health from Move), the source is still theirs to choose */
+  /* sday=differ (sdev=both): the ring and Apple Health disagree about last night by 3 hours or more, say the ring was off to charge.
+     The card asks which is right; the sheet lets them pick one for last night only (19 Nov 2026) */
+  var ALTN = { ring: "Arc smart ring", ah: "Apple Health" };
+  function differ() {
+    if (DEV !== "both" || SDAY !== "differ" || UNSET) return;
+    var shortN = { bed: PLAN.bed + 20, wake: 1590 }, fullN = { bed: PLAN.bed + 15, wake: PLAN.wake + 5 };   /* 10:50 PM to 2:30 AM, and 10:45 PM to 6:05 AM */
+    var mine = USE === "ring" ? shortN : { bed: PLAN.bed + 30, wake: 1620 }, other = USE === "ring" ? fullN : { bed: PLAN.bed + 20, wake: PLAN.wake + 10 };
+    ST = { perm: true, src: "health", night: mine, health: mine, alt: { k: USE === "ring" ? "ah" : "ring", night: other } };
+  }
+  if (DEV) { HAS = { ring: DEV === "ring" || DEV === "both", ah: DEV === "ah" || DEV === "both" }; USE = SX ? null : Q.get("suse"); build(); differ(); }
+  /* SX: a device night waits behind the loader, then arrives with the toast */
+  var PEND = null;
+  if (SX && ST.perm && ST.night && ST.src === "health" && SWAIT !== 0) { PEND = ST; ST = { perm: true, src: null, night: null, health: null }; }
+  function arrive() {
+    WAITED = true; if (PEND) { ST = PEND; PEND = null; }
+    put(); if (ST.night) MD.cause = "sleep"; MD.render(); if (typeof place === "function") place();
+    if (ST.night) MD.toast("Your last night\u2019s sleep is updated.");
+  }
+  if (PEND && SWAIT > 0) setTimeout(arrive, SWAIT);
   /* the Arc ring's mark: Shaheer's ring image (icons/mind/arc-ring.png, 30 x 40), in the same small white tile as Health Connect's (17 Nov 2026) */
   var RINGI = '<i class="sv-ringi" aria-hidden="true"><img src="/v7/icons/mind/arc-ring.png" alt=""></i>';
   /* the words the sources use */
@@ -181,6 +209,9 @@
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
   };
 
+  /* SX: GoodFlip's own edit icon wherever a pencil shows: the three dots' Edit your sleep, Added by you (20 Nov 2026) */
+  if (SX) I.pencil = '<svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path fill="currentColor" d="m14.208 4.586-2.794-2.793a1 1 0 0 0-1.414 0L2.293 9.5a1 1 0 0 0-.293.707V13a1 1 0 0 0 1 1h10.5a.5.5 0 0 0 0-1H7.208l7-7a1 1 0 0 0 0-1.414M5.793 13H3v-2.793l5.5-5.5L11.293 7.5zM12 6.793 9.208 4l1.5-1.5L13.5 5.293z"/></svg>';
+
   /* ---------- the night as a bar against the window, 8 PM to 10 AM ---------- */
   /* 14 hours from the hour 2.5 h before the coach's bedtime: 8 PM to 10 AM for 10:30 PM, 6 AM to 8 PM for a
      night-shift 9:00 AM to 4:30 PM, so a day window sits on the bar as a night window does */
@@ -231,6 +262,7 @@
   function strip() {
     var hk = '<i class="hk' + (AND ? " hc" : "") + '"></i>';
     if (DEV && UNSET) return '<button class="mv-sync off" data-sv="src">' + RINGI + hk + '<span class="tx"><b>Choose your sleep data source</b></span>' + MD.IC.chev + '</button>';   /* until they choose a source */
+    if (SX && !ST.night) return "";   /* the card says it all */
     if (DEV) return devStrip(hk);
     if (J && ST.src === "manual" && ST.perm) return "";   /* J: times they typed need no label; not connected keeps the Connect strip */
     if (ST.src === "manual" && (ST.perm || !J)) return '<div class="mv-sync"><span class="src"><i class="hk sv-me">' + I.pencil + '</i>Entered by you</span><span class="at">' + (ST.at || "7:12 AM") + '</span></div>';
@@ -242,24 +274,68 @@
   }
   /* ?sdev: one source at a time. Typed times always say so; nothing connected asks to connect either */
   function devStrip(hk) {
-    if (ST.src === "manual" || ST.src === "edited") return '<div class="mv-sync"><span class="src"><i class="hk sv-me">' + I.pencil + '</i>Manually added by you</span><span class="at">' + (ST.at || "7:12 AM") + '</span></div>';
+    if (SX && window.SVX && SVX.strip) {   /* SX: the one tappable strip from variants/sleep-card.js */
+      if (ST.src === "manual" || ST.src === "edited") return SVX.strip(SVX.ctx, "manual", ST.at);
+      if (!ST.perm) return "";
+      return SVX.strip(SVX.ctx, !ST.night ? (WAITED ? "ok" : "sync") : ST.miss ? "miss" : "ok");
+    }
+    if (ST.src === "manual" || ST.src === "edited") return '<div class="mv-sync"><span class="src"><i class="hk sv-me">' + I.pencil + '</i>Manually added by you</span><span class="at">Updated ' + (ST.at || "7:12 AM") + '</span></div>';   /* Updated, as the devices say it */
     if (!ST.perm) return "";   /* not connected: the card never asks again, connecting lives in the three dots (19 Nov 2026) */
-    var ic = RING ? RINGI : hk, at = !ST.night ? (WAITED ? "Updated 7:22 AM" : '<span class="sv-syn" role="status"><i class="sv-spin" aria-hidden="true"></i>Syncing</span>') : ST.miss ? "Your ring had no data" : ST.src === "edited" ? "" : "Updated 7:22 AM";
+    var ic = RING ? RINGI : hk, at = ST.picked ? "Picked by you" : !ST.night ? (WAITED ? "Updated 7:22 AM" : '<span class="sv-syn" role="status"><i class="sv-spin" aria-hidden="true"></i>Syncing</span>') : ST.miss ? "Your ring had no data" : ST.src === "edited" ? "" : "Updated 7:22 AM";
     return '<div class="mv-sync"><span class="src">' + ic + '<span class="vt">' + VIA() + (ST.src === "edited" ? ", edited by you" : "") + '</span></span>' + (at ? '<span class="at">' + at + '</span>' : "") + '</div>';
   }
   /* J: the short-sync note, a slim ribbon in the gold of Eat's "logging in future" ribbon (v7/future-time-options.html, B).
      Fix opens the sheet; X keeps Health's times and puts the note away */
   var XS = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>';
+  /* SX: the two notes sit under the card as Yes / No questions, in the quiz card's pills (Shaheer, 20 Nov 2026).
+     Short night: Yes keeps the times, No opens the log sheet. Disagree: Yes uses the other source for last night, No keeps
+     this one; ?salt=check keeps the Check button and its sheet */
+  /* the gold card of Move's Workouts to log (r3/assets/plan-tray.js .fbn): a striped ribbon with Dismiss at its right end,
+     a title, a line and two small secondary buttons (Shaheer, 20 Nov 2026) */
+  function ynNote(ic, rib, t, line, b1, b2, dis, id) {
+    var b = function (x) { return '<button class="sv-fb2" data-sv="' + x[1] + '">' + x[0] + '</button>'; };
+    return '<div class="sv-cw"><div><div class="sv-fbn sv-fbq" role="group" aria-labelledby="' + id + '"><div class="rib">' + ic + '<span>' + rib + '</span><button class="sv-fbx" data-sv="' + dis + '" aria-label="Dismiss">' + XS + '</button></div>' +
+      '<div class="in"><b id="' + id + '">' + t + '</b><p>' + line + '</p><div class="bb">' + b(b1) + (b2 ? b(b2) : "") + '</div></div></div></div></div>';
+  }
+  function sxNotes() {
+    var n = ST.night, h = "";
+    /* the question is the title, so it reads first (Shaheer, 20 Nov 2026) */
+    if (ST.alt) { var cn = FROM === "ring" ? "Your ring" : "Apple Health", on = ST.alt.k === "ring" ? "your ring" : "Apple Health";   /* Verify opens Which is right? to pick one (20 Nov 2026) */
+      h += Q.get("salt") === "check" ? altNote() : ynNote(WARNI, "Two different nights", "Which one is right?", cn + " shows " + dur(len(n)) + " and " + on + " shows " + dur(len(ST.alt.night)) + " for last night.", ["Verify", "alt"], null, "altok", "svynA"); }
+    if (ST.odd && ST.src === "health" && !ST.oddOk) h += ynNote(WARNI, "Short night", "Did you sleep only " + dur(len(n)) + "?", "That is what " + (RING ? "your Arc ring" : NAME) + " shows for last night. If you slept more, tap No and fix it.", ["Yes", "oddok"], ["No", "edit"], "oddok", "svynO");
+    return h ? '<div class="sv-out">' + h + '</div>' : "";
+  }
+  /* dismissing a gold card (X, or Yes on a short night) plays out before the card is redrawn (Shaheer, 20 Nov 2026).
+     ?sdis=a fade and lift   b tuck under the card above (default)   c slide away to the right   d settle into a green tick line, then go
+     The space closes after, with grid rows (no layout jump); reduced motion skips it */
+  var SDIS = /^[abcd]$/.test(Q.get("sdis") || "") ? Q.get("sdis") : "b", QUIET = false;   /* b picked, 20 Nov 2026 */
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest && e.target.closest(".sv-fbq [data-sv]"); if (!t || !/^(oddok|altok)$/.test(t.dataset.sv)) return;
+    if (t.dataset.go || RD) return;
+    e.stopPropagation(); e.preventDefault();
+    var cw = t.closest(".sv-cw"), cd = cw.querySelector(".sv-fbq"), T = 0;
+    if (SDIS === "d") {
+      var msg = t.dataset.sv === "oddok" ? "Kept " + dur(len(ST.night)) : "Kept " + ALTN[FROM] + "’s night";
+      cd.insertAdjacentHTML("beforeend", '<div class="sv-done" aria-live="polite">' + I.check + '<span>' + msg + '</span></div>');
+      cd.classList.add("sv-d1"); T = 900; QUIET = true;
+    }
+    setTimeout(function () { cd.classList.add("sv-d-" + SDIS); setTimeout(function () { cw.classList.add("go"); setTimeout(function () { t.dataset.go = 1; t.click(); QUIET = false; }, 300); }, 260); }, T);
+  }, true);
   function oddNote(n) {
     return '<div class="so so-a">' + I.warn + '<span>' + NAME + ' shows ' + dur(len(n)) + '. If you slept more, fix it.</span>' +
       '<button class="so-fix" data-sv="edit">Fix</button><button class="so-x" data-sv="oddok" aria-label="Keep these times">' + XS + '</button></div>';
   }
+  function altNote() {
+    return '<div class="so so-i" role="status">' + I.info + '<span>' + ALTN[ST.alt.k] + ' shows ' + dur(len(ST.alt.night)) + ' for last night. Which is right?</span>' +
+      '<button class="so-fix" data-sv="alt">Check</button><button class="so-x" data-sv="altok" aria-label="Keep these times">' + XS + '</button></div>';
+  }
   function notes() {
     var h = "", n = ST.night;
+    if (DEV && ST.alt) h += altNote();
     if (J && ST.odd && ST.src === "health") h += ST.oddOk ? "" : oddNote(n);
     else if (ST.odd && ST.src === "health") h += '<div class="sv-note warn">' + I.warn + '<span>Only ' + dur(len(n)) + ' came through from ' + NAME + '. If you slept longer, <button class="sv-lk" data-sv="edit">fix the times</button>.</span></div>';
     /* mind/sleep-rule.js: a night under 3 hours asleep gets no window points; naps add to hours, never to the window */
-    if (n && len(n) < window.MDSLEEP.R.minNight && !(ST.odd && ST.src === "health")) h += '<div class="sv-note">' + I.info + '<span>Under 3 hours of sleep, so your sleep window gets no points today.</span></div>';
+    /* no note for a night under 3 hours: the window still scores 0, said in What shaped your score (Shaheer, 19 Nov 2026) */
     /* naps are counted quietly: no card on the screen (designer, 16 Nov 2026) */
     return h;
   }
@@ -302,8 +378,9 @@
     /* I: A exactly, without the Hours and Timing tiles. What the tiles said comes back in A's own two lines:
        "short" after the hours, timing after the times, and a split night's awake time beside the times */
     i: function () {
-      var n = ST.night; if (!n) return emptyCard();
+      var n = ST.night; if (!n) return SX ? sxEmpty() : emptyCard();
       var d = PLAN.hours - len(n), t = timing(n);
+      if (SX && window.SVX && SVX.full) return SVX.full(SVX.ctx, n, { head: jHead(n), bar: bar(n), notes: "" });   /* SX: its notes sit under the card (sxNotes) */   /* SX: the filled card in the same family as its empty and loading states */
       if (J) return '<div class="mv-sc sv-sc">' + jHead(n) + bar(n) + notes() + '</div>';
       return '<div class="mv-sc sv-sc"><div class="mv-sh"><div class="t"><div class="mv-big">' + dur(len(n)) + ' <span>of sleep' + (d > 0 ? ', ' + gap(d) + ' short' : '') + '</span></div>' +
         '<div class="mv-sub">' + clk(n.bed) + ' to ' + clk(n.wake) + (n.segs ? ', awake ' + gap(awake(n)) + (n.segs.length > 2 ? ' in ' + (n.segs.length - 1) + ' breaks' : ' at ' + clk(n.segs[0].wake)) : '') + ', <span class="sv-tw2' + (t.ok ? ' ok' : '') + '">' + (t.ok ? 'on time' : t.v.toLowerCase()) + '</span></div></div>' + EDIT + '</div>' +
@@ -401,7 +478,7 @@
     /* a free user sees the card right under the date: "Your last night", a little closer to the date (17 Nov 2026) */
     var FREEU = /^free/.test(MD.Q.get("state") || "");
     if (FREEU && !document.getElementById("svFreeGap")) { var fg = document.createElement("style"); fg.id = "svFreeGap"; fg.textContent = ".dateline.solo + #svCard,#svCard{margin-top:24px}"; document.head.appendChild(fg); }
-    return '<div class="sec sv-sec"><h2>' + (FREEU ? "Your last night" : "Last night") + '</h2>' + (J ? "" : '<button class="sv-ib" data-sv="info" aria-label="How last night counts">' + I.info + '</button>') + '</div><section class="mv-steps sv-steps' + sk + '" style="margin-top:0">' + CARD[V]() + strip() + '</section>';
+    return '<div class="sec sv-sec"><h2>' + (FREEU ? "Your last night" : "Last night") + '</h2>' + (J ? "" : '<button class="sv-ib" data-sv="info" aria-label="How last night counts">' + I.info + '</button>') + '</div><section class="mv-steps sv-steps' + sk + '" style="margin-top:0">' + CARD[V]() + strip() + '</section>' + (SX && ST.night ? sxNotes() : "");
   }
 
   /* ---------- where it goes: its own card beside the plan (a, b, c), or the Morning row (d) ---------- */
@@ -426,7 +503,7 @@
      e  hours first: the total leads, the two times under it, the wheel on tap
      f  drag the bar: a tall bar with handles is the picker, the times read back under it, the wheel on tap
      every option: lifted time cards with a chevron, the moon in indigo and the sun in gold, the coach's plan as a soft chip */
-  var VL = /^[bcdef]$/.test(Q.get("vlog") || "") ? Q.get("vlog") : null;
+  var VL = /^[bcdef]$/.test(Q.get("vlog") || "") ? Q.get("vlog") : Q.get("vlog") === "a" ? null : "c";   /* C is the sheet everywhere (Shaheer, 19 Nov 2026); ?vlog=a the sheet before */
   /* I's draft holds one to three sleeps; bed and wake read and write the sleep in use, so the wheel works unchanged */
   function mkDraft(segs) {
     var d = { segs: segs.map(function (x) { return { bed: x.bed, wake: x.wake }; }), ai: 0 };
@@ -684,17 +761,64 @@
   /* ?sdev: before editing a ring night, its own sheet: the gold warning card with Move's L arrows (move/rest-variants.js) */
   function ringWarn() {
     var li = function (b, t) { return '<li><span><b>' + b + '</b> ' + t + '</span></li>'; };
-    window.GFOpenSheet("svRingW", "Before you edit", '<div class="sv-fbn" role="note"><div class="rib">' + WARNI + 'Arc smart ring connected</div><div class="in"><b>Your edit changes sleep in Mind only</b><ul class="sv-la">' +
-      li("Your Rhythm score updates.", "It uses the times you set.") +
-      li("Your ring stays as it is.", "Its sleep data and sleep score don\u2019t change.") +
-      li("Edit only if the ring missed part of the night,", "for example you took it off to charge, removed it midway, or its battery ran out.") +
-      '</ul></div></div><button class="md-save" data-sv="redit">Edit Sleep Times</button><button class="sv-rst" data-sv="close">Keep the ring\u2019s times</button>');
+    /* shorter and calmer (Shaheer, 20 Nov 2026): an info mark, two plain lines, no list of reasons */
+    window.GFOpenSheet("svRingW", "Before you edit", '<div class="sv-fbn sv-fbc" role="note"><div class="rib">' + I.info + 'Arc smart ring connected</div><div class="in"><b>Your edit changes sleep in Mind only</b>' +
+      '<p>Your Rhythm score will use your times. Your ring keeps its own sleep data.</p></div></div><button class="md-save" data-sv="redit">Edit Your Sleep</button><button class="sv-rst" data-sv="close">Keep the ring\u2019s times</button>');
+  }
+  function altSheet() {
+    var cur = { k: FROM, night: ST.night }, alt = ST.alt, icon = function (k) { return '<img src="' + (k === "ring" ? "/v7/icons/mind/arc-ring.png" : "/v7/icons/health/apple-health-heart.png") + '" alt="">'; };
+    var opt = function (o) { return '<button class="sv-so sv-alt" role="radio" aria-checked="false" data-sva="' + o.k + '"><span class="ic">' + icon(o.k) + '</span><span class="tx"><b>' + ALTN[o.k] + '</b><span class="hrs">' + dur(len(o.night)) + '</span><span>' + clk(o.night.bed) + ' to ' + clk(o.night.wake) + '</span></span><i class="rd" aria-hidden="true"></i></button>'; };
+    window.GFOpenSheet("svAlt", "Which one is right?", '<div class="msub">Pick the night that matches how you slept.</div>' +
+      '<div class="sv-sos" role="radiogroup">' + opt(cur) + opt(alt) + '</div>' +
+      '<button class="md-save" data-sv="altsave" disabled>Use This Night</button><button class="sv-rst" data-sv="edit">Neither is right</button>');
+  }
+  /* ---------- SX: the smart flow's empty card, through window.SVX ---------- */
+  function sxEmpty() {
+    var X = window.SVX || {}, c = SVX.ctx;
+    if (ST.perm && !WAITED) return X.load ? X.load(c) : '<div class="mv-sc sv-sc"><div class="sv-t">' + (RING ? "Syncing your Arc ring" : "Looking for last night\u2019s sleep") + '</div><div class="mv-sub">This takes a few seconds.</div></div>';
+    if (ST.perm) return X.nf ? X.nf(c) : '<div class="mv-sc sv-sc">' + jEmpty().replace(/^<div class="mv-sc sv-sc">/, "");
+    return X.card ? X.card(c) : jEmpty();
+  }
+  /* start a device sync from the card or the Track sleep from sheet: the loader, then the night (or not found) */
+  function sxSync(k) {
+    if (k) HAS[k] = true;
+    USE = null; WAITED = false; build();
+    var keep = ST.night && (ST.src === "manual" || ST.src === "edited") ? ST : null;
+    if (keep) { ST = keep; WAITED = true; put(); MD.render(); place(); return; }   /* times they typed stay */
+    PEND = SDAY === "missing" ? null : ST; ST = { perm: true, src: null, night: null, health: null };
+    put(); MD.render(); place();
+    setTimeout(arrive, RD ? 50 : Math.max(1500, SWAIT > 0 ? SWAIT : 4000));
+  }
+  function sxSave(n) {
+    var h = ST.health, key = function (x) { return x ? JSON.stringify(x.segs || [{ bed: x.bed, wake: x.wake }]) : ""; }, same = h && key(h) === key(n);
+    ST.night = same ? h : n; ST.src = same ? "health" : h ? "edited" : "manual"; ST.perm = ST.perm || false;
+    if (!same) { ST.odd = false; ST.at = clk(Math.floor(NOWM / 5) * 5); }
+    put(); MD.cause = "sleep"; window.closeSheets(); MD.render(); place(); MD.toast("Last night saved.");
+  }
+  function sxLog(k) {
+    if (RING && ST.health && ST.src !== "manual" && k !== "skipwarn") return ringWarn();
+    var X = window.SVX || {}; return X.ask ? X.ask(SVX.ctx) : sheet(k);
+  }
+  function sxTrack() { var X = window.SVX || {}; return X.track ? X.track(SVX.ctx) : srcSheet(); }
+  if (SX) {
+    window.SVX = window.SVX || {};
+    SVX.ctx = {
+      Q: Q, PLAN: PLAN, NOWM: NOWM, PREV: PREV, RD: RD, I: I, IC: MD.IC, MOONF: MOONF, SUNF: SUNF, PLUSQ: PLUSQ, MENU: MENU, RINGI: RINGI, XS: XS,
+      clk: clk, dur: dur, gap: gap, len: len, bar: bar, dayOf: dayOf, noplan: !!MD.noplan,
+      get ST() { return ST; }, get HAS() { return HAS; }, get USE() { return USE; }, get RING() { return RING; }, get NAME() { return NAME; }, get WAITED() { return WAITED; },
+      ringFail: Q.get("sring") || "",   /* range | battery | worn: why the ring did not sync (doc) */
+      open: function (id, t, h) { return window.GFOpenSheet(id, t, h); }, close: function () { window.closeSheets(); }, toast: function (m) { MD.toast(m); },
+      save: sxSave, sync: sxSync, log: sxLog, track: sxTrack, menu: function () { menu(); }, ask: function () { permJ(); },
+      connect: function (k) { if (k === "ah") return permJ(); window.closeSheets(); MD.toast("Your Arc ring is connected."); sxSync("ring"); },
+      check: function (n) { var l = n.wake - n.bed; if (l <= 0) return { err: "Waking up has to come after falling asleep." }; if (n.wake > NOWM) return { err: "It is " + clk(NOWM) + " now. Pick a wake-up time before that." }; if (l > 16 * 60) return { err: "That is over 16 hours. Check AM and PM." }; if (l < 180) return { wrn: "That is a short night. Save it if it is right." }; return {}; }
+    };
   }
   function menu() {
     var any = HAS.ring || HAS.ah, row = function (a, ic, t, s) { return '<button class="sv-mn" data-sv="' + a + '"><span class="ic">' + ic + '</span><span class="tx"><b>' + t + '</b>' + (s ? '<span>' + s + '</span>' : "") + '</span>' + MD.IC.chev + '</button>'; };
     window.GFOpenSheet("svMenu", "Last night", '<div class="sv-mns">' +
-      row("edit", ST.night ? I.pencil : PLUSQ, ST.night ? "Edit sleep times" : "Log sleep", "") +
-      row("src", SWAP, "Sleep data source", UNSET ? "" : SRCN[USE]) + '</div>');
+      row("edit", ST.night ? I.pencil : PLUSQ, ST.night ? "Edit your sleep" : "Log sleep", "") +
+      (SX && ST.night && !/^[ab1]$/.test(Q.get("sxadd") || "") ? row("addmore", PLUSQ, "Add another sleep", "A nap, or sleep after waking up") : "") +   /* the quiet way in, C picked (20 Nov 2026); ?sxadd=a|b|1 the others */
+      (SX ? row("track", SWAP, "Track sleep automatically", "") : row("src", SWAP, "Sleep data source", UNSET ? "" : SRCN[USE])) + '</div>');
   }
   var PICKD = null;
   function srcSheet() {
@@ -756,13 +880,14 @@
       '<p class="hsub">' + (RING ? "Your Arc ring saves your sleep to Health Connect. Allow GoodFlip to read it, and last night comes in by itself every morning." : "Your watch or sleep app already saves it. Connect once, and last night comes in by itself every morning.") + '</p>' +
       '<div class="dev-wrap" aria-hidden="true"><div class="flab">Next, your phone will ask</div><div class="dev' + (AND ? " and" : "") + '"><span class="dev-cam"></span><div class="dev-scr"><div class="ds">' + scr + '</div></div></div></div>' +
       '<div class="hft"><button class="hgo" data-sv="permgo">' + (AND ? "Allow Health Connect" : "Connect Apple Health") + '</button>' +
-      '<button class="hlater" data-sv="edit">I will enter my sleep myself</button></div>');
+      '<button class="hlater" data-sv="' + (SX ? "later" : "edit") + '">' + (SX ? "I\u2019ll log it myself" : "I will enter my sleep myself") + '</button></div>');
   }
 
   /* ---------- taps ---------- */
   document.addEventListener("click", function (e) {
     var p = e.target.closest("[data-svp]"), f = e.target.closest(".sv-fld"), t = e.target.closest("[data-sv]");
-    var x = e.target.closest("[data-svx]"), so = e.target.closest("[data-svk]");
+    var x = e.target.closest("[data-svx]"), so = e.target.closest("[data-svk]"), sa = e.target.closest("[data-sva]");
+    if (sa) { [].forEach.call(document.querySelectorAll("#svAlt [data-sva]"), function (b) { var on = b === sa; b.classList.toggle("on", on); b.setAttribute("aria-checked", on); }); document.querySelector('#svAlt [data-sv="altsave"]').disabled = false; return; }
     if (so && !e.target.closest("[data-sv]")) { PICKD = so.dataset.svk; [].forEach.call(document.querySelectorAll("#svSrc [data-svk]"), function (o) { var on = o === so; o.classList.toggle("on", on); o.setAttribute("aria-checked", on); }); var sv = document.querySelector('#svSrc [data-sv="srcsave"]'); if (sv) sv.disabled = false; var hn = document.querySelector("#svSrc .sv-hint"); if (hn) hn.hidden = PICKD !== "manual"; return; }   /* picking manual says where to change it later */
     if (x && draft && draft.segs) {
       var g = draft.segs;
@@ -800,11 +925,26 @@
     if (f) { if (draft && draft.segs && f.dataset.i != null) draft.ai = +f.dataset.i; active = f.dataset.f; drawPick(); drawSum(); return; }
     if (!t) return;
     var a = t.dataset.sv;
+    if (SX && (a === "edit" || a === "log")) return sxLog(t.dataset.f);
+    if (SX && a === "redit") return sxLog("skipwarn");
+    if (SX && a === "track") return sxTrack();
+    if (SX && a === "addmore") { window.SVX.addMore = true; return sxLog("skipwarn"); }
+    if (SX && a === "sync") { window.closeSheets(); return sxSync(t.dataset.dev || null); }
+    if (SX && a === "later") return window.closeSheets();   /* I'll log it myself: the log-it card stays, nothing more is asked */
+    if (SX && a === "permgo") { window.closeSheets(); MD.toast("Apple Health is connected."); return sxSync("ah"); }
     if (a === "edit" && UNSET) { FROMLOG = true; return srcSheet(); }   /* no source chosen yet: Log sleep asks how first; picking manual then opens Log sleep */
     if (a === "edit" && DEV && RING && ST.health && ST.src !== "manual") return ringWarn();
     if (a === "redit") return sheet(t.dataset.f);
     if (a === "edit") return sheet(t.dataset.f);
     if (a === "menu") return menu();
+    if (a === "alt") return altSheet();
+    if (a === "altuse") { var o2 = ST.alt; FROM = o2.k; RING = FROM === "ring"; NAME = ALTN[FROM]; ST.night = o2.night; ST.health = o2.night; ST.alt = null; ST.picked = true; put(ST.night); MD.cause = "sleep"; MD.render(); place(); MD.toast("Last night now uses " + ALTN[FROM] + "."); return; }
+    if (a === "altok") { ST.alt = null; MD.render(); place(); if (!QUIET) MD.toast("Kept " + ALTN[FROM] + "\u2019s times."); return; }
+    if (a === "altsave") {
+      var pk = document.querySelector('#svAlt [aria-checked="true"]'); if (!pk) return;
+      if (pk.dataset.sva !== FROM) { var o = ST.alt; FROM = o.k; RING = FROM === "ring"; NAME = ALTN[FROM]; ST.night = o.night; ST.health = o.night; }
+      ST.alt = null; ST.picked = true; put(ST.night); window.closeSheets(); MD.cause = "sleep"; MD.render(); place(); MD.toast("Last night now uses " + ALTN[FROM] + "."); return;   /* last night only; the source stays as picked */
+    }
     if (a === "src") return srcSheet();
     if (a === "devgo" && t.dataset.dev === "ah") return permJ();
     if (a === "devgo" && UNSET) { HAS[t.dataset.dev] = true; USE = t.dataset.dev; UNSET = false; var kr = ST.night && ST.src === "manual" ? ST : null; build(); if (kr) { kr.perm = true; kr.health = ST.health; ST = kr; } window.closeSheets(); put(ST.night); MD.render(); place(); MD.toast("Your Arc ring is connected."); return; }
@@ -818,7 +958,7 @@
     if (a === "info") return info();
     if (a === "perm") return perm();
     if (a === "close") return window.closeSheets();
-    if (a === "oddok") { ST.oddOk = true; MD.render(); place(); MD.toast("Kept " + NAME + "’s times."); return; }
+    if (a === "oddok") { ST.oddOk = true; MD.render(); place(); if (!QUIET) MD.toast("Kept " + NAME + "’s times."); return; }
     if (a === "reset") { ST.night = ST.health.segs ? ST.health : { bed: ST.health.bed, wake: ST.health.wake }; ST.src = "health"; ST.odd = len(ST.night) < 180; put(ST.night); window.closeSheets(); MD.render(); place(); MD.toast("Back to " + NAME + "’s times."); return; }
     if (a === "permgo" && DEV) {   /* the phone's own Health screen comes next; here it always says yes */
       window.closeSheets(); HAS.ah = true; USE = "ah"; UNSET = false; var kp = ST.night && ST.src === "manual" ? ST : null; build(); if (kp) { kp.perm = true; kp.health = ST.health; ST = kp; }
@@ -846,11 +986,14 @@
 
   window.MDVAR = window.MDVAR || {};
   MDVAR.open = MDVAR.open || {};
-  MDVAR.open.sleep = function () { sheet(); return true; };
+  MDVAR.open.sleep = function () { if (SX) sxLog(); else sheet(); return true; };
+  MDVAR.open.sleeptrack = function () { sxTrack(); return true; };
+  MDVAR.open.sleepload = function () { return true; };
   /* "How last night counts" is not shown to people: nothing on the screen opens it, and the Rhythm sheet already shows the sleep points (designer, 16 Nov 2026) */
   MDVAR.open.sleepperm = function () { perm(); return true; };
   MDVAR.open.sleepask = function () { permJ(); return true; };   /* the first time on Mind: Apple Health's ask, once */
   MDVAR.open.sleepring = function () { ringWarn(); return true; };
+  MDVAR.open.sleepalt = function () { if (ST.alt) altSheet(); return true; };
   MDVAR.open.sleepmenu = function () { menu(); return true; };   /* ?sdev docs: the three dots, and the source sheet */
   MDVAR.open.sleepsrc = function () { srcSheet(); return true; };
   var prevItems = MDVAR.items;
@@ -932,6 +1075,10 @@
     ".vlq{display:flex;align-items:center;gap:16px;width:100%;padding:16px;border:1px solid #EAECF0;border-radius:16px;background:#fff;text-align:left;font:inherit;cursor:pointer}",
     ".vlq>span{flex:1;display:flex;flex-direction:column;gap:2px}.vlq b{font:600 16px/22px Roboto,sans-serif;color:#101828}.vlq span span{font:400 15px/22px Roboto,sans-serif;color:#667085}",
     ".vlq .rd{width:22px;height:22px;border-radius:50%;border:2px solid #D0D5DD;box-sizing:border-box;flex:none}.vlq.on{border-color:#299D6B;background:#F3FBF7}.vlq.on .rd{border:7px solid #299D6B}",
+    /* two sources disagree: the gold striped strip, with the info mark rather than the warning */
+    ".so-i{padding:6px 12px;border-radius:12px;border:1px solid #FEF1C7;background:repeating-linear-gradient(-45deg,#FFF8E0 0 10px,#FFFBEE 10px 20px);color:#826E2D;font-weight:500}.so-i > span{flex:1;min-width:0}.so-i > svg{color:#A68A2D}.so-i .so-x{margin-left:-6px;width:28px}",   /* the gold striped strip, as the short-night one (Shaheer, 19 Nov 2026) */
+    ".sv-alt{width:100%;text-align:left;font:inherit}.sv-alt .tx .hrs{font:700 20px/26px Roboto,sans-serif;color:#7A5C14}.sv-alt.on{border-color:#299D6B;background:#F3FBF7}.sv-alt.on .rd{border:7px solid #299D6B}",
+    "#svAlt .md-save{height:52px;margin-bottom:7px;border-radius:12px;font:700 15px/1 Roboto,sans-serif;letter-spacing:.25px;box-shadow:0 7px 0 #2A805A}#svAlt .md-save[disabled]{box-shadow:0 7px 0 #E4E7EC}#svAlt .sv-rst{margin-top:12px;font-size:15px}",
     ".sv-syn{display:inline-flex;align-items:center;gap:6px}",
     ".sv-acts.sv-acts-t{gap:4px}.sv-sub1{margin-top:-8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
     ".sv-acts{display:flex;align-items:center;gap:0;flex:none;margin-right:-4px}.sv-acts .sv-dots{width:28px;margin:0 -8px 0 0}",
@@ -965,6 +1112,24 @@
     ".jh-t svg.mn{width:13px;height:13px;margin:0 1.5px}.sv-j-sheet .sv-fld .fl svg.mn{width:12px;height:12px;margin:0 1px}",
     ".jh-r{display:flex;flex-wrap:wrap;gap:4px 20px;margin-top:-8px}.jh-t{display:inline-flex;align-items:center;gap:6px;font:400 14px/20px Roboto,sans-serif;color:#475467}.jh-t b{font-weight:600;color:#101828}.jh-t svg{width:16px;height:16px;color:var(--g-500)}",
     /* the short-sync note, four slim looks. Gold from Eat's ribbon: 25 #FFFDF5, 50 #FFFBEE, 100 #FFF8E0, 200 #FEF1C7, 800 #A68A2D, 900 #826E2D */
+    ".sv-out{display:flex;flex-direction:column;gap:12px;margin-top:16px}.sv-out .so{margin-top:0}",
+    ".sv-cw{display:grid;grid-template-rows:1fr;transition:grid-template-rows .3s cubic-bezier(.4,0,.2,1)}.sv-cw>div{min-height:0;overflow:hidden}.sv-cw.go{grid-template-rows:0fr}.sv-out:has(.sv-cw.go:only-child){margin-top:0;transition:margin .3s}",
+    ".sv-fbq{transition:opacity .26s cubic-bezier(.4,0,.2,1),transform .26s cubic-bezier(.4,0,.2,1),filter .26s;transform-origin:50% 0}",
+    ".sv-d-a{opacity:0;transform:translateY(-8px) scale(.98)}",
+    ".sv-d-b{opacity:0;transform:translateY(-28px) scale(.94);filter:blur(2px)}",
+    ".sv-d-c{opacity:0;transform:translateX(48px)}",
+    ".sv-d-d{opacity:0;transform:scale(.98)}",
+    ".sv-fbq{position:relative}.sv-done{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px;background:#ECFDF3;color:#067647;font:600 15px/22px Roboto,sans-serif;opacity:0;transition:opacity .3s cubic-bezier(.4,0,.2,1)}.sv-done svg{width:20px;height:20px}.sv-d1 .sv-done{opacity:1}.sv-d1{border-color:#ABEFC6;transition:border-color .3s}",
+    ".sv-out .sv-fbn{margin:0}.sv-fbq .rib span{flex:1}.sv-fbx{width:32px;height:32px;margin-right:-10px;display:grid;place-items:center;border:0;background:none;color:#A68A2D;cursor:pointer;position:relative}.sv-fbx svg{width:16px;height:16px}.sv-fbx::after{content:'';position:absolute;inset:-6px}",
+    ".sv-fbq .bb{display:flex;gap:8px;margin-top:12px}.sv-fb2{height:40px;min-width:88px;padding:0 18px;border:1px solid #299D6B;border-radius:10px;background:#fff;color:#2A805A;font:600 15px/1 Roboto,sans-serif;box-shadow:0 4px 0 #CBF0E0;cursor:pointer;position:relative;transition:transform .15s ease-out,box-shadow .15s ease-out}.sv-fb2::after{content:'';position:absolute;inset:-4px 0}.sv-fb2:active{transform:translateY(4px);box-shadow:none}",
+    ".sv-fb2:focus-visible,.sv-fbx:focus-visible{outline:2px solid #6172F3;outline-offset:2px}",
+    ".sv-yn2{padding:10px 12px}.sv-yn2 b{font-weight:700}.sv-yn2 .so-fix{position:relative;min-width:48px}.sv-yn2 .so-fix::after{content:'';position:absolute;inset:-8px -4px}.sv-yn2 .so-fix+.so-fix{margin-left:-2px}",
+    ".sv-yn{padding:14px 16px 16px;border-radius:16px;border:1px solid #FEF1C7;background:repeating-linear-gradient(-45deg,#FFF8E0 0 10px,#FFFBEE 10px 20px)}",
+    ".sv-yn p{display:flex;gap:8px;margin:0;font:500 15px/22px Roboto,sans-serif;color:#826E2D}.sv-yn p svg{width:18px;height:18px;flex:none;margin-top:2px}.sv-yn b{font-weight:700}",
+    ".sv-yn .b{display:flex;gap:8px;margin-top:12px;padding-left:26px}",
+    ".sv-yp{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 20px 0 14px;border:1px solid #D0D5DD;border-radius:9999px;background:#fff;color:#344054;font:500 15px/1 Roboto,sans-serif;cursor:pointer;transition:border-color .2s ease-out,background .2s ease-out}",
+    ".sv-yp .rd{width:18px;height:18px;border-radius:50%;border:1.5px solid #667085;box-sizing:border-box}.sv-yp:active{border-color:#299D6B;background:#F3FCF8}.sv-yp:active .rd{border:5px solid #299D6B}",
+    ".sv-yp:focus-visible{outline:2px solid #6172F3;outline-offset:2px}",
     ".so{display:flex;align-items:center;gap:8px;margin-top:12px;font:400 13px/18px Roboto,sans-serif;color:#344054}.so svg{width:16px;height:16px;flex:0 0 auto}",
     ".so-x{flex:0 0 auto;width:32px;height:32px;margin:-6px -8px -6px 0;border:0;border-radius:50%;background:none;color:#826E2D;display:grid;place-items:center;cursor:pointer}.so-x svg{width:14px;height:14px}",
     ".so-fix{flex:0 0 auto;height:28px;padding:0 12px;border:1px solid #299D6B;border-radius:8px;background:#fff;color:#2A805A;font:600 13px Roboto,sans-serif;box-shadow:0 2px 0 #CBF0E0;cursor:pointer}.so-fix:active{transform:translateY(2px);box-shadow:none}",
@@ -1100,6 +1265,9 @@
 
   MD.render();
   place();
+  /* SX: the first time on Mind, Apple Health is asked for once (?sdev=new), unless a doc opens another sheet */
+  if (SX && DEV === "new" && !Q.get("sheet") && Q.get("sask0") !== "1") setTimeout(permJ, 1200);
+  if (SX && MD.noplan && Q.get("sheet") === "sleep") setTimeout(function () { sxLog(); }, 900);   /* free users: the screen's own ?sheet= waits for a plan */
   /* doc-only URL hooks for v7/mind-rhythm.html; nothing here runs without them.
      ?act=sleep  last night arrives from Health 1.6 s after the screen settles, so the score and its line move
      ?serr=order|long|overlap  opens the sheet with times that fail a check (overlap needs ?sstate=split) */
