@@ -139,8 +139,13 @@
   });
   /* only the phones on screen run; one scrolled far away goes blank again, so the page stays light */
   var io = new IntersectionObserver(function (es) {
-    es.forEach(function (e) { var f = e.target; if (e.isIntersecting) { if (!f.src || f.src === "about:blank") f.src = f.dataset.src; } else f.src = "about:blank"; });
-  }, { rootMargin: "200px 0px" });
+    /* a phone loads as it comes near and stays loaded; only one scrolled very far away goes blank, to keep the page light (20 Nov 2026) */
+    es.forEach(function (e) { var f = e.target; if (e.isIntersecting && (!f.src || f.src === "about:blank")) f.src = f.dataset.src; });
+  }, { rootMargin: "400px 0px" });
+  var far = new IntersectionObserver(function (es) {
+    es.forEach(function (e) { if (!e.isIntersecting && e.target.src && e.target.src !== "about:blank") e.target.src = "about:blank"; });
+  }, { rootMargin: "4000px 0px" });
+  document.querySelectorAll("iframe[data-src]").forEach(function (f) { far.observe(f); });
   document.querySelectorAll("iframe[data-src]").forEach(function (f) { io.observe(f); });
   /* the rest stays folded so the page loads quickly; a link into it opens it */
   function unfold() { var t = location.hash && document.querySelector(location.hash), d = t && t.closest("details"); if (d) { d.open = true; t.scrollIntoView(); } }

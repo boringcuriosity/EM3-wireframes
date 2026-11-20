@@ -104,8 +104,9 @@
   });
   /* only the phones on screen run; one scrolled far away goes blank again, so the page stays light */
   var io = new IntersectionObserver(function (es) {
-    es.forEach(function (e) { var f = e.target; if (e.isIntersecting) { if (!f.src || f.src === "about:blank") f.src = f.dataset.src; } else f.src = "about:blank"; });
-  }, { rootMargin: "200px 0px" });
+    /* a phone loads once as it comes near and then stays, so scrolling back never reloads it (20 Nov 2026) */
+    es.forEach(function (e) { var f = e.target; if (e.isIntersecting && (!f.src || f.src === "about:blank")) { f.src = f.dataset.src; io.unobserve(f); } });
+  }, { rootMargin: "400px 0px" });
   document.querySelectorAll("iframe[data-src]").forEach(function (f) { io.observe(f);
     /* each phone opens at the steps card; the screen settles for a while, so it looks a few times */
     f.addEventListener("load", function () { [700, 1600, 3000].forEach(function (t) { setTimeout(function () { try { var d = f.contentDocument, c = d.querySelector(".mv-steps"); if (c && !/sheet=/.test(f.src)) f.contentWindow.scrollTo(0, c.getBoundingClientRect().top + f.contentWindow.scrollY - 160); } catch (e) {} }, t); }); });
