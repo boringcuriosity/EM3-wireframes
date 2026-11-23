@@ -410,7 +410,7 @@
     }
     function buttons() {
       var st = F.state;
-      if (HS()) HS().music(B.sound && st === "run" && el.classList.contains("on"));   /* Breathing Calm while breathing, quiet otherwise */
+      if (HS()) HS().music(B.sound && st === "run" && el.classList.contains("on"), kOf(B.i) === "hum");   /* Humming Bee: bell only */   /* Breathing Calm while breathing, quiet otherwise */
       if (st === "") { word.textContent = F7[kOf(B.i)].pat; cnt.textContent = free() ? "No time limit" : (F.len || plan()) + " min session"; bot.innerHTML = sndBtn("bf", "bf-snd") + '<button class="md-save" data-bf="go">Start</button>'; }   /* sound from the start, where it sits while breathing */
       else if (st === "run" || st === "paused") bot.innerHTML = ctl(st === "paused", "bf", "bf-snd");
       else if (st === "done") { word.textContent = calm(Math.round(F.S.total / 60)); cnt.textContent = EX[kOf(B.i)].line; bot.innerHTML = '<button class="md-sec" data-bf="again">Do It Again</button><button class="md-save" data-bf="close">Back to Mind</button>'; }
@@ -503,7 +503,7 @@
       if (m) { F.lenPick = +m.dataset.bfm; [].forEach.call(lsheet.querySelectorAll("[data-bfm]"), function (x) { var on = +x.dataset.bfm === F.lenPick; x.classList.toggle("on", on); x.setAttribute("aria-checked", on); }); lsheet.querySelector("[data-bf=lenok]").textContent = useL(F.lenPick); return; }
       var b = e.target.closest("[data-bf]"); if (!b) return; var a = b.dataset.bf;
       if (a === "go") return start();
-      if (a === "snd") { B.sound = !B.sound; if (B.sound) prime(); if (HS()) HS().music(B.sound && F.state === "run"); b.setAttribute("aria-pressed", B.sound); b.setAttribute("aria-label", B.sound ? "Sound on" : "Sound off"); b.innerHTML = B.sound ? SND.on : SND.off; return; }
+      if (a === "snd") { B.sound = !B.sound; if (B.sound) prime(); if (HS()) HS().music(B.sound && F.state === "run", kOf(B.i) === "hum"); b.setAttribute("aria-pressed", B.sound); b.setAttribute("aria-label", B.sound ? "Sound on" : "Sound off"); b.innerHTML = B.sound ? SND.on : SND.off; return; }
       if (a === "pause") { clearInterval(F.t); F.state = "paused"; buttons(); return paint(); }
       if (a === "resume") { F.state = "run"; buttons(); return loop(); }
       if (a === "end") return askStop();

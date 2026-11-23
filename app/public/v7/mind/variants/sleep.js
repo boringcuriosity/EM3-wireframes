@@ -129,7 +129,10 @@
     var mine = USE === "ring" ? shortN : { bed: PLAN.bed + 30, wake: 1620 }, other = USE === "ring" ? fullN : { bed: PLAN.bed + 20, wake: PLAN.wake + 10 };
     ST = { perm: true, src: "health", night: mine, health: mine, alt: { k: USE === "ring" ? "ah" : "ring", night: other } };
   }
+  var ST0 = ST;   /* the night ?sleep= or ?sstate=split drew, before the device decides */
   if (DEV) { HAS = { ring: DEV === "ring" || DEV === "both", ah: DEV === "ah" || DEV === "both" }; USE = SX ? null : Q.get("suse"); build(); differ(); }
+  /* SX, doc only (v7/mind-rhythm.html): ?sleep= and ?sstate=split|split-synced keep their own night on the smart card; it came from the device, or was typed with ?ssrc=manual */
+  if (SX && DEV && (SLEEPS[SLK] || /^split/.test(K))) ST = ST0;
   /* SX: a device night waits behind the loader, then arrives with the toast */
   var PEND = null;
   if (SX && ST.perm && ST.night && ST.src === "health" && SWAIT !== 0) { PEND = ST; ST = { perm: true, src: null, night: null, health: null }; }

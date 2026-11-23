@@ -129,7 +129,7 @@
         w.textContent = Math.ceil(-T); s.textContent = "Get comfortable"; c.textContent = ""; lastK = "";
         tm.textContent = mm(SECS || 0); return;
       }
-      if (H()) H().music(sOn && !paused && el.isConnected);   /* music while breathing; pause, sound off or closing stops it */
+      if (H()) H().music(sOn && !paused && el.isConnected, tech === "hum");   /* music while breathing; pause, sound off or closing stops it */
       if (p.k !== lastK && sOn && !paused) { if (H()) H().phase(p.k, LAB.PAT[tech] ? (LAB.PAT[tech].seq.filter(function (x) { return x[0] === p.k; })[0] || [0, 4])[1] : 4, tech === "hum");
         else CUE[p.k] && CUE[p.k](tech === "sleep" || tech === "hum"); }   /* a sound as each part begins */
       if (p.word !== w.textContent || p.k !== lastK) { w.textContent = p.word; s.textContent = p.sub; }

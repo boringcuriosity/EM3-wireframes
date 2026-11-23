@@ -180,14 +180,17 @@
   /* the house sound in the real players (variants/breath.js, lab.js's LAB.phone), decided 17 Nov 2026: singing bowl
      cues and Breathing Calm at half level. Still off until the person turns sound on. sounds.html sets LAB.noHouse.
      music(on) is called on every state change (or every frame) and acts only when it flips. */
-  var hOn = false;
+  /* Humming Bee (23 Nov 2026): the bell only, no Breathing Calm and no low drone under the hum. music(on, bellOnly)
+     keeps the session on (hOn) so the bowl cues still play; bellOnly just leaves the track silent. */
+  var hOn = false, hKey = "";
   S.house = {
-    music: function (on) {
-      if (on === hOn) return; hOn = on;
+    music: function (on, bellOnly) {
+      var key = on ? (bellOnly ? "bell" : "music") : "";
+      if (key === hKey) return; hKey = key; hOn = on;
       if (on) init(); else if (!ctx) return;
-      S.cue = "bowl"; S.music = "calm"; S.musLevel = .5; S.musicOn(on); if (!on) hush();
+      S.cue = "bowl"; S.music = bellOnly ? "none" : "calm"; S.musLevel = .5; S.musicOn(on); if (!on) hush();
     },
-    phase: function (k, d, hum) { if (!hOn) return; S.cue = "bowl"; S.phase(k, d, null, hum); },
+    phase: function (k, d, hum) { if (!hOn) return; S.cue = "bowl"; S.phase(k, d, null, hum && hKey !== "bell"); },
     done: function () { if (!ctx) return; S.cue = "bowl"; S.house.music(false); open(); SETS.bowl.done(); }
   };
 })();
