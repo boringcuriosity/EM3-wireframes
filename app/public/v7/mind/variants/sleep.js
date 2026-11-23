@@ -157,7 +157,15 @@
     return RING && ST.health && on ? '<div class="sv-rn">' + RINGI + '<span>Changes here count toward your Rhythm only. The Arc app keeps its own sleep score, from what the ring recorded.</span></div>' : ""; }
   var VIA = function () { if (DEV) return "From " + NAME; return RING ? (Q.get("sstrip") === "b" ? "Arc ring \u00b7 Health Connect" : "From Arc ring via Health Connect") : "From " + NAME; };
   /* ?scroll=sleep opens the screen at the sleep card, for v7/mind-sleep-sources.html; late images push it, so it settles a few times */
-  if (Q.get("scroll") === "sleep") [600, 1500, 3000, 5000].forEach(function (t) { setTimeout(function () { var c = document.getElementById("svCard"); if (c) window.scrollTo(0, c.getBoundingClientRect().top + window.scrollY - 12); }, t); });
+  /* ...and stays pinned while the hero, images and the loader change the height above it (the doc's lazy frames), until the person scrolls */
+  if (Q.get("scroll") === "sleep") (function () {
+    function pin() { var c = document.getElementById("svCard"); if (c) window.scrollTo(0, c.getBoundingClientRect().top + window.scrollY - 12); }
+    var ro = window.ResizeObserver ? new ResizeObserver(pin) : null; if (ro) ro.observe(document.body);
+    function stop() { if (ro) ro.disconnect(); ro = null; }
+    ["wheel", "touchstart", "keydown"].forEach(function (e) { window.addEventListener(e, stop, { once: true, passive: true }); });
+    [600, 1500, 3000, 5000].forEach(function (t) { setTimeout(function () { if (ro) pin(); }, t); });
+    setTimeout(stop, 10000);
+  })();
   var NIGHT = Q.get("naps") === "night";   /* doc only: the night alone counts towards hours, the rule before 16 Nov 2026 */
   /* the night and the naps, as the rule sees them: the card always shows the night; every other sleep is in ST.naps */
   function norm() {
@@ -1283,6 +1291,5 @@
     if (SE === "overlap" && g[1]) g[1].bed = g[0].wake - 30;
     drawPick(); drawSum();
   }, 1000);
-  /* ?scroll=sleep opens the screen at last night, for the research doc */
-  if (Q.get("scroll") === "sleep") setTimeout(function () { var t = box || document.getElementById("mdRoot"); window.scrollTo(0, t.getBoundingClientRect().top + window.scrollY - 16);   /* scrollTo keeps a parent page still when this runs in a frame */ }, 1200);
+  /* ?scroll=sleep: pinned to the card near the top of this file */
 })();

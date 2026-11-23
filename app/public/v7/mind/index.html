@@ -1368,20 +1368,30 @@ if (window.MVOFF.all) document.write("<style>#railSect[hidden]{display:none}#rai
   /* Move: the design system's Movement pictogram (the calorie-burn flame) in place of Kaira's mark */
   document.getElementById("kairaMark").innerHTML = '<img src="/v7/icons/orbs/mind.svg" alt="">';
 </script>
-<script>/* FlipCoins are off on Mind until the PM decides they exist: no Earn chip, no coin toast, no earn sheet. ?coins=1 brings them back (one switch) */
-window.MD_COINS = new URLSearchParams(location.search).get("coins") === "1";
+<script>/* FlipCoins on Mind (back on 23 Nov 2026, earned by breathing): the Earn chip top right, the coin toast when the day's first
+   breathing exercise counts, and the earn sheet below. ?coins=0 turns all three off (one switch) */
+window.MD_COINS = new URLSearchParams(location.search).get("coins") !== "0";
 if (window.MD_COINS) document.write('<script src="assets/flipcoin-toast.js?v=2"><\/script>');</script>
 <script src="assets/plan-tray.js?v=112"></script>
 <script>
-  /* the Earn sheet in Move's words: a workout logged today keeps the streak, one FlipCoin a day */
-  window.EARN = { perDay: 1, mark: "/v7/icons/move/log/earn-workout.svg",
-    hero: "Log your workout daily to earn FlipCoins",
-    rule: "Only workouts logged on the day count towards your streak.",
-    cta: "Log your workout",
-    today: function () { var P = window.MVPLAN; return P ? P.RT.some(function (rt, r) { return P.burned(r) > 0; }) ? 1 : 0 : 0; },
-    go: function () { window.openLogWorkout && window.openLogWorkout(); } };
+  /* the Earn sheet in Mind's words: a breathing exercise done today keeps the streak, one FlipCoin a day.
+     Done = the plan's breathing counted (1 minute breathed, or "I've already done it"). The CTA opens the next one in the plan,
+     or the breathing exercises when there is no plan. */
+  window.EARN = { perDay: 1, mark: "/v7/icons/mind/earn-breathing.svg",
+    hero: "Do a breathing exercise daily to earn FlipCoins",
+    rule: "Only breathing exercises done on the day count towards your streak. A minute or more counts.",
+    keep: "Breathe every day",
+    cta: "Start breathing",
+    today: function () { var S = window.MDPLAN && window.MDPLAN.S; return S && S.br && Object.keys(S.br).some(function (k) { return S.br[k]; }) ? 1 : 0; },
+    go: function () {
+      var M = window.MDPLAN, i = M && M.P && M.P.br ? M.P.br.findIndex(function (b, k) { return !M.S.br[k]; }) : -1;
+      if (!M || M.noplan || !M.P.br.length) { var l = document.getElementById("blib"); if (l) l.scrollIntoView({ behavior: "smooth", block: "start" }); return; }
+      if (window.MDVAR && MDVAR.open && MDVAR.open.br) MDVAR.open.br("br:" + Math.max(0, i));
+    } };
 </script>
-<script>if (window.MD_COINS) document.write('<script src="assets/flipcoin-earn.js?v=8"><\/script>');</script>
+<script>if (window.MD_COINS) document.write('<script src="assets/flipcoin-earn.js?v=9"><\/script>');</script>
+<script>/* doc only: ?sheet=earn opens the Earn sheet */
+if (window.MD_COINS && new URLSearchParams(location.search).get("sheet") === "earn") setTimeout(function () { var c = document.querySelector(".earnchip"); if (c) c.click(); }, 1200);</script>
 <script>
 /* ============================================================
    One table, every state. Everything below reads from it: the
@@ -3900,7 +3910,7 @@ function mealsIn() {
 </script>
 <script src="/move/kaira-sheet.js?v=7"></script>
 <script src="/v7/mind/rhythm-say.js?v=1"></script>
-<script src="/v7/mind/rhythm.js?v=12"></script>
+<script src="/v7/mind/rhythm.js?v=14"></script>
 <script>
   /* Every bottom sheet reads at 15px or more (17 Nov 2026). Sheets come from many places (the screen's own, the breathing
      player's, mood, the library, the score breakdown), so one pass here lifts any smaller text in an open sheet to 15px

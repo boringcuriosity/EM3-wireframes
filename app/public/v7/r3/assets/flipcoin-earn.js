@@ -76,9 +76,9 @@
 
       '<p class="fclab">Keep the streak going to earn more</p>' +
       '<div class="two">' +
-        '<div class="card"><div class="t">Log consistently for <b>one week</b> to earn</div><div class="amt">' + COIN + "+" + WEEK + "</div>" +
+        '<div class="card"><div class="t">' + (E.keep || "Log consistently") + ' for <b>one week</b> to earn</div><div class="amt">' + COIN + "+" + WEEK + "</div>" +
           '<img class="art" src="' + ICON + 'week_image.webp" alt="Seven days in a row, all logged"></div>' +
-        '<div class="card"><div class="t">Log consistently for <b>one month</b> to earn</div><div class="amt">' + COIN + "+" + MONTH + "</div>" +
+        '<div class="card"><div class="t">' + (E.keep || "Log consistently") + ' for <b>one month</b> to earn</div><div class="amt">' + COIN + "+" + MONTH + "</div>" +
           '<img class="art" src="' + ICON + 'month_image.webp" alt="A month of days, all logged"></div>' +
       "</div>" +
 

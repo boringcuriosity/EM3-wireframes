@@ -74,7 +74,6 @@ URL flags in this PRD are prototype controls for reaching a case. They are not p
 | Pairing screens for the Arc ring | Only "Ready to connect your Arc?" is drawn. Bluetooth pairing comes from the ring team. |
 | The smart sleep flow on Android | Android keeps the Health Connect flow for now (section 8). |
 | Sleep stages, a sleep score from a device, diagnosing sleep | Rhythm counts what is logged. The Rhythm sheet says so. |
-| FlipCoins on Mind | Off until the PM decides (section 17). |
 | Writing sleep back to Apple Health or Health Connect | Logs stay in GoodFlip. |
 | Eat and Move | Separate PRDs: `v7/PRD.md`, `v7/move-prd.md`. |
 
@@ -88,7 +87,7 @@ The Mind pillar's day view answers three questions: how steady last night was ag
 
 | # | Block | What it holds |
 |---|---|---|
-| 1 | Header | The Mind glyph, **"Mind"** and the tagline **"Care for your steady wellbeing"**. There is no Earn chip, because FlipCoins are off (section 17). At 80% or more the medal hangs from under the header on the right. |
+| 1 | Header | The Mind glyph, **"Mind"** and the tagline **"Care for your steady wellbeing"**. On the right, the **Earn** chip (coin + "Earn") opens the FlipCoins sheet (section 17). At 80% or more the medal hangs from under the header on the right. |
 | 2 | Date pill | Back arrow, then a calendar icon with **"Today"** (opens the date sheet), then a forward arrow. Forward is disabled on today; back is disabled before the join date. There is no delta beside the date on any day. |
 | 3 | Score | Rhythm, drawn as **Cloud Drop** in GoodFlip gold with the word "Rhythm". The whole score is a button ("What is Rhythm?") that opens the Rhythm sheet (section 18). |
 | 4 | The line under the score | One short line from fixed sentences. After a gain it ends with a **Learn more** link (section 4). |
@@ -861,7 +860,18 @@ Worry Tree, Gratitude Journal, Habit Tracker and the rest live in the **Practice
 
 ### FlipCoins
 
-FlipCoins are **off on Mind** until the PM decides they exist: no Earn chip, no coin toast and no earn sheet. One switch turns them on (`MD_COINS`; prototype `?coins=1`). If they come on, the earn sheet needs Mind's own words (section 24).
+On since 23 Nov 2026, **earned by breathing**. One switch turns all of it off (`MD_COINS`; prototype `?coins=0`).
+
+- **The Earn chip** sits top right in the header, for every user.
+- **One FlipCoin a day**, for a breathing exercise from the plan done that day (1 minute breathed, or "I've already done it"). A second one that day earns no more.
+- **The coin toast** "You have earned FlipCoins" lands the moment the day's first breathing exercise counts, with the win moment.
+- **The Earn sheet** (`?sheet=earn`), the app's streak sheet in Mind's words:
+  - hero **"Do a breathing exercise daily to earn FlipCoins"** with the gold Mind mark;
+  - "Your current streak", then "Only breathing exercises done on the day count towards your streak. A minute or more counts.";
+  - "Keep the streak going to earn more": **Breathe every day** for one week (+20) and for one month (+50);
+  - "Earned so far from this streak";
+  - **"Start breathing"** opens the next breathing exercise in the plan; with no plan it goes to the breathing exercises.
+- Library sessions (before a plan, free users) are not saved, so they do not earn coins yet (section 25, question T).
 
 ### The first look
 
@@ -1056,7 +1066,6 @@ Prototype: `/v7/coach-mind-rhythm.html?p=sahana` (also `arjun` for night shift a
 | A past day shows today's live score, line, tiles and plan; only the label, the Rhythm sheet bubble and the mood rows follow the date | That day's score, plan and ticks; the line "This day ended at X% Rhythm." |
 | The Morning Rhythm breakdown can show "Last night's sleep : Not yet" while the night is in | Logged once the night is in |
 | The coach's name is "Coach A" in the plan but "Sahana Chandra" in the Rhythm sheet | The real coach |
-| With `?coins=1` the earn sheet uses Move's words ("Log your workout daily to earn FlipCoins") | Mind's words, if FlipCoins come on |
 | Move's `?off=` rest-day switch is still wired into the Rhythm sheet | Not a Mind feature |
 | Mind began as a copy of Move, itself a copy of Eat; Eat's state table, meal diary and keyboard sit hidden in `mind/index.html` | Build Mind fresh from this spec |
 | Dead code in `plan.js`: the old mood sheet with tags, Tele-MANAS and "Ask Sahana to call", the house breathing player, "Something for you", the KAIRA card | Not built |
@@ -1079,7 +1088,7 @@ Decided so far (dates in `mind-plan-defaults.md`):
 | 2 Nov | Mood is one question with five faces. A low mood gets one gentle suggestion in words. |
 | 5 Nov | Plan defaults: 7.5 h, 10:30 PM to 6:00 AM, 15 days, one Evening check-in. 21 practices. 16 me-time suggestions. |
 | 15 Nov | The seven breathing exercises. |
-| 16 Nov | How a night is judged (section 2). Naps count towards hours only. One window, which can sit in the day. Mood windows, past days closed. Breathing counts at 1 minute. FlipCoins off. Practices hidden for free users. The medal is Lotus at dawn. |
+| 16 Nov | How a night is judged (section 2). Naps count towards hours only. One window, which can sit in the day. Mood windows, past days closed. Breathing counts at 1 minute. FlipCoins off. Practices hidden for free users. (FlipCoins back on 23 Nov, earned by breathing.) The medal is Lotus at dawn. |
 | 17 Nov | Weights 25/25/20 + 10/10/10, with re-share inside the group. The patient sees Sleep quality and Self-care, each out of 100. The lotus win moment. "More breathing exercises" for plan users. The coach Rhythm view. |
 | 18 Nov | KAIRA prompt rewritten to Momentum's standard. |
 | 19 Nov | The rest after breathing out removed. The smart sleep card: no source chooser; the ring, then Apple Health, then typed; Apple Health asked once; logging as questions. |
@@ -1108,7 +1117,7 @@ Still open:
 | Q | Plan name limit | There is none in the builder. |
 | R | Win moment pick | The screen plays Lotus bloom (S). The research pick was Lotus heart (V); a `win.js` comment says Lotus rising (T). |
 | S | Evening-shift sleepers (wake-up after 6 PM) | Not supported. Raise it if a patient needs it. |
-| T | FlipCoins on Mind | Off until the PM decides. |
+| T | FlipCoins for people with no plan | Coins come from the plan's breathing. Library sessions are not saved, so free users and people waiting for a plan cannot earn them yet. Should a library session of a minute or more count? |
 
 ---
 

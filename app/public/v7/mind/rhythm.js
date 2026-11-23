@@ -123,7 +123,7 @@
   (function wait(n) { if (document.getElementById("cm") && window.GFSay && window.GFSay.show) { if (!said0()) intro(); } else if (n < 200) setTimeout(function () { wait(n + 1); }, 100); })(0);
   function said0() { var cm = document.getElementById("cm"); return cm && cm.classList.contains("said") && cm.dataset.gain; }
 
-  var t = 0;
+  var t = 0, coinDay = Object.keys(M.S.br || {}).some(function (k) { return M.S.br[k]; });   /* breathing already done at load earned today's coin earlier */
   function update() {
     var n = score();
     tiles();   /* before a plan the tiles still follow what is logged; there is just no score */
@@ -132,6 +132,10 @@
     last = n;
     if (window.S && window.S.hero) window.S.hero.score = n;
     if (window.setHeroScore) window.setHeroScore(n, d > 0 ? d : 0);   /* no step down and no minus on the score */
+    /* FlipCoins: the day's first breathing exercise that counts earns the coin; the toast shows the moment it lands, as on Move */
+    var br = Object.keys(M.S.br || {}).some(function (k) { return M.S.br[k]; });
+    if (br && !coinDay && d > 0 && window.MD_COINS && window.GFFlipcoin) window.GFFlipcoin.show();
+    coinDay = coinDay || br;
     clearTimeout(t); t = setTimeout(function () { say(d, n); if (window.MVMEDAL) window.MVMEDAL(); }, 2400);
   }
   function tiles() {
