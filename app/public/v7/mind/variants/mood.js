@@ -89,7 +89,7 @@
      When two check-ins' windows overlap, the later one opens at the midpoint between them. A past day is closed. */
   function openM(i) { var m = SLOTS[i].m - 180; if (i && SLOTS[i - 1]) m = Math.max(m, Math.round((SLOTS[i - 1].m + SLOTS[i].m) / 2)); return Math.max(0, m); }
   function hhmm(m) { return ("0" + Math.floor(m / 60)).slice(-2) + ":" + ("0" + m % 60).slice(-2); }
-  function shut(i) { return VM[i] ? "" : PAST ? "missed" : NOWM < openM(i) ? "early" : ""; }
+  function shut(i) { return VM[i] ? "" : PAST ? "missed" : ""; }   /* any time today (24 Nov 2026): no "Check in from" lock before its hour; a past day still says it closed */
 
   var EDIT = false;
   var MI = {
@@ -171,7 +171,7 @@
     if (sel != null) h += reply(sel);
     /* a face is logged the moment it is picked: no Log button. the reply shows, and one Done button closes the sheet */
     h += errLine() + (err ? '<button class="md-save" data-vmlog="1">Try Again</button>'
-      : same ? '<button class="md-save" data-vmdone="1">' + "Done" + '</button>' : "");
+      : same || (sel != null && STACK()) ? '<button class="md-save" data-vmdone="1">' + "Done" + '</button>' : "");
     return '<div class="vm">' + h + '</div>';
   }
   function draw() { window.GFOpenSheet("vmMood", PAST ? "How did you feel?" : "How are you feeling?", body()); }
@@ -182,8 +182,9 @@
     wait = !RM; log(); draw();
     if (wait) TW = setTimeout(function () { wait = false; draw(); }, 900);
   }
+  var STACK = function () { return !!window.MDTRAY && !VM[cur]; };   /* a first answer stacks in the bar on Done (tray.js, 24 Nov 2026) */
   function log() {
-    if (sel == null) return;
+    if (sel == null || STACK()) return;
     if (OFF) { OFF = false; err = true; return draw(); }   /* ponytail: the first try fails in the offline state, the retry goes through */
     var old = VM[cur];   /* changing the face keeps the time it was first logged */
     VM[cur] = { f: sel, at: old ? old.at : NOWT, late: old ? old.late : !!PAST }; err = false;
@@ -196,6 +197,7 @@
     var d = t.dataset;
     if (d.vmf != null) return choose(+d.vmf);
     if (d.vmlog) { log(); return draw(); }
+    if (d.vmdone && STACK() && sel != null) window.MDTRAY.mood(cur ? "mood:" + cur : "mood", sel);
     if (d.vmdone && window.closeSheets) window.closeSheets();
   });
   document.addEventListener("change", function (ev) {
@@ -254,12 +256,16 @@
       if (VM[c] && !EDIT && Q.get("medit") !== "1") { menuSheet(c); return true; }   /* ?medit=1 skips the menu, for the doc */
       EDIT = false;
       cur = c; err = false; sl = null; wait = false;
-      sel = VM[cur] ? VM[cur].f : PRE; PRE = null;
+      var wt = window.MDTRAY && window.MDTRAY.waiting(cur ? "mood:" + cur : "mood");   /* waiting in the bar: the sheet opens on that face */
+      sel = VM[cur] ? VM[cur].f : wt != null ? wt : PRE; PRE = null;
       if (MPICK != null) { sel = MPICK; MPICK = null; }   /* doc hooks, see above */
       if (MWAIT) { wait = true; MWAIT = false; }
       if (MERR) { err = true; OFF = false; MERR = false; }
       draw(); return true; } },
     items: items
   };
+  /* the bar logs a stacked answer through here, with the time it was given */
+  MD.moodPut = function (k, f) { var i = k === "mood:1" ? 1 : 0; VM[i] = { f: f, at: NOWT, late: !!PAST }; sync(); };
+  MD.moodLabel = label;
   MD.render();
 })();

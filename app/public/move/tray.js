@@ -20,6 +20,7 @@
   var T = [];             /* in the bar: { r, id, time } with time in minutes */
   var ED = null;          /* the logged workout being edited: { r, id, time } */
   var UT = null;          /* the ticked small move being undone: { r, i } */
+  var TICK = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
   var UNDO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>';
   var bar = el("pt fm"), sheet = el("pts"), sheet2 = el("pts pt2");
   bar.setAttribute("role", "region"); bar.setAttribute("aria-label", "Workouts to log");
@@ -36,18 +37,27 @@
   }
   /* now if this part of the day is open, otherwise its middle, as Eat does for a meal */
   function defTime(r) { var w = span(RT[r]); return NOWM >= w[0] && NOWM <= w[1] ? Math.floor(NOWM / 5) * 5 : Math.round((w[0] + w[1]) / 2 / 5) * 5; }
-  var later = function (x) { return x.time > NOWM; };
-  var kcal = function () { return T.reduce(function (n, x) { return n + EX[x.id].kcal; }, 0); };
-  var label = function (n) { return n + (n === 1 ? " workout" : " workouts"); };
-  var key = function (x) { return x.r + "|" + x.id; };
+  var later = function (x) { return x.tip == null && x.time > NOWM; };   /* small moves have no time, so never a future one */
+  /* the bar holds workouts { r, id, time } and small moves { r, tip: i, time } side by side */
+  var isTip = function (x) { return x.tip != null; };
+  var nm = function (x) { return isTip(x) ? RT[x.r].tips[x.tip].t : EX[x.id].name; };
+  var kc = function (x) { return isTip(x) ? 0 : EX[x.id].kcal; };
+  var kcal = function (L) { return (L || T).reduce(function (n, x) { return n + kc(x); }, 0); };
+  /* what the things are called: workouts, small moves, or items when both are in */
+  function noun(L, n) {
+    var t = L.filter(isTip).length, one = n === 1;
+    return t === L.length ? (one ? "small move" : "small moves") : t ? (one ? "item" : "items") : (one ? "workout" : "workouts");
+  }
+  var label = function (n, L) { return n + " " + noun(L || T, n); };
+  var key = function (x) { return isTip(x) ? "t" + x.r + "|" + x.tip : x.r + "|" + x.id; };
 
   /* ---------- the bar ---------- */
   function render(fresh) {
     mark();
     if (!T.length) { bar.classList.remove("up"); document.body.classList.remove("pt-on"); return; }
     bar.innerHTML = '<div class="flw"><button class="rmz" data-mt="clear" tabindex="-1">Remove</button>' +
-      '<div class="fl' + (fresh ? " lit" : "") + '"><button class="tx" data-mt="review" aria-label="Review the workouts to log"><b>' +
-        T.slice().reverse().map(function (x) { return EX[x.id].name; }).join(", ") + '</b><span>Edit time' + CHEV + '</span></button>' +
+      '<div class="fl' + (fresh ? " lit" : "") + '"><button class="tx" data-mt="review" aria-label="Review what is ready to log"><b>' +
+        T.slice().reverse().map(nm).join(", ") + '</b><span>' + (T.every(isTip) ? "Review" : "Edit time") + CHEV + '</span></button>' +
       '<button class="go" data-mt="log">Log<small>' + label(T.length) + '</small></button>' +
       '<button class="xc" data-mt="peek" aria-label="Show remove">' + X + '</button></div></div>';
     bar.classList.add("up"); document.body.classList.add("pt-on", "pt-fm");
@@ -57,6 +67,11 @@
     var on = T.map(key);
     document.querySelectorAll(".mv-item [data-tick]").forEach(function (b) {
       b.closest(".mv-item").classList.toggle("pt-sel", on.indexOf(b.dataset.tick) > -1);
+    });
+    document.querySelectorAll(".mv-tip[data-tiprow]").forEach(function (row) {
+      var sel = on.indexOf("t" + row.dataset.tiprow) > -1, mk = row.querySelector(".tmark");
+      row.classList.toggle("pt-sel", sel);
+      if (mk && !mk.classList.contains("on")) mk.innerHTML = sel ? TICK : "";
     });
   }
   function peek(open) {
@@ -71,7 +86,7 @@
     var to = bar.querySelector(".fl .tx b"); if (REDUCED || !row || !to) return false;
     var a = row.getBoundingClientRect(), ty = new DOMMatrix(getComputedStyle(bar).transform).m42, b = to.getBoundingClientRect();
     var m = document.createElement("div"); m.className = "morsel";
-    m.innerHTML = "<b>" + EX[x.id].name + "</b><span>" + EX[x.id].sets + " sets · " + EX[x.id].kcal + " kcal</span>";
+    m.innerHTML = "<b>" + nm(x) + "</b><span>" + (isTip(x) ? "Small move" : EX[x.id].sets + " sets · " + EX[x.id].kcal + " kcal") + "</span>";
     document.body.appendChild(m);
     m.style.width = "190px"; var mr = m.getBoundingClientRect(), x0 = a.left + 36, y0 = a.top + a.height / 2 - mr.height / 2;
     m.style.left = x0 + "px"; m.style.top = y0 + "px";
@@ -85,6 +100,11 @@
     setTimeout(function () { m.remove(); }, 600);
     setTimeout(function () { var f = bar.querySelector(".fl"); if (f) { f.classList.remove("lit"); void f.offsetWidth; f.classList.add("lit"); } }, 450);
     return true;
+  }
+  function toggleTip(r, i, row) {
+    var x = { r: r, tip: i }, at = T.map(key).indexOf(key(x));
+    if (at > -1) { T.splice(at, 1); return render(); }
+    T.push(x); render(); toss(row, x);
   }
   function toggle(r, id, row) {
     var k = r + "|" + id, at = T.map(key).indexOf(k);
@@ -104,25 +124,26 @@
     return '<div class="hd"><div><h4>' + t + '</h4>' + (sub ? '<div class="sub">' + sub + '</div>' : "") + '</div><button class="x" data-mt="close" aria-label="Close">' + X + '</button></div>';
   }
   function row(x, i) {
-    var e = EX[x.id];
-    return '<div class="pi"><div class="t"><div class="nm">' + e.name + '</div><div class="mt">' + RT[x.r].name + ' · ' + e.sets + ' sets · ' + e.kcal + ' kcal</div></div>' +
-      '<div class="ctl"><button class="tc' + (later(x) ? " fut" : "") + '" data-mt="wheel" data-i="' + i + '" aria-label="Change the time for ' + e.name + ', now ' + fmt(x.time) + '">' + CLOCK + fmt(x.time) + '</button>' +
-      '<button class="mvt-rm" data-mt="rm" data-i="' + i + '" aria-label="Remove ' + e.name + '">' + BIN + '</button></div></div>';
+    var e = EX[x.id], n = nm(x);
+    return '<div class="pi"><div class="t"><div class="nm">' + n + '</div><div class="mt">' + RT[x.r].name + ' · ' + (isTip(x) ? "Small move" : e.sets + ' sets · ' + e.kcal + ' kcal') + '</div></div>' +
+      '<div class="ctl">' + (isTip(x) ? "" : '<button class="tc' + (later(x) ? " fut" : "") + '" data-mt="wheel" data-i="' + i + '" aria-label="Change the time for ' + n + ', now ' + fmt(x.time) + '">' + CLOCK + fmt(x.time) + '</button>') +
+      '<button class="mvt-rm" data-mt="rm" data-i="' + i + '" aria-label="Remove ' + n + '">' + BIN + '</button></div></div>';
   }
   function list() { return ED ? [ED] : T; }
   function review() {
-    var L = list(), late = L.filter(later).length;
+    var L = list(), F = L.filter(later), late = F.length;
     var one = late === 1, it = one ? "it" : "them";
-    var ask = late ? '<div class="fbn" role="status"><div class="rib">' + WARN + 'Future time</div><div class="in"><b>You\u2019re logging ' + late + (one ? " future workout!" : " future workouts!") + '</b>' +
-      '<p>' + (one ? "This workout is" : "These workouts are") + ' planned to be done later. Already done ' + it + '? Log ' + it + ' now, or come back when you have done ' + it + '.</p>' +
+    var ask = late ? '<div class="fbn" role="status"><div class="rib">' + WARN + 'Future time</div><div class="in"><b>You\u2019re logging ' + late + " future " + noun(F, late) + '!</b>' +
+      '<p>' + (one ? "This " + noun(F, 1) + " is" : "These " + noun(F, late) + " are") + ' planned to be done later. Already done ' + it + '? Log ' + it + ' now, or come back when you have done ' + it + '.</p>' +
       '<div class="fbb"><button class="pri" data-mt="setnow">Log ' + it + ' now (' + fmt(Math.floor(NOWM / 5) * 5) + ')</button>' +
       '<button data-mt="rmlate">Remove ' + it + '</button></div></div></div>' : "";
     /* the workouts still to come go first, right under the note about them */
     var order = L.map(function (x, i) { return i; }).sort(function (a, b) { return later(L[b]) - later(L[a]) || a - b; });
-    var n = L.reduce(function (s, x) { return s + EX[x.id].kcal; }, 0);
-    open(sheet, head("Workouts to log") + ask + order.map(function (i) { return row(L[i], i); }).join("") +
-      '<div class="ft"><div class="tot"><span>Total</span><b>' + n + ' kcal</b></div>' +
-      '<button class="done" data-mt="sheetlog"' + (late ? " disabled" : "") + '>Log ' + label(L.length) + '</button></div>');
+    var n = kcal(L), ttl = noun(L, 2);
+    open(sheet, head(ttl.charAt(0).toUpperCase() + ttl.slice(1) + " to log") + ask + order.map(function (i) { return row(L[i], i); }).join("") +
+      /* small moves burn no counted kcal, so the total shows only when a workout is in */
+      '<div class="ft">' + (n ? '<div class="tot"><span>Total</span><b>' + n + ' kcal</b></div>' : "") +
+      '<button class="done" data-mt="sheetlog"' + (late ? " disabled" : "") + '>Log ' + label(L.length, L) + '</button></div>');
   }
 
   /* the time wheel: hour, minute, AM or PM, rolling into place as the sheet lands (Eat's) */
@@ -134,7 +155,7 @@
     WI = i; var t = list()[i].time, h = Math.floor(t / 60) % 24, hrs = [], mn = [];
     for (var k = 1; k <= 12; k++) hrs.push(k);
     for (k = 0; k < 60; k++) mn.push((k < 10 ? "0" : "") + k);
-    open(sheet2, head("When did you do it?", EX[list()[i].id].name) +
+    open(sheet2, head("When did you do it?", nm(list()[i])) +
       '<div class="wh"><span class="wband"></span>' + col("hr", hrs, (h % 12 || 12) - 1) + col("mn", mn, t % 60) + col("ap", ["AM", "PM"], h < 12 ? 0 : 1) + '</div>' +
       '<div class="whint" aria-live="polite"></div><button class="done" data-mt="setwheel">Done</button>');
     requestAnimationFrame(function () {
@@ -171,6 +192,10 @@
     P.render();
     if (REDUCED) return;
     items.forEach(function (x, j) {
+      if (isTip(x)) {
+        var tr = document.querySelector('[data-tiprow="' + x.r + "|" + x.tip + '"]'), tm = tr && tr.querySelector(".tmark"); if (!tm) return;
+        return setTimeout(function () { tr.classList.add("cheer"); tm.classList.add("pop"); if (window.GFBurst) tm.appendChild(window.GFBurst()); }, j * 90);
+      }
       var b = document.querySelector('[data-tick="' + key(x) + '"]'); if (!b) return;
       var mk = b.querySelector(".mv-tk");
       mk.animate([{ transform: "scale(.6)" }, { transform: "scale(1)" }], { duration: 420, delay: j * 90, easing: "cubic-bezier(.2,0,0,1)", fill: "backwards" });
@@ -180,20 +205,25 @@
   function log() {
     var items = T.slice(), go = bar.querySelector(".go"), rect = go.getBoundingClientRect(), plan = (window.MOVEPART && window.MOVEPART[0].T) || kcal();
     /* the gain the win moment shows is the real change to Momentum (momentum.js), worked out before it is made */
-    var apply = function (on) { items.forEach(function (x) { if (on) S.done[x.r][x.id] = "Done"; else delete S.done[x.r][x.id]; }); };
+    var apply = function (on) { items.forEach(function (x) {
+      if (isTip(x)) S.tips[x.r][x.tip] = on; else if (on) S.done[x.r][x.id] = "Done"; else delete S.done[x.r][x.id];
+    }); };
     var gain = window.MVMOM ? window.MVMOM.gain(function () { apply(true); }, function () { apply(false); }) : Math.max(1, Math.round(kcal() / plan * 45));
     var land = function () {
       /* the bar stays put under the ribbons and drops away at once, unseen, behind the white (as the logger does) */
       bar.style.transition = "none"; bar.classList.remove("up"); document.body.classList.remove("pt-on"); void bar.offsetHeight;
       requestAnimationFrame(function () { bar.style.transition = ""; });
       if (window.MVMOM) window.MVMOM.logged();
-      items.forEach(function (x) { S.done[x.r][x.id] = "Done"; (S.at[x.r] = S.at[x.r] || {})[x.id] = hhmm(x.time); });
+      items.forEach(function (x) {
+        if (isTip(x)) { S.tips[x.r][x.tip] = true; return; }   /* ponytail: a small move's time is asked but not kept yet, S.tips is a yes/no */
+        S.done[x.r][x.id] = "Done"; (S.at[x.r] = S.at[x.r] || {})[x.id] = hhmm(x.time);
+      });
       T = []; render(); settle(items);
     };
-    win(rect, items.map(function (x) { return EX[x.id].name; }), gain, land);
+    win(rect, items.map(nm), gain, land, false, items);
   }
   /* Eat's win moment, for anything logged on Move: the plan from the bar, or a workout found by search (log.js) */
-  function win(rect, names, gain, land, stay) {
+  function win(rect, names, gain, land, stay, items) {
     var landed = false, done = function () { if (landed) return; landed = true;
       /* back at the top, behind the green, so the score is in view when it steps up; from the player, it stays where it was */
       if (!stay) window.scrollTo({ top: 0, behavior: "instant" });
@@ -207,7 +237,7 @@
       if (!ctl) return done();
       setTimeout(done, 6200);   /* the moment hands back on an animation frame; a background tab never draws one */
       /* no gain before a plan: the moment names the log and says who reads it */
-      setTimeout(function () { ctl.win({ d: gain, n: names.length, title: names.length === 1 ? "Workout logged" : label(names.length) + " logged", say: gain == null ? (window.MVPLAN && MVPLAN.free ? "It adds to what you moved today." : "Your coach will see this when they build your plan.") : "added to your Momentum score" }, done); }, 600);
+      setTimeout(function () { ctl.win({ d: gain, n: names.length, title: (function () { var w = items ? noun(items, names.length) : (names.length === 1 ? "workout" : "workouts"); return (names.length === 1 ? w.charAt(0).toUpperCase() + w.slice(1) : names.length + " " + w) + " logged"; })(), say: gain == null ? (window.MVPLAN && MVPLAN.free ? "It adds to what you moved today." : "Your coach will see this when they build your plan.") : "added to your Momentum score" }, done); }, 600);
     };
     if (window.WinMoment) return run();
     loadWin(run, done);
@@ -242,8 +272,11 @@
   /* a ticked small move asks before it comes undone; an open one ticks as before (plan.js) */
   document.addEventListener("click", function (e) {
     var t = e.target.closest(".mv-tip [data-tip]"); if (!t) return;
-    var q = t.dataset.tip.split("|"); if (!S.tips[q[0]][q[1]]) return;
-    e.stopPropagation(); ED = null; UT = { r: +q[0], i: +q[1] };
+    var q = t.dataset.tip.split("|");
+    e.stopPropagation();
+    /* an open small move stacks in the bar with the workouts, logged together */
+    if (!S.tips[q[0]][q[1]]) return toggleTip(+q[0], +q[1], t.closest(".mv-tip"));
+    ED = null; UT = { r: +q[0], i: +q[1] };
     confirm(RT[UT.r].tips[UT.i].t, "This small move comes off today's log, and what it added to your Momentum score is taken back.");
   }, true);
   function confirm(name, say, q) {

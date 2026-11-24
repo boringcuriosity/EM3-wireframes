@@ -326,7 +326,7 @@
     /* the lotus versions (17 Nov, Shaheer): fast. The whole arrival is drawn on a clock sped up so it lands in about 0.4 s, the
        number counts up in 0.3 s, it holds about 1.1 s and leaves in 0.3 s, on Momentum's end screen (layout B) */
     var LOTUS = /[stuv]/.test(kind), ARRIVE = .4;
-    m.count = 1;
+    m.count = MD.batch || 1; MD.batch = 0;   /* a log from the bar (tray.js) says how many it held */
     var B = { x: cl(o.x - c.left, 0, W), y: cl(o.y, 0, H) };
     /* a bloom from a tick near the edge would open lopsided, so S and V open halfway between the tick and the middle */
     if (kind === "s" || kind === "v") { B.x = mix(B.x, W / 2, .5); B.y = mix(B.y, H * .47, .35); }
@@ -335,7 +335,7 @@
     var WHY = { sleep: "A steady night is the base of your day.", wd: "Small steps in the evening help you sleep steady.", br: "A few slow breaths help your body settle.",
       me: "Time for yourself keeps stress low.", mood: "Naming how you feel helps you understand your day.", any: "Every small step keeps your day steady." };
     var words = function () {
-      pt.textContent = LOTUS && m.count > 1 ? m.count + " tasks done" : DONE[m.cause] || DONE.any;
+      pt.textContent = LOTUS && m.count > 1 ? m.count + " items done" : DONE[m.cause] || DONE.any;
       if (LOTUS) { ln.textContent = "added to your Rhythm score"; return; }
       ln.textContent = m.n >= 100 && m.was < 100 ? "Your Rhythm is full for today" : line(m) === "your wind-down is complete" ? "Your wind-down is complete. Rest well tonight." : WHY[m.cause] || WHY.any;
     };

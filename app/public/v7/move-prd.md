@@ -212,7 +212,11 @@ A plain card: name and window ("Night", "8 PM to 11 PM") and a plus at the top r
   - Tick: section 6.
 - **"You logged"** (or **"You also logged"** when the coach set exercises): workouts the person logged here, each "Walking", "30 min · 129 kcal", with a dots button. The row opens its menu (section 13).
 - **"Did any workout?"** (or **"Did another workout?"** when the coach set one) with a full width **"Search and log exercise"** box. It logs into this part of the day by default; the time picked decides the part on save.
-- **"Small moves"**: the coach's small moves, each a tick, a title and a line on why it helps. Ticking plays a pop, a check and a small burst. Unticking asks first (section 13).
+- **"Small moves"**: the coach's small moves, each a tick, a title and a line on why it helps. **Ticking stacks it in the same bar as the workouts** (green outline tick, it flies into the bar), so everything is logged in one go:
+  - The bar and the sheet name what is in it: **"N workouts"**, **"N small moves"**, or **"N items"** when both are in. Sheet title: "Workouts to log", "Small moves to log" or "Items to log".
+  - **Small moves have no time.** A small move row reads its title and **"Morning · Small move"** with only a bin: no time chip, no wheel, never a Future time card. Total kcal shows only when a workout is in. With only small moves in the bar, its link reads "Review" instead of "Edit time".
+  - Log plays one win moment for all ("4 items logged"), then each small move settles with the pop, check and burst.
+  - Unticking a logged small move still asks first (section 13). A small move is a yes or no for the day.
 
 **Once a workout is logged into an empty part, that card becomes a full card** with its scene, the logged row and the "Did any workout?" box, and the corner plus goes.
 

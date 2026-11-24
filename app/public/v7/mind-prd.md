@@ -117,7 +117,7 @@ Sleep quality (70)
   Sleep consistency  = 25 × window part    (bedtime and wake-up against the coach's window)
   Wind-down          = 20 × tasks ticked ÷ tasks planned
 Self-care (30)
-  Breathing          = 10 × exercises done ÷ exercises planned   (done = 1 minute breathed, or "I've already done it")
+  Breathing          = 10 × exercises done ÷ exercises planned   (done = 1 minute breathed, or ticked)
   Me-time            = 10 × (1 if the activity is ticked, else 0)
   Mood check-in      = 10 × check-ins logged ÷ check-ins planned
 Rhythm = round(sum)
@@ -584,7 +584,7 @@ This is not a sheet. It is a short celebration over the screen, played on any ga
    - "Breathing done"
    - "Me-time done"
    - "Mood checked in"
-   - several quick marks: "N tasks done"
+   - several quick marks, or a log from the bar: "N items done"
 3. A big **"+N%"** counts up, then one line: **"added to your Rhythm score"**.
 
 Rules:
@@ -615,9 +615,10 @@ Decided 2 Nov 2026 and refined 16 Nov. Code: `mind/variants/mood.js` (`vmood=a`)
 
 - Title **"How are you feeling?"**.
 - Five faces, each with its word: **Awful, Low, Okay, Good, Great**. The emoji are placeholders for GoodFlip's own face set; never red for sad.
-- **Picking a face logs it at once.** There is no Log button. The score behind steps up; the unpicked faces fade to 50%.
-- An indigo quote card shimmers for about 900 ms, then the reply shows. **"Done"** closes the sheet. After it closes, the win moment plays.
-- **Picking another face** replaces the answer in place with a new reply. The **first logged time is kept**, and there is no new gain.
+- **Picking a face does not log it yet.** The unpicked faces fade to 50%. An indigo quote card shimmers for about 900 ms, then the reply shows, with **"Done"** under it.
+- **"Done" stacks the check-in in the bar** (section 13, "Logging together"), with the face picked. It is logged, and the win moment plays, when the bar's Log is tapped. Closing the sheet without Done keeps nothing.
+- While it waits in the bar, its tick takes it back out; tapping its title reopens the sheet on the face picked.
+- **Picking another face on a logged check-in** ("Change your mood") replaces the answer at once, with a new reply. The **first logged time is kept**, and there is no new gain.
 - **Offline:** "Could not log your mood. Check your internet and try again." with **"Try Again"**.
 
 ### The replies (fixed, one per face)
@@ -638,7 +639,7 @@ On a low day (Awful, Low) the reply adds one general suggestion in words only. T
 - **Tapping a logged check-in** opens a menu titled **"Morning check-in"** (or Afternoon or Evening), with these rows:
   - **"Change your mood"** opens the sheet with the face picked.
   - **"Remove this check-in"** (red) removes it at once. The toast "Mood check-in removed" shows, and the row goes back.
-- **Too early:** a sheet, never a toast. Title **"Check in from 6:00 PM"**, then "Your coach has suggested logging your evening mood after 6:00 PM, so please come back and log it then." and **"Okay"**.
+- **Any time today:** a check-in can be logged at any hour, whatever time the coach set (24 Nov 2026). There is no "Check in from" lock.
 - **A past day:** title **"This check-in has closed"**, then "Check-ins close at midnight, so this one can no longer be added. Your next check-in counts the same." and **"Okay"**.
 
 ### Score
@@ -672,7 +673,7 @@ Mood is worth 10. Each check-in earns its share (5 each with two). The face neve
 
 The row shows the exercise and a chevron, with "5 min" under it and the time on the right. It is either unticked or ticked; saved minutes stay in the background.
 
-- **Tap the tick, not done:** a sheet titled with the exercise, e.g. **"Simple Breathing"**, then "In 5, out 5 · 5 min, suggested by your coach", then **"Start breathing"** and **"I've already done it"**. The second ticks it, with the toast "Marked as done".
+- **Tap the tick, not done:** no sheet. It **stacks in the bar** at once (section 13, "Logging together"). Tapping the tick again takes it back out.
 - **Tap the row, not done:** the player opens on Ready.
 - **Done, tap the tick or the row:** a menu titled with the exercise, with **"Breathe again"** and **"Mark as not done"**. "Mark as not done" unticks at once, clears the minutes and shows the toast "Marked as not done".
 
@@ -744,16 +745,27 @@ The row shows the exercise and a chevron, with "5 min" under it and the time on 
   | Listen to calming music (15 to 30 min) | 9:45 PM |
   | Positive sleep association: prepare the room, dark and at a comfortable temperature | 10 PM |
 
-- **The row:** the task and its time, with no sub line. One tap ticks it.
+- **The row:** the task and its time, with no sub line. One tap stacks it in the bar (see "Logging together" below).
 - **Score:** wind-down sits in the Sleep quality group. It is worth 20, split equally across the tasks.
-- **When all tasks are done**, the toast "Nicely wound down. Rest well tonight." shows (after the win moment).
+- **When all tasks are done**, the win moment's line reads "your wind-down is complete".
 
 ### Me-time
 
 - **What it is:** one activity a day that the coach types or picks from 16 suggestions (behavioural activation). For example: "Walk in nature or a park (20 to 30 min)", "Social connection: call a friend or family (15 to 30 min)", "Screen-free quiet time, just sitting (10 min)".
-- **The row:** the activity, with **"Time for yourself"** under it and the time on the right. One tap ticks it.
+- **The row:** the activity, with **"Time for yourself"** under it and the time on the right. One tap stacks it in the bar.
 - **Score:** worth 10. **Doing it earns all 10.**
 - Me-time is never KAIRA's nudge.
+
+### Logging together (the bar)
+
+As on Move and Eat, ticks stack in a floating bar at the bottom and are logged together. Code: `mind/tray.js` (24 Nov 2026).
+
+- **What stacks:** wind-down tasks, me-time and breathing (from the tick), and the mood check-in once its sheet's **"Done"** is tapped (section 11). **Last night's sleep does not stack**: it keeps its own sheet.
+- **Ticking:** the row's tick turns to the green outline tick and the item flies into the bar. Tapping it again takes it out.
+- **The bar:** the names (newest first), **"Review"** under them, and **"Log N items"**. The X slides it aside to show **"Remove"**, which empties the bar.
+- **Review sheet, "Items to log":** each item with its kind and the coach's time ("Wind-down · 4:00 PM", "Me-time · 7:00 AM", "Breathing · 5 min", "Mood · Good") and a bin. **No time to set and no future-time check**: each is a yes or no for the day. One button, **"Log N items"**.
+- **Log:** everything is marked done at once and one win moment plays: **"N items done"** and the total gain (one item keeps its own pill, e.g. "Wind-down done").
+- **A logged item**, tapped, opens its menu as before ("Mark as not done").
 
 ### Coach's practices (not scored)
 
@@ -825,7 +837,7 @@ Worry Tree, Gratitude Journal, Habit Tracker and the rest live in the **Practice
 | Log / Edit last night’s sleep | Log Last Night’s Sleep, No on the short night, Edit your sleep, Add another sleep | 7.6, 7.7 |
 | Which one is right? | Verify on the gold card | 7.8 |
 | How are you feeling? | A mood row | 11 |
-| Check-in menu, Check in from…, This check-in has closed | A logged, early or past check-in | 11 |
+| Check-in menu, This check-in has closed | A logged or past check-in | 11 |
 | Breathing start, done menu | The breathing tick or row | 12 |
 | Session length, stop, how it works | Inside the player | 12 |
 | Library: Know more, End this session? | The library | 12 |
@@ -863,7 +875,7 @@ Worry Tree, Gratitude Journal, Habit Tracker and the rest live in the **Practice
 On since 23 Nov 2026, **earned by breathing**. One switch turns all of it off (`MD_COINS`; prototype `?coins=0`).
 
 - **The Earn chip** sits top right in the header, for every user.
-- **One FlipCoin a day**, for a breathing exercise from the plan done that day (1 minute breathed, or "I've already done it"). A second one that day earns no more.
+- **One FlipCoin a day**, for a breathing exercise from the plan done that day (1 minute breathed, or ticked). A second one that day earns no more.
 - **The coin toast** "You have earned FlipCoins" lands the moment the day's first breathing exercise counts, with the win moment.
 - **The Earn sheet** (`?sheet=earn`), the app's streak sheet in Mind's words:
   - hero **"Do a breathing exercise daily to earn FlipCoins"** with the gold Mind mark;
@@ -1019,7 +1031,7 @@ Prototype: `/v7/coach-mind-rhythm.html?p=sahana` (also `arjun` for night shift a
 | Per night | Source, sessions, last read or sync time, the device's original times beside any edit, the short-night card answered (Yes, No or dismissed), the ring-versus-Apple Health pick. |
 | Device state per user | Arc ring paired, last sync, missed night. Apple Health asked (once, then never again), allowed. Health Connect permission (none, denied, revoked, not installed). |
 | Mood logs | Per check-in per day: face 0 to 4, first logged at, changed at. Edit and remove. Late counts in full; past days are closed. |
-| Breathing | Per planned exercise per day: the tick at 1 minute, whole minutes saved, "I've already done it", "Mark as not done" (clears the minutes). Library sessions are not saved. |
+| Breathing | Per planned exercise per day: the tick at 1 minute, whole minutes saved, ticked done, "Mark as not done" (clears the minutes). Library sessions are not saved. |
 | Wind-down and me-time ticks | Per task per day: done, time; untick. |
 | Rhythm per day | Score 0 to 100 and its six parts, with each part's fraction and points, and sleep detail (bedtime, wake-up, asleep, naps). Used for the date sheet, a past day, the coach chart and the KPIs. |
 | Medal days | A day at 80 or more. |
