@@ -121,6 +121,9 @@
     ".pts .fbn button::before{content:\"\";position:absolute;inset:-1px;z-index:-1;border:1px solid #299D6B;border-radius:8px;background:#fff}",
     ".pts .fbn button::after{content:\"\";position:absolute;inset:6px -1px -8px;z-index:-2;border:1px solid #299D6B;border-radius:8px;background:#CBF0E0;transition:inset .2s ease-out}",
     ".pts .fbn button:active{transform:translateY(7px)}.pts .fbn button:active::after{inset:-1px}",
+    /* two answers side by side: Log now is the primary (filled green on its dark ledge), Remove the secondary */
+    ".pts .fbn .fbb{display:flex;flex-wrap:wrap;gap:8px 12px}",
+    ".pts .fbn button.pri{color:#fff}.pts .fbn button.pri::before{background:#299D6B}.pts .fbn button.pri::after{background:#2A805A;border-color:#2A805A}",
     "@keyframes ptIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}",
     /* disabled, as the system draws it: a pale face on a paler ledge, not a faded button */
     ".pts .done[disabled]{background:#CBF0E0;box-shadow:0 7px 0 #E6FAF1;pointer-events:none}",
@@ -392,12 +395,17 @@
     /* Said once, plainly, at the top: some items have a time later than now.
        Generic on purpose, so it reads right for any meal at any hour.
        Log stays greyed until every time is one that has already happened. */
+    var one = late === 1, it = one ? "it" : "them";
     var ask = late ? '<div class="fbn" role="status"><div class="rib">' + WARN + "Future time</div><div class=\"in\">" +
-      "<b>You\u2019re logging " + late + (late === 1 ? " future item!" : " future items!") + "</b>" +
-      "<p>" + (late === 1 ? "This item is" : "These items are") + " planned to be eaten later. Already had " + (late === 1 ? "it" : "them") + "? Log " + (late === 1 ? "it" : "them") + " now, or come back when you have " + (late === 1 ? "it" : "them") + ".</p>" +
-      '<button data-pt="setnow">Log ' + (late === 1 ? "it" : "them") + " now (" + fmt(Math.floor(nowMin() / 5) * 5) + ")</button></div></div>" : "";
+      "<b>You\u2019re logging " + late + (one ? " future item!" : " future items!") + "</b>" +
+      "<p>" + (one ? "This item is" : "These items are") + " planned to be eaten later. Already had " + it + "? Log " + it + " now, or come back when you have " + it + ".</p>" +
+      '<div class="fbb"><button class="pri" data-pt="setnow">Log ' + it + " now (" + fmt(Math.floor(nowMin() / 5) * 5) + ")</button>" +
+      '<button data-pt="rmlate">Remove ' + it + "</button></div></div></div>" : "";
+    /* the items still to come go first, so the ones the note is about sit right under it */
+    var order = T.items.map(function (x, i) { return i; }).sort(function (a, b) { return future(T.items[b]) - future(T.items[a]) || a - b; });
     openSheet(head("Food items to log") + ask +
-      T.items.map(function (x, i) {
+      order.map(function (i) {
+        var x = T.items[i];
         return '<div class="pi"><div class="t"><div class="nm">' + x.it.name + '</div><div class="mt">' + helping(x) + " · " + Math.round(x.it.cal / x.it.n * x.n) + " kcal</div></div>" +
           '<div class="ctl"><button class="tc' + (future(x) ? " fut" : "") + '" data-pt="wheel" data-i="' + i + '" aria-label="Change the time for ' + x.it.name + ', now ' + fmt(x.time) + '">' + CLOCK + fmt(x.time) + "</button>" +
           /* minus at one takes the food out; the label says so, the glyph stays a minus */
@@ -564,6 +572,11 @@
     }
     if (a === "log") return anyFuture() ? review() : log();
     if (a === "sheetlog") { if (anyFuture()) return; closeSheet(); return log(); }
+    if (a === "rmlate") {
+      T.items = T.items.filter(function (x) { return !future(x); });
+      if (!T.items.length) { closeSheet(); T = null; return render(); }
+      render(); return review();
+    }
     if (a === "setnow") {
       var t = Math.floor(nowMin() / 5) * 5;
       T.items.forEach(function (x) { if (future(x)) x.time = t; });

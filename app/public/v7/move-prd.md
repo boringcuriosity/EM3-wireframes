@@ -223,7 +223,7 @@ A plain card: name and window ("Night", "8 PM to 11 PM") and a plus at the top r
 - Ticking a not-done exercise **does not log it straight away.** It rises into a floating bar at the foot of the screen: the names, **"Edit time"**, a **"Log"** (or "N workouts") button, and an X that reveals **"Remove"** (hides again after 4 s). Waiting rows show an outline tick.
 - **Log** plays the win moment, then marks the rows done with a burst.
 - The default time is now if the part of the day is under way, otherwise the middle of its window.
-- **A time later than now** cannot be logged: Log opens the review sheet **"Workouts to log"** with a banner: **"Future time"**, **"1 workout is set for later"**, **"You can only log a workout you have already done. Done it? Set it to now."** and a button **"Set it to now, 3:40 PM"**.
+- **A time later than now** cannot be logged: Log opens the review sheet **"Workouts to log"** with a banner: **"Future time"**, **"You're logging 2 future workouts!"** (or "1 future workout!"), **"These workouts are planned to be done later. Already done them? Log them now, or come back when you have done them."** and two buttons: **"Log it now (3:40 PM)"** (primary) and **"Remove it"** (secondary, takes only the future workouts out of the bar). The workouts set for later sit at the top of the list, right under the banner.
 - Ticking a done exercise opens its sheet: the name, "Done at 7:10 AM", **"Edit workout time"**, **"Mark workout as not done"** (which asks first).
 
 ### The win moment

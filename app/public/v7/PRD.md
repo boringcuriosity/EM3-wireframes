@@ -224,7 +224,7 @@ Ticking a coach's food does not log it. It drops into a floating bar at the bott
 Only food already eaten can be logged.
 
 - If any food in the bar is set later than now (dinner ticked at 1 PM), Log opens the review sheet instead of logging.
-- The sheet opens with a **Future time** note: "N items are set for later. You can only log food you have already eaten. Had them? Set them to now." and a one tap "Set them to now, 1:00 PM".
+- The sheet opens with a **Future time** note: "You're logging N future items!" and "These items are planned to be eaten later. Already had them? Log them now, or come back when you have them." Two buttons: "Log them now (1:00 PM)" (primary) and "Remove them" (secondary, takes only the future items out of the bar). Items set for later sit at the top of the list, right under the note.
 - Each later time keeps its chip, with a dashed gold outline and a clock.
 - Log stays disabled until every time is one that has already happened.
 - On the time wheel, times still to come are greyed, and Done waits.

@@ -112,11 +112,15 @@
   function list() { return ED ? [ED] : T; }
   function review() {
     var L = list(), late = L.filter(later).length;
-    var ask = late ? '<div class="fbn" role="status"><div class="rib">' + WARN + 'Future time</div><div class="in"><b>' + (late === 1 ? "1 workout is" : late + " workouts are") + ' set for later</b>' +
-      '<p>You can only log a workout you have already done. Done ' + (late === 1 ? "it" : "them") + '? Set ' + (late === 1 ? "it" : "them") + ' to now.</p>' +
-      '<button data-mt="setnow">Set ' + (late === 1 ? "it" : "them") + ' to now, ' + fmt(Math.floor(NOWM / 5) * 5) + '</button></div></div>' : "";
+    var one = late === 1, it = one ? "it" : "them";
+    var ask = late ? '<div class="fbn" role="status"><div class="rib">' + WARN + 'Future time</div><div class="in"><b>You\u2019re logging ' + late + (one ? " future workout!" : " future workouts!") + '</b>' +
+      '<p>' + (one ? "This workout is" : "These workouts are") + ' planned to be done later. Already done ' + it + '? Log ' + it + ' now, or come back when you have done ' + it + '.</p>' +
+      '<div class="fbb"><button class="pri" data-mt="setnow">Log ' + it + ' now (' + fmt(Math.floor(NOWM / 5) * 5) + ')</button>' +
+      '<button data-mt="rmlate">Remove ' + it + '</button></div></div></div>' : "";
+    /* the workouts still to come go first, right under the note about them */
+    var order = L.map(function (x, i) { return i; }).sort(function (a, b) { return later(L[b]) - later(L[a]) || a - b; });
     var n = L.reduce(function (s, x) { return s + EX[x.id].kcal; }, 0);
-    open(sheet, head("Workouts to log") + ask + L.map(row).join("") +
+    open(sheet, head("Workouts to log") + ask + order.map(function (i) { return row(L[i], i); }).join("") +
       '<div class="ft"><div class="tot"><span>Total</span><b>' + n + ' kcal</b></div>' +
       '<button class="done" data-mt="sheetlog"' + (late ? " disabled" : "") + '>Log ' + label(L.length) + '</button></div>');
   }
@@ -311,6 +315,11 @@
     }
     if (a === "setwheel") { list()[WI].time = read(); render(); review(); var u = sheet.querySelector(".sh"); if (u) { u.style.transition = "none"; u.classList.add("back"); void u.offsetWidth; u.style.transition = ""; } close(sheet2); return flash(WI); }
     if (a === "setnow") { list().forEach(function (x) { if (later(x)) x.time = Math.floor(NOWM / 5) * 5; }); review(); return flash(-1); }
+    if (a === "rmlate") {
+      if (ED) { close(sheet); return reset(); }
+      for (var k = T.length - 1; k >= 0; k--) if (later(T[k])) T.splice(k, 1);
+      render(); return T.length ? review() : close(sheet);
+    }
     if (a === "rm") {
       /* in the bar it leaves the bar; once logged it is no longer done */
       T.splice(i, 1); render();
