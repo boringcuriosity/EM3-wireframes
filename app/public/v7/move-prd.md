@@ -285,7 +285,7 @@ The logged row's menu: name, "30 min · 129 kcal", **"Edit workout"**, **"Remove
 ### 9.1 The card
 
 - **"Your steps"**, a big **"5,080 of 10,000 steps"** (before a plan or free: "5,080 steps") and **"Log steps"**.
-- Line under it: **"4,920 more** to reach today's goal" · **"Goal reached.** Every step from here is extra." · before a plan **"Your coach sets your daily goal after your first consultation."** · free **"Counted by your phone."**
+- Line under it: **"4,920 more** to reach today's goal" · **"Goal reached.** Every step from here is extra." · before a plan **"Your coach sets your daily goal after your first consultation."** · free **"Every step counts. A short walk after a meal is a great start."**
 - A progress bar (not before a plan, not free).
 - **24 hourly bars**, ticks "12 AM, 6 AM, 12 PM, 6 PM". Hours to come are flat and cannot be tapped.
 - Tapping a bar shows a tip over it: **"N steps"**, "3 PM to 4 PM" (", so far" on the current hour). The tip stays inside the card at either end.
@@ -377,7 +377,7 @@ Set once by the coach for the whole plan ("User can’t walk", section 17), for 
 ### A free user (not on a care program)
 
 - **No score at all**, not even a locked one. A workout diary.
-- Section title **"Your day"**. Two tiles. Steps: **"Counted by your phone."**
+- Section title **"Your day"**. Two tiles. Steps: **"Every step counts. A short walk after a meal is a great start."**
 - Nothing logged yet: steps start at 0.
 - After a log: **"Workout logged"**, **"It adds to what you moved today."**
 

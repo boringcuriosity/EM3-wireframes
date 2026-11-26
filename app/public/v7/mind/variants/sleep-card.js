@@ -17,7 +17,8 @@
     /* B, Night scene: Mind's night picture fills the right of the header in every state, the words sit on its light side */
     b: { pic: function () { return '<span class="svf-sky" aria-hidden="true"></span>'; } },
     /* C, Zz: GoodFlip's Sleep pictogram top left in every state */
-    c: { pic: function () { return '<img class="svf-pic svf-zz" src="/v7/icons/pictograms/Sleep.png" alt="">'; } },
+    /* Zz pictogram removed (Shaheer, 26 Nov 2026): the header starts with the title */
+    c: { pic: function () { return ""; } },
     /* D, Window and bar: the moon window from the night scene as a small tile, and the coach's sleep window bar in every state */
     d: { pic: function () { return '<span class="svf-pic svf-win" aria-hidden="true"></span>'; }, bar: true },
     /* E, Zz and bar: C's pictogram with D's sleep window bar in every state */

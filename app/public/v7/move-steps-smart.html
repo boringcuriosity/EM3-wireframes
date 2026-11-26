@@ -50,7 +50,7 @@
   <div class="eyebrow">Move · Your steps · iPhone</div>
   <h1>The steps card, with the smart strip</h1>
   <p class="lede">The steps card stays exactly as it is. Only the strip under it changes, to the same pattern as Mind's sleep card: always tappable, the time at the left with the source's icon, one action at the right end. Every phone is the real Move screen; tap the strip in any of them.</p>
-  <nav><a href="#rules">How it decides</a><a href="#strip">1. The strip</a><a href="#track">2. Track your steps automatically</a><a href="#first">3. The first time</a></nav>
+  <nav><a href="#rules">How it decides</a><a href="#strip">1. The strip</a><a href="#track">2. Track your steps automatically</a><a href="#first">3. The first time</a><a href="#noplan">4. No plan, free user</a></nav>
 
   <h2 id="rules">How it decides</h2>
   <ol class="r">
@@ -92,7 +92,12 @@
   <h2 id="first">3. The first time on Move</h2>
   <div class="frames" data-g="3.1|sx=1&sdev=new|Apple Health, asked once|Move's own Health sheet opens by itself, as today. Connecting brings in the steps the phone already kept."></div>
 
-  <p class="note">Dev: <code>/move/index.html?sx=1</code>. <code>?sdev=new|none|ah|ring|both</code> what is connected, <code>?sday=missing</code> no steps came, <code>?slog=1</code> a hand log for the doc, <code>?ssync=hold|0</code> hold the shimmer or skip it. Files: <code>move/steps-smart.js</code> (the strip and the sheet), a small hook in <code>move/plan.js</code> (syncHTML) and <code>move/health.js</code> (ask once only when new). The same pattern on Mind: <a href="mind-sleep-smart.html">mind-sleep-smart.html</a>.</p>
+  <h2 id="noplan">4. Before a plan, and a free user, with no steps</h2>
+  <p>The same card and strip, with 0 steps and nothing connected. There is no goal in either, so no bar fills; only the line under the count changes.</p>
+  <div class="frames" data-g="4.1|sx=1&sdev=none&state=noplanempty&steps=0|Plan not assigned yet|0 steps, Log steps on the card. The line says Your coach sets your daily goal after your first consultation. The strip says Track steps automatically.
+4.2|sx=1&sdev=none&state=freeempty|Free user|0 steps, Log steps on the card. No coach and no goal, so the line says Every step counts. A short walk after a meal is a great start. The strip says Track steps automatically."></div>
+
+  <p class="note">Dev: <code>/move/index.html?sx=1</code>. <code>?sdev=new|none|ah|ring|both</code> what is connected, <code>?sday=missing</code> no steps came, <code>?state=noplanempty|freeempty</code> before a plan or a free user, <code>?steps=0</code> no steps yet, <code>?slog=1</code> a hand log for the doc, <code>?ssync=hold|0</code> hold the shimmer or skip it. Files: <code>move/steps-smart.js</code> (the strip and the sheet), a small hook in <code>move/plan.js</code> (syncHTML) and <code>move/health.js</code> (ask once only when new). The same pattern on Mind: <a href="mind-sleep-smart.html">mind-sleep-smart.html</a>.</p>
 </div>
 <script>
   /* one phone per case: id | query | name | what it shows */

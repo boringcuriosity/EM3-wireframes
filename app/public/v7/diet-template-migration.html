@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diet template migration</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap">
+<style>
+  :root { --g9:#101828; --g7:#344054; --g6:#475467; --g5:#667085; --g4:#98A2B3; --g2:#E4E7EC; --g1:#F2F4F7; --g0:#F9FAFB; --ok:#299D6B; --okd:#2A805A; --okt:#E6FAF1; --warn:#DC6803; --bad:#D92D20; --gold:#A68A2D; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--g9); font: 400 15px/1.55 Roboto, system-ui, sans-serif; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 48px 24px 120px; }
+  h1 { font: 700 34px/1.2 Roboto; letter-spacing: -.4px; margin: 0 0 12px; }
+  h2 { font: 700 24px/1.3 Roboto; margin: 56px 0 8px; }
+  h3 { font: 700 18px/1.35 Roboto; margin: 0 0 6px; }
+  .lede { font-size: 17px; color: var(--g6); max-width: 780px; margin: 0 0 12px; }
+  .meta { font-size: 13px; color: var(--g5); margin-bottom: 28px; }
+  .sub { color: var(--g5); margin: 0 0 20px; max-width: 780px; }
+  .call { background: var(--g0); border: 1px solid var(--g2); border-radius: 16px; padding: 18px 20px; max-width: 880px; margin: 0 0 24px; }
+  .call > b:first-child { display: block; margin-bottom: 4px; }
+  .call.ans { background: #F3FCF8; border-color: #CBF0E0; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin: 20px 0 8px; }
+  .st { border: 1px solid var(--g2); border-radius: 16px; padding: 16px; }
+  .st b { display: block; font: 700 30px/1.1 Roboto; letter-spacing: -.5px; }
+  .st span { font-size: 13px; color: var(--g6); }
+  .st.bad b { color: var(--bad); } .st.warn b { color: var(--warn); } .st.ok b { color: var(--ok); }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--g1); vertical-align: top; }
+  th { font: 700 12px/1.3 Roboto; color: var(--g5); text-transform: uppercase; letter-spacing: .4px; }
+  td.n { font-variant-numeric: tabular-nums; font-weight: 700; }
+  .tag { display: inline-block; font: 600 12px/1 Roboto; padding: 5px 8px; border-radius: 999px; margin: 1px 2px 1px 0; white-space: nowrap; }
+  .t-bad { background: #FEF3F2; color: #B42318; } .t-warn { background: #FFFAEB; color: #B54708; } .t-ok { background: var(--okt); color: var(--okd); } .t-mute { background: var(--g1); color: var(--g7); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .card { border: 1px solid var(--g2); border-radius: 20px; padding: 20px; }
+  /* the builder sketch: a meal slot with its options */
+  .slot { border: 1px solid var(--g2); border-radius: 14px; padding: 12px 14px; margin-top: 10px; background: #fff; }
+  .slot .hd { display: flex; justify-content: space-between; align-items: baseline; font: 700 14px/1.3 Roboto; }
+  .slot .hd small { font: 500 12px/1 Roboto; color: var(--g5); }
+  .opt { display: flex; justify-content: space-between; gap: 10px; font-size: 13px; padding: 7px 10px; border-radius: 10px; background: var(--g0); margin-top: 6px; }
+  .opt.badopt { background: #FEF3F2; color: #B42318; }
+  .opt em { font-style: normal; color: var(--g5); white-space: nowrap; }
+  .addon { margin-top: 8px; padding: 8px 10px; border-radius: 10px; border: 1px dashed #A6EBCB; background: #F3FCF8; font-size: 13px; color: var(--okd); }
+  .addon b { font-weight: 700; }
+  .tgt { margin-top: 8px; font: 600 12px/1 Roboto; color: var(--g6); }
+  .tgt .down { color: var(--bad); } .tgt .ok { color: var(--ok); }
+  .sol { border: 1px solid var(--g2); border-radius: 20px; padding: 22px; margin-top: 16px; display: grid; grid-template-columns: 1fr 340px; gap: 28px; }
+  .sol .lt { display: inline-flex; align-items: center; gap: 8px; font: 700 12px/1 Roboto; color: var(--g5); text-transform: uppercase; letter-spacing: .5px; }
+  .sol .lt b { width: 26px; height: 26px; border-radius: 50%; background: var(--g9); color: #fff; display: grid; place-items: center; letter-spacing: 0; }
+  .rec { font: 700 11px/1 Roboto; color: #fff; background: var(--ok); padding: 5px 8px; border-radius: 999px; text-transform: none; letter-spacing: 0; }
+  .sol h3 { margin-top: 10px; font-size: 20px; }
+  .sol ul { margin: 8px 0 0; padding-left: 20px; color: var(--g7); }
+  .pc { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; font-size: 14px; }
+  .pc div { border-radius: 12px; padding: 12px; }
+  .pc .p { background: #F3FCF8; } .pc .c { background: #FFFAEB; }
+  .pc b { display: block; margin-bottom: 4px; }
+  .fx { margin-top: 10px; font-size: 13px; color: var(--g5); }
+  code { font: 500 12.5px/1 ui-monospace, Menlo, monospace; background: var(--g1); padding: 2px 5px; border-radius: 6px; }
+  .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 12px 0; font-size: 14px; }
+  .flow span { padding: 8px 12px; border-radius: 10px; background: var(--g0); border: 1px solid var(--g2); }
+  .flow i { font-style: normal; color: var(--g4); }
+  @media (max-width: 860px) { .grid2, .sol, .pc { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Old diet templates in the 7-meal builder</h1>
+  <p class="lede">The old template editor let coaches add, rename and reorder meals. The new Create Diet Plan builder has 7 standard meals. This audit reads every live template, runs it through the new builder's own matching rules, and shows exactly where meals go wrong, then lays out ways to fix it for every coach.</p>
+  <div class="meta">25 Nov 2026 · Read-only audit of all 117 templates on coach.mytatva.in/diet-template, through the same API the portal uses · Matching rules read from MyTatva-Coach-React <code>CreateDietPlanV2/lib/plan.ts</code> and checked against the live production builder (diet-coach.mytatva.in, main.c47fa458.js) · Numbers re-verified 25 Nov</div>
+
+  <div class="call"><b>How the new builder places an old meal today</b>
+    <div class="flow"><span>1. Same meal type id as a standard meal</span><i>→</i><span>2. Name contains "early morning", "bed time", "morning snack" or "mid", "evening", "breakfast", "lunch", "dinner"</span><i>→</i><span>3. Anything else goes to <b>Lunch</b></span></div>
+    Nothing is dropped. Every old meal lands in some standard meal, and its options are <b>added as more options</b> (alternatives) to whatever is already there. The meal's start time is overwritten by the last meal placed into it (to 00:00 if that meal had no time). Each meal's share of the day is set from the <b>average</b> of its options. Names are checked in that order, so any name with "mid" (Mid evening snacks, Mid night snacks) goes to Morning snack. A meal the coach hid in the template is placed like any other; the builder does not read <code>hide_meal</code>. Re-checked 25 Nov against <code>planFromTemplate</code> and <code>slotKeyFor</code> in the repo (master and development are the same here) and the live bundle, still main.c47fa458.js.
+  </div>
+
+  <h2>The impact, in numbers</h2>
+  <p class="sub">117 templates from 11 coaches, 799 meals.</p>
+  <div class="stats">
+    <div class="st"><b>87</b><span>templates have meals that are not one of the old 5 standard meals (164 such meals)</span></div>
+    <div class="st ok"><b>113</b><span>of those are "Early morning", "Bed time" or "Bedtime". They land correctly in the new Early morning and Bedtime meals</span></div>
+    <div class="st bad"><b>35</b><span>meals land in the wrong meal, in 33 templates. 31 of them fall into Lunch because their name is not recognised</span></div>
+    <div class="st bad"><b>43</b><span>meals end up holding another meal's foods as extra options, in 41 templates</span></div>
+    <div class="st warn"><b>−41 kcal</b><span>average drop in those meals' targets (median 52), because a meal's share comes from the average of its options. Worst: 576 to 453 kcal. 3 drop by 100 or more; 8 rise</span></div>
+    <div class="st warn"><b>14</b><span>meals have their time replaced by a merged meal's time, for example Lunch 1:00 PM to 7:00 AM from "On wake up", or to 00:00 when that meal had no time</span></div>
+    <div class="st"><b>14</b><span>options in one meal at most, after merging</span></div>
+    <div class="st"><b>2</b><span>workout meals in all 117 templates ("Pre-Workout", "Post workout"). Rarer than feared</span></div>
+  </div>
+
+  <div class="grid2" style="margin-top:28px">
+    <div class="card">
+      <h3>Every name that is not a standard meal</h3>
+      <p class="sub" style="margin:0 0 8px">Count, name, where the new builder puts it, and where it belongs (by its name and the time the coach set).</p>
+      <table>
+        <tr><th>#</th><th>Old meal</th><th>Lands in</th><th>Belongs in</th></tr>
+        <tr><td class="n">54</td><td>Early morning <small>(6 or 7 AM)</small></td><td><span class="tag t-ok">Early morning</span></td><td>Same</td></tr>
+        <tr><td class="n">59</td><td>Bed time, Bedtime <small>(10 PM)</small></td><td><span class="tag t-ok">Bedtime</span></td><td>Same</td></tr>
+        <tr><td class="n">17</td><td>Once awake <small>(5 to 7 AM)</small></td><td><span class="tag t-bad">Lunch</span></td><td>Early morning</td></tr>
+        <tr><td class="n">5</td><td>On wake up</td><td><span class="tag t-bad">Lunch</span></td><td>Early morning</td></tr>
+        <tr><td class="n">5</td><td>Morning, On rising/morning, Once wakeup <small>(6 or 7 AM)</small></td><td><span class="tag t-bad">Lunch</span></td><td>Early morning</td></tr>
+        <tr><td class="n">5</td><td>Post dinner <small>(10 PM)</small></td><td><span class="tag t-warn">Dinner, as options</span></td><td>Bedtime, or added to Dinner</td></tr>
+        <tr><td class="n">3</td><td>Pre breakfast</td><td><span class="tag t-warn">Breakfast, as options</span></td><td>Early morning, or added to Breakfast</td></tr>
+        <tr><td class="n">3</td><td>Mid evening snacks <small>(6 PM)</small></td><td><span class="tag t-bad">Morning snack</span></td><td>Evening snack</td></tr>
+        <tr><td class="n">1</td><td>Mid night snacks <small>(11 PM)</small></td><td><span class="tag t-bad">Morning snack</span></td><td>Bedtime</td></tr>
+        <tr><td class="n">1</td><td>Bed - time <small>(11 PM)</small></td><td><span class="tag t-bad">Lunch</span></td><td>Bedtime</td></tr>
+        <tr><td class="n">1</td><td>30min post BF</td><td><span class="tag t-bad">Lunch</span></td><td>Added to Breakfast</td></tr>
+        <tr><td class="n">2</td><td>30min before lunch, 30min before dinner</td><td><span class="tag t-warn">Lunch or Dinner, as options</span></td><td>Added to Lunch or Dinner</td></tr>
+        <tr><td class="n">1</td><td>Evening tea</td><td><span class="tag t-warn">Evening snack, as options</span></td><td>Added to Evening snack</td></tr>
+        <tr><td class="n">2</td><td>Pre-Workout <small>(7:30 AM)</small>, Post workout <small>(no time)</small></td><td><span class="tag t-bad">Lunch</span></td><td>By its time: Early morning, or added to the nearest meal</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3>One real template, through the new builder</h3>
+      <p class="sub" style="margin:0 0 8px">"2000 Kcal Diet Plan for Fatty liver". The old template had 8 meals. Lunch after "Use template":</p>
+      <div class="slot"><div class="hd">Lunch <small>13:30 · 8 options</small></div>
+        <div class="opt"><span>1. Mix veg salad, boiled white rice…</span><em>579 kcal</em></div>
+        <div class="opt"><span>2 to 5. Four more lunches</span><em>555 to 588 kcal</em></div>
+        <div class="opt badopt"><span>6. Turmeric warm water, garlic <small>(was "Once awake")</small></span><em>32 kcal</em></div>
+        <div class="opt badopt"><span>7. Apple, black coffee <small>(was "Pre-Workout")</small></span><em>83 kcal</em></div>
+        <div class="opt badopt"><span>8. Guava, black coffee <small>(was "Pre-Workout")</small></span><em>80 kcal</em></div>
+        <div class="tgt">Lunch target: <span class="down">576 → 453 kcal</span>, and turmeric water now sits as Option 6 of Lunch.</div>
+      </div>
+      <div class="slot"><div class="hd">Early morning <small>empty, marked skipped</small></div></div>
+      <p class="sub" style="margin:14px 0 0">"Liver Detox": its Lunch becomes [lunch 486, coconut oil water 125, apple cider vinegar 1] as three options, and the Lunch target falls from 488 to 374 kcal.</p>
+    </div>
+  </div>
+
+  <div class="call" style="margin-top:28px"><b>Two more risks, outside templates</b>
+    <ul style="margin:6px 0 0;padding-left:20px;color:var(--g6)">
+      <li><b>Updating the template makes it permanent.</b> When a coach assigns a plan and chooses to update the original template, the builder overwrites it with only the 7 standard meals (<code>saveTemplate</code>, kind "master"). The custom meals are gone and their foods stay wherever they were merged. Saving as a new template leaves the original untouched.</li>
+      <li><b>Patient plans.</b> Edit and Copy use code that replaces options, but patient plans hold no custom meal names, so the template collisions do not repeat there. See the next section.</li>
+    </ul>
+  </div>
+
+  <h2>Copy and edit of patient plans</h2>
+  <div class="call"><b>Corrected on 25 Nov: the copy risk is smaller than first reported</b>
+    <ul style="margin:6px 0 0;padding-left:20px;color:var(--g6)">
+      <li><b>The code does replace.</b> Edit and Copy of a patient plan load through <code>planFromLegacyDiet</code>, which replaces a meal's options instead of adding them. If two meals ever met in one standard meal, one would be lost.</li>
+      <li><b>But patient plans hold no custom meal names.</b> A plan stores only a meal type from the fixed <code>meal_types</code> list (<code>diet_plan_meal_rel</code> has no name column), and the portal reads it with an inner join on that list. So "On wake up" or "Pre-workout" cannot exist in a patient plan, and the collisions found in templates do not happen on copy. An earlier figure of 46 lost meals came from running templates through the copy path and does not apply to real plans.</li>
+      <li><b>Not verified: what happened at assignment.</b> A custom meal's type is not in <code>meal_types</code>, and plan meals are read through an inner join on that table. Whether such meals were saved and hidden, rejected, or converted when the old templates were assigned is unknown without reading real patient plans.</li>
+    </ul>
+  </div>
+
+  <h2 id="buckets">Keyword buckets</h2>
+  <p class="sub">One row per meal. Names are read in lowercase with punctuation ignored. Checked on all 119 live templates (813 meals, 164 custom) on 25 Nov. Pre-workout and post-workout are left out for now.</p>
+  <table style="max-width:960px">
+    <tr><th>Goes to</th><th>If the meal name has</th><th>Names in today's templates</th></tr>
+    <tr><td><span class="tag t-ok">Early morning</span></td><td>early morning, wake, wake up, wakeup, awake, waking, rise, rising, empty stomach, just "morning", before or pre breakfast</td><td><small>Early morning, Once awake, On wake up, Once wakeup, On rising/morning, Morning, Pre breakfast</small></td></tr>
+    <tr><td><span class="tag t-ok">Breakfast</span></td><td>breakfast</td><td><small>Breakfast</small></td></tr>
+    <tr><td><span class="tag t-ok">Morning snack</span></td><td>mid morning, morning snack, brunch, before or pre lunch, after or post breakfast (BF)</td><td><small>Morning snack, 30min post BF, 30min before lunch</small></td></tr>
+    <tr><td><span class="tag t-ok">Lunch</span></td><td>lunch</td><td><small>Lunch</small></td></tr>
+    <tr><td><span class="tag t-ok">Evening snack</span></td><td>evening, tea, afternoon, snack, before or pre dinner, after or post lunch</td><td><small>Evening snack, Mid evening snacks, Evening tea, 30min before dinner</small></td></tr>
+    <tr><td><span class="tag t-ok">Dinner</span></td><td>dinner, supper</td><td><small>Dinner</small></td></tr>
+    <tr><td><span class="tag t-ok">Bedtime</span></td><td>bed, bedtime, bed time, sleep, night, mid night, midnight, after or post dinner</td><td><small>Bedtime, Bed time, Bed - time, Mid night snacks, Post dinner</small></td></tr>
+    
+    <tr><td><span class="tag t-mute">Placed by time, flagged for the coach</span></td><td>no keyword above</td><td><small>None today</small></td></tr>
+  </table>
+  <div class="stats">
+    <div class="st ok"><b>35 → 0</b><span>meals in the wrong meal</span></div>
+    <div class="st ok"><b>0</b><span>meals sent to Lunch by mistake</span></div>
+    <div class="st"><b>10 in 8</b><span>meals that join a meal already there, in 8 templates; added to it, not as another option</span></div>
+  </div>
+  <div class="call" style="margin-top:20px"><b>When a name matches two rows</b>
+    "Before" or "after" a meal wins over a single word, and it ignores minutes. So "before lunch" and "30 min before lunch" are both Morning snack, "post dinner" is Bedtime (not Dinner). Among single words, Bedtime and Early morning win, so "mid night snacks" is Bedtime and a bare "morning" is Early morning.
+  </div>
+  <div class="call" style="margin-top:12px"><b>The 8 templates where a meal joins another</b>
+    SI- single cook, Jain Family, CKD+WL+DM: Pre breakfast joins Early morning. CKD+WL+DM: Evening Tea joins Evening Snack. Dheer Fmly: 30min post BF joins Morning Snack. Liver Detox: 30min before lunch joins Morning Snack, 30min before dinner joins Evening Snack. 3 Days Detox Egg, 3 Days Detox Veg, 1 Day Detox Veg: Mid evening snacks joins Evening Snack. These are "as well as" items, so they need the add-on rule (solution 2).
+  </div>
+
+  <div class="call ans"><b>Your question: add as other options, or append to each option?</b>
+    Append. In GoodFlip, options are <b>alternatives</b>: the patient eats one of them. "30 min before lunch: apple cider vinegar" or "Pre-workout: apple and black coffee" is not instead of a meal, it is <b>as well as</b> a meal. Adding it as another option lets the patient skip the real meal, and it drags the meal's target down. It should go into every option of the meal it joins, kept visible as its own small part ("Before breakfast, 7:30 AM: apple, black coffee"), and counted into that meal's calories.
+  </div>
+
+  <h2>Templates affected (41)</h2>
+  <p class="sub">Every template where a meal lands in the wrong place or another meal's foods become extra options. The other 76 templates convert cleanly.</p>
+  <div style="overflow-x:auto"><table id="aff"><tr><th>Template</th><th>Coach</th><th>Meals placed wrongly</th><th>Meals that gain extra options</th></tr></table></div>
+  <p class="sub" style="margin-top:12px">By coach: Bhakti Bhavsar 13, Vrushali Athavale 10, Radhika Rao 6, Michelle Christopher 5, Bhumika Shah 5, Inderjit 1, Tejaswini Rao Gudati 1.</p>
+
+  <h2>Ways to fix it</h2>
+  <p class="sub">Five ideas that solve different parts of the problem. They combine; the recommendation at the end picks a set.</p>
+
+  <div class="sol"><div>
+    <div class="lt"><b>1</b>Placement <span class="rec">Recommended</span></div>
+    <h3>Keyword buckets, then the meal’s time, then ask</h3>
+    <ul>
+      <li>Use the time the coach set. Most misplaced meals have one (once awake at 5 to 7 AM, mid evening at 6 PM, bed - time at 11 PM); a few are unset at 00:00. A meal at 5 to 8 AM goes to Early morning, 6 PM to Evening snack, 10 PM or later to Bedtime.</li>
+      <li>When the time is unset (00:00), match a wider list of names: once awake, on wake up, on rise, on rising, morning, pre breakfast to Early morning; mid evening to Evening snack; mid night, post dinner to Bedtime.</li>
+      <li>Only if both fail, ask the coach instead of quietly using Lunch.</li>
+      <li>Never overwrite a standard meal's time with a merged meal's time.</li>
+    </ul>
+    <div class="pc"><div class="p"><b>Fixes</b>All 35 misplaced meals and most of the 14 replaced times, for every future template. One function in the builder.</div><div class="c"><b>Leaves</b>The merge problem: meals that join a meal that already has food still become extra options.</div></div>
+  </div><div>
+    <div class="slot"><div class="hd">Early morning <small>07:00 · from "Once awake"</small></div><div class="opt"><span>Turmeric warm water, garlic</span><em>32 kcal</em></div></div>
+    <div class="slot"><div class="hd">Lunch <small>13:30 · 5 options, as written</small></div><div class="opt"><span>1 to 5. Five lunches</span><em>555 to 588 kcal</em></div><div class="tgt">Target <span class="ok">577 kcal, unchanged</span></div></div>
+  </div></div>
+
+  <div class="sol"><div>
+    <div class="lt"><b>2</b>Merge <span class="rec">Recommended</span></div>
+    <h3>Join as an add-on to every option</h3>
+    <ul>
+      <li>When an old meal lands in a standard meal that already has food, its foods are added to every option of that meal, marked as an add-on with its old name and time ("30 min before lunch, 1:00 PM").</li>
+      <li>When the standard meal is empty, the old meal simply becomes it (this is most cases once placement is fixed).</li>
+      <li>The meal's target includes the add-on, so it stays where the coach set it instead of falling.</li>
+      <li>In the builder the add-on shows once above the options and can be edited once; it is stored on each option so the patient app needs no change.</li>
+    </ul>
+    <div class="pc"><div class="p"><b>Fixes</b>The 43 meals with extra options, their lowered targets and their replaced times. Patients can no longer pick a glass of water as lunch.</div><div class="c"><b>Costs</b>The add-on loses its own time on the patient's side unless the app shows the label. Storing it on each option duplicates foods in the data.</div></div>
+  </div><div>
+    <p class="sub" style="margin:0">"Liver Detox": "30min before lunch, 1:00 PM" (apple cider vinegar) joins Lunch.</p>
+    <div class="slot"><div class="hd">Lunch <small>14:00 · 1 option</small></div>
+      <div class="addon"><b>30 min before lunch, 1:00 PM</b> · apple cider vinegar · in every option</div>
+      <div class="opt"><span>1. Crunchy vegetable salad, millet chapati + add-on</span><em>487 kcal</em></div>
+      <div class="tgt">Target stays near the coach's <span class="ok">488 kcal</span>, where today it falls to <span class="down">374</span></div></div>
+  </div></div>
+
+  <div class="sol"><div>
+    <div class="lt"><b>3</b>Model</div>
+    <h3>A timed companion inside a standard meal</h3>
+    <ul>
+      <li>Each of the 7 meals can carry up to two short "companions": a name, a time and foods, eaten as well as whichever option is picked ("Pre-workout 7:30 AM", "Post dinner 10 PM").</li>
+      <li>The patient app shows it as a small line in the meal card with its own tick; Nutrition sufficiency counts it with its meal.</li>
+      <li>Still 7 meals, so scoring, windows and the Eat screen stay as designed.</li>
+    </ul>
+    <div class="pc"><div class="p"><b>Fixes</b>Everything 2 fixes, keeps the coach's timing, and gives pre and post workout a proper home for the future.</div><div class="c"><b>Costs</b>A data model change in the template, the patient plan and the app's meal card. Highest effort.</div></div>
+  </div><div>
+    <div class="slot"><div class="hd">Early morning <small>07:00 · 1 option</small></div>
+      <div class="opt"><span>1. Turmeric warm water, garlic</span><em>32 kcal</em></div>
+      <div class="addon"><b>Companion: Pre-workout, 7:30 AM</b> · apple or guava, black coffee · 80 kcal, ticked on its own</div></div>
+  </div></div>
+
+  <div class="sol"><div>
+    <div class="lt"><b>4</b>Naming</div>
+    <h3>Let coaches rename a standard meal for a plan</h3>
+    <ul>
+      <li>The meal type stays (Early morning), the label the patient sees can be the coach's ("Once awake", "On rising").</li>
+      <li>A coach who wants a pre-workout meal renames Morning snack "Pre-workout" for that patient.</li>
+      <li>Imported templates keep their old names as labels automatically.</li>
+    </ul>
+    <div class="pc"><div class="p"><b>Fixes</b>Most of what coaches lost: 31 of the 35 misplaced meals are just other words for Early morning or Bedtime.</div><div class="c"><b>Costs</b>A label field per meal. Does not help when a coach used two extra meals around one standard meal.</div></div>
+  </div><div>
+    <div class="slot"><div class="hd">Once awake <small>Early morning · 07:00</small></div><div class="opt"><span>Turmeric warm water, garlic</span><em>32 kcal</em></div></div>
+    <div class="slot"><div class="hd">Pre-workout <small>Morning snack · 10:30</small></div><div class="opt"><span>Banana, black coffee</span><em>110 kcal</em></div></div>
+  </div></div>
+
+  <div class="sol"><div>
+    <div class="lt"><b>5</b>Rollout <span class="rec">Recommended</span></div>
+    <h3>Migrate once, and ask coaches to check the 41</h3>
+    <ul>
+      <li>Run the fixed conversion on all 117 templates once and save a 7-meal version beside the original (keep the original read-only, never overwrite it).</li>
+      <li>Mark the 41 templates "Check before use" in the template list, with who owns them.</li>
+      <li>On "Use template", a short note in the builder says what moved: "Once awake is now Early morning. Pre-workout was added to Breakfast." with Undo and Move to.</li>
+      <li>Read patient plans the same way before they are opened in the new builder.</li>
+    </ul>
+    <div class="pc"><div class="p"><b>Fixes</b>Trust. No coach finds a changed plan by surprise, and nothing is lost if the conversion is wrong.</div><div class="c"><b>Costs</b>A one-time script, a flag on the list, and a small notice in the builder. Seven coaches to brief.</div></div>
+  </div><div>
+    <div class="slot" style="background:#FFFAEB;border-color:#FEDF89"><div class="hd" style="color:#B54708">2 meals were moved <small style="color:#B54708">from the old template</small></div>
+      <div style="font-size:13px;margin-top:6px;color:#344054">Once awake is now <b>Early morning</b>.<br>Pre-Workout, 7:30 AM was added to <b>Early morning</b> as an add-on.</div>
+      <div style="display:flex;gap:8px;margin-top:10px"><span class="tag t-mute">Move to…</span><span class="tag t-mute">Undo</span></div></div>
+  </div></div>
+
+  <h2>Recommendation</h2>
+  <div class="call ans" style="max-width:none"><b>Ship 1, 2 and 5 now. Plan 3 and 4 next.</b>
+    <ol style="margin:6px 0 0;padding-left:20px;color:var(--g7)">
+      <li><b>Now:</b> keyword buckets with time as the fallback (1); make Edit and Copy add options instead of replacing them, as a safety net; when a meal joins one that already has food, add it to every option as a labelled add-on, never as another option (2); migrate once beside the originals, flag the 41, and show what moved on "Use template" (5). Together these fix every case in this audit without changing the patient app.</li>
+      <li><b>Next:</b> meal labels per plan (4), so "Once awake" and "Pre-workout" read the way the coach wrote them; then companions (3) if coaches keep needing a second timed item around a meal.</li>
+      <li><b>Before any of it:</b> read a sample of real patient plans against their templates, to see whether custom meals were dropped when the old templates were assigned.</li>
+    </ol>
+  </div>
+</div>
+<script>
+/* the 41 affected templates, from the audit (25 Nov 2026). [template, coach, placed wrongly, meals that gain extra options] */
+var A = [
+["ca -mbc","Radhika Rao","On wake up → Lunch (Early morning)","Lunch"],["AADYA","Inderjit","","Dinner"],["SI- single cook","Bhumika Shah","","Breakfast"],
+["Dheer Fmly","Bhumika Shah","Post workout → Lunch, 30min post BF → Lunch (Breakfast)","Lunch"],["Carb cycling 6days","Michelle Christopher","","Dinner"],
+["sp.nutri","Radhika Rao","On wake up → Lunch (Early morning)","Lunch"],["1500Kcal Veg NB","Bhumika Shah","Once awake → Lunch (Early morning)","Lunch"],
+["FATTY LIVER 5 OPTION","Radhika Rao","Morning → Lunch (Early morning)","Lunch"],["IBS-PRE DIA-CHO-THYROID DIET PLAN","Michelle Christopher","","Dinner"],
+["DM 1200kcal","Bhakti Bhavsar","Once awake → Lunch (Early morning)","Lunch"],["DM","Bhakti Bhavsar","Once awake → Lunch (Early morning)","Lunch"],
+["ALLERGY","Radhika Rao","On wake up → Lunch (Early morning)","Lunch"],["WEIGHTGAIN-SOUTH","Radhika Rao","On wake up → Lunch (Early morning)","Lunch"],
+["WEIGHTGAIN-USA","Radhika Rao","On wake up → Lunch (Early morning)","Lunch"],["Jain Family","Bhumika Shah","","Breakfast"],["CKD+WL+DM","Bhumika Shah","","Breakfast, Evening snack"],
+["Soft Diet- Bariatric Surgery","Michelle Christopher","Mid night snacks → Morning snack (Bedtime)","Morning snack"],["CA-BREAST","Tejaswini Rao Gudati","Once awake → Lunch (Early morning)","Lunch"],
+["weightloss-PCOS plan","Michelle Christopher","","Dinner"],["Diabetic Diet plan","Michelle Christopher","","Dinner"],["Stomach Infection","Bhakti Bhavsar","Once awake → Lunch (Early morning)","Lunch"],
+["Weight Gain","Vrushali Athavale","Once awake → Lunch (Early morning)","Lunch"],["BILYPSA FATTY LIVER-Veg","Bhakti Bhavsar","Morning → Lunch (Early morning)","Lunch"],
+["Uterine Fibroids (Revised)","Vrushali Athavale","On Rising/Morning → Lunch (Early morning)","Lunch"],["Uterine Fibroids","Bhakti Bhavsar","On Rising/Morning → Lunch (Early morning)","Lunch"],
+["1600KCal Diet plan for fatty liver","Bhakti Bhavsar","Once awake → Lunch (Early morning)","Lunch"],["Weight gain Non-veg","Bhakti Bhavsar","Once awake → Lunch (Early morning)","Lunch"],
+["Anti-inflammatory diet","Bhakti Bhavsar","Once awake → Lunch (Early morning)","Lunch"],["2000 Kcal Diet Plan for Fatty liver","Bhakti Bhavsar","Once awake → Lunch (Early morning), Pre-Workout → Lunch","Lunch"],
+["PCOS Diet Plan","Vrushali Athavale","Once awake → Lunch (Early morning)","Lunch"],["weight gain","Bhakti Bhavsar","Once awake → Lunch (Early morning)","Lunch"],["PCOS","Bhakti Bhavsar","Once awake → Lunch (Early morning)","Lunch"],
+["1200 Kcal Diabetic Diet plan","Bhakti Bhavsar","Once awake → Lunch (Early morning)","Lunch"],["weight loss 1500 kcal","Bhakti Bhavsar","Once awake → Lunch (Early morning)","Lunch"],
+["General Diet plan (Veg)","Vrushali Athavale","Once awake → Lunch (Early morning)","Lunch"],["Generalized Weight Loss Diet Plan","Vrushali Athavale","Once awake → Lunch (Early morning)","Lunch"],
+["Liver Detox","Vrushali Athavale","Once wakeup → Lunch (Early morning)","Lunch, Dinner"],["3 Days Detox Egg","Vrushali Athavale","Mid evening snacks → Morning snack (Evening snack)","Morning snack"],
+["3 Days Detox Veg","Vrushali Athavale","Mid evening snacks → Morning snack (Evening snack)","Morning snack"],["1 Day Detox Veg","Vrushali Athavale","Mid evening snacks → Morning snack (Evening snack)","Morning snack"],
+["gujrati menu with egg","Vrushali Athavale","Bed - time → Lunch (Bedtime)","Lunch"]];
+var t = document.getElementById("aff");
+A.forEach(function (r) {
+  var tr = document.createElement("tr");
+  tr.innerHTML = "<td><b>" + r[0] + "</b></td><td>" + r[1] + "</td><td>" + (r[2] ? r[2].split(", ").map(function (x) { return '<span class="tag t-bad">' + x + "</span>"; }).join(" ") : '<span style="color:#98A2B3">None</span>') + "</td><td>" + r[3].split(", ").map(function (x) { return '<span class="tag t-warn">' + x + "</span>"; }).join(" ") + "</td>";
+  t.appendChild(tr);
+});
+</script>
+</body>
+</html>
