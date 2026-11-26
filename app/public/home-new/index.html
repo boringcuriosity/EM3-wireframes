@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paid Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Manrope:wght@400;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<!--
+  Replica of today's GoodFlip Home for a paid program member (Diabetes Management), as the live app draws it.
+  Values come from MyTatva-RN: src/components/organisms/Home.tsx and src/components/molecules/Home/*.
+  RN sizes are written against a 350 x 680 guideline and scaled per device (Matrics.js); here the phone is
+  390 x 844, so s() = x1.1143, vs() = x1.2412, mvs() = x1.1206. The vars below keep each number traceable.
+  Images and icons are the app's own files (a/); see a/README.txt for where each came from and which are stand-ins.
+-->
+<style>
+  :root {
+    --s: 1.1143; --vs: 1.2412; --mvs: 1.1206;
+    --green: #299D6B; --green-dk: #2A805A; --honeydew: #E6FAF1; --ink: #1A1C1E; --ink2: #101828;
+    --gray: #6C7278; --gray5: #667085; --gray4: #98A2B3; --tert: #5A6774; --line: #E4E7EC;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #fff; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; letter-spacing: .25px; }
+  button { font: inherit; letter-spacing: inherit; border: 0; background: none; padding: 0; color: inherit; cursor: pointer; }
+  img { display: block; }
+  .col { position: relative; max-width: 390px; margin: 0 auto; min-height: 100vh; background: #fff; }
+
+  /* Fixed top bar: white, soft shadow underneath (Home.tsx) */
+  .top { position: sticky; top: var(--gf-sb, 0px); z-index: 50; background: #fff;
+    display: flex; align-items: center; justify-content: space-between; padding: 8px calc(10px * var(--s)) 10px; }
+  .top .l, .top .r { display: flex; align-items: center; }
+  .top .l { gap: calc(8px * var(--s)); }
+  .top .r { gap: calc(8px * var(--s)); }
+  .ib { position: relative; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: #fff;
+    border: .5px solid #EAECF0; box-shadow: 0 4px 8px -2px rgba(16,24,40,.1), 0 2px 4px -2px rgba(16,24,40,.06); }
+  .ib svg { width: 20px; height: 20px; }
+  /* FlipcoinBadge shape="pill": green to gold border, honeydew to cream fill */
+  .coins { display: flex; align-items: center; gap: calc(4px * var(--s)); height: 36px; padding: 0 12px; border-radius: 999px;
+    border: calc(1.5px * var(--mvs)) solid transparent;
+    background: linear-gradient(90deg, var(--honeydew), #FFFBEE) padding-box, linear-gradient(90deg, var(--green), #F5D736) border-box; }
+  .coins img { width: calc(20px * var(--mvs)); height: calc(20px * var(--mvs)); }
+  .coins span { font-weight: 600; font-size: calc(14px * var(--mvs)); color: #313131; white-space: nowrap; }
+
+  .scroll { display: flex; flex-direction: column; gap: 16px; padding-bottom: calc(32px * var(--vs)); }
+
+  /* withGradient sections share one band: white to honeydew, rounded at the foot */
+  .band { background: linear-gradient(180deg, #fff, var(--honeydew)); border-radius: 0 0 calc(36px * var(--mvs)) calc(36px * var(--mvs));
+    padding: 12px 0 calc(10px * var(--vs)); display: flex; flex-direction: column; gap: calc(6px * var(--vs)); }
+  .hi { margin: 0 calc(16px * var(--s)); font-weight: 700; font-size: 18px; line-height: 1.2; color: var(--ink); }
+
+  /* Program tabs (ProgramsSection/Tabs.tsx) */
+  .chips { display: flex; gap: calc(10px * var(--s)); padding: calc(10px * var(--s)) calc(16px * var(--s)) 0; overflow-x: auto; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: 0 0 auto; white-space: nowrap; }
+  .chip { padding: calc(5px * var(--vs)) calc(8px * var(--s)); border-radius: calc(10px * var(--mvs)); background: #F9FAFB;
+    border: 1px solid #F2F4F7; font-size: 13px; line-height: 1.2; color: var(--gray4); }
+  .chip[aria-selected="true"] { background: #fff; border-color: var(--green); color: var(--green); font-weight: 700; }
+
+  /* Program carousel: s(295) cards, 295/190, s(14) apart */
+  .rail { display: flex; scroll-padding-left: 0; gap: calc(14px * var(--s)); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+    padding: calc(10px * var(--vs)) calc(16px * var(--s)); scroll-padding-left: calc(16px * var(--s)); }
+  .rail::-webkit-scrollbar { display: none; }
+  .pc { position: relative; flex: 0 0 calc(295px * var(--s)); aspect-ratio: 295 / 190; scroll-snap-align: start; overflow: hidden;
+    border: 1px solid var(--green); border-radius: calc(16px * var(--vs)); background: var(--honeydew);
+    box-shadow: 0 3px 6px #D5D5D5; display: flex; flex-direction: column; text-align: left; }
+  .pc .leaf { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: .9; pointer-events: none; }
+  .pc .body { position: relative; flex: 1; padding: calc(12px * var(--s)) calc(16px * var(--s)); }
+  .pc .st { display: flex; align-items: center; margin-bottom: calc(12px * var(--vs)); font-size: 13px; color: #12B76A; }
+  .pc .st i { width: calc(8px * var(--s)); height: calc(8px * var(--s)); border-radius: 50%; background: currentColor; margin-right: calc(5px * var(--s)); }
+  .pc .st b { flex: 1; font-weight: 400; }
+  .pc .st img { width: 22px; height: 22px; }
+  .pc .logo { display: block; height: calc(22px * var(--mvs)); width: auto; margin: calc(8px * var(--vs)) 0 calc(6px * var(--vs)) calc(-4px * var(--s)); }
+  .pc .sub { font-size: 14px; line-height: 1.25; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pc .foot { position: relative; display: flex; align-items: center; justify-content: space-between; background: #2E9E6F;
+    padding: calc(10px * var(--vs)) calc(16px * var(--s)); color: #fff; font-size: 14px; }
+  .pc .foot img { width: calc(29px * var(--s)); height: calc(24px * var(--s)); object-fit: contain; }
+  /* "Coach session" card from Figma (GoodFlip ring designs, 2620:9520): coaches, the ask, a small green pill */
+  .pc.sec { border-color: #EAECF0; background: #fff; padding: calc(16px * var(--s)); gap: 0; }
+  .pc.sec .peacock { position: absolute; right: 0; bottom: 0; width: 43%; height: auto; pointer-events: none; }
+  .pc.sec > :not(.peacock) { position: relative; }
+  .pc.sec .avs { display: flex; }
+  .pc.sec .avs img { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #fff; object-fit: cover; }
+  .pc.sec .avs img + img { margin-left: -12px; }
+  .pc.sec h4 { margin: 14px 0 4px; font-size: 16px; line-height: 1.2; color: var(--ink2); }
+  .pc.sec p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--ink2); }
+  .pc.sec .go { position: relative; margin-top: auto; align-self: flex-start; display: flex; align-items: center; gap: 4px;
+    background: var(--green); color: #fff; font-weight: 600; font-size: 13px; padding: 5px 10px; border-radius: 999px; }
+
+  .refer { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 calc(16px * var(--s)); font-size: 11.5px; white-space: nowrap; color: #475467; }
+  .refer button { display: flex; align-items: center; gap: 6px; color: var(--green); font-weight: 700; font-size: 14px; white-space: nowrap; }
+
+  /* Section titles (ONCO_HEADER_2) */
+  .sec-t { margin: 0; padding: calc(8px * var(--vs)) calc(16px * var(--s)) 0; font-family: Manrope, Roboto, sans-serif; font-weight: 700; font-size: 20px; line-height: 26px; color: var(--ink); letter-spacing: 0; }
+  .block { display: flex; flex-direction: column; gap: 12px; }
+
+  /* Tracker card skin: hard 4px offset edge on the right and the foot, indigo wash at the top */
+  .skin { position: relative; background: rgba(255,255,255,.8); border: 1px solid var(--gray4); border-right-width: 4px; border-bottom-width: 4px;
+    border-radius: calc(12px * var(--mvs)); box-shadow: -5px 5px 6px rgba(152,162,179,.3); overflow: hidden; }
+  .skin::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #C7D7FE, rgba(255,255,255,.4) 30%, transparent 30%); opacity: .3; pointer-events: none; }
+  .skin::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, transparent, #444CE7, transparent); pointer-events: none; }
+  .skin > * { position: relative; }
+  .mx { margin: 0 calc(16px * var(--s)); }
+
+  /* Smart Devices */
+  .dev { padding: 12px calc(14px * var(--s)) 14px; }
+  .dtabs { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 14px; }
+  .dtab { width: 74px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding-bottom: 6px; font-size: 13px; color: var(--gray4); border-bottom: 3px solid transparent; }
+  .dtab .ic { width: 52px; height: 44px; display: grid; place-items: center; border-radius: 10px; border: 1px solid var(--line); background: #fff; }
+  .dtab .ic img { max-width: 34px; max-height: 34px; }
+  .dtab[aria-selected="true"] { color: var(--ink); font-weight: 700; border-color: var(--green); }
+  .dtab[aria-selected="true"] .ic { border-color: transparent; background: transparent; }
+  .dtab[aria-selected="true"] .ic img { max-width: 40px; max-height: 40px; }
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .m { background: #F9FAFB; border-radius: 8px; padding: 10px 12px; }
+  .m .k { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); }
+  .m .k img { width: 18px; height: 18px; }
+  .m .v { margin-top: 6px; font-weight: 700; font-size: 22px; color: var(--ink); }
+  .dfoot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .dfoot .sync { font-size: 12px; line-height: 1.35; color: var(--ink); }
+  .dfoot .sync b { display: block; }
+
+  /* Not connected yet: the Figma "GoodFlip Devices Section card" states (ring designs, 11126:60074).
+     A 358 x 240 card, an 80px tab row, then a pitch with the device, one line and two buttons. */
+  .dev.fresh { padding: 0; border: 1.5px solid #9EE6C2; box-shadow: none; border-radius: 16px; background: #fff; }
+  .dev.fresh::before { background: linear-gradient(180deg, #E3F7EC, rgba(255,255,255,0) 80px); opacity: 1; }
+  .dev.fresh::after { display: none; }
+  .dev.fresh.pitching[data-dev="cgm"] { background: linear-gradient(180deg, #fff 55%, #EEF3FF); }
+  .dev.fresh.pitching[data-dev="bca"] { background: linear-gradient(180deg, #fff 55%, #FFF8EA); }
+  .dev.fresh .dtabs { height: 80px; margin: 0; padding: 0 16px; align-items: flex-start; }
+  .dev.fresh .dtab { width: 100px; height: 60px; margin-top: 10px; justify-content: center; gap: 2px; padding: 0; border: 1px solid #EAECF0; border-radius: 12px; background: #fff; font-size: 14px; }
+  .dev.fresh .dtab .ic { width: auto; height: 34px; border: 0; background: none; }
+  .dev.fresh .dtab .ic img { max-width: 34px; max-height: 34px; }
+  .dev.fresh .dtab[aria-selected="true"] { position: relative; height: 80px; margin-top: 0; border: 0; border-radius: 0; font-size: 16px; color: var(--ink2);
+    background: linear-gradient(180deg, #D3EFE1, #E9F8F0); }
+  .dev.fresh .dtab[aria-selected="true"] { gap: 6px; }
+  .dev.fresh .dtab[aria-selected="true"] .ic img { max-width: 40px; max-height: 32px; }
+  .dev.fresh .dtab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; border-radius: 4px 4px 0 0; background: var(--green); }
+  .pitch { position: relative; height: 160px; overflow: hidden; border-radius: 0 0 14px 14px; }
+  .pitch img { position: absolute; pointer-events: none; }
+  .pitch h3 { position: absolute; top: 16px; left: 147px; width: 195px; margin: 0; font-weight: 600; font-size: 18px; line-height: 24px; color: var(--ink2); letter-spacing: 0; }
+  .pitch .acts { position: absolute; left: 16px; right: 16px; top: 96px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pitch .btn { min-height: 43px; font-size: 16px; }
+  .btn.ghost { background: #fff; color: var(--green); border: 1px solid var(--green); box-shadow: 0 5px 0 #D1F2E2, 0 5px 0 1px var(--green); }
+  .btn.ghost:active { box-shadow: 0 1px 0 #D1F2E2, 0 1px 0 1px var(--green); }
+  [data-pane][hidden] { display: none; }
+  .dev.fresh.pitching[data-dev="bpm"] { background: linear-gradient(180deg, #fff 55%, #EEF7FF); }
+  /* four devices: 64-wide tabs (Figma 11137:67383) */
+  .dev.fresh.four .dtab { width: 64px; font-size: 14px; }
+  .dev.fresh .dtab .lb { display: flex; align-items: center; gap: 5px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #039855; }
+  .dot.off { background: #D92D20; }
+  /* sync line under the tabs: grey track, green run while a sync is going (Ring data states, 3361:16839) */
+  .sync-line { position: absolute; left: 0; right: 0; top: 0; height: 3px; background: #E4E7EC; overflow: hidden; }
+  .sync-line i { position: absolute; inset: 0 auto 0 0; width: 12%; background: linear-gradient(90deg, #12B76A, #4ADE80); border-radius: 0 3px 3px 0; animation: sync 2.4s ease-in-out infinite; }
+  @keyframes sync { from { width: 4%; } to { width: 92%; } }
+  .reads { position: relative; padding: 16px 16px 16px; }
+  .reads .metrics { margin-bottom: 16px; gap: 8px; }
+  .reads .m { border: 1px solid #F2F4F7; border-radius: 12px; padding: 12px; }
+  .reads .m .k { font-size: 14px; color: var(--ink2); }
+  .reads .m .k img { width: auto; height: 16px; }
+  .reads .m .v { margin-top: 4px; font-size: 20px; color: var(--ink2); white-space: nowrap; }
+  .reads .dfoot .sync { font-size: 13px; color: #475467; }
+  .reads .dfoot .sync b { color: var(--ink2); }
+  .reads .dfoot .btn { flex: 0 0 159px; min-height: 43px; }
+
+  /* Button (atoms/Button): green face on a darker 6px under-bar */
+  .btn { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 8px 16px;
+    border-radius: 8px; background: var(--green); color: #fff; font-weight: 600; font-size: 16px; line-height: 20px; box-shadow: 0 5px 0 var(--green-dk);
+    transition: transform .12s ease, box-shadow .12s ease; }
+  .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--green-dk); }
+  .dfoot .btn { flex: 0 0 58%; }
+
+  /* Metabolic score */
+  .ms { display: flex; align-items: center; gap: calc(12px * var(--s)); width: calc(100% - 32px); margin: 0 16px; height: 112px; padding: 0 0 0 calc(14px * var(--mvs));
+    border: 1px solid var(--gray4); border-radius: calc(16px * var(--vs)); box-shadow: 0 2px 6px rgba(152,162,179,.35); background: #fff; position: relative; text-align: left; overflow: hidden; }
+  .ms video { width: calc(24px * var(--s)); height: calc(24px * var(--s)); border-radius: 21px; align-self: flex-start; margin-top: 18px; }
+  .ms .t { flex: 1; display: flex; flex-direction: column; gap: 6px; align-self: flex-start; margin-top: 18px; }
+  .ms .t span { font-size: 13px; color: var(--tert); }
+  .ms .t b { font-size: 15px; color: var(--tert); }
+  .ms .ring { position: relative; width: calc(100px * var(--s)); height: calc(100px * var(--vs)); margin: 10px calc(10px * var(--s)) -6px 0; height: 96px; flex-shrink: 0; }
+  .ms .ring img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .ms .ring b { position: absolute; inset: 0; display: grid; place-items: center; padding-top: 8px; font-family: "Playfair Display", serif; font-weight: 600; font-size: calc(29px * var(--mvs)); color: var(--ink2); letter-spacing: .23px; }
+  .ms > .arr { position: absolute; top: 10px; right: 8px; width: 22px; height: 22px; }
+
+  /* GoodFlip Services (OfferingCards): four tiles, 22% each */
+  .svc { display: flex; justify-content: space-between; padding: 0 calc(16px * var(--s)); }
+  .tile { width: 22%; display: flex; flex-direction: column; align-items: center; gap: calc(8px * var(--vs)); font-size: 13px; line-height: 1.2; text-align: center; color: var(--ink); }
+  .tile .box { width: calc(54px * var(--mvs)); height: calc(54px * var(--mvs)); border-radius: calc(10px * var(--mvs)); background: #fff; border: 1px solid var(--line);
+    box-shadow: 0 2px 4px rgba(16,24,40,.08); display: grid; place-items: center; overflow: hidden; }
+  .tile .box img { width: 86%; height: 86%; object-fit: contain; }
+
+  /* Health trackers */
+  .trk { display: flex; flex-direction: column; gap: calc(12px * var(--vs)); }
+  .tc { padding: calc(16px * var(--mvs)); display: flex; flex-direction: column; gap: calc(12px * var(--vs)); }
+  .th { display: flex; align-items: center; gap: calc(8px * var(--s)); font-weight: 700; font-size: 13px; color: var(--ink2); }
+  .th > img { width: calc(14px * var(--mvs)); height: calc(14px * var(--mvs)); }
+  .th .end { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  .th .end img { width: 20px; height: 20px; }
+  .lbl { font-size: 15px; color: var(--gray); opacity: .9; }
+  .val { font-weight: 600; font-size: 24px; line-height: 1.2; color: var(--ink); margin-top: 4px; }
+  .macros { display: flex; justify-content: space-between; gap: calc(8px * var(--s)); padding-right: 24px; }
+  .mac .k { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--gray); }
+  .mac .k img { width: calc(16px * var(--mvs)); height: calc(16px * var(--mvs)); }
+  .mac .v { margin-top: 6px; font-weight: 700; font-size: 15px; color: var(--ink); opacity: .9; padding-left: 4px; }
+  .dash { height: 1px; background: repeating-linear-gradient(90deg, #8098F9 0 9px, transparent 9px 15px);
+    -webkit-mask: linear-gradient(90deg, transparent, #000 30% 70%, transparent); mask: linear-gradient(90deg, transparent, #000 30% 70%, transparent); }
+  .logrow { display: flex; align-items: center; gap: 8px; }
+  .logrow > img { width: calc(28px * var(--mvs)); height: calc(28px * var(--mvs)); }
+  .logrow span { flex: 1; font-size: 15px; color: var(--gray); }
+  /* KairaButton: 72 x 32, 2px gradient rim */
+  .kb { display: flex; align-items: center; justify-content: center; gap: calc(3px * var(--s)); width: calc(78px * var(--mvs)); height: calc(32px * var(--mvs));
+    border-radius: calc(12px * var(--mvs)); border: 2px solid transparent; font-weight: 700; font-size: 13px; }
+  .kb img { width: 18px; height: 18px; }
+  .kb.snap { color: #fff; background: linear-gradient(135deg, var(--green) 6%, var(--green-dk) 92%) padding-box, linear-gradient(90deg, var(--green-dk), var(--green)) border-box; }
+  .kb.voice { color: var(--green); background: #fff padding-box, linear-gradient(90deg, var(--green-dk), var(--green)) border-box; }
+  .dual { display: flex; align-items: stretch; }
+  .dual > div:first-child { flex: 1; border-right: 1px solid #BAC6D2; margin-right: calc(24px * var(--s)); }
+  .dual .val { font-size: 24px; }
+  .dual .r .lbl { font-size: 13px; }
+  .dual .r .v2 { margin-top: 8px; font-weight: 700; font-size: 15px; color: var(--gray5); opacity: .9; }
+
+  .more { display: flex; align-items: center; gap: 8px; padding: 0 calc(16px * var(--s)); font-size: 12px; color: var(--gray5); }
+  .more i { flex: 1; height: 2px; background: repeating-linear-gradient(90deg, #D0D5DD 0 8px, transparent 8px 14px); }
+  .pills { position: relative; display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding: 2px calc(16px * var(--s)) 8px; }
+  .pills::-webkit-scrollbar { display: none; }
+  .pill { flex: 0 0 auto; display: flex; align-items: center; height: calc(44px * var(--vs)); border-radius: calc(25px * var(--mvs)); overflow: hidden; padding: 0; }
+  .pill .in { display: flex; align-items: center; gap: 8px; padding: 0 16px 0 calc(14px * var(--mvs)); }
+  .pill .in img { width: calc(16px * var(--mvs)); height: calc(16px * var(--mvs)); }
+  .pill .nm { font-weight: 500; font-size: 15px; color: var(--ink); margin-right: 36px; }
+  .pill .num { font-weight: 700; font-size: 17px; color: var(--ink); }
+  .pill .num small { font-weight: 400; font-size: 13px; margin-left: 2px; }
+  .pill .dd { font-weight: 500; font-size: 15px; }
+  /* vertical FlipCoin badge on the pill's right edge */
+  .pill .fc { align-self: stretch; display: grid; place-items: center; width: 38px; background: linear-gradient(180deg, var(--honeydew), #FFFBEE);
+    border-left: 3px solid; border-image: linear-gradient(180deg, var(--green), #F5D736) 1; }
+  .pill .fc img { width: 20px; height: 20px; }
+
+  /* Track your symptoms (SymptomNonPSPCard) */
+  .sym { margin: calc(16px * var(--vs)) calc(16px * var(--s)) 0; }
+  .sym h3 { margin: 0 0 calc(4px * var(--vs)); font-weight: 600; font-size: 22px; line-height: 1.3; color: #1F2933; }
+  .sym > p { margin: 0; font-family: Manrope, Roboto, sans-serif; font-size: 15px; line-height: 24px; color: var(--gray5); letter-spacing: 0; }
+  .sym > p b { font-family: Roboto, sans-serif; color: #3D4854; }
+  .sym .row { display: flex; align-items: center; gap: 8px; padding: 8px 0 16px; margin-top: 18px; }
+  .sym .row img { width: 120px; height: 120px; object-fit: contain; flex-shrink: 0; }
+  .sym .row b { display: block; font-size: 15px; line-height: 1.5; color: var(--gray5); }
+  .sym .row span { font-family: Manrope, Roboto, sans-serif; font-size: 15px; line-height: 24px; color: var(--tert); letter-spacing: 0; }
+  .sym .btn { width: 100%; font-size: 14px; }
+
+  /* Explore GoodFlip (HeaderBanner): 300-wide cards, neighbours at 0.9 scale and 0.7 opacity */
+  .ex { display: flex; gap: 0; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: calc(8px * var(--vs)) calc((100% - 300px) / 2); }
+  .ex::-webkit-scrollbar { display: none; }
+  .bn { flex: 0 0 300px; height: 146px; border-radius: 16px; overflow: hidden; scroll-snap-align: center; background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1); transform: scale(.9); opacity: .7; transition: transform .35s ease, opacity .35s ease; }
+  .bn.on { transform: none; opacity: 1; }
+  .bn img { width: 100%; height: 100%; object-fit: cover; }
+  .dots { display: flex; justify-content: center; gap: calc(6px * var(--s)); }
+  .dots i { width: calc(6px * var(--s)); height: calc(4px * var(--vs)); border-radius: 3px; background: #000; transition: width .3s ease; }
+  .dots i.on { width: calc(42px * var(--s)); background: linear-gradient(90deg, #000 50%, var(--gray5) 50%); }
+
+  .disc { margin: calc(12px * var(--vs)) 0; }
+  .disc hr { border: 0; height: 1px; background: #EEEEEE; margin: 0 calc(32px * var(--s)) calc(16px * var(--vs)); }
+  .disc p { margin: 0; padding: 0 16px; text-align: center; font-size: 14px; line-height: calc(20px * var(--vs)); color: var(--gray4); letter-spacing: 0; }
+
+  /* Bottom tabs (Router.tsx): Manrope Bold 10, green when active */
+  .tabs { position: sticky; bottom: 0; z-index: 50; display: flex; justify-content: space-around; background: #fff; border-top: 1px solid #F2F4F7;
+    padding: calc(6px * var(--vs)) 0 calc(6px * var(--vs) + var(--gf-home-h, 0px)); }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 20%; font-family: Manrope, Roboto, sans-serif; font-weight: 700; font-size: 11px; line-height: 14px; color: var(--tert); letter-spacing: 0; }
+  .tab img { width: 24px; height: 24px; }
+  .tab[aria-current="page"] { color: var(--green); }
+  .tab .on { display: none; }
+  .tab[aria-current="page"] .on { display: block; }
+  .tab[aria-current="page"] .off { display: none; }
+
+  /* Kaira launcher: right s(16), above the tab bar */
+  .fab { position: fixed; z-index: 60; right: max(calc(16px * var(--s)), calc((100vw - 390px) / 2 + 16px * var(--s))); bottom: calc(84px + var(--gf-home-h, 0px));
+    width: 56px; height: 56px; border-radius: 50%; background: #fff; display: grid; place-items: center;
+    border: 1px solid #E0EAFF; box-shadow: 0 4px 8px -2px rgba(16,24,40,.1), 0 2px 4px -2px rgba(16,24,40,.06); }
+  .fab img { width: 30px; height: 33px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="col">
+
+  <header class="top">
+    <div class="l">
+      <button class="ib" aria-label="Menu"><svg viewBox="0 0 20 20" fill="none"><path d="M2.294 15H17.71a.625.625 0 0 1 .085 1.244l-.085.006H2.294a.625.625 0 0 1-.085-1.245L2.294 15H17.71 2.294Zm0-5.414H17.71a.625.625 0 0 1 .085 1.244l-.085.006H2.294a.625.625 0 0 1-.085-1.245l.085-.005H17.71 2.294Zm0-5.417H17.71a.625.625 0 0 1 .085 1.244l-.085.006H2.293a.625.625 0 0 1-.085-1.244l.085-.006H17.71 2.293Z" fill="#101828"/></svg></button>
+      <button class="coins" aria-label="172 Flipcoins"><img src="a/flicoin-icon.png" alt=""><span>172 Flipcoins</span></button>
+    </div>
+    <div class="r">
+      <button class="ib" aria-label="Chat"><svg viewBox="0 0 20 20" fill="none"><path d="M9.99984 1.6665C14.6022 1.6665 18.3332 5.39746 18.3332 9.99984C18.3332 14.6022 14.6022 18.3332 9.99984 18.3332C8.65126 18.3332 7.34802 18.012 6.17722 17.4065L2.98904 18.296C2.43494 18.4507 1.86032 18.1269 1.70559 17.5728C1.65439 17.3895 1.65442 17.1956 1.70563 17.0124L2.59535 13.8267C1.98848 12.6548 1.6665 11.3501 1.6665 9.99984C1.6665 5.39746 5.39746 1.6665 9.99984 1.6665ZM9.99984 2.9165C6.08782 2.9165 2.9165 6.08782 2.9165 9.99984C2.9165 11.2245 3.22715 12.4027 3.8107 13.4477L3.93623 13.6725L3.00897 16.9927L6.33113 16.0659L6.55574 16.1911C7.59988 16.7733 8.77666 17.0832 9.99984 17.0832C13.9119 17.0832 17.0832 13.9119 17.0832 9.99984C17.0832 6.08782 13.9119 2.9165 9.99984 2.9165ZM7.2915 10.8332H11.0401C11.3852 10.8332 11.6651 11.113 11.6651 11.4582C11.6651 11.7746 11.4299 12.0361 11.1249 12.0775L11.0401 12.0832H7.2915C6.94633 12.0832 6.6665 11.8033 6.6665 11.4582C6.6665 11.1418 6.90163 10.8803 7.2067 10.8389L7.2915 10.8332ZM7.2915 7.9165H12.7119C13.0571 7.9165 13.3369 8.19633 13.3369 8.5415C13.3369 8.85792 13.1018 9.11941 12.7967 9.1608L12.7119 9.1665H7.2915C6.94633 9.1665 6.6665 8.88668 6.6665 8.5415C6.6665 8.22509 6.90163 7.96359 7.2067 7.92221L7.2915 7.9165Z" fill="#101828"/></svg></button>
+      <button class="ib" aria-label="Notifications"><svg viewBox="0 0 20 20" fill="none"><path d="M10 1.664a6.242 6.242 0 0 1 6.247 6.04l.003.21v3.414l1.15 2.63a1.042 1.042 0 0 1-.954 1.459l-3.946.001a2.5 2.5 0 0 1-4.996.147l-.004-.149H3.562a1.041 1.041 0 0 1-.955-1.456l1.143-2.632V7.913A6.24 6.24 0 0 1 10 1.663Zm1.25 13.752-2.5.002a1.25 1.25 0 0 0 2.494.12l.006-.122ZM10 2.914a4.99 4.99 0 0 0-5 5v3.674l-1.12 2.579h12.247L15 11.589V7.924l-.003-.187A4.99 4.99 0 0 0 10 2.914Z" fill="#101828"/></svg></button>
+      <button class="ib" aria-label="Profile"><svg viewBox="0 0 20 20" fill="none"><path d="M14.795 11.666c1.035 0 1.874.84 1.874 1.875v.48c0 .744-.266 1.465-.75 2.031C14.61 17.58 12.62 18.334 10 18.334c-2.622 0-4.61-.754-5.915-2.283a3.125 3.125 0 0 1-.749-2.029v-.481c0-1.036.84-1.875 1.874-1.875h9.585Zm0 1.25H5.21a.624.624 0 0 0-.624.625v.481c0 .446.16.878.45 1.217C6.08 16.463 7.717 17.084 10 17.084c2.282 0 3.922-.621 4.969-1.845.29-.34.45-.772.45-1.219v-.48a.624.624 0 0 0-.624-.623ZM10 1.67a4.167 4.167 0 1 1 0 8.334 4.167 4.167 0 0 1 0-8.334Zm0 1.25a2.917 2.917 0 1 0 0 5.834 2.917 2.917 0 0 0 0-5.834Z" fill="#101828"/></svg></button>
+    </div>
+  </header>
+
+  <main class="scroll">
+    <section class="band">
+      <p class="hi">Hi Md Shaheer</p>
+      <!-- Chips and cards move together: tap a chip and the rail scrolls to its card, swipe the rail and the chip follows -->
+      <div class="chips" role="tablist" id="chips">
+        <button class="chip" role="tab" data-to="program" aria-selected="true">Your Program</button>
+        <button class="chip" role="tab" data-to="consult" aria-selected="false">Upcoming Consultations</button>
+        <button class="chip" role="tab" data-to="live" aria-selected="false">Live Sessions</button>
+      </div>
+      <div class="rail" id="rail">
+        <button class="pc" data-card="program" aria-label="Diabetes Management, active">
+          <img class="leaf" src="a/leaf-bg.svg" alt="">
+          <div class="body">
+            <div class="st"><i></i><b>Active</b><img src="a/nav-arrow.svg" alt=""></div>
+            <!-- program.logo, from the GoodFlip Design System in Figma (6599:12342) -->
+            <img class="logo" src="a/program-diabetes.png" alt="Diabetes Management">
+            <div class="sub">GoodFlip Lite 3 Months - Diabetes Care</div>
+          </div>
+          <div class="foot"><span>Md Shaheer</span><img src="a/gf-logo-silver-3x.png" alt=""></div>
+        </button>
+        <button class="pc sec" data-card="consult" aria-label="No upcoming sessions. Book your session now">
+          <img class="peacock" src="a/peacock.svg" alt="">
+          <div class="avs"><img src="a/coach-1.jpg" alt=""><img src="a/coach-4.jpg" alt=""><img src="a/coach-2.jpg" alt=""></div>
+          <h4>No upcoming sessions</h4>
+          <p>It is recommended to connect with your coaches every 15 days for your assessments.</p>
+          <span class="go">Book Your Session Now <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9m-3.5-3.5L11.5 7 8 10.5" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </button>
+        <!-- ponytail: Live Sessions card left blank until its design lands -->
+        <div class="pc sec" data-card="live" aria-label="Live Sessions"></div>
+      </div>
+      <div class="refer">
+        <span>Refer a friend. Get up to 15% cashback as FlipCoins</span>
+        <button><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 12 12 4M5.5 4H12v6.5" stroke="#299D6B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Share</button>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="sec-t">Smart Devices</h2>
+      <!-- Built from DEVICES in the script below. Default: nothing connected. Flags: ?bca=on, ?ring=sync|off|nodata, ?bpm=new|on|nodata -->
+      <div class="skin dev mx" id="dev"><div class="dtabs" role="tablist"></div><div id="devPane"></div></div>
+    </section>
+
+    <section class="block">
+      <h2 class="sec-t">Your Metabolic Score</h2>
+      <button class="ms" aria-label="Your metabolic score is 219, high metabolic risk">
+        <video src="a/metabolicIcon.mp4" autoplay muted loop playsinline></video>
+        <div class="t"><span>Your score indicates</span><b>high metabolic risk</b></div>
+        <div class="ring"><img src="a/outerFrame.webp" alt=""><b>219</b></div>
+        <img class="arr" src="a/nav-arrow.svg" alt="">
+      </button>
+    </section>
+
+    <section class="block">
+      <h2 class="sec-t">GoodFlip Services</h2>
+      <div class="svc">
+        <button class="tile"><span class="box"><img src="a/Care-programs.png" alt=""></span>Care Program</button>
+        <button class="tile"><span class="box"><img src="a/Lab-tests.png" alt=""></span>Book Lab Test</button>
+        <button class="tile"><span class="box"><img src="a/Shop-products.png" alt=""></span>Shop Products</button>
+        <button class="tile"><span class="box"><img src="a/service-smart-devices.png" alt=""></span>Smart Devices</button>
+      </div>
+    </section>
+
+    <section class="block">
+      <h2 class="sec-t">Your Health Trackers</h2>
+      <div class="trk">
+        <button class="skin tc mx" style="text-align:left">
+          <div class="th"><img src="a/Nutrition.svg" alt="">Nutrition<span class="end"><img src="a/flicoin-icon.png" alt=""><img src="a/nav-arrow.svg" alt=""></span></div>
+          <div><div class="lbl">Calories</div><div class="val">0 Cal</div></div>
+          <div class="macros">
+            <div class="mac"><div class="k"><img src="a/Protein.svg" alt="">Protein</div><div class="v">--g</div></div>
+            <div class="mac"><div class="k"><img src="a/Fats.svg" alt="">Fat</div><div class="v">--g</div></div>
+            <div class="mac"><div class="k"><img src="a/Carbs.svg" alt="">Carbs</div><div class="v">--g</div></div>
+          </div>
+          <div class="dash"></div>
+          <div class="logrow"><img src="a/kaira.svg" alt=""><span>Log meals:</span>
+            <span class="kb snap"><img src="a/camera.svg" alt="">Snap</span>
+            <span class="kb voice"><img src="a/mic.svg" alt="">Voice</span>
+          </div>
+        </button>
+        <button class="skin tc mx" style="text-align:left">
+          <div class="th"><img src="a/physical-activity.svg" alt="">Physical Activity<span class="end"><img src="a/flicoin-icon.png" alt=""><img src="a/nav-arrow.svg" alt=""></span></div>
+          <div class="dual">
+            <div><div class="lbl">Calories Burned</div><div class="val">89 cal</div></div>
+            <div class="r"><div class="lbl">Time</div><div class="v2">10 mins</div></div>
+          </div>
+        </button>
+        <div class="more">More Trackers<i></i></div>
+        <div class="pills">
+          <button class="skin pill"><span class="in"><img src="a/Sleep.svg" alt=""><span class="nm">Sleep</span><span class="dd">--</span></span><span class="fc"><img src="a/flicoin-icon.png" alt=""></span></button>
+          <button class="skin pill"><span class="in"><img src="a/Steps.svg" alt=""><span class="nm">Steps</span><span class="num">559<small>steps</small></span></span><span class="fc"><img src="a/flicoin-icon.png" alt=""></span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="sym">
+      <h3>Track your symptoms</h3>
+      <p>Please <b>log any symptoms you feel</b> so your doctor and care team can review them and support you better.</p>
+      <div class="row"><img src="a/symptom-home.webp" alt=""><div><b>How are you feeling today?</b><span>Keep a track of your symptoms with this logger</span></div></div>
+      <button class="btn">Log Your Symptoms</button>
+    </section>
+
+    <section class="block" style="margin-top:16px">
+      <h2 class="sec-t">Explore GoodFlip</h2>
+      <div class="ex" id="ex">
+        <!-- ponytail: the app's banners come from the server; these are the design system's four until the live set is exported -->
+        <div class="bn"><img src="a/Kickstarter-banner.png" alt="Metabolic Kickstarter"></div>
+        <div class="bn"><img src="a/Cgm-banner.png" alt="CGM"></div>
+        <div class="bn"><img src="a/Lab-tests-banner.png" alt="Lab tests"></div>
+        <div class="bn"><img src="a/Bca-banner.png" alt="Body composition analysis"></div>
+      </div>
+      <div class="dots" id="dots"></div>
+    </section>
+
+    <div class="disc"><hr><p>GoodFlip does not provide medical advice or treatment. It supports healthier lifestyle habits, device-based tracking, and helps you connect with healthcare professionals when needed.</p></div>
+  </main>
+
+  <nav class="tabs">
+    <button class="tab" aria-current="page"><img class="on" src="a/tab-home-filled.svg" alt=""><img class="off" src="a/tab-home-outlined.svg" alt="">Home</button>
+    <button class="tab"><img class="on" src="a/tab-careprogram-filled.svg" alt=""><img class="off" src="a/tab-careprogram-outlined.svg" alt="">Programs</button>
+    <button class="tab"><img class="on" src="a/tab-progress-filled.svg" alt=""><img class="off" src="a/tab-progress-outlined.svg" alt="">Progress</button>
+    <button class="tab"><img class="on" src="a/tab-flipfeed-filled.svg" alt=""><img class="off" src="a/tab-flipfeed-outlined.svg" alt="">FlipFeed</button>
+    <button class="tab"><img class="on" src="a/tab-records-filled.svg" alt=""><img class="off" src="a/tab-records-outlined.svg" alt="">Records</button>
+  </nav>
+  <button class="fab" aria-label="Ask KAIRA"><img src="a/kaira.svg" alt=""></button>
+</div>
+
+<script>
+// Tabs that switch in place: program chips, device tabs, bottom tabs
+document.querySelectorAll('[role=tablist]').forEach(list => list.addEventListener('click', e => {
+  const t = e.target.closest('[role=tab]'); if (!t) return;
+  list.querySelectorAll('[role=tab]').forEach(b => b.setAttribute('aria-selected', b === t));
+}));
+document.querySelector('.tabs').addEventListener('click', e => {
+  const t = e.target.closest('.tab'); if (!t) return;
+  document.querySelectorAll('.tab').forEach(b => b.toggleAttribute('aria-current', b === t)); t.setAttribute('aria-current', 'page');
+});
+// Program rail: chip taps scroll to the card, rail swipes move the chip
+(() => {
+  const chips = document.getElementById('chips'), rail = document.getElementById('rail');
+  const pick = k => chips.querySelectorAll('[data-to]').forEach(c => {
+    const on = c.dataset.to === k; c.setAttribute('aria-selected', on);
+    if (on) c.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+  });
+  chips.addEventListener('click', e => { const c = e.target.closest('[data-to]'); if (!c) return;
+    const card = rail.querySelector(`[data-card=${c.dataset.to}]`), pad = parseFloat(getComputedStyle(rail).paddingLeft);
+    rail.scrollTo({ left: card.getBoundingClientRect().left - rail.getBoundingClientRect().left + rail.scrollLeft - pad, behavior: 'smooth' }); });
+  let last;
+  rail.addEventListener('scroll', () => {
+    const cards = [...rail.querySelectorAll('[data-card]')], x = rail.getBoundingClientRect().left + 40;
+    const k = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 2 ? cards.at(-1).dataset.card
+      : cards.reduce((a, c) => c.getBoundingClientRect().left <= x ? c.dataset.card : a, cards[0].dataset.card);
+    if (k !== last) { last = k; pick(k); }
+  }, { passive: true });
+})();
+// Smart Devices. Each device is either connected (readings) or not (Figma's first-time pitch).
+// Every state uses the Figma card (ring designs file): green outline, no hard shadow.
+(() => {
+  const q = new URLSearchParams(location.search), ringQ = q.get('ring'), bpmQ = q.get('bpm'), none = q.get('dev') === 'new';
+  const arrow = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9h12m-4.5-4.5L15 9l-4.5 4.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const reads = (rows, synced) => `<div class="reads"><div class="metrics">${rows.map(([ic, k, v]) =>
+    `<div class="m"><div class="k"><img src="a/${ic}" alt="">${k}</div><div class="v">${v}</div></div>`).join('')}</div>
+    <div class="dfoot"><div class="sync">Last Synced:<b>${synced}</b></div><button class="btn">View Details ${arrow}</button></div></div>`;
+  const pitch = (imgs, line, name, h3 = '') => `<div class="pitch">${imgs}<h3 style="${h3}">${line}</h3>
+    <div class="acts"><button class="btn ghost">Explore</button><button class="btn">Connect ${name}</button></div></div>`;
+  const D = {
+    ring: { name: 'Ring', ic: 'dev-ring.png', state: none ? null : ringQ,
+      pitch: () => pitch('<img src="a/hero-ring.png" alt="" style="left:-30px;top:16px;width:155px;height:159px">',
+        bpmQ ? 'Listen to your body with GoodFlip Arc Smart Ring' : 'Listen to your body signals with GoodFlip Ring', 'Ring', bpmQ ? 'left:134px;top:34px;width:208px' : ''),
+      // ponytail: Figma reads "104 mg/dl" for heart rate, shown here as bpm
+      on: s => (s === 'sync' ? '<div class="sync-line"><i></i></div>' : s === 'nodata' ? '<div class="sync-line"></div>' : '') +
+        reads(s === 'nodata' ? [['ic-heart.svg', 'Avg Heart Rate', '--'], ['ic-sleep.svg', 'Sleep Duration', '--']]
+                             : [['ic-heart.svg', 'Avg Heart Rate', '104 bpm'], ['ic-sleep.svg', 'Sleep Duration', '7h 50m']],
+              s === 'nodata' ? '03 Jan' : '02:00 AM, Today') },
+    cgm: { name: 'CGM', ic: 'dev-cgm.png', state: null,
+      pitch: () => pitch('<img src="a/hero-cgm.png" alt="" style="left:2px;top:-13px;width:182px;height:114px">', 'Track Your Sugar in Real Time with GoodFlip CGM', 'CGM', 'left:134px;width:208px') },
+    bca: { name: 'BCA', ic: 'dev-bca.png', state: q.get('bca') === 'on' && !none ? 'on' : null,
+      pitch: () => pitch('<img src="a/hero-bca-scale.png" alt="" style="left:4px;top:6px;width:108px;height:98px"><img src="a/hero-bca-phone.png" alt="" style="left:82px;top:16px;width:62px;height:103px">', 'Know your body better with GoodFlip Smart Scale', 'BCA'),
+      on: () => reads([['bca_body_weight.svg', 'Weight', '71.10 Kg'], ['bca_muscle_mass.svg', 'Muscle Mass', '48.20 %']], '272 days ago') },
+    bpm: { name: 'BPM', ic: 'dev-bpm.png', state: bpmQ && bpmQ !== 'new' ? bpmQ : null,
+      // ponytail: Figma's BPM pitch button says "Connect Ring" and pulse reads "pul/min"; shown as Connect BPM and bpm
+      pitch: () => pitch('<img src="a/hero-bpm.png" alt="" style="left:25px;top:26px;width:113px;height:90px">', 'Track blood pressure with GoodFlip Monitor', 'BPM', 'left:150px;top:30px;width:192px'),
+      on: s => reads(s === 'nodata' ? [['ic-drop.svg', 'Blood Pressure', '-- mmHg'], ['ic-heart.svg', 'Pulse', '-- bpm']]
+                                    : [['ic-drop.svg', 'Blood Pressure', '120/80 mmHg'], ['ic-heart.svg', 'Pulse', '99 bpm']], '02:00 AM, Today') },
+  };
+  // tab order: the live card leads with BCA; Figma's cards run Ring, CGM, BCA (and BPM when there are four)
+  const order = bpmQ ? ['ring', 'cgm', 'bca', 'bpm'] : (none || ringQ) ? ['ring', 'cgm', 'bca'] : ['bca', 'cgm', 'ring'];
+  const first = bpmQ ? 'bpm' : order[0];
+  const card = document.getElementById('dev'), tabs = card.querySelector('.dtabs'), pane = document.getElementById('devPane');
+  card.classList.toggle('four', !!bpmQ);
+  tabs.innerHTML = order.map(k => { const d = D[k], st = k === 'ring' && d.state ? `<i class="dot${d.state === 'sync' ? '' : ' off'}"></i>` : '';
+    return `<button class="dtab" role="tab" data-tab="${k}" aria-selected="${k === first}"><span class="ic"><img src="a/${d.ic}" alt=""></span><span class="lb">${st}${d.name}</span></button>`; }).join('');
+  const show = k => {
+    const d = D[k]; card.dataset.dev = k; card.classList.add('fresh'); card.classList.toggle('pitching', !d.state);
+    pane.innerHTML = d.state ? d.on(d.state) : d.pitch();
+  };
+  tabs.addEventListener('click', e => { const t = e.target.closest('[data-tab]'); if (t) show(t.dataset.tab); });
+  show(first);
+})();
+// Explore carousel: centre snap, dots follow, auto-advance every 5 s (HeaderBanner)
+(() => {
+  const ex = document.getElementById('ex'), bn = [...ex.children], dots = document.getElementById('dots');
+  bn.forEach((_, i) => { const d = document.createElement('i'); d.onclick = () => go(i); dots.append(d); });
+  let cur = 0;
+  const mark = i => { cur = i; bn.forEach((b, j) => b.classList.toggle('on', j === i)); [...dots.children].forEach((d, j) => d.classList.toggle('on', j === i)); };
+  const go = i => ex.scrollTo({ left: bn[i].offsetLeft - (ex.clientWidth - 300) / 2, behavior: 'smooth' });
+  ex.addEventListener('scroll', () => { const c = ex.scrollLeft + ex.clientWidth / 2; mark(bn.reduce((a, b, j) => Math.abs(b.offsetLeft + 150 - c) < Math.abs(bn[a].offsetLeft + 150 - c) ? j : a, 0)); }, { passive: true });
+  mark(0);
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) setInterval(() => go((cur + 1) % bn.length), 5000);
+})();
+</script>
+<script src="../v7/r3/chrome.js"></script>
+</body>
+</html>

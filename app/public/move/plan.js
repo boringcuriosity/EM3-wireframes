@@ -240,7 +240,7 @@
         /* what is left, said plainly, the number carrying the weight */
         '</div>' + logBtn() + '</div>' +
         /* its own row under the number and the button, so it has the card's full width */
-        '<div class="mv-sub">' + (FREE ? "Counted by your phone." : NOPLAN ? "Your coach sets your daily goal after your first consultation." : left > 0 ? '<b>' + fmt(left) + ' more</b> to reach today\'s goal' : "<b>Goal reached.</b> Every step from here is extra.") + '</div>' +
+        '<div class="mv-sub">' + (FREE ? "Every step counts. A short walk after a meal is a great start." : NOPLAN ? "Your coach sets your daily goal after your first consultation." : left > 0 ? '<b>' + fmt(left) + ' more</b> to reach today\'s goal' : "<b>Goal reached.</b> Every step from here is extra.") + '</div>' +
       (NOPLAN ? "" : '<div class="mv-prog"><i style="width:' + Math.min(100, tot / GOAL * 100) + '%"></i></div>') +
       '<div class="mv-chart" role="group" aria-label="Steps by hour">' + bars + '</div>' +
       '<div class="mv-bl" aria-hidden="true">' + TICKS.map(function (t) { return '<span>' + t + '</span>'; }).join("") + '</div>' +

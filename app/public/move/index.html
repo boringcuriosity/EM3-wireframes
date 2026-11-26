@@ -3926,7 +3926,7 @@ function mealsIn() {
 <script>window.SAY_CTA = "Learn more";   /* the line's link in the house link green, as Eat; it opens KAIRA analysis (move/kaira-sheet.js) */</script>
 <script src="assets/score-say.js?v=31"></script>
 <script src="chrome.js"></script>
-<script src="/move/plan.js?v=72"></script>
+<script src="/move/plan.js?v=73"></script>
 <script>/* before a plan the burn card has no "What shaped your score?" above it, so it sits 20px from the line and from Kaira's card, as the first landing does */
 (function () { var t = document.getElementById("railTitle"); if (window.MVPLAN && MVPLAN.noplan && t && !t.textContent.trim()) document.getElementById("railSect").classList.add("notitle"); })();</script>
 <script src="/move/player.js?v=22"></script>
@@ -3942,5 +3942,14 @@ function mealsIn() {
 <script src="/move/momentum.js?v=43"></script>
 <script>/* a rest day (any part off, or all three) says so under the tiles; ?vrest= picks another of the options in v7/move-rest-options.html */
 if (/[?&]vrest=/.test(location.search) || window.MVOFF.any) document.write('<script src="/move/rest-variants.js"><\/script>');</script>
+<script>
+/* Opened from Home (?from=home): the nav's Back goes back there. Anywhere else it does what it did before. */
+(function () {
+  if (new URLSearchParams(location.search).get("from") !== "home") return;
+  var b = document.querySelector(".nav > button:first-child"); if (!b) return;
+  b.setAttribute("aria-label", "Back to Home");
+  b.addEventListener("click", function (e) { e.stopImmediatePropagation(); history.back(); }, true);
+})();
+</script>
 </body>
 </html>

@@ -3737,5 +3737,14 @@ function mealsIn() {
 <script src="assets/score-say.js?v=31"></script>
 <script src="chrome.js"></script>
 <script src="assets/kaira-aurora.js?v=3"></script>
+<script>
+/* Opened from Home (?from=home): the nav's Back goes back there. Anywhere else it does what it did before. */
+(function () {
+  if (new URLSearchParams(location.search).get("from") !== "home") return;
+  var b = document.querySelector(".nav > button:first-child"); if (!b) return;
+  b.setAttribute("aria-label", "Back to Home");
+  b.addEventListener("click", function (e) { e.stopImmediatePropagation(); history.back(); }, true);
+})();
+</script>
 </body>
 </html>

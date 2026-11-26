@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Status folder styles</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Manrope:wght@700;800&display=swap" rel="stylesheet">
+<!-- Five styles of the status-folder top nav, each the real lab screen (screen.html?navs=x) in a phone.
+     "Play" taps through Today, Program, Devices on every phone so the transitions can be compared. -->
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #F2F4F7; color: #101828; font-family: Roboto, Arial, sans-serif; letter-spacing: .2px; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 44px 32px 72px; }
+  header { display: flex; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
+  header div { flex: 1; min-width: 300px; }
+  h1 { margin: 0; font: 800 30px/1.2 Manrope, sans-serif; letter-spacing: -.3px; }
+  header p { margin: 8px 0 0; max-width: 760px; font-size: 15px; line-height: 1.55; color: #475467; }
+  .play { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px; border: 0; border-radius: 12px; cursor: pointer;
+    background: #299D6B; color: #fff; font: 600 15px Roboto, sans-serif; box-shadow: 0 4px 0 #2A805A; }
+  .play[aria-pressed="true"] { background: #fff; color: #246649; box-shadow: 0 4px 0 #CBF0E0, inset 0 0 0 1.5px #299D6B; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 36px 24px; margin-top: 36px; }
+  h2 { margin: 0 0 4px; font: 700 17px Manrope, sans-serif; }
+  .why { margin: 0 0 14px; min-height: 58px; font-size: 13px; line-height: 1.5; color: #667085; }
+  .phone { width: 300px; height: 600px; padding: 9px; border-radius: 44px; background: #101828; box-shadow: 0 24px 44px -16px rgba(16,24,40,.35); }
+  .screen { width: 282px; height: 582px; border-radius: 36px; overflow: hidden; background: #fff; }
+  iframe { width: 390px; height: 805px; border: 0; transform: scale(.7231); transform-origin: 0 0; display: block; }
+  .open { display: inline-block; margin-top: 10px; font-size: 13px; font-weight: 600; color: #299D6B; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Status folders, five styles</h1>
+      <p>Same screen, same data, five treatments. In every one a single white lens glides to the folder you tap, the band crossfades, and the content slides in from the side you moved towards. Colours come only from the GoodFlip ramps: brand green, gold for the program, indigo for devices. Tap any phone, or press Play.</p>
+    </div>
+    <button class="play" id="play" aria-pressed="false">Play transitions</button>
+  </header>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+const S = [
+  ['a', 'A. Tinted folders', 'The band takes each place\'s colour: green for Today, gold for Program, indigo for Devices. The most informative about where you are.'],
+  ['b', 'B. One green band', 'The band stays brand green on every tab and only the lens moves, with a thin green cap. The calmest and most on-brand.'],
+  ['c', 'C. Floating cards', 'Three rounded cards sit on the band; the chosen one turns white with a green edge. Reads as buttons, the most obviously tappable.'],
+  ['d', 'D. Green hero', 'A solid brand green band with white type; the white folder lifts out of it. The boldest, closest to Swiggy\'s energy.'],
+  ['e', 'E. Tall folders', 'Bigger pictogram on top, name and status centred under it. The most playful, takes about 30px more height.'],
+];
+const grid = document.getElementById('grid');
+grid.innerHTML = S.map(([k, h, w]) => `<section><h2>${h}</h2><p class="why">${w}</p>
+  <div class="phone"><div class="screen"><iframe title="${h}" src="screen.html?navs=${k}"></iframe></div></div>
+  <a class="open" href="index.html?navs=${k}">Open in the lab</a></section>`).join('');
+
+// Play: tap Today, Program, Devices, Program in turn on every phone, slightly staggered
+let timer = null, step = 0;
+const ORDER = ['prog', 'dev', 'prog', 'today'];
+document.getElementById('play').onclick = function () {
+  const on = this.getAttribute('aria-pressed') !== 'true';
+  this.setAttribute('aria-pressed', on); this.textContent = on ? 'Pause' : 'Play transitions';
+  clearInterval(timer); if (!on) return;
+  const tick = () => { const k = ORDER[step++ % ORDER.length];
+    grid.querySelectorAll('iframe').forEach((f, i) => setTimeout(() => { try { f.contentDocument.querySelector(`[data-go="${k}"]`).click(); } catch (e) {} }, i * 90)); };
+  tick(); timer = setInterval(tick, 1800);
+};
+</script>
+</body>
+</html>

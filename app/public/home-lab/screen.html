@@ -1,0 +1,1932 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Home lab screen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Manrope:wght@400;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<!--
+  Replica of today's GoodFlip Home for a paid program member (Diabetes Management), as the live app draws it.
+  Values come from MyTatva-RN: src/components/organisms/Home.tsx and src/components/molecules/Home/*.
+  RN sizes are written against a 350 x 680 guideline and scaled per device (Matrics.js); here the phone is
+  390 x 844, so s() = x1.1143, vs() = x1.2412, mvs() = x1.1206. The vars below keep each number traceable.
+  Images and icons are the app's own files (a/); see a/README.txt for where each came from and which are stand-ins.
+-->
+<style>
+  :root {
+    --s: 1.1143; --vs: 1.2412; --mvs: 1.1206;
+    --green: #299D6B; --green-dk: #2A805A; --honeydew: #E6FAF1; --ink: #1A1C1E; --ink2: #101828;
+    --gray: #6C7278; --gray5: #667085; --gray4: #98A2B3; --tert: #5A6774; --line: #E4E7EC;
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; background: #fff; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; letter-spacing: .25px; }
+  button { font: inherit; letter-spacing: inherit; border: 0; background: none; padding: 0; color: inherit; cursor: pointer; }
+  img { display: block; }
+  .col { position: relative; max-width: 390px; margin: 0 auto; min-height: 100vh; background: #fff; display: flex; flex-direction: column; }
+  .col > main { flex: 1; }
+
+  /* Fixed top bar: white, soft shadow underneath (Home.tsx) */
+  .top { position: sticky; top: var(--gf-sb, 0px); z-index: 50; background: #fff;
+    display: flex; align-items: center; justify-content: space-between; padding: 8px calc(10px * var(--s)) 10px; }
+  .top .l, .top .r { display: flex; align-items: center; }
+  .top .l { gap: calc(8px * var(--s)); }
+  .top .r { gap: calc(8px * var(--s)); }
+  .ib { position: relative; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: #fff;
+    border: .5px solid #EAECF0; box-shadow: 0 4px 8px -2px rgba(16,24,40,.1), 0 2px 4px -2px rgba(16,24,40,.06); }
+  .ib svg { width: 20px; height: 20px; }
+  /* FlipcoinBadge shape="pill": green to gold border, honeydew to cream fill */
+  .coins { display: flex; align-items: center; gap: calc(4px * var(--s)); height: 36px; padding: 0 12px; border-radius: 999px;
+    border: calc(1.5px * var(--mvs)) solid transparent;
+    background: linear-gradient(90deg, var(--honeydew), #FFFBEE) padding-box, linear-gradient(90deg, var(--green), #F5D736) border-box; }
+  .coins img { width: calc(20px * var(--mvs)); height: calc(20px * var(--mvs)); }
+  .coins span { font-weight: 600; font-size: calc(14px * var(--mvs)); color: #313131; white-space: nowrap; }
+
+  .scroll { display: flex; flex-direction: column; gap: 16px; padding-bottom: calc(32px * var(--vs)); }
+
+  /* withGradient sections share one band: white to honeydew, rounded at the foot */
+  .band { background: linear-gradient(180deg, #fff, var(--honeydew)); border-radius: 0 0 calc(36px * var(--mvs)) calc(36px * var(--mvs));
+    padding: 12px 0 calc(10px * var(--vs)); display: flex; flex-direction: column; gap: calc(6px * var(--vs)); }
+  .hi { margin: 0 calc(16px * var(--s)); font-weight: 700; font-size: 18px; line-height: 1.2; color: var(--ink); }
+
+  /* Program tabs (ProgramsSection/Tabs.tsx) */
+  .chips { display: flex; gap: calc(10px * var(--s)); padding: calc(10px * var(--s)) calc(16px * var(--s)) 0; overflow-x: auto; scrollbar-width: none; }
+  .chips::-webkit-scrollbar { display: none; }
+  .chip { flex: 0 0 auto; white-space: nowrap; }
+  .chip { padding: calc(5px * var(--vs)) calc(8px * var(--s)); border-radius: calc(10px * var(--mvs)); background: #F9FAFB;
+    border: 1px solid #F2F4F7; font-size: 13px; line-height: 1.2; color: var(--gray4); }
+  .chip[aria-selected="true"] { background: #fff; border-color: var(--green); color: var(--green); font-weight: 700; }
+
+  /* Program carousel: s(295) cards, 295/190, s(14) apart */
+  .rail { display: flex; scroll-padding-left: 0; gap: calc(14px * var(--s)); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none;
+    padding: calc(10px * var(--vs)) calc(16px * var(--s)); scroll-padding-left: calc(16px * var(--s)); }
+  .rail::-webkit-scrollbar { display: none; }
+  .pc { position: relative; flex: 0 0 calc(295px * var(--s)); aspect-ratio: 295 / 190; scroll-snap-align: start; overflow: hidden;
+    border: 1px solid var(--green); border-radius: calc(16px * var(--vs)); background: var(--honeydew);
+    box-shadow: 0 3px 6px #D5D5D5; display: flex; flex-direction: column; text-align: left; }
+  .pc .leaf { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: .9; pointer-events: none; }
+  .pc .body { position: relative; flex: 1; padding: calc(12px * var(--s)) calc(16px * var(--s)); }
+  .pc .st { display: flex; align-items: center; margin-bottom: calc(12px * var(--vs)); font-size: 13px; color: #12B76A; }
+  .pc .st i { width: calc(8px * var(--s)); height: calc(8px * var(--s)); border-radius: 50%; background: currentColor; margin-right: calc(5px * var(--s)); }
+  .pc .st b { flex: 1; font-weight: 400; }
+  .pc .st img { width: 22px; height: 22px; }
+  .pc .logo { display: block; height: calc(22px * var(--mvs)); width: auto; margin: calc(8px * var(--vs)) 0 calc(6px * var(--vs)) calc(-4px * var(--s)); }
+  .pc .sub { font-size: 14px; line-height: 1.25; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pc .foot { position: relative; display: flex; align-items: center; justify-content: space-between; background: #2E9E6F;
+    padding: calc(10px * var(--vs)) calc(16px * var(--s)); color: #fff; font-size: 14px; }
+  .pc .foot img { width: calc(29px * var(--s)); height: calc(24px * var(--s)); object-fit: contain; }
+  /* "Coach session" card from Figma (GoodFlip ring designs, 2620:9520): coaches, the ask, a small green pill */
+  .pc.sec { border-color: #EAECF0; background: #fff; padding: calc(16px * var(--s)); gap: 0; }
+  .pc.sec .peacock { position: absolute; right: 0; bottom: 0; width: 43%; height: auto; pointer-events: none; }
+  .pc.sec > :not(.peacock) { position: relative; }
+  .pc.sec .avs { display: flex; }
+  .pc.sec .avs img { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid #fff; object-fit: cover; }
+  .pc.sec .avs img + img { margin-left: -12px; }
+  .pc.sec h4 { margin: 14px 0 4px; font-size: 16px; line-height: 1.2; color: var(--ink2); }
+  .pc.sec p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--ink2); }
+  .pc.sec .go { position: relative; margin-top: auto; align-self: flex-start; display: flex; align-items: center; gap: 4px;
+    background: var(--green); color: #fff; font-weight: 600; font-size: 13px; padding: 5px 10px; border-radius: 999px; }
+
+  .refer { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 calc(16px * var(--s)); font-size: 11.5px; white-space: nowrap; color: #475467; }
+  .refer button { display: flex; align-items: center; gap: 6px; color: var(--green); font-weight: 700; font-size: 14px; white-space: nowrap; }
+
+  /* Section titles (ONCO_HEADER_2) */
+  .sec-t { margin: 0; padding: calc(8px * var(--vs)) calc(16px * var(--s)) 0; font-family: Manrope, Roboto, sans-serif; font-weight: 700; font-size: 20px; line-height: 26px; color: var(--ink); letter-spacing: 0; }
+  .block { display: flex; flex-direction: column; gap: 12px; }
+
+  /* Tracker card skin: hard 4px offset edge on the right and the foot, indigo wash at the top */
+  .skin { position: relative; background: rgba(255,255,255,.8); border: 1px solid var(--gray4); border-right-width: 4px; border-bottom-width: 4px;
+    border-radius: calc(12px * var(--mvs)); box-shadow: -5px 5px 6px rgba(152,162,179,.3); overflow: hidden; }
+  .skin::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #C7D7FE, rgba(255,255,255,.4) 30%, transparent 30%); opacity: .3; pointer-events: none; }
+  .skin::after { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: linear-gradient(90deg, transparent, #444CE7, transparent); pointer-events: none; }
+  .skin > * { position: relative; }
+  .mx { margin: 0 calc(16px * var(--s)); }
+
+  /* Smart Devices */
+  .dev { padding: 12px calc(14px * var(--s)) 14px; }
+  .dtabs { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 14px; }
+  .dtab { width: 74px; display: flex; flex-direction: column; align-items: center; gap: 4px; padding-bottom: 6px; font-size: 13px; color: var(--gray4); border-bottom: 3px solid transparent; }
+  .dtab .ic { width: 52px; height: 44px; display: grid; place-items: center; border-radius: 10px; border: 1px solid var(--line); background: #fff; }
+  .dtab .ic img { max-width: 34px; max-height: 34px; }
+  .dtab[aria-selected="true"] { color: var(--ink); font-weight: 700; border-color: var(--green); }
+  .dtab[aria-selected="true"] .ic { border-color: transparent; background: transparent; }
+  .dtab[aria-selected="true"] .ic img { max-width: 40px; max-height: 40px; }
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .m { background: #F9FAFB; border-radius: 8px; padding: 10px 12px; }
+  .m .k { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink); }
+  .m .k img { width: 18px; height: 18px; }
+  .m .v { margin-top: 6px; font-weight: 700; font-size: 22px; color: var(--ink); }
+  .dfoot { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .dfoot .sync { font-size: 12px; line-height: 1.35; color: var(--ink); }
+  .dfoot .sync b { display: block; }
+
+  /* Not connected yet: the Figma "GoodFlip Devices Section card" states (ring designs, 11126:60074).
+     A 358 x 240 card, an 80px tab row, then a pitch with the device, one line and two buttons. */
+  .dev.fresh { padding: 0; border: 1.5px solid #9EE6C2; box-shadow: none; border-radius: 16px; background: #fff; }
+  .dev.fresh::before { background: linear-gradient(180deg, #E3F7EC, rgba(255,255,255,0) 80px); opacity: 1; }
+  .dev.fresh::after { display: none; }
+  .dev.fresh.pitching[data-dev="cgm"] { background: linear-gradient(180deg, #fff 55%, #EEF3FF); }
+  .dev.fresh.pitching[data-dev="bca"] { background: linear-gradient(180deg, #fff 55%, #FFF8EA); }
+  .dev.fresh .dtabs { height: 80px; margin: 0; padding: 0 16px; align-items: flex-start; }
+  .dev.fresh .dtab { width: 100px; height: 60px; margin-top: 10px; justify-content: center; gap: 2px; padding: 0; border: 1px solid #EAECF0; border-radius: 12px; background: #fff; font-size: 14px; }
+  .dev.fresh .dtab .ic { width: auto; height: 34px; border: 0; background: none; }
+  .dev.fresh .dtab .ic img { max-width: 34px; max-height: 34px; }
+  .dev.fresh .dtab[aria-selected="true"] { position: relative; height: 80px; margin-top: 0; border: 0; border-radius: 0; font-size: 16px; color: var(--ink2);
+    background: linear-gradient(180deg, #D3EFE1, #E9F8F0); }
+  .dev.fresh .dtab[aria-selected="true"] { gap: 6px; }
+  .dev.fresh .dtab[aria-selected="true"] .ic img { max-width: 40px; max-height: 32px; }
+  .dev.fresh .dtab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; border-radius: 4px 4px 0 0; background: var(--green); }
+  .pitch { position: relative; height: 160px; overflow: hidden; border-radius: 0 0 14px 14px; }
+  .pitch img { position: absolute; pointer-events: none; }
+  .pitch h3 { position: absolute; top: 16px; left: 147px; width: 195px; margin: 0; font-weight: 600; font-size: 18px; line-height: 24px; color: var(--ink2); letter-spacing: 0; }
+  .pitch .acts { position: absolute; left: 16px; right: 16px; top: 96px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pitch .btn { min-height: 43px; font-size: 16px; }
+  .btn.ghost { background: #fff; color: var(--green); border: 1px solid var(--green); box-shadow: 0 5px 0 #D1F2E2, 0 5px 0 1px var(--green); }
+  .btn.ghost:active { box-shadow: 0 1px 0 #D1F2E2, 0 1px 0 1px var(--green); }
+  [data-pane][hidden] { display: none; }
+  .dev.fresh.pitching[data-dev="bpm"] { background: linear-gradient(180deg, #fff 55%, #EEF7FF); }
+  /* four devices: 64-wide tabs (Figma 11137:67383) */
+  .dev.fresh.four .dtab { width: 64px; font-size: 14px; }
+  .dev.fresh .dtab .lb { display: flex; align-items: center; gap: 5px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: #039855; }
+  .dot.off { background: #D92D20; }
+  /* sync line under the tabs: grey track, green run while a sync is going (Ring data states, 3361:16839) */
+  .sync-line { position: absolute; left: 0; right: 0; top: 0; height: 3px; background: #E4E7EC; overflow: hidden; }
+  .sync-line i { position: absolute; inset: 0 auto 0 0; width: 12%; background: linear-gradient(90deg, #12B76A, #4ADE80); border-radius: 0 3px 3px 0; animation: sync 2.4s ease-in-out infinite; }
+  @keyframes sync { from { width: 4%; } to { width: 92%; } }
+  .reads { position: relative; padding: 16px 16px 16px; }
+  .reads .metrics { margin-bottom: 16px; gap: 8px; }
+  .reads .m { border: 1px solid #F2F4F7; border-radius: 12px; padding: 12px; }
+  .reads .m .k { font-size: 14px; color: var(--ink2); }
+  .reads .m .k img { width: auto; height: 16px; }
+  .reads .m .v { margin-top: 4px; font-size: 20px; color: var(--ink2); white-space: nowrap; }
+  .reads .dfoot .sync { font-size: 13px; color: #475467; }
+  .reads .dfoot .sync b { color: var(--ink2); }
+  .reads .dfoot .btn { flex: 0 0 159px; min-height: 43px; }
+
+  /* Button (atoms/Button): green face on a darker 6px under-bar */
+  .btn { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 8px 16px;
+    border-radius: 8px; background: var(--green); color: #fff; font-weight: 600; font-size: 16px; line-height: 20px; box-shadow: 0 5px 0 var(--green-dk);
+    transition: transform .12s ease, box-shadow .12s ease; }
+  .btn:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--green-dk); }
+  .dfoot .btn { flex: 0 0 58%; }
+
+  /* Metabolic score */
+  .ms { display: flex; align-items: center; gap: calc(12px * var(--s)); width: calc(100% - 32px); margin: 0 16px; height: 112px; padding: 0 0 0 calc(14px * var(--mvs));
+    border: 1px solid var(--gray4); border-radius: calc(16px * var(--vs)); box-shadow: 0 2px 6px rgba(152,162,179,.35); background: #fff; position: relative; text-align: left; overflow: hidden; }
+  .ms video { width: calc(24px * var(--s)); height: calc(24px * var(--s)); border-radius: 21px; align-self: flex-start; margin-top: 18px; }
+  .ms .t { flex: 1; display: flex; flex-direction: column; gap: 6px; align-self: flex-start; margin-top: 18px; }
+  .ms .t span { font-size: 13px; color: var(--tert); }
+  .ms .t b { font-size: 15px; color: var(--tert); }
+  .ms .ring { position: relative; width: calc(100px * var(--s)); height: calc(100px * var(--vs)); margin: 10px calc(10px * var(--s)) -6px 0; height: 96px; flex-shrink: 0; }
+  .ms .ring img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+  .ms .ring b { position: absolute; inset: 0; display: grid; place-items: center; padding-top: 8px; font-family: "Playfair Display", serif; font-weight: 600; font-size: calc(29px * var(--mvs)); color: var(--ink2); letter-spacing: .23px; }
+  .ms > .arr { position: absolute; top: 10px; right: 8px; width: 22px; height: 22px; }
+
+  /* GoodFlip Services (OfferingCards): four tiles, 22% each */
+  .svc { display: flex; justify-content: space-between; padding: 0 calc(16px * var(--s)); }
+  .tile { width: 22%; display: flex; flex-direction: column; align-items: center; gap: calc(8px * var(--vs)); font-size: 13px; line-height: 1.2; text-align: center; color: var(--ink); }
+  .tile .box { width: calc(54px * var(--mvs)); height: calc(54px * var(--mvs)); border-radius: calc(10px * var(--mvs)); background: #fff; border: 1px solid var(--line);
+    box-shadow: 0 2px 4px rgba(16,24,40,.08); display: grid; place-items: center; overflow: hidden; }
+  .tile .box img { width: 86%; height: 86%; object-fit: contain; }
+
+  /* Health trackers */
+  .trk { display: flex; flex-direction: column; gap: calc(12px * var(--vs)); }
+  .tc { padding: calc(16px * var(--mvs)); display: flex; flex-direction: column; gap: calc(12px * var(--vs)); }
+  .th { display: flex; align-items: center; gap: calc(8px * var(--s)); font-weight: 700; font-size: 13px; color: var(--ink2); }
+  .th > img { width: calc(14px * var(--mvs)); height: calc(14px * var(--mvs)); }
+  .th .end { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+  .th .end img { width: 20px; height: 20px; }
+  .lbl { font-size: 15px; color: var(--gray); opacity: .9; }
+  .val { font-weight: 600; font-size: 24px; line-height: 1.2; color: var(--ink); margin-top: 4px; }
+  .macros { display: flex; justify-content: space-between; gap: calc(8px * var(--s)); padding-right: 24px; }
+  .mac .k { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--gray); }
+  .mac .k img { width: calc(16px * var(--mvs)); height: calc(16px * var(--mvs)); }
+  .mac .v { margin-top: 6px; font-weight: 700; font-size: 15px; color: var(--ink); opacity: .9; padding-left: 4px; }
+  .dash { height: 1px; background: repeating-linear-gradient(90deg, #8098F9 0 9px, transparent 9px 15px);
+    -webkit-mask: linear-gradient(90deg, transparent, #000 30% 70%, transparent); mask: linear-gradient(90deg, transparent, #000 30% 70%, transparent); }
+  .logrow { display: flex; align-items: center; gap: 8px; }
+  .logrow > img { width: calc(28px * var(--mvs)); height: calc(28px * var(--mvs)); }
+  .logrow span { flex: 1; font-size: 15px; color: var(--gray); }
+  /* KairaButton: 72 x 32, 2px gradient rim */
+  .kb { display: flex; align-items: center; justify-content: center; gap: calc(3px * var(--s)); width: calc(78px * var(--mvs)); height: calc(32px * var(--mvs));
+    border-radius: calc(12px * var(--mvs)); border: 2px solid transparent; font-weight: 700; font-size: 13px; }
+  .kb img { width: 18px; height: 18px; }
+  .kb.snap { color: #fff; background: linear-gradient(135deg, var(--green) 6%, var(--green-dk) 92%) padding-box, linear-gradient(90deg, var(--green-dk), var(--green)) border-box; }
+  .kb.voice { color: var(--green); background: #fff padding-box, linear-gradient(90deg, var(--green-dk), var(--green)) border-box; }
+  .dual { display: flex; align-items: stretch; }
+  .dual > div:first-child { flex: 1; border-right: 1px solid #BAC6D2; margin-right: calc(24px * var(--s)); }
+  .dual .val { font-size: 24px; }
+  .dual .r .lbl { font-size: 13px; }
+  .dual .r .v2 { margin-top: 8px; font-weight: 700; font-size: 15px; color: var(--gray5); opacity: .9; }
+
+  .more { display: flex; align-items: center; gap: 8px; padding: 0 calc(16px * var(--s)); font-size: 12px; color: var(--gray5); }
+  .more i { flex: 1; height: 2px; background: repeating-linear-gradient(90deg, #D0D5DD 0 8px, transparent 8px 14px); }
+  .pills { position: relative; display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; padding: 2px calc(16px * var(--s)) 8px; }
+  .pills::-webkit-scrollbar { display: none; }
+  .pill { flex: 0 0 auto; display: flex; align-items: center; height: calc(44px * var(--vs)); border-radius: calc(25px * var(--mvs)); overflow: hidden; padding: 0; }
+  .pill .in { display: flex; align-items: center; gap: 8px; padding: 0 16px 0 calc(14px * var(--mvs)); }
+  .pill .in img { width: calc(16px * var(--mvs)); height: calc(16px * var(--mvs)); }
+  .pill .nm { font-weight: 500; font-size: 15px; color: var(--ink); margin-right: 36px; }
+  .pill .num { font-weight: 700; font-size: 17px; color: var(--ink); }
+  .pill .num small { font-weight: 400; font-size: 13px; margin-left: 2px; }
+  .pill .dd { font-weight: 500; font-size: 15px; }
+  /* vertical FlipCoin badge on the pill's right edge */
+  .pill .fc { align-self: stretch; display: grid; place-items: center; width: 38px; background: linear-gradient(180deg, var(--honeydew), #FFFBEE);
+    border-left: 3px solid; border-image: linear-gradient(180deg, var(--green), #F5D736) 1; }
+  .pill .fc img { width: 20px; height: 20px; }
+
+  /* Track your symptoms (SymptomNonPSPCard) */
+  .sym { margin: calc(16px * var(--vs)) calc(16px * var(--s)) 0; }
+  .sym h3 { margin: 0 0 calc(4px * var(--vs)); font-weight: 600; font-size: 22px; line-height: 1.3; color: #1F2933; }
+  .sym > p { margin: 0; font-family: Manrope, Roboto, sans-serif; font-size: 15px; line-height: 24px; color: var(--gray5); letter-spacing: 0; }
+  .sym > p b { font-family: Roboto, sans-serif; color: #3D4854; }
+  .sym .row { display: flex; align-items: center; gap: 8px; padding: 8px 0 16px; margin-top: 18px; }
+  .sym .row img { width: 120px; height: 120px; object-fit: contain; flex-shrink: 0; }
+  .sym .row b { display: block; font-size: 15px; line-height: 1.5; color: var(--gray5); }
+  .sym .row span { font-family: Manrope, Roboto, sans-serif; font-size: 15px; line-height: 24px; color: var(--tert); letter-spacing: 0; }
+  .sym .btn { width: 100%; font-size: 14px; }
+
+  /* Explore GoodFlip (HeaderBanner): 300-wide cards, neighbours at 0.9 scale and 0.7 opacity */
+  .ex { display: flex; gap: 0; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding: calc(8px * var(--vs)) calc((100% - 300px) / 2); }
+  .ex::-webkit-scrollbar { display: none; }
+  .bn { flex: 0 0 300px; height: 146px; border-radius: 16px; overflow: hidden; scroll-snap-align: center; background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1); transform: scale(.9); opacity: .7; transition: transform .35s ease, opacity .35s ease; }
+  .bn.on { transform: none; opacity: 1; }
+  .bn img { width: 100%; height: 100%; object-fit: cover; }
+  .dots { display: flex; justify-content: center; gap: calc(6px * var(--s)); }
+  .dots i { width: calc(6px * var(--s)); height: calc(4px * var(--vs)); border-radius: 3px; background: #000; transition: width .3s ease; }
+  .dots i.on { width: calc(42px * var(--s)); background: linear-gradient(90deg, #000 50%, var(--gray5) 50%); }
+
+  .disc { margin: calc(12px * var(--vs)) 0; }
+  .disc hr { border: 0; height: 1px; background: #EEEEEE; margin: 0 calc(32px * var(--s)) calc(16px * var(--vs)); }
+  .disc p { margin: 0; padding: 0 16px; text-align: center; font-size: 14px; line-height: calc(20px * var(--vs)); color: var(--gray4); letter-spacing: 0; }
+
+  /* Bottom tabs (Router.tsx): Manrope Bold 10, green when active */
+  .tabs { position: sticky; bottom: 0; z-index: 50; display: flex; justify-content: space-around; background: #fff; border-top: 1px solid #F2F4F7;
+    padding: calc(6px * var(--vs)) 0 calc(6px * var(--vs) + var(--gf-home-h, 0px)); }
+  .tab { display: flex; flex-direction: column; align-items: center; gap: 3px; width: 20%; font-family: Manrope, Roboto, sans-serif; font-weight: 700; font-size: 11px; line-height: 14px; color: var(--tert); letter-spacing: 0; }
+  .tab img { width: 24px; height: 24px; }
+  .tab[aria-current="page"] { color: var(--green); }
+  .tab .on { display: none; }
+  .tab[aria-current="page"] .on { display: block; }
+  .tab[aria-current="page"] .off { display: none; }
+
+  /* Kaira launcher: right s(16), above the tab bar */
+  .fab { position: fixed; z-index: 60; right: max(calc(16px * var(--s)), calc((100vw - 390px) / 2 + 16px * var(--s))); bottom: calc(84px + var(--gf-home-h, 0px));
+    width: 60px; height: 60px; }
+
+
+  /* ============ NEW top nav: status folders ============
+     ?ver=old keeps the replica exactly. New puts the greeting and three folders (Today, Program, Devices)
+     on a tinted band. Five styles, ?navs=a|b|c|d|e, all from the GoodFlip ramps (v7/COLOR.md):
+     brand green is the brand acting and selection, gold is knowledge (the program), indigo is tracking (devices).
+     Motion: one white "lens" glides to the chosen folder, the band crossfades, the content slides in
+     from the side you moved towards. Smooth ease, no bounce. */
+  :root {
+    --b25:#FAFFFD; --b50:#F3FCF8; --b100:#E6FAF1; --b200:#CBF0E0; --b300:#ABE6CC; --b600:#299D6B; --b700:#2A805A; --b800:#246649; --b900:#1D4D38;
+    --gd50:#FFFBEE; --gd100:#FFF8E0; --gd200:#FEF1C7; --gd800:#A68A2D;
+    --in25:#F5F8FF; --in50:#EEF4FF; --in100:#E0EAFF; --in200:#C7D7FE; --in700:#3538CD;
+    --glide: cubic-bezier(.33,1,.68,1);
+  }
+  body:not([data-ver="new"]) .hb { display: none; }
+  body[data-ver="new"] .band .hi { display: none; }
+  body[data-ver="new"] .band { background: linear-gradient(180deg, #fff 30%, var(--honeydew)); padding-top: 0; border-radius: 0 0 20px 20px; }
+
+  /* the band: three gradient layers crossfade, the sticky top bar takes the band's top colour */
+  body[data-ver="new"] { --top: var(--b100); }
+  body[data-ver="new"][data-tab="prog"] { --top: var(--gd50); }
+  body[data-ver="new"][data-tab="dev"] { --top: var(--in50); }
+  body[data-ver="new"] .gf-status { background: var(--top) !important; transition: background-color .45s var(--glide); }
+  body[data-ver="new"] .top { background: var(--top); box-shadow: none; transition: background-color .45s var(--glide); }
+  .hb { position: relative; isolation: isolate; padding: 2px 0 0; }
+  .hbl { position: absolute; inset: 0; z-index: -1; opacity: 0; transition: opacity .45s var(--glide); }
+  .hbl[data-l="today"] { background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.75), transparent 55%), linear-gradient(180deg, var(--b100), var(--b200)); }
+  .hbl[data-l="prog"] { background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.75), transparent 55%), linear-gradient(180deg, var(--gd50), var(--gd200)); }
+  .hbl[data-l="dev"] { background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.75), transparent 55%), linear-gradient(180deg, var(--in50), var(--in100)); }
+  body[data-tab="today"] .hbl[data-l="today"], body[data-tab="prog"] .hbl[data-l="prog"], body[data-tab="dev"] .hbl[data-l="dev"] { opacity: 1; }
+  .hb .hello { margin: 0 16px; font-weight: 700; font-size: 20px; line-height: 26px; color: var(--ink2); letter-spacing: 0; }
+  .hb .hello small { display: block; font-weight: 400; font-size: 13px; line-height: 18px; color: #475467; letter-spacing: .2px; }
+
+  /* folders and the lens */
+  .folders { --gap: 6px; --pad: 10px; position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); padding: 14px var(--pad) 0; }
+  .lens { position: absolute; z-index: 0; top: 14px; bottom: 0; left: var(--pad); width: calc((100% - 2 * var(--pad) - 2 * var(--gap)) / 3);
+    border-radius: 16px 16px 0 0; background: #fff; box-shadow: 0 -8px 18px -12px rgba(16,24,40,.28);
+    transform: translateX(calc(var(--i, 0) * (100% + var(--gap)))); transition: transform .48s var(--glide); }
+  .lens::before, .lens::after { content: ""; position: absolute; bottom: 0; width: 12px; height: 12px; transition: opacity .25s var(--glide); }
+  .lens::before { left: -12px; background: radial-gradient(circle at 0 0, transparent 11.5px, #fff 12px); }
+  .lens::after { right: -12px; background: radial-gradient(circle at 100% 0, transparent 11.5px, #fff 12px); }
+  .folders[data-i="0"] .lens::before, .folders[data-i="2"] .lens::after { opacity: 0; }
+  .fold { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; min-width: 0; padding: 9px 8px 12px; border-radius: 16px 16px 0 0;
+    background: rgba(255,255,255,.45); text-align: left; transition: background-color .35s var(--glide); }
+  .fold[aria-selected="true"] { background: transparent; }
+  .fold .pic { flex-shrink: 0; width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: rgba(255,255,255,.8);
+    transition: background-color .45s var(--glide); }
+  .fold .pic img { width: 26px; height: 26px; transition: transform .48s var(--glide), filter .35s var(--glide); }
+  .fold:not([aria-selected="true"]) .pic img { filter: saturate(.7); }
+  .fold[aria-selected="true"] .pic img { transform: scale(1.1); }
+  .fold[data-go="today"][aria-selected="true"] .pic { background: var(--b100); }
+  .fold[data-go="prog"][aria-selected="true"] .pic { background: var(--gd100); }
+  .fold[data-go="dev"][aria-selected="true"] .pic { background: var(--in100); }
+  .fold .tx { min-width: 0; }
+  .fold b { display: block; font-size: 14px; line-height: 18px; font-weight: 600; color: #475467; letter-spacing: .1px; transition: color .35s var(--glide); }
+  .fold .st { display: flex; align-items: center; gap: 4px; font-size: 12px; line-height: 16px; color: var(--gray5); white-space: nowrap; letter-spacing: 0; transition: color .35s var(--glide); }
+  .fold .dot { flex-shrink: 0; width: 6px; height: 6px; border-radius: 50%; background: var(--b600); }
+  .fold .st, .fold b { overflow: hidden; text-overflow: ellipsis; }
+  .fold[aria-selected="true"] b { color: var(--ink2); }
+  .fold[data-go="today"][aria-selected="true"] .st { color: var(--b800); }
+  .fold[data-go="prog"][aria-selected="true"] .st { color: var(--gd800); }
+  .fold[data-go="dev"][aria-selected="true"] .st { color: var(--in700); }
+
+  /* b. One green: the band stays brand green on every tab, only the lens moves */
+  body[data-navs="b"] .hbl[data-l] { background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.75), transparent 55%), linear-gradient(180deg, var(--b100), var(--b200)); }
+  body[data-navs="b"] { --top: var(--b100) !important; }
+  body[data-navs="b"] .fold[aria-selected="true"] .pic { background: var(--b100); }
+  body[data-navs="b"] .fold[aria-selected="true"] .st { color: var(--b800); }
+  body[data-navs="b"] .lens { box-shadow: 0 -8px 18px -12px rgba(16,24,40,.28), inset 0 3px 0 var(--b600); }
+
+  /* c. Floating cards: three rounded cards on the band, a white card with a green edge glides over them */
+  body[data-navs="c"] .folders { padding: 14px 12px 14px; --pad: 12px; --gap: 8px; }
+  body[data-navs="c"] .lens { top: 14px; bottom: 14px; border-radius: 16px; box-shadow: 0 8px 20px -10px rgba(16,24,40,.3), 0 0 0 1.5px var(--b600); }
+  body[data-navs="c"] .lens::before, body[data-navs="c"] .lens::after { display: none; }
+  body[data-navs="c"] .fold { border-radius: 16px; padding: 10px 8px; background: rgba(255,255,255,.55); }
+  body[data-navs="c"] .fold[aria-selected="true"] { background: transparent; }
+  body[data-navs="c"] .band { background: linear-gradient(180deg, #fff, var(--honeydew)); }
+
+  /* d. Green hero: a solid brand band, white type, the white folder lifts out of it */
+  body[data-navs="d"] { --top: var(--b600) !important; }
+  body[data-navs="d"] .hbl[data-l] { background: radial-gradient(120% 90% at 100% 0%, rgba(255,255,255,.14), transparent 55%), linear-gradient(180deg, var(--b600), var(--b700)); }
+  body[data-navs="d"] .hb .hello { color: #fff; } body[data-navs="d"] .hb .hello small { color: var(--b100); }
+  body[data-navs="d"] .fold { background: rgba(255,255,255,.12); }
+  body[data-navs="d"] .fold[aria-selected="true"] { background: transparent; }
+  body[data-navs="d"] .fold:not([aria-selected="true"]) b { color: #fff; }
+  body[data-navs="d"] .fold:not([aria-selected="true"]) .st { color: var(--b100); }
+  body[data-navs="d"] .fold:not([aria-selected="true"]) .dot { background: var(--b200); }
+  body[data-navs="d"] .fold:not([aria-selected="true"]) .pic { background: rgba(255,255,255,.9); }
+  body[data-navs="d"] .lens { box-shadow: 0 -10px 20px -12px rgba(16,24,40,.4); }
+
+  /* e. Tall folders: picture on top, name and status under it, centred */
+  body[data-navs="e"] .fold { flex-direction: column; gap: 6px; padding: 12px 6px 12px; text-align: center; }
+  body[data-navs="e"] .fold .pic { width: 48px; height: 48px; border-radius: 14px; }
+  body[data-navs="e"] .fold .pic img { width: 36px; height: 36px; }
+  body[data-navs="e"] .fold .st { justify-content: center; }
+
+  /* what each tab shows, for now: Today is blank, Program and Devices show their own sections */
+  /* Today shows only the to-do (built below); the to-do lives only on Today */
+  body[data-ver="new"][data-tab="today"] main > [data-sec]:not([data-sec="todo"]),
+  body:not([data-ver="new"]) [data-sec="todo"], body[data-ver="new"]:not([data-tab="today"]) [data-sec="todo"],
+  body[data-ver="new"][data-tab="prog"] main > [data-sec]:not([data-in~="prog"]),
+  body[data-ver="new"][data-tab="dev"] main > [data-sec]:not([data-in~="dev"]) { display: none; }
+  main.scroll.swap-r { animation: swapR .42s var(--glide); } main.scroll.swap-l { animation: swapL .42s var(--glide); }
+  @keyframes swapR { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: none; } }
+  @keyframes swapL { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: none; } }
+
+  /* Devices tab (New): one card per device, stacked, and a quieter section label */
+  .dstack { display: none; flex-direction: column; gap: 12px; margin: 0 16px; }
+  .sec-t small { display: none; }
+  body[data-ver="new"][data-tab="dev"] #dev { display: none; }
+  body[data-ver="new"][data-tab="dev"] .dstack { display: flex; }
+  body[data-ver="new"][data-tab="dev"] [data-sec="devices"] { gap: 10px; padding-top: 4px; }
+  body[data-ver="new"][data-tab="prog"] .sec-t { font-family: Roboto, sans-serif; font-size: 16px; line-height: 22px; font-weight: 600; letter-spacing: .1px; }
+  body[data-ver="new"][data-tab="prog"] main > .block { gap: 10px; }
+  body[data-ver="new"][data-tab="dev"] [data-sec="devices"] .sec-t { display: flex; align-items: baseline; justify-content: space-between;
+    font-family: Roboto, sans-serif; font-size: 16px; line-height: 22px; font-weight: 600; letter-spacing: .1px; }
+  body[data-ver="new"][data-tab="dev"] [data-sec="devices"] .sec-t small { display: block; font-size: 13px; font-weight: 400; color: var(--gray5); }
+  .dcard { padding: 0; }
+  .dch { position: relative; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 12px 14px 0; }
+  .dch .ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: #fff; border: 1px solid #EAECF0; }
+  .dch .ic img { max-width: 30px; max-height: 30px; }
+  .dch .nm { flex: 1; min-width: 0; }
+  .dch b { display: block; font-size: 15px; line-height: 20px; color: var(--ink2); }
+  .dch .nm span { display: block; font-size: 12px; line-height: 16px; color: var(--gray5); }
+  .dch .chip2 { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+  .chip2.on { background: var(--b100); color: var(--b800); }
+  .chip2.off { background: #FEF3F2; color: #B42318; }
+  .chip2.new { background: #F2F4F7; color: #475467; }
+  .chip2 i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .dcard .pitch { height: 154px; margin-top: 4px; }
+  .dcard .sync-line { top: 0; }
+  .dcard .reads { padding-top: 12px; }
+
+  /* New: shorter program cards, no refer strip under them (Refer and earn has its own card above the score) */
+  body[data-ver="new"] .pc { aspect-ratio: 295 / 160; }
+  body[data-ver="new"] .band [data-sub="refer"] { display: none; }
+  body:not([data-ver="new"]) [data-sec="refer"] { display: none; }
+  /* Refer and earn: the design system's action card (white, indigo-200 edge, 2px offset indigo shadow that it slides
+     into when pressed), at Home's width. FlipCoins are gold, the Invite is the primary green button with its lip. */
+  .ref { position: relative; display: flex; align-items: center; gap: 12px; width: calc(100% - 32px); margin: 0 16px; height: 84px; padding: 0 32px 0 0; text-align: left;
+    background: linear-gradient(110deg, #FFFDF5, #fff 45%); border: 1px solid #C7D7FE; border-radius: 12px; overflow: hidden;
+    box-shadow: 2px 2px 0 #C7D7FE; transition: transform .15s var(--glide), box-shadow .15s var(--glide); }
+  .ref:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #C7D7FE; }
+  /* the wallet sits on the card's bottom edge, its coins rising into the card */
+  .ref .wallet { align-self: flex-end; width: 104px; height: auto; margin: 0 0 -1px 8px; flex-shrink: 0; }
+  .ref .tx > span { white-space: nowrap; }
+  .ref .tx { flex: 1; min-width: 0; }
+  .ref b { display: block; font-size: 16px; line-height: 22px; font-weight: 700; color: var(--ink2); letter-spacing: .1px; }
+  .ref .tx > span { display: block; margin-top: 2px; font-size: 13px; line-height: 18px; color: #475467; }
+  .ref .go { position: absolute; top: 10px; right: 10px; width: 22px; height: 22px; }
+  /* New: a shorter Metabolic Score card, the ring sits a little higher with 219 above its centre */
+  body[data-ver="new"] .ms { height: 92px; }
+  body[data-ver="new"] .ms video, body[data-ver="new"] .ms .t { margin-top: 16px; }
+  body[data-ver="new"] .ms .ring { height: 86px; margin-top: 2px; margin-bottom: -12px; }
+  body[data-ver="new"] .ms .ring b { padding-top: 0; padding-bottom: 6px; }
+  /* New bottom nav: Home, Progress, FlipFeed, More (Programs and Records leave the bar) */
+  body[data-ver="new"] [data-only="old"], body:not([data-ver="new"]) [data-only="new"] { display: none; }
+  body[data-ver="new"] .tab { width: 25%; }
+  /* More page */
+  .morepg { display: none; flex: 1; padding: 8px 16px 32px; }
+  body[data-page="more"] .morepg { display: block; animation: swapR .42s var(--glide); }
+  body[data-page="more"] .hb, body[data-page="more"] main.scroll, body[data-page="more"] .top, body[data-page="more"] .fab { display: none !important; }
+  body[data-page="more"] { --top: #fff; }
+  body[data-page="more"] .morepg { padding-top: 12px; }
+  .morepg h1 { margin: 4px 0 2px; font-size: 22px; line-height: 28px; font-weight: 700; color: var(--ink2); letter-spacing: 0; }
+  .morepg .intro { margin: 0 0 18px; font-size: 14px; line-height: 20px; color: #475467; }
+  .mrows { display: flex; flex-direction: column; gap: 14px; }
+  .mrow { display: flex; align-items: stretch; gap: 14px; text-align: left; }
+  .mrow .mt { flex: 1; min-width: 0; padding-top: 10px; }
+  .mrow b { display: block; font-family: "Playfair Display", serif; font-weight: 600; font-size: 19px; line-height: 24px; color: var(--ink2); letter-spacing: 0; }
+  .mrow .mt > span { display: block; margin-top: 6px; font-size: 13px; line-height: 18px; color: #475467; }
+  .mtile { position: relative; flex-shrink: 0; width: 148px; height: 86px; border-radius: 16px; background: #F2F4F7; border: 1px solid #EAECF0;
+    transition: transform .15s var(--glide); }
+  .mrow:active .mtile { transform: scale(.98); }
+  .mtile i { position: absolute; top: 10px; left: 10px; padding: 3px 9px; border-radius: 999px; background: #fff; border: 1px solid #EAECF0;
+    font-style: normal; font-size: 11px; font-weight: 600; line-height: 16px; color: var(--ink2); white-space: nowrap; }
+  .mtile img { position: absolute; top: 9px; right: 10px; width: 22px; height: 22px; }
+  /* room at the end so the last card can scroll clear of the KAIRA button */
+  body[data-ver="new"] main.scroll { padding-bottom: 96px; }
+  /* GoodFlip Services in New: the design system's action card. White, indigo-200 edge, 2px indigo offset shadow
+     it slides into when pressed; 54px tiles with a caption, and one wide card carrying the lab tests offer. */
+  .svc2 { display: none; gap: 12px; padding: 0 16px 2px; align-items: flex-start; }
+  body[data-ver="new"] [data-sec="services"] .svc { display: none; }
+  body[data-ver="new"] .svc2 { display: flex; }
+  .ac { display: flex; flex-direction: column; align-items: center; gap: 8px; flex-shrink: 0; }
+  .ac .sq { display: flex; align-items: center; height: 54px; width: 54px; overflow: hidden; background: #fff; border: 1px solid #C7D7FE; border-radius: 12px;
+    box-shadow: 2px 2px 0 #C7D7FE; transition: transform .15s ease-in-out, box-shadow .15s ease-in-out; }
+  .ac:active .sq { transform: translate(2px, 2px); box-shadow: 0 0 0 #C7D7FE; }
+  .ac .sq img { height: 100%; width: auto; padding: 3px; object-fit: contain; border-radius: 10px; }
+  .ac .cap { font-size: 12px; line-height: 1.2; letter-spacing: .25px; color: var(--ink2); text-align: center; }
+  .ac:not(.wide) { width: 54px; }
+  .ac.wide { flex: 1; min-width: 0; }
+  .ac.wide .sq { width: 100%; gap: 8px; padding-right: 12px; }
+  .ac.wide .tx { flex: 1; min-width: 0; font-size: 13px; line-height: 1.4; font-weight: 500; letter-spacing: .2px; color: var(--ink2); text-align: left; }
+  .ac .nw { white-space: nowrap; }
+  .ac .badge { display: inline-block; margin-left: 2px; padding: 1px 4px; border-radius: 3px; background: #FBFF1E; color: #000; font-style: normal;
+    font-size: 10px; font-weight: 800; line-height: 14px; box-shadow: 1px 1px 0 #000; vertical-align: middle; }
+
+  /* ============ Today: the day's to-do ============
+     One set of windows for every pillar: Morning 6 to 12, Afternoon 12 to 4, Evening 4 to 8, Night 8 to bed.
+     Only things the member does by hand are here (steps, ring sleep, glucose fill themselves and live on Devices).
+     Ticking drops a task into the floating bar; Log there logs everything at once. A part of the day that has
+     passed folds to one line; open tasks in it read "still open", never red. */
+  .td { display: flex; flex-direction: column; gap: 14px; padding: 4px 16px 0; }
+  /* which plans the coach has set */
+  .plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .plan { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 14px; background: #F9FAFB; border: 1px solid #F2F4F7; min-width: 0; }
+  .plan img { width: 26px; height: 26px; flex-shrink: 0; }
+  .plan b { display: block; font-size: 13px; line-height: 17px; color: var(--ink2); }
+  .plan span { display: block; font-size: 11px; line-height: 15px; color: var(--gray5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .plan.on { background: var(--b50); border-color: var(--b100); }
+  .plan.on span { color: var(--b800); }
+  .plan.off img { filter: grayscale(1); opacity: .45; }
+  /* the day's header */
+  .dayhd { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .dayhd b { font-size: 16px; line-height: 22px; color: var(--ink2); font-weight: 600; }
+  .dayhd span { font-size: 13px; color: var(--gray5); white-space: nowrap; }
+  .daybar { height: 6px; border-radius: 6px; background: #F2F4F7; overflow: hidden; margin-top: -6px; }
+  .daybar i { display: block; height: 100%; width: var(--p, 0%); border-radius: 6px; background: linear-gradient(90deg, var(--b300), var(--b600)); transition: width .6s var(--glide); }
+  /* a part of the day: every one folds; the current one opens by itself */
+  .part { border-radius: 16px; border: 1px solid #EAECF0; background: #fff; overflow: hidden; transition: border-color .3s var(--glide); }
+  .part.now { border-color: var(--b200); background: linear-gradient(180deg, var(--b25), #fff 90px); }
+  .phd { display: flex; align-items: center; gap: 8px; width: 100%; padding: 13px 14px; text-align: left; }
+  .phd .nm { flex: 1; min-width: 0; }
+  .phd b { font-family: "Playfair Display", serif; font-size: 18px; line-height: 22px; font-weight: 600; color: var(--ink2); letter-spacing: 0; }
+  .phd .win { margin-left: 6px; font-size: 12px; color: var(--gray5); }
+  .phd .cnt { font-size: 12px; color: var(--gray5); white-space: nowrap; }
+  .phd .now { padding: 2px 8px; border-radius: 999px; background: var(--b600); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .3px; }
+  .phd .open { padding: 2px 8px; border-radius: 999px; background: #F2F4F7; color: #475467; font-size: 11px; font-weight: 600; }
+  .phd .ok { color: var(--b800); font-size: 12px; font-weight: 600; }
+  .phd .chev { width: 8px; height: 8px; margin: 0 2px 3px 4px; border-right: 1.5px solid #98A2B3; border-bottom: 1.5px solid #98A2B3; transform: rotate(45deg); transition: transform .35s var(--glide); }
+  .part[data-open="true"] .phd .chev { transform: rotate(225deg); margin-bottom: -3px; }
+  .prows { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .45s var(--glide); }
+  .part[data-open="false"] .prows { grid-template-rows: 0fr; }
+  .prows > div { overflow: hidden; }
+
+  /* ===== Blocks inside a part: one meal, the part's Move plan, the part's Mind plan. Folded by default to one line;
+     open, each is its pillar's own card body, copied from v7/r3/eat.html, move/plan.css and v7/mind/layouts.js. ===== */
+  .blk { border-top: 1px solid #F2F4F7; }
+  .bhd { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 14px; text-align: left; }
+  .bhd .pg { width: 26px; height: 26px; flex-shrink: 0; }
+  .bhd .bt { flex: 1; min-width: 0; }
+  .bhd b { display: block; font-size: 15px; line-height: 20px; font-weight: 600; color: var(--ink2); }
+  .bhd .bs { display: block; font-size: 12px; line-height: 18px; color: #667085; }
+  .bhd .bc { font-size: 12px; color: #667085; white-space: nowrap; }
+  .bhd .bc.full { color: #027A48; font-weight: 600; }
+  .bhd .chev { width: 7px; height: 7px; flex-shrink: 0; margin: 0 2px 3px 2px; border-right: 1.5px solid #98A2B3; border-bottom: 1.5px solid #98A2B3; transform: rotate(45deg); transition: transform .35s var(--glide); }
+  .blk[data-open="true"] .bhd .chev { transform: rotate(225deg); margin-bottom: -3px; }
+  .bbody { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .4s var(--glide); }
+  .blk[data-open="true"] .bbody { grid-template-rows: 1fr; }
+  .bbody > div { overflow: hidden; }
+  .bin { padding: 0 14px 16px; }
+  .lab { font-size: 12px; line-height: 16px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: #667085; margin: 4px 0 10px; }
+  .sec2 { margin-top: 12px; padding-top: 12px; border-top: 1px solid #F2F4F7; }
+  .sec2 > .lab { margin-top: 0; }
+
+  /* Eat: option chips (viewing is a green ring, an option with food logged earns a wash) and food rows */
+  .mchips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .chip { position: relative; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 14px; border-radius: 9999px; border: 1px solid #E4E7EC; background: #fff; color: #667085; cursor: pointer; }
+  .chip::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+  .chip b { display: block; font-size: 14px; font-weight: 600; line-height: 18px; color: #344054; white-space: nowrap; }
+  .chip.done { border-color: #CBF0E0; background: #F3FCF8; }
+  .chip.on { background: #fff; border-color: #299D6B; box-shadow: 0 0 0 1px #299D6B; }
+  .chip.on b { color: #299D6B; }
+  .items { display: flex; flex-direction: column; gap: 12px; }
+  .item { display: flex; align-items: flex-start; gap: 16px; transition: opacity .2s ease-out; }
+  .item .nm { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; line-height: 20px; color: #101828; transition: color .2s ease-out; }
+  .item .nm span { display: block; margin-top: 2px; color: #667085; font-weight: 400; font-size: 12px; line-height: 18px; }
+  .item.done .nm { color: #344054; }
+  .item .kc { margin-top: 3px; font-size: 12px; color: #667085; white-space: nowrap; }
+
+  /* the tick: unticked ring; waiting in the bar = pale green, green ring, green check; logged = solid green, white check */
+  .tickbtn { position: relative; width: 24px; height: 24px; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+  .tickbtn::after { content: ""; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
+  .tickbtn[disabled] { cursor: default; }
+  .tick { position: relative; width: 24px; height: 24px; border-radius: 9999px; border: 1.5px solid #D0D5DD; background: #fff; display: grid; place-items: center; flex-shrink: 0;
+    transition: background .18s ease-out, border-color .18s ease-out, transform .18s cubic-bezier(.4,0,.2,1); }
+  .tick svg { width: 12px; height: 12px; opacity: 0; transform: scale(.6); transition: opacity .22s ease-out, transform .28s ease-out; }
+  .tick path { stroke: #fff; }
+  .tickbtn:not([disabled]):active .tick { transform: scale(.88); }
+  .sel > .tickbtn .tick { background: #E6FAF1; border-color: #039855; }
+  .sel > .tickbtn .tick svg, .done > .tickbtn .tick svg { opacity: 1; transform: scale(1); }
+  .sel > .tickbtn .tick path { stroke: #039855; }
+  .done > .tickbtn .tick { background: #039855; border-color: #039855; }
+  .tick.pop { animation: taskPop .55s cubic-bezier(.34,1.56,.64,1) both; }
+  .tick.pop::after { content: ""; position: absolute; inset: -3px; border-radius: 50%; border: 2px solid #039855; pointer-events: none; animation: haloOut .8s cubic-bezier(.22,.7,.3,1) forwards; }
+  .tick.pop svg path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: checkDraw .34s cubic-bezier(.4,0,.2,1) .12s forwards; }
+  .cheer { position: relative; }
+  .cheer::before { content: ""; position: absolute; inset: 2px -10px; border-radius: 12px; background: #E6FAF1; pointer-events: none; z-index: 0; animation: flashOut .9s ease forwards; }
+  .cheer > * { position: relative; z-index: 1; }
+  @keyframes taskPop { 0% { transform: scale(1); } 30% { transform: scale(1.32); } 55% { transform: scale(.92); } 75% { transform: scale(1.06); } 100% { transform: scale(1); } }
+  @keyframes haloOut { 0% { opacity: .5; transform: scale(.65); } 100% { opacity: 0; transform: scale(2.6); } }
+  @keyframes flashOut { 0% { opacity: .85; } 35% { opacity: .5; } 100% { opacity: 0; } }
+  @keyframes checkDraw { to { stroke-dashoffset: 0; } }
+
+  /* tips, small moves, Mind rows: the shared task row */
+  .tiplist { display: flex; flex-direction: column; gap: 12px; }
+  .tip { position: relative; display: flex; gap: 16px; align-items: flex-start; padding: 0 8px; margin: 0 -8px; border-radius: 12px; }
+  .tip .tt { font-size: 14px; line-height: 20px; font-weight: 600; color: #101828; transition: color .3s ease-out; }
+  .tip .tdd { display: block; font-size: 12px; line-height: 18px; color: #667085; margin-top: 2px; text-align: left; }
+  .tip.done .tt { color: #667085; }
+  .tip .rb { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; text-align: left; padding: 0; }
+  .tip .tm { flex: 0 0 auto; font: 500 12px/20px Roboto, sans-serif; color: #667085; font-variant-numeric: tabular-nums; }
+  .tip .chv { display: inline-block; vertical-align: -3px; margin-left: 2px; color: #98A2B3; }
+  .tip .chv svg { width: 16px; height: 16px; }
+  .tip.open { cursor: pointer; }
+
+  /* Move: exercise rows */
+  .mv-items { display: flex; flex-direction: column; gap: 20px; }
+  .mv-item { display: flex; align-items: center; gap: 12px; }
+  .mv-th { position: relative; flex-shrink: 0; width: 80px; height: 56px; border: 0; padding: 0; border-radius: 8px; overflow: hidden; background: #F2F4F7; cursor: pointer; }
+  .mv-th img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .mv-th span { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(16,24,40,.18); }
+  .mv-th svg { width: 20px; height: 20px; color: #fff; filter: drop-shadow(0 1px 2px rgba(0,0,0,.35)); }
+  .mv-item.done .mv-th img { filter: saturate(.55) brightness(1.04); }
+  .mv-nm { flex: 1; min-width: 0; align-self: stretch; display: flex; flex-direction: column; justify-content: center; padding: 0; text-align: left; font: 600 14px/20px Roboto, sans-serif; letter-spacing: .25px; color: #101828; }
+  .mv-nm span { display: block; margin-top: 2px; font-size: 12px; line-height: 18px; font-weight: 400; color: #667085; }
+  .mv-item.done .mv-nm { color: #344054; }
+  .mv-chev { flex: none; display: grid; place-items: center; width: 20px; height: 20px; margin-left: -4px; color: #98A2B3; }
+  .mv-chev svg { width: 16px; height: 16px; }
+
+  /* ===== the floating bar (v7/r3/assets/plan-tray.js, float mode, verbatim) ===== */
+  .pt{position:fixed;left:50%;bottom:0;width:100%;max-width:390px;transform:translate(-50%,110%);z-index:80;padding:0 12px calc(12px + var(--gf-home-h,20px) + env(safe-area-inset-bottom,0px));transition:transform .34s cubic-bezier(.2,0,0,1)}
+  .pt.up{transform:translate(-50%,0)}
+  .pt .flw{position:relative;border-radius:20px}
+  .pt .rmz{position:absolute;inset:0 0 0 auto;width:160px;display:flex;align-items:center;justify-content:flex-end;padding-right:22px;border:0;border-radius:20px;background:#FEF3F2;color:#D92D20;font:600 16px/1 Roboto,sans-serif;cursor:pointer;opacity:0;transition:opacity .2s ease-out}
+  .pt .flw.open .rmz{opacity:1}
+  .pt .fl{position:relative;display:flex;align-items:center;gap:10px;padding:8px 6px 8px 16px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 1px 3px rgba(16,24,40,.10),0 12px 28px -8px rgba(16,24,40,.28);transition:transform .32s cubic-bezier(.2,0,0,1)}
+  .pt .flw.open .fl{transform:translateX(-104px)}
+  .pt .fl::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transform:translateX(-110%);background:linear-gradient(105deg,rgba(41,157,107,0) 36%,rgba(41,157,107,.12) 50%,rgba(41,157,107,0) 64%)}
+  .pt .fl.lit::after{animation:ptShine .85s cubic-bezier(.4,0,.2,1) both}
+  @keyframes ptShine{0%{opacity:0;transform:translateX(-110%)}16%{opacity:1}74%{opacity:1}100%{opacity:0;transform:translateX(110%)}}
+  .pt .fl .tx{flex:1;min-width:0;border:0;background:none;padding:0;text-align:left;cursor:pointer}
+  .pt .fl .tx b{display:block;font:600 14px/20px Roboto,sans-serif;color:#101828;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pt .fl .tx span{display:inline-flex;white-space:nowrap;align-items:center;gap:2px;margin-top:2px;font:500 12.5px/18px Roboto,sans-serif;color:#299D6B}
+  .pt .fl .tx span svg{width:14px;height:14px}
+  .pt .go{border:0;border-radius:12px;background:#299D6B;color:#fff;font:700 15px/1 Roboto,sans-serif;cursor:pointer;box-shadow:0 7px 0 #2A805A;transition:transform .2s ease-out,box-shadow .2s ease-out}
+  .pt .go:active{transform:translateY(7px);box-shadow:none}
+  .pt .fl .go{flex:0 0 auto;min-width:88px;height:44px;padding:0 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;margin-bottom:4px;font-size:14px}
+  .pt .fl .go small{font:500 11.5px/14px Roboto,sans-serif;color:rgba(255,255,255,.85)}
+  .pt .fl .xc{position:relative;width:20px;height:20px;margin:0 2px 0 -2px;padding:0;flex-shrink:0;border:0;background:none;color:#98A2B3;display:grid;place-items:center;cursor:pointer}
+  .pt .fl .xc::before{content:"";position:absolute;inset:-12px}
+  .pt .fl .xc svg{width:16px;height:16px}
+  /* the screen gives way: the tab bar slides down, KAIRA steps aside */
+  .tabs{transition:transform .34s cubic-bezier(.2,0,0,1)}
+  body.pt-on .tabs{transform:translateY(110%)}
+  body.pt-on .fab{opacity:0;transform:scale(.8);pointer-events:none}
+  .fab{transition:opacity .2s ease-out,transform .2s ease-out}
+  body.pt-on main.scroll{padding-bottom:140px}
+  .morsel{position:fixed;z-index:85;pointer-events:none;box-sizing:border-box;padding:9px 14px;border-radius:12px;background:#fff;border:1px solid #E4E7EC;box-shadow:0 14px 28px -10px rgba(16,24,40,.34),0 3px 8px -4px rgba(16,24,40,.18);text-align:left;transform-origin:24px 50%;font-family:Roboto,sans-serif}
+  .morsel b{display:block;font-size:14px;font-weight:600;line-height:20px;color:#101828;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .morsel span{display:block;font-size:12px;line-height:16px;color:#667085}
+
+  /* ===== sheets: review, wheel, menus, mood (plan-tray.js .pts, house sheet rules) ===== */
+  .pts{position:fixed;inset:0;z-index:90;display:flex;align-items:flex-end;justify-content:center;background:rgba(16,24,40,0);transition:background .25s ease-out;pointer-events:none}
+  .pts.on{background:rgba(16,24,40,.4);pointer-events:auto}
+  .pts.pt2{z-index:95}.pts.pt2.on{background:rgba(16,24,40,.18)}
+  .pts .sh{width:100%;max-width:390px;max-height:90vh;overflow:auto;background:#fff;border-radius:20px 20px 0 0;padding:20px 16px calc(20px + var(--gf-home-h,20px));transform:translateY(100%);transition:transform .3s cubic-bezier(.2,0,0,1)}
+  .pts.on .sh{transform:none}
+  .pts.pt2 .sh{transition:transform .46s cubic-bezier(.16,1,.3,1)}
+  .pts .sh.back{transform:scale(.94) translateY(-10px);filter:brightness(.94);transition:transform .3s cubic-bezier(.2,0,0,1),filter .3s}
+  .pts .hd{display:flex;align-items:flex-start;gap:12px;margin-bottom:8px}.pts .hd>div{flex:1;min-width:0}
+  .pts h4{margin:0;font:800 20px/28px Roboto,sans-serif;color:#101828;letter-spacing:0}.pts .sub{margin-top:2px;font:400 13px/18px Roboto,sans-serif;color:#667085}
+  .pts .x{width:32px;height:32px;flex-shrink:0;border-radius:50%;border:0;background:#F2F4F7;color:#344054;display:grid;place-items:center}
+  .pts .x svg{width:16px;height:16px}
+  .pts .pi{display:flex;align-items:center;gap:12px;padding:14px 0}.pts .pi+.pi{border-top:1px solid #F2F4F7}
+  .pts .pi .t{flex:1;min-width:0}
+  .pts .pi .nm{font:600 15px/22px Roboto,sans-serif;color:#101828;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+  .pts .pi .mt{font:400 13px/18px Roboto,sans-serif;color:#667085;font-variant-numeric:tabular-nums}
+  .pts .ctl{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .pts .tc{display:inline-flex;flex-direction:row;white-space:nowrap;align-items:center;justify-content:center;gap:6px;width:106px;height:36px;padding:0 8px;border-radius:10px;border:1px solid #E4E7EC;background:#fff;color:#101828;font:600 13px/1 Roboto,sans-serif;font-variant-numeric:tabular-nums;cursor:pointer}
+  .pts .tc svg{width:16px;height:16px;color:#299D6B}
+  .pts .tc.fut{border-style:dashed;border-color:#CDA935}.pts .tc.fut svg{color:#A68A2D}
+  .pts .tc.flash{animation:ptFlash .9s cubic-bezier(.2,0,0,1)}
+  @keyframes ptFlash{0%{background:#E6FAF1;border-color:#299D6B}100%{background:#fff;border-color:#E4E7EC}}
+  .pts .st{display:flex;align-items:center;height:36px;border:1px solid #E4E7EC;border-radius:10px;flex-shrink:0}
+  .pts .st button{width:34px;height:36px;border:0;background:none;color:#299D6B;display:grid;place-items:center;cursor:pointer}.pts .st button svg{width:18px;height:18px}
+  .pts .st b{min-width:18px;text-align:center;font:600 15px/1 Roboto,sans-serif}
+  .pts .bin2{width:36px;height:36px;border:1px solid #E4E7EC;border-radius:10px;background:#fff;color:#D92D20;display:grid;place-items:center}.pts .bin2 svg{width:18px;height:18px}
+  .pts .ft{position:sticky;bottom:calc(-20px - var(--gf-home-h,20px));display:flex;align-items:center;gap:16px;margin:4px -16px calc(-20px - var(--gf-home-h,20px));padding:14px 16px calc(14px + var(--gf-home-h,20px));background:#fff;border-top:1px solid #F2F4F7}
+  .pts .ft .tot span{display:block;font:400 12px/16px Roboto,sans-serif;color:#667085}.pts .ft .tot b{font:700 18px/24px Roboto,sans-serif;color:#101828;white-space:nowrap}
+  .pts .done{width:100%;height:52px;border:0;border-radius:12px;background:#299D6B;color:#fff;font:700 15px/1 Roboto,sans-serif;box-shadow:0 7px 0 #2A805A;cursor:pointer;transition:transform .2s ease-out,box-shadow .2s ease-out}
+  .pts .done:active{transform:translateY(7px);box-shadow:none}
+  .pts .done[disabled]{background:#CBF0E0;box-shadow:0 7px 0 #E6FAF1;pointer-events:none}
+  .pts .ghost{width:100%;height:52px;margin-top:16px;border:0;border-radius:12px;background:#fff;color:#299D6B;font:700 15px/1 Roboto,sans-serif;box-shadow:inset 0 0 0 1px #299D6B,0 7px 0 #CBF0E0}
+  .pts .fbn{margin:4px 0 8px;border-radius:16px;overflow:hidden;background:#FFFDF5;border:1px solid #FEF1C7;animation:ptIn .4s cubic-bezier(.2,0,0,1) both}
+  @keyframes ptIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .pts .fbn .rib{display:flex;align-items:center;gap:6px;height:30px;padding:0 14px;font:600 13px/1 Roboto,sans-serif;color:#826E2D;background:repeating-linear-gradient(-45deg,#FFF8E0 0 10px,#FFFBEE 10px 20px);border-bottom:1px solid #FEF1C7}
+  .pts .fbn .rib svg{width:16px;height:16px;color:#A68A2D}
+  .pts .fbn .in{padding:12px 14px 14px}
+  .pts .fbn b{font:600 15px/22px Roboto,sans-serif;color:#101828}.pts .fbn p{margin:2px 0 12px;font:400 13px/19px Roboto,sans-serif;color:#475467}
+  .pts .fbb{display:flex;gap:10px}
+  .pts .fbb button{flex:1;height:40px;border:0;border-radius:10px;font:600 14px/1 Roboto,sans-serif;background:#fff;color:#299D6B;box-shadow:inset 0 0 0 1px #299D6B,0 5px 0 #CBF0E0;margin-bottom:5px}
+  .pts .fbb .pri{background:#299D6B;color:#fff;box-shadow:0 5px 0 #2A805A}
+  /* the time sits on its own line under the label, so the button never wraps mid-phrase */
+  .pts .fbb button{height:auto;min-height:40px;padding:6px 10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;white-space:nowrap}
+  .pts .fbb .pri small{font:500 11.5px/14px Roboto,sans-serif;color:rgba(255,255,255,.85)}
+  /* the time wheel */
+  .wh{position:relative;display:flex;height:220px;margin:12px 0 4px;-webkit-mask:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask:linear-gradient(transparent,#000 30%,#000 70%,transparent)}
+  .wband{position:absolute;left:0;right:0;top:88px;height:44px;border-radius:12px;background:#F3FCF8;border:1px solid #CBF0E0;pointer-events:none}
+  .wc{position:relative;flex:1;height:220px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;padding:88px 0}
+  .wc.ap{flex:.8}.wc::-webkit-scrollbar{display:none}
+  .wc div{height:44px;display:grid;place-items:center;scroll-snap-align:center;font:500 20px Roboto,sans-serif;color:#98A2B3;cursor:pointer}
+  .wc div.on{color:#101828;font-weight:700}.wc div.fut{color:#D0D5DD}.wc div.fut.on{color:#B54708}
+  .whint{min-height:20px;margin:6px 0 10px;text-align:center;font:500 13px/18px Roboto,sans-serif;color:#B54708}
+  /* menus (Mind's .menurow, Move's .mvt-opt) */
+  .menurow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;border:0;background:none;text-align:left;font-size:15px;color:#344054;cursor:pointer;border-bottom:1px solid #F2F4F7}
+  .menurow:last-child{border-bottom:0}.menurow.warn{color:#D92D20}
+  .menurow .mi{width:32px;display:grid;place-items:center;color:#98A2B3}.menurow .mi svg{width:16px;height:16px}
+  .menurow.warn .mi{color:#D92D20}
+  .say{margin:8px 0 18px;font-size:15px;line-height:22px;color:#475467}
+  /* mood (v7/mind/variants/mood.js) */
+  .vm{display:flex;flex-direction:column;gap:16px;padding-top:4px}
+  .vm-faces{display:flex;gap:6px}
+  .vm-face{flex:1;min-width:0;min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;border-radius:16px;background:#F9FAFB;padding:12px 0 10px;font:500 15px/16px Roboto,sans-serif;color:#475467;cursor:pointer;transition:opacity .3s cubic-bezier(.4,0,.2,1),background .3s cubic-bezier(.4,0,.2,1),border-color .3s cubic-bezier(.4,0,.2,1)}
+  .vm-face span{font-size:32px;line-height:1;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+  .vm-faces.picked .vm-face:not(.on){opacity:.5}
+  .vm-face.on span{transform:scale(1.12)}
+  .vm-face.on{border-color:#299D6B;background:#F3FCF8;color:#2A805A;font-weight:700}
+  .vm-k{position:relative;padding:14px 16px 16px 56px;border-radius:16px;background:linear-gradient(180deg,#EEF4FF 0%,#F8FAFF 100%);border:1px solid #E0EAFF;animation:ptIn .4s cubic-bezier(.4,0,.2,1) both}
+  .vm-k.wait{min-height:76px}
+  .vm-q{position:absolute;left:12px;top:14px;width:32px;height:32px;color:#C7D7FE}
+  .vm-k p{margin:0;font-size:15px;line-height:23px;color:#1D2939}
+  .vm-sh{display:flex;flex-direction:column;gap:8px;padding:4px 0 2px}.vm-sh i{display:block;height:10px;border-radius:6px;background:linear-gradient(90deg,#E0EAFF 0%,#F5F8FF 40%,#E0EAFF 80%);background-size:200% 100%;animation:vmSh 1.1s linear infinite}
+  .vm-sh i:nth-child(2){width:88%}.vm-sh i:nth-child(3){width:56%}
+  @keyframes vmSh{to{background-position:-200% 0}}
+  /* the app's toast: top, success green */
+  .gtoast{position:fixed;z-index:120;left:50%;top:62px;transform:translate(-50%,-14px);opacity:0;pointer-events:none;display:flex;align-items:center;gap:10px;max-width:358px;width:calc(100% - 32px);padding:12px 14px;border-radius:12px;background:#ECFDF3;border:1px solid #039855;font:500 14px/20px Roboto,sans-serif;color:#101828;transition:transform .3s cubic-bezier(.2,0,0,1),opacity .3s}
+  .gtoast.on{transform:translate(-50%,0);opacity:1}
+  .gtoast i{width:22px;height:22px;flex-shrink:0;border-radius:50%;background:#039855;display:grid;place-items:center}
+  .gtoast i svg{width:12px;height:12px}
+  /* the day's ring: done against the whole day */
+  .dring { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: #667085; white-space: nowrap; }
+  .dring svg { width: 24px; height: 24px; transform: rotate(-90deg); }
+  .dring circle { fill: none; stroke-width: 3; }
+  .dring .tr { stroke: #E6FAF1; }
+  .dring .fg { stroke: #299D6B; stroke-linecap: round; transition: stroke-dashoffset .6s var(--glide); }
+  .dayhd { align-items: center; }
+  /* ===== scrolling (New): the bottom nav slides away going down and back going up; the greeting tucks under the top bar
+     and the folders stick right below it, condensing into a crisp frosted strip ===== */
+  html { overflow-anchor: none; }
+  body[data-ver="new"] .hb { position: sticky; z-index: 45; top: calc(var(--gf-sb, 0px) + var(--hb-top, 0px)); }
+  body[data-ver="new"] .top { z-index: 50; }
+  .hb, .top, .gf-status { transition: background-color .45s var(--glide), box-shadow .3s var(--glide); }
+  .hb .hello { transition: opacity .25s var(--glide); }
+  body.stuck .hb .hello { opacity: 0; }
+  body.stuck { --top: rgba(255,255,255,.9) !important; }
+  body.stuck .top, body.stuck .gf-status { -webkit-backdrop-filter: saturate(1.6) blur(16px); backdrop-filter: saturate(1.6) blur(16px); }
+  body.stuck .hbl { opacity: 0 !important; }
+  body.stuck .hb { background: rgba(255,255,255,.9); -webkit-backdrop-filter: saturate(1.6) blur(16px); backdrop-filter: saturate(1.6) blur(16px); box-shadow: 0 1px 0 #EAECF0, 0 8px 16px -12px rgba(16,24,40,.18); }
+  .folders, .fold, .fold .pic, .fold .pic img, .fold .st, .lens { transition-property: padding, transform, width, height, opacity, background-color, border-radius, max-height, top, bottom; transition-duration: .35s; transition-timing-function: var(--glide); }
+  .fold .st { max-height: 16px; }
+  body.stuck .folders { padding-top: 6px; padding-bottom: 8px; }
+  body.stuck .fold { padding: 6px 8px; border-radius: 12px; background: #F2F4F7; }
+  body.stuck .fold[aria-selected="true"] { background: transparent; }
+  body.stuck .fold .pic { width: 26px; height: 26px; border-radius: 8px; }
+  body.stuck .fold .pic img { width: 20px; height: 20px; }
+  body.stuck .fold .st { opacity: 0; max-height: 0; }
+  /* condensed: the chosen folder becomes a clear green pill with a white ring and lift; the others go quiet */
+  body.stuck .lens { top: 6px; bottom: 8px; border-radius: 12px; box-shadow: inset 0 0 0 1px rgba(16,24,40,.08); background: var(--b100); }
+  body.stuck[data-tab="prog"] .lens { background: var(--gd100); }
+  body.stuck[data-tab="dev"] .lens { background: var(--in100); }
+  body.stuck .fold:not([aria-selected="true"]) { background: transparent; }
+  body.stuck .fold:not([aria-selected="true"]) .pic { background: transparent; }
+  body.stuck .lens::before, body.stuck .lens::after { opacity: 0 !important; }
+  body.stuck[data-tab="today"] .fold[aria-selected="true"] b { color: var(--b800); }
+  body.stuck[data-tab="prog"] .fold[aria-selected="true"] b { color: var(--gd800); }
+  body.stuck[data-tab="dev"] .fold[aria-selected="true"] b { color: var(--in700); }
+  body.navhide .tabs { transform: translateY(110%); }
+  body.navhide .fab { transform: translateY(76px); }
+  .tabs { transition: transform .34s cubic-bezier(.2,0,0,1); }
+  .fab { transition: opacity .2s ease-out, transform .34s cubic-bezier(.2,0,0,1); }
+
+  /* ===== Today hero: the Scene (hero-studies H). The question comes from the next open task in the day ===== */
+  .hscene { position: relative; isolation: isolate; margin-top: 12px; border-radius: 24px; border: 1px solid #EAECF0; overflow: hidden; background: #fff; }
+  /* the scene fills the card's full height on the right and fades into white behind the words */
+  .hscene .art { position: absolute; inset: 0; cursor: pointer; z-index: 0; }
+  /* the picture sits in its own box on the right and fades out across its own left half, so its edge never shows */
+  /* the picture spans the whole card, behind the words and the button; its own soft left side carries the fade */
+  .hscene .art::before { content: ""; position: absolute; inset: 0; background: var(--scene) right 62% / cover no-repeat; opacity: .95;
+    -webkit-mask: linear-gradient(90deg, transparent 0%, transparent 40%, rgba(0,0,0,.35) 52%, rgba(0,0,0,.8) 64%, #000 74%); mask: linear-gradient(90deg, transparent 0%, transparent 40%, rgba(0,0,0,.35) 52%, rgba(0,0,0,.8) 64%, #000 74%);
+    transition: opacity 1.4s var(--glide), filter 1.4s var(--glide); animation: sceneIn 1.2s var(--glide) both; }
+  @keyframes sceneIn { from { opacity: 0; transform: scale(1.03); } to { opacity: .95; transform: none; } }
+  .hscene.dim .art::before { opacity: .45; filter: saturate(.5); animation: none; }
+  .hscene::after { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    background: linear-gradient(90deg, rgba(255,255,255,.7) 0%, rgba(255,255,255,.45) 34%, rgba(255,255,255,0) 58%); }
+  .hscene .tx > .eb, .hscene .tx > h3 { max-width: 70%; }
+  .hscene .acts .rg { white-space: nowrap; }
+  .hscene .tx .why { max-width: 92%; }
+  .hscene .tx { position: relative; z-index: 1; padding: 24px 16px 16px; pointer-events: none; }
+  .hscene .tx h3, .hscene .tx button { pointer-events: auto; }
+  .hscene .eb { font-size: 12px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: #2A805A; }
+  .hscene h3 { margin: 4px 0 0; font: 600 23px/1.2 "Playfair Display", serif; color: #101828; letter-spacing: 0; cursor: pointer; }
+  .hscene h3 + .acts { margin-top: 14px; }
+  .hscene .why { margin: 6px 0 14px; font-size: 14px; line-height: 1.5; color: #475467; }
+  .hscene .acts { display: flex; align-items: center; gap: 12px; }
+  .hscene .pill { display: inline-flex; align-items: center; gap: 6px; height: 42px; padding: 0 18px 0 20px; border-radius: 12px; background: #299D6B; color: #fff;
+    font-weight: 700; font-size: 15px; box-shadow: 0 5px 0 #2A805A; transition: transform .15s ease-out, box-shadow .15s ease-out; }
+  .hscene .pill:active { transform: translateY(5px); box-shadow: none; }
+  .hscene .pill svg { width: 16px; height: 16px; }
+  .hscene .rg { height: 42px; padding: 0 16px; border-radius: 12px; background: rgba(255,255,255,.9); box-shadow: inset 0 0 0 1px #E4E7EC; font-weight: 600; font-size: 15px; color: #344054; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+  .hscene .swap { animation: heroSwap .5s var(--glide) both; }
+  @keyframes heroSwap { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  /* the tapped task: its part and block open, the page glides to it, a soft green glow settles and lets go */
+  .blk.spot { animation: spot 2.6s var(--glide) both; }
+  @keyframes spot { 0% { box-shadow: inset 4px 0 0 #299D6B; background: #E6FAF1; } 60% { box-shadow: inset 4px 0 0 #299D6B; background: #F3FCF8; } 100% { box-shadow: inset 0 0 0 transparent; background: transparent; } }
+
+  /* ===== EM3 strip under the hero (pillar-studies C, One strip): one card cut in three ===== */
+  .p-eat  { --c50:#F3FCF8; --c100:#E6FAF1; --c600:#299D6B; --c800:#246649; }
+  .p-move { --c50:#EEF4FF; --c100:#E0EAFF; --c600:#444CE7; --c800:#2D31A6; }
+  .p-mind { --c50:#FFFBEE; --c100:#FEF6DC; --c600:#E7C144; --c800:#826E2D; }
+  .m-lock { --c100:#F2F4F7; --c600:#98A2B3; --c800:#667085; }
+  /* three separate cards, the design system's action card: white, indigo-200 edge, 2px indigo offset shadow it presses into */
+  .vStrip { background: none; border: 0; margin-bottom: 12px; }
+  .vStrip .row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .vStrip .s { min-height: 96px; padding: 12px; display: flex; flex-direction: column; gap: 4px; position: relative; text-align: left;
+    background: #fff; border: 1px solid #C7D7FE; border-radius: 14px; box-shadow: 2px 2px 0 #C7D7FE; transition: transform .15s ease-in-out, box-shadow .15s ease-in-out; }
+  .vStrip .s:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #C7D7FE; }
+  .vStrip .nm { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #101828; }
+  .vStrip .nm img { width: 22px; height: 22px; }
+  /* the number in a neutral ink gradient, so the score reads as one family; the pillar colour stays in its art */
+  .vStrip .pct { margin-top: 4px; font: 700 22px/26px Roboto, sans-serif; letter-spacing: -.2px;
+    background: linear-gradient(160deg, #667085 0%, #344054 70%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .vStrip .pct small { font-size: 13px; font-weight: 600; margin-left: 1px; }
+  .vStrip .sub { font-size: 12px; line-height: 16px; color: #667085; }
+  .vStrip .pct + .sub { margin-top: -4px; }
+  .vStrip .lkl { display: block; width: 52px; height: 52px; margin: 2px 0 -4px -6px; }
+  .vStrip .lkr { display: flex; align-items: center; height: 32px; margin-top: 4px; color: #98A2B3; }
+  .vStrip .lkr svg { width: 18px; height: 18px; }
+  .vStrip .note { display: flex; gap: 8px; align-items: center; margin-top: 10px; padding: 10px 14px; border-radius: 12px; background: #F9FAFB; font-size: 12.5px; line-height: 17px; color: #475467; }
+  .vStrip .note svg { width: 14px; height: 14px; flex-shrink: 0; color: #667085; }
+
+  /* ===== Block styles (sidebar: "Block style", ?blk=) =====
+     The problem: blocks run together, and done looks like waiting because both are green.
+     Shared fix in every style except A: a logged tick settles to a calm grey-green, the waiting tick keeps the bright green,
+     and a finished block says so in words. */
+  body:not([data-bstyle="a"]) .item.done .nm, body:not([data-bstyle="a"]) .tip.done .tt, body:not([data-bstyle="a"]) .mv-item.done .mv-nm { color: #98A2B3; }
+  body:not([data-bstyle="a"]) .item.done .nm span, body:not([data-bstyle="a"]) .tip.done .tdd { color: #B6BDC8; }
+  body:not([data-bstyle="a"]) .mv-item.done .mv-th { opacity: .55; }
+  body:not([data-bstyle="a"]) .blk[data-done="true"] .bhd .pg { filter: grayscale(1); opacity: .55; }
+  body:not([data-bstyle="a"]) .blk[data-done="true"] .bhd b { color: #667085; }
+
+  /* B. Cards: each block is its own white card with a hairline edge and a soft lift, spaced inside its part */
+  body[data-bstyle="b"] .part .prows > div { padding: 4px 10px 2px; }
+  body[data-bstyle="b"] .blk { margin-bottom: 10px; border: 1px solid #EAECF0; border-radius: 14px; background: #fff; overflow: hidden;
+    box-shadow: 0 1px 2px rgba(16,24,40,.04), 0 4px 10px -6px rgba(16,24,40,.10); }
+  body[data-bstyle="b"] .blk + .blk { border-top: 1px solid #EAECF0; }
+  body[data-bstyle="b"] .blk[data-done="true"] { box-shadow: none; }
+  /* C. Pillar rail: one thin rule in the pillar's colour down the block's left edge, a faint tint behind its header */
+  body[data-bstyle="c"] .blk { position: relative; }
+  body[data-bstyle="c"] .blk::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: var(--rail); }
+  body[data-bstyle="c"] .blk[data-p="eat"] { --rail: #79CCA8; --tint: #F3FCF8; }
+  body[data-bstyle="c"] .blk[data-p="move"] { --rail: #8098F9; --tint: #F5F8FF; }
+  body[data-bstyle="c"] .blk[data-p="mind"] { --rail: #E7C144; --tint: #FFFDF5; }
+  body[data-bstyle="c"] .blk .bhd { background: var(--tint); }
+  body[data-bstyle="c"] .blk + .blk { border-top: 6px solid #F9FAFB; }
+  body[data-bstyle="c"] .blk[data-done="true"]::before { background: #D0D5DD; }
+
+  /* D. Spaced headings: no lines at all; blocks separated by air and a small uppercase heading, done blocks fold to one line */
+  body[data-bstyle="d"] .blk { border-top: 0; }
+  body[data-bstyle="d"] .blk + .blk { margin-top: 6px; }
+  body[data-bstyle="d"] .bhd { padding: 14px 14px 6px; }
+  body[data-bstyle="d"] .bhd .pg { width: 20px; height: 20px; }
+  body[data-bstyle="d"] .bhd b { font-size: 12px; line-height: 16px; letter-spacing: .8px; text-transform: uppercase; color: #475467; }
+  body[data-bstyle="d"] .bin .lab:first-child { display: none; }
+  body[data-bstyle="d"] .blk[data-done="true"] .bbody { grid-template-rows: 0fr; }
+  body[data-bstyle="d"] .blk[data-done="true"][data-open="true"] .bbody { grid-template-rows: 1fr; }
+
+  /* E. Done badge: same layout as now, but a finished block wears a clear grey "Done" pill with a check, and its body folds */
+  body[data-bstyle="e"] .blk + .blk { border-top: 1px solid #EAECF0; }
+  body[data-bstyle="e"] .blk[data-done="true"] .bc.full, body[data-bstyle="e"] .blk[data-done="true"] .bc { padding: 2px 10px 2px 8px; border-radius: 999px; background: #F2F4F7; color: #475467; font-weight: 600; }
+  body[data-bstyle="e"] .blk[data-done="true"] .bc::before { content: "✓ "; color: #039855; }
+  body[data-bstyle="e"] .blk[data-done="true"]:not([data-open="manual"]) .bbody { grid-template-rows: 0fr; }
+  /* the meal's name under the Eat heading, as Move and Mind carry theirs */
+  /* folded, the Eat heading names its meal; open, the meal name sits under it instead */
+  .bhd b .meal { font-weight: 500; color: #667085; }
+  .blk[data-open="true"] .bhd b .meal { display: none; }
+  .mname { display: flex; align-items: baseline; gap: 8px; margin: 2px 0 10px; font-size: 15px; line-height: 20px; font-weight: 600; color: #101828; }
+  .mname span { font-size: 12px; font-weight: 400; color: #667085; }
+
+  /* Ask KAIRA on tips (Eat's chip: square top left, indigo to teal hairline) */
+  .askk { position: relative; display: inline-flex; align-items: center; gap: 5px; vertical-align: middle; margin-left: 8px; height: 24px; padding: 0 9px 0 6px;
+    font-size: 11.5px; font-weight: 600; letter-spacing: .3px; color: #3538CD; border: 1px solid transparent; border-radius: 0 999px 999px 999px; cursor: pointer;
+    background: linear-gradient(180deg, #F5F8FF, #fff 70%) padding-box, linear-gradient(100deg, #444CE7, #44E7E7) border-box; transition: transform .22s var(--glide), box-shadow .3s var(--glide); }
+  .askk::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+  .askk:active { transform: scale(.97); }
+  .pts h4.kt { display: flex; align-items: center; gap: 8px; font-size: 17px; }
+  .kchat { display: flex; flex-direction: column; gap: 12px; padding: 12px 0 8px; min-height: 40vh; }
+  .kme { align-self: flex-end; max-width: 86%; padding: 10px 14px; border-radius: 16px 16px 4px 16px; background: #F2F4F7; font-size: 14px; line-height: 20px; color: #101828; }
+  .krow { display: flex; gap: 8px; align-items: flex-start; animation: ptIn .4s var(--glide) both; }
+  .kgut { width: 22px; flex-shrink: 0; }
+  .kbub { max-width: 86%; padding: 10px 14px; border-radius: 4px 16px 16px 16px; background: linear-gradient(180deg, #F5F8FF, #fff); border: 1px solid #E0EAFF; font-size: 14px; line-height: 21px; color: #1D2939; }
+  .kdots { display: inline-flex; gap: 4px; } .kdots i { width: 6px; height: 6px; border-radius: 50%; background: #8098F9; animation: kd 1s infinite ease-in-out; }
+  .kdots i:nth-child(2) { animation-delay: .15s; } .kdots i:nth-child(3) { animation-delay: .3s; }
+  @keyframes kd { 0%, 80%, 100% { opacity: .3; } 40% { opacity: 1; } }
+
+  /* locked card variants: same three rows as a scored card */
+  .vStrip .s.m-lock { background: #fff; }
+  .vStrip .lrow { display: flex; align-items: center; gap: 6px; height: 26px; margin-top: 4px; }
+  .vStrip .lkl.i26 { width: 30px; height: 30px; margin: -2px 0 -2px -4px; }
+  .vStrip .lkl.i22 { width: 24px; height: 24px; margin: 0; }
+  .vStrip .lkl.i16 { width: 16px; height: 16px; margin: 0; flex-shrink: 0; }
+  .vStrip .lw { font-size: 15px; font-weight: 700; color: #475467; }
+  .vStrip .lw2 { font-size: 17px; font-weight: 700; color: #475467; letter-spacing: -.1px; }
+  .vStrip .pct.gh { margin-top: 0; opacity: .35; }
+  .vStrip .s.m-lock .sub.two { white-space: normal; font-size: 11.5px; line-height: 14px; }
+  .vStrip .lchip { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 8px 0 5px; border-radius: 999px; background: #F2F4F7;
+    font-size: 11px; font-weight: 600; color: #475467; white-space: nowrap; }
+  .vStrip .s.m-lock .lrow + .sub { margin-top: 0; font-size: 11.5px; line-height: 14px; }
+
+  /* ===== free user (no program, no device) ===== */
+  body[data-user="free"] [data-sec="program"], body[data-user="free"] [data-sec="refer"] { display: none !important; }
+  body[data-user="free"][data-tab="prog"] main.scroll { padding-top: 14px; }
+  body[data-user="free"] .td { padding-top: 14px; }
+  /* free: Explore GoodFlip leads the Program tab, above the locked Metabolic Score */
+  body[data-user="free"] [data-sec="explore"] { order: -1; margin-top: 0 !important; }
+  .msf, .mslock { display: none; }
+  body[data-user="free"] .ms .mst, body[data-user="free"] .ms .msb, body[data-user="free"] .ms .msv { display: none; }
+  body[data-user="free"] .ms .msf { display: block; font-size: 13px; line-height: 18px; color: #5A6774; }
+  body[data-user="free"] .ms .mslock { display: block; position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; transform: translate(-50%, -42%); }
+  /* Today for free: the hero and three plain doors into Eat, Move and Mind; no scores, no locks, no to-do */
+  body[data-user="free"] .td .dayhd, body[data-user="free"] .td .part, body[data-user="free"] .td .empty { display: none; }
+  .vStrip .s.m-free .fl { margin-top: 6px; font-size: 13px; line-height: 17px; font-weight: 500; color: #475467; }
+
+  #trk { display: flex; flex-direction: column; gap: 4px; margin-top: 16px; }
+  .lifted { display: block; }
+  /* (old compact copies, unused) */
+  .trk2 { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+  .tcard { border: 1px solid #EAECF0; border-radius: 16px; background: #fff; padding: 14px 14px 0; overflow: hidden; }
+  .tcard .th { display: flex; align-items: center; gap: 12px; }
+  .tcard .tp { width: 40px; height: 40px; object-fit: contain; flex-shrink: 0; }
+  .tcard .tpi { display: grid; place-items: center; border-radius: 12px; background: #EEF4FF; }
+  .tcard .tpi img { width: 22px; height: 22px; filter: invert(27%) sepia(83%) saturate(3200%) hue-rotate(232deg) brightness(92%); }
+  .tcard .tt2 { flex: 1; min-width: 0; }
+  .tcard .ey { display: block; font-size: 12px; line-height: 16px; color: #667085; }
+  .tcard b { display: block; font-size: 16px; line-height: 22px; font-weight: 700; color: #101828; }
+  .tcard b.big { font-size: 22px; line-height: 28px; }
+  .tcard .sl b.big, .tcard.sl b.big { color: #826E2D; }
+  .tcard.st b.big { color: #2D31A6; }
+  .tcard b small { font-size: 13px; font-weight: 400; color: #667085; }
+  .tcard .tl { display: flex; gap: 16px; margin-top: 10px; font-size: 13px; color: #475467; }
+  .tcard .tl span { display: inline-flex; align-items: center; gap: 5px; }
+  .tcard .tl b { display: inline; font-size: 13px; line-height: inherit; }
+  .tcard .tl img { width: 16px; height: 16px; }
+  .sbar { position: relative; height: 10px; margin-top: 12px; border-radius: 6px; background: #F2F4F7; }
+  .sbar .win { position: absolute; left: 17.9%; width: 53.6%; top: -3px; bottom: -3px; border-radius: 8px; background: #EEF4FF; border: 1px dashed #C7D7FE; }
+  .sbar .nt { position: absolute; left: 20.2%; width: 52.4%; top: 0; bottom: 0; border-radius: 6px; background: linear-gradient(90deg, #E7C144, #826E2D); }
+  .axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: #98A2B3; }
+  .tcard .tbtn { width: 100%; height: 44px; margin-top: 12px; border-radius: 10px; background: #299D6B; color: #fff; font-weight: 700; font-size: 15px; box-shadow: 0 4px 0 #2A805A; }
+  .tcard .tlog { flex-shrink: 0; font-size: 14px; font-weight: 600; color: #299D6B; }
+  .tcard .tline { margin: 8px 0 0; font-size: 13px; line-height: 18px; color: #475467; }
+  .tcard .tline b { display: inline; font-size: 13px; line-height: inherit; }
+  .pbar { height: 6px; margin-top: 10px; border-radius: 3px; background: #E0EAFF; overflow: hidden; }
+  .pbar i { display: block; height: 100%; border-radius: 3px; background: linear-gradient(90deg, #8098F9, #444CE7); }
+  .hrs { display: flex; align-items: flex-end; gap: 3px; height: 48px; margin-top: 12px; }
+  .hrs i { flex: 1; border-radius: 2px; background: #A4BCFD; }
+  .hrs i.fut { background: #EAECF0; }
+  .tcard .tstrip { display: flex; align-items: center; gap: 8px; width: calc(100% + 28px); margin: 12px -14px 0; padding: 10px 14px; border-top: 1px solid #F2F4F7; background: #FCFCFD; font-size: 13px; font-weight: 500; color: #344054; text-align: left; }
+  .tcard .tstrip img { width: 20px; height: 20px; border-radius: 6px; box-shadow: 0 0 0 1px #EAECF0; }
+  .tcard .tstrip .mg, .tcard .tstrip .cv { margin-left: auto; color: #299D6B; font-weight: 600; }
+  .tcard .tstrip .ts { margin-left: auto; color: #667085; font-weight: 400; font-size: 12px; }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="col">
+
+  <header class="top">
+    <div class="l">
+      <button class="ib" aria-label="Menu"><svg viewBox="0 0 20 20" fill="none"><path d="M2.294 15H17.71a.625.625 0 0 1 .085 1.244l-.085.006H2.294a.625.625 0 0 1-.085-1.245L2.294 15H17.71 2.294Zm0-5.414H17.71a.625.625 0 0 1 .085 1.244l-.085.006H2.294a.625.625 0 0 1-.085-1.245l.085-.005H17.71 2.294Zm0-5.417H17.71a.625.625 0 0 1 .085 1.244l-.085.006H2.293a.625.625 0 0 1-.085-1.244l.085-.006H17.71 2.293Z" fill="#101828"/></svg></button>
+      <button class="coins" aria-label="172 Flipcoins"><img src="../home-new/a/flicoin-icon.png" alt=""><span>172 Flipcoins</span></button>
+    </div>
+    <div class="r">
+      <button class="ib" aria-label="Chat"><svg viewBox="0 0 20 20" fill="none"><path d="M9.99984 1.6665C14.6022 1.6665 18.3332 5.39746 18.3332 9.99984C18.3332 14.6022 14.6022 18.3332 9.99984 18.3332C8.65126 18.3332 7.34802 18.012 6.17722 17.4065L2.98904 18.296C2.43494 18.4507 1.86032 18.1269 1.70559 17.5728C1.65439 17.3895 1.65442 17.1956 1.70563 17.0124L2.59535 13.8267C1.98848 12.6548 1.6665 11.3501 1.6665 9.99984C1.6665 5.39746 5.39746 1.6665 9.99984 1.6665ZM9.99984 2.9165C6.08782 2.9165 2.9165 6.08782 2.9165 9.99984C2.9165 11.2245 3.22715 12.4027 3.8107 13.4477L3.93623 13.6725L3.00897 16.9927L6.33113 16.0659L6.55574 16.1911C7.59988 16.7733 8.77666 17.0832 9.99984 17.0832C13.9119 17.0832 17.0832 13.9119 17.0832 9.99984C17.0832 6.08782 13.9119 2.9165 9.99984 2.9165ZM7.2915 10.8332H11.0401C11.3852 10.8332 11.6651 11.113 11.6651 11.4582C11.6651 11.7746 11.4299 12.0361 11.1249 12.0775L11.0401 12.0832H7.2915C6.94633 12.0832 6.6665 11.8033 6.6665 11.4582C6.6665 11.1418 6.90163 10.8803 7.2067 10.8389L7.2915 10.8332ZM7.2915 7.9165H12.7119C13.0571 7.9165 13.3369 8.19633 13.3369 8.5415C13.3369 8.85792 13.1018 9.11941 12.7967 9.1608L12.7119 9.1665H7.2915C6.94633 9.1665 6.6665 8.88668 6.6665 8.5415C6.6665 8.22509 6.90163 7.96359 7.2067 7.92221L7.2915 7.9165Z" fill="#101828"/></svg></button>
+      <button class="ib" aria-label="Notifications"><svg viewBox="0 0 20 20" fill="none"><path d="M10 1.664a6.242 6.242 0 0 1 6.247 6.04l.003.21v3.414l1.15 2.63a1.042 1.042 0 0 1-.954 1.459l-3.946.001a2.5 2.5 0 0 1-4.996.147l-.004-.149H3.562a1.041 1.041 0 0 1-.955-1.456l1.143-2.632V7.913A6.24 6.24 0 0 1 10 1.663Zm1.25 13.752-2.5.002a1.25 1.25 0 0 0 2.494.12l.006-.122ZM10 2.914a4.99 4.99 0 0 0-5 5v3.674l-1.12 2.579h12.247L15 11.589V7.924l-.003-.187A4.99 4.99 0 0 0 10 2.914Z" fill="#101828"/></svg></button>
+      <button class="ib" aria-label="Profile"><svg viewBox="0 0 20 20" fill="none"><path d="M14.795 11.666c1.035 0 1.874.84 1.874 1.875v.48c0 .744-.266 1.465-.75 2.031C14.61 17.58 12.62 18.334 10 18.334c-2.622 0-4.61-.754-5.915-2.283a3.125 3.125 0 0 1-.749-2.029v-.481c0-1.036.84-1.875 1.874-1.875h9.585Zm0 1.25H5.21a.624.624 0 0 0-.624.625v.481c0 .446.16.878.45 1.217C6.08 16.463 7.717 17.084 10 17.084c2.282 0 3.922-.621 4.969-1.845.29-.34.45-.772.45-1.219v-.48a.624.624 0 0 0-.624-.623ZM10 1.67a4.167 4.167 0 1 1 0 8.334 4.167 4.167 0 0 1 0-8.334Zm0 1.25a2.917 2.917 0 1 0 0 5.834 2.917 2.917 0 0 0 0-5.834Z" fill="#101828"/></svg></button>
+    </div>
+  </header>
+
+  <!-- NEW header: greeting and the three status folders (hidden in ?ver=old) -->
+  <section class="hb" data-label="Top nav">
+    <i class="hbl" data-l="today"></i><i class="hbl" data-l="prog"></i><i class="hbl" data-l="dev"></i>
+    <p class="hello"><small>Good afternoon</small>Md Shaheer</p>
+    <div class="folders" role="tablist" id="folders" data-i="0">
+      <span class="lens"></span>
+      <!-- ponytail: Today uses the Movement pictogram until the set has a "today" one -->
+      <button class="fold" role="tab" data-go="today" aria-selected="true"><span class="pic"><img id="todayPic" src="a/pic-today-2.png" alt=""></span><span class="tx"><b>Today</b><span class="st">&nbsp;</span></span></button>
+      <button class="fold" role="tab" data-go="prog" aria-selected="false"><span class="pic"><img src="a/pic-care-programs.png" alt=""></span><span class="tx"><b>Program</b><span class="st">Week 6</span></span></button>
+      <button class="fold" role="tab" data-go="dev" aria-selected="false"><span class="pic"><img src="a/pic-devices.png" alt=""></span><span class="tx"><b>Devices</b><span class="st"><i class="dot"></i>Synced</span></span></button>
+    </div>
+  </section>
+
+  <main class="scroll">
+    <!-- Today: plans, then the day's to-do in four parts. Built from DAY in the script below. ?now=8|13|15.67|19|22.5 sets the clock -->
+    <section class="td" data-in="today" data-sec="todo" data-label="Today's to-do" id="todo"></section>
+    <section class="band" data-in="today prog" data-sec="program" data-label="Greeting and program">
+      <p class="hi" data-sub="greeting" data-label="Greeting">Hi Md Shaheer</p>
+      <!-- Chips and cards move together: tap a chip and the rail scrolls to its card, swipe the rail and the chip follows -->
+      <div class="chips" role="tablist" id="chips">
+        <button class="chip" role="tab" data-to="program" aria-selected="true">Your Program</button>
+        <button class="chip" role="tab" data-to="consult" aria-selected="false">Upcoming Consultations</button>
+        <button class="chip" role="tab" data-to="live" aria-selected="false">Live Sessions</button>
+      </div>
+      <div class="rail" id="rail">
+        <button class="pc" data-card="program" aria-label="Diabetes Management, active">
+          <img class="leaf" src="../home-new/a/leaf-bg.svg" alt="">
+          <div class="body">
+            <div class="st"><i></i><b>Active</b><img src="../home-new/a/nav-arrow.svg" alt=""></div>
+            <!-- program.logo, from the GoodFlip Design System in Figma (6599:12342) -->
+            <img class="logo" src="../home-new/a/program-diabetes.png" alt="Diabetes Management">
+            <div class="sub">GoodFlip Lite 3 Months - Diabetes Care</div>
+          </div>
+          <div class="foot"><span>Md Shaheer</span><img src="../home-new/a/gf-logo-silver-3x.png" alt=""></div>
+        </button>
+        <button class="pc sec" data-card="consult" aria-label="No upcoming sessions. Book your session now">
+          <img class="peacock" src="../home-new/a/peacock.svg" alt="">
+          <div class="avs"><img src="../home-new/a/coach-1.jpg" alt=""><img src="../home-new/a/coach-4.jpg" alt=""><img src="../home-new/a/coach-2.jpg" alt=""></div>
+          <h4>No upcoming sessions</h4>
+          <p>It is recommended to connect with your coaches every 15 days for your assessments.</p>
+          <span class="go">Book Your Session Now <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2.5 7h9m-3.5-3.5L11.5 7 8 10.5" stroke="#fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </button>
+        <!-- ponytail: Live Sessions card left blank until its design lands -->
+        <div class="pc sec" data-card="live" aria-label="Live Sessions"></div>
+      </div>
+      <div class="refer" data-sub="refer" data-label="Refer a friend">
+        <span>Refer a friend. Get up to 15% cashback as FlipCoins</span>
+        <button><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 12 12 4M5.5 4H12v6.5" stroke="#299D6B" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Share</button>
+      </div>
+    </section>
+
+    <section class="block" data-in="today dev" data-sec="devices" data-label="Smart Devices">
+      <h2 class="sec-t">Smart Devices<small id="devCount"></small></h2>
+      <!-- Today shows one tabbed card; the Devices tab of the New top nav shows one card per device, stacked (#devStack).
+           Built from DEVICES in the script below. Default: nothing connected. Flags: ?bca=on, ?ring=sync|off|nodata, ?bpm=new|on|nodata -->
+      <div class="skin dev mx" id="dev"><div class="dtabs" role="tablist"></div><div id="devPane"></div></div>
+      <div class="dstack" id="devStack"></div>
+    </section>
+
+    <section class="block" data-in="today prog" data-sec="refer" data-label="Refer and earn">
+      <!-- The design system's action card (gold accent: FlipCoins), made bigger: wallet on the left, the ask and a wide Invite on the right -->
+      <button class="ref" aria-label="Refer and earn: bring your loved ones">
+        <img class="wallet" src="a/pic-flipcoin-wallet.png" alt="">
+        <div class="tx">
+          <b>Bring your loved ones</b>
+          <span>Get up to 15% back as FlipCoins</span>
+        </div>
+        <img class="go" src="../home-new/a/nav-arrow.svg" alt="">
+      </button>
+    </section>
+    <section class="block" data-in="today prog" data-sec="score" data-label="Your Metabolic Score">
+      <h2 class="sec-t">Your Metabolic Score</h2>
+      <button class="ms" aria-label="Your metabolic score is 219, high metabolic risk">
+        <video src="../home-new/a/metabolicIcon.mp4" autoplay muted loop playsinline></video>
+        <div class="t"><span class="mst">Your score indicates</span><b class="msb">high metabolic risk</b><span class="msf">Take your first test to see where you stand</span></div>
+        <div class="ring"><img src="../home-new/a/outerFrame.webp" alt=""><b class="msv">219</b><span class="mslock" data-mslock aria-hidden="true"></span></div>
+        <img class="arr" src="../home-new/a/nav-arrow.svg" alt="">
+      </button>
+    </section>
+
+    <section class="block" data-in="today prog" data-sec="services" data-label="GoodFlip Services">
+      <h2 class="sec-t">GoodFlip Services</h2>
+      <div class="svc">
+        <button class="tile"><span class="box"><img src="../home-new/a/Care-programs.png" alt=""></span>Care Program</button>
+        <button class="tile"><span class="box"><img src="../home-new/a/Lab-tests.png" alt=""></span>Book Lab Test</button>
+        <button class="tile"><span class="box"><img src="../home-new/a/Shop-products.png" alt=""></span>Shop Products</button>
+        <button class="tile"><span class="box"><img src="../home-new/a/service-smart-devices.png" alt=""></span>Smart Devices</button>
+      </div>
+      <!-- New: two wide design-system action cards side by side, no captions: the text inside says what each is -->
+      <div class="svc2">
+        <button class="ac wide" aria-label="Shop Products"><span class="sq"><img src="../home-new/a/Shop-products.png" alt=""><span class="tx" id="shopTx">The GoodFlip store</span></span></button>
+        <button class="ac wide" aria-label="Book Lab Tests"><span class="sq"><img src="../home-new/a/Lab-tests.png" alt=""><span class="tx">Get lab tests at upto <span class="nw">50% <i class="badge">OFF</i></span></span></span></button>
+      </div>
+    </section>
+
+    <section class="block" data-sec="trackers" data-label="Your Health Trackers">
+      <h2 class="sec-t">Your Health Trackers</h2>
+      <div class="trk">
+        <button class="skin tc mx" style="text-align:left">
+          <div class="th"><img src="../home-new/a/Nutrition.svg" alt="">Nutrition<span class="end"><img src="../home-new/a/flicoin-icon.png" alt=""><img src="../home-new/a/nav-arrow.svg" alt=""></span></div>
+          <div><div class="lbl">Calories</div><div class="val">0 Cal</div></div>
+          <div class="macros">
+            <div class="mac"><div class="k"><img src="../home-new/a/Protein.svg" alt="">Protein</div><div class="v">--g</div></div>
+            <div class="mac"><div class="k"><img src="../home-new/a/Fats.svg" alt="">Fat</div><div class="v">--g</div></div>
+            <div class="mac"><div class="k"><img src="../home-new/a/Carbs.svg" alt="">Carbs</div><div class="v">--g</div></div>
+          </div>
+          <div class="dash"></div>
+          <div class="logrow"><img src="../home-new/a/kaira.svg" alt=""><span>Log meals:</span>
+            <span class="kb snap"><img src="../home-new/a/camera.svg" alt="">Snap</span>
+            <span class="kb voice"><img src="../home-new/a/mic.svg" alt="">Voice</span>
+          </div>
+        </button>
+        <button class="skin tc mx" style="text-align:left">
+          <div class="th"><img src="../home-new/a/physical-activity.svg" alt="">Physical Activity<span class="end"><img src="../home-new/a/flicoin-icon.png" alt=""><img src="../home-new/a/nav-arrow.svg" alt=""></span></div>
+          <div class="dual">
+            <div><div class="lbl">Calories Burned</div><div class="val">89 cal</div></div>
+            <div class="r"><div class="lbl">Time</div><div class="v2">10 mins</div></div>
+          </div>
+        </button>
+        <div class="more">More Trackers<i></i></div>
+        <div class="pills">
+          <button class="skin pill"><span class="in"><img src="../home-new/a/Sleep.svg" alt=""><span class="nm">Sleep</span><span class="dd">--</span></span><span class="fc"><img src="../home-new/a/flicoin-icon.png" alt=""></span></button>
+          <button class="skin pill"><span class="in"><img src="../home-new/a/Steps.svg" alt=""><span class="nm">Steps</span><span class="num">559<small>steps</small></span></span><span class="fc"><img src="../home-new/a/flicoin-icon.png" alt=""></span></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="sym" data-sec="symptoms" data-label="Track your symptoms">
+      <h3>Track your symptoms</h3>
+      <p>Please <b>log any symptoms you feel</b> so your doctor and care team can review them and support you better.</p>
+      <div class="row"><img src="../home-new/a/symptom-home.webp" alt=""><div><b>How are you feeling today?</b><span>Keep a track of your symptoms with this logger</span></div></div>
+      <button class="btn">Log Your Symptoms</button>
+    </section>
+
+    <section class="block" style="margin-top:16px" data-in="today prog" data-sec="explore" data-label="Explore GoodFlip">
+      <h2 class="sec-t">Explore GoodFlip</h2>
+      <div class="ex" id="ex">
+        <!-- ponytail: the app's banners come from the server; these are the design system's four until the live set is exported -->
+        <div class="bn"><img src="../home-new/a/Kickstarter-banner.png" alt="Metabolic Kickstarter"></div>
+        <div class="bn"><img src="../home-new/a/Live-sessions-banner.png" alt="Live sessions"></div>
+        <div class="bn"><img src="../home-new/a/Cgm-banner.png" alt="CGM"></div>
+        <div class="bn"><img src="../home-new/a/Lab-tests-banner.png" alt="Lab tests"></div>
+        <div class="bn"><img src="../home-new/a/Bca-banner.png" alt="Body composition analysis"></div>
+      </div>
+      <div class="dots" id="dots"></div>
+    </section>
+
+    <div class="disc" data-sec="disclaimer" data-label="Disclaimer"><hr><p>GoodFlip does not provide medical advice or treatment. It supports healthier lifestyle habits, device-based tracking, and helps you connect with healthcare professionals when needed.</p></div>
+  </main>
+
+  <!-- More (New bottom nav): everything that left the bar, one row each. Shown by the More tab or ?page=more -->
+  <section class="morepg" id="more" aria-label="More">
+    <h1>More</h1>
+    <p class="intro">Find everything we have for you.</p>
+    <div class="mrows">
+      <button class="mrow"><span class="mt"><b>Records</b><span>Store your health records with GoodFlip security.</span></span><span class="mtile"><i>4 records stored</i><img src="../home-new/a/nav-arrow.svg" alt=""></span></button>
+      <button class="mrow"><span class="mt"><b>Track Your Symptoms</b><span>Log how you feel so your doctor and care team can support you.</span></span><span class="mtile"><i>Log symptoms</i><img src="../home-new/a/nav-arrow.svg" alt=""></span></button>
+      <button class="mrow"><span class="mt"><b>Virtual Health Scan</b><span>Scan your face and get 21 vital signs in seconds.</span></span><span class="mtile"><i>Scan now</i><img src="../home-new/a/nav-arrow.svg" alt=""></span></button>
+      <button class="mrow"><span class="mt"><b>AI Lab Reports</b><span>Understand your lab reports using KAIRA AI.</span></span><span class="mtile"><i>Upload report</i><img src="../home-new/a/nav-arrow.svg" alt=""></span></button>
+      <button class="mrow"><span class="mt"><b>ABHA Account</b><span>Access your digital health records easily.</span></span><span class="mtile"><i>Powered by ABHA</i><img src="../home-new/a/nav-arrow.svg" alt=""></span></button>
+    </div>
+  </section>
+
+  <nav class="tabs">
+    <button class="tab" aria-current="page"><img class="on" src="../home-new/a/tab-home-filled.svg" alt=""><img class="off" src="../home-new/a/tab-home-outlined.svg" alt="">Home</button>
+    <button class="tab" data-only="old"><img class="on" src="../home-new/a/tab-careprogram-filled.svg" alt=""><img class="off" src="../home-new/a/tab-careprogram-outlined.svg" alt="">Programs</button>
+    <button class="tab"><img class="on" src="../home-new/a/tab-progress-filled.svg" alt=""><img class="off" src="../home-new/a/tab-progress-outlined.svg" alt="">Progress</button>
+    <button class="tab"><img class="on" src="../home-new/a/tab-flipfeed-filled.svg" alt=""><img class="off" src="../home-new/a/tab-flipfeed-outlined.svg" alt="">FlipFeed</button>
+    <button class="tab" data-only="old"><img class="on" src="../home-new/a/tab-records-filled.svg" alt=""><img class="off" src="../home-new/a/tab-records-outlined.svg" alt="">Records</button>
+    <button class="tab" data-only="new" data-page="more"><img class="on" src="a/tab-more-filled.svg" alt=""><img class="off" src="a/tab-more-outlined.svg" alt="">More</button>
+  </nav>
+  <!-- the logging layer (bar, sheets, toast) is built by the to-do script, as the pillars' plan-tray does -->
+  <link rel="stylesheet" href="../v7/icons/glyph-masks.css">
+  <!-- KAIRA's launcher as the live app draws it (v7/r3/assets/kaira.js, transcribed from app.goodflip.in) -->
+  <div class="fab" data-sub="kaira" data-label="KAIRA button" id="kfab"></div>
+  <script src="../v7/r3/assets/kaira.js"></script>
+  <script>document.getElementById('kfab').innerHTML = GFKaira.fab('Ask KAIRA');</script>
+</div>
+
+<script>
+/* The lab engine. The screen describes itself here, and lab.html (the panel beside the phone) reads it,
+   so a new section or variation only has to be added in this file to show up in the panel.
+   Everything is driven by the URL, so any arrangement is a link:
+     ?order=devices,program,...  section order (unlisted ones keep their place after the listed)
+     ?off=score,refer            sections or parts to hide
+     plus each variation's own key below (dev, ...) */
+window.LAB = {
+  sections: [...document.querySelectorAll('[data-sec]')].map(e => ({ id: e.dataset.sec, label: e.dataset.label })),
+  parts: [...document.querySelectorAll('[data-sub]')].map(e => ({ id: e.dataset.sub, label: e.dataset.label })),
+  // Who the screen is for. Read by the panel; the screen starts reacting to it once each case is designed.
+  //   ?prog=diabetes|pcos|weightloss|liver (none: no care program)   ?devs=bca,cgm,ring   ?plans=eat,move,mind
+  user: {
+    programs: [['diabetes', 'Diabetes'], ['pcos', 'PCOS'], ['weightloss', 'Weight loss'], ['liver', 'Fatty liver']],
+    devices: [['bca', 'BCA', '../home-new/a/dev-bca.png'], ['cgm', 'CGM', '../home-new/a/dev-cgm.png'], ['ring', 'Ring', '../home-new/a/dev-ring.png']],
+    plans: [['eat', 'Eat'], ['move', 'Move'], ['mind', 'Mind']],
+  },
+  variations: [
+    { key: 'lockv', label: 'Locked pillar card', choices: [
+      ['', 'A. Locked, after consultation (default)'], ['lockv=b', 'B. Unlocks, after consultation'], ['lockv=c', 'C. Faded --% with padlock'],
+      ['lockv=d', 'D. Locked chip'], ['lockv=e', 'E. Padlock, then the line'] ] },
+    { key: 'blk', label: 'Block style (Today)', choices: [
+      ['blk=a', 'A. As it was'], ['', 'B. Cards (default)'], ['blk=c', 'C. Pillar rail'], ['blk=d', 'D. Spaced headings'], ['blk=e', 'E. Done badge'] ] },
+    { key: 'now', label: 'Time of day (Today)', choices: [
+      ['now=8', '8:00 AM'], ['', '9:00 AM (default)'], ['now=13', '1:00 PM'], ['now=15.67', '3:40 PM'], ['now=19', '7:00 PM'], ['now=22.5', '10:30 PM'] ] },
+    { key: 'navs', label: 'Top nav style (New)', choices: [
+      ['', 'A. Tinted folders, colour per tab'], ['navs=b', 'B. One green band'], ['navs=c', 'C. Floating cards'],
+      ['navs=d', 'D. Green hero'], ['navs=e', 'E. Tall folders'] ] },
+    { key: 'dev', label: 'Smart Devices state', choices: [
+      ['', 'BCA not connected (default)'], ['bca=on', 'BCA connected'],
+      ['ring=sync', 'Ring syncing'], ['ring=off', 'Ring disconnected'], ['ring=nodata', 'Ring, no data'],
+      ['bpm=new', 'BP monitor, not connected'], ['bpm=on', 'BP monitor connected'], ['bpm=nodata', 'BP monitor, no data'] ] },
+  ],
+};
+(() => {
+  const q = new URLSearchParams(location.search), main = document.querySelector('main.scroll');
+  const order = (q.get('order') || '').split(',').filter(Boolean);
+  order.slice().reverse().forEach(id => { const el = main.querySelector(`:scope > [data-sec="${id}"]`); if (el) main.prepend(el); });
+  document.body.dataset.bstyle = ['a', 'b', 'c', 'd', 'e'].includes(q.get('blk')) ? q.get('blk') : 'b';
+  const FREE = q.get('prog') === 'none' && !(q.get('devs') || '');
+  document.body.dataset.user = FREE ? 'free' : 'member';
+  document.body.dataset.ver = q.get('ver') === 'old' ? 'old' : 'new';
+  document.body.dataset.navs = ['a', 'b', 'c', 'd', 'e'].includes(q.get('navs')) ? q.get('navs') : 'a';
+  document.body.dataset.tab = ['today', 'prog', 'dev'].includes(q.get('tab')) ? q.get('tab') : 'today';
+  (q.get('off') || '').split(',').filter(Boolean).forEach(id => document.querySelectorAll(`[data-sec="${id}"],[data-sub="${id}"]`).forEach(el => el.hidden = true));
+})();
+</script>
+<script>
+// Today's to-do. One set of windows for every pillar (Morning 6 to 12, Afternoon 12 to 4, Evening 4 to 8, Night 8 on).
+// Each part holds the day's blocks in time order: every meal, the part's Move plan, the part's Mind plan, folded to one line.
+// Open, a block is its pillar's own card body, and every interaction is the pillar's own, copied from:
+//   Eat  v7/r3/eat.html + assets/plan-tray.js   (option chips, food ticks, tips, float bar, review sheet, wheel, future rule)
+//   Move move/plan.js + move/tray.js             (exercise rows, small moves, "Workouts to log", undo sheets)
+//   Mind v7/mind/layouts.js + tray.js + mood.js   (plan rows with time, mood sheet, "Mark as not done" menus)
+// Ticks wait in one bar and log together; the win moment and the FlipCoin toast are the pillars' own files.
+(() => {
+  const q = new URLSearchParams(location.search), root = document.getElementById('todo'); if (!root) return;
+  const now = parseFloat(q.get('now') || '9'), NOWM = Math.round(now * 60);
+  const FREE = q.get('prog') === 'none';
+  const plans = FREE ? new Set() : q.has('plans') ? new Set(q.get('plans').split(',').filter(Boolean)) : new Set(['eat', 'move', 'mind']);
+  const PIC = { eat: 'a/pic-nutrition.png', move: 'a/pic-movement.png', mind: 'a/pic-mind.png' };
+  const R = '../v7/r3/assets/';
+  const SVG = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  const I = {
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M20 6L9 17l-5-5"/></svg>',
+    checkC: SVG('<path d="M20 6L9 17l-5-5"/>', 3.2), chev: SVG('<path d="m9 6 6 6-6 6"/>'), x: SVG('<path d="M6 6l12 12M18 6 6 18"/>', 2.2),
+    play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>',
+    clock: SVG('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'), minus: SVG('<path d="M5 12h14"/>', 2.2), plus: SVG('<path d="M12 5v14M5 12h14"/>', 2.2),
+    bin: SVG('<path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>'), undo: SVG('<path d="M3 12a9 9 0 1 0 2.6-6.4M3 3v5h5"/>'),
+    pen: SVG('<path d="M4 20h4L19 9l-4-4L4 16z"/>'), warn: SVG('<path d="M12 3 2 20h20zM12 10v4M12 17.5v.01"/>'),
+    quote: '<svg class="vm-q" viewBox="0 0 32 32" fill="currentColor"><path d="M6 18c0-6 4-10 9-11v4c-3 1-5 3-5 6h4v9H6zm12 0c0-6 4-10 9-11v4c-3 1-5 3-5 6h4v9h-8z"/></svg>',
+  };
+  const PARTS = [['morning', 'Morning', 6, 12, '6 AM to 12 PM'], ['afternoon', 'Afternoon', 12, 16, '12 PM to 4 PM'],
+                 ['evening', 'Evening', 16, 20, '4 PM to 8 PM'], ['night', 'Night', 20, 30, '8 PM onwards']];
+  const PNAME = Object.fromEntries(PARTS.map(([k, n]) => [k, n]));
+  const fmt = m => { m = ((m % 1440) + 1440) % 1440; const h = Math.floor(m / 60); return (h % 12 || 12) + ':' + String(m % 60).padStart(2, '0') + (h < 12 ? ' AM' : ' PM'); };
+  const f = (n, unit, k, pr, c, fa) => ({ n, unit, k, kc: Math.round((pr * 4 + c * 4 + fa * 9) * k) });
+
+  // ---------- the day (the pillar screens' own sample plans) ----------
+  const MEALS = [
+    { id: 'pre', name: 'Early morning', from: 360, to: 420, opts: [[f('Jeera water', '1 glass', 1, 0, .7, 0)], [f('Black tea with cinnamon', '1 cup', 1, 0, 2.5, 0)]],
+      tips: [['Drink warm methi seed water before breakfast', 'Soak a spoon of seeds overnight. Drink the water first thing.'],
+             ['Have your first glass of water before tea', 'It wakes your body up gently after the night.']] },
+    { id: 'bf', name: 'Breakfast', from: 480, to: 600, opts: [
+      [f('Boiled egg', '1 egg', 2, 6, 1, 5), f('Lauki oats besan chilla', '1 piece', 2, 3.5, 10, 2.5), f('Green chutney', '1 spoon', 2, 0, 1, 0), f('Curd', '1 katori', 1, 5, 7, 3)],
+      [f('Vegetable poha', '1 bowl', 1, 5, 42, 6), f('Curd', '1 katori', 1, 5, 7, 3), f('Boiled egg', '1 egg', 1, 6, 1, 5)],
+      [f('Idli', '1 piece', 2, 2, 13, .5), f('Sambar', '1 katori', 1, 4, 14, 3), f('Curd', '1 katori', 1, 5, 7, 3), f('Boiled egg', '1 egg', 1, 6, 1, 5)]] },
+    { id: 'lunch', name: 'Lunch', from: 780, to: 900, opts: [
+      [f('Dahi, low-fat', '1 bowl', 1, 9, 12, 3), f('Garden salad', '1 bowl', 1, 1, 3.5, 0), f('Vegetable quinoa pulao', '1 bowl', 1, 6, 28, 4), f('Rajma', '1 katori', 1, 9, 25, 3)],
+      [f('Roti', '1 piece', 2, 3, 15, 2), f('Mixed veg sabzi', '1 katori', 1, 3, 12, 6), f('Dal', '1 katori', 1, 9, 20, 4), f('Garden salad', '1 bowl', 1, 1, 3.5, 0)]] },
+    { id: 'snack', name: 'Evening snack', from: 1020, to: 1110, opts: [
+      [f('Roasted makhana', '1 bowl', 1, 3, 18, 1.5), f('Roasted chana', '1 handful', 1, 9, 27, 4)], [f('Roasted chana', '1 handful', 1, 9, 27, 4), f('Curd', '1 katori', 1, 5, 7, 3)]] },
+    { id: 'dinner', name: 'Dinner', from: 1200, to: 1290, opts: [
+      [f('Multigrain roti', '1 piece', 2, 2.5, 13, 2), f('Mixed veg sabzi', '1 katori', 1, 3, 12, 6), f('Dal', '1 katori', 1, 9, 20, 4), f('Garden salad', '1 bowl', 1, 1, 3.5, 0)],
+      [f('Dal khichdi', '1 bowl', 1, 8, 38, 6), f('Curd', '1 katori', 1, 5, 7, 3), f('Mixed veg sabzi', '1 katori', 1, 3, 12, 6), f('Garden salad', '1 bowl', 1, 1, 3.5, 0)]] },
+    { id: 'bed', name: 'Bedtime', from: 1320, to: 1380, opts: [[f('Walnut', '1 piece', 2, .6, .5, 2.6), f('Chamomile tea', '1 cup', 1, 0, .5, 0)]],
+      tips: [['Soak 5 almonds ready for tomorrow morning', 'In a small bowl of water, before bed. Peel them in the morning.']] },
+  ];
+  const EX = { box: ['Box breathing', 30], plank: ['Plank to push up', 25], spot: ['Spot jump', 20], coastal: ['Lateral costal breathing', 8], sideleg: ['Side leg raise', 10] };
+  const MOVE = {
+    morning: { from: 360, to: 720, ex: ['box', 'plank', 'spot', 'coastal', 'sideleg'],
+      sm: [['Take the stairs on your way to work', 'Skip the lift. A few flights keep your body working without a workout.'], ['Get off one stop early', 'Walk the last stretch to the office. It adds up to a few hundred steps.']] },
+    afternoon: { from: 720, to: 960, ex: [], sm: [['Stand and take your meetings', 'Standing on calls breaks a long sit and keeps you moving gently.']] },
+    evening: { from: 960, to: 1200, ex: ['plank'], sm: [['Take a short walk after dinner', '10 minutes on your feet after eating helps bring your blood sugar down.'], ['Stand up in every TV break', 'A minute on your feet between shows breaks a long evening sit.']] },
+  };
+  // Mind: [kind, title, subline, minutes of day, extra]
+  const MIND = {
+    morning: [['br', 'Simple Breathing', '5 min', 420, { pat: 'In 5, out 5', min: 5 }], ['me', 'Walk in nature or a park (20 to 30 min)', 'Time for yourself', 420], ['mood', 'Mood check-in', 'How are you feeling today?', 480]],
+    evening: [['wd', 'Last caffeine (tea, coffee or cola)', '', 960]],
+    night: [['mood', 'Mood check-in', 'How are you feeling today?', 1260], ['wd', 'Screen-free wind-down begins (60 min)', '', 1290], ['wd', 'Positive sleep association: prepare the room, dark and at a comfortable temperature', '', 1320]],
+  };
+  const FACES = [['Awful', '😣'], ['Low', '😕'], ['Okay', '😐'], ['Good', '🙂'], ['Great', '😄']];
+  const REPLY = [
+    "Thank you for checking in. Hard days don't last, and being gentle with yourself today is enough. When you're ready, a few minutes of slow breathing can help your body settle, and your mind often follows.",
+    "Thank you for being honest. Low days come to everyone, and they do pass. Go easy on yourself. Something small you enjoy, a song, a short walk or a call with someone you love, can lift a low day sooner than waiting it out.",
+    "Some days it's fine to be just okay. Thanks for checking in. Try to keep your day happy by doing activities you like.",
+    "Good to hear. Notice what made today good, it's worth doing again tomorrow.",
+    "That's wonderful. Enjoy it, and hold on to what went right today."];
+
+  // ---------- units: everything with a tick ----------
+  // U[id] = { kind: food|tip|ex|sm|me|wd|br|mood, p, name, sub, from, to, part, done, doneAt, n, kc, unit, face }
+  const U = {};
+  const partOf = m => (PARTS.find(([, , a, b]) => m >= a * 60 && m < b * 60) || PARTS[3])[0];
+  const slipped = new Set(['bf', 'mv.morning.ex.coastal', 'mv.morning.ex.sideleg', 'mv.morning.sm.1', 'mv.afternoon.sm.0', 'md.morning.1']);
+  const was = (m, key) => m + 30 < NOWM && !slipped.has(key);
+  if (plans.has('eat')) MEALS.forEach(m => {
+    m.opts.forEach((o, oi) => o.forEach((x, fi) => U[`${m.id}.${oi}.${fi}`] = { kind: 'food', p: 'eat', meal: m, name: x.n, unit: x.unit, n: x.k, kc1: x.kc / x.k, from: m.from, to: m.to, done: oi === 0 && was(m.from, m.id) }));
+    (m.tips || []).forEach((tp, i) => U[`${m.id}.t${i}`] = { kind: 'tip', p: 'eat', name: tp[0], sub: tp[1], from: m.from, done: was(m.from, m.id) });
+  });
+  if (plans.has('move')) Object.entries(MOVE).forEach(([k, v]) => {
+    v.ex.forEach(x => U[`mv.${k}.ex.${x}`] = { kind: 'ex', p: 'move', part: k, x, name: EX[x][0], kc: EX[x][1], from: v.from, to: v.to, done: was(v.from + 60, `mv.${k}.ex.${x}`) });
+    v.sm.forEach(([n, d], i) => U[`mv.${k}.sm.${i}`] = { kind: 'sm', p: 'move', part: k, name: n, sub: d, from: v.from, done: was(v.from + 60, `mv.${k}.sm.${i}`) });
+  });
+  if (plans.has('mind')) Object.entries(MIND).forEach(([k, rows]) => rows.forEach(([kind, n, sub, at, x], i) =>
+    U[`md.${k}.${i}`] = { kind, p: 'mind', part: k, name: n, sub, at, from: at, x, done: was(at, `md.${k}.${i}`), face: was(at, `md.${k}.${i}`) && kind === 'mood' ? 3 : null }));
+  Object.values(U).forEach(u => { if (u.done) u.doneAt = u.at || u.from + 20; });
+  const open = {};
+  const optSel = Object.fromEntries(MEALS.map(m => [m.id, 0]));
+  // the morning starts open, except blocks that are already done; the rest of the day starts folded
+  { const doneMeal = m => Object.keys(U).some(i => i.startsWith(m.id + '.') && U[i].kind === 'food' && U[i].done);
+    const doneAll = pre => { const k = Object.keys(U).filter(i => i.startsWith(pre)); return k.length && k.every(i => U[i].done); };
+    MEALS.filter(m => partOf(m.from) === 'morning' && !doneMeal(m)).forEach(m => open[m.id] = true);
+    ['mv.morning', 'md.morning'].forEach(k => { if (!doneAll(k + '.')) open[k] = true; }); }
+  const curPart = partOf(Math.max(NOWM, 360));
+  const fold = Object.fromEntries(PARTS.map(([k]) => [k, k !== curPart]));
+
+  // ---------- the bar's contents, in the order they went in ----------
+  let T = [];                    // [{ id, time, n }]
+  const inBar = id => T.some(x => x.id === id);
+  const defTime = u => { const a = u.from, b = u.to || u.from + 60; return NOWM >= a && NOWM <= b ? Math.floor(NOWM / 5) * 5 : Math.round((a + b) / 2 / 5) * 5; };
+  const later = x => { const u = U[x.id]; return (u.kind === 'food' || u.kind === 'ex') && x.time > NOWM; };
+
+  // ---------- rows ----------
+  const state = id => U[id].done ? 'done' : inBar(id) ? 'sel' : '';
+  const tickBtn = (id, label) => `<button class="tickbtn" data-u="${id}" aria-label="${label}"><span class="tick">${I.check}</span></button>`;
+  const helping = (unit, n) => (n > 1 ? n + ' x ' : '') + unit;
+  function foodRow(id) {
+    const u = U[id], x = T.find(t => t.id === id), n = x ? x.n : u.n;
+    return `<div class="item ${state(id)}" data-row="${id}">${tickBtn(id, u.done ? u.name + ' is logged, tap for options' : 'Log ' + u.name)}
+      <span class="nm">${u.name}<span>${helping(u.unit, n)}</span></span><span class="kc">${Math.round(u.kc1 * n)} cal</span></div>`;
+  }
+  const exRow = id => { const u = U[id];
+    return `<div class="mv-item ${state(id)}" data-row="${id}">${tickBtn(id, (u.done ? 'Done: ' : 'Mark as done: ') + u.name)}
+      <button class="mv-th" data-say="The exercise player opens" aria-label="Play ${u.name}"><img src="../v7/img/move/${u.x}.webp" alt=""><span>${I.play}</span></button>
+      <button class="mv-nm" data-say="The exercise player opens">${u.name}<span>2 sets · 10 reps · ${u.kc} kcal</span></button>
+      <span class="mv-chev">${I.chev}</span></div>`; };
+  const tipRow = (id, time = '') => { const u = U[id], opens = u.kind === 'br' || u.kind === 'mood';
+    const sub = u.kind === 'mood' && u.face != null ? 'Feeling ' + FACES[u.face][0].toLowerCase() : u.sub;
+    return `<div class="tip ${state(id)}${opens ? ' open' : ''}" data-row="${id}">${tickBtn(id, u.name)}
+      <button class="rb" ${opens ? `data-sheet="${id}"` : `data-u2="${id}"`}><span class="tt">${u.name}${opens ? `<span class="chv">${I.chev}</span>` : ''}${u.kind === 'tip' && !u.done ? `<span class="askk" role="button" tabindex="0" data-tipask="${id}">${KMARK}Ask KAIRA</span>` : ''}</span>${sub ? `<span class="tdd">${sub}</span>` : ''}</button>
+      ${time ? `<span class="tm">${time}</span>` : ''}</div>`; };
+
+  const blkDone = key => { const all = key.startsWith('mv.') || key.startsWith('md.') ? ids(key + '.') : ids(key + '.').filter(i => U[i].kind === 'food');
+    return key.startsWith('mv.') || key.startsWith('md.') ? all.length && all.every(i => U[i].done) : all.some(i => U[i].done); };
+  const block = (key, p, title, sub, status, body) => `<div class="blk" data-p="${p}" data-done="${blkDone(key)}" data-open="${!!open[key]}"><button class="bhd" data-blk="${key}" aria-expanded="${!!open[key]}">
+    <img class="pg" src="${PIC[p]}" alt=""><span class="bt"><b>${title}</b></span>${status}<i class="chev"></i></button>
+    <div class="bbody"><div><div class="bin">${body}</div></div></div></div>`;
+  const ids = pre => Object.keys(U).filter(k => k.startsWith(pre));
+
+  function blocks(k) {
+    const out = [];
+    if (plans.has('eat')) MEALS.filter(m => partOf(m.from) === k).forEach(m => {
+      const sel = optSel[m.id], foods = ids(m.id + '.').filter(i => U[i].kind === 'food');
+      const logged = foods.filter(i => U[i].done), kcal = logged.reduce((s, i) => s + Math.round(U[i].kc1 * U[i].n), 0);
+      const plan = m.opts[0].reduce((s, x) => s + x.kc, 0);
+      const status = logged.length ? `<span class="bc full">Done</span>` : '';
+      let body = `<div class="lab">Your coach's plan</div>`;
+      if (m.opts.length > 1) body += `<div class="mchips">${m.opts.map((o, i) => { const any = ids(`${m.id}.${i}.`).some(x => U[x].done);
+        return `<button class="chip${i === sel ? ' on' : ''}${any ? ' done' : ''}" data-meal="${m.id}" data-opt="${i}" aria-label="Option ${i + 1}${any ? ', logged' : ''}"><b>Option ${i + 1}</b>${any ? `<span style="width:12px;height:12px;display:grid">${I.checkC}</span>` : ''}</button>`; }).join('')}</div>`;
+      body += `<div class="items">${m.opts[sel].map((_, fi) => foodRow(`${m.id}.${sel}.${fi}`)).join('')}</div>`;
+      if (m.tips) body += `<div class="sec2"><div class="lab">Tips from your coach</div><div class="tiplist">${m.tips.map((_, i) => tipRow(`${m.id}.t${i}`)).join('')}</div></div>`;
+      out.push([m.from, block(m.id, 'eat', 'Eat', '', status, `<div class="mname">${m.name}<span>${fmt(m.from)}–${fmt(m.to)}</span></div>` + body)]);
+    });
+    const mv = MOVE[k];
+    if (plans.has('move') && mv && (mv.ex.length || mv.sm.length)) {
+      const all = ids(`mv.${k}.`), d = all.filter(i => U[i].done).length;
+      let body = '';
+      if (mv.ex.length) body += `<div class="lab">Your coach's plan</div><div class="mv-items">${mv.ex.map(x => exRow(`mv.${k}.ex.${x}`)).join('')}</div>`;
+      if (mv.sm.length) body += `<div class="${mv.ex.length ? 'sec2' : ''}"><div class="lab">Small moves</div><div class="tiplist">${mv.sm.map((_, i) => tipRow(`mv.${k}.sm.${i}`)).join('')}</div></div>`;
+      const sub = [mv.ex.length && `${mv.ex.length} exercise${mv.ex.length > 1 ? 's' : ''} · ${mv.ex.reduce((s, x) => s + EX[x][1], 0)} kcal`, mv.sm.length && `${mv.sm.length} small move${mv.sm.length > 1 ? 's' : ''}`].filter(Boolean).join(' · ');
+      out.push([mv.from + 60, block(`mv.${k}`, 'move', 'Move', sub, `<span class="bc${d === all.length ? ' full' : ''}">${d === all.length ? 'Done' : d + ' of ' + all.length}</span>`, body)]);
+    }
+    const md = MIND[k];
+    if (plans.has('mind') && md) {
+      const all = ids(`md.${k}.`), d = all.filter(i => U[i].done).length;
+      const body = `<div class="tiplist">${all.map(id => tipRow(id, fmt(U[id].at))).join('')}</div>`;
+      out.push([md[0][3], block(`md.${k}`, 'mind', 'Mind', `${md.length} task${md.length > 1 ? 's' : ''} · from ${fmt(md[0][3])}`, `<span class="bc${d === all.length ? ' full' : ''}">${d === all.length ? 'Done' : d + ' of ' + all.length}</span>`, body)]);
+    }
+    return out.sort((a, b) => a[0] - b[0]).map(x => x[1]).join('');
+  }
+
+
+  // ---------- the hero: what to ask, picked from the day ----------
+  const WHY = { pre: 'Jeera water first thing wakes your digestion gently.', bf: 'A protein start keeps your morning steady.', lunch: 'Start with the salad, then the rest.',
+    snack: 'A small snack now protects your dinner.', dinner: 'An early, light dinner helps you sleep well.', bed: 'Something small and warm to end the day.' };
+  const SCENE = { pre: 'pre', bf: 'bf', lunch: 'lunch', snack: 'snack', dinner: 'dinner', bed: 'bed' };
+  const skipped = new Set();
+  const mealDone = m => ids(m.id + '.').some(i => U[i].kind === 'food' && U[i].done);
+  // the hero talks like a person: one short question, and the two answers people actually give
+  const MEALQ = { pre: 'Had anything yet this morning?', bf: 'Had your breakfast yet?', lunch: 'Had your lunch yet?', snack: 'Had your evening snack?', dinner: 'Had your dinner yet?', bed: 'Had something before bed?' };
+  // plain questions for the coach's Mind tasks; anything new falls back to its own name
+  const TICKQ = n => /caffeine/i.test(n) ? 'Had your last tea or coffee today?' : /wind-down|screen/i.test(n) ? 'Ready to put the screens away?'
+    : /room|sleep association/i.test(n) ? 'Is your room ready for sleep?' : /walk|nature|park/i.test(n) ? 'Been out for your walk today?' : n.replace(/\s*\(.*\)/, '') + '?';
+  // "8 to 10 AM", "6 to 7 AM", "11 AM to 1 PM": short enough for one line
+  const span = (a, b) => { const s = x => fmt(x).replace(':00', ''); const A = s(a), B = s(b); return A.slice(-2) === B.slice(-2) ? A.slice(0, -3) + ' to ' + B : A + ' to ' + B; };
+  // for now the hero stays on breakfast (Shaheer, 26 Nov); ?hero=auto brings back the smart pick below
+  const HERO_PIN = q.get('hero') !== 'auto';
+  function ask() {
+    if (HERO_PIN && FREE) return { kind: 'free', q: 'What did you have for breakfast?', cta: 'Let’s log it', eb: '', scene: 'meals/bg/bf.webp' };
+    if (HERO_PIN && plans.has('eat')) return { ...mealAsk(MEALS.find(m => m.id === 'bf')), q: 'What did you have for breakfast?', cta: 'Let’s log it', eb: '' };
+    if (FREE) return { kind: 'free', q: 'What did you have for breakfast?', cta: 'Let’s log it', eb: '', scene: 'meals/bg/bf.webp' };
+    if (!plans.size) return { kind: 'noplan', eb: 'Welcome', q: 'Ready to meet your coach?', cta: 'Yes, let’s book', scene: 'meals/bg/pre.webp' };
+    const meals = plans.has('eat') ? MEALS.filter(m => !mealDone(m) && !skipped.has(m.id)) : [];
+    const missed = meals.find(m => m.to <= NOWM && NOWM - m.to <= 240);
+    if (missed) return { kind: 'missed', key: missed.id, blk: missed.id, eb: `${missed.name} · ${span(missed.from, missed.to)}`,
+      q: `Did you have your ${missed.name.toLowerCase()}?`, cta: 'Yes, let’s log', alt: 'I skipped it', scene: `meals/bg/${SCENE[missed.id]}.webp` };
+    const now = meals.find(m => m.from <= NOWM && NOWM < m.to);
+    if (now) return mealAsk(now);
+    const next = [];
+    meals.filter(m => m.from > NOWM).forEach(m => next.push([m.from, () => mealAsk(m)]));
+    if (plans.has('move')) Object.entries(MOVE).forEach(([k, v]) => { const open = ids(`mv.${k}.ex.`).filter(i => !U[i].done);
+      if (open.length && v.to > NOWM) next.push([Math.max(v.from + 60, NOWM - 1), () => ({ kind: 'go', blk: `mv.${k}`, part: k, eb: `Move · ${PNAME[k]}`,
+        q: `Ready for your ${k} workout?`, cta: 'Yes, let’s go', scene: `move/bg/${k}.webp` })]); });
+    if (plans.has('mind')) Object.entries(MIND).forEach(([k]) => ids(`md.${k}.`).forEach(id => { const u = U[id]; if (u.done || u.at < NOWM - 90) return;
+      const base = { blk: `md.${k}`, part: k, eb: `Mind · ${fmt(u.at).replace(':00', '')}`, scene: `mind/bg/${k}.webp` };
+      next.push([u.at, () => u.kind === 'mood' ? { ...base, kind: 'mood', id, q: 'How are you feeling?', cta: 'Let’s check in' }
+        : u.kind === 'br' ? { ...base, kind: 'go', q: 'Time for a quick breather?', cta: 'Yes, let’s start' }
+        : { ...base, kind: 'go', q: TICKQ(u.name), cta: 'Yes, let’s log' }]); }));
+    next.sort((a, b) => a[0] - b[0]);
+    const n = next.find(([, f]) => { const a = f(); return !skipped.has(a.blk + (a.id || '')); });
+    if (n) return n[1]();
+    return { kind: 'end', eb: 'All done', q: 'That’s your day. Rest well tonight.', scene: 'mind/bg/night.webp' };
+  }
+  const mealAsk = m => ({ kind: 'meal', key: m.id, blk: m.id, eb: `${m.name} · ${span(m.from, m.to)}`, q: MEALQ[m.id], cta: 'Yes, let’s log', scene: `meals/bg/${SCENE[m.id]}.webp` });
+  const CHEV2 = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
+  let heroAsk = null;
+  function heroHTML() {
+    const a = heroAsk = ask(), tap = a.kind === 'end' ? '' : 'data-hero="go" role="button" tabindex="0"';
+    return `<div class="hscene${a.kind === 'end' ? ' dim' : ''}" style="--scene:url(../v7/icons/${a.scene})"><div class="art" ${tap}></div>
+      <div class="tx swap">${a.eb ? `<div class="eb">${a.eb}</div>` : ''}<h3 ${tap}>${a.q}</h3>
+      ${a.kind === 'end' ? '' : `<div class="acts"><button class="pill" data-hero="go">${a.cta}${CHEV2}</button>${a.alt ? `<button class="rg" data-hero="${a.kind === 'missed' ? 'skip' : 'later'}">${a.alt}</button>` : ''}</div>`}</div></div>`;
+  }
+  // tapping the hero opens the task's part and block, glides there and lets a soft glow settle on it
+  function goTo(a) {
+    if (a.kind === 'mood') return moodSheet(a.id);
+    if (a.kind === 'noplan') return toast('Booking opens');
+    if (a.kind === 'free') { location.href = PAGE.eat.replace('?from=home', '?state=free&from=home'); return; }
+    const part = a.part || partOf(MEALS.find(m => m.id === a.blk).from);
+    fold[part] = false; open[a.blk] = true; render();
+    const el = root.querySelector(`[data-blk="${a.blk}"]`)?.closest('.blk'); if (!el) return;
+    const head = (document.querySelector('.top')?.offsetHeight || 0) + (document.querySelector('.folders')?.offsetHeight || 0) + 70;
+    const y = el.getBoundingClientRect().top + scrollY - head;
+    scrollTo({ top: y, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    el.classList.remove('spot'); void el.offsetWidth; el.classList.add('spot');
+  }
+
+  // a locked pillar shows Eat's padlock Lottie: it plays once and holds (as on the Eat screen before a plan)
+  function mountLocks() { mountLocksIn([...root.querySelectorAll('[data-lock]')]); }
+  function mountLocksIn(els) {
+    if (!els.length) return;
+    const go = () => els.forEach(el => { if (el.firstChild || !window.lottie || !window.GF_LOCK) return;
+      const a = lottie.loadAnimation({ container: el, renderer: 'svg', loop: false, autoplay: false, animationData: window.GF_LOCK });
+      a.addEventListener('DOMLoaded', () => matchMedia('(prefers-reduced-motion: reduce)').matches ? a.goToAndStop(a.totalFrames - 1, true) : setTimeout(() => a.play(), 350)); });
+    if (window.lottie && window.GF_LOCK) return go();
+    const load = src => new Promise(ok => { if (document.querySelector(`script[src="${src}"]`)) return ok(); const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ok; document.head.append(s); });
+    load('../v7/r3/assets/lottie_light.min.js').then(() => load('../v7/r3/assets/lock-anim.js')).then(go);
+  }
+
+  // ---------- Sleep and Steps: the real cards, lifted live from the Mind and Move screens ----------
+  // ponytail: each pillar page loads once in a hidden iframe; its card and the page's whole stylesheet go into a shadow root,
+  // so the card looks exactly as it does there and no class can clash. Taps inside are not wired (no pillar JS here).
+  const SRC = FREE
+    ? { sleep: ['../v7/mind/index.html?state=free&sx=1&sdev=none', 'section.sv-steps', '.sv-sec'], steps: ['../move/index.html?sx=1&sdev=none&state=freeempty', 'section.mv-steps'] }
+    : { sleep: ['../v7/mind/index.html?sx=1&sdev=ah&swait=0', 'section.sv-steps', '.sv-sec'], steps: ['../move/index.html?sx=1&sdev=ah', 'section.mv-steps'] };
+  const HOSTS = {};
+  const abs = (css, base) => css.replace(/url\((['"]?)(?!data:|https?:|blob:)([^'")]+)\1\)/g, (m, q, u) => `url("${new URL(u, base).href}")`);
+  function lift(key, [url, sel, headSel]) {
+    const host = HOSTS[key] = document.createElement('div'); host.className = 'lifted'; host.dataset.k = key;
+    const fr = document.createElement('iframe'); fr.src = url; fr.setAttribute('aria-hidden', 'true'); fr.tabIndex = -1;
+    fr.style.cssText = 'position:absolute;left:-9999px;top:0;width:390px;height:1200px;border:0;visibility:hidden';
+    document.body.append(fr);
+    let tries = 0;
+    const grab = () => {
+      const d = fr.contentDocument, card = d && d.querySelector(sel);
+      // wait out the pillar's own loader ("Syncing with Apple Health", skeleton bars) so the card lands filled
+      if (!card || /Syncing|Checking|Fetching/.test(card.textContent)) return ++tries < 80 ? setTimeout(grab, 150) : fr.remove();
+      setTimeout(() => {   // let the pillar finish its first paint (bars, sync line)
+        const base = fr.contentWindow.location.href;
+        let css = '';
+        for (const s of d.styleSheets) { try { css += abs([...s.cssRules].map(r => r.cssText).join('\n'), s.href || base); } catch (e) {} }
+        // the pillar styles lean on classes set on <html>/<body>: rewrite those selectors to :host(...) and carry the classes over
+        css = css.replace(/:root/g, ':host').replace(/(^|[\s,}>~+(])(html|body)((?:[.#][\w-]+|\[[^\]]+\])*)(?![\w-])/g, (m, pre, el, q) => pre + (q ? `:host(${q})` : ':host'));
+        host.className = ['lifted', d.documentElement.className, d.body.className].join(' ').trim();
+        [...d.body.attributes].forEach(a => { if (a.name.startsWith('data-')) host.setAttribute(a.name, a.value); });
+        const head = headSel && card.previousElementSibling && card.previousElementSibling.matches(headSel) ? card.previousElementSibling.cloneNode(true) : null;
+        const c = card.cloneNode(true);
+        [head, c].forEach(n => n && [n, ...n.querySelectorAll('*')].forEach(e => {
+          if (e.getAttribute('src')) e.setAttribute('src', new URL(e.getAttribute('src'), base).href);
+          if (e.getAttribute('style')) e.setAttribute('style', abs(e.getAttribute('style'), base));
+          e.classList && e.classList.remove('rise');
+        }));
+        const sr = host.attachShadow({ mode: 'open' });
+        sr.innerHTML = `<style>${css}
+          :host { display: block; font-family: Roboto, system-ui, sans-serif; color: #101828; background: transparent; }
+          :where(button) { border: 0; background: none; font: inherit; color: inherit; padding: 0; margin: 0; cursor: pointer; text-align: inherit; }
+          .svf-zz { display: none !important; }   /* hidden for now */
+          section { margin-left: 0 !important; margin-right: 0 !important; }</style>`;
+        if (head) sr.append(head); sr.append(c);
+        fr.remove(); mountTrack();
+      }, 900);
+    };
+    fr.addEventListener('load', grab);
+  }
+  function mountTrack() {
+    const slot = document.getElementById('trk'); if (!slot) return;
+    ['sleep', 'steps'].forEach(k => { if (!HOSTS[k]) lift(k, SRC[k]); });
+    ['sleep', 'steps'].forEach(k => { if (HOSTS[k].shadowRoot) slot.append(HOSTS[k]); });   // always sleep, then steps
+  }
+  // ---------- the EM3 strip: one card cut in three ----------
+  const LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+  const PILL = [['eat', 'Eat', 54, 'Sufficiency', 'eat'], ['move', 'Move', 40, 'Momentum', 'move'], ['mind', 'Mind', 49, 'Rhythm', 'mind']];
+  // the locked card, five ways (sidebar "Locked pillar card", ?lockv=). Every one keeps the scored card's three rows,
+  // name / number line / small line, so all three cards stay the same height, and says one thing: unlocks after consultation.
+  const LV = ['a', 'b', 'c', 'd', 'e'].includes(q.get('lockv')) ? q.get('lockv') : 'a';
+  const lockCard = sc => ({
+    a: `<span class="lrow"><span class="lkl i26" data-lock aria-hidden="true"></span><b class="lw">Locked</b></span><span class="sub">After consultation</span>`,
+    b: `<span class="lrow"><b class="lw2">Unlocks</b><span class="lkl i22" data-lock aria-hidden="true"></span></span><span class="sub">after consultation</span>`,
+    c: `<span class="lrow"><span class="pct gh">--<small>%</small></span><span class="lkl i22" data-lock aria-hidden="true"></span></span><span class="sub">After consultation</span>`,
+    d: `<span class="lrow"><span class="lchip"><span class="lkl i16" data-lock aria-hidden="true"></span>Locked</span></span><span class="sub">After consultation</span>`,
+    e: `<span class="lrow"><span class="lkl i26" data-lock aria-hidden="true"></span></span><span class="sub two">Unlocks after consultation</span>`,
+  })[LV];
+  const FREEL = { eat: 'Log your meals', move: 'Track your activity', mind: 'Breathe and unwind' };
+  function stripHTML() {
+    const allLocked = !plans.size;
+    return `<div class="vStrip"><div class="row">${PILL.map(([k, n, pc, sc]) => { const on = plans.has(k);
+      if (FREE) return `<button class="s p-${k} m-free" data-pillar="${k}" aria-label="${n}"><span class="nm"><img src="${PIC[k]}" alt="">${n}</span><span class="fl">${FREEL[k]}</span></button>`;
+      return `<button class="s p-${k} m-${on ? 'score' : 'lock'}" data-pillar="${k}" aria-label="${n}, ${on ? sc + ' ' + pc + '%' : 'locked'}"><span class="nm"><img src="${PIC[k]}" alt="">${n}</span>
+        ${on ? `<span class="pct">${pc}<small>%</small></span><span class="sub">${sc}</span>`
+             : lockCard(sc)}</button>`; }).join('')}</div>
+      </div>`;
+  }
+  const PAGE = { eat: '../v7/r3/eat.html?from=home', move: '../move/index.html?from=home', mind: '../v7/mind/index.html?sx=1&sdev=ah&swait=0&from=home' };
+  // one task each: a meal (done once any food in it is logged), each exercise, small move and Mind task. Tips are help, not tasks.
+  function tasks() {
+    const out = [];
+    if (plans.has('eat')) MEALS.forEach(m => out.push({ at: m.from, p: 'eat', done: ids(m.id + '.').some(i => U[i].kind === 'food' && U[i].done) }));
+    Object.values(U).filter(u => u.p !== 'eat').forEach(u => out.push({ at: u.at || u.from + 60, p: u.p, done: u.done }));
+    return out;
+  }
+  function render() {
+    const TK = tasks(), done = TK.filter(x => x.done).length, total = TK.length, nOf = p => TK.filter(x => x.p === p).length;
+    const PL = [['eat', 'Eat', nOf('eat') + ' meals'], ['move', 'Move', nOf('move') + ' moves'], ['mind', 'Mind', nOf('mind') + ' tasks']];
+    let h = heroHTML() + stripHTML();
+    if (FREE) { root.innerHTML = stripHTML() + '<div id="trk"></div>'; mountTrack(); mountLocks(); const m = document.querySelector('[data-mslock]'); if (m && !m.firstChild) mountLocksIn([m]); return folder(0, 0); }
+    if (!plans.size) { root.innerHTML = h + `<div class="empty">Your day fills up once your coach shares your plans.<br>Until then, Program has your first steps.</div><div id="trk"></div>`; mountTrack(); return folder(0, 0); }
+    const pc = done / total, C = 2 * Math.PI * 9;
+    h += `<div class="dayhd"><b>Today</b><span class="dring">${done} of ${total} done<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" class="tr"/><circle cx="12" cy="12" r="9" class="fg" style="stroke-dasharray:${C};stroke-dashoffset:${C * (1 - pc)}"/></svg></span></div>`;
+    h += PARTS.map(([k, name, a, b, win]) => {
+      const body = blocks(k); if (!body) return '';
+      const inPart = TK.filter(x => partOf(x.at) === k), left = inPart.filter(x => !x.done).length, past = b * 60 <= NOWM && k !== curPart, isNow = k === curPart;
+      const tag = isNow ? '<span class="now">NOW</span>' : past ? (left ? `<span class="open">${left} still open</span>` : '<span class="ok">All done</span>') : `<span class="cnt">${inPart.length - left} of ${inPart.length}</span>`;
+      return `<div class="part${isNow ? ' now' : ''}" data-open="${!fold[k]}"><button class="phd" data-fold="${k}" aria-expanded="${!fold[k]}"><span class="nm"><b>${name}</b><span class="win">${win}</span></span>${tag}<i class="chev"></i></button>
+        <div class="prows"><div>${body}</div></div></div>`;
+    }).join('');
+    root.innerHTML = h + '<div id="trk"></div>'; folder(total - done, total);
+    mountTrack(); mountLocks();
+    if (FREE) { const m = document.querySelector('[data-mslock]'); if (m && !m.firstChild) { m.setAttribute('data-lock', ''); mountLocksIn([m]); } }
+  }
+  // the Today pictogram, generated with the design-system prompt (?todaypic=1..4 to compare)
+  { const n = q.get('todaypic'); if (/^[1-4]$/.test(n || '')) document.getElementById('todayPic').src = `a/pic-today-${n}.png`; }
+  const folder = (left, total) => { const s = document.querySelector('[data-go="today"] .st'); if (s) s.textContent = FREE ? 'Track' : total ? (left ? left + ' left' : 'All done') : 'Plan soon';
+    const pg = document.querySelector('[data-go="prog"] .st'); if (pg && FREE) pg.textContent = 'Explore'; };
+
+  // ---------- Ask KAIRA on a coach's tip (v7/r3/eat.html askKaira: same question, same answers, same sheet) ----------
+  const KMARK = (window.GFKaira ? GFKaira.mark(12, { halo: false }) : '');
+  const KANS = {
+    'Drink warm methi seed water before breakfast': [
+      'Methi seeds are wrapped in a soluble fibre called galactomannan. In water it turns to gel, and that gel slows how fast your stomach empties into the gut.',
+      'So the sugar from breakfast arrives in a slow stream rather than a wave, and the spike your body has to answer is smaller. On an empty stomach the gel is already in place before the food lands, which is why the timing matters as much as the seeds.'],
+    'Soak 5 almonds ready for tomorrow morning': [
+      'Almond skins carry tannins, which bind to the iron and zinc in the nut and to the enzymes your gut uses to break it down. Soaking pulls those tannins into the water, and the skin slips off with them.',
+      'You also soften the cell walls, so the vitamin E and the good fats underneath are easier to absorb. Overnight in plain water is enough. Peel them in the morning and throw the water away.'] };
+  const KFALLBACK = ['Your coach put this one in your day because it is small enough to hold on the days you have no time, and those are the days it counts.', 'Try it today and notice how the rest of your day feels.'];
+  function askKaira(title) {
+    const big = window.GFKaira ? GFKaira.mark(22, { halo: false }) : '';
+    openSheet(sheet, `<div class="hd"><div><h4 class="kt">${window.GFKaira ? GFKaira.mark(22, { halo: true }) : ''}KAIRA</h4></div><button class="x" data-pt="close" aria-label="Close">${I.x}</button></div>
+      <div class="kchat"><div class="kme">My Eat coach has assigned this tip to me:<br><b>“${title.replace(/[.\s]+$/, '')}”</b><br>Help me understand how it is beneficial to me.</div>
+      <div class="krow" id="kthink"><span class="kgut">${big}</span><span class="kbub"><span class="kdots"><i></i><i></i><i></i></span></span></div></div>`);
+    setTimeout(() => { const th = sheet.querySelector('#kthink'); if (!th) return; const lines = KANS[title] || KFALLBACK;
+      th.outerHTML = lines.map((x, i) => `<div class="krow" style="animation-delay:${i * .12}s"><span class="kgut">${i === 0 ? big : ''}</span><span class="kbub">${x}</span></div>`).join(''); }, 2200);
+  }
+
+  // ---------- the app's toast (top, success) ----------
+  const toastEl = document.createElement('div'); toastEl.className = 'gtoast'; toastEl.setAttribute('role', 'status'); document.body.append(toastEl);
+  const toast = msg => { toastEl.innerHTML = `<i>${I.check}</i><span>${msg}</span>`; toastEl.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => toastEl.classList.remove('on'), 3000); };
+
+  // ---------- the bar (plan-tray.js float mode) ----------
+  const bar = document.createElement('div'); bar.className = 'pt fm'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Ready to log');
+  document.body.append(bar);
+  const KIND_NOUN = { food: ['item', 'items'], ex: ['workout', 'workouts'], sm: ['small move', 'small moves'] };
+  const label = list => { const ks = [...new Set(list.map(x => U[x.id].kind))], n = list.length, nn = ks.length === 1 && KIND_NOUN[ks[0]] || ['item', 'items']; return n + ' ' + (n === 1 ? nn[0] : nn[1]); };
+  const linkText = () => T.some(x => U[x.id].kind === 'food') ? 'Edit quantity &amp; time' : T.some(x => U[x.id].kind === 'ex') ? 'Edit time' : 'Review';
+  function renderBar(fresh) {
+    document.body.classList.toggle('pt-on', T.length > 0);
+    if (!T.length) { bar.classList.remove('up'); return; }
+    bar.innerHTML = `<div class="flw"><button class="rmz" data-pt="clear" tabindex="-1">Remove</button><div class="fl${fresh ? ' lit' : ''}">
+      <button class="tx" data-pt="review" aria-label="Review what is ready to log"><b>${T.slice().reverse().map(x => U[x.id].kind === 'mood' ? 'Mood' : U[x.id].name).join(', ')}</b><span>${linkText()}${I.chev}</span></button>
+      <button class="go" data-pt="log">Log<small>${label(T)}</small></button><button class="xc" data-pt="peek" aria-label="Show remove">${I.x}</button></div></div>`;
+    bar.classList.add('up');
+  }
+  function mark() { root.querySelectorAll('[data-row]').forEach(r => { const id = r.dataset.row; if (!U[id] || U[id].done) return; r.classList.toggle('sel', inBar(id)); }); }
+  // a ticked row lifts off and drops into the bar (plan-tray.js toss)
+  function toss(row, id) {
+    const target = bar.querySelector('.tx b'); if (!target || matchMedia('(prefers-reduced-motion: reduce)').matches || document.querySelectorAll('.morsel').length >= 3) return false;
+    const u = U[id], r = row.getBoundingClientRect(), tr = target.getBoundingClientRect();
+    const m = document.createElement('div'); m.className = 'morsel';
+    m.innerHTML = `<b>${u.kind === 'mood' ? 'Mood' : u.name}</b><span>${u.kind === 'food' ? helping(u.unit, u.n) : u.kind === 'ex' ? '2 sets · ' + u.kc + ' kcal' : u.kind === 'sm' ? 'Small move' : PNAME[u.part]}</span>`;
+    const w = Math.min(240, Math.max(150, r.width * .6)); m.style.width = w + 'px'; m.style.left = (r.left + 12) + 'px'; m.style.top = (r.top + r.height / 2 - 22) + 'px';
+    document.body.append(m);
+    const shift = parseFloat((getComputedStyle(bar).transform.split(',')[5]) || 0) || 0;
+    const dx = tr.left - (r.left + 12), dy = tr.top - shift - (r.top + r.height / 2 - 22), lift = Math.min(40, Math.abs(dy) * .16);
+    m.animate([{ transform: 'translate(0,0) scale(1)', opacity: 1, offset: 0, easing: 'cubic-bezier(.2,.85,.35,1)' },
+      { transform: `translate(${dx * .1}px,${-lift}px) scale(1)`, opacity: 1, offset: .24, easing: 'cubic-bezier(.5,0,.85,.4)' },
+      { transform: `translate(${dx * .82}px,${dy * .86}px) scale(.52)`, opacity: .92, offset: .78, easing: 'cubic-bezier(.4,0,.2,1)' },
+      { transform: `translate(${dx}px,${dy}px) scale(.16)`, opacity: 0, offset: 1 }], { duration: 560, fill: 'forwards' });
+    setTimeout(() => { const fl = bar.querySelector('.fl'); if (fl) { fl.classList.remove('lit'); void fl.offsetWidth; fl.classList.add('lit'); } }, 448);
+    setTimeout(() => m.remove(), 600); return true;
+  }
+  function toggle(id, row) {
+    const i = T.findIndex(x => x.id === id);
+    if (i > -1) { T.splice(i, 1); renderBar(false); mark(); return; }
+    T.push({ id, time: defTime(U[id]), n: U[id].n || 1 });
+    renderBar(false); mark(); if (!toss(row, id)) renderBar(true);
+  }
+  let peekT;
+  const peek = on => { const w = bar.querySelector('.flw'); if (!w) return; w.classList.toggle('open', on); clearTimeout(peekT); if (on) peekT = setTimeout(() => peek(false), 4000); };
+
+  // ---------- sheets ----------
+  const sheet = mk('pts'), sheet2 = mk('pts pt2');
+  function mk(c) { const el = document.createElement('div'); el.className = c; el.innerHTML = '<div class="sh" role="dialog" aria-modal="true"></div>'; document.body.append(el); return el; }
+  const head = (t, sub) => `<div class="hd"><div><h4>${t}</h4>${sub ? `<div class="sub">${sub}</div>` : ''}</div><button class="x" data-pt="close" aria-label="Close">${I.x}</button></div>`;
+  const openSheet = (el, html) => { el.querySelector('.sh').innerHTML = html; el.classList.add('on'); };
+  const closeSheet = el => { el.classList.remove('on'); if (el === sheet2) sheet.querySelector('.sh').classList.remove('back'); };
+  const anyFuture = () => T.some(later);
+  const noun = (list, n) => { const ks = [...new Set(list.map(x => U[x.id].kind))]; const nn = ks.length === 1 && ks[0] === 'ex' ? ['workout', 'workouts'] : ['item', 'items']; return n === 1 ? nn[0] : nn[1]; };
+
+  function review() {
+    if (!T.length) return closeSheet(sheet);
+    const late = T.filter(later).length, one = late === 1, it = one ? 'it' : 'them', ks = [...new Set(T.map(x => U[x.id].kind))];
+    const ttl = ks.every(k => k === 'food') ? 'Food items to log' : ks.every(k => k === 'ex') ? 'Workouts to log' : ks.every(k => k === 'sm') ? 'Small moves to log' : 'Items to log';
+    const ask = late ? `<div class="fbn" role="status"><div class="rib">${I.warn}Future time</div><div class="in"><b>You’re logging ${late} future ${noun(T.filter(later), late)}!</b>
+      <p>${one ? 'This ' + noun(T.filter(later), 1) + ' is' : 'These ' + noun(T.filter(later), 2) + ' are'} planned for later. Already done ${it}? Log ${it} now, or come back when you have.</p>
+      <div class="fbb"><button class="pri" data-pt="setnow">Log ${it} now<small>${fmt(Math.floor(NOWM / 5) * 5)}</small></button><button data-pt="rmlate">Remove ${it}</button></div></div></div>` : '';
+    const order = T.map((x, i) => [x, i]).sort((a, b) => later(b[0]) - later(a[0]));
+    const rows = order.map(([x, i]) => { const u = U[x.id];
+      if (u.kind === 'food') return `<div class="pi"><div class="t"><div class="nm">${u.name}</div><div class="mt">${helping(u.unit, x.n)} · ${Math.round(u.kc1 * x.n)} kcal</div></div><div class="ctl">
+        <button class="tc${later(x) ? ' fut' : ''}" data-pt="wheel" data-i="${i}" aria-label="Change the time for ${u.name}, now ${fmt(x.time)}">${I.clock}${fmt(x.time)}</button>
+        <div class="st"><button data-pt="dec" data-i="${i}" aria-label="${x.n === 1 ? 'Remove ' : 'One less '}${u.name}">${I.minus}</button><b>${x.n}</b><button data-pt="inc" data-i="${i}" aria-label="One more ${u.name}">${I.plus}</button></div></div></div>`;
+      const meta = u.kind === 'ex' ? `${PNAME[u.part]} · 2 sets · ${u.kc} kcal` : u.kind === 'sm' ? `${PNAME[u.part]} · Small move`
+        : u.kind === 'mood' ? `Mood · ${FACES[x.face][0]}` : u.kind === 'br' ? `Breathing · ${u.x.min} min` : u.kind === 'me' ? `Me-time · ${fmt(u.at)}` : `Wind-down · ${fmt(u.at)}`;
+      return `<div class="pi"><div class="t"><div class="nm">${u.kind === 'mood' ? 'Mood check-in' : u.name}</div><div class="mt">${meta}</div></div><div class="ctl">
+        ${u.kind === 'ex' ? `<button class="tc${later(x) ? ' fut' : ''}" data-pt="wheel" data-i="${i}">${I.clock}${fmt(x.time)}</button>` : ''}
+        <button class="bin2" data-pt="rm" data-i="${i}" aria-label="Remove ${u.name}">${I.bin}</button></div></div>`; }).join('');
+    const kcal = T.reduce((s, x) => s + (U[x.id].kind === 'food' ? Math.round(U[x.id].kc1 * x.n) : U[x.id].kind === 'ex' ? U[x.id].kc : 0), 0);
+    openSheet(sheet, head(ttl) + ask + rows + `<div class="ft">${kcal ? `<div class="tot"><span>Total</span><b>${kcal} kcal</b></div>` : ''}<button class="done" data-pt="sheetlog"${late ? ' disabled' : ''}>Log ${label(T)}</button></div>`);
+  }
+  // the time wheel: hour, minute, AM or PM; a time still to come is greyed and Done waits
+  let wheelI = -1;
+  function wheel(i) {
+    wheelI = i; const x = T[i], u = U[x.id], m = x.time;
+    const col = (cls, vals, on) => `<div class="wc ${cls}">${vals.map(v => `<div data-v="${v}"${v === on ? ' class="on"' : ''}>${v}</div>`).join('')}</div>`;
+    const hrs = Array.from({ length: 12 }, (_, k) => String(k + 1)), mns = Array.from({ length: 60 }, (_, k) => String(k).padStart(2, '0'));
+    const h = Math.floor(m / 60);
+    sheet.querySelector('.sh').classList.add('back');
+    openSheet(sheet2, head(u.kind === 'food' ? 'When did you have it?' : 'When did you do it?', u.name) +
+      `<div class="wh"><span class="wband"></span>${col('hr', hrs, String(h % 12 || 12))}${col('mn', mns, String(m % 60).padStart(2, '0'))}${col('ap', ['AM', 'PM'], h < 12 ? 'AM' : 'PM')}</div>
+       <div class="whint" aria-live="polite"></div><button class="done" data-pt="setwheel">Done</button>`);
+    const wcs = sheet2.querySelectorAll('.wc');
+    wcs.forEach((c, ci) => { const on = c.querySelector('.on'); c.scrollTop = on.offsetTop - 88 + (ci === 2 ? 44 : 132);
+      setTimeout(() => c.scrollTo({ top: on.offsetTop - 88, behavior: 'smooth' }), 240 + ci * 60);
+      c.addEventListener('scroll', () => { clearTimeout(c.t); c.t = setTimeout(() => { const k = Math.round(c.scrollTop / 44); c.querySelectorAll('div').forEach((d, j) => d.classList.toggle('on', j === k)); wcheck(); }, 80); }); });
+    setTimeout(wcheck, 700);
+  }
+  const wval = () => { const v = [...sheet2.querySelectorAll('.wc')].map(c => (c.querySelector('.on') || c.firstChild).dataset.v); let h = +v[0] % 12; if (v[2] === 'PM') h += 12; return h * 60 + +v[1]; };
+  function wcheck() { const fut = wval() > NOWM; sheet2.querySelector('.whint').textContent = fut ? 'You can only log a time that has passed' : ''; sheet2.querySelector('[data-pt="setwheel"]').disabled = fut;
+    sheet2.querySelectorAll('.wc div').forEach(d => d.classList.remove('fut')); }
+
+  // menus for things already logged (Eat's food sheet, Move's done sheet and confirm, Mind's "Mark as not done")
+  let menuFor = null, confirmFor = null;
+  function doneMenu(id) {
+    menuFor = id; const u = U[id], row = (act, icon, text, warn) => `<button class="menurow${warn ? ' warn' : ''}" data-menu="${act}"><span class="mi">${icon}</span>${text}</button>`;
+    if (u.kind === 'food') return openSheet(sheet, head(u.name, helping(u.unit, u.n) + ' · logged at ' + fmt(u.doneAt)) + row('qty', I.pen, 'Change the quantity') + row('off', I.undo, 'Take it off your day'));
+    if (u.kind === 'ex') return openSheet(sheet, head(u.name, 'Done at ' + fmt(u.doneAt)) + row('time', I.clock, 'Edit workout time') + row('exundo', I.undo, 'Mark workout as not done'));
+    if (u.kind === 'sm') return askUndo(id, "This small move comes off today's log, and what it added to your Momentum score is taken back.");
+    if (u.kind === 'mood') return openSheet(sheet, head((u.at < 720 ? 'Morning' : u.at < 1020 ? 'Afternoon' : 'Evening') + ' check-in', 'Feeling ' + FACES[u.face][0].toLowerCase()) + row('mood', I.pen, 'Change your mood') + row('moodrm', I.bin, 'Remove this check-in', true));
+    if (u.kind === 'br') return openSheet(sheet, head(u.name) + row('again', I.play, 'Breathe again') + row('mdundo', I.undo, 'Mark as not done'));
+    return openSheet(sheet, head(u.name) + row('mdundo', I.undo, 'Mark as not done'));
+  }
+  function askUndo(id, say) { confirmFor = id; openSheet(sheet, head('Mark as not done?', U[id].name) + `<p class="say">${say}</p><button class="done" data-menu="yesundo">Mark as not done</button><button class="ghost" data-pt="close">Keep it as done</button>`); }
+  function breathStart(id) { const u = U[id]; menuFor = id;
+    openSheet(sheet, head(u.name, `${u.x.pat} · ${u.x.min} min, suggested by your coach`) + `<button class="done" data-menu="startbr" style="margin-top:12px">Start breathing</button><button class="ghost" data-menu="didbr">I've already done it</button>`); }
+
+  // mood: the five faces; a pick shows a moment's thought, then the reply, then Done stacks it in the bar
+  let moodFor = null, moodPick = null;
+  function moodSheet(id, editing) {
+    moodFor = id; moodPick = editing ? U[id].face : (T.find(x => x.id === id) || {}).face ?? null;
+    openSheet(sheet, head('How are you feeling?') + `<div class="vm"><div class="vm-faces${moodPick != null ? ' picked' : ''}" role="group" aria-label="How are you feeling?">${FACES.map(([n, e], i) =>
+      `<button class="vm-face${moodPick === i ? ' on' : ''}" data-face="${i}" aria-pressed="${moodPick === i}"><span aria-hidden="true">${e}</span>${n}</button>`).join('')}</div><div id="vmOut"></div></div>`);
+    if (moodPick != null) moodReply(false);
+  }
+  function moodReply(wait) {
+    const out = sheet.querySelector('#vmOut');
+    out.innerHTML = `<div class="vm-k${wait ? ' wait' : ''}">${I.quote}${wait ? '<div class="vm-sh" aria-hidden="true"><i></i><i></i><i></i></div>' : `<p aria-live="polite">${REPLY[moodPick]}</p>`}</div>${wait ? '' : '<button class="done" data-menu="mooddone" style="margin-top:16px">Done</button>'}`;
+    if (wait) setTimeout(() => moodFor && moodReply(false), 900);
+  }
+
+  // ---------- log: the pillars' win moment, then the FlipCoin toast ----------
+  function loadOnce(src) { return new Promise(ok => { if (document.querySelector(`script[src="${src}"]`)) return ok(); const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ok; document.head.append(s); }); }
+  function log() {
+    if (anyFuture()) return review();
+    const items = T.slice(), names = items.map(x => U[x.id].kind === 'mood' ? 'Mood' : U[x.id].name), rect = (bar.querySelector('.go') || bar).getBoundingClientRect();
+    const ks = [...new Set(items.map(x => U[x.id].p))], k1 = [...new Set(items.map(x => U[x.id].kind))];
+    const title = items.length === 1 ? ({ food: 'Meal logged', ex: 'Workout logged', sm: 'Small move logged', mood: 'Mood checked in', br: 'Breathing done', me: 'Me-time done', wd: 'Wind-down done', tip: 'Done' })[k1[0]]
+      : k1.length === 1 && k1[0] === 'ex' ? items.length + ' workouts logged' : items.length + ' items logged';
+    const say = ks.length === 1 ? { eat: 'added to your sufficiency score', move: 'added to your Momentum score', mind: 'added to your Rhythm score' }[ks[0]] : 'added to your day';
+    T = []; closeSheet(sheet); closeSheet(sheet2); bar.classList.remove('up'); document.body.classList.remove('pt-on');
+    const land = () => {
+      items.forEach(x => { const u = U[x.id]; u.done = true; u.doneAt = x.time; if (x.n) u.n = x.n; if (u.kind === 'mood') u.face = x.face; });
+      render(); settle(items.map(x => x.id));
+      loadOnce(R + 'flipcoin-toast.js?v=2').then(() => setTimeout(() => window.GFFlipcoin && GFFlipcoin.show(), 2000));
+    };
+    loadOnce(R + 'win-moment.js?v=14').then(() => {
+      const ctl = window.WinMoment && WinMoment.begin(rect, names);
+      if (!ctl) return land();
+      // as Move does: the day is rebuilt while the white still covers it, then the white fades off it (the list keeps its place)
+      let landed = false; const finish = () => { if (landed) return; landed = true; land();
+        const h = document.querySelector('body > div.wm[role=status]'); if (!h) return;
+        h.style.pointerEvents = 'none'; h.style.transition = 'opacity .36s cubic-bezier(.2,0,0,1)';
+        requestAnimationFrame(() => requestAnimationFrame(() => { h.style.opacity = '0'; })); setTimeout(() => h.remove(), 420); };
+      setTimeout(() => ctl.win({ d: null, n: names.length, title, say }, finish), 600);
+      setTimeout(finish, 6200);   // Move's fallback
+    });
+  }
+  function settle(list) {
+    list.forEach((id, j) => { const r = root.querySelector(`[data-row="${id}"]`); if (!r) return;
+      setTimeout(() => { const tk = r.querySelector('.tick'); r.classList.add('cheer'); tk && tk.classList.add('pop'); setTimeout(() => { r.classList.remove('cheer'); tk && tk.classList.remove('pop'); }, 1000); }, j * 90); });
+  }
+
+  // ---------- taps ----------
+  root.addEventListener('click', e => {
+    const hb = e.target.closest('[data-hero]');
+    if (hb) { const a = heroAsk, act = hb.dataset.hero;
+      if (act === 'go') return goTo(a);
+      skipped.add(a.blk + (a.id || ''));   // "Not yet" and "I skipped it": ask about the next thing instead, for this visit
+      if (act === 'skip') toast('Thanks for telling us. Your next meal still counts.');
+      return render(); }
+    const pb = e.target.closest('[data-pillar]'); if (pb) { const u = PAGE[pb.dataset.pillar]; location.href = FREE ? u.replace('from=home', 'state=free&from=home') : u; return; }
+    const fb = e.target.closest('[data-fold]');
+    if (fb) { const k = fb.dataset.fold; fold[k] = !fold[k];
+      // opening a part opens everything inside it
+      if (!fold[k]) { fb.closest('.part').querySelectorAll('[data-blk]').forEach(b => { open[b.dataset.blk] = true; b.closest('.blk').dataset.open = true; b.setAttribute('aria-expanded', true); }); }
+      fb.closest('.part').dataset.open = !fold[k]; fb.setAttribute('aria-expanded', !fold[k]); return; }
+    const bb = e.target.closest('[data-blk]');
+    if (bb) { const k = bb.dataset.blk; open[k] = !open[k]; bb.closest('.blk').dataset.open = !!open[k]; bb.setAttribute('aria-expanded', !!open[k]); return; }
+    const ch = e.target.closest('[data-opt]'); if (ch) { optSel[ch.dataset.meal] = +ch.dataset.opt; return render(); }
+    const say = e.target.closest('[data-say]'); if (say) return toast(say.dataset.say);
+    const op = e.target.closest('[data-sheet]');
+    if (op) { const id = op.dataset.sheet, u = U[id]; if (u.done) return doneMenu(id); return u.kind === 'mood' ? moodSheet(id) : breathStart(id); }
+    const ka = e.target.closest('[data-tipask]'); if (ka) { e.stopPropagation(); return askKaira(U[ka.dataset.tipask].name); }
+    const tb = e.target.closest('[data-u],[data-u2]'); if (!tb) return;
+    const id = tb.dataset.u || tb.dataset.u2, u = U[id], row = tb.closest('[data-row]');
+    if (u.kind === 'tip') {   // tips tick in place, no bar
+      u.done = !u.done; render(); if (u.done) settle([id]); return; }
+    if (u.done) return doneMenu(id);
+    if (u.kind === 'mood') return moodSheet(id);
+    toggle(id, row);
+  });
+  document.addEventListener('click', e => {
+    const a = e.target.closest('[data-pt],[data-menu],[data-face],.wc div');
+    if (!e.target.closest('.pt')) peek(false);
+    if (!a) { if (e.target.classList.contains('pts')) closeSheet(e.target); return; }
+    if (a.matches('.wc div')) { a.parentElement.scrollTo({ top: a.offsetTop - 88, behavior: 'smooth' }); return; }
+    const act = a.dataset.pt || a.dataset.menu, i = +a.dataset.i;
+    if (a.dataset.face != null) { moodPick = +a.dataset.face; const fs = sheet.querySelector('.vm-faces'); fs.classList.add('picked');
+      fs.querySelectorAll('.vm-face').forEach(b => { const on = b === a; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }); moodReply(true); return; }
+    switch (act) {
+      case 'review': peek(false); return review();
+      case 'log': peek(false); return log();
+      case 'peek': return peek(!bar.querySelector('.flw').classList.contains('open'));
+      case 'clear': T = []; peek(false); renderBar(); return mark();
+      case 'close': return closeSheet(a.closest('.pts'));
+      case 'inc': T[i].n++; renderBar(); mark(); return review();
+      case 'dec': if (T[i].n > 1) T[i].n--; else T.splice(i, 1); renderBar(); mark(); render(); return review();
+      case 'rm': T.splice(i, 1); renderBar(); render(); return review();
+      case 'setnow': { const t = Math.floor(NOWM / 5) * 5; T.forEach(x => { if (later(x)) x.time = t; }); review(); sheet.querySelectorAll('.tc').forEach(c => c.classList.add('flash')); return; }
+      case 'rmlate': T = T.filter(x => !later(x)); renderBar(); render(); return review();
+      case 'sheetlog': return log();
+      case 'wheel': return wheel(i);
+      case 'setwheel': { const v = wval(); if (wheelI > -1) T[wheelI].time = v; closeSheet(sheet2);
+        if (sheet.classList.contains('on') && sheet.querySelector('.tc')) { review(); setTimeout(() => { const c = sheet.querySelectorAll('.tc')[[...T.keys()].sort((a, b) => later(T[b]) - later(T[a])).indexOf(wheelI)]; c && c.classList.add('flash'); }, 180); }
+        else if (menuFor) { U[menuFor].doneAt = v; closeSheet(sheet); render(); }
+        return; }
+      // already logged
+      case 'off': { const u = U[menuFor]; u.done = false; closeSheet(sheet); render(); return toast(`${u.name} taken off your day`); }
+      case 'qty': { const u = U[menuFor]; u.n = u.n + 1; closeSheet(sheet); render(); return toast(`${u.name} updated to ${helping(u.unit, u.n)}`); }
+      case 'time': { T = T.filter(x => x.id !== menuFor); const fake = { id: menuFor, time: U[menuFor].doneAt, n: 1 }; T.push(fake); const idx = T.length - 1; closeSheet(sheet); wheel(idx); T.splice(idx, 1); return; }
+      case 'exundo': return askUndo(menuFor, `It comes off today's log, and the ${U[menuFor].kc} kcal it burned leave your Momentum score.`);
+      case 'yesundo': { U[confirmFor].done = false; closeSheet(sheet); render(); return; }
+      case 'mdundo': { U[menuFor].done = false; closeSheet(sheet); render(); return toast('Marked as not done'); }
+      case 'again': closeSheet(sheet); return toast('The breathing player opens');
+      case 'mood': return moodSheet(menuFor, true);
+      case 'moodrm': { const u = U[menuFor]; u.done = false; u.face = null; closeSheet(sheet); render(); return toast('Mood check-in removed'); }
+      case 'mooddone': { const id = moodFor; closeSheet(sheet); moodFor = null;
+        if (U[id].done) { U[id].face = moodPick; render(); return; }   // changing a logged mood replaces it, no new gain
+        const x = T.find(t => t.id === id);
+        if (x) x.face = moodPick; else setTimeout(() => { T.push({ id, time: NOWM, face: moodPick }); renderBar(false); mark(); const row = root.querySelector(`[data-row="${id}"]`); if (!row || !toss(row, id)) renderBar(true); }, 220);
+        return; }
+      case 'startbr': closeSheet(sheet); return toast('The breathing player opens');
+      case 'didbr': { U[menuFor].done = true; U[menuFor].doneAt = NOWM; closeSheet(sheet); render(); settle([menuFor]); return toast('Marked as done'); }
+    }
+  });
+  new MutationObserver(mark).observe(root, { childList: true });
+  { const g = document.querySelector('.hb .hello small'); if (g) g.textContent = now < 12 ? 'Good morning' : now < 16 ? 'Good afternoon' : 'Good evening'; }
+  render();
+})();
+</script>
+<script>
+// Scrolling (New): the greeting slides under the top bar and the folders stick below it, condensed;
+// the bottom nav hides going down and returns going up (and always near the top).
+(() => {
+  if (document.body.dataset.ver !== 'new') return;
+  const top = document.querySelector('.top'), hb = document.querySelector('.hb'), hello = hb.querySelector('.hello');
+  const measure = () => { const sb = document.querySelector('.gf-status'); document.body.style.setProperty('--gf-sb', (sb ? sb.offsetHeight : 0) + 'px');
+    const hh = hello.offsetHeight + 2; document.body.style.setProperty('--hb-top', (top.offsetHeight - hh) + 'px'); return hh; };
+  let hh = 0, last = scrollY, hold = 0;
+  // the status band (r3/chrome.js, or the lab frame's patch) arrives after this script, so measure once it is there
+  const remeasure = () => { hh = measure(); }; requestAnimationFrame(remeasure); addEventListener('load', () => { remeasure(); setTimeout(remeasure, 400); });
+  addEventListener('resize', () => { hh = measure(); });
+  // scroll events already arrive once per frame, so the work is done right in the handler
+  addEventListener('scroll', () => {
+    if (!hh) hh = measure();
+    const y = scrollY, d = y - last;
+    const was = document.body.classList.contains('stuck'), st = was ? y > hh - 28 : y > hh;   // a little give, so it never flickers at the edge
+    if (st !== was) { document.body.classList.toggle('stuck', st); hold = Date.now() + 450; }   // the header settles; its own resize is not a scroll
+    if (Date.now() < hold) { last = y; return; }
+    if (y < 80 || d < -6 || document.body.classList.contains('pt-on')) document.body.classList.remove('navhide');
+    else if (d > 6) document.body.classList.add('navhide');
+    if (Math.abs(d) > 6) last = y;
+  }, { passive: true });
+})();
+</script>
+<script>
+// NEW top nav: the lens glides to the tapped folder, the band crossfades, content slides in from that side
+(() => {
+  const f = document.getElementById('folders'), main = document.querySelector('main.scroll'), K = ['today', 'prog', 'dev'];
+  const sel = k => { const i = K.indexOf(k); f.dataset.i = i; f.style.setProperty('--i', i);
+    f.querySelectorAll('[data-go]').forEach(b => b.setAttribute('aria-selected', b.dataset.go === k)); };
+  sel(document.body.dataset.tab);
+  f.addEventListener('click', e => {
+    const b = e.target.closest('[data-go]'), from = K.indexOf(document.body.dataset.tab); if (!b || b.dataset.go === document.body.dataset.tab) return;
+    document.body.dataset.tab = b.dataset.go; sel(b.dataset.go);
+    main.classList.remove('swap-r', 'swap-l'); void main.offsetWidth; main.classList.add(K.indexOf(b.dataset.go) > from ? 'swap-r' : 'swap-l');
+    const u = new URL(location); u.searchParams.set('tab', b.dataset.go); history.replaceState(null, '', u);
+  });
+})();
+</script>
+<script>
+// Tabs that switch in place: program chips, device tabs, bottom tabs
+document.querySelectorAll('[role=tablist]').forEach(list => list.addEventListener('click', e => {
+  const t = e.target.closest('[role=tab]'); if (!t) return;
+  list.querySelectorAll('[role=tab]').forEach(b => b.setAttribute('aria-selected', b === t));
+}));
+document.querySelector('.tabs').addEventListener('click', e => {
+  const t = e.target.closest('.tab'); if (!t) return;
+  document.querySelectorAll('.tab').forEach(b => b.toggleAttribute('aria-current', b === t)); t.setAttribute('aria-current', 'page');
+  // More opens its page; Home brings the Home back (the other tabs have no screen yet)
+  const pg = t.dataset.page || (t === document.querySelector('.tab') ? 'home' : null);
+  if (pg) { document.body.dataset.page = pg; scrollTo(0, 0); const u = new URL(location); pg === 'home' ? u.searchParams.delete('page') : u.searchParams.set('page', pg); history.replaceState(null, '', u); }
+});
+if (new URLSearchParams(location.search).get('page') === 'more' && document.body.dataset.ver === 'new') document.querySelector('[data-page="more"]').click();
+// Program rail: chip taps scroll to the card, rail swipes move the chip
+(() => {
+  const chips = document.getElementById('chips'), rail = document.getElementById('rail');
+  const pick = k => chips.querySelectorAll('[data-to]').forEach(c => {
+    const on = c.dataset.to === k; c.setAttribute('aria-selected', on);
+    if (on) c.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+  });
+  chips.addEventListener('click', e => { const c = e.target.closest('[data-to]'); if (!c) return;
+    const card = rail.querySelector(`[data-card=${c.dataset.to}]`), pad = parseFloat(getComputedStyle(rail).paddingLeft);
+    rail.scrollTo({ left: card.getBoundingClientRect().left - rail.getBoundingClientRect().left + rail.scrollLeft - pad, behavior: 'smooth' }); });
+  let last;
+  rail.addEventListener('scroll', () => {
+    const cards = [...rail.querySelectorAll('[data-card]')], x = rail.getBoundingClientRect().left + 40;
+    const k = rail.scrollLeft + rail.clientWidth >= rail.scrollWidth - 2 ? cards.at(-1).dataset.card
+      : cards.reduce((a, c) => c.getBoundingClientRect().left <= x ? c.dataset.card : a, cards[0].dataset.card);
+    if (k !== last) { last = k; pick(k); }
+  }, { passive: true });
+})();
+// Smart Devices. Each device is either connected (readings) or not (Figma's first-time pitch).
+// Every state uses the Figma card (ring designs file): green outline, no hard shadow.
+(() => {
+  const q = new URLSearchParams(location.search), bpmQ = q.get('bpm'), none = q.get('dev') === 'new';
+  // devices the member owns (sidebar "Who is this", ?devs=) show their readings; the per-device flags still pick a data state
+  const owns = new Set((q.get('devs') || '').split(',').filter(Boolean));
+  const ringQ = q.get('ring') || (owns.has('ring') ? 'on' : null);
+  const arrow = '<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 9h12m-4.5-4.5L15 9l-4.5 4.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const reads = (rows, synced) => `<div class="reads"><div class="metrics">${rows.map(([ic, k, v]) =>
+    `<div class="m"><div class="k"><img src="${ic.includes('/') ? ic : '../home-new/a/' + ic}" alt="">${k}</div><div class="v">${v}</div></div>`).join('')}</div>
+    <div class="dfoot"><div class="sync">Last Synced:<b>${synced}</b></div><button class="btn">View Details ${arrow}</button></div></div>`;
+  const pitch = (imgs, line, name, h3 = '') => `<div class="pitch">${imgs}<h3 style="${h3}">${line}</h3>
+    <div class="acts"><button class="btn ghost">Explore</button><button class="btn">Connect ${name}</button></div></div>`;
+  const D = {
+    ring: { name: 'Ring', ic: 'dev-ring.png', state: none ? null : ringQ,
+      pitch: () => pitch('<img src="../home-new/a/hero-ring.png" alt="" style="left:-30px;top:16px;width:155px;height:159px">',
+        bpmQ ? 'Listen to your body with GoodFlip Arc Smart Ring' : 'Listen to your body signals with GoodFlip Ring', 'Ring', bpmQ ? 'left:134px;top:34px;width:208px' : ''),
+      // ponytail: Figma reads "104 mg/dl" for heart rate, shown here as bpm
+      on: s => (s === 'sync' ? '<div class="sync-line"><i></i></div>' : s === 'nodata' ? '<div class="sync-line"></div>' : '') +
+        reads(s === 'nodata' ? [['ic-heart.svg', 'Avg Heart Rate', '--'], ['ic-sleep.svg', 'Sleep Duration', '--']]
+                             : [['ic-heart.svg', 'Avg Heart Rate', '104 bpm'], ['ic-sleep.svg', 'Sleep Duration', '7h 50m']],
+              s === 'nodata' ? '03 Jan' : '02:00 AM, Today') },
+    cgm: { name: 'CGM', ic: 'dev-cgm.png', state: none ? null : owns.has('cgm') ? 'on' : null,
+      // ponytail: no CGM data design yet, so these readings are sample values in the same card as Ring and BCA
+      on: () => reads([['ic-drop.svg', 'Glucose now', '112 mg/dL'], ['ic-drop.svg', 'Time in range', '78 %']], '10 min ago'),
+      pitch: () => pitch('<img src="../home-new/a/hero-cgm.png" alt="" style="left:2px;top:-13px;width:182px;height:114px">', 'Track Your Sugar in Real Time with GoodFlip CGM', 'CGM', 'left:134px;width:208px') },
+    bca: { name: 'BCA', ic: 'dev-bca.png', state: (q.get('bca') === 'on' || owns.has('bca')) && !none ? 'on' : null,
+      pitch: () => pitch('<img src="../home-new/a/hero-bca-scale.png" alt="" style="left:4px;top:6px;width:108px;height:98px"><img src="../home-new/a/hero-bca-phone.png" alt="" style="left:82px;top:16px;width:62px;height:103px">', 'Know your body better with GoodFlip Smart Scale', 'BCA'),
+      on: () => reads([['a/ic-weight.svg', 'Weight', '71.10 Kg'], ['a/ic-muscle.svg', 'Muscle Mass', '48.20 %']], '272 days ago') },
+    bpm: { name: 'BPM', ic: 'dev-bpm.png', state: bpmQ && bpmQ !== 'new' ? bpmQ : null,
+      // ponytail: Figma's BPM pitch button says "Connect Ring" and pulse reads "pul/min"; shown as Connect BPM and bpm
+      pitch: () => pitch('<img src="../home-new/a/hero-bpm.png" alt="" style="left:25px;top:26px;width:113px;height:90px">', 'Track blood pressure with GoodFlip Monitor', 'BPM', 'left:150px;top:30px;width:192px'),
+      on: s => reads(s === 'nodata' ? [['ic-drop.svg', 'Blood Pressure', '-- mmHg'], ['ic-heart.svg', 'Pulse', '-- bpm']]
+                                    : [['ic-drop.svg', 'Blood Pressure', '120/80 mmHg'], ['ic-heart.svg', 'Pulse', '99 bpm']], '02:00 AM, Today') },
+  };
+  // tab order: the live card leads with BCA; Figma's cards run Ring, CGM, BCA (and BPM when there are four)
+  const order = bpmQ ? ['ring', 'cgm', 'bca', 'bpm'] : (none || ringQ) ? ['ring', 'cgm', 'bca'] : ['bca', 'cgm', 'ring'];
+  const first = bpmQ ? 'bpm' : order[0];
+  const card = document.getElementById('dev'), tabs = card.querySelector('.dtabs'), pane = document.getElementById('devPane');
+  card.classList.toggle('four', !!bpmQ);
+  tabs.innerHTML = order.map(k => { const d = D[k], st = k === 'ring' && d.state ? `<i class="dot${['sync', 'on'].includes(d.state) ? '' : ' off'}"></i>` : '';
+    return `<button class="dtab" role="tab" data-tab="${k}" aria-selected="${k === first}"><span class="ic"><img src="../home-new/a/${d.ic}" alt=""></span><span class="lb">${st}${d.name}</span></button>`; }).join('');
+  const show = k => {
+    const d = D[k]; card.dataset.dev = k; card.classList.add('fresh'); card.classList.toggle('pitching', !d.state);
+    pane.innerHTML = d.state ? d.on(d.state) : d.pitch();
+  };
+  tabs.addEventListener('click', e => { const t = e.target.closest('[data-tab]'); if (t) show(t.dataset.tab); });
+  show(first);
+  // the stacked view: every device in its own card, header with picture, name and state
+  const SUB = { bca: 'Smart scale', cgm: 'Glucose sensor', ring: 'Smart ring', bpm: 'BP monitor' };
+  const chip = (k, d) => !d.state ? ''
+    : (k === 'ring' && !['sync', 'on'].includes(d.state)) ? '<span class="chip2 off"><i></i>Disconnected</span>' : '<span class="chip2 on"><i></i>Connected</span>';
+  const stackOrder = [...order].sort((a, b) => !!D[b].state - !!D[a].state); // connected devices first
+  document.getElementById('devStack').innerHTML = stackOrder.map(k => { const d = D[k];
+    return `<div class="skin dev fresh dcard${d.state ? '' : ' pitching'}" data-dev="${k}">
+      <div class="dch"><span class="ic"><img src="../home-new/a/${d.ic}" alt=""></span><span class="nm"><b>${d.name}</b><span>${SUB[k]}</span></span>${chip(k, d)}</div>
+      ${d.state ? d.on(d.state) : d.pitch()}</div>`; }).join('');
+  const nOn = order.filter(k => D[k].state).length;
+  document.querySelector('[data-go="dev"] .st').innerHTML = nOn ? '<i class="dot"></i>' + nOn + ' synced' : 'Add one';
+  // the count lives in the Devices folder above, so the section label carries none
+})();
+// Explore carousel: centre snap, dots follow, auto-advance every 5 s (HeaderBanner)
+(() => {
+  const ex = document.getElementById('ex'), bn = [...ex.children], dots = document.getElementById('dots');
+  bn.forEach((_, i) => { const d = document.createElement('i'); d.onclick = () => go(i); dots.append(d); });
+  let cur = 0;
+  const mark = i => { cur = i; bn.forEach((b, j) => b.classList.toggle('on', j === i)); [...dots.children].forEach((d, j) => d.classList.toggle('on', j === i)); };
+  const go = i => ex.scrollTo({ left: bn[i].offsetLeft - (ex.clientWidth - 300) / 2, behavior: 'smooth' });
+  ex.addEventListener('scroll', () => { const c = ex.scrollLeft + ex.clientWidth / 2; mark(bn.reduce((a, b, j) => Math.abs(b.offsetLeft + 150 - c) < Math.abs(bn[a].offsetLeft + 150 - c) ? j : a, 0)); }, { passive: true });
+  mark(0);
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) setInterval(() => go((cur + 1) % bn.length), 5000);
+})();
+</script>
+<script src="../v7/r3/chrome.js"></script>
+</body>
+</html>

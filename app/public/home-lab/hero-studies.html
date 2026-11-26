@@ -1,0 +1,1216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Today hero studies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<!--
+  The conversational hero at the top of Today, round two. GoodFlip asks about the next thing in the day.
+  Kept from round one: A Sphere, B Message (was Chat), C Headline, D Stack. Day arc and KAIRA are gone.
+  New: E Up now (recommended), F Two answers, G Catch-up, H Scene, I Ring, J Pill, K Insight, L Story.
+  Every variant sits on a live phone over a compact stand-in for screen.html's to-do (same parts, blocks and plan).
+  The question is picked from the day (see "How the question is picked" at the foot), the same for every variant.
+  Colour: the hero is Flip Green (it asks you to act); only a score carries a pillar colour (A satellite, I ring).
+  Art: the scenes are the pillars' own (v7/icons/meals/bg, mind/bg, move/bg), the meal pictograms are Eat's
+  (v7/icons/meals/gemini), the coach faces are from the Figma coach session card (home-new/a/coach-*.jpg).
+-->
+<style>
+  :root {
+    --ink: #101828; --g700: #344054; --g600: #475467; --g500: #667085; --g400: #98A2B3; --g300: #D0D5DD; --g200: #E4E7EC; --g100: #F2F4F7; --g50: #F9FAFB;
+    --b25: #FAFFFD; --b50: #F3FCF8; --b100: #E6FAF1; --b200: #CBF0E0; --b300: #ABE6CC; --b600: #299D6B; --b700: #2A805A; --b800: #246649; --b900: #1D4D38;
+    --in25: #F5F8FF; --in50: #EEF4FF; --in100: #E0EAFF; --in200: #C7D7FE; --in300: #A4BCFD; --in600: #444CE7; --in800: #2D31A6;
+    --gd25: #FFFDF5; --gd50: #FFFBEE; --gd100: #FFF8E0; --gd200: #FEF1C7; --gd300: #FDE8A4; --gd600: #E7C144; --gd800: #A68A2D; --gd900: #826E2D;
+    --ease: cubic-bezier(.33,1,.68,1);
+    --glide: cubic-bezier(.65,0,.35,1);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #fff; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; letter-spacing: .2px; }
+  button { font: inherit; letter-spacing: inherit; border: 0; background: none; padding: 0; color: inherit; cursor: pointer; }
+  img { display: block; }
+
+  /* ================= the study page ================= */
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 40px 28px 80px; }
+  h1 { margin: 0; font: 800 30px/1.2 Manrope, sans-serif; letter-spacing: -.3px; }
+  .lead { max-width: 860px; margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: var(--g600); }
+  .switch { position: sticky; top: 0; z-index: 100; margin: 24px -28px 0; padding: 12px 28px; background: rgba(255,255,255,.92); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--g100); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  .switch > span { font-size: 12px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: var(--g500); margin-right: 6px; }
+  .switch button { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--g200); background: #fff; font-size: 14px; font-weight: 500; color: var(--g700);
+    transition: background-color .2s var(--ease), border-color .2s var(--ease), color .2s var(--ease); }
+  .switch button[aria-pressed="true"] { background: var(--b100); border-color: var(--b600); color: var(--b800); font-weight: 600; }
+  .switch .note { flex-basis: 100%; font-size: 13px; color: var(--g500); min-height: 18px; }
+  .sect { margin: 44px 0 0; display: flex; align-items: baseline; gap: 12px; }
+  .sect h2 { margin: 0; font: 700 20px Manrope, sans-serif; }
+  .sect span { font-size: 14px; color: var(--g500); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(372px, 1fr)); gap: 28px; margin-top: 18px; }
+  .opt { border: 1px solid var(--g200); border-radius: 20px; padding: 20px 20px 24px; display: flex; flex-direction: column; background: #fff; }
+  .opt.rec { border-color: var(--b300); box-shadow: 0 0 0 3px var(--b50); }
+  .opt h2 { display: flex; align-items: center; gap: 8px; margin: 0; font: 700 17px Manrope, sans-serif; }
+  .opt .sub { margin: 2px 0 0; font-size: 13px; font-weight: 600; color: var(--g500); }
+  .opt h2 em { font-style: normal; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: #fff; background: var(--b600); padding: 3px 8px; border-radius: 999px; }
+  .opt h2 small { font: 600 11px Roboto, sans-serif; letter-spacing: .4px; text-transform: uppercase; color: var(--g500); background: var(--g100); padding: 3px 8px; border-radius: 999px; }
+  .opt p { margin: 6px 0 0; font-size: 13px; line-height: 1.55; color: var(--g600); }
+  .opt p b { color: var(--g700); font-weight: 600; }
+  .opt .stage { margin-top: auto; padding-top: 16px; display: flex; justify-content: center; }
+  .foot { margin-top: 56px; display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+  @media (max-width: 900px) { .foot { grid-template-columns: 1fr; } }
+  .foot h3 { margin: 0 0 10px; font: 700 18px Manrope, sans-serif; }
+  .foot ol, .foot ul { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; color: var(--g700); }
+  .foot li + li { margin-top: 6px; }
+  .recbox { border: 1px solid var(--b300); background: var(--b25); border-radius: 16px; padding: 16px 18px; font-size: 14px; line-height: 1.6; color: var(--g700); }
+  .recbox b { color: var(--ink); }
+  table.copy { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 1.45; }
+  table.copy th { text-align: left; font-size: 11px; letter-spacing: .6px; text-transform: uppercase; color: var(--g500); padding: 8px 10px; border-bottom: 1px solid var(--g200); }
+  table.copy td { padding: 10px; border-bottom: 1px solid var(--g100); vertical-align: top; color: var(--g700); }
+  table.copy td:first-child { white-space: nowrap; font-weight: 600; color: var(--ink); }
+  table.copy td b { color: var(--ink); font-weight: 600; }
+  .span2 { grid-column: 1 / -1; }
+
+  /* ================= the phone ================= */
+  .pw { zoom: .84; }
+  @media (max-width: 440px) { .pw { zoom: .78; } }
+  .phone { position: relative; width: 390px; height: 800px; border-radius: 46px; border: 9px solid #101828; background: #fff; overflow: hidden;
+    box-shadow: 0 24px 48px -20px rgba(16,24,40,.35); }
+  .sb { height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 4px 28px 0 32px; font: 600 15px Roboto, sans-serif; }
+  .sb svg { height: 12px; }
+  .tb { height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; }
+  .tabs3 { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--g100); }
+  .tabs3 span { padding: 7px 14px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--g500); }
+  .tabs3 span.on { background: #fff; color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgba(16,24,40,.1); }
+  .coin { display: flex; align-items: center; gap: 4px; height: 34px; padding: 0 12px; border-radius: 999px; border: 1.5px solid transparent;
+    background: linear-gradient(90deg, var(--b100), var(--gd50)) padding-box, linear-gradient(90deg, var(--b600), #F5D736) border-box; font-weight: 600; font-size: 14px; color: #313131; }
+  .coin img { width: 20px; height: 20px; }
+  .sc { position: absolute; top: 100px; left: 0; right: 0; bottom: 0; overflow-y: auto; scrollbar-width: none; overscroll-behavior: contain; }
+  .sc::-webkit-scrollbar { display: none; }
+  .ct { position: relative; padding: 8px 16px 120px; }
+  .hero { position: relative; }
+  .hero.out { opacity: 0; transform: translateY(-4px); transition: opacity .22s var(--ease), transform .22s var(--ease); }
+  .hero.in { animation: heroIn .46s var(--ease) both; }
+  @keyframes heroIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* shared answer parts, styled per variant */
+  .acts { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .rb { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 18px; border-radius: 10px;
+    background: var(--b600); color: #fff; font-weight: 600; font-size: 15px; box-shadow: 0 4px 0 var(--b700); transition: transform .12s var(--ease), box-shadow .12s var(--ease); }
+  .rb:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--b700); }
+  .rg { min-height: 44px; padding: 0 14px; border-radius: 10px; font-weight: 600; font-size: 15px; color: var(--g600); }
+  .rg:active { background: var(--g50); }
+  .qc { min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1.5px solid var(--b300); background: #fff; color: var(--b800); font-weight: 600; font-size: 14px;
+    transition: background-color .18s var(--ease), border-color .18s var(--ease); position: relative; }
+  .qc::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 44px; transform: translateY(-50%); }
+  .qc:active { background: var(--b50); }
+  .qc.soft { border-color: var(--g200); color: var(--g600); }
+  .faces { display: flex; gap: 6px; }
+  .face { width: 52px; height: 52px; border-radius: 16px; border: 1px solid var(--g200); background: #fff; font-size: 26px; display: grid; place-items: center;
+    transition: background-color .18s var(--ease), border-color .18s var(--ease), transform .18s var(--ease); }
+  .face:active { transform: scale(.94); }
+  .ack { margin: 0; font-size: 15px; line-height: 1.5; color: var(--b800); animation: heroIn .4s var(--ease) both; }
+  .nav { width: 30px; height: 30px; flex-shrink: 0; }
+  .coaches { display: flex; }
+  .coaches img { width: 32px; height: 32px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
+  .coaches img + img { margin-left: -10px; }
+
+  /* ===== A. Sphere ===== */
+  .vA { padding: 6px 0 18px; display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  .vA .orbit { position: relative; width: 300px; height: 244px; }
+  .vA .sph { position: absolute; left: 30px; top: 6px; width: 228px; height: 228px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 40px; text-align: center; cursor: pointer;
+    background: radial-gradient(130% 130% at 28% 18%, #fff 0%, var(--b50) 32%, var(--b200) 74%, rgba(41,157,107,.36) 100%);
+    box-shadow: 0 18px 34px -14px rgba(41,157,107,.42), 0 2px 5px rgba(41,157,107,.14), inset 0 -18px 26px -14px rgba(41,157,107,.6), inset 0 10px 16px -8px #fff, inset 0 0 0 1px rgba(41,157,107,.14);
+    animation: drift 8s ease-in-out infinite; }
+  .vA .sph::before { content: ""; position: absolute; top: 10%; left: 18%; width: 34%; height: 22%; border-radius: 50%; background: #fff; opacity: .9; filter: blur(7px); pointer-events: none; }
+  .vA .sph b { position: relative; font: 600 25px/1.2 "Playfair Display", serif; color: var(--b900); }
+  .vA .sph .nav { position: relative; width: 36px; height: 36px; }
+  .vA .sat { position: absolute; width: 74px; height: 74px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; left: 214px; top: 164px;
+    animation: drift 8s ease-in-out infinite -2s; }
+  .vA .sat strong { font: 600 19px/1 "Playfair Display", serif; color: var(--ink); }
+  .vA .sat span { margin-top: 3px; font-size: 9.5px; font-weight: 600; letter-spacing: .2px; }
+  .vA .why { margin: 0; max-width: 300px; text-align: center; font-size: 14px; line-height: 1.45; color: var(--g600); }
+  .vA .acts { justify-content: center; }
+  .vA .ack { text-align: center; max-width: 300px; }
+  @keyframes drift { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+
+  /* ===== B. Message ===== */
+  .vB { margin: 6px 0 18px; border: 1px solid var(--g200); border-radius: 20px; background: #fff; overflow: hidden; box-shadow: 0 8px 22px -16px rgba(16,24,40,.25); }
+  .vB .msg { padding: 14px 16px 16px; cursor: pointer; background: linear-gradient(180deg, var(--b50), #fff 80%); }
+  .vB .who { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--g500); }
+  .vB .who img { width: 22px; height: auto; }
+  .vB .who b { color: var(--g700); font-weight: 600; }
+  .vB .msg > b { display: block; margin-top: 10px; font: 700 19px/1.32 Manrope, sans-serif; color: var(--ink); }
+  .vB .msg > span { display: block; margin-top: 4px; font-size: 14px; line-height: 1.45; color: var(--g600); }
+  .vB .ar { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 0 16px; text-align: left; border-top: 1px solid var(--g100);
+    font-size: 15px; font-weight: 600; color: var(--b800); transition: background-color .25s var(--ease), opacity .3s var(--ease), color .25s var(--ease); }
+  .vB .ar:active { background: var(--b25); }
+  .vB .ar.soft { color: var(--g600); font-weight: 500; }
+  .vB .ar .ic { margin-left: auto; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; transition: background-color .25s var(--ease); }
+  .vB .ar .ic svg { width: 14px; height: 14px; }
+  .vB .ar.on { background: var(--b50); color: var(--b800); }
+  .vB .ar.on .ic { background: var(--b600); }
+  .vB .ans.picked .ar:not(.on) { opacity: .35; }
+  .vB .fbox { padding: 12px 16px 14px; border-top: 1px solid var(--g100); }
+  .vB .fbox .faces { justify-content: space-between; }
+  .vB .reply { padding: 12px 16px 14px; border-top: 1px solid var(--g100); }
+
+  /* ===== C. Headline ===== */
+  .vC { padding: 14px 4px 22px; }
+  .vC .eb { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: var(--b700); }
+  .vC .eb i { width: 8px; height: 8px; border-radius: 50%; background: var(--b600); }
+  .vC h3 { margin: 10px 0 0; font: 600 31px/1.18 "Playfair Display", serif; color: var(--ink); letter-spacing: -.2px; cursor: pointer; }
+  .vC .why { margin: 10px 0 18px; font-size: 15px; line-height: 1.5; color: var(--g600); }
+  .pill { display: inline-flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 8px 0 22px; border-radius: 999px; background: var(--b600); color: #fff;
+    font-weight: 600; font-size: 16px; transition: background-color .15s var(--ease), transform .15s var(--ease); }
+  .pill:active { background: var(--b700); transform: scale(.98); }
+  .pill .nv { width: 32px; height: 32px; border-radius: 50%; background: #fff; display: grid; place-items: center; }
+  .pill .nv svg { width: 14px; height: 14px; }
+  .vC .acts { gap: 12px; }
+
+  /* ===== D. Stack ===== */
+  .vD { padding: 6px 0 20px; }
+  .vD .card { position: relative; z-index: 3; background: #fff; border: 1px solid var(--g200); border-radius: 20px; padding: 16px; box-shadow: 0 10px 26px -14px rgba(16,24,40,.22); }
+  .vD .card.go-out { opacity: 0; transform: translateX(-28px); transition: opacity .3s var(--ease), transform .3s var(--ease); }
+  .vD .card.rise { animation: rise .5s var(--ease) both; }
+  @keyframes rise { from { opacity: .4; transform: translateY(34px) scale(.96); } to { opacity: 1; transform: none; } }
+  .vD .top { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .vD .top img.pic { width: 36px; height: 36px; object-fit: contain; }
+  .vD .top .t { flex: 1; min-width: 0; }
+  .vD .top .t b { display: block; font-size: 13px; font-weight: 600; color: var(--ink); }
+  .vD .top .t span { display: block; font-size: 12px; color: var(--g500); }
+  .vD .q { margin: 12px 0 0; font: 700 20px/1.3 Manrope, sans-serif; color: var(--ink); cursor: pointer; }
+  .vD .why { margin: 6px 0 14px; font-size: 14px; line-height: 1.45; color: var(--g600); }
+  .vD .peek { position: relative; display: flex; align-items: center; gap: 8px; width: calc(100% - 20px); margin: -14px 10px 0; padding: 22px 14px 9px; border-radius: 0 0 16px 16px;
+    background: var(--g50); border: 1px solid var(--g200); border-top: 0; font-size: 13px; color: var(--g600); text-align: left; z-index: 2; }
+  .vD .peek + .peek { z-index: 1; width: calc(100% - 40px); margin: -12px 20px 0; padding-top: 18px; background: #FCFCFD; color: var(--g500); }
+  .vD .peek b { color: var(--g700); font-weight: 600; }
+  .vD .peek img { width: 20px; height: 20px; object-fit: contain; }
+  .vD .peek .w { margin-left: auto; font-size: 12px; color: var(--g500); }
+
+  /* ===== E. Up now ===== */
+  .vE { padding: 6px 0 18px; }
+  .vE .eb, .vI .eb, .vF .eb { display: flex; align-items: center; gap: 8px; margin: 0 2px 10px; font-size: 12px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: var(--b700); }
+  .vE .eb i, .vF .eb i { width: 8px; height: 8px; border-radius: 50%; background: var(--b600); }
+  .vE .eb span { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 500; font-size: 13px; color: var(--g500); }
+  .vE .card { position: relative; isolation: isolate; border: 1px solid var(--b200); border-radius: 20px; background: #fff; overflow: hidden;
+    box-shadow: 0 14px 30px -20px rgba(41,157,107,.55), 0 1px 2px rgba(16,24,40,.04); }
+  .scene::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 100%; max-height: 132px; z-index: -1; opacity: .6;
+    background: var(--scene) right top / auto 100% no-repeat;
+    -webkit-mask: linear-gradient(90deg, transparent 18%, #000 62%), linear-gradient(180deg, #000 45%, transparent); -webkit-mask-composite: source-in; mask-composite: intersect; }
+  .vE .hd { display: flex; align-items: center; gap: 12px; width: 100%; padding: 16px 14px 0 12px; text-align: left; cursor: pointer; }
+  .vE .hd img.mp { width: 52px; height: 52px; object-fit: contain; flex-shrink: 0; }
+  .vE .hd .t { flex: 1; min-width: 0; }
+  .vE .hd .t b { display: block; font: 600 23px/28px "Playfair Display", serif; }
+  .vE .hd .t span { display: block; margin-top: 2px; font-size: 13px; line-height: 18px; color: var(--g500); }
+  .vE .items { margin: 12px 16px 0; font-size: 14px; line-height: 1.5; color: var(--g700); }
+  .vE .why { margin: 4px 16px 0; font-size: 13px; line-height: 1.45; color: var(--g500); }
+  .vE .do { display: flex; align-items: center; gap: 4px; margin-top: 14px; padding: 6px 8px 6px 8px; border-top: 1px solid var(--g100); }
+  .vE .lg { flex: 1; display: flex; align-items: center; gap: 14px; min-height: 56px; padding: 0 8px; border-radius: 14px; text-align: left; font-size: 16px; font-weight: 600;
+    transition: background-color .25s var(--ease); }
+  .vE .lg:active { background: var(--b25); }
+  .vE .lg .tk { width: 34px; height: 34px; border-width: 2px; }
+  .vE .lg .tk svg { width: 16px; height: 16px; }
+  .vE .lg.sel { color: var(--b800); }
+  .vE .lg.done > .tk { background: #039855; border-color: #039855; }
+  .vE .lg.done > .tk svg { opacity: 1; transform: none; }
+  .vE .chg { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; padding: 0 6px 0 12px; font-weight: 600; font-size: 15px; color: var(--b700); }
+  .vE .chg svg { width: 16px; height: 16px; }
+  .vE .fbox { margin-top: 14px; padding: 12px 12px 14px; border-top: 1px solid var(--g100); }
+  .vE .fbox .faces { justify-content: space-between; }
+  .vE .note { margin: 0; padding: 18px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  .vE .note .t { flex: 1; }
+  .vE .note b { display: block; font: 600 21px/1.3 "Playfair Display", serif; }
+  .vE .note span { display: block; margin-top: 4px; font-size: 14px; color: var(--g600); }
+  .vE .ackrow { margin-top: 14px; padding: 14px 16px; border-top: 1px solid var(--g100); }
+  .vE .cta { margin-top: 14px; padding: 12px 16px 16px; border-top: 1px solid var(--g100); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  /* the sticky line under the tabs (H8 on the winner) */
+  .stick { position: absolute; top: 102px; left: 12px; right: 12px; z-index: 35; display: flex; align-items: center; gap: 10px; height: 54px; padding: 0 6px 0 10px; border-radius: 16px;
+    background: rgba(255,255,255,.97); border: 1px solid var(--b200); box-shadow: 0 10px 24px -14px rgba(16,24,40,.35);
+    opacity: 0; transform: translateY(-10px); pointer-events: none; transition: opacity .3s var(--ease), transform .3s var(--ease); }
+  .stick.on { opacity: 1; transform: none; pointer-events: auto; }
+  .stick img { width: 32px; height: 32px; object-fit: contain; }
+  .stick .t { flex: 1; min-width: 0; text-align: left; font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 44px; display: flex; align-items: center; }
+  .stick .t span { margin-left: 6px; font-weight: 400; font-size: 13px; color: var(--g500); }
+  .stick .lg { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 10px; border-radius: 12px; font-size: 14px; font-weight: 600; color: var(--b800); }
+  .stick .lg .tk { width: 28px; height: 28px; }
+
+  /* ===== F. Two answers ===== */
+  .vF { padding: 8px 0 18px; }
+  .vF h3 { margin: 0; font: 600 28px/1.2 "Playfair Display", serif; cursor: pointer; }
+  .vF .why { margin: 8px 0 16px; font-size: 15px; line-height: 1.5; color: var(--g600); }
+  .halves { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .half { position: relative; overflow: hidden; isolation: isolate; min-height: 104px; padding: 14px 16px; border-radius: 20px; text-align: left; display: flex; flex-direction: column; justify-content: flex-end; gap: 2px;
+    background: var(--g50); border: 1px solid var(--g200); color: var(--g700); font-size: 18px; font-weight: 600; transition: color .3s var(--ease), border-color .3s var(--ease); }
+  .half.pri { background: var(--b50); border-color: var(--b200); color: var(--b800); }
+  .half small { font-size: 13px; font-weight: 400; color: var(--g500); line-height: 1.35; transition: color .3s var(--ease); }
+  .half.one { grid-column: 1 / -1; min-height: 84px; }
+  .half::before { content: ""; position: absolute; z-index: -1; left: var(--x, 50%); top: var(--y, 50%); width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--b600);
+    transform: scale(0); transition: transform .5s var(--ease); }
+  .half.fill { color: #fff; border-color: var(--b600); }
+  .half.fill small { color: rgba(255,255,255,.85); }
+  .half.fill::before { transform: scale(90); }
+  .half.soft.fill::before { background: var(--g200); }
+  .half.soft.fill { color: var(--g700); border-color: var(--g300); }
+  .half.soft.fill small { color: var(--g600); }
+  .vF .faces { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .vF .face { width: auto; height: 76px; border-radius: 18px; font-size: 30px; display: flex; flex-direction: column; gap: 4px; }
+  .vF .face small { font-size: 11px; font-weight: 600; color: var(--g500); }
+  .vF .else { margin-top: 6px; min-height: 44px; font-size: 14px; font-weight: 600; color: var(--b700); }
+  .toast button { margin-left: 6px; min-height: 30px; padding: 0 4px; color: var(--b200); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+  /* ===== G. Catch-up ===== */
+  .vG { margin: 6px 0 18px; border: 1px solid var(--g200); border-radius: 20px; overflow: hidden; background: #fff; box-shadow: 0 8px 22px -16px rgba(16,24,40,.25); }
+  .vG .cu { display: grid; grid-template-rows: 1fr; background: var(--g50); transition: grid-template-rows .45s var(--ease), opacity .3s var(--ease); }
+  .vG .cu > div { overflow: hidden; min-height: 0; }
+  .vG .cu.gone { grid-template-rows: 0fr; opacity: 0; }
+  .vG .cu .in { padding: 14px 16px 14px; border-bottom: 1px solid var(--g100); }
+  .vG .cu p { margin: 0 0 10px; font-size: 16px; font-weight: 600; line-height: 1.35; }
+  .vG .cu p span { display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--g500); }
+  .vG .cu .ack { font-size: 14px; margin: 0; }
+  .vG .nx { display: flex; align-items: center; gap: 12px; padding: 14px 12px 14px 12px; cursor: pointer; }
+  .vG .nx img.mp { width: 48px; height: 48px; object-fit: contain; flex-shrink: 0; }
+  .vG .nx .t { flex: 1; min-width: 0; }
+  .vG .nx .t small { display: block; font-size: 11px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: var(--b700); }
+  .vG .nx .t b { display: block; margin-top: 1px; font-size: 17px; line-height: 22px; font-weight: 600; }
+  .vG .nx .t span { display: block; font-size: 13px; color: var(--g500); }
+  .vG .nx .rb { min-height: 40px; padding: 0 16px; border-radius: 999px; box-shadow: none; }
+  .vG .nx .rb:active { transform: scale(.97); }
+  .vG .fbox { padding: 0 12px 14px; }
+  .vG .fbox .faces { justify-content: space-between; }
+  .vG .ackrow { padding: 0 16px 14px; }
+
+  /* ===== H. Scene ===== */
+  .vH { position: relative; isolation: isolate; margin: 4px 0 18px; border-radius: 24px; border: 1px solid var(--g200); overflow: hidden; background: #fff; }
+  .vH .art { position: relative; height: 176px; cursor: pointer; }
+  .vH .art::before { content: ""; position: absolute; inset: 0; background: var(--scene) right top / auto 100% no-repeat; opacity: .95;
+    -webkit-mask: linear-gradient(90deg, transparent 2%, #000 34%), linear-gradient(180deg, #000 40%, transparent 86%); -webkit-mask-composite: source-in; mask-composite: intersect;
+    transition: opacity 1.4s var(--ease), filter 1.4s var(--ease); animation: sceneIn 1.2s var(--ease) both; }
+  @keyframes sceneIn { from { opacity: 0; transform: scale(1.03); } to { opacity: .95; transform: none; } }
+  .vH.dim .art::before { opacity: .45; filter: saturate(.5); animation: none; }
+  .vH .tx { position: relative; margin-top: -26px; padding: 0 18px 18px; }
+  .vH .eb { font-size: 12px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: var(--b700); }
+  .vH h3 { margin: 6px 0 0; font: 600 27px/1.2 "Playfair Display", serif; cursor: pointer; }
+  .vH .why { margin: 8px 0 16px; font-size: 14px; line-height: 1.5; color: var(--g600); }
+  .vH .acts { gap: 12px; }
+
+  /* ===== I. Ring ===== */
+  .vI { padding: 8px 0 20px; display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .vI .eb { justify-content: center; margin-bottom: 6px; }
+  .vI h3 { margin: 0; max-width: 330px; font: 600 27px/1.2 "Playfair Display", serif; cursor: pointer; }
+  .vI .why { margin: 8px 0 16px; max-width: 320px; font-size: 14px; line-height: 1.45; color: var(--g600); }
+  .vI .ring { position: relative; width: 216px; height: 216px; }
+  .vI .ring > svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+  .vI .ring .arcp { transition: stroke-dashoffset 1.1s var(--ease); }
+  .vI .core { position: absolute; inset: 26px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    background: radial-gradient(120% 120% at 30% 22%, #fff 0%, var(--b25) 45%, var(--b100) 100%);
+    box-shadow: inset 0 0 0 1px rgba(41,157,107,.12), 0 12px 26px -16px rgba(41,157,107,.6); transition: transform .2s var(--ease); }
+  .vI .core:active { transform: scale(.97); }
+  .vI .core .dot { width: 58px; height: 58px; border-radius: 50%; background: var(--b600); display: grid; place-items: center; box-shadow: 0 4px 0 var(--b700); }
+  .vI .core .dot svg { width: 26px; height: 26px; }
+  .vI .core .dot img { width: 26px; height: 26px; filter: brightness(0) invert(1); }
+  .vI .core .dot.lite { background: #fff; box-shadow: inset 0 0 0 1px var(--g200); }
+  .vI .core .dot.lite img { filter: none; width: 34px; height: 34px; }
+  .vI .core b { font-size: 15px; font-weight: 600; color: var(--b800); max-width: 130px; line-height: 1.25; }
+  .vI .cap { margin-top: 12px; font-size: 13px; color: var(--g500); }
+  .vI .cap strong { font-weight: 600; }
+  .vI .below { margin-top: 8px; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .vI .ack { max-width: 320px; }
+
+  /* ===== J. Pill ===== */
+  .vJ { padding: 4px 0 16px; }
+  .vJ .pl { border: 1px solid var(--g200); border-radius: 30px; background: #fff; box-shadow: 0 6px 18px -14px rgba(16,24,40,.3); overflow: hidden;
+    transition: border-color .35s var(--ease), border-radius .45s var(--ease), box-shadow .35s var(--ease); }
+  .vJ .pl.open { border-color: var(--b200); border-radius: 22px; box-shadow: 0 12px 28px -18px rgba(41,157,107,.5); }
+  .vJ .r1 { display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 0 8px 0 10px; cursor: pointer; }
+  .vJ .r1 img.mp { width: 38px; height: 38px; object-fit: contain; flex-shrink: 0; }
+  .vJ .r1 .t { flex: 1; min-width: 0; }
+  .vJ .r1 .t small { display: block; font-size: 12px; color: var(--g500); }
+  .vJ .r1 .t b { display: block; font-size: 16px; font-weight: 600; line-height: 21px; }
+  .vJ .r1 .ex { width: 44px; height: 44px; display: grid; place-items: center; }
+  .vJ .r1 .ex i { width: 9px; height: 9px; border-right: 2px solid var(--g400); border-bottom: 2px solid var(--g400); transform: rotate(45deg); margin-top: -4px; transition: transform .4s var(--ease), margin .4s var(--ease); }
+  .vJ .pl.open .r1 .ex i { transform: rotate(225deg); margin-top: 4px; }
+  .vJ .more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .45s var(--ease); }
+  .vJ .pl.open .more { grid-template-rows: 1fr; }
+  .vJ .more > div { overflow: hidden; min-height: 0; }
+  .vJ .more .in { padding: 0 16px 16px 58px; }
+  .vJ .more .why { margin: 0 0 12px; font-size: 14px; line-height: 1.45; color: var(--g600); }
+  .vJ .more .faces { margin-left: -42px; justify-content: space-between; }
+  .vJ .r1 .ack { font-size: 14px; }
+
+  /* ===== K. Insight ===== */
+  .vK { margin: 6px 0 18px; padding: 16px 16px 14px; border: 1px solid var(--g200); border-radius: 20px; background: #fff; box-shadow: 0 8px 22px -16px rgba(16,24,40,.25); }
+  .vK .who { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--g500); }
+  .vK .who img { width: 20px; height: auto; }
+  .vK .say { margin: 12px 0 0; font: 600 18px/1.4 Manrope, sans-serif; color: var(--ink); cursor: pointer; }
+  .vK .ev { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 0; }
+  .vK .ev span { height: 28px; padding: 0 12px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 13px; font-weight: 500; background: var(--g100); color: var(--g700); }
+  .vK .ev span.now { background: var(--b100); color: var(--b800); font-weight: 600; box-shadow: inset 0 0 0 1px var(--b300); }
+  .vK .acts { margin-top: 16px; gap: 4px; }
+  .vK .acts .pill { min-height: 44px; font-size: 15px; }
+  .vK .faces { margin-top: 14px; justify-content: space-between; }
+  .vK .ack { margin-top: 14px; }
+
+  /* ===== L. Story ===== */
+  .vL { padding: 10px 2px 20px; }
+  .vL h3 { margin: 0; font: 600 32px/1.15 "Playfair Display", serif; }
+  .vL .fact { margin: 8px 0 0; font-size: 15px; line-height: 1.45; color: var(--g600); }
+  .vL .fact b { color: var(--b800); font-weight: 600; }
+  .vL .scores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+  .vL .sc3 { min-width: 0; display: flex; align-items: center; gap: 6px; padding: 8px 8px; border-radius: 14px; background: var(--g50); }
+  .vL .sc3 svg { width: 30px; height: 30px; flex-shrink: 0; transform: rotate(-90deg); }
+  .vL .sc3 b { display: block; font: 600 16px/1 "Playfair Display", serif; }
+  .vL .sc3 span { display: block; margin-top: 2px; font-size: 11px; font-weight: 600; }
+  .vL .nxt { margin-top: 14px; border: 1px solid var(--b200); border-radius: 18px; background: linear-gradient(180deg, var(--b25), #fff 70%); }
+  .vL .nxt .lb { padding: 12px 14px 0; font-size: 12px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase; color: var(--b700); }
+  .vL .nr { display: flex; align-items: center; gap: 12px; padding: 8px 12px 12px 12px; cursor: pointer; }
+  .vL .nr img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; }
+  .vL .nr p { flex: 1; margin: 0; font-size: 16px; line-height: 1.7; font-weight: 500; }
+  .vL .nr p i { font-style: normal; font-weight: 600; padding: 2px 8px; border-radius: 8px; background: #fff; border: 1px solid var(--g200); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .vL .nact { display: flex; align-items: center; gap: 4px; padding: 0 12px 12px 68px; }
+  .vL .nact .qc { min-height: 36px; }
+  .vL .nact .faces { margin-left: -56px; flex: 1; justify-content: space-between; }
+  .vL .nact .ack { font-size: 14px; }
+
+  /* ================= the fake to-do ================= */
+  .todo { display: flex; flex-direction: column; gap: 12px; }
+  .todo.instant *, .todo.instant { transition: none !important; }
+  .dayhd { display: flex; align-items: flex-end; justify-content: space-between; padding-top: 2px; }
+  .dayhd b { font-size: 16px; line-height: 22px; font-weight: 600; }
+  .dayhd span { font-size: 13px; color: var(--g500); }
+  .part { border-radius: 16px; border: 1px solid #EAECF0; background: #fff; overflow: hidden; }
+  .part.now { border-color: var(--b200); background: linear-gradient(180deg, var(--b25), #fff 90px); }
+  .phd { display: flex; align-items: center; gap: 8px; width: 100%; padding: 12px 14px; text-align: left; }
+  .phd .nm { flex: 1; min-width: 0; }
+  .phd b { font: 600 18px/22px "Playfair Display", serif; }
+  .phd .win { margin-left: 6px; font-size: 12px; color: var(--g500); }
+  .tag { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; }
+  .tag.now { background: var(--b600); color: #fff; }
+  .tag.open { background: var(--g100); color: var(--g600); font-weight: 600; }
+  .tag.ok { color: var(--b800); font-weight: 600; letter-spacing: 0; font-size: 12px; padding: 0; }
+  .tag.cnt { color: var(--g500); font-weight: 400; letter-spacing: 0; font-size: 12px; padding: 0; }
+  .chev { width: 8px; height: 8px; margin: 0 2px 3px 4px; border-right: 1.5px solid var(--g400); border-bottom: 1.5px solid var(--g400); transform: rotate(45deg); transition: transform .35s var(--ease); flex-shrink: 0; }
+  [data-open="true"] > .phd .chev, [data-open="true"] > .bhd .chev { transform: rotate(225deg); margin-bottom: -3px; }
+  .prows, .bbody { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .5s var(--ease); }
+  .part[data-open="true"] > .prows, .blk[data-open="true"] > .bbody { grid-template-rows: 1fr; }
+  .prows > div, .bbody > div { overflow: hidden; min-height: 0; }
+  .blk { position: relative; border-top: 1px solid var(--g100); }
+  .bhd { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; text-align: left; }
+  .bhd .pg { width: 30px; height: 30px; flex-shrink: 0; }
+  .bhd .bt { flex: 1; min-width: 0; }
+  .bhd .bt b { display: block; font-size: 15px; line-height: 20px; font-weight: 600; }
+  .bhd .bt span { display: block; font-size: 12px; line-height: 18px; color: var(--g500); }
+  .bc { font-size: 12px; color: var(--g500); white-space: nowrap; }
+  .bc.full { color: #027A48; font-weight: 600; }
+  .bc.skip { color: var(--g500); font-style: italic; }
+  .bin { padding: 0 14px 14px; }
+  .lab { font-size: 11px; font-weight: 600; letter-spacing: .7px; text-transform: uppercase; color: var(--g500); margin: 2px 0 10px; }
+  .mchips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .ochip { height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--g200); font-size: 14px; font-weight: 600; color: var(--g700); }
+  .ochip.on { border-color: var(--b600); box-shadow: 0 0 0 1px var(--b600); color: var(--b600); }
+  .rows { display: flex; flex-direction: column; gap: 4px; }
+  .row { position: relative; display: flex; align-items: center; gap: 14px; padding: 7px 8px; margin: 0 -8px; border-radius: 12px; }
+  .row .nm { flex: 1; min-width: 0; font-size: 14px; font-weight: 600; line-height: 20px; }
+  .row .nm span { display: block; font-size: 12px; font-weight: 400; color: var(--g500); line-height: 17px; }
+  .row .fc { font-size: 20px; }
+  .tk { position: relative; width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--g300); background: #fff; display: grid; place-items: center; flex-shrink: 0;
+    transition: background-color .2s var(--ease), border-color .2s var(--ease); }
+  .tk::after { content: ""; position: absolute; width: 44px; height: 44px; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+  .tk svg { width: 12px; height: 12px; opacity: 0; transform: scale(.6); transition: opacity .22s ease-out, transform .28s ease-out; }
+  .sel > .tk { background: var(--b100); border-color: #039855; }
+  .sel > .tk svg, .done > .tk svg { opacity: 1; transform: none; }
+  .sel > .tk path { stroke: #039855; }
+  .done > .tk { background: #039855; border-color: #039855; }
+  .done .nm { color: var(--g700); }
+  .srow { position: relative; display: flex; align-items: center; gap: 12px; width: 100%; padding: 14px; text-align: left; border-top: 1px solid var(--g100); }
+  .srow:first-of-type { border-top: 0; }
+  .srow img { width: 32px; height: 32px; }
+  .srow .bt { flex: 1; }
+  .srow .bt b { display: block; font-size: 15px; font-weight: 600; }
+  .srow .bt span { display: block; font-size: 12px; color: var(--g500); }
+  .cardlist { border: 1px solid #EAECF0; border-radius: 16px; overflow: hidden; }
+  .cardlist .lh { padding: 12px 14px 4px; font: 600 18px/22px "Playfair Display", serif; }
+
+  /* the arrival: colour lands, a soft glow settles, and it lets go to a light end state */
+  .ghost { position: absolute; z-index: 30; pointer-events: none; will-change: left, top, width, height; box-shadow: 0 8px 24px -10px rgba(41,157,107,.35); }
+  .lit { animation: lit 3.4s var(--ease) forwards; }
+  @keyframes lit {
+    0% { background-color: var(--b100); box-shadow: inset 0 0 0 1.5px var(--b300), inset 0 0 22px rgba(41,157,107,.16); }
+    35% { background-color: var(--b50); box-shadow: inset 0 0 0 1.5px var(--b300), inset 0 0 18px rgba(41,157,107,.10); }
+    100% { background-color: rgba(243,252,248,0); box-shadow: inset 0 0 0 1.5px rgba(171,230,204,0), inset 0 0 0 rgba(41,157,107,0); }
+  }
+  .blk.lit { border-radius: 14px; }
+
+  /* the bar and the toast, inside the phone */
+  .bar { position: absolute; left: 12px; right: 12px; bottom: 16px; z-index: 40; display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 16px; border-radius: 16px;
+    background: #fff; border: 1px solid var(--g200); box-shadow: 0 12px 30px -10px rgba(16,24,40,.28); transform: translateY(140%); transition: transform .45s var(--ease); }
+  .bar.up { transform: none; }
+  .bar span { flex: 1; font-size: 14px; color: var(--g700); }
+  .bar span b { display: block; color: var(--ink); font-size: 15px; }
+  .bar .rb { min-height: 40px; }
+  .toast { position: absolute; left: 50%; top: 108px; z-index: 50; display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; background: var(--b800); color: #fff;
+    font-size: 14px; font-weight: 500; opacity: 0; transform: translate(-50%, -8px); transition: opacity .3s var(--ease), transform .3s var(--ease); pointer-events: none; white-space: nowrap; }
+  .toast.on { opacity: 1; transform: translate(-50%, 0); }
+  .tag.up { background: var(--b100); color: var(--b800); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vA .sph, .vA .sat, .vH .art::before { animation: none; }
+    .hero.in, .vD .card.rise, .ack { animation: none; }
+    .lit { animation-duration: 2.4s; }
+    .prows, .bbody, .bar, .chev, .vJ .more, .vG .cu, .half::before, .vI .ring .arcp, .stick { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Today: the conversational hero, round two</h1>
+  <p class="lead">GoodFlip asks about the next thing in your day, the way a person would. The question comes from the next open task (time and pillar aware), the same rules for every variant. Tap the question and the page glides down to that task: the part and the block open, the hero's green flows into the row and a soft glow settles, then lets go. Every phone is live: answer, tick, log. Pick a moment to change what it says.</p>
+
+  <div class="switch" role="group" aria-label="Moment in the day">
+    <span>Moment</span>
+    <div id="sw" style="display:contents"></div>
+    <div class="note" id="swnote"></div>
+  </div>
+
+  <div class="sect"><h2>New</h2><span>Eight fresh takes, from the ideation, Mobbin and Pinterest/Dribbble picks</span></div>
+  <div class="grid" id="gridNew"></div>
+  <div class="sect"><h2>Kept from round one</h2><span>Sphere, Message (was Chat), Headline, Stack. Day arc and KAIRA are gone.</span></div>
+  <div class="grid" id="gridKept"></div>
+
+  <div class="foot">
+    <section class="span2">
+      <h3>Recommendation</h3>
+      <div class="recbox"><b>E. Up now.</b> It is not a new component: it is Eat's own meal card (scene, pictogram, Playfair title) and the list's own tick, lifted to the top. The hero and the list are visibly the same object, so ticking one ticks the other, and lunch as planned is 2 taps. The real scene art gives it warmth without H's height, and when you scroll past, it follows as a one-line strip, so the question is never lost. If it feels too plain, the closest runner-up is <b>H. Scene</b> for delight; if missed meals are common, <b>G. Catch-up</b> handles them most kindly, and its "I had it / I skipped it" line already lives inside E's missed state.</div>
+    </section>
+    <section>
+      <h3>How the question is picked</h3>
+      <ol>
+        <li><b>A meal that ended in the last four hours and was never logged</b> is asked about once, gently ("Did you manage to eat lunch?"). "I skipped it" is a real answer and is never asked again.</li>
+        <li>Then <b>whatever is open right now</b>, the one that closes soonest first. A meal at 1 to 3 PM beats a small move that runs all afternoon.</li>
+        <li>Then <b>the next thing coming</b>. If it is more than 45 minutes away, it says you're caught up and names the next one, rather than asking early.</li>
+        <li>Older tasks left open (a morning workout at 6 PM) are <b>not chased</b> by the hero. They stay in the list as "still open".</li>
+        <li>"Not yet" and "Later" move on to the next question for this visit. The task stays open in the list.</li>
+        <li>Nothing left: a short goodnight. No counts, no recap.</li>
+        <li>No plan: the hero is the first coach consultation. Free user: logging a meal.</li>
+      </ol>
+      <h3 style="margin-top:26px">Answers that log</h3>
+      <ul>
+        <li><b>Mood</b>: the five faces sit in the hero. One tap logs it; the reply carries a reason or a next step, and a low mood points at a practice.</li>
+        <li><b>Simple ticks</b> (me-time, last caffeine, wind-down, small moves): Done logs it from the hero, the row ticks below. F adds an Undo.</li>
+        <li><b>Meals</b>: an option, "As planned" or the tick lands that option's foods in the bar. One more tap on Log, so the member still sees what is logged.</li>
+        <li><b>Workouts and breathing</b>: Start glides to the routine; the player is the pillar's own.</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Open questions for the designer</h3>
+      <ol>
+        <li>E shows the task twice, in the hero and in the list. Tag the list row "Up now" (shown), dim it, or hide it?</li>
+        <li>F logs simple ticks at once with an Undo. Keep that, or send every answer through the bar like meals?</li>
+        <li>E's strip under the tabs when you scroll past: keep it, given the floating bar also lives at the bottom?</li>
+        <li>Scenes (E, H): Eat has one per meal, Move and Mind four each, so a picture can repeat across a part of the day. Enough, or should Figma add a welcome scene (no plan) and an all-done scene? For now H uses the early morning family scene and the night reading scene.</li>
+        <li>I's ring: should it step up after a log? That needs a real per-task gain from the score engine; it stays still here, to stay honest.</li>
+        <li>Free users: keep the Free moment, or drop it (earlier decision: no Today tab for free)?</li>
+        <li>Missed meals: ask only about the last one within four hours (shown), or every missed meal in turn?</li>
+        <li>Does "Not yet" snooze for this visit only (shown), or until the next part of the day?</li>
+        <li>K and L show sample history ("twice this week", "up 6 on last week", "Day 18"). Is there a real source for these, and what does K say in the first week, before any pattern exists?</li>
+      </ol>
+    </section>
+    <section class="span2">
+      <h3>What it says, moment by moment</h3>
+      <table class="copy" id="copy"></table>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ---------------------------------------------------------------- data
+  const PIC = { eat: 'a/pic-nutrition.png', move: 'a/pic-movement.png', mind: 'a/pic-mind.png', care: 'a/pic-care-programs.png', dev: 'a/pic-devices.png' };
+  const MPIC = k => `../v7/icons/meals/gemini/${k}.png`;
+  const GFLOGO = '../v7/icons/goodflip-logo-small.png';
+  const COACHES = `<span class="coaches"><img src="../home-new/a/coach-1.jpg" alt=""><img src="../home-new/a/coach-2.jpg" alt=""><img src="../home-new/a/coach-4.jpg" alt=""></span>`;
+  const SCORE = { eat: ['Sufficiency', 54, ['#F3FCF8', '#CBF0E0', '#299D6B'], '#246649', 'Eat'], move: ['Momentum', 40, ['#EEF4FF', '#C7D7FE', '#444CE7'], '#2D31A6', 'Move'], mind: ['Rhythm', 49, ['#FFFBEE', '#FEF1C7', '#E7C144'], '#826E2D', 'Mind'] };
+  const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+  const PLUS = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+  const PLAY = '<svg viewBox="0 0 24 24" fill="#fff"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.6-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5Z"/></svg>';
+  const NAV = '<svg class="nav" viewBox="0 0 22 22" fill="none"><path d="M11 2.0625C9.23233 2.0625 7.50436 2.58668 6.0346 3.56874C4.56483 4.55081 3.41929 5.94665 2.74283 7.57977C2.06637 9.21288 1.88938 11.0099 2.23424 12.7436C2.57909 14.4773 3.43031 16.0698 4.68024 17.3198C5.93017 18.5697 7.52268 19.4209 9.25638 19.7658C10.9901 20.1106 12.7871 19.9336 14.4202 19.2572C16.0534 18.5807 17.4492 17.4352 18.4313 15.9654C19.4133 14.4956 19.9375 12.7677 19.9375 11C19.935 8.6304 18.9926 6.35856 17.317 4.683C15.6414 3.00743 13.3696 2.065 11 2.0625ZM13.5489 11.4864L10.1114 14.9239C10.0475 14.9878 9.9717 15.0385 9.88825 15.073C9.80479 15.1076 9.71534 15.1254 9.625 15.1254C9.53467 15.1254 9.44522 15.1076 9.36176 15.073C9.27831 15.0385 9.20247 14.9878 9.1386 14.9239C9.07472 14.86 9.02405 14.7842 8.98948 14.7007C8.95491 14.6173 8.93712 14.5278 8.93712 14.4375C8.93712 14.3472 8.95491 14.2577 8.98948 14.1743C9.02405 14.0908 9.07472 14.015 9.1386 13.9511L12.0906 11L9.1386 8.04891C9.00959 7.9199 8.93712 7.74494 8.93712 7.5625C8.93712 7.38006 9.00959 7.2051 9.1386 7.07609C9.2676 6.94709 9.44257 6.87462 9.625 6.87462C9.80744 6.87462 9.98241 6.94709 10.1114 7.07609L13.5489 10.5136C13.6128 10.5774 13.6635 10.6533 13.6981 10.7367C13.7327 10.8202 13.7505 10.9097 13.7505 11C13.7505 11.0903 13.7327 11.1798 13.6981 11.2633C13.6635 11.3467 13.6128 11.4226 13.5489 11.4864Z" fill="#299D6B"/></svg>';
+  const CHEV = '<svg viewBox="0 0 24 24" fill="none" stroke="#299D6B" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
+  const FACES = [['Awful', '😣'], ['Low', '😕'], ['Okay', '😐'], ['Good', '🙂'], ['Great', '😄']];
+  const FACE_ACK = [
+    "That sounds hard. Five slow minutes of breathing can help, it's in your plan.",
+    'Sorry it is a low one. A short walk or a call with someone you love can lift it.',
+    'Something small you enjoy can turn an okay day into a good one.',
+    "Good to hear. Notice what made it good, it's worth doing again.",
+    'Lovely. Hold on to what went right today.'];
+  const fmt = m => { const h = Math.floor(m / 60) % 24, mm = m % 60; return (h % 12 || 12) + (mm ? ':' + String(mm).padStart(2, '0') : '') + (h < 12 ? ' AM' : ' PM'); };
+  const clock = m => { const h = Math.floor(m / 60) % 24; return (h % 12 || 12) + ':' + String(m % 60).padStart(2, '0'); };
+  const partName = m => m < 720 ? 'morning' : m < 960 ? 'afternoon' : m < 1200 ? 'evening' : 'night';
+  const greet = m => m < 720 ? 'Good morning' : m < 1020 ? 'Good afternoon' : 'Good evening';
+
+  // the day's blocks, the pillar screens' own sample plan
+  const BLOCKS = [
+    { id: 'pre', part: 'morning', p: 'eat', title: 'Early morning', task: 'pre', opts: [['Jeera water'], ['Black tea with cinnamon']] },
+    { id: 'mdm', part: 'morning', p: 'mind', title: 'Mind', sub: '3 tasks · from 7 AM', rows: [['br', 'Simple Breathing', '7 AM · 5 min'], ['me', 'Walk in nature or a park', '7 AM · Time for yourself'], ['moodam', 'Mood check-in', '8 AM']] },
+    { id: 'bf', part: 'morning', p: 'eat', title: 'Breakfast', task: 'bf', opts: [['Boiled egg', 'Lauki oats besan chilla', 'Green chutney', 'Curd'], ['Vegetable poha', 'Curd', 'Boiled egg'], ['Idli', 'Sambar', 'Curd', 'Boiled egg']] },
+    { id: 'mvm', part: 'morning', p: 'move', title: 'Move', sub: '5 exercises · 93 kcal', task: 'mvm', items: ['Box breathing', 'Plank to push up', 'Spot jump', 'Lateral costal breathing', 'Side leg raise'] },
+    { id: 'lunch', part: 'afternoon', p: 'eat', title: 'Lunch', task: 'lunch', opts: [['Dahi, low-fat', 'Garden salad', 'Vegetable quinoa pulao', 'Rajma'], ['Roti', 'Mixed veg sabzi', 'Dal', 'Garden salad']] },
+    { id: 'mva', part: 'afternoon', p: 'move', title: 'Move', sub: '1 small move', task: 'mva', items: ['Stand and take your meetings'] },
+    { id: 'mde', part: 'evening', p: 'mind', title: 'Mind', sub: '1 task · 4 PM', rows: [['mde', 'Last caffeine (tea, coffee or cola)', '4 PM']] },
+    { id: 'snack', part: 'evening', p: 'eat', title: 'Evening snack', task: 'snack', opts: [['Roasted makhana', 'Roasted chana'], ['Roasted chana', 'Curd']] },
+    { id: 'mve', part: 'evening', p: 'move', title: 'Move', sub: '1 exercise · 2 small moves', task: 'mve', items: ['Plank to push up', 'Take a short walk after dinner', 'Stand up in every TV break'] },
+    { id: 'dinner', part: 'night', p: 'eat', title: 'Dinner', task: 'dinner', opts: [['Multigrain roti', 'Mixed veg sabzi', 'Dal', 'Garden salad'], ['Dal khichdi', 'Curd', 'Mixed veg sabzi', 'Garden salad']] },
+    { id: 'mdn', part: 'night', p: 'mind', title: 'Mind', sub: '3 tasks · from 9 PM', rows: [['moodpm', 'Mood check-in', '9 PM'], ['wd', 'Screen-free wind-down (60 min)', '9:30 PM'], ['wd2', 'Room ready for sleep: dark and cool', '10 PM']] },
+    { id: 'bed', part: 'night', p: 'eat', title: 'Bedtime', task: 'bed', opts: [['Walnut', 'Chamomile tea']] },
+  ];
+  const PARTS = [['morning', 'Morning', 360, 720, '6 AM to 12 PM'], ['afternoon', 'Afternoon', 720, 960, '12 PM to 4 PM'], ['evening', 'Evening', 960, 1200, '4 PM to 8 PM'], ['night', 'Night', 1200, 1800, '8 PM onwards']];
+
+  // every task: pillar, window (minutes), block, how the hero asks about it. qs is the short form (Sphere, Pill, strip).
+  const T = {
+    pre:    { p: 'eat',  from: 360,  to: 420,  blk: 'pre',    kind: 'meal', label: 'Early morning', win: '6 to 7 AM', cta: 'Log early morning', qs: 'Had your jeera water?',
+              q: 'Good morning. What did you start with?', qy: 'Have you had anything yet this morning?', opts: ['Jeera water', 'Cinnamon tea'],
+              why: 'Your coach planned jeera water first, before tea.', next: 'your early morning drink' },
+    br:     { p: 'mind', from: 420,  to: 480,  blk: 'mdm', row: 'br', kind: 'do', label: 'Simple Breathing', win: '7 AM · 5 min', cta: 'Start breathing', qs: 'Time to breathe?',
+              q: 'Got five minutes to breathe?', why: 'Simple breathing: in for 5, out for 5.', thanks: 'Logged. A calm start helps the whole morning.', next: 'Simple Breathing at 7 AM' },
+    me:     { p: 'mind', from: 420,  to: 720,  blk: 'mdm', row: 'me', kind: 'tick', label: 'Me-time', win: 'Any time this morning', cta: 'Mark as done', qs: 'A walk outside today?',
+              q: 'Can you fit in a walk outside today?', why: '20 to 30 minutes in a park or somewhere green.', thanks: 'Logged. Time outdoors helps you sleep better tonight.', next: 'a walk outside' },
+    moodam: { p: 'mind', from: 480,  to: 720,  blk: 'mdm', row: 'moodam', kind: 'mood', label: 'Mood check-in', win: 'This morning', qs: 'How are you feeling?',
+              q: 'How are you feeling this morning?', why: 'One tap is enough.', next: 'your mood check-in' },
+    bf:     { p: 'eat',  from: 480,  to: 600,  blk: 'bf', kind: 'meal', label: 'Breakfast', win: '8 to 10 AM', cta: 'Log breakfast', qs: 'Had breakfast?',
+              q: 'Breakfast time. What are you having?', qy: 'Have you had your breakfast?', opts: ['Chilla and egg', 'Vegetable poha', 'Idli and sambar'],
+              why: 'Eat within an hour of waking. It steadies the whole day.', next: 'breakfast at 8 AM' },
+    mvm:    { p: 'move', from: 420,  to: 720,  blk: 'mvm', kind: 'do', label: 'Morning workout', win: 'Before 12 PM', cta: 'Start workout', qs: 'Ready to move?',
+              q: 'Ready for your morning workout?', why: 'Five exercises from your coach, about 93 kcal.', next: 'your morning workout' },
+    lunch:  { p: 'eat',  from: 780,  to: 900,  blk: 'lunch', kind: 'meal', label: 'Lunch', win: '1 to 3 PM', cta: 'Log lunch', qs: 'Had your lunch?',
+              q: 'Lunch time. What did you have?', qy: 'Have you had your lunch?', opts: ['Quinoa pulao and rajma', 'Roti, dal and sabzi'],
+              why: 'Start with the salad, then the rest.', next: 'lunch at 1 PM',
+              missed: { q: 'Did you manage to eat lunch?', qs: 'Did you eat lunch?', why: 'If you did, add it with the time you ate.', cta: 'Log lunch',
+                        skipped: "Thanks for saying so. Your evening snack matters more now, it keeps dinner from getting too big." } },
+    mva:    { p: 'move', from: 720,  to: 960,  blk: 'mva', kind: 'tick', label: 'Small move', win: 'This afternoon', cta: 'Mark as done', qs: 'Stood for a call?',
+              q: 'Did you stand for a call today?', why: 'Standing breaks a long sit and keeps your sugar steadier.', thanks: 'Logged. Every break from sitting counts.', next: 'standing for a call' },
+    mde:    { p: 'mind', from: 960,  to: 1020, blk: 'mde', row: 'mde', kind: 'tick', label: 'Last caffeine', win: 'By 4 PM', cta: 'Mark as done', qs: 'Last tea or coffee?',
+              q: 'Had your last tea or coffee?', why: 'No caffeine after 4 PM helps you fall asleep.', thanks: 'Logged. That gives it time to wear off by bedtime.', next: 'your last tea or coffee, by 4 PM' },
+    snack:  { p: 'eat',  from: 1020, to: 1110, blk: 'snack', kind: 'meal', label: 'Evening snack', win: '5 to 6:30 PM', cta: 'Log snack', qs: 'Snack time?',
+              q: 'Snack time. What are you having?', qy: 'Had your evening snack?', opts: ['Makhana and chana', 'Chana and curd'],
+              why: 'This is the one that stops you overeating at dinner.', next: 'your evening snack at 5 PM' },
+    mve:    { p: 'move', from: 1020, to: 1260, blk: 'mve', kind: 'do', label: 'Evening move', win: 'This evening', cta: 'Start now', qs: 'Ready to move?',
+              q: 'Ready for your evening move?', why: 'One plank set now, and a short walk after dinner.', next: 'your evening move' },
+    dinner: { p: 'eat',  from: 1200, to: 1290, blk: 'dinner', kind: 'meal', label: 'Dinner', win: '8 to 9:30 PM', cta: 'Log dinner', qs: 'Had your dinner?',
+              q: 'Dinner time. What did you have?', qy: 'Have you had your dinner?', opts: ['Roti, sabzi and dal', 'Dal khichdi'],
+              why: 'Finish two hours before bed so your sleep is not working on food.', next: 'dinner at 8 PM' },
+    moodpm: { p: 'mind', from: 1260, to: 1380, blk: 'mdn', row: 'moodpm', kind: 'mood', label: 'Mood check-in', win: 'Tonight', qs: 'How are you feeling?',
+              q: 'How are you feeling tonight?', why: 'One tap is enough.', next: 'your mood check-in' },
+    wd:     { p: 'mind', from: 1290, to: 1380, blk: 'mdn', row: 'wd', kind: 'tick', label: 'Wind-down', win: 'From 9:30 PM', cta: 'Mark as done', qs: 'Screens away?',
+              q: 'Ready to put the screens away?', why: 'An hour screen-free helps you fall asleep faster.', thanks: 'Logged. Your body starts winding down when the screen does.', next: 'your wind-down at 9:30 PM' },
+    wd2:    { p: 'mind', from: 1320, to: 1440, blk: 'mdn', row: 'wd2', kind: 'tick', label: 'Wind-down', win: 'From 10 PM', cta: 'Mark as done', qs: 'Room ready for sleep?',
+              q: 'Is your room ready for sleep?', why: 'Dark and cool helps you stay asleep.', thanks: 'Logged. Sleep well.', next: 'getting your room ready' },
+    bed:    { p: 'eat',  from: 1320, to: 1380, blk: 'bed', kind: 'meal', label: 'Bedtime', win: '10 to 11 PM', cta: 'Log bedtime snack', qs: 'Something before bed?',
+              q: 'Anything small before bed?', qy: 'Anything small before bed?', opts: ['Walnuts and chamomile'],
+              why: "Small and warm. It's for sleep, not for hunger.", next: 'a small bedtime snack' },
+  };
+  const ORDER = Object.keys(T);
+  const MORNING = ['pre', 'br', 'me', 'moodam', 'bf'];
+
+  const SC = [
+    { k: 'early', label: '6:30 AM', now: 390, done: [], note: 'Early morning, nothing logged yet.' },
+    { k: 'am', label: '8 AM', now: 480, done: ['pre', 'br'], note: 'Early morning drink and breathing done.' },
+    { k: 'noon', label: '1:30 PM', now: 810, done: MORNING, note: 'Morning done except the workout, which stays "still open" and is not chased.' },
+    { k: 'eve', label: '6 PM', now: 1080, done: [...MORNING, 'mvm', 'lunch', 'mva', 'mde', 'snack'], note: 'Afternoon and snack done.' },
+    { k: 'missed', label: '6 PM, lunch missed', now: 1080, done: [...MORNING, 'mvm', 'mva', 'mde'], note: 'Lunch was never logged. The hero asks once, gently, then moves on to the snack.' },
+    { k: 'night', label: '10 PM', now: 1320, done: ORDER.filter(k => !['moodpm', 'wd', 'wd2', 'bed'].includes(k)), note: 'Dinner done, the night tasks are open.' },
+    { k: 'done', label: 'All done', now: 1350, done: ORDER.slice(), note: 'Everything the coach planned is logged.' },
+    { k: 'noplan', label: 'No plan yet', now: 600, mode: 'noplan', note: 'Paid member before the first consultation: the hero is the consultation, not a task.' },
+    { k: 'free', label: 'Free user', now: 780, mode: 'free', note: 'Earlier decision: free members get no Today tab. Shown in case that changes.' },
+  ];
+  const END = {
+    allDone: { kind: 'end', q: "That's everything for today.", qs: "That's all for today", why: "Rest well. Tomorrow's plan opens at 6 AM.", label: 'All done', win: 'Today' },
+    restDone: { kind: 'end', q: "That's all for now.", qs: "That's all for now", why: 'Anything still open stays in your list below.', label: 'For now', win: 'Today' },
+    noplan: { kind: 'cta', key: 'noplan', tgt: 'consult', p: 'care', q: 'Your coach is building your plan.', qs: 'Meet your coach', why: 'Book your first consultation and your day fills in here.',
+              cta: 'Book consultation', title: 'First consultation', sub: '30 min with your coach, online', label: 'First step', win: 'Before your plan' },
+    free: { kind: 'cta', key: 'free', tgt: 'logmeal', p: 'eat', q: 'What did you eat today?', qs: 'What did you eat?', why: "Snap a photo and see what's in it.",
+            cta: 'Log a meal', title: 'Your next meal', sub: 'Snap, speak or search', label: 'Log anything', win: 'Today' },
+  };
+
+  // K. Insight: one sentence naming a pattern with its reason, then the evidence (sample history, the last chip is today)
+  const INS = {
+    pre: { s: 'Jeera water first is three mornings running. It keeps your morning sugar gentler.', ev: ['Tue 6:20 AM', 'Wed 6:35 AM', 'Today'] },
+    br: { s: 'On mornings you breathed first, your mood check-in was brighter. Five minutes is enough.', ev: ['Mon', 'Wed', 'Today, 7 AM'] },
+    me: { s: 'Your best sleep this week came after a morning walk outside. Twenty minutes does it.', ev: ['Tue', 'Thu', 'Today'] },
+    moodam: { s: 'Mondays have started low twice now. A quick check-in lets the right practice find you.', ev: ['Mon 😕', 'Mon 😕', 'Today'] },
+    bf: { s: 'Breakfast came after 10 AM twice this week. Eating within an hour of waking steadies the day.', ev: ['Mon 10:20 AM', 'Wed 10:40 AM', 'Today, till 10'] },
+    mvm: { s: 'You moved before noon on four days this week. Those were your steadiest afternoons.', ev: ['Mon', 'Tue', 'Thu', 'Today'] },
+    lunch: { s: 'Lunch slipped past 3 PM twice this week. Eating by 3 keeps your snack and dinner smaller.', ev: ['Mon 3:40 PM', 'Thu 3:55 PM', 'Today, till 3'] },
+    lunchMissed: { s: 'Lunch went unlogged on two busy days this week. If you ate, adding it keeps your coach\'s view true.', ev: ['Mon', 'Thu', 'Today'] },
+    mva: { s: 'Long sits are your afternoon pattern. One call standing breaks it up.', ev: ['Tue', 'Wed', 'Today'] },
+    mde: { s: 'Coffee after 4 PM came before your two shortest nights. Stopping by 4 lets it wear off.', ev: ['Mon 5:30 PM', 'Wed 6 PM', 'Today, by 4'] },
+    snack: { s: 'On days you had the 5 PM snack, dinner stayed smaller. Today is a good day for it.', ev: ['Tue', 'Thu', 'Today, 5 to 6:30'] },
+    mve: { s: 'Your evening walks this week were all after dinner. That is when they help your sugar most.', ev: ['Mon', 'Wed', 'Today'] },
+    dinner: { s: 'Dinner after 10 PM came before your two restless nights. Finishing by 9:30 gives sleep room.', ev: ['Tue 10:15 PM', 'Fri 10:30 PM', 'Today, till 9:30'] },
+    moodpm: { s: 'Your evenings have been calmer than your mornings this week. A tap keeps that picture true.', ev: ['Wed 🙂', 'Thu 🙂', 'Tonight'] },
+    wd: { s: 'You fell asleep faster on the nights the screens went away at 9:30.', ev: ['Mon', 'Thu', 'Tonight'] },
+    wd2: { s: 'A dark, cool room is the one thing in your plan you have not tried yet.', ev: ['Tonight'] },
+    bed: { s: 'The walnut and chamomile nights were your longest sleeps this week.', ev: ['Tue', 'Wed', 'Tonight'] },
+    noplan: { s: 'Your plan is built around your first consultation. Once it happens, your day fills in here.', ev: ['Diet', 'Movement', 'Mind'] },
+    free: { s: 'Snap any meal and see what is in it, and what to pair it with.', ev: [] },
+    end: { s: "That's everything for today. Rest well, tomorrow's plan opens at 6 AM.", ev: [] },
+    clear: { s: "You're all caught up for now. Nothing to do until the next one.", ev: [] },
+  };
+
+  // ---------------------------------------------------------------- picking the question
+  function queue(st) {
+    const n = st.now, out = [];
+    ORDER.forEach(k => {
+      if (st.done.has(k) || st.skip.has(k) || st.later.has(k)) return;
+      const t = T[k];
+      if (t.p === 'eat' && t.to <= n && n - t.to <= 240) out.push([0, t.to, k, true]);
+      else if (t.from <= n && n < t.to) out.push([1, t.to * 2000 + t.from, k]);
+      else if (t.from > n) out.push([2, t.from, k]);
+    });
+    return out.sort((a, b) => a[0] - b[0] || a[1] - b[1]).map(([, , k, m]) => ({ k, missed: !!m }));
+  }
+  function askOf(st) {
+    if (st.mode) return { ...END[st.mode] };
+    const q = queue(st);
+    if (!q.length) {
+      const left = ORDER.some(k => !st.done.has(k) && !st.skip.has(k));
+      return { ...(left ? END.restDone : END.allDone), key: 'end' };
+    }
+    const { k, missed } = q[0], t = T[k];
+    if (missed) return { ...t, ...t.missed, qy: t.missed.q, key: k, kind: 'missed', missed: true };
+    if (t.from - st.now > 45) return { kind: 'clear', key: k, p: t.p, q: "You're all caught up for now.", qs: "You're caught up", why: 'Next is ' + t.next + '.', label: 'Up next', win: t.win, tgt: k };
+    return { ...t, key: k };
+  }
+
+  // ---------------------------------------------------------------- shared helpers for the heroes
+  const picOf = a => { const t = T[a.tgt || a.key]; if (t) return t.p === 'eat' ? MPIC(t.blk) : PIC[t.p]; return a.key === 'free' ? MPIC('lunch') : PIC.care; };
+  function sceneOf(a, st) {
+    const base = '../v7/icons/';
+    if (a.kind === 'end') return base + 'mind/bg/night.webp';
+    if (a.key === 'noplan') return base + 'meals/bg/pre.webp';
+    if (a.key === 'free') return base + 'meals/bg/lunch.webp';
+    const t = T[a.tgt || a.key];
+    if (t.p === 'eat') return base + 'meals/bg/' + t.blk + '.webp';
+    return base + (t.p === 'mind' ? 'mind' : 'move') + '/bg/' + partName(Math.max(t.from, Math.min(st.now, t.to - 1))) + '.webp';
+  }
+  // the main answer and the quiet one, by kind
+  const actOf = a => ({ meal: 'yes', missed: 'yes', tick: 'done', do: 'start', mood: 'go', cta: 'go', clear: 'go' })[a.kind];
+  const primaryOf = a => ({ meal: a.cta, missed: 'I had it', tick: 'Done', do: a.cta, mood: 'Check in', cta: a.cta, clear: 'Show me' })[a.kind];
+  const secondOf = a => ({ meal: ['Not yet', 'later'], missed: ['I skipped it', 'skip'], tick: ['Not yet', 'later'], do: ['Later', 'later'] })[a.kind];
+  const facesHTML = (labels, suf = '') => `<div class="faces">${FACES.map(([n, e], i) => `<button class="face" data-act="face:${i}${suf}" aria-label="${n}">${e}${labels ? `<small>${n}</small>` : ''}</button>`).join('')}</div>`;
+  const tapAttr = a => a.kind !== 'end' ? 'data-act="go" role="button" tabindex="0"' : '';
+  const blockOf = k => BLOCKS.find(x => x.id === T[k].blk);
+
+  // round one's answer sets, still used by Sphere, Headline and Stack
+  function replies(a, mode, ph) {
+    if (ph.ack) return `<p class="ack">${ph.ack}</p>`;
+    const B = (t, act) => `<button class="rb" data-act="${act}">${t}</button>`, G = (t, act) => `<button class="rg" data-act="${act}">${t}</button>`;
+    const C = (t, act, soft) => `<button class="qc${soft ? ' soft' : ''}" data-act="${act}">${t}</button>`;
+    if (a.kind === 'mood') return facesHTML(false);
+    if (a.kind === 'end') return '';
+    if (a.kind === 'cta' || a.kind === 'clear') return mode === 'chips' ? (a.kind === 'cta' ? C(a.cta, 'go') : C('Show me', 'go', 1)) : a.kind === 'cta' ? B(a.cta, 'go') : '';
+    if (a.kind === 'meal') {
+      if (mode === 'chips') return a.opts.map((o, i) => C(o, 'opt:' + i)).join('') + C('Not yet', 'later', 1);
+      if (mode === 'cta') return B(a.cta, 'yes') + G('Not yet', 'later');
+      return B('Yes, log it', 'yes') + G('Not yet', 'later');
+    }
+    if (a.kind === 'missed') return mode === 'chips' ? C('Yes, log it', 'yes') + C('I skipped it', 'skip', 1) : B(mode === 'cta' ? a.cta : 'Yes, log it', 'yes') + G('I skipped it', 'skip');
+    if (a.kind === 'do') return mode === 'chips' ? C('Start now', 'start') + C('Later', 'later', 1) : B(mode === 'cta' ? a.cta : 'Start now', 'start') + G('Later', 'later');
+    if (a.kind === 'tick') return mode === 'chips' ? C('Done', 'done') + C('Not yet', 'later', 1) : B('Done', 'done') + G('Not yet', 'later');
+    return '';
+  }
+  const ebOf = a => a.label + ' · ' + a.win;
+
+  // ---------------------------------------------------------------- the heroes
+  const V = [
+    // ---------- new
+    { id: 'E', group: 'new', name: 'Up now', title: 'The next to-do row, lifted', rec: true, from: '#E6FAF1', stick: true,
+      why: 'The hero is the task itself, drawn like Eat\'s meal card (its scene, pictogram and Playfair title) with the same tick the list uses. Tick it and the planned option drops into the bar; the list opens that block with its rows ticked in step and tags it Up now. Scroll past and it follows as a one-line strip under the tabs. <b>Lunch as planned: 2 taps.</b>',
+      trade: 'The task shows twice (hero and list), softened by the Up now tag. It asks by showing the task more than by talking.',
+      render(a, ph) {
+        const st = ph.st, eb = `<div class="eb"><i></i>Up now<span>${st.mode ? a.win : partName(st.now).replace(/^./, c => c.toUpperCase())}</span></div>`;
+        if (a.kind === 'cta') return `<div class="vE">${eb}<div class="card scene" style="--scene:url(${sceneOf(a, st)})" data-src>
+          <div class="hd" ${tapAttr(a)}><img class="mp" src="${a.key === 'free' ? MPIC('lunch') : PIC.care}" alt=""><span class="t"><b>${a.title}</b><span>${a.sub}</span></span>${NAV}</div>
+          <p class="why" style="font-size:14px;color:#475467;margin-top:12px">${a.why}</p>
+          <div class="cta">${a.key === 'noplan' ? COACHES : '<span></span>'}<button class="rb" data-act="go">${a.cta}</button></div></div></div>`;
+        if (a.kind === 'end' || a.kind === 'clear') return `<div class="vE">${eb}<div class="card${a.kind === 'end' ? ' scene' : ''}" ${a.kind === 'end' ? `style="--scene:url(${sceneOf(a, st)})"` : ''} data-src>
+          <div class="note" ${tapAttr(a)}>${a.kind === 'clear' ? `<img class="mp" src="${picOf(a)}" alt="" style="width:44px;height:44px;object-fit:contain">` : ''}<span class="t"><b>${a.q}</b><span>${a.why}</span></span>${a.kind === 'clear' ? NAV : ''}</div></div></div>`;
+        const t = T[a.key], b = blockOf(a.key), row = b.rows && b.rows.find(r => r[0] === a.key);
+        const o = ph.opt[b.id] || 0, sel = ph.selBlk === b.id && ph.sel.size > 0, done = st.done.has(a.key);
+        const title = row ? row[1] : b.items ? t.label : b.title;
+        const sub = row ? row[2] : b.items ? `${t.win} · ${b.sub}` : `${a.kind === 'missed' ? 'Was' : 'Suggested'} ${t.win}`;
+        const items = b.opts ? b.opts[o].join(', ') : b.items && b.items.length > 1 ? b.items.join(', ') : '';
+        let foot;
+        if (a.kind === 'mood') foot = ph.ack ? `<div class="ackrow"><p class="ack">${ph.ack}</p></div>` : `<div class="fbox">${facesHTML(false)}</div>`;
+        else {
+          const lab = a.kind === 'missed' ? 'I had it, as planned' : b.opts ? 'Log as planned' : b.items && b.items.length > 1 ? 'All done' : 'Mark as done';
+          const side = a.kind === 'missed' ? `<button class="chg" data-act="skip">I skipped it</button>` : a.kind === 'do' ? `<button class="chg" data-act="start">Start${CHEV}</button>`
+            : a.kind === 'tick' ? `<button class="chg" data-act="later">Not yet</button>` : `<button class="chg" data-act="go">Change${CHEV}</button>`;
+          foot = `<div class="do"><button class="lg${sel ? ' sel' : ''}${done ? ' done' : ''}" data-act="tick" aria-pressed="${sel || done}"><span class="tk">${CHECK}</span>${lab}</button>${done || ph.ack ? '' : side}</div>${ph.ack ? `<div class="ackrow" style="margin-top:0"><p class="ack">${ph.ack}</p></div>` : ''}`;
+        }
+        return `<div class="vE">${eb}<div class="card${t.p === 'eat' ? ' scene' : ''}" ${t.p === 'eat' ? `style="--scene:url(${sceneOf(a, st)})"` : ''} data-src>
+          <div class="hd" data-act="go" role="button" tabindex="0"><img class="mp" src="${picOf(a)}" alt=""><span class="t"><b>${title}</b><span>${sub}</span></span>${NAV}</div>
+          ${items ? `<p class="items">${items}</p>` : ''}<p class="why" ${items ? '' : 'style="margin-top:10px"'}>${a.why}</p>${foot}</div></div>`;
+      } },
+    { id: 'F', group: 'new', name: 'Two answers', title: 'The two answers people give, as big as they can be', from: '#F3FCF8',
+      why: 'A Playfair question, its reason, and two big halves you cannot miss (Fitts). The half you tap fills with green from your finger. Simple ticks log at once with an Undo; meals glide to the list with the plan in the bar. "Something else" opens the meal to pick.',
+      trade: 'Yes or no only: meal options hide behind "Something else". Logging without the bar needs the Undo to feel safe.',
+      render(a, ph) {
+        const H = (rows) => `<div class="halves">${rows.map(([t, s, act, cls]) => `<button class="half ${cls}" data-act="${act}">${t}${s ? `<small>${s}</small>` : ''}</button>`).join('')}</div>`;
+        let ans = '';
+        if (ph.ack) ans = `<p class="ack">${ph.ack}</p>`;
+        else if (a.kind === 'mood') ans = `<div class="faces">${FACES.map(([n, e], i) => `<button class="face" data-act="face:${i}" aria-label="${n}">${e}<small>${n}</small></button>`).join('')}</div>`;
+        else if (a.kind === 'meal') ans = H([['As planned', a.opts[0], 'yes', 'pri'], ['Not yet', 'It stays in your list', 'later', 'soft']]) + `<button class="else" data-act="go">Something else</button>`;
+        else if (a.kind === 'missed') ans = H([['I had it', 'Add it with the time you ate', 'yes', 'pri'], ['I skipped it', 'No more reminders', 'skip', 'soft']]);
+        else if (a.kind === 'tick') ans = H([['Done', 'Logs it now', 'done', 'pri'], ['Not yet', 'It stays in your list', 'later', 'soft']]);
+        else if (a.kind === 'do') ans = H([['Start now', a.win, 'start', 'pri'], ['Later', 'It stays in your list', 'later', 'soft']]);
+        else if (a.kind === 'cta') ans = H([[a.cta, a.sub, 'go', 'pri one']]);
+        else if (a.kind === 'clear') ans = H([['Show me', T[a.tgt].label + ' · ' + T[a.tgt].win, 'go', 'soft one']]);
+        return `<div class="vF" data-src><div class="eb"><i></i>${ebOf(a)}</div><h3 ${tapAttr(a)}>${a.q}</h3><p class="why">${a.why}</p>${ans}</div>`;
+      } },
+    { id: 'G', group: 'new', name: 'Catch-up', title: 'One loose end, then what is next', from: '#F9FAFB',
+      why: 'If a meal slipped, one small line asks about it first, with "I had it" and "I skipped it". Under it, one row for what is next: its window, its reason, one button. Answer the loose end and it folds away. When nothing slipped, it is just the next row. <b>The kindest way to handle a missed meal</b>, no red list.',
+      trade: 'The smallest hero, so the least delight. The card changes height when the catch-up folds away.',
+      render(a, ph) {
+        const st = ph.st;
+        if (a.kind === 'cta') return `<div class="vG" data-src><div class="nx" ${tapAttr(a)}>${a.key === 'noplan' ? COACHES : `<img class="mp" src="${MPIC('lunch')}" alt="">`}<span class="t"><small>${a.label}</small><b>${a.key === 'noplan' ? 'Book your first consultation' : a.q}</b><span>${a.why}</span></span><button class="rb" data-act="go">${a.key === 'noplan' ? 'Book' : 'Log'}</button></div></div>`;
+        const q = queue(st), miss = q.find(x => x.missed), nk = (q.find(x => !x.missed) || {}).k;
+        let top = '';
+        const mk = ph.cuAck ? ph.cuKey : miss && miss.k;
+        if (mk) { const m = T[mk];
+          top = `<div class="cu"><div><div class="in">${ph.cuAck ? `<p class="ack">${ph.cuAck}</p>` : `<p>${m.missed.q}<span>${m.label} was ${m.win}. ${m.missed.why}</span></p><div class="acts"><button class="qc" data-act="yes@${mk}">I had it</button><button class="qc soft" data-act="skip@${mk}">I skipped it</button></div>`}</div></div></div>`; }
+        if (!nk) { const e = askOf({ ...st, skip: new Set([...st.skip, ...(miss ? [miss.k] : [])]) });
+          return `<div class="vG" data-src>${top}<div class="nx" style="cursor:default"><span class="t"><small>${e.label}</small><b>${e.q}</b><span>${e.why}</span></span></div></div>`; }
+        const n = T[nk], pic = n.p === 'eat' ? MPIC(n.blk) : PIC[n.p];
+        const btn = n.kind === 'mood' ? '' : `<button class="rb" data-act="${{ meal: 'yes', tick: 'done', do: 'start' }[n.kind]}@${nk}">${{ meal: 'Log', tick: 'Done', do: 'Start' }[n.kind]}</button>`;
+        const nameOf = blockOf(nk).rows ? blockOf(nk).rows.find(r => r[0] === nk)[1] : n.label;
+        const after = ph.ack ? `<div class="ackrow"><p class="ack">${ph.ack}</p></div>` : n.kind === 'mood' ? `<div class="fbox">${facesHTML(false, '@' + nk)}</div>` : '';
+        return `<div class="vG" data-src>${top}<div class="nx" data-act="goto:${nk}" role="button" tabindex="0"><img class="mp" src="${pic}" alt=""><span class="t"><small>Next · ${n.win}</small><b>${nameOf}</b><span>${n.why}</span></span>${ph.ack ? '' : btn}</div>${after}</div>`;
+      } },
+    { id: 'H', group: 'new', name: 'Scene', title: 'The moment, drawn', from: '#F3FCF8',
+      why: 'The pillars\' own scenes (the family breakfast, the lunch table, the balcony at dusk, reading in bed) set the time of day before you read a word. The question sits in Playfair over the fade, with one pill named after the task. All done dims the night scene to a light end state. <b>Real art only</b>: Eat, Move and Mind already have a scene for every meal and part of the day.',
+      trade: 'The tallest hero, so the to-do starts lower. Move and Mind have four scenes each, so a picture can repeat across a part of the day.',
+      render(a, ph) {
+        const st = ph.st, sec = secondOf(a);
+        const acts = ph.ack ? `<p class="ack">${ph.ack}</p>` : a.kind === 'mood' ? facesHTML(false) : a.kind === 'end' ? ''
+          : `<div class="acts"><button class="pill" data-act="${actOf(a)}">${primaryOf(a)}<span class="nv">${CHEV}</span></button>${sec ? `<button class="rg" data-act="${sec[1]}">${sec[0]}</button>` : ''}</div>`;
+        return `<div class="vH${a.kind === 'end' ? ' dim' : ''}" data-src style="--scene:url(${sceneOf(a, st)})"><div class="art" ${tapAttr(a)}></div>
+          <div class="tx"><div class="eb">${ebOf(a)}</div><h3 ${tapAttr(a)}>${a.q.replace(/\. /, '.<br>')}</h3><p class="why">${a.why}</p>${acts}</div></div>`;
+      } },
+    { id: 'I', group: 'new', name: 'Ring', title: 'The score holds the button', from: '#E6FAF1',
+      why: 'How We Feel\'s idea in GoodFlip colours: the question sits above a ring that is the pillar\'s score, and the action sits inside it. One look says what to do and what it feeds, so <b>adherence and motivation share one object</b>. The ring is the only pillar colour; the button stays Flip Green.',
+      trade: 'One pillar\'s score at a time, so the other two still need the plans strip. A ring that stays still after a log can feel flat, and moving it needs real gain numbers.',
+      render(a, ph) {
+        const st = ph.st, s = !st.mode && a.kind !== 'end' ? SCORE[a.p] : null, R = 95, C = 2 * Math.PI * R, off = s ? C * (1 - s[1] / 100) : C;
+        const same = ph.ringKey === (a.key || a.kind); ph.ringKey = a.key || a.kind;
+        const icon = { meal: PLUS, missed: PLUS, tick: CHECK, do: PLAY, clear: CHEV.replace('#299D6B', '#fff') }[a.kind]
+          || (a.kind === 'mood' ? '<span style="font-size:30px">🙂</span>' : a.key === 'noplan' ? `<img src="${PIC.care}" alt="">` : a.key === 'free' ? `<img src="../home-new/a/camera.svg" alt="" style="filter:brightness(0) invert(1)">` : `<img src="../v7/icons/gf/moon.svg" alt="">`);
+        const lite = a.kind === 'mood' || a.key === 'noplan' || a.kind === 'end';
+        const svg = `<svg viewBox="0 0 216 216" aria-hidden="true"><defs><linearGradient id="ringI" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${s ? s[2][1] : '#E4E7EC'}"/><stop offset="1" stop-color="${s ? s[2][2] : '#D0D5DD'}"/></linearGradient></defs>
+          <circle cx="108" cy="108" r="${R}" fill="none" stroke="#F2F4F7" stroke-width="14" ${a.key === 'noplan' ? 'stroke-dasharray="2 8" stroke-linecap="round"' : ''}/>
+          ${s ? `<circle class="arcp" cx="108" cy="108" r="${R}" fill="none" stroke="url(#ringI)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${same ? off : C}" data-off="${off}"/>` : ''}</svg>`;
+        const tap = a.kind !== 'end';
+        const core = `<${tap ? 'button' : 'div'} class="core" ${tap ? `data-act="${a.kind === 'mood' ? 'open' : actOf(a)}"` : ''} data-src><span class="dot${lite ? ' lite' : ''}">${icon}</span><b>${a.kind === 'end' ? 'Rest well' : primaryOf(a)}</b></${tap ? 'button' : 'div'}>`;
+        const cap = s ? `<span style="color:${s[3]}"><strong>${s[0]} ${s[1]}%</strong></span> · ${s[4]} score today` : a.key === 'noplan' ? 'Your scores start after the consultation' : '';
+        const sec = secondOf(a);
+        const below = ph.ack ? `<p class="ack">${ph.ack}</p>` : a.kind === 'mood' && ph.open ? facesHTML(false) : sec ? `<button class="rg" data-act="${sec[1]}">${sec[0]}</button>` : '';
+        return `<div class="vI"><div class="eb">${ebOf(a)}</div><h3 ${tapAttr(a)}>${a.q}</h3><p class="why">${a.why}</p><div class="ring">${svg}${core}</div>${cap ? `<div class="cap">${cap}</div>` : ''}<div class="below">${below}</div></div>`;
+      } },
+    { id: 'J', group: 'new', name: 'Pill', title: 'A quiet line that opens', from: '#FFFFFF',
+      why: 'One line under the tabs: a greeting with the window, and the short question. Tap and it opens in place to the reason and the answers. When nothing is due, it stays one line that points at what is next, and before a plan it is the consultation. <b>Gives the to-do the most room.</b>',
+      trade: 'Easy to skim past, and answering takes one more tap than any other variant.',
+      render(a, ph) {
+        const st = ph.st, can = !['end', 'clear', 'cta'].includes(a.kind), open = can && ph.open;
+        const small = st.mode ? a.label : can ? `${greet(st.now)} · ${a.win}` : a.kind === 'clear' ? "You're all caught up" : greet(st.now);
+        const big = a.kind === 'clear' ? a.why.replace(/\.$/, '').replace(/^Next is (\w)/, (m, c) => 'Next is ' + c) : a.kind === 'cta' ? (a.key === 'noplan' ? 'Book your first consultation' : a.q) : a.kind === 'end' ? a.q : a.qs;
+        const pic = a.kind === 'end' ? '../v7/icons/gf/moon.svg' : picOf(a);
+        const right = can ? '<span class="ex"><i></i></span>' : a.kind === 'end' ? '' : NAV;
+        const inner = ph.ack ? `<p class="ack">${ph.ack}</p>` : a.kind === 'mood' ? facesHTML(false) : `<div class="acts">${replies(a, 'chips', ph)}</div>`;
+        const find = !ph.ack && (a.kind === 'tick' || a.kind === 'mood') ? `<button class="rg" data-act="go" style="margin:8px 0 -10px -14px;color:#2A805A">See it in your day</button>` : '';
+        return `<div class="vJ"><div class="pl${open ? ' open' : ''}" data-src><div class="r1" ${can ? 'data-act="open"' : a.kind === 'end' ? '' : 'data-act="go"'} role="button" tabindex="0" aria-expanded="${!!open}"><img class="mp" src="${pic}" alt="" ${a.kind === 'end' ? 'style="width:24px;height:24px;margin:0 7px"' : ''}><span class="t"><small>${small}</small><b>${big}</b></span>${right}</div>
+          ${can ? `<div class="more"><div><div class="in"><p class="why">${a.why}</p>${inner}${find}</div></div></div>` : ''}</div></div>`;
+      } },
+    { id: 'K', group: 'new', name: 'Insight', title: 'A pattern, its proof, one action', from: '#F3FCF8',
+      why: 'From the CARE AI card: one sentence names a pattern from your week and why it matters, small chips show the evidence (today\'s chip is lit), then one action and "Not now". <b>Every line is a reason or a next step</b>, never a recap, and it is the most coaching per glance.',
+      trade: 'Needs real history: a new member has no pattern to show, and a stale or wrong one hurts trust. Chips here are sample data. A heavier read than a question.',
+      render(a, ph) {
+        const st = ph.st, ins = INS[a.kind === 'missed' ? 'lunchMissed' : a.kind === 'cta' ? a.key : a.kind === 'end' ? 'end' : a.kind === 'clear' ? 'clear' : a.key] || { s: a.why, ev: [] };
+        const ev = (a.kind === 'clear' ? [T[a.tgt].label + ', ' + T[a.tgt].win] : ins.ev);
+        const sec = secondOf(a);
+        const acts = ph.ack ? `<p class="ack">${ph.ack}</p>` : a.kind === 'mood' ? facesHTML(false) : a.kind === 'end' ? ''
+          : `<div class="acts"><button class="pill" data-act="${actOf(a)}">${primaryOf(a)}<span class="nv">${CHEV}</span></button>${sec ? `<button class="rg" data-act="${sec[1] === 'skip' ? 'skip' : 'later'}">${sec[1] === 'skip' ? sec[0] : 'Not now'}</button>` : ''}</div>`;
+        return `<div class="vK" data-src><div class="who"><img src="${GFLOGO}" alt="">${a.kind === 'cta' || a.kind === 'end' ? a.label : 'From your week'}</div>
+          <p class="say" ${tapAttr(a)}>${ins.s}</p>${ev.length ? `<div class="ev">${ev.map((x, i) => `<span${i === ev.length - 1 && a.kind !== 'cta' ? ' class="now"' : ''}>${x}</span>`).join('')}</div>` : ''}${acts}</div>`;
+      } },
+    { id: 'L', group: 'new', name: 'Story', title: 'Greeting, scores, then the next step', from: '#E6FAF1',
+      why: 'One vertical story, as in the "Ellie" plan screen: a Playfair greeting, a sub-line with a motivating fact (never a recap), the three scores small and light, then the next step in your plan written as a sentence with its variable parts boxed. <b>Motivation sits above adherence</b>, the thesis in one column.',
+      trade: 'Repeats the scores if the pillar cards also sit on Today; pick one home for them. The greeting changes four times a day, the rest stays put.',
+      render(a, ph) {
+        const st = ph.st, hi = greet(st.now) + '.';
+        const ring = s => { const R = 14, C = 2 * Math.PI * R; return `<svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="${R}" fill="none" stroke="#E4E7EC" stroke-width="3" stroke-dasharray="1.5 3"/><circle cx="17" cy="17" r="${R}" fill="none" stroke="${s[2][2]}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - s[1] / 100)}"/></svg>`; };
+        const scores = st.mode ? '' : `<div class="scores">${['eat', 'move', 'mind'].map(p => { const s = SCORE[p]; return `<div class="sc3">${ring(s)}<span><b>${s[1]}%</b><span style="color:${s[3]}">${s[0]}</span></span></div>`; }).join('')}</div>`;
+        const fact = st.mode === 'noplan' ? 'Your coach builds your plan around your first conversation.' : st.mode === 'free' ? 'Snap any meal and see what is in it.' : `Day 18 of your plan. Sufficiency is <b>up 6</b> on last week.`;
+        let line, act = '', pic = picOf(a), lab = 'Next in your plan';
+        if (a.kind === 'cta') { line = a.key === 'noplan' ? `A <i>30 min</i> call with your coach` : `Snap, speak or search <i>any meal</i>`; act = `<button class="qc" data-act="go">${a.cta}</button>`; lab = a.label; }
+        else if (a.kind === 'end') { line = "That's everything for today. Tomorrow starts at <i>6 AM</i>."; pic = '../v7/icons/gf/moon.svg'; lab = 'Today'; }
+        else if (a.kind === 'clear') { const n = T[a.tgt]; line = `You're caught up. Next is <i>${n.label}</i> at <i>${fmt(n.from)}</i>`; act = `<button class="qc soft" data-act="go">Show me</button>`; }
+        else { const t = T[a.key], b = blockOf(a.key), row = b.rows && b.rows.find(r => r[0] === a.key);
+          line = a.kind === 'missed' ? `Did you have <i>${t.opts[0]}</i> for lunch?`
+            : a.kind === 'meal' ? `Have <i>${t.opts[0]}</i> by <i>${fmt(t.to)}</i>`
+            : a.kind === 'mood' ? `Check in with <i>one tap</i>`
+            : b.items ? `${t.label}: <i>${b.sub.split(' · ')[0]}</i> ${t.win.toLowerCase().startsWith('before') ? t.win.toLowerCase() : ''}`
+            : `${row ? row[1] : t.label} <i>${t.win}</i>`;
+          const sec = secondOf(a);
+          act = ph.ack ? `<p class="ack">${ph.ack}</p>` : a.kind === 'mood' ? facesHTML(false)
+            : `<button class="qc" data-act="${actOf(a)}">${a.kind === 'meal' ? 'Log as planned' : a.kind === 'missed' ? 'I had it' : primaryOf(a)}</button>${sec ? `<button class="rg" data-act="${sec[1]}">${sec[0]}</button>` : ''}`; }
+        if (ph.ack && a.kind === 'mood') act = `<p class="ack">${ph.ack}</p>`;
+        return `<div class="vL"><h3>${hi}</h3><p class="fact">${fact}</p>${scores}<div class="nxt" data-src><div class="lb">${lab}</div><div class="nr" ${tapAttr(a)}><img src="${pic}" alt="" ${a.kind === 'end' ? 'style="width:24px;height:24px;margin:0 10px"' : ''}><p>${line}</p>${a.kind !== 'end' ? NAV : ''}</div>${act ? `<div class="nact">${act}</div>` : ''}</div></div>`;
+      } },
+    // ---------- kept, improved
+    { id: 'A', group: 'kept', name: 'Sphere', title: 'One big bubble asks', from: '#CBF0E0',
+      why: 'The reference, kept: a soft glass sphere in Flip Green asks, a small satellite carries the pillar score in its own colour. <b>Big asks, small scores</b>, as in ScoreBubbles. Improved: the sphere holds only a short form of the question (four words or fewer, in Playfair), and the reason sits under it in plain text, so the circle never crowds.',
+      trade: 'Still a yes or no: meal options do not fit a circle. The short form loses a little warmth.',
+      render(a, ph) {
+        const s = ph.st.mode ? null : SCORE[a.p];
+        const sat = s && a.kind !== 'end' ? `<div class="sat" style="background:radial-gradient(130% 130% at 28% 18%, #fff 0%, ${s[2][0]} 34%, ${s[2][1]} 80%);box-shadow:0 10px 20px -10px ${s[2][2]}88, inset 0 -8px 12px -8px ${s[2][2]}99, inset 0 0 0 1px ${s[2][2]}22"><strong>${s[1]}%</strong><span style="color:${s[3]}">${s[0]}</span></div>` : '';
+        const tap = a.kind !== 'end';
+        return `<div class="vA"><div class="orbit"><div class="sph" data-src ${tapAttr(a)}><b>${a.qs}</b>${tap ? NAV : ''}</div>${sat}</div>${ph.ack ? '' : `<p class="why">${a.why}</p>`}<div class="acts">${replies(a, 'yn', ph)}</div></div>`;
+      } },
+    { id: 'B', group: 'kept', name: 'Message', title: 'A note with its answers (was Chat)', from: '#F3FCF8',
+      why: 'GoodFlip\'s note on top and the answers as full-width rows under it, in one card, as in Google Health\'s coach card. <b>The answer is the log</b>: the coach\'s meal options, five faces, Done. Improved: no chat bubbles, avatar or typing dots, so nobody looks for a text box. The chosen row stays lit and the reply lands under it.',
+      trade: 'Tallest of the kept four when a meal has two options. Rows read a little like a menu.',
+      render(a, ph) {
+        const head = `<div class="msg" data-src ${tapAttr(a)}><div class="who"><img src="${GFLOGO}" alt=""><b>GoodFlip</b><span>· ${ebOf(a)}</span></div><b>${a.q}</b><span>${a.why}</span></div>`;
+        let rows = [];
+        if (a.kind === 'meal') rows = [...a.opts.map((o, i) => [o, 'opt:' + i]), ['Not yet', 'later', 1]];
+        else if (a.kind === 'missed') rows = [['Yes, I had it', 'yes'], ['I skipped it', 'skip', 1]];
+        else if (a.kind === 'do') rows = [['Start now', 'start'], ['Later', 'later', 1]];
+        else if (a.kind === 'tick') rows = [['Done', 'done'], ['Not yet', 'later', 1]];
+        else if (a.kind === 'cta') rows = [[a.cta, 'go']];
+        else if (a.kind === 'clear') rows = [['Show me', 'go', 1]];
+        let body = '';
+        if (a.kind === 'mood') body = ph.ack ? '' : `<div class="fbox">${facesHTML(false)}</div>`;
+        else if (rows.length) body = `<div class="ans${ph.pick ? ' picked' : ''}">${rows.map(([t, act, soft]) => { const on = ph.pick === act;
+          return `<button class="ar${soft ? ' soft' : ''}${on ? ' on' : ''}" data-act="${act}">${t}<span class="ic">${on ? CHECK : CHEV.replace('#299D6B', soft ? '#98A2B3' : '#299D6B')}</span></button>`; }).join('')}</div>`;
+        if (ph.ack) body += `<div class="reply"><p class="ack">${ph.ack}</p></div>`;
+        return `<div class="vB">${head}${body}</div>`;
+      } },
+    { id: 'C', group: 'kept', name: 'Headline', title: 'One sentence and a pill', from: '#299D6B',
+      why: 'No card at all: an eyebrow, a Playfair headline that is the question, the reason under it, and one green pill named after the task. The quietest, calmest top of Today.',
+      trade: 'Least delight, and nothing says it is GoodFlip talking. One action only, so option picking happens in the list.',
+      render(a, ph) {
+        const sec = secondOf(a);
+        const pill = ph.ack ? `<p class="ack">${ph.ack}</p>` : a.kind === 'mood' ? facesHTML(false) : a.kind === 'end' ? ''
+          : `<div class="acts"><button class="pill" data-act="${actOf(a)}" data-src>${primaryOf(a)}<span class="nv">${CHEV}</span></button>${sec ? `<button class="rg" data-act="${sec[1]}">${sec[0]}</button>` : ''}</div>`;
+        return `<div class="vC"><div class="eb"><i></i>${ebOf(a)}</div><h3 ${tapAttr(a)} ${a.kind === 'mood' || a.kind === 'end' ? 'data-src' : ''}>${a.q}</h3><p class="why">${a.why}</p>${pill}</div>`;
+      } },
+    { id: 'D', group: 'kept', name: 'Stack', title: 'This one, then the next two', from: '#F9FAFB',
+      why: 'A card for the next task with the two after it peeking underneath. "Not yet" slides it away and the next one rises. You always see what is coming, without a list.',
+      trade: 'Peeks repeat what the to-do already says, a little. Three things on top is more load than one.',
+      render(a, ph) {
+        const st = ph.st, q = st.mode ? [] : queue(st).slice(1, 3);
+        const peeks = q.map(({ k }, i) => `<button class="peek" data-act="goto:${k}"><img src="${picOf({ key: k })}" alt=""><span><b>${i ? 'Later' : 'Next'}</b> · ${T[k].label}</span><span class="w">${T[k].win}</span></button>`).join('');
+        return `<div class="vD"><div class="card ${ph.rise ? 'rise' : ''}" data-src><div class="top" ${tapAttr(a)}><img class="pic" src="${a.kind === 'end' ? PIC.mind : picOf(a)}" alt=""><span class="t"><b>${a.label}</b><span>${a.win}</span></span>${a.kind !== 'end' ? NAV : ''}</div>
+          <p class="q" ${a.kind !== 'end' ? 'data-act="go"' : ''}>${a.q}</p><p class="why">${a.why}</p><div class="acts">${replies(a, 'cta', ph)}</div></div>${peeks}</div>`;
+      } },
+  ];
+
+  // ---------------------------------------------------------------- the to-do
+  const optSel = (ph, b) => ph.opt[b.id] || 0;
+  const upTag = (ph, b) => ph.v.id === 'E' && ph.a && T[ph.a.key] && T[ph.a.key].blk === b.id && !ph.st.done.has(ph.a.key) && ph.a.kind !== 'clear';
+  function blockHTML(ph, b) {
+    const st = ph.st, open = ph.openBlk.has(b.id), up = upTag(ph, b) ? '<span class="tag up">Up now</span>' : '';
+    let status = '', body = '';
+    if (b.opts) {
+      const done = st.done.has(b.task), skip = st.skip.has(b.task), t = T[b.task], past = t.to <= st.now;
+      status = done ? '<span class="bc full">Logged</span>' : skip ? '<span class="bc skip">Skipped</span>' : up || (past ? '<span class="tag open">Still open</span>' : `<span class="bc">${b.opts.length > 1 ? b.opts.length + ' options' : b.opts[0].length + ' items'}</span>`);
+      const sel = optSel(ph, b);
+      body = `<div class="lab">Your coach's plan</div>${b.opts.length > 1 ? `<div class="mchips">${b.opts.map((_, i) => `<button class="ochip${i === sel ? ' on' : ''}" data-oc="${b.id}:${i}">Option ${i + 1}</button>`).join('')}</div>` : ''}
+        <div class="rows">${b.opts[sel].map((f, i) => { const id = `${b.id}:${sel}:${i}`, cls = done ? 'done' : ph.sel.has(id) ? 'sel' : '';
+          return `<div class="row ${cls}"><button class="tk" data-tk="${id}" aria-label="Log ${f}">${CHECK}</button><span class="nm">${f}<span>${i === 0 ? '1 serving' : '1 katori'}</span></span></div>`; }).join('')}</div>`;
+      return `<div class="blk" data-blk="${b.id}" data-open="${open}"><button class="bhd" data-bh="${b.id}"><img class="pg" src="${MPIC(b.id)}" alt=""><span class="bt"><b>${b.title}</b><span>Suggested ${T[b.task].win}</span></span>${status}<i class="chev"></i></button><div class="bbody"><div><div class="bin">${body}</div></div></div></div>`;
+    }
+    if (b.items) {
+      const done = st.done.has(b.task), past = T[b.task].to <= st.now;
+      status = done ? '<span class="bc full">Done</span>' : up || (past ? '<span class="tag open">Still open</span>' : `<span class="bc">0 of ${b.items.length}</span>`);
+      body = `<div class="lab">Your coach's plan</div><div class="rows">${b.items.map((x, i) => { const id = `${b.id}:0:${i}`, cls = done ? 'done' : ph.sel.has(id) ? 'sel' : '';
+        return `<div class="row ${cls}"><button class="tk" data-tk="${id}" aria-label="Mark ${x} as done">${CHECK}</button><span class="nm">${x}</span></div>`; }).join('')}</div>`;
+      return `<div class="blk" data-blk="${b.id}" data-open="${open}"><button class="bhd" data-bh="${b.id}"><img class="pg" src="${PIC.move}" alt=""><span class="bt"><b>${b.title}</b><span>${b.sub}</span></span>${status}<i class="chev"></i></button><div class="bbody"><div><div class="bin">${body}</div></div></div></div>`;
+    }
+    const d = b.rows.filter(r => st.done.has(r[0])).length;
+    status = up || `<span class="bc${d === b.rows.length ? ' full' : ''}">${d} of ${b.rows.length}</span>`;
+    body = `<div class="rows">${b.rows.map(([k, n, s]) => { const dn = st.done.has(k), face = st.face[k];
+      return `<div class="row ${dn ? 'done' : ''}" data-row="${k}"><button class="tk" data-mt="${k}" aria-label="Mark ${n} as done">${CHECK}</button><span class="nm">${n}<span>${s}</span></span>${face != null ? `<span class="fc">${FACES[face][1]}</span>` : ''}</div>`; }).join('')}</div>`;
+    return `<div class="blk" data-blk="${b.id}" data-open="${open}"><button class="bhd" data-bh="${b.id}"><img class="pg" src="${PIC.mind}" alt=""><span class="bt"><b>${b.title}</b><span>${b.sub}</span></span>${status}<i class="chev"></i></button><div class="bbody"><div><div class="bin">${body}</div></div></div></div>`;
+  }
+  const partOf = n => (PARTS.find(([, , a, b]) => n >= a && n < b) || PARTS[3])[0];
+  function todoHTML(ph) {
+    const st = ph.st;
+    if (st.mode === 'noplan') return `<div class="dayhd"><b>Your first steps</b></div><div class="cardlist">
+      <button class="srow" data-row="consult"><img src="${PIC.care}" alt=""><span class="bt"><b>Book your first consultation</b><span>30 min with your coach, online</span></span><i class="chev" style="transform:rotate(-45deg)"></i></button>
+      <button class="srow" data-row="lab"><img src="../home-new/a/Lab-tests.png" alt=""><span class="bt"><b>Book your lab test</b><span>Home sample collection</span></span><i class="chev" style="transform:rotate(-45deg)"></i></button>
+      <button class="srow" data-row="dev"><img src="${PIC.dev}" alt=""><span class="bt"><b>Connect your phone</b><span>Steps and sleep fill in by themselves</span></span><i class="chev" style="transform:rotate(-45deg)"></i></button></div>`;
+    if (st.mode === 'free') return `<div class="dayhd"><b>Log anything</b></div><div class="cardlist">
+      <button class="srow" data-row="logmeal"><img src="${PIC.eat}" alt=""><span class="bt"><b>Log a meal</b><span>Snap, speak or search</span></span><i class="chev" style="transform:rotate(-45deg)"></i></button>
+      <button class="srow" data-row="logmove"><img src="${PIC.move}" alt=""><span class="bt"><b>Log a workout</b><span>From the exercise list</span></span><i class="chev" style="transform:rotate(-45deg)"></i></button>
+      <button class="srow" data-row="logmood"><img src="${PIC.mind}" alt=""><span class="bt"><b>Mood check-in</b><span>One tap</span></span><i class="chev" style="transform:rotate(-45deg)"></i></button></div>`;
+    const cur = partOf(Math.max(st.now, 360)), total = ORDER.length, done = ORDER.filter(k => st.done.has(k)).length;
+    let h = `<div class="dayhd" data-row="day"><b>Your day</b><span>${done} of ${total} done</span></div>`;
+    PARTS.forEach(([k, name, a, b, win]) => {
+      const bl = BLOCKS.filter(x => x.part === k), tasks = ORDER.filter(t => partOf(T[t].from) === k), left = tasks.filter(t => !st.done.has(t) && !st.skip.has(t)).length;
+      const isNow = k === cur, past = b <= st.now && !isNow;
+      const tag = isNow ? '<span class="tag now">NOW</span>' : past ? (left ? `<span class="tag open">${left} still open</span>` : '<span class="tag ok">All done</span>') : `<span class="tag cnt">${tasks.length - left} of ${tasks.length}</span>`;
+      h += `<div class="part${isNow ? ' now' : ''}" data-part="${k}" data-open="${!ph.fold[k]}"><button class="phd" data-ph="${k}"><span class="nm"><b>${name}</b><span class="win">${win}</span></span>${tag}<i class="chev"></i></button>
+        <div class="prows"><div>${bl.map(x => blockHTML(ph, x)).join('')}</div></div></div>`;
+    });
+    return h;
+  }
+
+  // ---------------------------------------------------------------- a phone
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const off = (el, root) => { let x = 0, y = 0; while (el && el !== root) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; } return { x, y }; };
+  const ease = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+  function makePhone(v) {
+    const el = document.createElement('div'); el.className = 'pw';
+    el.innerHTML = `<div class="phone"><div class="sb"><b class="clk"></b><svg viewBox="0 0 64 12" fill="#101828"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="2.5" width="3" height="9.5" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/><rect x="38" y=".5" width="22" height="11" rx="3" fill="none" stroke="#101828"/><rect x="40" y="2.5" width="15" height="7" rx="1.5"/><rect x="61" y="4" width="2" height="4" rx="1"/></svg></div>
+      <div class="tb"><div class="tabs3"><span class="on">Today</span><span>Program</span><span>Devices</span></div><span class="coin"><img src="../home-new/a/flicoin-icon.png" alt="">120</span></div>
+      <div class="sc"><div class="ct"><div class="hero" aria-live="polite"></div><div class="todo"></div></div></div>${v.stick ? '<div class="stick" aria-hidden="true"></div>' : ''}<div class="bar"></div><div class="toast" role="status"></div></div>`;
+    const ph = { v, el, sc: el.querySelector('.sc'), ct: el.querySelector('.ct'), hero: el.querySelector('.hero'), todo: el.querySelector('.todo'), bar: el.querySelector('.bar'), toast: el.querySelector('.toast'), stk: el.querySelector('.stick'), timers: [] };
+    ph.reset = sc => {
+      ph.timers.forEach(clearTimeout); ph.timers = [];
+      ph.st = { now: sc.now, mode: sc.mode, done: new Set(sc.done || []), skip: new Set(), later: new Set(), face: {} };
+      ['moodam', 'moodpm'].forEach(k => { if (ph.st.done.has(k)) ph.st.face[k] = 3; });
+      ph.fold = {}; const cur = partOf(Math.max(sc.now, 360)); PARTS.forEach(([k]) => ph.fold[k] = k !== cur);
+      ph.openBlk = new Set(); ph.opt = {}; ph.sel = new Set(); ph.selBlk = null; ph.ack = null; ph.pick = null; ph.open = false; ph.cuAck = null; ph.rise = false; ph.busy = false; ph.ringKey = null;
+      el.querySelector('.clk').textContent = clock(sc.now);
+      ph.sc.scrollTop = 0; ph.ct.style.minHeight = '';
+      ph.a = askOf(ph.st);
+      renderTodo(ph); renderBar(ph); renderHero(ph, true);
+    };
+    el.addEventListener('click', e => onClick(ph, e));
+    el.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[role=button]')) { e.preventDefault(); e.target.click(); } });
+    if (ph.stk) ph.sc.addEventListener('scroll', () => onScroll(ph), { passive: true });
+    return ph;
+  }
+  const later = (ph, fn, ms) => ph.timers.push(setTimeout(fn, reduce ? Math.min(ms, 900) : ms));
+
+  function afterPaint(ph) {
+    ph.hero.querySelectorAll('[data-off]').forEach(c => { if (+c.style.strokeDashoffset !== +c.dataset.off) requestAnimationFrame(() => requestAnimationFrame(() => { c.style.strokeDashoffset = c.dataset.off; })); });
+    renderStick(ph);
+  }
+  function paintQuiet(ph) { ph.hero.innerHTML = ph.v.render(ph.a, ph); afterPaint(ph); }
+  function renderHero(ph, fresh) {
+    const a = askOf(ph.st), changed = !ph.a || ph.a.key !== a.key || ph.a.kind !== a.kind; ph.a = a;
+    if (changed) { ph.open = false; if (ph.v.id === 'E') renderTodo(ph); }
+    const paint = () => { ph.pick = null; ph.hero.innerHTML = ph.v.render(a, ph); ph.hero.classList.remove('out'); ph.hero.classList.remove('in'); void ph.hero.offsetWidth; ph.hero.classList.add('in'); ph.rise = false; afterPaint(ph); };
+    if (fresh === true || reduce) return paint();
+    ph.hero.classList.add('out'); later(ph, paint, 220);
+  }
+  function renderTodo(ph) { ph.todo.innerHTML = todoHTML(ph); }
+  function renderBar(ph) {
+    const n = ph.sel.size;
+    if (!n) { ph.bar.classList.remove('up'); return; }
+    const b = BLOCKS.find(x => x.id === ph.selBlk), noun = b && b.items ? (n === 1 ? 'move' : 'moves') : (n === 1 ? 'item' : 'items');
+    ph.bar.innerHTML = `<span><b>${n} ${noun} ready</b>${b ? b.title : ''}</span><button class="rg" data-bar="clear">Remove</button><button class="rb" data-bar="log">Log</button>`;
+    ph.bar.classList.add('up');
+    if (ph.stk) renderStick(ph);
+  }
+  function toast(ph, msg, undo) {
+    ph.toast.innerHTML = msg + (undo ? '<button data-undo>Undo</button>' : ''); ph.toast.style.pointerEvents = undo ? 'auto' : 'none'; ph.undo = undo || null;
+    ph.toast.classList.add('on'); clearTimeout(ph.tt); ph.tt = setTimeout(() => { ph.toast.classList.remove('on'); ph.toast.style.pointerEvents = 'none'; ph.undo = null; }, undo ? 4000 : 2200);
+  }
+  function advance(ph, ms) { later(ph, () => { ph.ack = null; ph.pick = null; ph.busy = false; ph.cuAck = null; if (ph.v.id === 'D') ph.rise = true; renderHero(ph); }, ms); }
+  // after a glide, the picked row or filled half lets go so the hero reads normally again
+  function settle(ph) { if (ph.v.id === 'B' || ph.v.id === 'F') later(ph, () => { if (!ph.busy) { ph.pick = null; paintQuiet(ph); } }, 1500); }
+
+  // the strip under the tabs once the hero has scrolled away (E only)
+  function renderStick(ph) {
+    if (!ph.stk) return;
+    const a = ph.a, st = ph.st;
+    ph.stickOK = !st.mode && ['meal', 'missed', 'tick', 'do', 'mood'].includes(a.kind) && !ph.ack && !st.done.has(a.key);
+    if (!ph.stickOK) { ph.stk.classList.remove('on'); return; }
+    const b = blockOf(a.key), sel = ph.selBlk === b.id && ph.sel.size > 0;
+    ph.stk.innerHTML = `<img src="${picOf(a)}" alt=""><button class="t" data-stick="top">${a.qs}<span>${T[a.key].win}</span></button>` +
+      (a.kind === 'mood' ? `<button class="lg" data-stick="top">Answer</button>` : `<button class="lg${sel ? ' sel' : ''}" data-act="tick"><span class="tk">${CHECK}</span>${b.opts ? 'As planned' : 'Done'}</button>`);
+    onScroll(ph);
+  }
+  function onScroll(ph) {
+    if (!ph.stk) return;
+    const on = !!ph.stickOK && ph.sc.scrollTop > ph.hero.offsetTop + ph.hero.offsetHeight - 24;
+    ph.stk.classList.toggle('on', on); ph.stk.setAttribute('aria-hidden', !on);
+  }
+  function scrollTop(ph) {
+    const sc = ph.sc, y0 = sc.scrollTop, t0 = performance.now(), D = reduce ? 1 : 600;
+    const step = now => { const k = Math.min(1, (now - t0) / D); sc.scrollTop = y0 * (1 - ease(k)); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+  }
+
+  // the transition: open what needs opening, glide down, let the hero's colour flow into the row, glow, let go
+  function goTo(ph, key, opts = {}) {
+    const st = ph.st;
+    let target, blkId = null;
+    if (st.mode) { target = ph.todo.querySelector(`[data-row="${key}"]`); }
+    else {
+      const t = T[key]; blkId = t.blk; const b = BLOCKS.find(x => x.id === blkId);
+      const partWas = ph.fold[b.part];
+      const blkWas = ph.openBlk.has(blkId);
+      ph.fold[b.part] = false; ph.openBlk = new Set([blkId]);
+      if (opts.ready != null && b.opts && !st.done.has(b.task)) { ph.opt[blkId] = opts.ready; ph.sel = new Set(b.opts[opts.ready].map((_, i) => `${blkId}:${opts.ready}:${i}`)); ph.selBlk = blkId; }
+      // everything else lands in its final state at once; only the target part and block animate open
+      ph.todo.classList.add('instant');
+      renderTodo(ph);
+      const blk = ph.todo.querySelector(`[data-blk="${blkId}"]`), part = blk.closest('.part');
+      if (!blkWas) blk.dataset.open = 'false'; if (partWas) part.dataset.open = 'false';
+      void ph.todo.offsetHeight; ph.todo.classList.remove('instant'); void ph.todo.offsetHeight;
+      if (partWas) part.dataset.open = 'true';
+      blk.dataset.open = 'true';
+      target = t.row ? blk.querySelector(`[data-row="${t.row}"]`) : blk;
+    }
+    if (!target) return;
+    const ct = ph.ct, sc = ph.sc, to = off(target, ct), head = target.classList.contains('blk') ? target.querySelector('.bhd') : target;
+    const destY = Math.max(0, to.y - (ph.stk ? 124 : 64));
+    ct.style.minHeight = Math.max(ct.scrollHeight, destY + sc.clientHeight + 40) + 'px';
+    const src = ph.hero.querySelector('[data-src]') || ph.hero.firstElementChild;
+    const land = () => { target.classList.remove('lit'); void target.offsetWidth; target.classList.add('lit'); later(ph, () => target.classList.remove('lit'), 3500); renderBar(ph); };
+    if (reduce) { sc.scrollTop = destY; land(); return; }
+    const from = off(src, ct), y0 = sc.scrollTop, D = 860, t0 = performance.now();
+    const step = now => { const k = Math.min(1, (now - t0) / D); sc.scrollTop = y0 + (destY - y0) * ease(k); if (k < 1) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+    const g = document.createElement('div'); g.className = 'ghost'; ct.append(g);
+    const r = getComputedStyle(src).borderRadius || '20px';
+    const anim = g.animate([
+      { left: from.x + 'px', top: from.y + 'px', width: src.offsetWidth + 'px', height: src.offsetHeight + 'px', borderRadius: r, background: ph.v.from, opacity: 0 },
+      { opacity: .92, offset: .14 },
+      { left: to.x + 'px', top: to.y + 'px', width: head.offsetWidth + 'px', height: head.offsetHeight + 'px', borderRadius: '14px', background: '#E6FAF1', opacity: .95 },
+    ], { duration: D, easing: 'cubic-bezier(.65,0,.35,1)', fill: 'forwards' });
+    anim.onfinish = () => { land(); g.animate([{ opacity: .95 }, { opacity: 0 }], { duration: 420, easing: 'cubic-bezier(.33,1,.68,1)', fill: 'forwards' }).onfinish = () => g.remove(); };
+  }
+
+  // E's tick: a meal or a Move block drops its plan into the bar (the list ticks in step); a Mind row logs at once
+  function tickHero(ph, key) {
+    const st = ph.st, t = T[key], b = blockOf(key);
+    if (st.done.has(key)) return;
+    if (b.opts || b.items) {
+      if (ph.selBlk === b.id && ph.sel.size) { ph.sel.clear(); ph.selBlk = null; }
+      else { const o = b.opts ? (ph.opt[b.id] || 0) : 0, list = b.opts ? b.opts[o] : b.items; ph.opt[b.id] = o; ph.sel = new Set(list.map((_, i) => `${b.id}:${o}:${i}`)); ph.selBlk = b.id;
+        ph.fold[b.part] = false; ph.openBlk.add(b.id); }
+      renderTodo(ph); renderBar(ph); paintQuiet(ph);
+      const tk = ph.hero.querySelector('.lg .tk'); tk && !reduce && tk.animate([{ transform: 'scale(.82)' }, { transform: 'scale(1)' }], { duration: 320, easing: 'cubic-bezier(.33,1,.68,1)' });
+      return;
+    }
+    ph.busy = true; st.done.add(key); ph.ack = t.thanks || 'Logged.'; renderTodo(ph); paintQuiet(ph); toast(ph, t.label + ' logged'); advance(ph, 2600);
+  }
+
+  function doAct(ph, s) {
+    const st = ph.st, a = ph.a, id = ph.v.id;
+    const [main, over] = s.split('@'), [k, arg] = main.split(':'), key = over || a.tgt || a.key, t = T[key] || {};
+    if (k === 'go' || k === 'start') { goTo(ph, key); return settle(ph); }
+    if (k === 'goto') { goTo(ph, arg); return settle(ph); }
+    if (k === 'yes') { goTo(ph, key, { ready: 0 }); return settle(ph); }
+    if (k === 'opt') { goTo(ph, key, { ready: +arg }); return settle(ph); }
+    if (k === 'open') { ph.open = !ph.open; return paintQuiet(ph); }
+    if (k === 'tick') return tickHero(ph, key);
+    ph.busy = true;
+    if (k === 'later') { st.later.add(key); ph.ack = 'No rush. It stays in your list below.'; }
+    if (k === 'skip') { st.skip.add(key); ph.ack = t.missed ? t.missed.skipped : 'Okay. It stays skipped.'; renderTodo(ph); }
+    if (k === 'done') { st.done.add(key); ph.ack = t.thanks || 'Logged.'; renderTodo(ph);
+      if (id === 'F') toast(ph, t.label + ' logged', () => { ph.timers.forEach(clearTimeout); ph.timers = []; st.done.delete(key); ph.ack = null; ph.busy = false; renderTodo(ph); ph.a = null; renderHero(ph); }); }
+    if (k === 'face') { st.done.add(key); st.face[key] = +arg; ph.ack = FACE_ACK[+arg]; renderTodo(ph); }
+    if (id === 'D' && k === 'later') { const c = ph.hero.querySelector('.card'); c && c.classList.add('go-out'); ph.ack = null; ph.rise = true;
+      later(ph, () => { ph.busy = false; ph.a = askOf(st); ph.hero.innerHTML = ph.v.render(ph.a, ph); ph.rise = false; }, 300); return; }
+    if (id === 'G' && k === 'skip') { ph.ack = null; ph.cuAck = t.missed.skipped; ph.cuKey = key; paintQuiet(ph);
+      later(ph, () => { const c = ph.hero.querySelector('.cu'); c && c.classList.add('gone'); }, 2600);
+      later(ph, () => { ph.cuAck = null; ph.busy = false; ph.a = askOf(st); paintQuiet(ph); }, 3150); return; }
+    paintQuiet(ph);
+    advance(ph, k === 'later' ? 1700 : k === 'skip' ? 3200 : 2800);
+  }
+
+  function onClick(ph, e) {
+    const st = ph.st;
+    if (e.target.closest('[data-undo]')) { const u = ph.undo; ph.toast.classList.remove('on'); ph.undo = null; u && u(); return; }
+    if (e.target.closest('[data-stick]')) return scrollTop(ph);
+    const act = e.target.closest('[data-act]');
+    if (act && (ph.hero.contains(act) || (ph.stk && ph.stk.contains(act)))) {
+      if (ph.busy) return;
+      const s = act.dataset.act;
+      // B: the chosen row lights up first; F: the half fills from the finger; then the answer happens
+      if (act.classList.contains('ar')) { ph.pick = s; paintQuiet(ph); ph.busy = true; later(ph, () => { ph.busy = false; doAct(ph, s); }, 380); return; }
+      if (act.classList.contains('half')) {
+        const r = act.getBoundingClientRect(), cl = v => Math.max(0, Math.min(100, v));
+        act.style.setProperty('--x', e.detail ? cl((e.clientX - r.left) / r.width * 100) + '%' : '50%');
+        act.style.setProperty('--y', e.detail ? cl((e.clientY - r.top) / r.height * 100) + '%' : '50%');
+        act.classList.add('fill'); ph.busy = true; later(ph, () => { ph.busy = false; doAct(ph, s); }, reduce ? 0 : 440); return;
+      }
+      return doAct(ph, s);
+    }
+    const bar = e.target.closest('[data-bar]');
+    if (bar) {
+      if (bar.dataset.bar === 'clear') { ph.sel.clear(); ph.selBlk = null; renderTodo(ph); renderBar(ph); paintQuiet(ph); return; }
+      const b = BLOCKS.find(x => x.id === ph.selBlk); st.done.add(b.task); ph.sel.clear(); ph.selBlk = null;
+      ph.a = askOf(st); renderTodo(ph); renderBar(ph); toast(ph, (b.opts ? b.title : 'Move') + ' logged');
+      ph.todo.querySelectorAll(`[data-blk="${b.id}"] .row.done .tk`).forEach((t, i) => t.animate([{ transform: 'scale(.7)' }, { transform: 'scale(1)' }], { duration: 360, delay: i * 70, easing: 'cubic-bezier(.33,1,.68,1)', fill: 'backwards' }));
+      ph.ack = null; ph.a = null; renderHero(ph, 'soft'); return;
+    }
+    const ps = e.target.closest('[data-ph]');
+    if (ps) { const k = ps.dataset.ph; ph.fold[k] = !ph.fold[k]; ps.closest('.part').dataset.open = !ph.fold[k]; return; }
+    const bh = e.target.closest('[data-bh]');
+    if (bh) { const k = bh.dataset.bh, o = !ph.openBlk.has(k); o ? ph.openBlk.add(k) : ph.openBlk.delete(k); bh.closest('.blk').dataset.open = o; return; }
+    const oc = e.target.closest('[data-oc]');
+    if (oc) { const [b, i] = oc.dataset.oc.split(':'); ph.opt[b] = +i; ph.sel.clear(); renderTodo(ph); renderBar(ph); paintQuiet(ph); return; }
+    const tk = e.target.closest('[data-tk]');
+    if (tk) {
+      const id = tk.dataset.tk, b = id.split(':')[0], blk = BLOCKS.find(x => x.id === b);
+      if (st.done.has(blk.task)) return;
+      if (ph.selBlk && ph.selBlk !== b) ph.sel.clear();
+      ph.selBlk = b; ph.sel.has(id) ? ph.sel.delete(id) : ph.sel.add(id);
+      if (!ph.sel.size) ph.selBlk = null;
+      tk.closest('.row').classList.toggle('sel', ph.sel.has(id)); renderBar(ph);
+      if (ph.v.id === 'E') paintQuiet(ph);
+      return;
+    }
+    const mt = e.target.closest('[data-mt]');
+    if (mt) {
+      const k = mt.dataset.mt; if (st.done.has(k)) return;
+      st.done.add(k); if (T[k].kind === 'mood') st.face[k] = 2; renderTodo(ph); toast(ph, T[k].label + ' logged');
+      if (ph.a && ph.a.key === k) { ph.ack = null; ph.a = null; renderHero(ph, 'soft'); }
+    }
+  }
+
+  // ---------------------------------------------------------------- page
+  const phones = [];
+  V.forEach(v => {
+    const card = document.createElement('article'); card.className = 'opt' + (v.rec ? ' rec' : ''); card.id = 'v' + v.id;
+    card.innerHTML = `<h2>${v.id}. ${v.name}${v.rec ? '<em>Recommended</em>' : ''}${v.group === 'kept' ? '<small>Kept</small>' : ''}</h2><div class="sub">${v.title}</div><p>${v.why}</p><p><b>Trade-off:</b> ${v.trade}</p><div class="stage"></div>`;
+    const ph = makePhone(v); card.querySelector('.stage').append(ph.el);
+    document.getElementById(v.group === 'new' ? 'gridNew' : 'gridKept').append(card); phones.push(ph);
+  });
+  const sw = document.getElementById('sw'), note = document.getElementById('swnote');
+  const q = new URLSearchParams(location.search);
+  let curK = SC.some(s => s.k === q.get('m')) ? q.get('m') : 'noon';
+  function setScene(k) {
+    curK = k; const sc = SC.find(s => s.k === k);
+    sw.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.k === k));
+    note.textContent = sc.note; phones.forEach(ph => ph.reset(sc));
+    try { history.replaceState(null, '', '?m=' + k); } catch (e) {}
+  }
+  SC.forEach(s => { const b = document.createElement('button'); b.dataset.k = s.k; b.textContent = s.label; b.onclick = () => setScene(s.k); sw.append(b); });
+  setScene(curK);
+  // ?tap=E:tick taps that phone's hero answer after load (a direct link to the transition); &at= sets the delay
+  if (q.get('tap')) { const [vid, act] = q.get('tap').split(':'); const ph = phones.find(p => p.v.id === vid);
+    if (ph) setTimeout(() => { ph.el.scrollIntoView({ block: 'center' }); const b = ph.hero.querySelector(`[data-act^="${act}"]`); b && b.click(); }, +(q.get('at') || 900)); }
+  window.__phones = phones;
+
+  // the copy table: what each moment says
+  const rep = a => {
+    if (a.kind === 'meal') return `${a.opts.join(' / ')} / Not yet`;
+    return ({ mood: FACES.map(f => f[1]).join(' '), missed: 'I had it / I skipped it', do: 'Start now / Later', tick: 'Done / Not yet', cta: a.cta, clear: 'Show me', end: 'None' })[a.kind] || '';
+  };
+  document.getElementById('copy').innerHTML = `<tr><th>Moment</th><th>Question</th><th>Short form (A, J, E's strip)</th><th>Reason line</th><th>Answers</th></tr>` +
+    SC.map(sc => { const st = { now: sc.now, mode: sc.mode, done: new Set(sc.done || []), skip: new Set(), later: new Set() }, a = askOf(st);
+      return `<tr><td>${sc.label}</td><td><b>${a.q}</b>${a.qy && a.qy !== a.q ? `<br><span style="color:#667085">${a.qy}</span>` : ''}</td><td>${a.qs}</td><td>${a.why}</td><td>${rep(a)}</td></tr>`; }).join('') +
+    `<tr><td>After "I skipped it"</td><td colspan="4">${T.lunch.missed.skipped}</td></tr>` +
+    `<tr><td>After a mood</td><td colspan="4">${FACE_ACK.map((x, i) => FACES[i][1] + ' ' + x).join('<br>')}</td></tr>` +
+    `<tr><td>After "Not yet"</td><td colspan="4">No rush. It stays in your list below.</td></tr>`;
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1040 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>To-do studies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&family=Manrope:wght@500;600;700;800&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<!--
+  Today's to-do, nine ways. One file, two modes:
+    todo-studies.html                 the study page (table, clock switcher, phones)
+    todo-studies.html?v=A&now=13.5    one live phone (the study page frames these)
+  Every phone shares one engine: the sample day, the bar, the review sheet, the wheel, the mood sheet, the win moment
+  (ported from screen.html, which ports them from the pillars). Only the list renderer differs per variant.
+-->
+<style>
+  :root { --g: #299D6B; --gdk: #2A805A; --tk: #039855; --hd: #E6FAF1; --g25: #F3FCF8; --g100: #CBF0E0;
+    --ink: #101828; --i2: #344054; --i3: #475467; --mu: #667085; --mu2: #98A2B3; --ln: #EAECF0; --ln2: #F2F4F7; --bg2: #F9FAFB;
+    --in: #444CE7; --in50: #EEF4FF; --gold: #E7C144; --gold7: #A68A2D; --glide: cubic-bezier(.33,1,.68,1); }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; background: #fff; }
+  body { font-family: Roboto, system-ui, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+  button { font: inherit; color: inherit; letter-spacing: inherit; border: 0; background: none; padding: 0; cursor: pointer; text-align: left; }
+  img { display: block; }
+
+  /* ================= the study page ================= */
+  body.study { padding: 40px 32px 80px; }
+  .wrap { max-width: 1440px; margin: 0 auto; }
+  .eyebrow { font: 600 12px/16px Roboto, sans-serif; letter-spacing: .8px; text-transform: uppercase; color: var(--mu); }
+  .study h1 { margin: 6px 0 10px; font: 600 36px/44px "Playfair Display", serif; color: var(--ink); }
+  .lede { max-width: 820px; margin: 0 0 8px; font-size: 16px; line-height: 25px; color: var(--i3); }
+  .lede b { color: var(--ink); font-weight: 600; }
+  .clock { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 24px 0 28px; }
+  .clock span { font-size: 14px; color: var(--mu); margin-right: 4px; }
+  .clock button { height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid #E4E7EC; font: 600 14px/1 Roboto, sans-serif; color: var(--i2); background: #fff; transition: border-color .2s var(--glide), color .2s var(--glide); }
+  .clock button[aria-pressed="true"] { border-color: var(--g); box-shadow: 0 0 0 1px var(--g); color: var(--g); }
+  .tbl-wrap { overflow-x: auto; border: 1px solid var(--ln); border-radius: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; line-height: 20px; min-width: 980px; }
+  th, td { padding: 12px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--ln2); }
+  thead th { font: 600 12px/16px Roboto, sans-serif; letter-spacing: .4px; color: var(--mu); background: var(--bg2); }
+  tbody tr:last-child td { border-bottom: 0; }
+  td.n { font: 700 18px/20px Roboto, sans-serif; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+  td.n small { display: block; margin-top: 4px; font: 400 12px/16px Roboto, sans-serif; color: var(--mu); white-space: normal; }
+  td .nm { font-weight: 600; color: var(--ink); }
+  td .nm em { font-style: normal; margin-left: 6px; padding: 2px 8px; border-radius: 999px; background: var(--g); color: #fff; font-size: 11px; font-weight: 700; letter-spacing: .3px; vertical-align: 1px; }
+  tr.base td { color: var(--mu); background: #FCFCFD; }
+  tr.base td.n { color: var(--mu); }
+  td.ld { color: var(--i3); max-width: 300px; }
+  td .kept { display: block; margin-top: 2px; font-size: 12px; line-height: 16px; color: var(--mu); }
+  td.tk2 { white-space: nowrap; color: var(--i2); }
+  td.tk2 small { display: block; margin-top: 4px; font-size: 12px; line-height: 16px; color: var(--mu); }
+  .meas { font: 500 12px/16px Roboto, sans-serif; color: var(--mu); margin-top: 10px; }
+  .phones { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 48px 32px; margin-top: 44px; }
+  .pv { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .pv h2 { display: flex; align-items: center; gap: 8px; margin: 0; font: 700 18px/24px Manrope, sans-serif; color: var(--ink); }
+  .pv h2 i { font-style: normal; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 8px; background: var(--ln2); font: 700 13px/1 Roboto, sans-serif; color: var(--i3); }
+  .pv h2 em { font-style: normal; padding: 3px 9px; border-radius: 999px; background: var(--g); color: #fff; font: 700 11px/14px Roboto, sans-serif; letter-spacing: .3px; }
+  .pv.rec h2 i { background: var(--g); color: #fff; }
+  .pv p { margin: 0; font-size: 14px; line-height: 21px; color: var(--i3); }
+  .pv p.tr { color: var(--mu); }
+  .pv p.tr b { color: var(--i2); font-weight: 600; }
+  .pv .taps { display: flex; flex-wrap: wrap; gap: 6px; }
+  .pv .taps span { padding: 4px 10px; border-radius: 8px; background: var(--bg2); border: 1px solid var(--ln2); font: 500 12px/16px Roboto, sans-serif; color: var(--i3); }
+  .pv .taps b { color: var(--ink); }
+  .frame { position: relative; width: 340px; height: 736px; margin-top: 6px; border-radius: 40px; background: #101828; padding: 7px; box-shadow: 0 24px 48px -20px rgba(16,24,40,.35); }
+  .frame .scr { width: 326px; height: 722px; border-radius: 33px; overflow: hidden; background: #fff; }
+  .frame iframe { width: 390px; height: 864px; border: 0; transform: scale(.8359); transform-origin: 0 0; display: block; }
+  .open-l { font: 500 13px/18px Roboto, sans-serif; color: var(--g); text-decoration: none; }
+  .verdict { margin-top: 56px; max-width: 880px; padding: 24px 28px; border-radius: 20px; background: var(--g25); border: 1px solid var(--g100); }
+  .verdict h3 { margin: 0 0 8px; font: 700 20px/28px Manrope, sans-serif; }
+  .verdict p, .verdict li { font-size: 15px; line-height: 24px; color: var(--i3); }
+  .verdict ul { margin: 8px 0 0; padding-left: 20px; }
+
+  /* ================= the phone ================= */
+  body.phone { width: 390px; min-height: 100vh; margin: 0 auto; overflow-x: hidden; }
+  .sb { position: sticky; top: 0; z-index: 40; height: 44px; display: flex; align-items: center; justify-content: space-between; padding: 0 26px 0 32px; background: rgba(255,255,255,.92); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); font: 600 15px/1 Roboto, sans-serif; }
+  .sb svg { height: 12px; }
+  .ph { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 6px 16px 14px; }
+  .ph small { display: block; font-size: 13px; line-height: 18px; color: var(--mu); }
+  .ph h1 { margin: 0; font: 600 28px/34px "Playfair Display", serif; color: var(--ink); }
+  .dring { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--mu); white-space: nowrap; padding-bottom: 4px; }
+  .dring svg { width: 24px; height: 24px; transform: rotate(-90deg); }
+  .dring circle { fill: none; stroke-width: 3; }
+  .dring .tr { stroke: var(--hd); }
+  .dring .fg { stroke: var(--g); stroke-linecap: round; transition: stroke-dashoffset .6s var(--glide); }
+  #list { padding: 0 16px 120px; }
+  .tabs { position: fixed; left: 50%; bottom: 0; transform: translateX(-50%); width: 390px; z-index: 30; display: flex; justify-content: space-around; padding: 8px 8px 26px; background: #fff; border-top: 1px solid var(--ln2); transition: transform .34s cubic-bezier(.2,0,0,1); }
+  .tabs span { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: var(--mu); width: 72px; }
+  .tabs span.on { color: var(--g); font-weight: 600; }
+  .tabs img { width: 24px; height: 24px; }
+  body.pt-on .tabs { transform: translate(-50%, 110%); }
+
+  /* ----- the shared row ----- */
+  .row { position: relative; isolation: isolate; display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 8px 0; }
+  .rb { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; align-self: stretch; padding: 0; }
+  .rb b { display: block; font: 600 15px/20px Roboto, sans-serif; color: var(--ink); overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; transition: color .3s ease-out; }
+  .rb > span { display: block; margin-top: 2px; font-size: 13px; line-height: 18px; color: var(--mu); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row[data-st="done"] .rb b { color: var(--mu); font-weight: 500; }
+  .tm { flex: none; font: 500 13px/18px Roboto, sans-serif; color: var(--mu); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .chv { flex: none; width: 20px; height: 20px; display: grid; place-items: center; color: var(--mu2); margin-left: -4px; }
+  .chv svg { width: 16px; height: 16px; }
+  button.chv { position: relative; }
+  button.chv::before { content: ""; position: absolute; inset: -12px; }
+  .th { flex: none; width: 44px; height: 44px; border-radius: 10px; overflow: hidden; background: var(--ln2); }
+  .th img { width: 100%; height: 100%; object-fit: cover; }
+  .row[data-st="done"] .th img { filter: saturate(.5) brightness(1.04); }
+
+  /* the tick (screen.html's states): unticked grey ring; waiting = pale green, green ring and check; logged = solid green, white check */
+  .tickbtn { position: relative; width: 24px; height: 24px; border: 0; background: none; padding: 0; display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+  .tickbtn::after { content: ""; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); }
+  .tick { position: relative; width: 24px; height: 24px; border-radius: 9999px; border: 1.5px solid #D0D5DD; background: #fff; display: grid; place-items: center; flex-shrink: 0;
+    transition: background .18s ease-out, border-color .18s ease-out, transform .18s cubic-bezier(.4,0,.2,1); }
+  .tick svg { width: 12px; height: 12px; opacity: 0; transform: scale(.6); transition: opacity .22s ease-out, transform .28s ease-out; }
+  .tick path { stroke: #fff; }
+  .tickbtn:active .tick { transform: scale(.9); }
+  [data-st="sel"] > .tickbtn .tick, [data-st="sel"] .tk .tick { background: var(--hd); border-color: var(--tk); }
+  [data-st="sel"] > .tickbtn .tick svg, [data-st="done"] > .tickbtn .tick svg, [data-st="sel"] .tk .tick svg, [data-st="done"] .tk .tick svg { opacity: 1; transform: scale(1); }
+  [data-st="sel"] > .tickbtn .tick path, [data-st="sel"] .tk .tick path { stroke: var(--tk); }
+  [data-st="done"] > .tickbtn .tick, [data-st="done"] .tk .tick { background: var(--tk); border-color: var(--tk); }
+  /* some of a meal or workout waits in the bar */
+  [data-st="part"] > .tickbtn .tick, [data-st="part"] .tk .tick { border-color: var(--tk); background: linear-gradient(90deg, var(--hd) 50%, #fff 50%); }
+  .tick.pop { animation: pop .5s var(--glide) both; }
+  .tick.pop::after { content: ""; position: absolute; inset: -3px; border-radius: 50%; border: 2px solid var(--tk); pointer-events: none; animation: halo .8s cubic-bezier(.22,.7,.3,1) forwards; }
+  .cheer::before { content: ""; position: absolute; inset: 2px -10px; border-radius: 12px; background: var(--hd); pointer-events: none; z-index: -1; animation: flashOut .9s ease forwards; }
+  @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.18); } 100% { transform: scale(1); } }
+  @keyframes halo { 0% { opacity: .5; transform: scale(.65); } 100% { opacity: 0; transform: scale(2.4); } }
+  @keyframes flashOut { 0% { opacity: .85; } 100% { opacity: 0; } }
+
+  /* quiet disclosure line, shared */
+  .dis { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 48px; padding: 0; font: 500 14px/20px Roboto, sans-serif; color: var(--i3); }
+  .dis span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .dis .cv { flex: none; width: 7px; height: 7px; margin: 0 6px 3px; border-right: 1.5px solid var(--mu2); border-bottom: 1.5px solid var(--mu2); transform: rotate(45deg); transition: transform .3s var(--glide); }
+  .dis[aria-expanded="true"] .cv { transform: rotate(225deg); margin-bottom: -3px; }
+
+  /* ===== A: one rail ===== */
+  .ra { position: relative; }
+  .ra::before { content: ""; position: absolute; left: 77px; top: 8px; bottom: 8px; width: 2px; border-radius: 2px; background: var(--ln2); }
+  .ra .row { display: grid; grid-template-columns: 54px 24px minmax(0, 1fr) auto; gap: 0 12px; }
+  .ra .tm { text-align: right; }
+  .ra .row[data-st="done"] .tm { color: var(--mu2); }
+  .ra-part { padding: 18px 0 2px 90px; font: 600 12px/16px Roboto, sans-serif; letter-spacing: .6px; text-transform: uppercase; color: var(--mu2); }
+  .ra-now { position: relative; display: grid; grid-template-columns: 54px 24px 1fr; gap: 0 12px; align-items: center; height: 28px; }
+  .ra-now b { text-align: right; font: 700 12px/16px Roboto, sans-serif; color: var(--g); }
+  .ra-now i { justify-self: center; width: 10px; height: 10px; border-radius: 50%; background: var(--g); box-shadow: 0 0 0 4px var(--hd); position: relative; z-index: 1; }
+  .ra-now u { height: 1.5px; background: linear-gradient(90deg, var(--g), rgba(41,157,107,0)); text-decoration: none; }
+  .ra-more { margin-left: 90px; width: calc(100% - 90px); min-height: 44px; }
+
+  /* ===== B: by pillar ===== */
+  .pl { display: flex; flex-direction: column; gap: 12px; }
+  .plc { border-radius: 18px; border: 1px solid var(--ln); padding: 4px 14px 6px; }
+  .plc-hd { display: flex; align-items: center; gap: 10px; padding: 10px 0 4px; }
+  .plc-hd img { width: 30px; height: 30px; }
+  .plc-hd b { flex: 1; font: 700 16px/22px Manrope, sans-serif; color: var(--ink); }
+  .plc-hd span { font-size: 13px; color: var(--mu); }
+  .plc .dis { min-height: 44px; font-size: 13px; color: var(--mu); border-top: 1px solid var(--ln2); }
+
+  /* ===== C to I: the day in four parts, only the inside changes ===== */
+  .pp { display: flex; flex-direction: column; }
+  .pp-part + .pp-part { margin-top: 8px; border-top: 1px solid var(--ln2); }
+  .pp-hd { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 52px; padding: 12px 0 4px; }
+  .pp-hd b { font: 600 12px/16px Roboto, sans-serif; letter-spacing: .8px; text-transform: uppercase; color: var(--i3); }
+  .pp-part.cur .pp-hd b { color: var(--gdk); }
+  .pp.cards .pp-hd b { font: 700 17px/24px Manrope, sans-serif; letter-spacing: 0; text-transform: none; color: var(--ink); }
+  .now-l { display: grid; grid-template-columns: 10px auto 1fr; align-items: center; gap: 8px; height: 24px; margin-left: 46px; }
+  .now-l i { width: 8px; height: 8px; border-radius: 50%; background: var(--g); box-shadow: 0 0 0 3px var(--hd); }
+  .now-l b { font: 600 11px/14px Roboto, sans-serif; color: var(--g); font-variant-numeric: tabular-nums; }
+  .now-l u { height: 1px; background: linear-gradient(90deg, var(--g), rgba(41,157,107,0)); }
+  .anc + .now-l, .now-l + .anc { margin-top: 2px; }
+  .pp-hd small { flex: 1; min-width: 0; font-size: 13px; line-height: 18px; color: var(--mu2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pp-tag { flex: none; font: 500 12px/16px Roboto, sans-serif; color: var(--mu); }
+  .pp-tag.now { padding: 3px 10px; border-radius: 999px; background: var(--hd); color: var(--gdk); font-weight: 600; }
+  .pp-tag.open { color: var(--i2); }
+  .pp-tag.ok { color: var(--gdk); font-weight: 600; }
+  .pp-hd .cv { flex: none; width: 7px; height: 7px; margin: 0 6px 3px 4px; border-right: 1.5px solid var(--mu2); border-bottom: 1.5px solid var(--mu2); transform: rotate(45deg); transition: transform .3s var(--glide); }
+  .pp-hd[aria-expanded="true"] .cv { transform: rotate(225deg); margin-bottom: -3px; }
+  .pp-bd { padding-bottom: 8px; animation: ppIn .32s var(--glide) both; }
+  @keyframes ppIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+  /* the part row: time, task, tick on the right where the thumb is */
+  .pr { display: grid; grid-template-columns: 56px minmax(0, 1fr) 24px; gap: 0 12px; align-items: center; min-height: 56px; padding: 6px 0; }
+  .pr .tm { color: var(--mu); }
+  .pr[data-st="done"] .tm { color: var(--mu2); }
+  .pr .rb > span i.pw { font-style: normal; font-weight: 600; color: var(--mu); }
+  .pr .rb u { text-decoration: none; color: var(--g); font-weight: 500; }
+  .pr.mh { grid-template-columns: 56px minmax(0, 1fr); }
+  .pr.fd { min-height: 44px; padding: 2px 0; }
+  .pr.fd .rb { flex-direction: row; align-items: center; gap: 8px; padding-left: 12px; border-left: 2px solid var(--ln2); align-self: stretch; }
+  .pr.fd .rb b { flex: 1; min-width: 0; font: 500 14px/20px Roboto, sans-serif; -webkit-line-clamp: 2; }
+  .pr.fd .rb > span { margin: 0; flex: none; font-size: 12px; }
+  .pr.fd[data-st="done"] .rb b { color: var(--mu); }
+  .pr.nt { grid-template-columns: minmax(0, 1fr) 24px; }
+  /* any time box */
+  .any { margin: 6px 0 4px; padding: 2px 12px 2px; border-radius: 14px; background: var(--bg2); }
+  .any-h { padding: 10px 0 0; font: 600 12px/16px Roboto, sans-serif; letter-spacing: .4px; color: var(--mu); }
+  .any .pr { min-height: 52px; }
+  /* E: the pillar lives in the tick ring */
+  .pe-key { display: flex; gap: 14px; margin: 0 0 4px; font: 500 12px/16px Roboto, sans-serif; color: var(--mu); }
+  .pe-key span { display: inline-flex; align-items: center; gap: 6px; }
+  .pe-key i { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid; }
+  .pe .row[data-p="eat"] .tick { border-color: #299D6B; }
+  .pe .row[data-p="move"] .tick { border-color: #6172F3; }
+  .pe .row[data-p="mind"] .tick { border-color: #CDA935; }
+  .pe .row[data-p="move"][data-st="sel"] .tick { background: #EEF4FF; border-color: #444CE7; }
+  .pe .row[data-p="move"][data-st="sel"] .tick path { stroke: #444CE7; }
+  .pe .row[data-p="move"][data-st="done"] .tick { background: #444CE7; border-color: #444CE7; }
+  .pe .row[data-p="mind"][data-st="sel"] .tick { background: #FEF7DC; border-color: #CDA935; }
+  .pe .row[data-p="mind"][data-st="sel"] .tick path { stroke: #A68A2D; }
+  .pe .row[data-p="mind"][data-st="done"] .tick { background: #CDA935; border-color: #CDA935; }
+  .pe .row[data-p="move"] .tick.pop::after { border-color: #444CE7; }
+  .pe .row[data-p="mind"] .tick.pop::after { border-color: #CDA935; }
+  .pe .row[data-p="move"].cheer::before { background: #EEF4FF; }
+  .pe .row[data-p="mind"].cheer::before { background: #FFFBEE; }
+  /* F: pillar words inside a part */
+  .pg + .pg { margin-top: 4px; }
+  .pg-h { padding: 10px 0 0 68px; font: 600 11px/16px Roboto, sans-serif; letter-spacing: .8px; text-transform: uppercase; color: var(--mu2); }
+  /* G: meal anchors */
+  .anc { margin: 6px 0; padding: 0 12px; border-radius: 16px; border: 1px solid var(--ln); }
+  .anc .pr { grid-template-columns: 48px minmax(0, 1fr) 24px; }
+  .anc .pr.mh { grid-template-columns: 48px minmax(0, 1fr); }
+  .anc .pr + .pr:not(.fd) { border-top: 1px solid var(--ln2); }
+  .anc .tm.rel { font-weight: 400; color: var(--mu2); }
+  /* H: part cards */
+  .pp.cards { gap: 10px; }
+  .pp.cards .pp-part { margin: 0; border: 1px solid var(--ln); border-radius: 18px; padding: 0 14px; }
+  .pp.cards .pp-part.cur { border-color: var(--g100); background: linear-gradient(180deg, var(--g25), #fff 96px); }
+  .pp.cards .pp-hd { padding: 4px 0; min-height: 56px; }
+  /* I: light and heavy */
+  .pills { display: flex; flex-wrap: wrap; gap: 8px; padding: 8px 0 6px; }
+  .pill { position: relative; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; max-width: 100%; padding: 0 14px 0 10px; border-radius: 999px; border: 1px solid #E4E7EC; background: #fff; font: 500 14px/18px Roboto, sans-serif; color: var(--i2); transition: background .3s var(--glide), border-color .3s var(--glide); }
+  .pill .tk .tick { width: 20px; height: 20px; }
+  .pill .tk .tick svg { width: 10px; height: 10px; }
+  .pill[data-st="sel"] { border-color: var(--g100); background: var(--g25); }
+  .pill[data-st="done"] { color: var(--mu); border-color: var(--ln2); }
+  .mf { display: flex; gap: 4px; margin: -4px 0 8px 68px; }
+  .mface { flex: 1; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 22px; line-height: 1; background: var(--bg2); filter: grayscale(1); opacity: .75; transition: filter .3s var(--glide), opacity .3s var(--glide), background .3s var(--glide); }
+  .mface.on, .mface:active { filter: none; opacity: 1; background: var(--g25); box-shadow: inset 0 0 0 1px var(--g); }
+
+  /* ===== the floating bar (plan-tray.js float mode, from screen.html) ===== */
+  .pt{position:fixed;left:50%;bottom:0;width:100%;max-width:390px;transform:translate(-50%,110%);z-index:80;padding:0 12px 28px;transition:transform .34s cubic-bezier(.2,0,0,1)}
+  .pt.up{transform:translate(-50%,0)}
+  .pt .flw{position:relative;border-radius:20px}
+  .pt .rmz{position:absolute;inset:0 0 0 auto;width:160px;display:flex;align-items:center;justify-content:flex-end;padding-right:22px;border:0;border-radius:20px;background:#FEF3F2;color:#D92D20;font:600 16px/1 Roboto,sans-serif;cursor:pointer;opacity:0;transition:opacity .2s ease-out}
+  .pt .flw.open .rmz{opacity:1}
+  .pt .fl{position:relative;display:flex;align-items:center;gap:10px;padding:8px 6px 8px 16px;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 1px 3px rgba(16,24,40,.10),0 12px 28px -8px rgba(16,24,40,.28);transition:transform .32s cubic-bezier(.2,0,0,1)}
+  .pt .flw.open .fl{transform:translateX(-104px)}
+  .pt .fl::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transform:translateX(-110%);background:linear-gradient(105deg,rgba(41,157,107,0) 36%,rgba(41,157,107,.12) 50%,rgba(41,157,107,0) 64%)}
+  .pt .fl.lit::after{animation:ptShine .85s cubic-bezier(.4,0,.2,1) both}
+  @keyframes ptShine{0%{opacity:0;transform:translateX(-110%)}16%{opacity:1}74%{opacity:1}100%{opacity:0;transform:translateX(110%)}}
+  .pt .fl .tx{flex:1;min-width:0;text-align:left}
+  .pt .fl .tx b{display:block;font:600 14px/20px Roboto,sans-serif;color:#101828;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pt .fl .tx span{display:inline-flex;white-space:nowrap;align-items:center;gap:2px;margin-top:2px;font:500 12.5px/18px Roboto,sans-serif;color:#299D6B}
+  .pt .fl .tx span svg{width:14px;height:14px}
+  .pt .go{border-radius:12px;background:#299D6B;color:#fff;font:700 15px/1 Roboto,sans-serif;box-shadow:0 7px 0 #2A805A;transition:transform .2s ease-out,box-shadow .2s ease-out;text-align:center}
+  .pt .go:active{transform:translateY(7px);box-shadow:none}
+  .pt .fl .go{flex:0 0 auto;min-width:88px;height:44px;padding:0 16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;margin-bottom:4px;font-size:14px}
+  .pt .fl .go small{font:500 11.5px/14px Roboto,sans-serif;color:rgba(255,255,255,.85)}
+  .pt .fl .xc{position:relative;width:20px;height:20px;margin:0 2px 0 -2px;flex-shrink:0;color:#98A2B3;display:grid;place-items:center}
+  .pt .fl .xc::before{content:"";position:absolute;inset:-12px}
+  .pt .fl .xc svg{width:16px;height:16px}
+  body.pt-on #list{padding-bottom:150px}
+  .morsel{position:fixed;z-index:85;pointer-events:none;padding:9px 14px;border-radius:12px;background:#fff;border:1px solid #E4E7EC;box-shadow:0 14px 28px -10px rgba(16,24,40,.34),0 3px 8px -4px rgba(16,24,40,.18);transform-origin:24px 50%}
+  .morsel b{display:block;font-size:14px;font-weight:600;line-height:20px;color:#101828;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .morsel span{display:block;font-size:12px;line-height:16px;color:#667085}
+
+  /* ===== sheets (house rules: title top left, circle X top right, no handle, max 90%) ===== */
+  .pts{position:fixed;inset:0;z-index:90;display:flex;align-items:flex-end;justify-content:center;background:rgba(16,24,40,0);transition:background .25s ease-out;pointer-events:none}
+  .pts.on{background:rgba(16,24,40,.4);pointer-events:auto}
+  .pts.pt2{z-index:95}.pts.pt2.on{background:rgba(16,24,40,.18)}
+  .pts .sh{width:100%;max-width:390px;max-height:90vh;overflow:auto;background:#fff;border-radius:20px 20px 0 0;padding:20px 16px 28px;transform:translateY(100%);transition:transform .3s cubic-bezier(.2,0,0,1)}
+  .pts.on .sh{transform:none}
+  .pts.pt2 .sh{transition:transform .46s cubic-bezier(.16,1,.3,1)}
+  .pts .sh.back{transform:scale(.94) translateY(-10px);filter:brightness(.94);transition:transform .3s cubic-bezier(.2,0,0,1),filter .3s}
+  .pts .hd{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}.pts .hd>div{flex:1;min-width:0}
+  .pts h4{margin:0;font:800 20px/28px Roboto,sans-serif;color:#101828}.pts .sub{margin-top:2px;font:400 13px/18px Roboto,sans-serif;color:#667085}
+  .pts .x{width:32px;height:32px;flex-shrink:0;border-radius:50%;background:#F2F4F7;color:#344054;display:grid;place-items:center}
+  .pts .x svg{width:16px;height:16px}
+  .pts .pi{display:flex;align-items:center;gap:12px;padding:14px 0}.pts .pi+.pi{border-top:1px solid #F2F4F7}
+  .pts .pi .t{flex:1;min-width:0}
+  .pts .pi .nm{font:600 15px/22px Roboto,sans-serif;color:#101828;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+  .pts .pi .mt{font:400 13px/18px Roboto,sans-serif;color:#667085;font-variant-numeric:tabular-nums}
+  .pts .ctl{display:flex;align-items:center;gap:8px;flex-shrink:0}
+  .pts .tc{display:inline-flex;align-items:center;justify-content:center;gap:6px;width:106px;height:36px;padding:0 8px;border-radius:10px;border:1px solid #E4E7EC;background:#fff;color:#101828;font:600 13px/1 Roboto,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .pts .tc svg{width:16px;height:16px;color:#299D6B}
+  .pts .tc.fut{border-style:dashed;border-color:#CDA935}.pts .tc.fut svg{color:#A68A2D}
+  .pts .tc.flash{animation:ptFlash .9s cubic-bezier(.2,0,0,1)}
+  @keyframes ptFlash{0%{background:#E6FAF1;border-color:#299D6B}100%{background:#fff;border-color:#E4E7EC}}
+  .pts .st{display:flex;align-items:center;height:36px;border:1px solid #E4E7EC;border-radius:10px;flex-shrink:0}
+  .pts .st button{width:34px;height:36px;color:#299D6B;display:grid;place-items:center}.pts .st button svg{width:18px;height:18px}
+  .pts .st b{min-width:18px;text-align:center;font:600 15px/1 Roboto,sans-serif}
+  .pts .bin2{width:36px;height:36px;border:1px solid #E4E7EC;border-radius:10px;background:#fff;color:#D92D20;display:grid;place-items:center}.pts .bin2 svg{width:18px;height:18px}
+  .pts .ft{position:sticky;bottom:-28px;display:flex;align-items:center;gap:16px;margin:12px -16px -28px;padding:14px 16px 28px;background:#fff;border-top:1px solid #F2F4F7}
+  .pts .ft .tot span{display:block;font:400 12px/16px Roboto,sans-serif;color:#667085}.pts .ft .tot b{font:700 18px/24px Roboto,sans-serif;color:#101828;white-space:nowrap}
+  .pts .cta{width:100%;height:52px;border-radius:12px;background:#299D6B;color:#fff;font:700 15px/1 Roboto,sans-serif;box-shadow:0 7px 0 #2A805A;text-align:center;transition:transform .2s ease-out,box-shadow .2s ease-out}
+  .pts .cta:active{transform:translateY(7px);box-shadow:none}
+  .pts .cta[disabled]{background:#CBF0E0;box-shadow:0 7px 0 #E6FAF1;pointer-events:none}
+  .pts .ghost{width:100%;height:52px;margin-top:16px;border-radius:12px;background:#fff;color:#299D6B;font:700 15px/1 Roboto,sans-serif;text-align:center;box-shadow:inset 0 0 0 1px #299D6B,0 7px 0 #CBF0E0}
+  .pts .fbn{margin:4px 0 8px;border-radius:16px;overflow:hidden;background:#FFFDF5;border:1px solid #FEF1C7}
+  .pts .fbn .rib{display:flex;align-items:center;gap:6px;height:30px;padding:0 14px;font:600 13px/1 Roboto,sans-serif;color:#826E2D;background:repeating-linear-gradient(-45deg,#FFF8E0 0 10px,#FFFBEE 10px 20px);border-bottom:1px solid #FEF1C7}
+  .pts .fbn .rib svg{width:16px;height:16px;color:#A68A2D}
+  .pts .fbn .in{padding:12px 14px 14px}
+  .pts .fbn b{font:600 15px/22px Roboto,sans-serif;color:#101828}.pts .fbn p{margin:2px 0 12px;font:400 13px/19px Roboto,sans-serif;color:#475467}
+  .pts .fbb{display:flex;gap:10px}
+  .pts .fbb button{flex:1;min-height:40px;padding:6px 10px;border-radius:10px;font:600 14px/1 Roboto,sans-serif;background:#fff;color:#299D6B;box-shadow:inset 0 0 0 1px #299D6B,0 5px 0 #CBF0E0;margin-bottom:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;white-space:nowrap}
+  .pts .fbb .pri{background:#299D6B;color:#fff;box-shadow:0 5px 0 #2A805A}
+  .pts .fbb .pri small{font:500 11.5px/14px Roboto,sans-serif;color:rgba(255,255,255,.85)}
+  .wh{position:relative;display:flex;height:220px;margin:12px 0 4px;-webkit-mask:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask:linear-gradient(transparent,#000 30%,#000 70%,transparent)}
+  .wband{position:absolute;left:0;right:0;top:88px;height:44px;border-radius:12px;background:#F3FCF8;border:1px solid #CBF0E0;pointer-events:none}
+  .wc{position:relative;flex:1;height:220px;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none;padding:88px 0}
+  .wc.ap{flex:.8}.wc::-webkit-scrollbar{display:none}
+  .wc div{height:44px;display:grid;place-items:center;scroll-snap-align:center;font:500 20px Roboto,sans-serif;color:#98A2B3;cursor:pointer}
+  .wc div.on{color:#101828;font-weight:700}
+  .whint{min-height:20px;margin:6px 0 10px;text-align:center;font:500 13px/18px Roboto,sans-serif;color:#B54708}
+  .menurow{display:flex;align-items:center;gap:12px;width:100%;min-height:52px;text-align:left;font-size:15px;color:#344054;border-bottom:1px solid #F2F4F7}
+  .menurow:last-child{border-bottom:0}.menurow.warn{color:#D92D20}
+  .menurow .mi{width:32px;display:grid;place-items:center;color:#98A2B3}.menurow .mi svg{width:16px;height:16px}
+  .menurow.warn .mi{color:#D92D20}
+  .say{margin:8px 0 18px;font-size:15px;line-height:22px;color:#475467}
+  /* meal and workout sheets: the pillars' own card bodies */
+  .lab{font-size:12px;line-height:16px;font-weight:600;letter-spacing:.7px;text-transform:uppercase;color:#667085;margin:4px 0 10px}
+  .sec2{margin-top:16px;padding-top:14px;border-top:1px solid #F2F4F7}
+  .mchips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .chip{position:relative;display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px;border-radius:9999px;border:1px solid #E4E7EC;background:#fff;color:#667085}
+  .chip::after{content:"";position:absolute;left:0;right:0;top:50%;height:44px;transform:translateY(-50%)}
+  .chip b{font-size:14px;font-weight:600;line-height:18px;color:#344054;white-space:nowrap}
+  .chip.done{border-color:#CBF0E0;background:#F3FCF8}
+  .chip.on{border-color:#299D6B;box-shadow:0 0 0 1px #299D6B}.chip.on b{color:#299D6B}
+  .chip svg{width:12px;height:12px;color:var(--tk)}
+  .items{display:flex;flex-direction:column;gap:14px}
+  .item{position:relative;display:flex;align-items:flex-start;gap:16px}
+  .item .nm{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:20px;color:#101828}
+  .item .nm span{display:block;margin-top:2px;color:#667085;font-weight:400;font-size:12px;line-height:18px}
+  .item .kc{margin-top:3px;font-size:12px;color:#667085;white-space:nowrap}
+  .else{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;margin-top:14px;padding:0 14px;border-radius:12px;background:var(--bg2);font:500 14px/20px Roboto,sans-serif;color:var(--i3)}
+  .else b{color:var(--g);font-weight:600}
+  .mv-items{display:flex;flex-direction:column;gap:18px}
+  .mv-item{position:relative;display:flex;align-items:center;gap:12px}
+  .mv-th{position:relative;flex-shrink:0;width:80px;height:56px;border-radius:8px;overflow:hidden;background:#F2F4F7}
+  .mv-th img{width:100%;height:100%;object-fit:cover}
+  .mv-th span{position:absolute;inset:0;display:grid;place-items:center;background:rgba(16,24,40,.18)}
+  .mv-th svg{width:20px;height:20px;color:#fff;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+  .mv-item[data-st="done"] .mv-th img{filter:saturate(.55) brightness(1.04)}
+  .mv-nm{flex:1;min-width:0;font:600 14px/20px Roboto,sans-serif;color:#101828}
+  .mv-nm span{display:block;margin-top:2px;font-size:12px;line-height:18px;font-weight:400;color:#667085}
+  /* mood (v7/mind/variants/mood.js) */
+  .vm{display:flex;flex-direction:column;gap:16px;padding-top:4px}
+  .vm-faces{display:flex;gap:6px}
+  .vm-face{flex:1;min-width:0;min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1px solid transparent;border-radius:16px;background:#F9FAFB;padding:12px 0 10px;font:500 15px/16px Roboto,sans-serif;color:#475467;text-align:center;transition:opacity .3s cubic-bezier(.4,0,.2,1),background .3s,border-color .3s}
+  .vm-face span{font-size:32px;line-height:1}
+  .vm-faces.picked .vm-face:not(.on){opacity:.5}
+  .vm-face.on{border-color:#299D6B;background:#F3FCF8;color:#2A805A;font-weight:700}
+  .vm-k{position:relative;padding:14px 16px 16px 56px;border-radius:16px;background:linear-gradient(180deg,#EEF4FF 0%,#F8FAFF 100%);border:1px solid #E0EAFF}
+  .vm-k.wait{min-height:76px}
+  .vm-q{position:absolute;left:12px;top:14px;width:32px;height:32px;color:#C7D7FE}
+  .vm-k p{margin:0;font-size:15px;line-height:23px;color:#1D2939}
+  .vm-sh{display:flex;flex-direction:column;gap:8px;padding:4px 0 2px}.vm-sh i{display:block;height:10px;border-radius:6px;background:linear-gradient(90deg,#E0EAFF 0%,#F5F8FF 40%,#E0EAFF 80%);background-size:200% 100%;animation:vmSh 1.1s linear infinite}
+  .vm-sh i:nth-child(2){width:88%}.vm-sh i:nth-child(3){width:56%}
+  @keyframes vmSh{to{background-position:-200% 0}}
+  .gtoast{position:fixed;z-index:120;left:50%;top:54px;transform:translate(-50%,-14px);opacity:0;pointer-events:none;display:flex;align-items:center;gap:10px;width:358px;padding:12px 14px;border-radius:12px;background:#ECFDF3;border:1px solid #039855;font:500 14px/20px Roboto,sans-serif;color:#101828;transition:transform .3s cubic-bezier(.2,0,0,1),opacity .3s}
+  .gtoast.on{transform:translate(-50%,0);opacity:1}
+  .gtoast i{width:22px;height:22px;flex-shrink:0;border-radius:50%;background:#039855;display:grid;place-items:center}
+  .gtoast i svg{width:12px;height:12px}
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<script>
+/* ======================================================================
+   Variant notes for the study page. Tap counts are for 1:30 PM on the sample day, where breakfast,
+   two morning exercises (Lateral costal breathing, Side leg raise), one small move, the walk and the
+   8 AM mood check-in are still open. "Log" in the bar counts as a tap; scrolling does not.
+   tick: 'plan' = one tick on a meal or workout logs what the coach planned, the row opens to change it.
+         'each' = every food and exercise has its own tick under its meal or workout.
+   def is the tick each variant ships with; A and B are kept as they were (plan only).
+   ====================================================================== */
+const PLAN_T = { taps: ['2', '2', '4'], tapNote: ['tick, Log', 'tick the workout, Log', 'row, face, Done, Log'] };
+const EACH_T = { taps: ['5', '3', '4'], tapNote: ['4 food ticks, Log', '2 ticks, Log', 'row, face, Done, Log'] };
+const META = [
+  { id: 'A', name: 'One rail', kept: true, def: 'plan', only: 'plan',
+    why: 'Time is the only grouping. Every task is one row on a single rail, its tick sits on the rail, and a Now line shows where you are. The four parts are quiet labels on the rail.',
+    trade: 'The parts become labels, so the day reads as one long list, not four places. Done ones from earlier tuck behind one line, which moves rows under the thumb.',
+    plan: PLAN_T, pics: '0', load: 'Low. One column, one tick per row, time does the grouping.' },
+  { id: 'B', name: 'By pillar', kept: true, def: 'plan', only: 'plan',
+    why: 'Three cards, Eat, Move and Mind, each with one quiet pictogram. Inside, only what is due now or missed plus the next one; the rest folds into one Later line. Matches how the coach builds the plan.',
+    trade: 'Time is split across three cards, so “what do I do at 4 PM” means reading all three. Three pictograms stay on screen. The only kept variant without the four parts.',
+    plan: { taps: ['2', '3', '4'], tapNote: ['tick, Log', 'tick, tick, Log', 'row, face, Done, Log'] }, pics: '3', load: 'Medium. Short cards, but you scan three regions to see the day in order.' },
+  { id: 'C', name: 'Quiet parts', def: 'plan',
+    why: 'Morning, Afternoon, Evening and Night are the only structure. Inside, plain rows: time on the left, the task, the tick on the right under the thumb. Nothing says Eat, Move or Mind. Small moves sit in a soft “Any time this afternoon” box at the end of their part.',
+    trade: 'You cannot tell which plan a row came from (“Walk in nature” could be Move or Mind). Slipped morning tasks keep the morning open, so at 1:30 PM the list starts with the morning, not with now.',
+    plan: PLAN_T, each: EACH_T, pics: '0', load: 'Lowest. One kind of row, four headers, no tags. A part folds to one line only when all of it is done.' },
+  { id: 'D', name: 'Word tag', rec: true, def: 'plan',
+    why: 'Quiet parts, plus the pillar as a small grey word at the start of each second line: “Mind · In 5, out 5 · 5 min”. You read it only when you want it. No colour, no pictogram, time still leads.',
+    trade: 'Every row carries a second line, so the day is a little taller. The word is redundant on obvious rows like Lunch.',
+    plan: PLAN_T, each: EACH_T, pics: '0', load: 'Low. As C, plus one grey word per row that the eye skips until it needs it.' },
+  { id: 'E', name: 'Pillar ring', def: 'plan',
+    why: 'The pillar lives only in the tick ring: green for Eat, indigo for Move, gold for Mind (from Structured). Logging fills the ring in its own colour, so colour resolves into the thing you touched. A three-word key sits on top once.',
+    trade: 'Colour is the only cue, which fails for colour-blind members and bends the rule that only the score carries the pillar colour. Three colours on every screen are louder than one green.',
+    plan: PLAN_T, each: EACH_T, pics: '0', load: 'Low to read, but three colours compete for attention on every screen.' },
+  { id: 'F', name: 'Pillar groups', def: 'each',
+    why: 'Inside each part, small Eat, Move and Mind words group the rows (words, not pictograms). The coach’s three plans stay visible, but the parts still lead. Ships with Each item ticks: foods and exercises sit under their meal or workout, so you tick exactly what you had.',
+    trade: 'Time order breaks inside a part (a 7 AM breath sits below an 8 AM breakfast). Up to three extra lines per part, and each-item ticks make lunch 5 taps.',
+    plan: PLAN_T, each: EACH_T, pics: '0', load: 'Medium. Two levels of heading (part, then pillar) before the rows.' },
+  { id: 'G', name: 'Meal anchors', def: 'plan',
+    why: 'Meals are the spine of an Indian day. Each meal is a soft card, and the Move and Mind tasks nearest to it hang under it as before, with or after lines. “Breathe before breakfast” is easier to keep than “breathe at 7” (habit stacking).',
+    trade: 'The anchoring is an app rule, not the coach’s. Tasks far from a meal stay loose, and with no Eat plan it falls back to C. Times move to the meal, so a 9:30 PM task reads “before bedtime”.',
+    plan: PLAN_T, each: EACH_T, pics: '0', load: 'Low. Common region per meal turns 20 rows into about 6 chunks.' },
+  { id: 'H', name: 'Part cards', def: 'each',
+    why: 'Four cards, one per part, each with a count. Only the part you are in is open; the others are one line each, so the whole day fits on one screen. Ships with Each item ticks, which the short list can afford.',
+    trade: 'Anything still open from the morning is one tap away (the card says “4 still open”), so slipped tasks are easier to ignore. Exercises and mood cost one more tap.',
+    plan: { taps: ['2', '3', '5'], tapNote: ['tick, Log', 'open Morning, tick the workout, Log', 'open Morning, row, face, Done, Log'] },
+    each: { taps: ['5', '4', '5'], tapNote: ['4 food ticks, Log', 'open Morning, 2 ticks, Log', 'open Morning, row, face, Done, Log'] },
+    pics: '0', load: 'Lowest at rest: one open part, three one-line cards.' },
+  { id: 'I', name: 'Light and heavy', def: 'plan',
+    why: 'Two kinds of row by effort. Meals, workouts, breathing and mood are full rows; one-second tasks (small moves, wind-down, me-time) are pills that wrap at the end of the part. Mood shows its five faces in the row, so a check-in is face, Done, Log.',
+    trade: 'Pills lose their time and reason line, and need short names the coach does not write. Two row types to learn, and grey faces add five small pictures per open check-in.',
+    plan: { taps: ['2', '2', '3'], tapNote: ['tick, Log', 'tick the workout, Log', 'face, Done, Log'] },
+    each: { taps: ['5', '3', '3'], tapNote: ['4 food ticks, Log', '2 ticks, Log', 'face, Done, Log'] },
+    pics: '0 (+5 faces)', load: 'Low. Parts are about a third shorter; the eye splits “do this” from “done in a second”.' },
+];
+const BASE = { name: 'Today (current screen.html)', taps: ['6', '5', '6'], tapNote: ['open Lunch, 4 food ticks, Log', 'open Morning, open Move, 2 ticks, Log', 'open Morning, open Mind, row, face, Done, Log'], pics: '5 to 8', load: 'High. Cards inside cards, a pictogram on every block, two levels of folding.' };
+
+const Q = new URLSearchParams(location.search), V = Q.get('v');
+const SVG = (d, w = 2) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const tickOf = (m, t) => m.only || (t === 'plan' || t === 'each' ? t : m.def);
+
+/* ====================================================================== the study page */
+function studyPage() {
+  document.body.className = 'study';
+  const CLOCK = [['8', '8:00 AM'], ['13.5', '1:30 PM'], ['19', '7:00 PM'], ['22.5', '10:30 PM']];
+  const TICK = [['def', 'As each variant ships'], ['plan', 'Logs the plan'], ['each', 'Each item']];
+  let now = Q.get('now') || '13.5', tick = Q.get('tick') || 'def';
+  const tapCell = (t, n) => `<td class="n">${t}<small>${n}</small></td>`;
+  const tickName = { plan: 'Logs the plan', each: 'Each item' };
+  const rows = () => META.map(m => { const md = tickOf(m, tick), t = m[md];
+    return `<tr><td><span class="nm">${m.id}. ${m.name}${m.rec ? '<em>Recommended</em>' : ''}</span>${m.kept ? '<small class="kept">Kept from round one</small>' : ''}</td>
+      <td class="tk2">${tickName[md]}${m.only ? '<small>only</small>' : m.def === md ? '<small>ships with</small>' : ''}</td>${t.taps.map((x, i) => tapCell(x, t.tapNote[i])).join('')}
+      <td class="n">${m.pics}</td><td class="n" data-meas="${m.id}">…</td><td class="ld">${m.load}</td></tr>`; }).join('');
+  const taps = m => { const t = m[tickOf(m, tick)]; return `<span>Lunch <b>${t.taps[0]}</b></span><span>2 exercises <b>${t.taps[1]}</b></span><span>Mood <b>${t.taps[2]}</b></span><span>Pictograms <b>${m.pics}</b></span>`; };
+  document.body.innerHTML = `<div class="wrap">
+    <div class="eyebrow">Home lab · Today tab · round two</div>
+    <h1>To-do studies</h1>
+    <p class="lede">Two kept from round one (<b>A One rail</b>, <b>B By pillar</b>) and seven new ones. Every new variant splits the whole day into <b>Morning, Afternoon, Evening and Night</b>, and only the inside of a part changes. All of them keep <b>every capability</b>: any food from any option, each exercise, small moves, Mind tasks, the mood sheet and the coach's tips. Every phone is live: ticks wait in the bar, Log runs the win moment.</p>
+    <p class="lede">The open decision, one tick that logs what the coach planned versus a tick on every food and exercise, is a switch below. Each variant ships with the one that suits it; flip the switch to see any of them the other way. At 1:30 PM breakfast, two morning exercises, a small move, the walk and the 8 AM mood check-in are still open.</p>
+    <div class="clock" role="group" aria-label="Clock"><span>Clock</span>${CLOCK.map(([v, l]) => `<button data-now="${v}" aria-pressed="${v === now}">${l}</button>`).join('')}</div>
+    <div class="clock" role="group" aria-label="Meal and workout tick" style="margin-top:-16px"><span>Meal and workout tick</span>${TICK.map(([v, l]) => `<button data-tick="${v}" aria-pressed="${v === tick}">${l}</button>`).join('')}</div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Variant</th><th>Tick</th><th>Log lunch as planned</th><th>Log 2 exercises</th><th>Check in mood</th><th>Pictograms</th><th>Ticks on first screen</th><th>Scan load</th></tr></thead>
+      <tbody id="rows">${rows()}</tbody><tbody>
+      <tr class="base"><td><span class="nm" style="color:inherit">${BASE.name}</span></td><td class="tk2">Each item</td>${BASE.taps.map((t, i) => tapCell(t, BASE.tapNote[i])).join('')}<td class="n">${BASE.pics}</td><td class="n">2</td><td class="ld">${BASE.load}</td></tr>
+      </tbody></table></div>
+    <p class="meas">Taps are counted at 1:30 PM from Today at rest, including Log in the bar. Ticks on first screen is measured live in each phone at the chosen clock (ticks you can reach without scrolling).</p>
+    <div class="phones">${META.map(m => `<section class="pv${m.rec ? ' rec' : ''}">
+      <h2><i>${m.id}</i>${m.name}${m.rec ? '<em>Recommended</em>' : ''}</h2>
+      <p>${m.why}</p>
+      <p class="tr"><b>Trade-off.</b> ${m.trade}</p>
+      <div class="taps" data-taps="${m.id}">${taps(m)}</div>
+      <div class="frame"><div class="scr"><iframe title="${m.name}" data-v="${m.id}" loading="lazy"></iframe></div></div>
+      <a class="open-l" data-open="${m.id}" target="_blank">Open this phone on its own</a>
+    </section>`).join('')}</div>
+    <div class="verdict">
+      <h3>Recommendation: D, Word tag</h3>
+      <p>It keeps the four parts as the only structure, so the clock decides where a row lives and a row never moves. It answers “which plan is this?” with one grey word the eye skips until it needs it: no pictogram, no extra colour, and it still reads for colour-blind members (unlike E). It needs no app-made rules about what belongs to which meal (unlike G) and nothing is hidden behind a tap (unlike H). With the plan tick it logs lunch in 2 taps and the morning workout in 2, down from 6 and 5.</p>
+      <ul>
+        <li><b>Borrow from I:</b> the five faces in the mood row, which cuts a check-in from 4 taps to 3.</li>
+        <li><b>Borrow from C:</b> drop the word on Eat rows if it feels redundant (Lunch is plainly Eat), keeping it on Move and Mind.</li>
+        <li><b>Tick decision:</b> D works both ways. If the plan tick is judged too easy for the score, D on Each item costs 5 taps for lunch and stays the calmest each-item layout after C.</li>
+      </ul>
+    </div>
+  </div>`;
+  const src = id => `todo-studies.html?v=${id}&now=${now}${tick !== 'def' ? '&tick=' + tick : ''}`;
+  const load = () => document.querySelectorAll('iframe[data-v]').forEach(f => { f.src = src(f.dataset.v); });
+  const links = () => document.querySelectorAll('[data-open]').forEach(a => a.href = src(a.dataset.open));
+  load(); links();
+  document.querySelectorAll('.clock').forEach(g => g.addEventListener('click', e => { const b = e.target.closest('[data-now],[data-tick]'); if (!b) return;
+    if (b.dataset.now) now = b.dataset.now; else tick = b.dataset.tick;
+    g.querySelectorAll('button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    document.getElementById('rows').innerHTML = rows(); META.forEach(m => document.querySelector(`[data-taps="${m.id}"]`).innerHTML = taps(m));
+    load(); links(); }));
+  addEventListener('message', e => { const d = e.data || {}; if (d.type !== 'todo-meas') return; const td = document.querySelector(`[data-meas="${d.v}"]`); if (td) td.textContent = d.ticks; });
+}
+
+/* ====================================================================== one live phone */
+function phone() {
+  document.body.className = 'phone'; document.body.dataset.v = V;
+  const NOW = parseFloat(Q.get('now') || '13.5'), NOWM = Math.round(NOW * 60);
+  const PIC = { eat: 'a/pic-nutrition.png', move: 'a/pic-movement.png', mind: 'a/pic-mind.png' };
+  const R = '../v7/r3/assets/';
+  const I = {
+    check: '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+    checkC: SVG('<path d="M20 6L9 17l-5-5"/>', 3.2), chev: SVG('<path d="m9 6 6 6-6 6"/>'), x: SVG('<path d="M6 6l12 12M18 6 6 18"/>', 2.2),
+    play: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>',
+    clock: SVG('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'), minus: SVG('<path d="M5 12h14"/>', 2.2), plus: SVG('<path d="M12 5v14M5 12h14"/>', 2.2),
+    bin: SVG('<path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/>'), undo: SVG('<path d="M3 12a9 9 0 1 0 2.6-6.4M3 3v5h5"/>'),
+    pen: SVG('<path d="M4 20h4L19 9l-4-4L4 16z"/>'), warn: SVG('<path d="M12 3 2 20h20zM12 10v4M12 17.5v.01"/>'),
+    quote: '<svg class="vm-q" viewBox="0 0 32 32" fill="currentColor"><path d="M6 18c0-6 4-10 9-11v4c-3 1-5 3-5 6h4v9H6zm12 0c0-6 4-10 9-11v4c-3 1-5 3-5 6h4v9h-8z"/></svg>',
+  };
+  const PARTS = [['morning', 'Morning', 6, 12, '6 AM to 12 PM'], ['afternoon', 'Afternoon', 12, 16, '12 to 4 PM'], ['evening', 'Evening', 16, 20, '4 to 8 PM'], ['night', 'Night', 20, 30, '8 PM on']];
+  const PNAME = Object.fromEntries(PARTS.map(([k, n]) => [k, n]));
+  const fmt = m => { m = ((m % 1440) + 1440) % 1440; const h = Math.floor(m / 60); return (h % 12 || 12) + ':' + String(m % 60).padStart(2, '0') + (h < 12 ? ' AM' : ' PM'); };
+  const f = (n, unit, k, pr, c, fa) => ({ n, unit, k, kc: Math.round((pr * 4 + c * 4 + fa * 9) * k) });
+  const partOf = m => m < 360 ? 'morning' : (PARTS.find(([, , a, b]) => m >= a * 60 && m < b * 60) || PARTS[3])[0];
+  const curPart = partOf(NOWM);
+
+  // ---------- the day (the pillar screens' own sample plans, as screen.html has them) ----------
+  const MEALS = [
+    { id: 'pre', name: 'Early morning', from: 360, to: 420, opts: [[f('Jeera water', '1 glass', 1, 0, .7, 0)], [f('Black tea with cinnamon', '1 cup', 1, 0, 2.5, 0)]],
+      tips: [['Drink warm methi seed water before breakfast', 'Soak a spoon of seeds overnight. Drink the water first thing.'], ['Have your first glass of water before tea', 'It wakes your body up gently after the night.']] },
+    { id: 'bf', name: 'Breakfast', from: 480, to: 600, opts: [
+      [f('Boiled egg', '1 egg', 2, 6, 1, 5), f('Lauki oats besan chilla', '1 piece', 2, 3.5, 10, 2.5), f('Green chutney', '1 spoon', 2, 0, 1, 0), f('Curd', '1 katori', 1, 5, 7, 3)],
+      [f('Vegetable poha', '1 bowl', 1, 5, 42, 6), f('Curd', '1 katori', 1, 5, 7, 3), f('Boiled egg', '1 egg', 1, 6, 1, 5)],
+      [f('Idli', '1 piece', 2, 2, 13, .5), f('Sambar', '1 katori', 1, 4, 14, 3), f('Curd', '1 katori', 1, 5, 7, 3), f('Boiled egg', '1 egg', 1, 6, 1, 5)]] },
+    { id: 'lunch', name: 'Lunch', from: 780, to: 900, opts: [
+      [f('Dahi, low-fat', '1 bowl', 1, 9, 12, 3), f('Garden salad', '1 bowl', 1, 1, 3.5, 0), f('Vegetable quinoa pulao', '1 bowl', 1, 6, 28, 4), f('Rajma', '1 katori', 1, 9, 25, 3)],
+      [f('Roti', '1 piece', 2, 3, 15, 2), f('Mixed veg sabzi', '1 katori', 1, 3, 12, 6), f('Dal', '1 katori', 1, 9, 20, 4), f('Garden salad', '1 bowl', 1, 1, 3.5, 0)]] },
+    { id: 'snack', name: 'Evening snack', from: 1020, to: 1110, opts: [
+      [f('Roasted makhana', '1 bowl', 1, 3, 18, 1.5), f('Roasted chana', '1 handful', 1, 9, 27, 4)], [f('Roasted chana', '1 handful', 1, 9, 27, 4), f('Curd', '1 katori', 1, 5, 7, 3)]] },
+    { id: 'dinner', name: 'Dinner', from: 1200, to: 1290, opts: [
+      [f('Multigrain roti', '1 piece', 2, 2.5, 13, 2), f('Mixed veg sabzi', '1 katori', 1, 3, 12, 6), f('Dal', '1 katori', 1, 9, 20, 4), f('Garden salad', '1 bowl', 1, 1, 3.5, 0)],
+      [f('Dal khichdi', '1 bowl', 1, 8, 38, 6), f('Curd', '1 katori', 1, 5, 7, 3), f('Mixed veg sabzi', '1 katori', 1, 3, 12, 6), f('Garden salad', '1 bowl', 1, 1, 3.5, 0)]] },
+    { id: 'bed', name: 'Bedtime', from: 1320, to: 1380, opts: [[f('Walnut', '1 piece', 2, .6, .5, 2.6), f('Chamomile tea', '1 cup', 1, 0, .5, 0)]],
+      tips: [['Soak 5 almonds ready for tomorrow morning', 'In a small bowl of water, before bed. Peel them in the morning.']] },
+  ];
+  const EX = { box: ['Box breathing', 30], plank: ['Plank to push up', 25], spot: ['Spot jump', 20], coastal: ['Lateral costal breathing', 8], sideleg: ['Side leg raise', 10] };
+  const MOVE = {
+    morning: { from: 360, to: 720, ex: ['box', 'plank', 'spot', 'coastal', 'sideleg'],
+      sm: [['Take the stairs on your way to work', 'Skip the lift.'], ['Get off one stop early', 'Walk the last stretch.']] },
+    afternoon: { from: 720, to: 960, ex: [], sm: [['Stand and take your meetings', 'Standing on calls breaks a long sit.']] },
+    evening: { from: 960, to: 1200, ex: ['plank'], sm: [['Take a short walk after dinner', '10 minutes on your feet.'], ['Stand up in every TV break', 'A minute on your feet.']] },
+  };
+  const MIND = {
+    morning: [['br', 'Simple Breathing', '', 420, { pat: 'In 5, out 5', min: 5 }], ['me', 'Walk in nature or a park', '20 to 30 min', 420], ['mood', 'Mood check-in', '', 480]],
+    evening: [['wd', 'Last caffeine (tea, coffee or cola)', '', 960]],
+    night: [['mood', 'Mood check-in', '', 1260], ['wd', 'Screen-free wind-down begins', '60 min', 1290], ['wd', 'Prepare the room: dark and comfortably cool', '', 1320]],
+  };
+  const FACES = [['Awful', '😣'], ['Low', '😕'], ['Okay', '😐'], ['Good', '🙂'], ['Great', '😄']];
+  const REPLY = [
+    "Thank you for checking in. Hard days don't last, and being gentle with yourself today is enough. When you're ready, a few minutes of slow breathing can help your body settle, and your mind often follows.",
+    "Thank you for being honest. Low days come to everyone, and they do pass. Something small you enjoy, a song, a short walk or a call with someone you love, can lift a low day sooner than waiting it out.",
+    "Some days it's fine to be just okay. Thanks for checking in. Try to keep your day happy by doing activities you like.",
+    "Good to hear. Notice what made today good, it's worth doing again tomorrow.",
+    "That's wonderful. Enjoy it, and hold on to what went right today."];
+
+  // ---------- units: everything with a tick ----------
+  const U = {};
+  const slipped = new Set(['bf', 'mv.morning.ex.coastal', 'mv.morning.ex.sideleg', 'mv.morning.sm.1', 'mv.afternoon.sm.0', 'md.morning.1', 'md.morning.2']);
+  const was = (m, key) => m + 30 < NOWM && !slipped.has(key);
+  MEALS.forEach(m => {
+    m.opts.forEach((o, oi) => o.forEach((x, fi) => U[`${m.id}.${oi}.${fi}`] = { kind: 'food', p: 'eat', meal: m, name: x.n, unit: x.unit, n: x.k, kc1: x.kc / x.k, from: m.from, to: m.to, done: oi === 0 && was(m.from, m.id) }));
+    (m.tips || []).forEach((tp, i) => U[`${m.id}.t${i}`] = { kind: 'tip', p: 'eat', name: tp[0], sub: tp[1], from: m.from, done: was(m.from, m.id) });
+  });
+  Object.entries(MOVE).forEach(([k, v]) => {
+    v.ex.forEach(x => U[`mv.${k}.ex.${x}`] = { kind: 'ex', p: 'move', part: k, x, name: EX[x][0], kc: EX[x][1], from: v.from + 60, to: v.to, done: was(v.from + 60, `mv.${k}.ex.${x}`) });
+    v.sm.forEach(([n, d], i) => U[`mv.${k}.sm.${i}`] = { kind: 'sm', p: 'move', part: k, name: n, sub: d, from: v.from + 90, to: v.to, done: was(v.from + 60, `mv.${k}.sm.${i}`) });
+  });
+  Object.entries(MIND).forEach(([k, rows]) => rows.forEach(([kind, n, sub, at, x], i) => {
+    const id = `md.${k}.${i}`, d = was(at, id);
+    U[id] = { kind, p: 'mind', part: k, name: n, sub, at, from: at, to: at + 60, x, done: d, face: d && kind === 'mood' ? 3 : null };
+  }));
+  Object.values(U).forEach(u => { if (u.done) u.doneAt = u.at || u.from + 20; });
+  const optSel = Object.fromEntries(MEALS.map(m => [m.id, 0]));
+  const ids = pre => Object.keys(U).filter(k => k.startsWith(pre));
+
+  // ---------- the bar's contents ----------
+  let T = [];
+  const inBar = id => T.some(x => x.id === id);
+  const defTime = u => { const a = u.from, b = u.to || u.from + 60; return NOWM >= a && NOWM <= b ? Math.floor(NOWM / 5) * 5 : Math.round((a + b) / 2 / 5) * 5; };
+  const later = x => { const u = U[x.id]; return (u.kind === 'food' || u.kind === 'ex') && x.time > NOWM; };
+  const helping = (unit, n) => (n > 1 ? n + ' x ' : '') + unit;
+
+  // ---------- entries: what a list row stands for (a meal, a workout, or one unit) ----------
+  function mealE(m) {
+    const sel = optSel[m.id], foods = m.opts[sel].map((_, fi) => `${m.id}.${sel}.${fi}`);
+    const logged = ids(m.id + '.').filter(i => U[i].kind === 'food' && U[i].done), done = logged.length > 0, inb = foods.filter(inBar).length;
+    const kc = logged.reduce((s, i) => s + Math.round(U[i].kc1 * U[i].n), 0);
+    return { key: 'meal:' + m.id, kind: 'meal', p: 'eat', m, at: m.from, to: m.to, part: partOf(m.from), title: m.name, done, members: foods,
+      st: done ? 'done' : inb === foods.length ? 'sel' : inb ? 'part' : '',
+      sub: done ? `Logged at ${fmt(Math.max(...logged.map(i => U[i].doneAt)))} · ${kc} kcal` : (m.opts.length > 1 ? `Option ${sel + 1}: ` : '') + m.opts[sel].map(x => x.n).join(', ') };
+  }
+  function woE(k) {
+    const v = MOVE[k], mem = v.ex.map(x => `mv.${k}.ex.${x}`), left = mem.filter(i => !U[i].done), done = !left.length, inb = left.filter(inBar).length;
+    const kc = v.ex.reduce((s, x) => s + EX[x][1], 0), n = mem.length, s = n > 1 ? 's' : '';
+    return { key: 'wo:' + k, kind: 'wo', p: 'move', part: k, at: v.from + 60, to: v.to, title: PNAME[k] + ' workout', done, members: left, all: mem,
+      st: done ? 'done' : inb === left.length ? 'sel' : inb ? 'part' : '',
+      sub: done ? `Done at ${fmt(Math.max(...mem.map(i => U[i].doneAt)))}` : left.length === n ? `${n} exercise${s} · ${kc} kcal` : `${left.length} of ${n} left: ${left.map(i => U[i].name).join(', ')}` };
+  }
+  function unitE(id) {
+    const u = U[id];
+    const sub = { ex: `2 sets · 10 reps · ${u.kc} kcal`, sm: 'Small move', br: u.x ? `${u.x.pat} · ${u.x.min} min` : '', me: 'Me-time · ' + (u.sub || ''),
+      mood: 'How are you feeling?', wd: 'Wind-down' + (u.sub ? ' · ' + u.sub : '') }[u.kind];
+    const dsub = u.done ? (u.kind === 'mood' && u.face != null ? 'Feeling ' + FACES[u.face][0].toLowerCase() + ' · ' : '') + 'Done at ' + fmt(u.doneAt) : sub;
+    return { key: id, kind: u.kind, p: u.p, part: u.part, at: u.from, to: u.to, title: u.name, sub: dsub, done: u.done, members: [id], st: u.done ? 'done' : inBar(id) ? 'sel' : '' };
+  }
+  function entries(explode) {
+    const out = [];
+    MEALS.forEach(m => out.push(mealE(m)));
+    Object.entries(MOVE).forEach(([k, v]) => {
+      if (v.ex.length) { if (explode) v.ex.forEach(x => out.push(unitE(`mv.${k}.ex.${x}`))); else out.push(woE(k)); }
+      v.sm.forEach((_, i) => out.push(unitE(`mv.${k}.sm.${i}`)));
+    });
+    Object.entries(MIND).forEach(([k, rows]) => rows.forEach((_, i) => out.push(unitE(`md.${k}.${i}`))));
+    out.forEach((e, i) => { e.i = i; e.now = !e.done && e.at <= NOWM && NOWM <= e.to; e.missed = !e.done && e.to < NOWM; e.later = !e.done && e.at > NOWM; });
+    return out.sort((a, b) => a.at - b.at || a.i - b.i);
+  }
+  const tlabel = e => e.kind === 'sm' ? 'Any time' : fmt(e.at);
+  const hasDetail = e => ['meal', 'wo', 'ex', 'br'].includes(e.kind);
+  const tickB = e => `<button class="tickbtn" data-t="${e.key}" aria-label="${e.done ? e.title + ' is done, tap for options' : 'Tick ' + e.title}"><span class="tick">${I.check}</span></button>`;
+  // the shared row: o.time 'left' | 'right'; o.thumb shows an exercise still; the body opens detail when there is one, else ticks
+  function row(e, o = {}) {
+    const t = o.time ? `<span class="tm">${tlabel(e)}</span>` : '', d = hasDetail(e) || e.kind === 'mood';
+    const thumb = o.thumb && e.kind === 'ex' ? `<button class="th" data-d="${e.key}" aria-label="Play ${e.title}"><img src="../v7/img/move/${U[e.key].x}.webp" alt=""></button>` : '';
+    return `<div class="row" data-row="${e.key}" data-st="${e.st}" data-k="${e.kind}">${o.time === 'left' ? t : ''}${tickB(e)}${thumb}
+      <button class="rb" ${d ? 'data-d' : 'data-t'}="${e.key}"><b>${e.title}</b>${e.sub ? `<span>${e.sub}</span>` : ''}</button>${o.time === 'right' ? t : ''}${hasDetail(e) && o.chev !== false ? `<span class="chv" aria-hidden="true">${I.chev}</span>` : ''}</div>`;
+  }
+  const S = {};   // each variant's own fold state
+  const JUST = new Set();   // units logged in this visit
+  const dis = (ui, open, text) => `<button class="dis" data-ui="${ui}" aria-expanded="${!!open}"><span>${text}</span><i class="cv"></i></button>`;
+
+  // ====================================================================== the shared part frame (C to I)
+  const MODE = tickOf(META.find(m => m.id === V) || { def: 'plan' }, Q.get('tick'));
+  const PW = { eat: 'Eat', move: 'Move', mind: 'Mind' };
+  const PIX = k => PARTS.findIndex(p => p[0] === k);
+  const ANY = { morning: 'this morning', afternoon: 'this afternoon', evening: 'this evening', night: 'tonight' };
+  const untimed = e => e.kind === 'sm';
+  // the day as rows; on Each item a workout becomes one group holding its exercises
+  function dayE() {
+    const out = [];
+    entries(MODE === 'each').forEach(e => {
+      if (e.kind !== 'ex') return out.push(e);
+      const g = out.find(x => x.kind === 'woEach' && x.part === e.part);
+      if (g) { g.exs.push(e); g.done = g.done && e.done; return; }
+      out.push({ kind: 'woEach', key: 'wo:' + e.part, p: 'move', part: e.part, at: e.at, to: e.to, title: PNAME[e.part] + ' workout', exs: [e], done: e.done });
+    });
+    return out;
+  }
+  const unitsOf = e => e.kind === 'meal' ? ids(e.m.id + '.').filter(i => U[i].kind === 'food') : e.kind === 'woEach' ? e.exs.map(x => x.key) : e.all || e.members || [e.key];
+  const tagW = (o, p) => o.tag ? `<i class="pw">${PW[p]}</i> · ` : '';
+  // one row: time, the task, the tick on the right
+  function prow(e, o = {}) {
+    const d = hasDetail(e) || e.kind === 'mood', tm = o.time != null ? o.time : untimed(e) ? '' : fmt(e.at);
+    const face = o.faces && e.kind === 'mood' && !e.done;
+    const sub = face ? (e.st === 'sel' ? 'Ready to log' : 'Tap how you feel') : e.sub;
+    return `<div class="row pr${o.cls ? ' ' + o.cls : ''}${o.nt ? ' nt' : ''}" data-row="${e.key}" data-st="${e.st}" data-k="${e.kind}" data-p="${e.p}">${o.nt ? '' : `<span class="tm${o.rel ? ' rel' : ''}">${tm}</span>`}
+      <button class="rb" ${d ? 'data-d' : 'data-t'}="${e.key}"><b>${e.title}</b><span>${tagW(o, e.p)}${sub}</span></button>${face ? '<span></span>' : tickB(e)}</div>` + (face ? moodFaces(e) : '');
+  }
+  function moodFaces(e) {
+    const t = T.find(x => x.id === e.key), on = t ? t.face : null;
+    return `<div class="mf" role="group" aria-label="How are you feeling?">${FACES.map(([n, em], i) => `<button class="mface${on === i ? ' on' : ''}" data-mface="${e.key}" data-i="${i}" aria-label="${n}">${em}</button>`).join('')}</div>`;
+  }
+  // Each item: the meal is a header that opens the sheet, its foods tick one by one beneath it
+  function mealEach(e, o = {}) {
+    const m = e.m, sel = optSel[m.id], tm = o.time != null ? o.time : fmt(e.at);
+    const sub = e.done ? e.sub : m.opts.length > 1 ? `Option ${sel + 1} of ${m.opts.length} · <u>Change</u>` : m.tips ? `Plan and ${m.tips.length > 1 ? m.tips.length + ' tips' : 'a tip'} · <u>Open</u>` : `From your coach · <u>Open</u>`;
+    const head = `<div class="row pr mh" data-row="${e.key}" data-st="${e.done ? 'done' : ''}" data-p="eat"><span class="tm${o.rel ? ' rel' : ''}">${tm}</span>
+      <button class="rb" data-d="${e.key}"><b>${e.title}</b><span>${tagW(o, 'eat')}${sub}</span></button></div>`;
+    return head + m.opts[sel].map((x, fi) => { const id = `${m.id}.${sel}.${fi}`, u = U[id], t = T.find(z => z.id === id), n = t ? t.n : u.n;
+      return `<div class="row pr fd" data-row="${id}" data-st="${ust(id)}" data-p="eat"><span class="tm"></span><button class="rb" data-t="${id}"><b>${u.name}</b><span>${u.done ? fmt(u.doneAt) : helping(u.unit, n)}</span></button>${tickB({ key: id, title: u.name, done: u.done })}</div>`; }).join('');
+  }
+  function woEach(e, o = {}) {
+    const n = e.exs.length, tm = o.time != null ? o.time : fmt(e.at);
+    const head = `<div class="row pr mh" data-row="${e.key}" data-st="${e.done ? 'done' : ''}" data-p="move"><span class="tm${o.rel ? ' rel' : ''}">${tm}</span>
+      <button class="rb" data-d="${e.key}"><b>${e.title}</b><span>${tagW(o, 'move')}${e.done ? 'Done at ' + fmt(Math.max(...e.exs.map(x => U[x.key].doneAt))) : `${n} exercise${n > 1 ? 's' : ''} from your coach · <u>Play</u>`}</span></button></div>`;
+    return head + e.exs.map(x => `<div class="row pr fd" data-row="${x.key}" data-st="${x.st}" data-p="move"><span class="tm"></span><button class="rb" data-d="${x.key}"><b>${x.title}</b><span>${x.done ? fmt(U[x.key].doneAt) : '2 sets · 10 reps'}</span></button>${tickB(x)}</div>`).join('');
+  }
+  const item = (e, o = {}) => e.kind === 'meal' && MODE === 'each' ? mealEach(e, o) : e.kind === 'woEach' ? woEach(e, o) : prow(e, o);
+  // a part's rows: timed in order, then a soft box for what has no time
+  const nowL = () => `<div class="now-l" aria-label="Now, ${fmt(NOWM)}"><i></i><b>${fmt(NOWM)}</b><u></u></div>`;
+  const withNow = (k, list) => { if (k !== curPart) return list.map(x => x.h).join(''); let h = '', put = false;
+    list.forEach(x => { if (!put && x.at > NOWM) { h += nowL(); put = true; } h += x.h; }); return put ? h : h + nowL(); };
+  const std = (o = {}) => (k, l) => {
+    const a = l.filter(untimed);
+    return withNow(k, l.filter(e => !untimed(e)).map(e => ({ at: e.at, h: item(e, o) }))) + (a.length ? `<div class="any"><div class="any-h">Any time ${ANY[k]}</div>${a.map(e => item(e, { ...o, nt: true })).join('')}</div>` : '');
+  };
+  // the frame: four parts, a fixed name, a side tag; fold 'done' = a part folds only when all of it is done, 'cur' = only the current part is open
+  function partsView(cfg) {
+    S[V] = S[V] || {};
+    const E = dayE(), ci = PIX(curPart);
+    return `<div class="pp${cfg.cls ? ' ' + cfg.cls : ''}">${cfg.top || ''}` + PARTS.map(([k, n, , , win], pi) => {
+      const l = E.filter(e => e.part === k); if (!l.length) return '';
+      const left = l.filter(e => !e.done).length, all = !left, just = l.some(e => unitsOf(e).some(id => JUST.has(id)));
+      const foldable = cfg.fold === 'cur' || all, def = cfg.fold === 'cur' ? k === curPart : !all || just, on = !foldable || (S[V][k] == null ? def : S[V][k]);
+      const tag = all ? ['ok', 'All done'] : k === curPart ? ['now', 'Now'] : pi < ci ? ['open', `${left} still open`] : ['', `${l.length} planned`];
+      const hd = foldable ? `<button class="pp-hd" data-fold="${k}" data-on="${on ? 1 : 0}" aria-expanded="${on}">` : '<div class="pp-hd">';
+      return `<section class="pp-part${k === curPart ? ' cur' : ''}" data-part="${k}">${hd}<b>${n}</b><small>${win}</small><span class="pp-tag ${tag[0]}">${tag[1]}</span>${foldable ? '<i class="cv"></i></button>' : '</div>'}
+        ${on ? `<div class="pp-bd">${cfg.body(k, l)}</div>` : ''}</section>`;
+    }).join('') + '</div>';
+  }
+  // G: hang Move and Mind tasks on the nearest meal in the same part (ties go to the later meal, as "before")
+  function anchors(k, l) {
+    const meals = l.filter(e => e.kind === 'meal'); if (!meals.length) return std()(k, l);
+    const hang = new Map(meals.map(m => [m, []])), loose = [];
+    l.filter(e => e.kind !== 'meal' && !untimed(e)).forEach(e => {
+      let best = null; meals.forEach(m => { const d = Math.abs(m.at - e.at), bd = best && Math.abs(best.at - e.at); if (d <= 120 && (!best || d < bd || (d === bd && m.at > best.at))) best = m; });
+      best ? hang.get(best).push(e) : loose.push(e);
+    });
+    const rel = (e, m) => e.at < m.at ? 'before' : e.at > m.at ? 'after' : 'with';
+    const blocks = [...meals.map(m => ({ at: m.at, h: `<div class="anc">${item(m)}${hang.get(m).sort((a, b) => a.at - b.at).map(e => item(e, { time: rel(e, m), rel: true })).join('')}</div>` })),
+      ...loose.map(e => ({ at: e.at, h: item(e) }))].sort((a, b) => a.at - b.at);
+    const a = l.filter(untimed);
+    return withNow(k, blocks) + (a.length ? `<div class="any"><div class="any-h">Any time ${ANY[k]}</div>${a.map(e => item(e, { nt: true })).join('')}</div>` : '');
+  }
+  // I: one-second tasks as pills with short names
+  const SHORT = { 'Last caffeine (tea, coffee or cola)': 'Last tea or coffee', 'Screen-free wind-down begins': 'Screens away', 'Prepare the room: dark and comfortably cool': 'Room dark and cool',
+    'Walk in nature or a park': 'Walk in a park', 'Take the stairs on your way to work': 'Take the stairs', 'Get off one stop early': 'One stop early', 'Stand and take your meetings': 'Stand for calls',
+    'Take a short walk after dinner': 'Walk after dinner', 'Stand up in every TV break': 'Stand in TV breaks' };
+  const pill = e => `<button class="pill" data-row="${e.key}" data-st="${e.st}" data-p="${e.p}" data-t="${e.key}" aria-label="${e.done ? e.title + ' is done' : 'Tick ' + e.title}"><span class="tk"><span class="tick">${I.check}</span></span>${SHORT[e.title] || e.title}</button>`;
+  const LIGHT = ['sm', 'wd', 'me'];
+
+  // ====================================================================== the nine lists
+  const VARIANTS = {
+    // A. One rail: time on the left, the tick on the rail, a Now line, done ones from earlier tucked away
+    A() {
+      const E = entries(false), early = E.filter(e => e.done && e.to < NOWM && !(e.all || e.members).some(id => JUST.has(id)));   // what you just logged stays in view
+      let h = '<div class="ra">', last = null, nowAt = false;
+      if (early.length) h += `<div class="ra-more">${dis('A', S.A, (S.A ? 'Hide ' : 'Show ') + early.length + ' done earlier today')}</div>`;
+      const nowLine = () => `<div class="ra-now" aria-label="Now, ${fmt(NOWM)}"><b>${fmt(NOWM).replace(' ', ' ')}</b><i></i><u></u></div>`;
+      E.forEach(e => {
+        if (!S.A && early.includes(e)) return;
+        if (!nowAt && e.at > NOWM) { h += nowLine(); nowAt = true; }
+        if (e.part !== last) { h += `<div class="ra-part">${PNAME[e.part]}</div>`; last = e.part; }
+        h += row(e, { time: 'left' });
+      });
+      if (!nowAt) h += nowLine();
+      return h + '</div>';
+    },
+    // B. By pillar: three cards, one pictogram each, now and missed plus the next one; the rest folds
+    B() {
+      S.B = S.B || {};
+      const E = entries(true);
+      return '<div class="pl">' + [['eat', 'Eat'], ['move', 'Move'], ['mind', 'Mind']].map(([p, name]) => {
+        const l = E.filter(e => e.p === p), open = l.filter(e => !e.done), done = l.filter(e => e.done);
+        const first = open.find(e => e.later), show = open.filter(e => !e.later || e === first), rest = open.filter(e => e.later && e !== first);
+        const r = e => row(e, { time: 'right', thumb: true, chev: false });
+        let h = `<section class="plc"><div class="plc-hd"><img src="${PIC[p]}" alt=""><b>${name}</b><span>${done.length} of ${l.length} done</span></div>${show.map(r).join('')}`;
+        if (rest.length) h += dis(`B.l${p}`, S.B['l' + p], S.B['l' + p] ? 'Hide later today' : `Later: ${rest.map(e => e.title).join(', ')}`) + (S.B['l' + p] ? rest.map(r).join('') : '');
+        if (done.length) h += dis(`B.d${p}`, S.B['d' + p], `${done.length} done`) + (S.B['d' + p] ? done.map(r).join('') : '');
+        return h + '</section>';
+      }).join('') + '</div>';
+    },
+    // C. Quiet parts: plain rows, no pillar mention
+    C: () => partsView({ fold: 'done', body: std() }),
+    // D. Word tag: the pillar as a grey word in the second line
+    D: () => partsView({ fold: 'done', body: std({ tag: true }) }),
+    // E. Pillar ring: the pillar only in the tick ring
+    E: () => partsView({ fold: 'done', cls: 'pe', body: std(),
+      top: `<p class="pe-key" aria-hidden="true"><span><i style="border-color:#299D6B"></i>Eat</span><span><i style="border-color:#6172F3"></i>Move</span><span><i style="border-color:#CDA935"></i>Mind</span></p>` }),
+    // F. Pillar groups: Eat, Move, Mind words inside each part
+    F: () => partsView({ fold: 'done', body: (k, l) => ['eat', 'move', 'mind'].map(p => { const g = l.filter(e => e.p === p); if (!g.length) return '';
+      return `<div class="pg"><div class="pg-h">${PW[p]}</div>${g.map(e => item(e, { time: untimed(e) ? 'Any time' : undefined })).join('')}</div>`; }).join('') }),
+    // G. Meal anchors: Move and Mind hang off the nearest meal
+    G: () => partsView({ fold: 'done', body: anchors }),
+    // H. Part cards: a count on each, only the current part open
+    H: () => partsView({ fold: 'cur', cls: 'cards', body: std() }),
+    // I. Light and heavy: full rows for tasks with detail, pills for one-second tasks, faces in the mood row
+    I: () => partsView({ fold: 'done', body: (k, l) => { const lt = l.filter(e => LIGHT.includes(e.kind)), hv = l.filter(e => !LIGHT.includes(e.kind));
+      return withNow(k, hv.map(e => ({ at: e.at, h: item(e, { faces: true }) }))) + (lt.length ? `<div class="pills">${lt.map(pill).join('')}</div>` : ''); } }),
+  };
+
+  // ---------- the phone's chrome ----------
+  document.body.innerHTML = `<div class="sb"><span>${fmt(NOWM).replace(/ [AP]M/, '')}</span><svg viewBox="0 0 66 12" fill="#101828"><rect x="0" y="7" width="3" height="5" rx="1"/><rect x="5" y="5" width="3" height="7" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/><rect x="38" y=".5" width="24" height="11" rx="3" fill="none" stroke="#101828"/><rect x="40" y="2.5" width="17" height="7" rx="1.5"/><rect x="63.5" y="4" width="1.5" height="4" rx=".7"/></svg></div>
+    <header class="ph"><div><small>${NOWM < 720 ? 'Good morning' : NOWM < 960 ? 'Good afternoon' : 'Good evening'} · Thu, 26 Nov</small><h1>Today</h1></div><span class="dring" id="dring"></span></header>
+    <main id="list"></main>
+    <nav class="tabs"><span class="on"><img src="../home-new/a/tab-home-filled.svg" alt="">Home</span><span><img src="../home-new/a/tab-progress-outlined.svg" alt="">Progress</span><span><img src="../home-new/a/tab-flipfeed-outlined.svg" alt="">FlipFeed</span><span><img src="a/tab-more-outlined.svg" alt="">More</span></nav>`;
+  const root = document.getElementById('list');
+
+  // one task each: a meal, each exercise, small move and Mind task (as screen.html counts the day)
+  function dayRing() {
+    const TK = [...MEALS.map(m => mealE(m).done), ...Object.values(U).filter(u => u.p !== 'eat').map(u => u.done)], d = TK.filter(Boolean).length, C = 2 * Math.PI * 9;
+    document.getElementById('dring').innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" class="tr"/><circle cx="12" cy="12" r="9" class="fg" style="stroke-dasharray:${C};stroke-dashoffset:${C * (1 - d / TK.length)}"/></svg>${d} of ${TK.length} done`;
+  }
+  let first = true;
+  function render() {
+    const keep = {}; root.querySelectorAll('[data-keep]').forEach(el => keep[el.dataset.keep] = el.scrollLeft);
+    root.innerHTML = VARIANTS[V](); dayRing();
+    root.querySelectorAll('[data-keep]').forEach(el => { if (keep[el.dataset.keep] != null) el.scrollLeft = keep[el.dataset.keep]; });
+    first = false;
+  }
+  let live = null;   // the meal or workout sheet stays in step with the bar while open
+  function refresh() { render(); if (live && sheet.classList.contains('on')) live(); }
+
+  // ---------- the toast ----------
+  const toastEl = document.createElement('div'); toastEl.className = 'gtoast'; toastEl.setAttribute('role', 'status'); document.body.append(toastEl);
+  const toast = msg => { toastEl.innerHTML = `<i>${I.check}</i><span>${msg}</span>`; toastEl.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => toastEl.classList.remove('on'), 2600); };
+
+  // ---------- the bar (plan-tray.js float mode) ----------
+  const bar = document.createElement('div'); bar.className = 'pt'; bar.setAttribute('role', 'region'); bar.setAttribute('aria-label', 'Ready to log'); document.body.append(bar);
+  const KIND_NOUN = { food: ['item', 'items'], ex: ['workout', 'workouts'], sm: ['small move', 'small moves'] };
+  const label = list => { const ks = [...new Set(list.map(x => U[x.id].kind))], n = list.length, nn = ks.length === 1 && KIND_NOUN[ks[0]] || ['item', 'items']; return n + ' ' + (n === 1 ? nn[0] : nn[1]); };
+  const barName = x => { const u = U[x.id]; return u.kind === 'food' ? u.meal.name : u.kind === 'mood' ? 'Mood' : u.name; };
+  const linkText = () => T.some(x => U[x.id].kind === 'food') ? 'Edit quantity &amp; time' : T.some(x => U[x.id].kind === 'ex') ? 'Edit time' : 'Review';
+  function renderBar(fresh) {
+    document.body.classList.toggle('pt-on', T.length > 0);
+    if (!T.length) { bar.classList.remove('up'); return; }
+    bar.innerHTML = `<div class="flw"><button class="rmz" data-pt="clear" tabindex="-1">Remove</button><div class="fl${fresh ? ' lit' : ''}">
+      <button class="tx" data-pt="review" aria-label="Review what is ready to log"><b>${[...new Set(T.slice().reverse().map(barName))].join(', ')}</b><span>${linkText()}${I.chev}</span></button>
+      <button class="go" data-pt="log">Log<small>${label(T)}</small></button><button class="xc" data-pt="peek" aria-label="Show remove">${I.x}</button></div></div>`;
+    bar.classList.add('up');
+  }
+  function toss(rect, title, sub) {
+    const target = bar.querySelector('.tx b'); if (!rect || !target || sheet.classList.contains('on') || matchMedia('(prefers-reduced-motion: reduce)').matches) return false;
+    const m = document.createElement('div'); m.className = 'morsel'; m.innerHTML = `<b>${title}</b><span>${sub || ''}</span>`;
+    const w = Math.min(240, Math.max(150, rect.width * .6)); m.style.width = w + 'px'; m.style.left = (rect.left + 12) + 'px'; m.style.top = (rect.top + rect.height / 2 - 22) + 'px';
+    document.body.append(m);
+    const tr = target.getBoundingClientRect(), shift = parseFloat((getComputedStyle(bar).transform.split(',')[5]) || 0) || 0;
+    const dx = tr.left - (rect.left + 12), dy = tr.top - shift - (rect.top + rect.height / 2 - 22), lift = Math.min(40, Math.abs(dy) * .16);
+    m.animate([{ transform: 'translate(0,0) scale(1)', opacity: 1, offset: 0, easing: 'cubic-bezier(.2,.85,.35,1)' },
+      { transform: `translate(${dx * .1}px,${-lift}px) scale(1)`, opacity: 1, offset: .24, easing: 'cubic-bezier(.5,0,.85,.4)' },
+      { transform: `translate(${dx * .82}px,${dy * .86}px) scale(.52)`, opacity: .92, offset: .78, easing: 'cubic-bezier(.4,0,.2,1)' },
+      { transform: `translate(${dx}px,${dy}px) scale(.16)`, opacity: 0, offset: 1 }], { duration: 560, fill: 'forwards' });
+    setTimeout(() => { const fl = bar.querySelector('.fl'); if (fl) { fl.classList.remove('lit'); void fl.offsetWidth; fl.classList.add('lit'); } }, 448);
+    setTimeout(() => m.remove(), 600); return true;
+  }
+  // put a set of units in the bar, or take them all out if they are all there
+  function toggleMany(list, rowEl, title, sub) {
+    const all = list.every(inBar), rect = rowEl && rowEl.getBoundingClientRect();
+    if (all) T = T.filter(x => !list.includes(x.id)); else list.forEach(id => { if (!inBar(id)) T.push({ id, time: defTime(U[id]), n: U[id].n || 1 }); });
+    renderBar(false); refresh();
+    if (!all && !toss(rect, title, sub)) renderBar(true);
+  }
+  let peekT;
+  const peek = on => { const w = bar.querySelector('.flw'); if (!w) return; w.classList.toggle('open', on); clearTimeout(peekT); if (on) peekT = setTimeout(() => peek(false), 4000); };
+
+  // ---------- sheets ----------
+  const sheet = mk('pts'), sheet2 = mk('pts pt2');
+  function mk(c) { const el = document.createElement('div'); el.className = c; el.innerHTML = '<div class="sh" role="dialog" aria-modal="true"></div>'; document.body.append(el); return el; }
+  const head = (t, sub) => `<div class="hd"><div><h4>${t}</h4>${sub ? `<div class="sub">${sub}</div>` : ''}</div><button class="x" data-pt="close" aria-label="Close">${I.x}</button></div>`;
+  const openSheet = (el, html) => { if (el === sheet) live = null; el.querySelector('.sh').innerHTML = html; el.classList.add('on'); };
+  const closeSheet = el => { el.classList.remove('on'); if (el === sheet) live = null; if (el === sheet2) sheet.querySelector('.sh').classList.remove('back'); };
+  const ust = id => U[id].done ? 'done' : inBar(id) ? 'sel' : '';
+
+  // a meal: the coach's options as chips, each food a tick, the tips, and a way out to anything else
+  function mealSheet(mid) {
+    const m = MEALS.find(x => x.id === mid), sel = optSel[mid];
+    const chips = m.opts.length > 1 ? `<div class="mchips">${m.opts.map((o, i) => { const any = ids(`${mid}.${i}.`).some(x => U[x].done);
+      return `<button class="chip${i === sel ? ' on' : ''}${any ? ' done' : ''}" data-meal="${mid}" data-opt="${i}"><b>Option ${i + 1}</b>${any ? I.checkC : ''}</button>`; }).join('')}</div>` : '';
+    const foods = m.opts[sel].map((_, fi) => { const id = `${mid}.${sel}.${fi}`, u = U[id], x = T.find(t => t.id === id), n = x ? x.n : u.n;
+      return `<div class="item" data-row="${id}" data-st="${ust(id)}"><button class="tickbtn" data-t="${id}" aria-label="Tick ${u.name}"><span class="tick">${I.check}</span></button>
+        <span class="nm">${u.name}<span>${helping(u.unit, n)}</span></span><span class="kc">${Math.round(u.kc1 * n)} cal</span></div>`; }).join('');
+    const tips = m.tips ? `<div class="sec2"><div class="lab">Tips from your coach</div><div class="items">${m.tips.map((_, i) => { const id = `${mid}.t${i}`, u = U[id];
+      return `<div class="item" data-row="${id}" data-st="${ust(id)}"><button class="tickbtn" data-t="${id}" aria-label="${u.name}"><span class="tick">${I.check}</span></button><span class="nm">${u.name}<span>${u.sub}</span></span></div>`; }).join('')}</div></div>` : '';
+    openSheet(sheet, head(m.name, `Suggested ${fmt(m.from)} to ${fmt(m.to)}`) + `<div class="lab">Your coach's plan</div>${chips}<div class="items">${foods}</div>
+      <button class="else" data-say="Snap, voice or search opens"><span>Had something else?</span><b>Search or snap</b></button>${tips}
+      <div class="ft"><button class="cta" data-pt="close">Done</button></div>`);
+    live = () => mealSheet(mid);
+  }
+  // a workout: each exercise with its still, ticked one by one
+  function woSheet(k) {
+    const v = MOVE[k], e = woE(k);
+    const rows = v.ex.map(x => { const id = `mv.${k}.ex.${x}`, u = U[id];
+      return `<div class="mv-item" data-row="${id}" data-st="${ust(id)}"><button class="tickbtn" data-t="${id}" aria-label="Tick ${u.name}"><span class="tick">${I.check}</span></button>
+        <button class="mv-th" data-say="The exercise player opens" aria-label="Play ${u.name}"><img src="../v7/img/move/${x}.webp" alt=""><span>${I.play}</span></button>
+        <button class="mv-nm" data-say="The exercise player opens">${u.name}<span>2 sets · 10 reps · ${u.kc} kcal</span></button></div>`; }).join('');
+    openSheet(sheet, head(e.title, `${v.ex.length} exercise${v.ex.length > 1 ? 's' : ''} from your coach`) + `<div class="mv-items">${rows}</div><div class="ft"><button class="cta" data-pt="close">Done</button></div>`);
+    live = () => woSheet(k);
+  }
+  const anyFuture = () => T.some(later);
+  const noun = (list, n) => { const ks = [...new Set(list.map(x => U[x.id].kind))]; const nn = ks.length === 1 && ks[0] === 'ex' ? ['workout', 'workouts'] : ['item', 'items']; return n === 1 ? nn[0] : nn[1]; };
+  function review() {
+    if (!T.length) return closeSheet(sheet);
+    const late = T.filter(later).length, one = late === 1, it = one ? 'it' : 'them', ks = [...new Set(T.map(x => U[x.id].kind))];
+    const ttl = ks.every(k => k === 'food') ? 'Food items to log' : ks.every(k => k === 'ex') ? 'Workouts to log' : ks.every(k => k === 'sm') ? 'Small moves to log' : 'Items to log';
+    const ask = late ? `<div class="fbn" role="status"><div class="rib">${I.warn}Future time</div><div class="in"><b>You’re logging ${late} future ${noun(T.filter(later), late)}!</b>
+      <p>${one ? 'This ' + noun(T.filter(later), 1) + ' is' : 'These ' + noun(T.filter(later), 2) + ' are'} planned for later. Already done ${it}? Log ${it} now, or come back when you have.</p>
+      <div class="fbb"><button class="pri" data-pt="setnow">Log ${it} now<small>${fmt(Math.floor(NOWM / 5) * 5)}</small></button><button data-pt="rmlate">Remove ${it}</button></div></div></div>` : '';
+    const order = T.map((x, i) => [x, i]).sort((a, b) => later(b[0]) - later(a[0]));
+    const rows = order.map(([x, i]) => { const u = U[x.id];
+      if (u.kind === 'food') return `<div class="pi"><div class="t"><div class="nm">${u.name}</div><div class="mt">${u.meal.name} · ${helping(u.unit, x.n)} · ${Math.round(u.kc1 * x.n)} kcal</div></div><div class="ctl">
+        <button class="tc${later(x) ? ' fut' : ''}" data-pt="wheel" data-i="${i}" aria-label="Change the time for ${u.name}, now ${fmt(x.time)}">${I.clock}${fmt(x.time)}</button>
+        <div class="st"><button data-pt="dec" data-i="${i}" aria-label="${x.n === 1 ? 'Remove ' : 'One less '}${u.name}">${I.minus}</button><b>${x.n}</b><button data-pt="inc" data-i="${i}" aria-label="One more ${u.name}">${I.plus}</button></div></div></div>`;
+      const meta = u.kind === 'ex' ? `${PNAME[u.part]} · 2 sets · ${u.kc} kcal` : u.kind === 'sm' ? `${PNAME[u.part]} · Small move`
+        : u.kind === 'mood' ? `Mood · ${FACES[x.face][0]}` : u.kind === 'br' ? `Breathing · ${u.x.min} min` : u.kind === 'me' ? `Me-time · ${fmt(u.at)}` : `Wind-down · ${fmt(u.at)}`;
+      return `<div class="pi"><div class="t"><div class="nm">${u.kind === 'mood' ? 'Mood check-in' : u.name}</div><div class="mt">${meta}</div></div><div class="ctl">
+        ${u.kind === 'ex' ? `<button class="tc${later(x) ? ' fut' : ''}" data-pt="wheel" data-i="${i}">${I.clock}${fmt(x.time)}</button>` : ''}
+        <button class="bin2" data-pt="rm" data-i="${i}" aria-label="Remove ${u.name}">${I.bin}</button></div></div>`; }).join('');
+    const kcal = T.reduce((s, x) => s + (U[x.id].kind === 'food' ? Math.round(U[x.id].kc1 * x.n) : U[x.id].kind === 'ex' ? U[x.id].kc : 0), 0);
+    openSheet(sheet, head(ttl) + ask + rows + `<div class="ft">${kcal ? `<div class="tot"><span>Total</span><b>${kcal} kcal</b></div>` : ''}<button class="cta" data-pt="sheetlog"${late ? ' disabled' : ''}>Log ${label(T)}</button></div>`);
+  }
+  // the time wheel: for a row in the bar (wheelFor.i) or a logged workout (wheelFor.id)
+  let wheelFor = null;
+  function wheel(m, title, sub) {
+    const col = (cls, vals, on) => `<div class="wc ${cls}">${vals.map(v => `<div data-v="${v}"${v === on ? ' class="on"' : ''}>${v}</div>`).join('')}</div>`;
+    const hrs = Array.from({ length: 12 }, (_, k) => String(k + 1)), mns = Array.from({ length: 60 }, (_, k) => String(k).padStart(2, '0')), h = Math.floor(m / 60);
+    sheet.querySelector('.sh').classList.add('back');
+    openSheet(sheet2, head(title, sub) + `<div class="wh"><span class="wband"></span>${col('hr', hrs, String(h % 12 || 12))}${col('mn', mns, String(m % 60).padStart(2, '0'))}${col('ap', ['AM', 'PM'], h < 12 ? 'AM' : 'PM')}</div>
+       <div class="whint" aria-live="polite"></div><button class="cta" data-pt="setwheel">Done</button>`);
+    sheet2.querySelectorAll('.wc').forEach(c => { const on = c.querySelector('.on'); c.scrollTop = on.offsetTop - 88;
+      c.addEventListener('scroll', () => { clearTimeout(c.t); c.t = setTimeout(() => { const k = Math.round(c.scrollTop / 44); c.querySelectorAll('div').forEach((d, j) => d.classList.toggle('on', j === k)); wcheck(); }, 80); }); });
+    setTimeout(wcheck, 300);
+  }
+  const wval = () => { const v = [...sheet2.querySelectorAll('.wc')].map(c => (c.querySelector('.on') || c.firstChild).dataset.v); let h = +v[0] % 12; if (v[2] === 'PM') h += 12; return h * 60 + +v[1]; };
+  function wcheck() { const fut = wval() > NOWM; sheet2.querySelector('.whint').textContent = fut ? 'You can only log a time that has passed' : ''; sheet2.querySelector('[data-pt="setwheel"]').disabled = fut; }
+
+  // things already logged: the pillars' own menus
+  let menuFor = null, confirmFor = null;
+  const mrow = (act, icon, text, warn) => `<button class="menurow${warn ? ' warn' : ''}" data-menu="${act}"><span class="mi">${icon}</span>${text}</button>`;
+  function doneMenu(id) {
+    menuFor = id; const u = U[id];
+    if (u.kind === 'food') return openSheet(sheet, head(u.name, helping(u.unit, u.n) + ' · logged at ' + fmt(u.doneAt)) + mrow('qty', I.pen, 'Change the quantity') + mrow('off', I.undo, 'Take it off your day'));
+    if (u.kind === 'ex') return openSheet(sheet, head(u.name, 'Done at ' + fmt(u.doneAt)) + mrow('time', I.clock, 'Edit workout time') + mrow('exundo', I.undo, 'Mark workout as not done'));
+    if (u.kind === 'sm') return askUndo(id, "This small move comes off today's log, and what it added to your Momentum score is taken back.");
+    if (u.kind === 'mood') return openSheet(sheet, head((u.at < 720 ? 'Morning' : 'Evening') + ' check-in', 'Feeling ' + FACES[u.face][0].toLowerCase()) + mrow('mood', I.pen, 'Change your mood') + mrow('moodrm', I.bin, 'Remove this check-in', true));
+    if (u.kind === 'br') return openSheet(sheet, head(u.name) + mrow('again', I.play, 'Breathe again') + mrow('mdundo', I.undo, 'Mark as not done'));
+    return openSheet(sheet, head(u.name) + mrow('mdundo', I.undo, 'Mark as not done'));
+  }
+  function askUndo(id, say) { confirmFor = id; openSheet(sheet, head('Mark as not done?', U[id].name) + `<p class="say">${say}</p><button class="cta" data-menu="yesundo">Mark as not done</button><button class="ghost" data-pt="close">Keep it as done</button>`); }
+  function breathStart(id) { const u = U[id]; menuFor = id;
+    openSheet(sheet, head(u.name, `${u.x.pat} · ${u.x.min} min, suggested by your coach`) + `<button class="cta" data-menu="startbr" style="margin-top:12px">Start breathing</button><button class="ghost" data-menu="didbr">I've already done it</button>`); }
+  let moodFor = null, moodPick = null;
+  function moodSheet(id, editing) {
+    moodFor = id; moodPick = editing ? U[id].face : (T.find(x => x.id === id) || {}).face ?? null;
+    openSheet(sheet, head('How are you feeling?') + `<div class="vm"><div class="vm-faces${moodPick != null ? ' picked' : ''}" role="group" aria-label="How are you feeling?">${FACES.map(([n, e], i) =>
+      `<button class="vm-face${moodPick === i ? ' on' : ''}" data-face="${i}" aria-pressed="${moodPick === i}"><span aria-hidden="true">${e}</span>${n}</button>`).join('')}</div><div id="vmOut"></div></div>`);
+    if (moodPick != null) moodReply(false);
+  }
+  function moodReply(wait) {
+    const out = sheet.querySelector('#vmOut'); if (!out) return;
+    out.innerHTML = `<div class="vm-k${wait ? ' wait' : ''}">${I.quote}${wait ? '<div class="vm-sh" aria-hidden="true"><i></i><i></i><i></i></div>' : `<p aria-live="polite">${REPLY[moodPick]}</p>`}</div>${wait ? '' : '<button class="cta" data-menu="mooddone" style="margin-top:16px">Done</button>'}`;
+    if (wait) setTimeout(() => moodFor && moodReply(false), 900);
+  }
+
+  // ---------- log: the pillars' win moment, then the FlipCoin toast ----------
+  function loadOnce(src) { return new Promise(ok => { if (document.querySelector(`script[src="${src}"]`)) return ok(); const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = ok; document.head.append(s); }); }
+  function log() {
+    if (anyFuture()) return review();
+    const items = T.slice(), names = [...new Set(items.map(barName))], rect = (bar.querySelector('.go') || bar).getBoundingClientRect();
+    const ks = [...new Set(items.map(x => U[x.id].p))], k1 = [...new Set(items.map(x => U[x.id].kind))];
+    const title = k1.length === 1 && k1[0] === 'food' && names.length === 1 ? 'Meal logged' : items.length === 1 ? ({ ex: 'Workout logged', sm: 'Small move logged', mood: 'Mood checked in', br: 'Breathing done', me: 'Me-time done', wd: 'Wind-down done' })[k1[0]]
+      : k1.length === 1 && k1[0] === 'ex' ? items.length + ' workouts logged' : items.length + ' items logged';
+    const say = ks.length === 1 ? { eat: 'added to your sufficiency score', move: 'added to your Momentum score', mind: 'added to your Rhythm score' }[ks[0]] : 'added to your day';
+    T = []; closeSheet(sheet); closeSheet(sheet2); bar.classList.remove('up'); document.body.classList.remove('pt-on');
+    const land = () => {
+      items.forEach(x => { const u = U[x.id]; JUST.add(x.id); u.done = true; u.doneAt = x.time; if (x.n) u.n = x.n; if (u.kind === 'mood') u.face = x.face; });
+      render(); settle(items.map(x => x.id));
+      loadOnce(R + 'flipcoin-toast.js?v=2').then(() => setTimeout(() => window.GFFlipcoin && GFFlipcoin.show(), 2000));
+    };
+    loadOnce(R + 'win-moment.js?v=14').then(() => {
+      const ctl = window.WinMoment && WinMoment.begin(rect, names);
+      if (!ctl) return land();
+      let landed = false; const finish = () => { if (landed) return; landed = true; land();
+        const h = document.querySelector('body > div.wm[role=status]'); if (!h) return;
+        h.style.pointerEvents = 'none'; h.style.transition = 'opacity .36s cubic-bezier(.2,0,0,1)';
+        requestAnimationFrame(() => requestAnimationFrame(() => { h.style.opacity = '0'; })); setTimeout(() => h.remove(), 420); };
+      setTimeout(() => ctl.win({ d: null, n: items.length, title, say }, finish), 600);
+      setTimeout(finish, 6200);
+    });
+  }
+  // the logged rows catch the moment: a meal's foods land on the meal row, exercises on the workout row
+  function settle(list) {
+    const keys = new Set(); list.forEach(id => { const u = U[id]; keys.add(id); if (u.kind === 'food') keys.add('meal:' + u.meal.id); if (u.kind === 'ex') keys.add('wo:' + u.part); });
+    [...keys].forEach((k, j) => { const r = root.querySelector(`[data-row="${k}"]`); if (!r) return;
+      setTimeout(() => { const tk = r.querySelector('.tick'); r.classList.add('cheer'); tk && tk.classList.add('pop'); setTimeout(() => { r.classList.remove('cheer'); tk && tk.classList.remove('pop'); }, 1000); }, j * 90); });
+  }
+
+  // ---------- taps ----------
+  function onTick(key, rowEl) {
+    if (key.startsWith('meal:')) { const m = MEALS.find(x => x.id === key.slice(5)), e = mealE(m); if (e.done) return mealSheet(m.id); return toggleMany(e.members, rowEl, m.name, e.members.length + ' items, as planned'); }
+    if (key.startsWith('wo:')) { const k = key.slice(3), e = woE(k); if (e.done) return woSheet(k); return toggleMany(e.members, rowEl, e.title, e.members.length + (e.members.length > 1 ? ' exercises' : ' exercise')); }
+    const u = U[key];
+    if (u.kind === 'tip') { u.done = !u.done; refresh(); return; }
+    if (u.done) return doneMenu(key);
+    if (u.kind === 'mood') return moodSheet(key);
+    toggleMany([key], rowEl, u.name, u.kind === 'food' ? helping(u.unit, u.n) : u.kind === 'ex' ? '2 sets · ' + u.kc + ' kcal' : u.kind === 'sm' ? 'Small move' : PNAME[u.part]);
+  }
+  function onDetail(key, rowEl) {
+    if (key.startsWith('meal:')) return mealSheet(key.slice(5));
+    if (key.startsWith('wo:')) return woSheet(key.slice(3));
+    const u = U[key];
+    if (u.kind === 'ex') return toast('The exercise player opens');
+    if (u.kind === 'br') return u.done ? doneMenu(key) : breathStart(key);
+    if (u.kind === 'mood') return u.done ? doneMenu(key) : moodSheet(key);
+    return onTick(key, rowEl);
+  }
+  function pickFace(a) { moodPick = +a.dataset.face; const fs = sheet.querySelector('.vm-faces'); fs.classList.add('picked');
+    fs.querySelectorAll('.vm-face').forEach(b => { const on = b === a; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on); }); moodReply(true); }
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.pt')) peek(false);
+    const ui = e.target.closest('[data-ui]');
+    const fo = e.target.closest('[data-fold]');
+    if (fo) { S[V] = S[V] || {}; S[V][fo.dataset.fold] = fo.dataset.on !== '1'; return render(); }
+    const mf = e.target.closest('[data-mface]');
+    if (mf) { moodSheet(mf.dataset.mface); return pickFace(sheet.querySelector(`.vm-face[data-face="${mf.dataset.i}"]`)); }
+    if (ui) { const [v, k] = ui.dataset.ui.split('.');
+      if (k == null) S[v] = !S[v]; else { S[v] = S[v] || {}; S[v][k] = !S[v][k]; }
+      return render(); }
+    const ch = e.target.closest('[data-opt]'); if (ch) { optSel[ch.dataset.meal] = +ch.dataset.opt; return refresh(); }
+    const sy = e.target.closest('[data-say]'); if (sy) return toast(sy.dataset.say);
+    const d = e.target.closest('[data-d]'); if (d) return onDetail(d.dataset.d, d.closest('[data-row]'));
+    const t = e.target.closest('[data-t]'); if (t) return onTick(t.dataset.t, t.closest('[data-row]') || t);
+
+    const a = e.target.closest('[data-pt],[data-menu],[data-face],.wc div');
+    if (!a) { if (e.target.classList.contains('pts')) closeSheet(e.target); return; }
+    if (a.matches('.wc div')) { a.parentElement.scrollTo({ top: a.offsetTop - 88, behavior: 'smooth' }); return; }
+    if (a.dataset.face != null) return pickFace(a);
+    const act = a.dataset.pt || a.dataset.menu, i = +a.dataset.i;
+    switch (act) {
+      case 'review': peek(false); return review();
+      case 'log': peek(false); return log();
+      case 'peek': return peek(!bar.querySelector('.flw').classList.contains('open'));
+      case 'clear': T = []; peek(false); renderBar(); return refresh();
+      case 'close': return closeSheet(a.closest('.pts'));
+      case 'inc': T[i].n++; renderBar(); render(); return review();
+      case 'dec': if (T[i].n > 1) T[i].n--; else T.splice(i, 1); renderBar(); render(); return review();
+      case 'rm': T.splice(i, 1); renderBar(); render(); return review();
+      case 'setnow': { const tt = Math.floor(NOWM / 5) * 5; T.forEach(x => { if (later(x)) x.time = tt; }); review(); sheet.querySelectorAll('.tc').forEach(c => c.classList.add('flash')); return; }
+      case 'rmlate': T = T.filter(x => !later(x)); renderBar(); render(); return review();
+      case 'sheetlog': return log();
+      case 'wheel': { const x = T[i], u = U[x.id]; wheelFor = { i }; return wheel(x.time, u.kind === 'food' ? 'When did you have it?' : 'When did you do it?', u.name); }
+      case 'setwheel': { const v = wval(); closeSheet(sheet2);
+        if (wheelFor && wheelFor.id) { U[wheelFor.id].doneAt = v; closeSheet(sheet); render(); toast('Workout time updated'); }
+        else if (wheelFor) { T[wheelFor.i].time = v; review(); }
+        wheelFor = null; return; }
+      case 'off': { const u = U[menuFor]; u.done = false; closeSheet(sheet); render(); return toast(`${u.name} taken off your day`); }
+      case 'qty': { const u = U[menuFor]; u.n = u.n + 1; closeSheet(sheet); render(); return toast(`${u.name} updated to ${helping(u.unit, u.n)}`); }
+      case 'time': wheelFor = { id: menuFor }; return wheel(U[menuFor].doneAt, 'When did you do it?', U[menuFor].name);
+      case 'exundo': return askUndo(menuFor, `It comes off today's log, and the ${U[menuFor].kc} kcal it burned leave your Momentum score.`);
+      case 'yesundo': U[confirmFor].done = false; closeSheet(sheet); return render();
+      case 'mdundo': U[menuFor].done = false; closeSheet(sheet); render(); return toast('Marked as not done');
+      case 'again': closeSheet(sheet); return toast('The breathing player opens');
+      case 'mood': return moodSheet(menuFor, true);
+      case 'moodrm': { const u = U[menuFor]; u.done = false; u.face = null; closeSheet(sheet); render(); return toast('Mood check-in removed'); }
+      case 'mooddone': { const id = moodFor; closeSheet(sheet); moodFor = null;
+        if (U[id].done) { U[id].face = moodPick; return render(); }   // changing a logged mood replaces it
+        const x = T.find(tt => tt.id === id);
+        if (x) { x.face = moodPick; return; }
+        setTimeout(() => { T.push({ id, time: NOWM, face: moodPick }); renderBar(false); render(); const r = root.querySelector(`[data-row="${id}"]`); if (!toss(r && r.getBoundingClientRect(), 'Mood', FACES[moodPick][0])) renderBar(true); }, 220);
+        return; }
+      case 'startbr': closeSheet(sheet); return toast('The breathing player opens');
+      case 'didbr': U[menuFor].done = true; U[menuFor].doneAt = NOWM; closeSheet(sheet); render(); settle([menuFor]); return toast('Marked as done');
+    }
+  });
+
+  render();
+  // tell the study page how many ticks are in reach without scrolling
+  setTimeout(() => { const h = innerHeight - 90; const n = [...root.querySelectorAll('.tickbtn, .tk, .apb.pri')].filter(t => { const r = t.getBoundingClientRect(); return r.width && r.top > 0 && r.bottom < h && r.left >= 0 && r.right <= innerWidth; }).length;
+    if (parent !== window) parent.postMessage({ type: 'todo-meas', v: V, ticks: n }, '*'); }, 600);
+}
+
+if (V) phone(); else studyPage();
+</script>
+</body>
+</html>

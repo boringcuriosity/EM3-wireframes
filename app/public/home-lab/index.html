@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home lab</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!--
+  Home lab: the screen (screen.html) in an iPhone 17 Pro on the left, the variation panel on the right.
+  The panel builds itself from window.LAB inside the screen, so it never needs editing when a section or a
+  variation is added there. Every choice lives in this page's URL and is passed to the screen as-is,
+  so any arrangement can be shared as a link. The phone sizing is copied from v7/frame.html.
+-->
+<style>
+  :root {
+    --shot-w: 955; --shot-h: 2079; --shot-x: 58; --shot-y: 55; --art-w: 1071; --art-h: 2190;
+    --screen-w: 390px; --k: calc(var(--screen-w) / var(--shot-w));
+    --screen-h: calc(var(--shot-h) * var(--k)); --frame-w: calc(var(--art-w) * var(--k)); --frame-h: calc(var(--art-h) * var(--k));
+    --screen-l: calc(var(--shot-x) * var(--k)); --screen-t: calc(var(--shot-y) * var(--k)); --screen-r: calc(150 * var(--k));
+    --status-h: calc(var(--screen-w) * 248 / 1608);
+    --ink: #101828; --muted: #667085; --line: #E4E7EC; --green: #299D6B; --tint: #E6FAF1;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { background: #F2F4F7; font-family: Roboto, Arial, sans-serif; color: var(--ink); letter-spacing: .25px;
+    display: flex; justify-content: center; align-items: flex-start; gap: 40px; padding: 28px 24px; }
+  button { font: inherit; letter-spacing: inherit; cursor: pointer; }
+
+  /* phone */
+  .stage { position: sticky; top: 28px; flex-shrink: 0; width: calc(var(--frame-w) * var(--fit, 1)); height: calc(var(--frame-h) * var(--fit, 1)); }
+  .phone { position: relative; width: var(--frame-w); height: var(--frame-h); transform: scale(var(--fit, 1)); transform-origin: 0 0; }
+  .glass { position: absolute; left: var(--screen-l); top: var(--screen-t); width: var(--screen-w); height: var(--screen-h);
+    border-radius: var(--screen-r); overflow: hidden; background: #fff; z-index: 1; }
+  .glass iframe { display: block; width: 100%; height: 100%; border: 0; background: #fff; }
+  .status { position: absolute; left: 0; top: 0; width: 100%; height: var(--status-h); z-index: 2; pointer-events: none;
+    background: transparent url("../v7/frames/status-bar-black.webp") center top / 100% 100% no-repeat; }
+  .bezel { position: absolute; inset: 0; z-index: 4; pointer-events: none; width: var(--frame-w); height: var(--frame-h); }
+
+  /* panel */
+  .panel { width: 372px; flex-shrink: 0; background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+    box-shadow: 0 1px 2px rgba(16,24,40,.05); }
+  .panel header { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .panel header h1 { flex: 1; margin: 0; font-size: 16px; font-weight: 700; white-space: nowrap; }
+  .panel header button, .panel header a { white-space: nowrap; border: 1px solid #D0D5DD; background: #fff; border-radius: 8px; padding: 6px 10px;
+    font-size: 12px; font-weight: 600; color: #344054; text-decoration: none; }
+  .grp { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+  .grp:last-child { border-bottom: 0; }
+  .grp h2 { margin: 0 0 10px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+  .row { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 2px 4px; border-radius: 8px; font-size: 14px; }
+  .row:hover { background: #F9FAFB; }
+  .row label { flex: 1; display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .row input { width: 16px; height: 16px; accent-color: var(--green); margin: 0; }
+  .row.off label { color: #98A2B3; }
+  .mv { width: 26px; height: 26px; border: 1px solid var(--line); background: #fff; border-radius: 6px; color: #475467; display: grid; place-items: center; padding: 0; }
+  .mv:disabled { opacity: .35; cursor: default; }
+  .sub { margin-left: 26px; }
+  .choice { display: flex; align-items: center; gap: 10px; min-height: 32px; font-size: 14px; cursor: pointer; padding: 2px 4px; border-radius: 8px; }
+  .choice:hover { background: #F9FAFB; }
+  .choice input { accent-color: var(--green); margin: 0; }
+  .vlabel { margin: 12px 0 4px; font-size: 13px; font-weight: 600; }
+  .vlabel:first-of-type { margin-top: 0; }
+  /* panel scrolls on its own so the phone stays put */
+  /* clip, not hidden: a hidden box can still be scrolled by focus, which pushed the header out of view */
+  .panel { position: sticky; top: 28px; max-height: calc(100vh - 56px); display: flex; flex-direction: column; overflow: clip; }
+  .panel > header, .panel > .ver, .panel > .vnote { flex-shrink: 0; }
+  .panel .body { overflow-y: auto; }
+  /* Who is this */
+  .who { margin: 0 0 12px; padding: 12px; border-radius: 12px; background: var(--tint); }
+  .who b { display: block; font-size: 15px; line-height: 20px; }
+  .who span { display: block; margin-top: 2px; font-size: 12px; color: #475467; }
+  .who .kind { display: inline-block; margin-bottom: 6px; padding: 2px 8px; border-radius: 999px; background: #fff; font-size: 11px; font-weight: 700; color: var(--green); letter-spacing: .4px; text-transform: uppercase; }
+  .tlist { display: flex; flex-direction: column; gap: 2px; }
+  .tgrp { display: flex; align-items: baseline; justify-content: space-between; margin: 12px 0 4px; font-size: 13px; font-weight: 600; }
+  .tgrp:first-child { margin-top: 0; }
+  .tgrp small { font-weight: 400; color: var(--muted); }
+  .type { display: flex; align-items: center; gap: 10px; min-height: 36px; padding: 4px 8px; border-radius: 8px; font-size: 14px; cursor: pointer; border: 1px solid transparent; }
+  .type:hover { background: #F9FAFB; }
+  .type input { position: absolute; opacity: 0; pointer-events: none; }
+  .type .n { width: 18px; font-size: 12px; color: #98A2B3; text-align: right; }
+  .type .t { flex: 1; }
+  .type .ics { display: flex; gap: 2px; }
+  .type .ics img { width: 20px; height: 20px; object-fit: contain; border-radius: 4px; background: #fff; }
+  .type:has(input:checked) { background: var(--tint); border-color: #A6E3C4; font-weight: 600; }
+  .type:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 1px; }
+  .mods { margin: 8px 0 6px 26px; padding: 12px; border-radius: 12px; background: #F9FAFB; }
+  .mods[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+  .mlabel { margin: 10px 0 6px; font-size: 13px; font-weight: 600; }
+  .mlabel:first-child { margin-top: 0; }
+  .mlabel small { font-weight: 400; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border: 1px solid #D0D5DD; border-radius: 999px; background: #fff; font-size: 13px; color: #344054; cursor: pointer; }
+  .chip input { position: absolute; opacity: 0; pointer-events: none; }
+  .chip:has(input:checked) { border-color: var(--green); background: var(--tint); color: #1B6E4A; font-weight: 600; }
+  .chip:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 1px; }
+  /* Old / New: which Home the phone shows */
+  .ver { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin: 12px 16px 0; padding: 4px; border-radius: 12px; background: #F2F4F7; position: relative; }
+  .ver button { position: relative; z-index: 1; height: 36px; border: 0; background: none; border-radius: 9px; font-size: 14px; font-weight: 600; color: var(--muted); }
+  .ver button[aria-pressed="true"] { color: var(--ink); }
+  .ver .th { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 9px; background: #fff;
+    box-shadow: 0 1px 3px rgba(16,24,40,.1), 0 1px 2px rgba(16,24,40,.06); transition: transform .3s cubic-bezier(.22,.61,.36,1); }
+  .ver[data-v="new"] .th { transform: translateX(100%); }
+  .ver small { display: block; grid-column: 1 / -1; }
+  .vnote { margin: 6px 16px 0; font-size: 12px; color: var(--muted); }
+  /* Black and white: the phone in greyscale, to judge hierarchy without colour. On unless ?bw=0 */
+  .glass iframe { transition: filter .35s cubic-bezier(.33,1,.68,1); }
+  body.bw .glass iframe { filter: grayscale(1); }
+  .sw { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; cursor: pointer; }
+  .sw small { display: block; font-size: 12px; color: var(--muted); }
+  .sw input { position: absolute; opacity: 0; pointer-events: none; }
+  .sw .track { position: relative; flex-shrink: 0; width: 40px; height: 24px; border-radius: 999px; background: #D0D5DD; transition: background-color .25s ease; }
+  .sw .track::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff;
+    box-shadow: 0 1px 3px rgba(16,24,40,.2); transition: transform .25s cubic-bezier(.33,1,.68,1); }
+  .sw input:checked + .track { background: var(--green); }
+  .sw input:checked + .track::after { transform: translateX(16px); }
+  .sw input:focus-visible + .track { outline: 2px solid var(--green); outline-offset: 2px; }
+  /* Sections and Variations fold away (native details), closed by default */
+  .acc summary { display: flex; align-items: center; justify-content: space-between; list-style: none; cursor: pointer; margin: -14px -16px; padding: 14px 16px; }
+  .acc summary::-webkit-details-marker { display: none; }
+  .acc summary h2 { margin: 0; }
+  .acc summary::after { content: ""; width: 8px; height: 8px; border-right: 1.5px solid var(--muted); border-bottom: 1.5px solid var(--muted);
+    transform: rotate(45deg) translate(-2px, -2px); transition: transform .25s cubic-bezier(.33,1,.68,1); }
+  .acc[open] summary::after { transform: rotate(225deg) translate(-2px, -2px); }
+  .acc[open] summary { margin-bottom: -4px; }
+  .acc summary:hover h2 { color: var(--ink); }
+  .acc summary:focus-visible { outline: 2px solid var(--green); outline-offset: -2px; border-radius: 8px; }
+  @media (max-width: 860px) { body { flex-direction: column; align-items: center; } .stage { position: static; } }
+</style>
+</head>
+<body>
+  <div class="stage" id="stage">
+    <div class="phone">
+      <div class="glass" id="glass"><div class="status"></div></div>
+      <img class="bezel" src="../v7/frames/iphone-17-pro-cosmic-orange.webp" alt="" aria-hidden="true">
+    </div>
+  </div>
+
+  <aside class="panel" aria-label="Variations">
+    <header>
+      <h1>Home lab</h1>
+      <button id="reset">Reset</button>
+      <button id="copy">Copy link</button>
+      <a id="bare" target="_blank">Open screen</a>
+    </header>
+    <div class="ver" id="ver" data-v="new"><span class="th"></span>
+      <button data-v="old" aria-pressed="false">Old</button><button data-v="new" aria-pressed="true">New</button></div>
+    <p class="vnote" id="vnote"></p>
+    <div class="body">
+      <div class="grp"><h2>Who is this</h2><div id="who"></div></div>
+      <details class="grp acc"><summary><h2>Sections</h2></summary><div id="secs"></div></details>
+      <details class="grp acc"><summary><h2>Variations</h2></summary><div id="vars"></div></details>
+      <div class="grp"><h2>View</h2>
+        <label class="sw"><span>Black and white<small>See the hierarchy without colour</small></span><input type="checkbox" id="bw"><span class="track"></span></label>
+      </div>
+    </div>
+  </aside>
+
+<script>
+(() => {
+  const glass = document.getElementById('glass'), SCREEN = 'screen.html';
+  const fr = document.createElement('iframe'); fr.title = 'Home screen'; glass.prepend(fr);
+  let LAB = null, keepY = 0;
+
+  // The screen's own status band stays (it keeps content clear of the island) but is emptied:
+  // the frame draws the real one. Same patch as v7/frame.html.
+  const PATCH = `.gf-status{height:${getComputedStyle(document.documentElement).getPropertyValue('--status-h').trim()} !important}
+    .gf-status>*{visibility:hidden !important} html{scrollbar-width:none !important} html::-webkit-scrollbar{display:none !important}`;
+
+  const params = () => new URLSearchParams(location.search);
+  const list = (p, k) => (p.get(k) || '').split(',').filter(Boolean);
+
+  function load(p) {
+    try { keepY = fr.contentWindow.scrollY || 0; } catch (e) { keepY = 0; }
+    history.replaceState(null, '', p.toString() ? '?' + p : location.pathname);
+    fr.src = SCREEN + (p.toString() ? '?' + p : '');
+    document.getElementById('bare').href = fr.src;
+  }
+  // The pillar screens talk to their frame (as in v7/frame.html): the score hero waits for "hero:mount",
+  // and the bottom nav asks the frame to move ({nav}). Answer both so they work fully inside this phone.
+  addEventListener('message', e => {
+    if (e.source !== fr.contentWindow) return;
+    const d = e.data;
+    if (d === 'hero:ready') return fr.contentWindow.postMessage('hero:mount', '*');
+    if (!d || typeof d !== 'object' || !d.nav) return;
+    const here = fr.contentWindow.location.pathname, dir = here.replace(/[^/]*$/, '');
+    const f = d.flags || {}, qs = Object.keys(f).filter(k => f[k] !== '' && f[k] != null).map(k => k + '=' + encodeURIComponent(f[k])).join('&');
+    fr.contentWindow.location.href = dir + d.nav + '.html' + (qs ? '?' + qs : '');
+  });
+  fr.addEventListener('load', () => {
+    const d = fr.contentDocument, st = d.createElement('style'); st.textContent = PATCH; d.head.append(st);
+    fr.contentWindow.scrollTo(0, keepY);
+    if (!fr.contentWindow.LAB) return;   // a pillar screen is open: leave the panel as it is
+    LAB = fr.contentWindow.LAB; render();
+  });
+
+  function render() {
+    if (!LAB) return;
+    const bw = params().get('bw') !== '0'; document.body.classList.toggle('bw', bw); document.getElementById('bw').checked = bw;
+    const vv = params().get('ver') === 'old' ? 'old' : 'new', V = document.getElementById('ver');
+    V.dataset.v = vv; V.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset.v === vv));
+    document.getElementById('vnote').textContent = vv === 'old' ? 'The live app today, as replicated.' : 'Top nav with status folders: Today, Program, Devices.';
+    renderWho();
+    const p = params(), off = new Set(list(p, 'off')), order = list(p, 'order');
+    const ids = LAB.sections.map(s => s.id);
+    const ordered = [...order.filter(id => ids.includes(id)), ...ids.filter(id => !order.includes(id))];
+    const byId = Object.fromEntries(LAB.sections.map(s => [s.id, s]));
+    // parts that live inside a section are listed under it; the rest (KAIRA button) after the sections
+    const doc = fr.contentDocument, partsIn = id => LAB.parts.filter(pt => doc.querySelector(`[data-sec="${id}"] [data-sub="${pt.id}"]`));
+    const loose = LAB.parts.filter(pt => !doc.querySelector(`[data-sec] [data-sub="${pt.id}"]`));
+    const row = (id, label, i, n, isSub) => `<div class="row${off.has(id) ? ' off' : ''}${isSub ? ' sub' : ''}">
+        <label><input type="checkbox" data-toggle="${id}" ${off.has(id) ? '' : 'checked'}>${label}</label>
+        ${isSub ? '' : `<button class="mv" data-move="${id}" data-dir="-1" ${i === 0 ? 'disabled' : ''} aria-label="Move ${label} up">↑</button>
+        <button class="mv" data-move="${id}" data-dir="1" ${i === n - 1 ? 'disabled' : ''} aria-label="Move ${label} down">↓</button>`}</div>`;
+    document.getElementById('secs').innerHTML =
+      ordered.map((id, i) => row(id, byId[id].label, i, ordered.length) + partsIn(id).map(pt => row(pt.id, pt.label, 0, 0, true)).join('')).join('') +
+      loose.map(pt => row(pt.id, pt.label, 0, 0, false).replace(/<button[\s\S]*?<\/button>/g, '')).join('');
+
+    // a choice is current when every one of its params is in the URL; the empty choice when none of the group's are
+    const has = s => [...new URLSearchParams(s)].every(([k, v]) => p.get(k) === v);
+    document.getElementById('vars').innerHTML = LAB.variations.map(v => {
+      const keys = new Set(v.choices.flatMap(([s]) => [...new URLSearchParams(s).keys()]));
+      const cur = v.choices.find(([s]) => s && has(s)) || (![...keys].some(k => p.has(k)) && v.choices.find(([s]) => !s));
+      return `<p class="vlabel">${v.label}</p>` + v.choices.map(([s, l]) =>
+        `<label class="choice"><input type="radio" name="${v.key}" value="${s}" ${cur && cur[0] === s ? 'checked' : ''}>${l}</label>`).join('');
+    }).join('');
+  }
+
+
+  /* Who is this. Sixteen user types come from two facts, care program yes or no, and which devices (any of
+     BCA, CGM, Ring). Program users then add which program they are on and which plans the coach has assigned. */
+  const combos = n => { const out = [[]]; n.forEach(d => out.slice().forEach(c => out.push([...c, d]))); return out.sort((a, b) => a.length - b.length); };
+  function renderWho() {
+    const U = LAB.user; if (!U) return;
+    const p = params(), prog = p.get('prog') === 'none' ? null : p.get('prog'), devs = list(p, 'devs'), plans = list(p, 'plans');
+    const dname = Object.fromEntries(U.devices.map(([k, l]) => [k, l])), dimg = Object.fromEntries(U.devices.map(([k, , i]) => [k, i]));
+    const all = combos(U.devices.map(([k]) => k)), same = c => c.length === devs.length && c.every(d => devs.includes(d));
+    const join = ds => ds.map(d => dname[d]).join(' + ');
+    let n = 0;
+    const type = (isProg, c) => { n++;
+      const label = isProg ? (c.length ? 'Program + ' + join(c) : 'Program only') : (c.length ? join(c) : 'No program, no device');
+      const on = !!prog === isProg && same(c);
+      return `<label class="type"><input type="radio" name="utype" value="${isProg ? 1 : 0}|${c}" ${on ? 'checked' : ''}>
+        <span class="n">${n}</span><span class="t">${label}</span><span class="ics">${c.map(d => `<img src="${dimg[d]}" alt="">`).join('')}</span></label>`; };
+    const progName = (U.programs.find(([k]) => k === prog) || [])[1];
+    const kind = prog ? (devs.length ? 'Program + devices' : 'Program') : (devs.length ? 'Devices only' : 'Free user');
+    const planTxt = !prog ? '' : plans.length ? U.plans.filter(([k]) => plans.includes(k)).map(([, l]) => l).join(', ') + ' plan' + (plans.length > 1 ? 's' : '') + ' assigned' : 'No plans assigned yet';
+    document.getElementById('who').innerHTML = `
+      <div class="who"><span class="kind">${kind}</span>
+        <b>${prog ? progName + ' program' : devs.length ? 'No care program' : 'Free user'}${devs.length ? ' · ' + join(devs) : prog ? ' · no devices' : ''}</b>
+        <span>${prog ? planTxt : devs.length ? 'Owns a device, has not bought a care program' : 'No care program and no device'}</span></div>
+      <div class="tlist">
+        <p class="tgrp">With a care program <small>8</small></p>${all.map(c => type(true, c)).join('')}
+      <div class="mods" aria-disabled="${!prog}">
+        <p class="mlabel">Care program ${prog ? '' : '<small>for program users</small>'}</p>
+        <div class="chips">${U.programs.map(([k, l]) => `<label class="chip"><input type="radio" name="prog" value="${k}" ${prog === k ? 'checked' : ''}>${l}</label>`).join('')}</div>
+        <p class="mlabel">Plans assigned by the coach</p>
+        <div class="chips">${U.plans.map(([k, l]) => `<label class="chip"><input type="checkbox" name="plans" value="${k}" ${plans.includes(k) ? 'checked' : ''}>${l}</label>`).join('')}</div>
+      </div>
+        <p class="tgrp">Devices only <small>7</small></p>${all.filter(c => c.length).map(c => type(false, c)).join('')}
+        <p class="tgrp">Free <small>1</small></p>${type(false, [])}
+      </div>
+`;
+  }
+  document.getElementById('who').addEventListener('change', e => {
+    const p = params(), el = e.target;
+    if (el.name === 'utype') {
+      const [isProg, c] = el.value.split('|');
+      if (isProg === '1') { if (!p.get('prog') || p.get('prog') === 'none') { p.set('prog', 'diabetes'); p.set('plans', 'eat,move,mind'); } }
+      else { p.set('prog', 'none'); p.delete('plans'); }
+      c ? p.set('devs', c) : p.delete('devs');
+    }
+    if (el.name === 'prog') p.set('prog', el.value);
+    if (el.name === 'plans') { const s = [...document.querySelectorAll('#who [name=plans]:checked')].map(i => i.value); s.length ? p.set('plans', s) : p.set('plans', ''); }
+    load(p);
+  });
+
+  document.getElementById('secs').addEventListener('change', e => {
+    const id = e.target.dataset.toggle; if (!id) return;
+    const p = params(), off = new Set(list(p, 'off'));
+    e.target.checked ? off.delete(id) : off.add(id);
+    off.size ? p.set('off', [...off]) : p.delete('off'); load(p);
+  });
+  document.getElementById('secs').addEventListener('click', e => {
+    const b = e.target.closest('[data-move]'); if (!b) return;
+    const p = params(), ids = LAB.sections.map(s => s.id), order = list(p, 'order');
+    const cur = [...order.filter(id => ids.includes(id)), ...ids.filter(id => !order.includes(id))];
+    const i = cur.indexOf(b.dataset.move), j = i + +b.dataset.dir;
+    [cur[i], cur[j]] = [cur[j], cur[i]];
+    cur.join() === ids.join() ? p.delete('order') : p.set('order', cur); load(p);
+  });
+  document.getElementById('vars').addEventListener('change', e => {
+    const v = LAB.variations.find(x => x.key === e.target.name); if (!v) return;
+    const p = params();
+    v.choices.forEach(([s]) => new URLSearchParams(s).forEach((_, k) => p.delete(k)));
+    new URLSearchParams(e.target.value).forEach((val, k) => p.set(k, val)); load(p);
+  });
+  document.getElementById('ver').addEventListener('click', e => {
+    const b = e.target.closest('button[data-v]'); if (!b) return;
+    const p = params(); b.dataset.v === 'old' ? p.set('ver', 'old') : p.delete('ver'); load(p);
+  });
+  // the filter sits on the phone, not the screen, so switching it never reloads the screen
+  document.getElementById('bw').addEventListener('change', e => {
+    const p = params(); e.target.checked ? p.delete('bw') : p.set('bw', '0');
+    history.replaceState(null, '', p.toString() ? '?' + p : location.pathname); document.body.classList.toggle('bw', e.target.checked);
+  });
+  document.getElementById('reset').onclick = () => load(withDefault(new URLSearchParams()));
+  document.getElementById('copy').onclick = function () {
+    navigator.clipboard.writeText(location.href).then(() => { this.textContent = 'Copied'; setTimeout(() => this.textContent = 'Copy link', 1400); });
+  };
+
+  // fit the phone to the window height without reflowing the app (as v7/frame.html does)
+  const fit = () => { const s = document.getElementById('stage'), h = parseFloat(getComputedStyle(document.querySelector('.phone')).height);
+    s.style.setProperty('--fit', Math.min(1, (innerHeight - 56) / h)); };
+  addEventListener('resize', fit); fit();
+  // first visit: the replica's member, Diabetes program, all three plans, no devices yet
+  const withDefault = p => { if (!p.has('prog')) { p.set('prog', 'diabetes'); p.set('plans', 'eat,move,mind'); } return p; };
+  load(withDefault(params()));
+})();
+</script>
+</body>
+</html>

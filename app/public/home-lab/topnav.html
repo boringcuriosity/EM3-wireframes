@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Top nav study</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<!--
+  Top nav study for the new Home: three tabs, Today, Program and Devices, for every member except free users.
+  Five directions, each a live phone: tap the tabs. The tab art is GoodFlip's own pictogram set
+  (design system web-icons); there is no "today" pictogram in that set, so Today is drawn from the
+  three EM3 pictograms the day is made of.
+-->
+<style>
+  :root {
+    --ink: #101828; --ink2: #344054; --muted: #667085; --soft: #98A2B3; --line: #EAECF0;
+    --green: #299D6B; --green-dk: #2A805A;
+    /* one tint per tab, light end states: the colour lives in the band, the page stays white */
+    --t-today: #E6FAF1; --t-today-2: #C9F0DD; --t-today-ink: #1B6E4A;
+    --t-prog: #FFF6E0; --t-prog-2: #FBE7B5; --t-prog-ink: #8A5A00;
+    --t-dev: #EEF2FF; --t-dev-2: #D9E0FF; --t-dev-ink: #3538CD;
+    --ease: cubic-bezier(.22, .61, .36, 1);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: #F2F4F7; color: var(--ink); font-family: Roboto, Arial, sans-serif; letter-spacing: .2px; }
+  button { font: inherit; letter-spacing: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
+  img { display: block; }
+
+  /* page */
+  .wrap { max-width: 1320px; margin: 0 auto; padding: 48px 32px 80px; }
+  .intro h1 { margin: 0; font: 800 34px/1.15 Manrope, sans-serif; letter-spacing: -.4px; }
+  .intro p { max-width: 760px; margin: 12px 0 0; font-size: 16px; line-height: 1.55; color: var(--ink2); }
+  .refs { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin: 28px 0 8px; }
+  .ref { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .ref b { display: block; font-size: 14px; }
+  .ref span { display: block; margin-top: 4px; font-size: 13px; line-height: 1.5; color: var(--muted); }
+  .ref i { font-style: normal; color: var(--green); font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 40px 28px; margin-top: 40px; }
+  .opt h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font: 700 18px Manrope, sans-serif; }
+  .opt h2 em { font-style: normal; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: #fff; background: var(--green); padding: 3px 8px; border-radius: 999px; }
+  .opt .why { margin: 0 0 14px; min-height: 66px; font-size: 13px; line-height: 1.5; color: var(--muted); }
+  .opt .why b { color: var(--ink2); font-weight: 600; }
+
+  /* phone: 390 design width, shown at 84% */
+  .phone { width: calc(390px * .84); height: calc(720px * .84); border-radius: 44px; padding: 10px; background: #101828;
+    box-shadow: 0 24px 48px -12px rgba(16,24,40,.25); }
+  .screen { width: 390px; height: 700px; transform: scale(.84); transform-origin: 0 0; border-radius: 40px; overflow: hidden; background: #fff; position: relative; }
+  .sb { height: 50px; background: url(../v7/frames/status-bar-black.webp) center top / 100% auto no-repeat; }
+
+  /* the GoodFlip top bar, as on Home */
+  .bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px 10px; }
+  .bar .l, .bar .r { display: flex; align-items: center; gap: 8px; }
+  .ib { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: #fff; border: .5px solid var(--line);
+    box-shadow: 0 4px 8px -2px rgba(16,24,40,.1), 0 2px 4px -2px rgba(16,24,40,.06); }
+  .ib svg { width: 20px; height: 20px; }
+  .coins { display: flex; align-items: center; gap: 4px; height: 36px; padding: 0 12px; border-radius: 999px; border: 1.5px solid transparent; font-weight: 600; font-size: 15px; color: #313131;
+    background: linear-gradient(90deg, #E6FAF1, #FFFBEE) padding-box, linear-gradient(90deg, var(--green), #F5D736) border-box; }
+  .coins img { width: 20px; height: 20px; }
+  .hi { margin: 0; padding: 2px 16px 0; font-weight: 700; font-size: 18px; }
+
+  /* placeholder of what sits under the nav, so the tab change reads */
+  .body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .ph { border-radius: 16px; background: #F9FAFB; border: 1px solid #F2F4F7; padding: 14px; font-size: 13px; color: var(--soft); }
+  .ph b { display: block; margin-bottom: 8px; color: var(--ink2); font-size: 14px; }
+  .ph i { display: block; height: 8px; border-radius: 4px; background: #EAECF0; margin-top: 6px; }
+  .ph i + i { width: 70%; }
+  [data-pane] { display: none; animation: fade .32s var(--ease); }
+  [data-nav="today"] [data-pane="today"], [data-nav="prog"] [data-pane="prog"], [data-nav="dev"] [data-pane="dev"] { display: flex; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* the band behind the header takes the tab's tint, crossfading */
+  .band { transition: background-color .36s var(--ease); }
+  [data-nav="today"] .band { background-color: var(--t-today); }
+  [data-nav="prog"] .band { background-color: var(--t-prog); }
+  [data-nav="dev"] .band { background-color: var(--t-dev); }
+  .tab { transition: color .24s var(--ease); }
+  .tab img { transition: transform .32s var(--ease), filter .32s var(--ease), opacity .32s var(--ease); }
+
+  /* Today's art: the day, made of the EM3 pictograms */
+  .trio { position: relative; width: 44px; height: 36px; }
+  .trio img { position: absolute; width: 24px; height: 24px; }
+  .trio img:nth-child(1) { left: 0; top: 10px; } .trio img:nth-child(2) { left: 10px; top: 0; z-index: 1; } .trio img:nth-child(3) { left: 20px; top: 10px; }
+
+  /* ===== 1. Folder tabs (Swiggy) ===== */
+  .v1 .band { padding-bottom: 14px; border-radius: 0 0 28px 28px; }
+  .v1 .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 12px 12px 0; position: relative; }
+  .v1 .tab { position: relative; height: 92px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; padding-bottom: 10px;
+    border-radius: 18px 18px 0 0; font-weight: 600; font-size: 14px; color: var(--muted); }
+  .v1 .tab img, .v1 .tab .trio { width: 44px; height: 44px; }
+  .v1 .tab .trio { width: 52px; }
+  .v1 .tab:not([aria-selected="true"]) { background: rgba(255,255,255,.45); }
+  .v1 .tab:not([aria-selected="true"]) img { filter: saturate(.55); opacity: .8; transform: scale(.9); }
+  .v1 .tab[aria-selected="true"] { color: var(--ink); background: #fff; box-shadow: 0 -4px 12px -6px rgba(16,24,40,.12); }
+  /* the folder's feet: the white tab flows into the white sheet under it */
+  .v1 .tab[aria-selected="true"]::before, .v1 .tab[aria-selected="true"]::after { content: ""; position: absolute; bottom: 0; width: 18px; height: 18px; }
+  .v1 .tab[aria-selected="true"]::before { left: -18px; background: radial-gradient(circle at 0 0, transparent 17.5px, #fff 18px); }
+  .v1 .tab[aria-selected="true"]::after { right: -18px; background: radial-gradient(circle at 100% 0, transparent 17.5px, #fff 18px); }
+  .v1 .tabs .tab:first-child[aria-selected="true"]::before, .v1 .tabs .tab:last-child[aria-selected="true"]::after { display: none; }
+  .v1 .sheet { background: #fff; margin: 0 12px; border-radius: 0 0 20px 20px; padding: 12px 14px 14px; font-size: 13px; color: var(--ink2); }
+  .v1 .tabs:has(.tab:first-child[aria-selected="true"]) + .sheet { border-top-left-radius: 0; }
+  .v1 .sheet b { font-weight: 600; }
+  .v1 .tab small { position: absolute; top: 8px; right: 10px; padding: 2px 6px; border-radius: 999px; font-size: 10px; font-weight: 700; color: #fff; background: var(--t-dev-ink); }
+
+  /* ===== 2. Pictogram strip with a sliding underline (Blinkit) ===== */
+  .v2 .band { padding-bottom: 0; }
+  .v2 .tabs { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 14px; border-bottom: 1px solid rgba(16,24,40,.08); }
+  .v2 .tab { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 0 10px; font-size: 14px; color: var(--muted); }
+  .v2 .tab img, .v2 .tab .trio { width: 34px; height: 34px; }
+  .v2 .tab .trio { width: 44px; }
+  .v2 .tab .trio img { width: 20px; height: 20px; }
+  .v2 .tab[aria-selected="true"] { color: var(--ink); font-weight: 700; }
+  .v2 .tab:not([aria-selected="true"]) img { filter: grayscale(1); opacity: .55; }
+  .v2 .ink { position: absolute; bottom: -1px; left: 0; width: calc(100% / 3); height: 3px; display: flex; justify-content: center; transition: transform .36s var(--ease); }
+  .v2 .ink::after { content: ""; width: 56px; height: 3px; border-radius: 3px 3px 0 0; background: var(--ink); }
+  [data-nav="prog"] .v2-ink, .v2[data-nav="prog"] .ink { transform: translateX(100%); }
+  .v2[data-nav="dev"] .ink { transform: translateX(200%); }
+
+  /* ===== 3. Sliding pill ===== */
+  .v3 .seg { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); margin: 14px 16px 0; padding: 4px; border-radius: 999px; background: #F2F4F7; }
+  .v3 .thumb { position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / 3); border-radius: 999px; background: #fff;
+    box-shadow: 0 1px 3px rgba(16,24,40,.1), 0 1px 2px rgba(16,24,40,.06); transition: transform .36s var(--ease); }
+  .v3[data-nav="prog"] .thumb { transform: translateX(100%); } .v3[data-nav="dev"] .thumb { transform: translateX(200%); }
+  .v3 .tab { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; height: 40px; font-size: 14px; font-weight: 600; color: var(--muted); }
+  .v3 .tab img { width: 22px; height: 22px; }
+  .v3 .tab .trio { width: 30px; height: 22px; } .v3 .tab .trio img { width: 14px; height: 14px; }
+  .v3 .tab .trio img:nth-child(1), .v3 .tab .trio img:nth-child(3) { top: 7px; } .v3 .tab .trio img:nth-child(2) { left: 8px; } .v3 .tab .trio img:nth-child(3) { left: 16px; }
+  .v3 .tab[aria-selected="true"] { color: var(--ink); }
+  .v3 .tab:not([aria-selected="true"]) img { filter: grayscale(1); opacity: .5; }
+  .v3 .band { background: transparent !important; }
+
+  /* ===== 4. Context header (Blinkit "24 minutes") ===== */
+  .v4 .band { padding: 4px 16px 0; }
+  .v4 .eyebrow { margin: 6px 0 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .v4 .headline { position: relative; height: 64px; overflow: hidden; }
+  .v4 .headline > div { position: absolute; inset: 0; opacity: 0; transform: translateY(10px); transition: opacity .32s var(--ease), transform .32s var(--ease); }
+  .v4[data-nav="today"] .headline [data-h="today"], .v4[data-nav="prog"] .headline [data-h="prog"], .v4[data-nav="dev"] .headline [data-h="dev"] { opacity: 1; transform: none; }
+  .v4 .headline b { display: block; font: 800 26px/1.15 Manrope, sans-serif; letter-spacing: -.3px; }
+  .v4 .headline span { display: block; margin-top: 4px; font-size: 13px; color: var(--ink2); }
+  .v4 .tabs { display: flex; gap: 22px; margin-top: 12px; }
+  .v4 .tab { position: relative; padding: 8px 0 12px; font-size: 15px; font-weight: 600; color: var(--soft); }
+  .v4 .tab[aria-selected="true"] { color: var(--ink); }
+  .v4 .tab[aria-selected="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: var(--ink); }
+  .v4[data-nav="today"] .tab[aria-selected="true"]::after { background: var(--t-today-ink); }
+  .v4[data-nav="prog"] .tab[aria-selected="true"]::after { background: var(--t-prog-ink); }
+  .v4[data-nav="dev"] .tab[aria-selected="true"]::after { background: var(--t-dev-ink); }
+
+  /* ===== 5. Status folders (Blinkit Gourmet chips): each tab says where you stand ===== */
+  .v5 .band { padding-bottom: 0; }
+  .v5 .tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 14px 10px 0; }
+  .v5 .tab { display: flex; align-items: center; gap: 6px; padding: 8px 8px 12px; border-radius: 16px 16px 0 0; text-align: left; border: 1px solid transparent; border-bottom: 0; }
+  .v5 .tab .pic { width: 34px; height: 34px; flex-shrink: 0; display: grid; place-items: center; border-radius: 10px; background: rgba(255,255,255,.7); }
+  .v5 .tab .pic img { width: 26px; height: 26px; }
+  .v5 .tab .pic .trio { width: 30px; height: 26px; } .v5 .tab .pic .trio img { width: 15px; height: 15px; }
+  .v5 .tab .pic .trio img:nth-child(1), .v5 .tab .pic .trio img:nth-child(3) { top: 9px; } .v5 .tab .pic .trio img:nth-child(2) { left: 7px; } .v5 .tab .pic .trio img:nth-child(3) { left: 14px; }
+  .v5 .tab b { display: block; font-size: 13px; color: var(--ink2); }
+  .v5 .tab span { display: block; font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .v5 .tab[aria-selected="true"] { background: #fff; border-color: rgba(16,24,40,.06); }
+  .v5 .tab[aria-selected="true"] b { color: var(--ink); }
+  .v5 .tab[aria-selected="true"] .pic { background: var(--t-today); }
+  .v5[data-nav="prog"] .tab[aria-selected="true"] .pic { background: var(--t-prog); }
+  .v5[data-nav="dev"] .tab[aria-selected="true"] .pic { background: var(--t-dev); }
+  .v5 .live { width: 6px; height: 6px; border-radius: 50%; background: #12B76A; display: inline-block; margin-right: 4px; vertical-align: 1px; }
+
+  .note { margin-top: 48px; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; font-size: 14px; line-height: 1.6; color: var(--ink2); }
+  .note h3 { margin: 0 0 6px; font: 700 16px Manrope, sans-serif; color: var(--ink); }
+  .note ul { margin: 6px 0 0; padding-left: 18px; }
+
+  @media (prefers-reduced-motion: reduce) { *, *::after { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="intro">
+    <h1>Top nav for the new Home</h1>
+    <p>Three places, one tap apart: <b>Today</b> (what to do now), <b>Program</b> (the care program and its plans) and <b>Devices</b> (BCA, CGM, Ring). Every member sees it except free users, who get their own answer later. Each phone below is live: tap the tabs.</p>
+    <div class="refs">
+      <div class="ref"><b>Swiggy: folder tabs</b><span>Big 3D art on each tab, the chosen one <i>rises into the sheet below</i>, and the whole header <i>changes colour</i> with the business. Delight comes from art and colour, not from motion.</span></div>
+      <div class="ref"><b>Blinkit: icon strip</b><span>Line icons over short labels, a <i>thick underline</i> marks the choice, grey for the rest. Quiet, fast to scan, scales to many tabs.</span></div>
+      <div class="ref"><b>Blinkit: context header</b><span>"Blinkit in 24 minutes" answers the one question you open the app with, <i>before</i> any navigation.</span></div>
+      <div class="ref"><b>Blinkit Gourmet: picture chips</b><span>A picture plus a two-line label inside a folder chip. The label can carry <i>a little live information</i>.</span></div>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- 1 -->
+    <section class="opt">
+      <h2>1. Folder tabs <em>Recommended</em></h2>
+      <p class="why">Swiggy's move with GoodFlip's pictograms. <b>Most delightful and most "ours"</b>: the art does the work, the tint tells you where you are. Needs the art to stay at this quality, and three tabs is its limit.</p>
+      <div class="phone"><div class="screen v1" data-nav="today">
+        <div class="band">
+          <div class="sb"></div>
+          <div class="bar" data-bar></div>
+          <p class="hi">Hi Md Shaheer</p>
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" data-t="today" aria-selected="true"><span class="trio"><img src="a/pic-nutrition.png" alt=""><img src="a/pic-movement.png" alt=""><img src="a/pic-stress.png" alt=""></span>Today</button>
+            <button class="tab" role="tab" data-t="prog" aria-selected="false"><img src="a/pic-care-programs.png" alt="">Program</button>
+            <button class="tab" role="tab" data-t="dev" aria-selected="false"><img src="a/pic-devices.png" alt="">Devices<small>2</small></button>
+          </div>
+          <div class="sheet"><b data-say></b></div>
+        </div>
+        <div class="body" data-body></div>
+      </div></div>
+    </section>
+
+    <!-- 2 -->
+    <section class="opt">
+      <h2>2. Pictogram strip</h2>
+      <p class="why">Blinkit's strip. <b>Calm and familiar</b>, grows to five tabs without redesign. Less personality: the colour shift carries most of the delight.</p>
+      <div class="phone"><div class="screen v2" data-nav="today">
+        <div class="band">
+          <div class="sb"></div>
+          <div class="bar" data-bar></div>
+          <p class="hi">Hi Md Shaheer</p>
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" data-t="today" aria-selected="true"><span class="trio"><img src="a/pic-nutrition.png" alt=""><img src="a/pic-movement.png" alt=""><img src="a/pic-stress.png" alt=""></span>Today</button>
+            <button class="tab" role="tab" data-t="prog" aria-selected="false"><img src="a/pic-care-programs.png" alt="">Program</button>
+            <button class="tab" role="tab" data-t="dev" aria-selected="false"><img src="a/pic-devices.png" alt="">Devices</button>
+            <span class="ink"></span>
+          </div>
+        </div>
+        <div class="body" data-body></div>
+      </div></div>
+    </section>
+
+    <!-- 3 -->
+    <section class="opt">
+      <h2>3. Sliding pill</h2>
+      <p class="why">One control, a white thumb that glides. <b>The most minimal</b>, takes the least height, reads as "views of one Home". The quietest of the five, so it leans on the content below for delight.</p>
+      <div class="phone"><div class="screen v3" data-nav="today">
+        <div class="band">
+          <div class="sb"></div>
+          <div class="bar" data-bar></div>
+          <p class="hi">Hi Md Shaheer</p>
+          <div class="seg" role="tablist">
+            <span class="thumb"></span>
+            <button class="tab" role="tab" data-t="today" aria-selected="true"><span class="trio"><img src="a/pic-nutrition.png" alt=""><img src="a/pic-movement.png" alt=""><img src="a/pic-stress.png" alt=""></span>Today</button>
+            <button class="tab" role="tab" data-t="prog" aria-selected="false"><img src="a/pic-care-programs.png" alt="">Program</button>
+            <button class="tab" role="tab" data-t="dev" aria-selected="false"><img src="a/pic-devices.png" alt="">Devices</button>
+          </div>
+        </div>
+        <div class="body" data-body></div>
+      </div></div>
+    </section>
+
+    <!-- 4 -->
+    <section class="opt">
+      <h2>4. Context header</h2>
+      <p class="why">Blinkit's "24 minutes". The header <b>answers the question first</b> and changes with the tab; the tabs are plain words under it. Strong for meaning, but the headline must always have something true and short to say.</p>
+      <div class="phone"><div class="screen v4" data-nav="today">
+        <div class="band">
+          <div class="sb"></div>
+          <div class="bar" data-bar style="padding-left:0;padding-right:0"></div>
+          <p class="eyebrow">Hi Md Shaheer</p>
+          <div class="headline">
+            <div data-h="today"><b>3 things left today</b><span>Lunch, a 20 min walk, and wind down by 10 PM</span></div>
+            <div data-h="prog"><b>Week 6 of 12</b><span>Diabetes Management · Eat, Move and Mind plans</span></div>
+            <div data-h="dev"><b>2 devices synced</b><span>BCA 272 days ago · Ring 2 min ago</span></div>
+          </div>
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" data-t="today" aria-selected="true">Today</button>
+            <button class="tab" role="tab" data-t="prog" aria-selected="false">Program</button>
+            <button class="tab" role="tab" data-t="dev" aria-selected="false">Devices</button>
+          </div>
+        </div>
+        <div class="body" data-body></div>
+      </div></div>
+    </section>
+
+    <!-- 5 -->
+    <section class="opt">
+      <h2>5. Status folders</h2>
+      <p class="why">Blinkit Gourmet's chips. Picture plus <b>a live line in every tab</b>, so you see all three places' state without switching. Richest at a glance; the busiest of the five, and the lines need real data.</p>
+      <div class="phone"><div class="screen v5" data-nav="today">
+        <div class="band">
+          <div class="sb"></div>
+          <div class="bar" data-bar></div>
+          <p class="hi">Hi Md Shaheer</p>
+          <div class="tabs" role="tablist">
+            <button class="tab" role="tab" data-t="today" aria-selected="true"><span class="pic"><span class="trio"><img src="a/pic-nutrition.png" alt=""><img src="a/pic-movement.png" alt=""><img src="a/pic-stress.png" alt=""></span></span><span><b>Today</b><span>3 left</span></span></button>
+            <button class="tab" role="tab" data-t="prog" aria-selected="false"><span class="pic"><img src="a/pic-care-programs.png" alt=""></span><span><b>Program</b><span>Week 6</span></span></button>
+            <button class="tab" role="tab" data-t="dev" aria-selected="false"><span class="pic"><img src="a/pic-devices.png" alt=""></span><span><b>Devices</b><span><i class="live"></i>2 synced</span></span></button>
+          </div>
+        </div>
+        <div class="body" data-body></div>
+      </div></div>
+    </section>
+
+  </div>
+
+  <div class="note">
+    <h3>Shared rules in all five</h3>
+    <ul>
+      <li>The page stays white; only the header band takes the tab's tint (Today green, Program gold, Devices indigo), crossfading in 0.36 s. No bounce.</li>
+      <li>The top bar (menu, FlipCoins, chat, alerts, profile) and the greeting stay put; only what is under the tabs changes.</li>
+      <li>Today's art is the EM3 trio (Nutrition, Movement, Stress) because the GoodFlip set has no "today" pictogram yet. A dedicated one from the illustration team would sit better.</li>
+      <li>Copy in the phones ("3 left", "Week 6", "2 synced") is sample data to show the idea.</li>
+    </ul>
+  </div>
+</div>
+
+<template id="bar">
+  <div class="l">
+    <span class="ib"><svg viewBox="0 0 20 20" fill="none"><path d="M2.294 15H17.71a.625.625 0 0 1 .085 1.244l-.085.006H2.294a.625.625 0 0 1-.085-1.245L2.294 15H17.71 2.294Zm0-5.414H17.71a.625.625 0 0 1 .085 1.244l-.085.006H2.294a.625.625 0 0 1-.085-1.245l.085-.005H17.71 2.294Zm0-5.417H17.71a.625.625 0 0 1 .085 1.244l-.085.006H2.293a.625.625 0 0 1-.085-1.244l.085-.006H17.71 2.293Z" fill="#101828"/></svg></span>
+    <span class="coins"><img src="../home-new/a/flicoin-icon.png" alt="">172 Flipcoins</span>
+  </div>
+  <div class="r">
+    <span class="ib"><svg viewBox="0 0 20 20" fill="none"><path d="M9.99984 1.6665C14.6022 1.6665 18.3332 5.39746 18.3332 9.99984C18.3332 14.6022 14.6022 18.3332 9.99984 18.3332C8.65126 18.3332 7.34802 18.012 6.17722 17.4065L2.98904 18.296C2.43494 18.4507 1.86032 18.1269 1.70559 17.5728C1.65439 17.3895 1.65442 17.1956 1.70563 17.0124L2.59535 13.8267C1.98848 12.6548 1.6665 11.3501 1.6665 9.99984C1.6665 5.39746 5.39746 1.6665 9.99984 1.6665ZM9.99984 2.9165C6.08782 2.9165 2.9165 6.08782 2.9165 9.99984C2.9165 11.2245 3.22715 12.4027 3.8107 13.4477L3.93623 13.6725L3.00897 16.9927L6.33113 16.0659L6.55574 16.1911C7.59988 16.7733 8.77666 17.0832 9.99984 17.0832C13.9119 17.0832 17.0832 13.9119 17.0832 9.99984C17.0832 6.08782 13.9119 2.9165 9.99984 2.9165ZM7.2915 10.8332H11.0401C11.3852 10.8332 11.6651 11.113 11.6651 11.4582C11.6651 11.7746 11.4299 12.0361 11.1249 12.0775L11.0401 12.0832H7.2915C6.94633 12.0832 6.6665 11.8033 6.6665 11.4582C6.6665 11.1418 6.90163 10.8803 7.2067 10.8389L7.2915 10.8332ZM7.2915 7.9165H12.7119C13.0571 7.9165 13.3369 8.19633 13.3369 8.5415C13.3369 8.85792 13.1018 9.11941 12.7967 9.1608L12.7119 9.1665H7.2915C6.94633 9.1665 6.6665 8.88668 6.6665 8.5415C6.6665 8.22509 6.90163 7.96359 7.2067 7.92221L7.2915 7.9165Z" fill="#101828"/></svg></span>
+    <span class="ib"><svg viewBox="0 0 20 20" fill="none"><path d="M10 1.664a6.242 6.242 0 0 1 6.247 6.04l.003.21v3.414l1.15 2.63a1.042 1.042 0 0 1-.954 1.459l-3.946.001a2.5 2.5 0 0 1-4.996.147l-.004-.149H3.562a1.041 1.041 0 0 1-.955-1.456l1.143-2.632V7.913A6.24 6.24 0 0 1 10 1.663Zm1.25 13.752-2.5.002a1.25 1.25 0 0 0 2.494.12l.006-.122ZM10 2.914a4.99 4.99 0 0 0-5 5v3.674l-1.12 2.579h12.247L15 11.589V7.924l-.003-.187A4.99 4.99 0 0 0 10 2.914Z" fill="#101828"/></svg></span>
+    <span class="ib"><svg viewBox="0 0 20 20" fill="none"><path d="M14.795 11.666c1.035 0 1.874.84 1.874 1.875v.48c0 .744-.266 1.465-.75 2.031C14.61 17.58 12.62 18.334 10 18.334c-2.622 0-4.61-.754-5.915-2.283a3.125 3.125 0 0 1-.749-2.029v-.481c0-1.036.84-1.875 1.874-1.875h9.585Zm0 1.25H5.21a.624.624 0 0 0-.624.625v.481c0 .446.16.878.45 1.217C6.08 16.463 7.717 17.084 10 17.084c2.282 0 3.922-.621 4.969-1.845.29-.34.45-.772.45-1.219v-.48a.624.624 0 0 0-.624-.623ZM10 1.67a4.167 4.167 0 1 1 0 8.334 4.167 4.167 0 0 1 0-8.334Zm0 1.25a2.917 2.917 0 1 0 0 5.834 2.917 2.917 0 0 0 0-5.834Z" fill="#101828"/></svg></span>
+  </div>
+</template>
+<template id="body">
+  <div data-pane="today" style="flex-direction:column;gap:12px"><div class="ph"><b>Today</b>Up next, your day in parts, EM3 scores<i></i><i></i></div><div class="ph"><i></i><i></i></div></div>
+  <div data-pane="prog" style="flex-direction:column;gap:12px"><div class="ph"><b>Program</b>Diabetes Management, plans, coach, consultations<i></i><i></i></div><div class="ph"><i></i><i></i></div></div>
+  <div data-pane="dev" style="flex-direction:column;gap:12px"><div class="ph"><b>Devices</b>BCA, CGM and Ring readings, sync, connect<i></i><i></i></div><div class="ph"><i></i><i></i></div></div>
+</template>
+
+<script>
+// one behaviour for all five: the chosen tab sets data-nav on its phone, CSS does the rest
+const SAY = { today: '3 things left today, lunch is next', prog: 'Diabetes Management, week 6 of 12', dev: 'Ring synced 2 min ago, BCA waiting' };
+document.querySelectorAll('[data-bar]').forEach(b => b.append(document.getElementById('bar').content.cloneNode(true)));
+document.querySelectorAll('[data-body]').forEach(b => b.append(document.getElementById('body').content.cloneNode(true)));
+document.querySelectorAll('.screen').forEach(s => {
+  const say = s.querySelector('[data-say]'); if (say) say.textContent = SAY.today;
+  s.querySelector('[role=tablist]').addEventListener('click', e => {
+    const t = e.target.closest('[data-t]'); if (!t) return;
+    s.dataset.nav = t.dataset.t;
+    s.querySelectorAll('[data-t]').forEach(b => b.setAttribute('aria-selected', b === t));
+    if (say) say.textContent = SAY[t.dataset.t];
+  });
+});
+</script>
+</body>
+</html>

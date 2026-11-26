@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Refer and earn</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&family=Manrope:wght@600;700;800&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<!--
+  Refer and earn card for the new Home. Five directions, each at Home's width (358 inside a 390 screen).
+  Colours: FlipCoins are gold with teal and nothing else (v7/COLOR.md), the act of inviting is brand green.
+  Art is GoodFlip's own: the Care Programs heart, the FlipCoin wallet, the FlipCoin mark, the coach photos.
+  The offer is the live one: up to 15% cashback as FlipCoins.
+-->
+<style>
+  :root {
+    --ink: #101828; --g700: #344054; --g600: #475467; --g500: #667085; --g200: #E4E7EC;
+    --b50: #F3FCF8; --b100: #E6FAF1; --b200: #CBF0E0; --b600: #299D6B; --b700: #2A805A; --b800: #246649;
+    --gd25: #FFFDF5; --gd50: #FFFBEE; --gd100: #FFF8E0; --gd200: #FEF1C7; --gd300: #FDE8A4; --gd600: #E7C144; --gd700: #CDA935; --gd800: #A68A2D;
+    --t100: #E0FFFF; --t200: #C7FEFE; --t600: #44E7E7; --t800: #2DA6A6;
+    --ease: cubic-bezier(.33,1,.68,1);
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #F2F4F7; color: var(--ink); font-family: Roboto, Arial, sans-serif; letter-spacing: .2px; }
+  button { font: inherit; letter-spacing: inherit; border: 0; background: none; padding: 0; cursor: pointer; color: inherit; }
+  img { display: block; }
+  .wrap { max-width: 1240px; margin: 0 auto; padding: 44px 32px 80px; }
+  h1 { margin: 0; font: 800 30px/1.2 Manrope, sans-serif; letter-spacing: -.3px; }
+  .lead { max-width: 780px; margin: 10px 0 0; font-size: 15px; line-height: 1.6; color: var(--g600); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 28px; margin-top: 32px; }
+  .opt { background: #fff; border: 1px solid var(--g200); border-radius: 20px; padding: 22px 24px 28px; }
+  .opt h2 { display: flex; align-items: center; gap: 8px; margin: 0; font: 700 17px Manrope, sans-serif; }
+  .opt h2 em { font-style: normal; font-size: 11px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: #fff; background: var(--b600); padding: 3px 8px; border-radius: 999px; }
+  .opt p.why { margin: 6px 0 20px; font-size: 13px; line-height: 1.55; color: var(--g500); min-height: 40px; }
+  .stage { width: 390px; max-width: 100%; margin: 0 auto; padding: 16px; border-radius: 16px; background: #fff; }
+
+  /* shared: the green invite button with its lip, as every GoodFlip primary button */
+  .go { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: 10px; background: var(--b600); color: #fff;
+    font-weight: 600; font-size: 14px; box-shadow: 0 3px 0 var(--b700); transition: transform .15s var(--ease), box-shadow .15s var(--ease); }
+  .go:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--b700); }
+  .coin { width: 18px; height: 18px; }
+
+  /* ---------- A. Better together ---------- */
+  .ra { position: relative; display: flex; align-items: center; gap: 14px; height: 120px; padding: 0 16px; border-radius: 20px; overflow: hidden;
+    background: radial-gradient(120% 140% at 100% 0%, var(--t100), transparent 45%), linear-gradient(135deg, var(--gd50), #fff 65%);
+    border: 1px solid var(--gd200); }
+  .ra .art { position: relative; width: 86px; height: 86px; flex-shrink: 0; }
+  .ra .art .h1 { position: absolute; left: 0; top: 8px; width: 60px; height: 60px; transform: rotate(-8deg); }
+  .ra .art .h2 { position: absolute; right: 0; bottom: 4px; width: 46px; height: 46px; transform: rotate(10deg); opacity: .95; }
+  .ra .art .c { position: absolute; width: 18px; height: 18px; animation: drift 5s var(--ease) infinite alternate; }
+  .ra .art .c1 { right: 4px; top: 2px; } .ra .art .c2 { left: 30px; bottom: 0; width: 14px; height: 14px; animation-delay: -2s; }
+  @keyframes drift { from { transform: translateY(0); } to { transform: translateY(-4px); } }
+  .ra .tx { flex: 1; min-width: 0; }
+  .ra b { display: block; font-size: 16px; line-height: 21px; color: var(--ink); }
+  .ra span { display: block; margin: 3px 0 10px; font-size: 13px; line-height: 18px; color: var(--g600); }
+  .ra span strong { color: var(--gd800); font-weight: 700; }
+
+  /* ---------- B. A gift from you (ticket) ---------- */
+  .rb { position: relative; display: flex; height: 120px; border-radius: 18px; overflow: hidden; filter: drop-shadow(0 6px 14px rgba(16,24,40,.08));
+    --notch: radial-gradient(circle at 0 50%, transparent 9px, #000 9.5px); }
+  .rb .stub { width: 104px; flex-shrink: 0; display: grid; place-items: center; position: relative;
+    background: radial-gradient(90% 90% at 30% 20%, var(--gd100), transparent 60%), linear-gradient(160deg, var(--gd200), var(--t200));
+    -webkit-mask: radial-gradient(circle at 100% 0, transparent 9px, #000 9.5px) top / 100% 51% no-repeat, radial-gradient(circle at 100% 100%, transparent 9px, #000 9.5px) bottom / 100% 51% no-repeat;
+            mask: radial-gradient(circle at 100% 0, transparent 9px, #000 9.5px) top / 100% 51% no-repeat, radial-gradient(circle at 100% 100%, transparent 9px, #000 9.5px) bottom / 100% 51% no-repeat; }
+  .rb .stub img { width: 74px; height: 74px; }
+  .rb .main { position: relative; flex: 1; padding: 16px 16px 14px 18px; background: #fff;
+    -webkit-mask: radial-gradient(circle at 0 0, transparent 9px, #000 9.5px) top / 100% 51% no-repeat, radial-gradient(circle at 0 100%, transparent 9px, #000 9.5px) bottom / 100% 51% no-repeat;
+            mask: radial-gradient(circle at 0 0, transparent 9px, #000 9.5px) top / 100% 51% no-repeat, radial-gradient(circle at 0 100%, transparent 9px, #000 9.5px) bottom / 100% 51% no-repeat; }
+  .rb .main::before { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; border-left: 2px dashed var(--gd300); }
+  .rb .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--gd800); }
+  .rb b { display: block; margin-top: 4px; font-size: 16px; line-height: 21px; }
+  .rb .row { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
+  .rb .row span { display: flex; align-items: center; gap: 5px; font-size: 12.5px; color: var(--g600); white-space: nowrap; }
+  .rb .row span strong { color: var(--ink); }
+
+  /* ---------- C. Who would you bring? ---------- */
+  .rc { padding: 16px; border-radius: 20px; border: 1px solid var(--b200);
+    background: radial-gradient(100% 120% at 0% 0%, var(--b100), transparent 55%), radial-gradient(80% 100% at 100% 100%, var(--gd50), transparent 60%), #fff; }
+  .rc .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .rc b { display: block; font-size: 16px; line-height: 21px; }
+  .rc .top span { display: block; margin-top: 3px; font-size: 13px; line-height: 18px; color: var(--g600); }
+  .rc .top img { width: 44px; height: 44px; flex-shrink: 0; }
+  .rc .people { display: flex; gap: 8px; margin-top: 14px; }
+  .rc .p { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 4px 8px; border-radius: 14px; background: rgba(255,255,255,.8);
+    border: 1px solid var(--g200); font-size: 12px; font-weight: 500; color: var(--g700); transition: border-color .25s var(--ease), background-color .25s var(--ease), transform .25s var(--ease); }
+  .rc .p i { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 18px; color: var(--b700);
+    background: var(--b100); border: 1.5px dashed var(--b200); }
+  .rc .p:hover, .rc .p[aria-pressed="true"] { border-color: var(--b600); background: var(--b50); }
+  .rc .p[aria-pressed="true"] i { background: var(--b600); color: #fff; border-style: solid; border-color: var(--b600); }
+  .rc .foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; font-size: 12px; color: var(--g500); }
+  .rc .foot span { display: flex; align-items: center; gap: 5px; }
+
+  /* ---------- D. In your words ---------- */
+  .rd { padding: 16px; border-radius: 20px; background: linear-gradient(160deg, var(--b50), #fff 60%); border: 1px solid var(--b200); }
+  .rd .lbl { font-size: 13px; color: var(--g600); }
+  .rd .lbl b { color: var(--ink); font-size: 16px; display: block; margin-bottom: 2px; }
+  .rd .bubble { position: relative; margin: 14px 0 0 42px; padding: 10px 12px 8px; border-radius: 14px 14px 14px 4px; background: #fff;
+    box-shadow: 0 1px 2px rgba(16,24,40,.06), 0 2px 8px -2px rgba(16,24,40,.08); }
+  .rd .bubble::before { content: ""; position: absolute; left: -42px; bottom: 0; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--b100) url(../home-new/a/coach-1.jpg) center / cover; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(16,24,40,.12); }
+  .rd .bubble p { margin: 0; font-family: Caveat, cursive; font-size: 21px; line-height: 1.15; color: var(--ink); letter-spacing: 0; }
+  .rd .bubble small { display: block; text-align: right; margin-top: 2px; font-size: 11px; color: var(--g500); }
+  .rd .row { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+  .rd .row span { display: flex; align-items: center; gap: 5px; font-size: 13px; color: var(--g600); }
+  .rd .go img { width: 18px; height: 18px; filter: brightness(0) invert(1); }
+
+  /* ---------- E. 15% (score card shape) ---------- */
+  .re { position: relative; display: flex; align-items: center; height: 112px; padding: 0 0 0 16px; border-radius: 20px; overflow: hidden; border: 1px solid #98A2B3;
+    box-shadow: 0 2px 6px rgba(152,162,179,.35); background: #fff; }
+  .re .tx { flex: 1; }
+  .re .tx span { display: block; font-size: 13px; color: var(--g600); }
+  .re .tx b { display: block; margin: 2px 0 8px; font-size: 15px; line-height: 20px; color: var(--g700); }
+  .re .tx a { font-size: 13px; font-weight: 600; color: var(--b600); text-decoration: none; }
+  .re .num { position: relative; width: 132px; height: 100%; display: grid; place-items: center;
+    background: radial-gradient(70% 70% at 50% 50%, var(--gd100), transparent 70%), radial-gradient(60% 60% at 80% 20%, var(--t100), transparent 70%); }
+  .re .num strong { font: 800 44px/1 Manrope, sans-serif; letter-spacing: -1px; color: var(--gd800); }
+  .re .num small { position: absolute; bottom: 18px; font-size: 11px; font-weight: 600; color: var(--gd800); letter-spacing: .4px; text-transform: uppercase; }
+  .re .num img { position: absolute; width: 18px; height: 18px; animation: drift 5s var(--ease) infinite alternate; }
+  .re .num .c1 { top: 16px; left: 18px; } .re .num .c2 { top: 26px; right: 16px; width: 14px; height: 14px; animation-delay: -2.5s; }
+
+  .note { margin-top: 32px; background: #fff; border: 1px solid var(--g200); border-radius: 16px; padding: 18px 22px; font-size: 14px; line-height: 1.6; color: var(--g700); }
+  .note h3 { margin: 0 0 4px; font: 700 15px Manrope, sans-serif; color: var(--ink); }
+  .note ul { margin: 4px 0 0; padding-left: 18px; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Refer and earn</h1>
+  <p class="lead">A referral on a health app is not a coupon. Someone is asking a person they love to look after themselves too. So the card leads with that person and with togetherness, and the reward follows: <b>up to 15% cashback as FlipCoins</b>. Each card is shown at Home's width.</p>
+
+  <div class="grid">
+    <section class="opt">
+      <h2>A. Better together <em>Recommended</em></h2>
+      <p class="why">Two hearts leaning in, FlipCoins drifting over them. Warm without being sentimental, and the same size as the Metabolic Score card, so Home stays even.</p>
+      <div class="stage"><div class="ra">
+        <div class="art"><img class="h1" src="a/pic-care-programs.png" alt=""><img class="h2" src="a/pic-care-programs.png" alt="">
+          <img class="c c1" src="../home-new/a/flicoin-icon.png" alt=""><img class="c c2" src="../home-new/a/flicoin-icon.png" alt=""></div>
+        <div class="tx"><b>Bring someone you love along</b><span>You both get up to <strong>15% back</strong> as FlipCoins</span><button class="go">Invite</button></div>
+      </div></div>
+    </section>
+
+    <section class="opt">
+      <h2>B. A gift from you</h2>
+      <p class="why">A ticket with a torn edge: the invite reads as a present you hand over, the FlipCoin wallet on its stub. The most tangible, and very clear about the reward.</p>
+      <div class="stage"><div class="rb">
+        <div class="stub"><img src="a/pic-flipcoin-wallet.png" alt=""></div>
+        <div class="main"><div class="eyebrow">A gift from you</div><b>Give someone a healthier start</b>
+          <div class="row"><span><img class="coin" src="../home-new/a/flicoin-icon.png" alt="">Up to <strong>&nbsp;15%&nbsp;</strong> back for both</span><button class="go">Share</button></div></div>
+      </div></div>
+    </section>
+
+    <section class="opt">
+      <h2>C. Who would you bring?</h2>
+      <p class="why">Names the people, so the thought becomes a face: Mum, Dad, a partner, a friend. Tap one and the share message is written for them. Taller, the most emotional.</p>
+      <div class="stage"><div class="rc">
+        <div class="top"><div><b>Who would you bring along?</b><span>Health is easier when someone you love is in it with you</span></div><img src="a/pic-care-programs.png" alt=""></div>
+        <div class="people" id="people">
+          <button class="p"><i>+</i>Mum</button><button class="p"><i>+</i>Dad</button><button class="p"><i>+</i>Partner</button><button class="p"><i>+</i>A friend</button>
+        </div>
+        <div class="foot"><span><img class="coin" src="../home-new/a/flicoin-icon.png" alt="">Up to 15% back as FlipCoins</span><span>Terms apply</span></div>
+      </div></div>
+    </section>
+
+    <section class="opt">
+      <h2>D. In your words</h2>
+      <p class="why">Shows the message before it is sent, in your own voice, so sharing feels personal rather than promotional. WhatsApp is where it goes.</p>
+      <div class="stage"><div class="rd">
+        <div class="lbl"><b>Tell someone how it's going</b>Your note goes with the invite</div>
+        <div class="bubble"><p>I've been feeling better since I started on GoodFlip. Come along with me?</p><small>you</small></div>
+        <div class="row"><span><img class="coin" src="../home-new/a/flicoin-icon.png" alt="">Up to 15% back for you both</span><button class="go"><img src="a/whatsapp-icon.svg" alt="">Send</button></div>
+      </div></div>
+    </section>
+
+    <section class="opt">
+      <h2>E. 15%</h2>
+      <p class="why">Built on the Metabolic Score card, the number in FlipCoin gold on a gold and teal glow where the score sits. The most compact and consistent, the least emotional.</p>
+      <div class="stage"><div class="re">
+        <div class="tx"><span>Refer someone you care about</span><b>Get cashback as FlipCoins</b><a href="#">Invite now ›</a></div>
+        <div class="num"><img class="c1" src="../home-new/a/flicoin-icon.png" alt=""><img class="c2" src="../home-new/a/flicoin-icon.png" alt=""><strong>15%</strong><small>up to</small></div>
+      </div></div>
+    </section>
+  </div>
+
+  <div class="note">
+    <h3>Across all five</h3>
+    <ul>
+      <li>FlipCoins are always gold with teal, inviting is always the green button with its lip. No other colours.</li>
+      <li>Motion is only the coins drifting a few pixels, slowly; it stops for people who turn motion off.</li>
+      <li>"For both" assumes the friend also earns. If only the member earns, the line becomes "Up to 15% back as FlipCoins".</li>
+    </ul>
+  </div>
+</div>
+<script>
+// C: picking a person marks them (the real card would open the share sheet with their name in the message)
+document.getElementById('people').addEventListener('click', e => { const p = e.target.closest('.p'); if (!p) return;
+  const on = p.getAttribute('aria-pressed') !== 'true'; p.setAttribute('aria-pressed', on); p.querySelector('i').textContent = on ? '✓' : '+'; });
+</script>
+</body>
+</html>
