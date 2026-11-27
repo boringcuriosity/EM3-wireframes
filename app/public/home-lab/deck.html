@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home IA Revamp</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&family=Playfair+Display:ital,wght@1,600;1,700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink:#101828; --g500:#667085; --g200:#EAECF0; --b600:#299D6B; --b50:#F3FCF8; --ind:#444CE7; --gold:#E7C144; --teal:#43CDCD; --ease:cubic-bezier(.33,1,.68,1); }
+  * { box-sizing:border-box; margin:0; }
+  html, body { height:100%; background:#fff; color:var(--ink); font-family:Manrope, system-ui, sans-serif; overflow:hidden; }
+  /* 1920x1080 stage, scaled to fit */
+  .stage { position:absolute; left:50%; top:50%; width:1920px; height:1080px; transform-origin:center; }
+  .slide { position:absolute; inset:0; padding:120px 140px; opacity:0; pointer-events:none; transition:opacity .6s var(--ease); }
+  .slide.on { opacity:1; pointer-events:auto; }
+
+  /* ---------- slide 1: cover ---------- */
+  .cover { display:grid; grid-template-columns:1.15fr 1fr; align-items:center; gap:40px; }
+  .cover .logo { height:64px; display:block; margin-bottom:72px; }
+  .cover h1 { font-size:104px; line-height:1; font-weight:800; letter-spacing:-3px; }
+  .cover h1 em { display:block; font:italic 700 120px/1.05 "Playfair Display", serif; letter-spacing:-2px; color:var(--b600); }
+  .cover .sub { margin-top:40px; font-size:30px; font-weight:600; color:var(--g500); }
+
+  .orbit { position:relative; width:640px; height:640px; justify-self:end; }
+  .orbit .ring { position:absolute; inset:40px; border-radius:50%; border:2px dashed var(--g200); }
+  .orbit .ring.in { inset:170px; border-style:solid; border-color:#D1F2E2; background:radial-gradient(circle, var(--b50), #fff 70%); }
+  .orbit .hub { position:absolute; left:50%; top:50%; width:210px; translate:-50% -50%; }
+  .pic { position:absolute; width:140px; translate:-50% -50%; animation:float 6s var(--ease) infinite alternate; filter:drop-shadow(0 18px 24px rgba(16,24,40,.12)); }
+  .pic:nth-child(odd) { animation-duration:7.5s; animation-delay:-2s; }
+  @keyframes float { to { transform:translateY(-18px); } }
+  .slide.on .pic { animation-play-state:running; }
+  .reveal { opacity:0; transform:translateY(24px); }
+  .slide.on .reveal { opacity:1; transform:none; transition:opacity .9s var(--ease), transform .9s var(--ease); transition-delay:var(--d,0s); }
+
+  /* ---------- slide 2: users ---------- */
+  .eyebrow { font-size:22px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--b600); }
+  .h2 { margin-top:16px; font-size:72px; line-height:1.05; font-weight:800; letter-spacing:-2px; }
+  .h2 em { font:italic 700 78px/1 "Playfair Display", serif; color:var(--b600); letter-spacing:-1px; }
+  .users { margin-top:56px; display:grid; grid-template-columns:repeat(4, 1fr); gap:28px; position:relative; }
+  .ucard { position:relative; display:flex; flex-direction:column; padding:32px 28px 30px; border-radius:32px; border:1px solid var(--g200); background:#fff; min-height:620px; }
+  .ucard .n { font-size:20px; font-weight:700; color:#98A2B3; }
+  .ucard .hd { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .ucard .hero { width:96px; margin:-10px -6px 0 0; filter:drop-shadow(0 12px 16px rgba(16,24,40,.12)); }
+  .ucard h3 { margin-top:10px; font-size:34px; line-height:1.15; font-weight:800; letter-spacing:-.8px; }
+  .ucard p { margin-top:10px; font-size:20px; line-height:1.45; color:#475467; font-weight:500; }
+  .chips { display:flex; gap:8px; margin-top:auto; padding-top:24px; flex-wrap:wrap; }
+  .chip { padding:8px 16px; border-radius:999px; font-size:18px; font-weight:700; background:#F2F4F7; color:#667085; }
+  .chip.y { background:#D1F2E2; color:#1B6B4A; }
+  .sub { list-style:none; padding:0; margin-top:24px; display:flex; flex-direction:column; gap:10px; }
+  .sub li { display:flex; align-items:center; gap:16px; padding:10px 14px 10px 10px; border-radius:18px; background:#F9FAFB; font-size:21px; font-weight:700; color:#344054; }
+  .sub .th { position:relative; width:56px; height:56px; flex-shrink:0; border-radius:14px; background:#fff; border:1px solid var(--g200); display:grid; place-items:center; }
+  .sub .th img { width:44px; height:44px; object-fit:contain; }
+  .sub .th img.dv { position:absolute; right:-12px; bottom:-8px; width:32px; height:32px; padding:3px; border-radius:10px; background:#fff; border:1px solid var(--g200); }
+  .stk { display:flex; }
+  .stk img { width:52px; height:52px; border-radius:50%; object-fit:contain; background:#fff; box-shadow:0 0 0 3px #fff; }
+  .stk img + img { margin-left:-12px; }
+  .stk.dv img { padding:6px; border:1px solid var(--g200); }
+  .mxa { margin-top:48px; }
+  .mxa .ln { display:flex; align-items:center; gap:16px; }
+  .mxa .ln span { font-size:19px; font-weight:700; color:#344054; }
+  .mxa .pl { margin:6px 0 6px 18px; font-size:26px; font-weight:800; color:var(--b600); }
+  .sub li.reveal { transform:translateX(-16px); }
+  .slide.on .sub li.reveal { transform:none; }
+  .users .reveal { transform:translateY(60px) scale(.96); }
+  .slide.on .users .reveal { transform:none; transition-duration:1s; }
+
+  /* ---------- slide 3: ways in ---------- */
+  .v3 { display:none; margin-top:56px; }
+  body[data-s3=a] .v3a, body[data-s3=b] .v3b, body[data-s3=c] .v3c { display:flex; }
+  .bts { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+  .bt { padding:7px 14px; border-radius:999px; font-size:17px; font-weight:700; background:#F2F4F7; color:#475467; }
+  /* A: converge */
+  .v3a { align-items:center; height:620px; }
+  .chs { width:600px; display:flex; flex-direction:column; gap:20px; }
+  .chn { display:flex; align-items:center; gap:24px; padding:20px 24px; border-radius:28px; border:1px solid var(--g200); background:#fff; }
+  .chn img { width:110px; height:110px; flex-shrink:0; }
+  .chn b, .door b { display:block; font-size:30px; font-weight:800; letter-spacing:-.6px; }
+  .chn span, .door > span { font-size:19px; font-weight:600; color:var(--g500); }
+  .v3a .reveal, .v3c .door.reveal { transform:translateX(-30px); }
+  .slide.on .v3 .reveal { transform:none; }
+  .dest .mk, .band img { mix-blend-mode:multiply; }
+  .flow { width:300px; height:600px; flex-shrink:0; overflow:visible; }
+  .flow path { fill:none; stroke:#ABE6CC; stroke-width:4; stroke-linecap:round; stroke-dasharray:420; stroke-dashoffset:420; }
+  .slide.on .flow path { stroke-dashoffset:0; transition:stroke-dashoffset 1s var(--ease); transition-delay:calc(.8s + var(--k) * .12s); }
+  .dest { flex:1; padding:40px; border-radius:36px; background:linear-gradient(180deg, var(--b50), #fff 70%); border:1px solid #ABE6CC; }
+  .dest .mk { width:72px; }
+  .dest h4 { margin-top:18px; font-size:44px; font-weight:800; letter-spacing:-1.2px; }
+  .dest p { margin-top:8px; font-size:21px; font-weight:500; color:#475467; }
+  .dest ul { list-style:none; padding:0; margin-top:24px; display:flex; flex-direction:column; gap:10px; }
+  .dest li { display:flex; justify-content:space-between; align-items:center; padding:14px 20px; border-radius:16px; background:#fff; border:1px solid var(--g200); font-size:20px; }
+  .dest li span { color:var(--g500); font-weight:600; }
+  .dest li b { color:#1B6B4A; font-weight:800; }
+  /* B: matrix */
+  .v3b { flex-direction:column; }
+  .v3b table { width:100%; border-collapse:separate; border-spacing:0 14px; }
+  .v3b th { text-align:center; font-size:22px; font-weight:800; color:#475467; padding-bottom:4px; }
+  .v3b td { background:#F9FAFB; text-align:center; padding:18px; }
+  .v3b td:first-child { border-radius:24px 0 0 24px; text-align:left; } .v3b td:last-child { border-radius:0 24px 24px 0; }
+  .v3b .ch { display:flex; align-items:center; gap:22px; } .v3b .ch img { width:96px; height:96px; }
+  .v3b .ch b { display:block; font-size:28px; font-weight:800; } .v3b .ch span { font-size:18px; font-weight:600; color:var(--g500); }
+  .v3b i { display:inline-block; width:44px; height:44px; border-radius:50%; }
+  .v3b i.yes { background:#D1F2E2 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 12.5l4 4 8-9' fill='none' stroke='%23299D6B' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/26px no-repeat; }
+  .v3b i.no { width:18px; height:4px; border-radius:2px; background:#D0D5DD; }
+  .v3b .foot { margin-top:14px; font-size:24px; font-weight:700; color:#1B6B4A; }
+  /* C: doors */
+  .v3c { flex-direction:column; gap:28px; }
+  .doors { display:grid; grid-template-columns:repeat(3,1fr); gap:28px; }
+  .door { display:flex; flex-direction:column; align-items:center; text-align:center; padding:72px 28px 48px; border-radius:200px 200px 32px 32px; border:1px solid var(--g200); background:linear-gradient(180deg, #F9FAFB, #fff 60%); }
+  .door img { width:180px; height:180px; margin-bottom:24px; }
+  .door .bts { justify-content:center; }
+  .band { display:flex; align-items:center; gap:20px; padding:24px 32px; border-radius:24px; background:var(--b50); border:1px solid #ABE6CC; }
+  .band img { width:56px; } .band b { font-size:28px; font-weight:800; } .band span { margin-left:auto; font-size:20px; font-weight:700; color:#1B6B4A; }
+
+  /* ---------- slide 4: reviews ---------- */
+  .cloud { position:absolute; inset:0; }
+  .fq { position:absolute; width:400px; margin:0; padding:22px 24px; border-radius:22px; border:1px solid var(--g200); background:#fff; box-shadow:0 18px 40px -24px rgba(16,24,40,.22); }
+  .fq blockquote { font-size:20px; line-height:1.4; font-weight:600; color:#475467; }
+  .fq figcaption, .hero-q figcaption { margin-top:12px; display:flex; align-items:center; gap:12px; font-size:15px; font-weight:600; color:var(--g500); }
+  .slide.on .fq { animation:drift var(--f) var(--ease) infinite alternate; }
+  @keyframes drift { to { translate:0 -14px; } }
+  .fq.reveal, .hero-q.reveal { transform:scale(.92); }
+  .slide.on .fq.reveal, .slide.on .hero-q.reveal { transform:none; }
+  .hero-q { position:absolute; left:540px; top:410px; width:840px; margin:0; padding:44px 52px; border-radius:36px; background:#fff; border:1.5px solid #ABE6CC; box-shadow:0 40px 80px -40px rgba(41,157,107,.45); z-index:2; text-align:center; }
+  .hero-q blockquote { font:italic 700 64px/1.12 "Playfair Display", serif; letter-spacing:-1px; color:var(--ink); }
+  .hero-q em { color:var(--b600); }
+  .hero-q figcaption { justify-content:center; font-size:18px; margin-top:20px; }
+  .nm { color:#344054; font-weight:800; }
+  .src4 { position:absolute; left:140px; bottom:56px; font-size:16px; font-weight:600; color:#98A2B3; }
+  @media (prefers-reduced-motion: reduce) { .slide.on .fq { animation:none; } }
+  .qc { break-inside:avoid; margin:0 0 20px; padding:24px 26px; border-radius:24px; border:1px solid var(--g200); background:#fff; }
+  .qc blockquote { font-size:22px; line-height:1.4; font-weight:600; color:#344054; }
+  .qc figcaption { margin-top:14px; display:flex; align-items:center; gap:12px; font-size:16px; font-weight:600; color:var(--g500); }
+  .st { color:#E7C144; letter-spacing:1px; } .st i { font-style:normal; color:#EAECF0; }
+  /* ---------- slide 5: HMW ---------- */
+  .s5 { display:flex; flex-direction:column; justify-content:center; }
+  .hmw { margin-top:36px; display:flex; flex-direction:column; gap:6px; }
+  .hr { display:grid; grid-template-columns:150px 1fr; align-items:baseline; font-size:72px; line-height:1.18; font-weight:800; letter-spacing:-2px; }
+  .hr small { font-size:18px; font-weight:800; letter-spacing:3px; text-transform:uppercase; color:var(--b600); }
+  .hr .tk { color:#1B6B4A; background:linear-gradient(transparent 62%, #D1F2E2 62%, #D1F2E2 94%, transparent 94%); justify-self:start; }
+  .hr em { font:italic 700 82px/1 "Playfair Display", serif; letter-spacing:-1px; color:var(--b600); }
+
+  /* ---------- slide 6: IA today ---------- */
+  .ia { margin-top:44px; display:grid; grid-template-columns:150px 1fr 330px; gap:0 40px; align-items:center; }
+  .root { padding:22px 0; border-radius:20px; background:var(--ink); color:#fff; text-align:center; font-size:26px; font-weight:800; position:relative; }
+  .root::after { content:""; position:absolute; left:100%; top:50%; width:40px; border-top:2px solid #D0D5DD; }
+  .tree { position:relative; display:flex; flex-direction:column; gap:10px; padding-left:28px; border-left:2px solid #D0D5DD; }
+  .ia-r { position:relative; display:flex; align-items:center; gap:14px; }
+  .ia-r::before { content:""; position:absolute; left:-28px; top:50%; width:24px; border-top:2px solid #D0D5DD; }
+  .nd { flex-shrink:0; width:250px; display:flex; align-items:center; gap:10px; padding:10px 16px; border-radius:14px; font-size:20px; font-weight:800; }
+  .nd i { font-style:normal; font-size:14px; opacity:.6; }
+  .nd.care, .nd.sell, .nd.nv { background:#F2F4F7; color:#344054; }
+  .lv { display:flex; flex-wrap:wrap; gap:8px; }
+  .lf { padding:6px 12px; border-radius:999px; border:1px solid var(--g200); font-size:16px; font-weight:600; color:#475467; background:#fff; }
+
+  .ia-sep { position:relative; margin:22px 0 10px; border-top:2px dashed #D0D5DD; }
+  .ia-sep span { position:absolute; left:0; top:-12px; padding-right:10px; background:#fff; font-size:14px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; color:#98A2B3; }
+  .ia-side { display:flex; flex-direction:column; gap:14px; }
+  .stat { padding:22px 26px; border-radius:22px; border:1px solid var(--g200); }
+  .stat b { display:block; font-size:54px; line-height:1; font-weight:800; letter-spacing:-2px; }
+  .stat small { display:block; margin-top:14px; padding-top:12px; border-top:1px dashed var(--g200); font-size:17px; font-weight:700; color:#D92D20; }
+  .stat span { display:block; margin-top:6px; font-size:19px; font-weight:600; color:var(--g500); }
+  .key { display:flex; flex-direction:column; gap:8px; padding:8px 4px; font-size:17px; font-weight:600; color:#475467; }
+  .key i { display:inline-block; width:14px; height:14px; border-radius:4px; margin-right:10px; vertical-align:-1px; }
+  .key i.care { background:#ABE6CC; } .key i.sell { background:#F2E2A6; } .key i.nv { background:#D0D5DD; }
+
+  /* ---------- slide 6: home today, three users ---------- */
+  .phs { margin-top:24px; display:flex; justify-content:center; gap:80px; }
+  .ph { margin:0; display:flex; flex-direction:column; align-items:center; gap:14px; }
+  .ph figcaption { text-align:center; } .ph figcaption b { display:block; font-size:28px; font-weight:800; } .ph figcaption span { font-size:18px; font-weight:600; color:var(--g500); }
+  /* ---------- slide 8: new IA ---------- */
+  .n8 { margin-top:56px; display:flex; flex-direction:column; align-items:center; }
+  .reads { display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:center; }
+  .reads small { font-size:18px; font-weight:800; letter-spacing:2px; text-transform:uppercase; color:#98A2B3; margin-right:8px; }
+  .reads span { padding:14px 24px; border-radius:999px; background:#F9FAFB; border:1px solid var(--g200); font-size:22px; font-weight:700; color:#344054; }
+  .arrow8 { margin:22px 0; display:flex; flex-direction:column; align-items:center; gap:10px; }
+  .arrow8 i { width:2px; height:56px; background:linear-gradient(#D0D5DD,var(--b600)); position:relative; }
+  .arrow8 i::after { content:""; position:absolute; left:50%; bottom:-2px; width:12px; height:12px; border-right:2px solid var(--b600); border-bottom:2px solid var(--b600); transform:translateX(-50%) rotate(45deg); }
+  .arrow8 span { font-size:22px; font-weight:700; color:var(--b600); }
+  .f3s { width:100%; display:grid; grid-template-columns:repeat(3,1fr); gap:28px; }
+  .f3 { padding:34px 36px; border-radius:30px; border:1px solid; }
+  .f3 b { display:block; font-size:42px; font-weight:800; letter-spacing:-1px; } .f3 > span { display:block; margin-top:4px; font-size:21px; font-weight:700; }
+  .f3 ul { list-style:none; padding:0; margin:22px 0 0; display:flex; flex-direction:column; gap:12px; }
+  .f3 li { font-size:21px; font-weight:600; color:#344054; }
+  .f3.today { background:linear-gradient(180deg,#E3F7EE,#fff 70%); border-color:#ABE6CC; color:#1B6B4A; }
+  .f3.prog { background:linear-gradient(180deg,#FBF3D6,#fff 70%); border-color:#F2E2A6; color:#826E2D; }
+  .f3.dev { background:linear-gradient(180deg,#EEF4FF,#fff 70%); border-color:#C7D7FE; color:#3538CD; }
+  /* ---------- slide 9: aesthetic wireframe ---------- */
+  .s9g { margin-top:28px; display:grid; grid-template-columns:1fr 380px 1fr; gap:64px; align-items:center; }
+  .s9s { display:flex; flex-direction:column; gap:12px; width:400px; } .s9s:first-child { justify-self:end; } .s9s:last-child { justify-self:start; }
+  .s9s .rule { flex-direction:column; align-items:flex-start; gap:4px; padding:16px 22px; }
+  .s9s .rule .rw { font-size:20px; } .s9s .rule .rt { font-size:17px; }
+  .pr9 { margin-top:14px; font-size:17px; line-height:1.45; font-weight:500; color:#475467; } .pr9 b { display:block; margin-bottom:4px; font-size:18px; color:var(--ink); }
+  .wf2 { position:relative; width:380px; height:740px; border-radius:52px; padding:22px 20px 0; background:linear-gradient(180deg,#FCFCFD,#fff); border:1px solid #E4E7EC; box-shadow:0 40px 80px -40px rgba(16,24,40,.28), inset 0 0 0 8px #F9FAFB; display:flex; flex-direction:column; gap:16px; overflow:hidden; }
+  .w-st { display:flex; justify-content:space-between; padding:4px 10px 0; } .w-st > i { width:38px; height:8px; border-radius:4px; background:#E4E7EC; } .w-st span { display:flex; gap:4px; } .w-st span i { width:14px; height:8px; border-radius:4px; background:#E4E7EC; }
+  .w-hi { display:flex; flex-direction:column; gap:8px; padding:0 4px; } .w-hi .a { width:30%; height:8px; border-radius:4px; background:#EAECF0; } .w-hi .b { width:52%; height:14px; border-radius:7px; background:#D0D5DD; }
+  .w-nav { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; padding:6px; border-radius:22px; background:#F2F4F7; }
+  .fd { display:grid; grid-template-columns:24px 1fr; column-gap:8px; align-items:center; padding:10px; border-radius:16px; transition:background-color .5s var(--ease), box-shadow .5s var(--ease); }
+  .fd .ic { grid-row:span 2; width:24px; height:24px; border-radius:8px; background:#D0D5DD; transition:background-color .5s var(--ease); }
+  .fd b { font-size:15px; font-weight:800; color:#667085; } .fd small { font-size:12px; font-weight:600; color:#98A2B3; white-space:nowrap; }
+  .fd.on { background:#fff; box-shadow:0 8px 18px -10px rgba(16,24,40,.3); } .fd.on .ic { background:linear-gradient(135deg,#3E8F62,#CFEBD8); } .fd.on b { color:var(--ink); } .fd.on small { color:var(--b600); }
+  .panes { position:relative; flex:1; }
+  .pane { position:absolute; inset:0; display:flex; flex-direction:column; gap:14px; opacity:0; transform:translateY(10px); transition:opacity .5s var(--ease), transform .5s var(--ease); }
+  .pane.on { opacity:1; transform:none; }
+  .w-hero { display:flex; gap:16px; align-items:center; padding:20px; border-radius:24px; background:linear-gradient(135deg,#EEF8F3,#fff 75%); border:1px solid #DCEFE5; }
+  .orb { flex-shrink:0; width:64px; height:64px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#fff,#CFEBD8 55%,#9ED3B8); box-shadow:inset 0 -6px 12px rgba(41,157,107,.18); }
+  .orb.sm { width:40px; height:40px; }
+  .w-hero div { display:flex; flex-direction:column; gap:8px; flex:1; } .w-hero .k, .w-card .k, .w-tiles .k { width:44%; height:7px; border-radius:4px; background:#D9EDE2; }
+  .w-hero b { font-size:18px; line-height:1.25; font-weight:800; color:#1B6B4A; } .w-hero .cta { width:96px; height:26px; border-radius:999px; background:#299D6B; opacity:.85; }
+  .w-rings { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .w-rings span { aspect-ratio:1/.8; border-radius:20px; background:#F9FAFB; border:1px solid #F2F4F7; position:relative; }
+  .w-rings span::after { content:""; position:absolute; left:50%; top:50%; width:44px; height:44px; translate:-50% -50%; border-radius:50%; border:5px solid #EAECF0; border-top-color:#9ED3B8; border-right-color:#9ED3B8; }
+  .w-part { padding:16px; border-radius:22px; background:#fff; border:1px solid #F2F4F7; display:flex; flex-direction:column; gap:12px; }
+  .w-part .t { width:38%; height:10px; border-radius:5px; background:#D0D5DD; }
+  .w-part .row { display:flex; align-items:center; gap:12px; } .w-part .row i { flex:1; height:9px; border-radius:5px; background:#EAECF0; } .w-part .row i.s { flex:.6; }
+  .wtk { width:22px; height:22px; border-radius:50%; border:2px solid #D0D5DD; } .wtk.on { background:#299D6B; border-color:#299D6B; opacity:.8; }
+  .w-card { display:flex; gap:14px; align-items:center; padding:18px; border-radius:22px; background:#F9FAFB; border:1px solid #F2F4F7; } .w-card .l { flex:1; height:9px; border-radius:5px; background:#EAECF0; }
+  .w-card.tall { flex-direction:column; align-items:flex-start; height:150px; background:linear-gradient(160deg,#FBF6E6,#fff); border-color:#F4EBCB; }
+  .w-tiles { display:grid; grid-template-columns:1fr 1fr; gap:10px; } .w-tiles div { padding:16px; border-radius:20px; background:linear-gradient(160deg,#EEF4FF,#fff); border:1px solid #E0EAFF; display:flex; flex-direction:column; gap:12px; }
+  .w-tiles b { width:70%; height:22px; border-radius:7px; background:#C7D7FE; }
+  .w-tabs { display:grid; grid-template-columns:repeat(4,1fr); gap:20px; padding:16px 30px 22px; margin:0 -20px; border-top:1px solid #F2F4F7; background:#fff; } .w-tabs i { height:24px; border-radius:8px; background:#EAECF0; } .w-tabs i:first-child { background:#ABE6CC; }
+  .rules { display:flex; flex-direction:column; gap:12px; }
+  .rule { display:flex; justify-content:space-between; align-items:center; padding:20px 26px; border-radius:20px; border:1px solid var(--g200); background:#fff; text-align:left; font-family:inherit; cursor:pointer; transition:background-color .5s var(--ease), border-color .5s var(--ease); }
+  .rule .rw { font-size:24px; font-weight:800; color:#344054; } .rule .rt { font-size:21px; font-weight:700; color:var(--g500); }
+  .rule.on { background:var(--b50); border-color:#ABE6CC; } .rule.on .rt { color:var(--b600); }
+  .princ { margin-top:30px; display:grid; grid-template-columns:repeat(3,1fr); gap:24px; }
+  .princ div { font-size:19px; line-height:1.45; font-weight:500; color:#475467; } .princ b { display:block; margin-bottom:6px; font-size:21px; color:var(--ink); }
+
+  /* ---------- slide 10: real new home ---------- */
+  .s10c { margin-top:22px; display:flex; flex-direction:column; align-items:center; gap:18px; }
+  .s10b { display:flex; align-items:center; gap:16px; }
+  .full10 { padding:10px 18px; border-radius:999px; border:1px solid var(--g200); font:700 16px Manrope, sans-serif; color:#344054; text-decoration:none; }
+  .full10 span { color:var(--b600); margin-left:4px; }
+  /* ---------- the lab's iPhone 17 Pro frame (sizes from home-lab/index.html) ---------- */
+  .iph { --k:calc(390 / 955); width:calc(1071px * var(--k) * var(--fit)); height:calc(2190px * var(--k) * var(--fit)); flex-shrink:0; }
+  .iphone { position:relative; width:calc(1071px * var(--k)); height:calc(2190px * var(--k)); transform:scale(var(--fit)); transform-origin:0 0; filter:drop-shadow(0 30px 40px rgba(16,24,40,.18)); }
+  .iphone .glass { position:absolute; left:calc(58px * var(--k)); top:calc(55px * var(--k)); width:390px; height:calc(2079px * var(--k)); border-radius:calc(150px * var(--k)); overflow:hidden; background:#fff; z-index:1; }
+  .iphone .glass iframe { display:block; width:100%; height:100%; border:0; background:#fff; }
+  .iphone .status { position:absolute; left:0; top:0; width:100%; height:calc(390px * 248 / 1608); z-index:2; pointer-events:none; background:transparent url("../v7/frames/status-bar-black.webp") center top / 100% 100% no-repeat; }
+  .iphone .bezel { position:absolute; inset:0; width:100%; height:100%; z-index:4; pointer-events:none; }
+  /* ---------- slides 11-12: iOS home, splash, land on Program ---------- */
+  .iphone .glass.ios { background:url("a/ios-home.png") center / 100% 100% no-repeat; }
+  .ios .app.gf { position:absolute; left:30.4%; top:54.75%; width:16%; z-index:2; }
+  .app { display:flex; flex-direction:column; align-items:center; gap:6px; width:66px; border:0; padding:0; background:none; font:500 12.5px -apple-system, "SF Pro Text", Inter, sans-serif; white-space:nowrap; color:#fff; text-shadow:0 1px 2px rgba(0,0,0,.25); cursor:default; }
+  .app i { position:relative; width:100%; aspect-ratio:1; border-radius:22%; display:grid; place-items:center; box-shadow:0 2px 6px rgba(16,24,40,.12); overflow:hidden; }
+  .app i svg { width:34px; height:34px; }
+  .app.gf { cursor:pointer; } .app.gf i { background:#fff; } .app.gf i img { width:100%; height:100%; }
+  .app.gf i::after { content:""; position:absolute; inset:-1px; border-radius:16px; box-shadow:0 0 0 0 rgba(255,255,255,.9); }
+  .slide.on .app.gf i { animation:tapme 2s var(--ease) infinite; }
+  @keyframes tapme { 0%,100% { box-shadow:0 2px 6px rgba(16,24,40,.12), 0 0 0 0 rgba(255,255,255,.0); } 50% { box-shadow:0 2px 6px rgba(16,24,40,.12), 0 0 0 7px rgba(255,255,255,.55); } }
+  .ios-open { position:absolute; z-index:3; background:#2A9D69; border-radius:15px; opacity:0; pointer-events:none; }
+  .tapnote { font-size:18px; font-weight:700; color:var(--g500); }
+  .s12 video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:1; background:#2A9D69; transition:opacity .6s var(--ease); }
+  .s12 video.gone { opacity:0; pointer-events:none; }
+  .s12 button.full10 { background:#fff; cursor:pointer; }
+
+  .s11 { padding:30px 0; display:flex; justify-content:center; align-items:center; } .s11c { margin:0; gap:12px; }
+  .s12 { padding:30px 0; display:flex; justify-content:center; align-items:center; }
+  .s12l { position:absolute; left:140px; top:50%; transform:translateY(-50%); }
+  .slide.on .s12l.reveal { transform:translateY(-50%); }
+  .s12l .h2 { margin-top:14px; font-size:80px; line-height:1.02; }
+  .h2 em.red { color:#D92D20; }
+  /* ---------- chrome ---------- */
+  .nav { position:fixed; right:24px; bottom:20px; display:flex; align-items:center; gap:10px; font:600 14px Manrope; color:var(--g500); }
+  .nav button { width:40px; height:40px; border-radius:50%; border:1px solid var(--g200); background:#fff; font-size:18px; color:#344054; cursor:pointer; }
+  @media (prefers-reduced-motion: reduce) { .pic { animation:none; } .slide, .slide.on .reveal { transition:none; } }
+  body.still .slide, body.still .reveal, body.still .reveal * { transition:none !important; animation:none !important; }
+  .s6n { padding-top:72px; } .s6n .phs { margin-top:40px; }
+  .s11c { position:relative; } .s11c > :last-child { position:absolute; left:0; right:0; top:100%; margin-top:10px; display:flex; justify-content:center; }
+  .s11, .s12 { padding-bottom:60px; }
+  body.cut .slide { transition:none !important; }
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+
+  <section class="slide cover on">
+    <div>
+      <img class="logo reveal" src="a/gf-full-logo.png" alt="GoodFlip">
+      <h1 class="reveal" style="--d:.1s">Home page<br>Information<br>Architecture <em>revamp</em></h1>
+    </div>
+    <div class="orbit reveal" style="--d:.2s" aria-hidden="true">
+      <div class="ring"></div><div class="ring in"></div>
+      <img class="hub" src="a/pic-today-2.png" alt="">
+      <img class="pic" style="left:50%;top:6%" src="a/pic-nutrition.png" alt="">
+      <img class="pic" style="left:92%;top:36%" src="a/pic-movement.png" alt="">
+      <img class="pic" style="left:84%;top:84%" src="a/pic-mind.png" alt="">
+      <img class="pic" style="left:16%;top:84%" src="a/pic-devices.png" alt="">
+      <img class="pic" style="left:8%;top:36%" src="a/pic-care-programs.png" alt="">
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="eyebrow reveal">Who opens Home</div>
+    <h2 class="h2 reveal" style="--d:.08s">Four kinds of people, <em>one Home</em></h2>
+    <div class="users">
+      <article class="ucard reveal" style="--d:.3s">
+        <div class="hd"><div><div class="n">01</div><h3>Free user</h3></div><img class="hero" src="a/pic-shoe-1.png" alt=""></div>
+        <p>Just downloaded the app. Explores GoodFlip, logs food and tracks with their phone.</p>
+        <ul class="sub"><li class="reveal" style="--d:0.6s"><span class="th"><img class="" src="a/pic-shoe-1.png" alt=""></span>Steps from phone</li><li class="reveal" style="--d:0.72s"><span class="th"><img class="" src="a/pic-sleep.png" alt=""></span>Sleep from phone</li><li class="reveal" style="--d:0.84s"><span class="th"><img class="" src="a/pic-nutrition.png" alt=""></span>Food logging</li></ul>
+        <div class="chips"><span class="chip">No program</span><span class="chip">No device</span></div>
+      </article>
+      <article class="ucard reveal" style="--d:.5s">
+        <div class="hd"><div><div class="n">02</div><h3>Device user</h3></div><img class="hero" src="a/pic-devices.png" alt=""></div>
+        <p>Bought a device and comes back to read its numbers.</p>
+        <ul class="sub"><li class="reveal" style="--d:0.8s"><span class="th"><img class="" src="a/dev-bca.png" alt=""></span>BCA smart scale</li><li class="reveal" style="--d:0.92s"><span class="th"><img class="" src="a/dev-cgm.png" alt=""></span>CGM sensor</li><li class="reveal" style="--d:1.04s"><span class="th"><img class="" src="a/dev-ring.png" alt=""></span>GoodFlip Ring</li></ul>
+        <div class="chips"><span class="chip">No program</span><span class="chip y">Device</span></div>
+      </article>
+      <article class="ucard reveal" style="--d:.7s">
+        <div class="hd"><div><div class="n">03</div><h3>Program user</h3></div><img class="hero" src="a/pic-care-programs.png" alt=""></div>
+        <p>On a care program with a coach. Plans arrive after consultation.</p>
+        <ul class="sub"><li class="reveal" style="--d:1.0s"><span class="th"><img class="" src="a/diabetes-logo.webp" alt=""></span>Diabetes</li><li class="reveal" style="--d:1.12s"><span class="th"><img class="" src="a/pcos-logo.webp" alt=""></span>PCOS</li><li class="reveal" style="--d:1.24s"><span class="th"><img class="" src="a/fatty-liver-logo.webp" alt=""></span>Fatty liver</li><li class="reveal" style="--d:1.36s"><span class="th"><img class="" src="a/obesity-logo.svg" alt=""></span>Obesity</li></ul>
+        <div class="chips"><span class="chip y">Program</span><span class="chip">No device</span></div>
+      </article>
+      <article class="ucard reveal" style="--d:.9s">
+        <div class="hd"><div><div class="n">04</div><h3>Program and device</h3></div><img class="hero" src="a/pic-care-programs.png" alt=""></div>
+        <p>The full picture. Plans to follow, and a device that logs for them.</p>
+        <div class="mxa"><div class="ln"><div class="stk"><img src="a/diabetes-logo.webp" alt=""><img src="a/pcos-logo.webp" alt=""><img src="a/fatty-liver-logo.webp" alt=""><img src="a/obesity-logo.svg" alt=""></div><span>Any program</span></div><div class="pl">+</div><div class="ln"><div class="stk dv"><img src="a/dev-bca.png" alt=""><img src="a/dev-cgm.png" alt=""><img src="a/dev-ring.png" alt=""></div><span>One or more devices</span></div></div>
+        <div class="chips"><span class="chip y">Program</span><span class="chip y">Device</span></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="slide s3">
+    <div class="eyebrow reveal">Ways in</div>
+    <h2 class="h2 reveal" style="--d:.08s">Many doors, <em>one GoodFlip</em></h2>
+    <div class="v3 v3a"><div class="chs"><div class="chn reveal" style="--d:0.30s"><img src="a/pic-shop.png" alt=""><div><b>Shopify store</b><span>Our website</span><div class="bts"><span class="bt">Program</span><span class="bt">Device</span><span class="bt">Program + device</span></div></div></div><div class="chn reveal" style="--d:0.45s"><img src="a/ch-app-2.png" alt=""><div><b>GoodFlip app</b><span>In-app purchase</span><div class="bts"><span class="bt">Program</span><span class="bt">Device</span></div></div></div><div class="chn reveal" style="--d:0.60s"><img src="a/ch-counsellor-3.png" alt=""><div><b>Health counsellor</b><span>On a call</span><div class="bts"><span class="bt">Program</span><span class="bt">Program + device</span></div></div></div></div><svg class="flow" viewBox="0 0 300 600" preserveAspectRatio="none"><path d="M0 100 C 160 100, 140 300, 300 300" style="--k:0"/><path d="M0 300 C 160 300, 140 300, 300 300" style="--k:1"/><path d="M0 500 C 160 500, 140 300, 300 300" style="--k:2"/></svg>
+<div class="dest reveal" style="--d:1.2s"><img class="mk" src="a/gf-mark.webp" alt=""><h4>One account, one Home</h4><p>What they bought decides the Home they see.</p>
+<ul><li><span>Bought nothing yet</span><b>Free user</b></li><li><span>Bought a device</span><b>Device user</b></li><li><span>Bought a program</span><b>Program user</b></li><li><span>Bought both</span><b>Program and device</b></li></ul></div></div><div class="v3 v3b"><table class="reveal" style="--d:.3s"><tr><th></th><th>Program</th><th>Device</th><th>Program + device</th></tr><tr><td class="ch"><img src="a/pic-shop.png" alt=""><div><b>Shopify store</b><span>Our website</span></div></td><td><i class=yes></i></td><td><i class=yes></i></td><td><i class=yes></i></td></tr><tr><td class="ch"><img src="a/ch-app-2.png" alt=""><div><b>GoodFlip app</b><span>In-app purchase</span></div></td><td><i class=yes></i></td><td><i class=yes></i></td><td><i class=no></i></td></tr><tr><td class="ch"><img src="a/ch-counsellor-3.png" alt=""><div><b>Health counsellor</b><span>On a call</span></div></td><td><i class=yes></i></td><td><i class=no></i></td><td><i class=yes></i></td></tr></table><div class="foot reveal" style="--d:.8s">Every door leads into the same app and the same Home.</div></div><div class="v3 v3c"><div class="doors"><div class="door reveal" style="--d:0.30s"><img src="a/pic-shop.png" alt=""><b>Shopify store</b><span>Our website</span><div class="bts"><span class="bt">Program</span><span class="bt">Device</span><span class="bt">Program + device</span></div></div><div class="door reveal" style="--d:0.45s"><img src="a/ch-app-2.png" alt=""><b>GoodFlip app</b><span>In-app purchase</span><div class="bts"><span class="bt">Program</span><span class="bt">Device</span></div></div><div class="door reveal" style="--d:0.60s"><img src="a/ch-counsellor-3.png" alt=""><b>Health counsellor</b><span>On a call</span><div class="bts"><span class="bt">Program</span><span class="bt">Program + device</span></div></div></div><div class="band reveal" style="--d:1s"><img src="a/gf-mark.webp" alt=""><b>All doors open the same GoodFlip app</b><span>One account, one Home</span></div></div>
+  </section>
+
+  <section class="slide s4">
+    <div class="eyebrow reveal">What people tell us</div>
+    <div class="cloud">
+      <figure class="fq reveal" style="left:120px;top:210px;rotate:-2deg;--d:0.60s;--f:5.0s"><blockquote>"very cluterry app, looks like shoping mall then an serious info centric CGM app."</blockquote><figcaption><span class="st">★<i>★★★★</i></span><span><b class="nm">Nikhil S.</b> · Play Store</span></figcaption></figure><figure class="fq reveal" style="left:760px;top:190px;rotate:1.5deg;--d:0.72s;--f:6.3s"><blockquote>"Took me a while to figure out where everything lives."</blockquote><figcaption><span class="st">★★★★★<i></i></span><span><b class="nm">Nagin S.</b> · Play Store</span></figcaption></figure><figure class="fq reveal" style="left:1370px;top:170px;rotate:2deg;--d:0.84s;--f:7.6s"><blockquote>"its not simple for user..."</blockquote><figcaption><span class="st">★<i>★★★★</i></span><span><b class="nm">Gav B.</b> · Play Store · Jan 2026</span></figcaption></figure><figure class="fq reveal" style="left:80px;top:520px;rotate:1.5deg;--d:0.96s;--f:5.0s"><blockquote>"it is clubbed with other unnecessary facilities which is not required, due to which primary functions of sugar level monitoring gets disrupted all the time."</blockquote><figcaption><span class="st">★<i>★★★★</i></span><span><b class="nm">Syed Khurshid</b> · Play Store</span></figcaption></figure><figure class="fq reveal" style="left:1420px;top:520px;rotate:-1.5deg;--d:1.08s;--f:6.3s"><blockquote>"I discovered the calorie-tracking feature myself after around 13-14 days of using the app."</blockquote><figcaption><span><b class="nm">Gurshobha T.</b> · Facebook</span></figcaption></figure><figure class="fq reveal" style="left:760px;top:790px;rotate:1.5deg;--d:1.32s;--f:5.0s"><blockquote>"Nutritionists, Coaches are good, but App experience is horrible."</blockquote><figcaption><span class="st">★<i>★★★★</i></span><span><b class="nm">Saravanan S.</b> · Play Store</span></figcaption></figure>
+      <figure class="hero-q reveal" style="--d:.15s"><blockquote>"The app is incredibly <em>hard to navigate.</em>"</blockquote><figcaption><span class="st">★<i>★★★★</i></span><span><b class="nm">Surbhi Gupta</b> · Play Store · Nov 2026</span></figcaption></figure>
+    </div>
+    <div class="src4 reveal" style="--d:1.6s">From 348 store reviews and 1,569 messages in the Customer Reviews channel</div>
+  </section>
+
+  <section class="slide s5">
+    <div class="eyebrow reveal">How might we</div>
+    <div class="hmw"><div class="hr reveal" style="--d:0.10s"><small></small><span class="">How might we help</span></div><div class="hr reveal" style="--d:0.55s"><small>Who</small><span class="tk">every user, however they joined,</span></div><div class="hr reveal" style="--d:1.00s"><small>Do</small><span class="tk">know what to do next</span></div><div class="hr reveal" style="--d:1.45s"><small>When</small><span class="tk">every time they open GoodFlip,</span></div><div class="hr reveal" style="--d:1.90s"><small>Feel</small><span class="">so they feel <em>in control.</em></span></div></div>
+  </section>
+  <section class="slide s6n">
+    <div class="eyebrow reveal">Home today</div>
+    <h2 class="h2 reveal" style="--d:.08s">Three users, <em class="red">one long scroll</em></h2>
+    <div class="phs"><figure class="ph reveal" style="--d:0.25s"><div class="iph" style="--fit:0.76"><div class="iphone"><div class="glass"><iframe src="screen.html?ver=old&bw=0&prog=diabetes&plans=eat,move,mind&devs=" title="Program user Home today" loading="lazy"></iframe><div class="status"></div></div><img class="bezel" src="../v7/frames/iphone-17-pro-cosmic-orange.webp" alt=""></div></div><figcaption><b>Program user</b><span>Diabetes program, plans assigned</span></figcaption></figure><figure class="ph reveal" style="--d:0.40s"><div class="iph" style="--fit:0.76"><div class="iphone"><div class="glass"><iframe src="screen.html?ver=old&bw=0&prog=none&devs=bca&off=program" title="Device user Home today" loading="lazy"></iframe><div class="status"></div></div><img class="bezel" src="../v7/frames/iphone-17-pro-cosmic-orange.webp" alt=""></div></div><figcaption><b>Device user</b><span>BCA scale, no program</span></figcaption></figure><figure class="ph reveal" style="--d:0.55s"><div class="iph" style="--fit:0.76"><div class="iphone"><div class="glass"><iframe src="screen.html?ver=old&bw=0&prog=none&devs=" title="Free user Home today" loading="lazy"></iframe><div class="status"></div></div><img class="bezel" src="../v7/frames/iphone-17-pro-cosmic-orange.webp" alt=""></div></div><figcaption><b>Free user</b><span>No program, no device</span></figcaption></figure></div>
+  </section>
+  <section class="slide s6">
+    <div class="eyebrow reveal">Home today, as an IA</div>
+    <h2 class="h2 reveal" style="--d:.08s">The IA behind it</h2>
+    <div class="ia">
+      <div class="root reveal" style="--d:.25s">Home</div>
+      <div class="tree"><div class="ia-r reveal" style="--d:0.40s"><span class="nd nv"><i>01</i>Top bar</span><span class="lv"><span class="lf">Menu</span><span class="lf">FlipCoins</span><span class="lf">Chat</span><span class="lf">Notifications</span><span class="lf">Profile</span></span></div><div class="ia-r reveal" style="--d:0.44s"><span class="nd nv"><i>02</i>Welcome text</span><span class="lv"><span class="lf">Hi, Name, for every user</span></span></div><div class="ia-r reveal" style="--d:0.47s"><span class="nd care"><i>03</i>Program section</span><span class="lv"><span class="lf">Your program</span><span class="lf">Upcoming consultations</span><span class="lf">Live sessions</span><span class="lf sell">Refer a friend</span></span></div><div class="ia-r reveal" style="--d:0.54s"><span class="nd care"><i>04</i>Smart devices</span><span class="lv"><span class="lf">BCA</span><span class="lf">CGM</span><span class="lf">Ring</span><span class="lf">BP monitor</span></span></div><div class="ia-r reveal" style="--d:0.61s"><span class="nd care"><i>05</i>Metabolic score</span><span class="lv"><span class="lf">Score and risk</span></span></div><div class="ia-r reveal" style="--d:0.68s"><span class="nd sell"><i>06</i>GoodFlip services</span><span class="lv"><span class="lf">Care program</span><span class="lf">Lab test</span><span class="lf">Shop products</span><span class="lf">Smart devices</span></span></div><div class="ia-r reveal" style="--d:0.75s"><span class="nd care"><i>07</i>Health trackers</span><span class="lv"><span class="lf">Nutrition</span><span class="lf">Physical activity</span><span class="lf">Sleep</span><span class="lf">Steps</span><span class="lf">More</span></span></div><div class="ia-r reveal" style="--d:0.82s"><span class="nd care"><i>08</i>Track symptoms</span><span class="lv"><span class="lf">Log symptoms</span></span></div><div class="ia-r reveal" style="--d:0.89s"><span class="nd sell"><i>09</i>Explore GoodFlip</span><span class="lv"><span class="lf">Kickstarter</span><span class="lf">CGM</span><span class="lf">Lab tests</span><span class="lf">BCA</span></span></div><div class="ia-sep reveal" style="--d:0.9s"><span>Pinned on every screen</span></div><div class="ia-r reveal" style="--d:0.96s"><span class="nd nv"><i>10</i>Bottom tabs</span><span class="lv"><span class="lf">Home</span><span class="lf">Programs</span><span class="lf">Progress</span><span class="lf">FlipFeed</span><span class="lf">Records</span></span></div><div class="ia-r reveal" style="--d:1.03s"><span class="nd nv"><i>11</i>KAIRA button</span><span class="lv"><span class="lf">Floating chat</span></span></div></div>
+      <div class="ia-side">
+        <div class="stat reveal" style="--d:1.1s"><b>~3</b><span>phone screens of scroll</span><small>Most people lose focus after about two</small></div>
+      </div>
+    </div>
+  </section>
+  <section class="slide s8n">
+    <div class="eyebrow reveal">The new IA</div>
+    <h2 class="h2 reveal" style="--d:.08s">Three tabs, <em>one intelligent door</em></h2>
+    <div class="n8">
+      <div class="reads"><small class="reveal" style="--d:.2s">Home looks at</small><span class="reveal" style="--d:0.25s">What you bought</span><span class="reveal" style="--d:0.33s">Time of day</span><span class="reveal" style="--d:0.41s">What's due</span><span class="reveal" style="--d:0.49s">What just synced</span></div>
+      <div class="arrow8 reveal" style="--d:.65s"><i></i><span>and opens the tab that needs you</span></div>
+      <div class="f3s"><div class="f3 today reveal" style="--d:0.90s"><b>Today</b><span>What to do now</span><ul><li>Your next step</li><li>To-do for the day</li><li>Eat, Move, Mind scores, sleep and steps</li></ul></div><div class="f3 prog reveal" style="--d:1.05s"><b>Program</b><span>Where your care stands</span><ul><li>Your program and week</li><li>Consultations</li><li>Metabolic score</li></ul></div><div class="f3 dev reveal" style="--d:1.20s"><b>Devices</b><span>What your devices say</span><ul><li>Latest readings</li><li>When each last synced</li><li>Add a device</li></ul></div></div>
+    </div>
+  </section>
+  <section class="slide s9">
+    <div class="eyebrow reveal" style="text-align:center">The new Home, wireframe</div>
+    <h2 class="h2 reveal" style="--d:.08s;text-align:center">Opens <em>where you need to be</em></h2>
+    <div class="s9g">
+      <div class="s9s reveal" style="--d:.45s"><button class="rule" data-i="0"><span class="rw">Program user</span><span class="rt">Plans assigned: opens Today at the part of the day they are in</span></button><button class="rule" data-i="1"><span class="rw">New program user</span><span class="rt">Waiting for consultation: opens Program to book it</span></button></div>
+      <div class="wf2 reveal" style="--d:.25s">
+        <div class="w-st"><i></i><span><i></i><i></i></span></div>
+        <div class="w-hi"><i class="a"></i><i class="b"></i></div>
+        <div class="w-nav">
+          <div class="fd" data-f="today"><span class="ic"></span><b>Today</b><small></small></div>
+          <div class="fd" data-f="prog"><span class="ic"></span><b>Program</b><small></small></div>
+          <div class="fd" data-f="dev"><span class="ic"></span><b>Devices</b><small></small></div>
+        </div>
+        <div class="panes">
+          <div class="pane" data-p="today">
+            <div class="w-hero"><span class="orb"></span><div><i class="k"></i><b class="wfHero"></b><span class="cta"></span></div></div>
+            <div class="w-rings"><span></span><span></span><span></span></div>
+            <div class="w-part"><i class="t"></i><div class="row"><span class="wtk on"></span><i></i></div><div class="row"><span class="wtk"></span><i class="s"></i></div><div class="row"><span class="wtk"></span><i></i></div></div>
+          </div>
+          <div class="pane" data-p="prog">
+            <div class="w-hero"><span class="orb"></span><div><i class="k"></i><b class="wfHero"></b><span class="cta"></span></div></div>
+            <div class="w-card tall"><i class="k"></i><i class="l"></i></div>
+            <div class="w-card"><span class="orb sm"></span><i class="l"></i></div>
+          </div>
+          <div class="pane" data-p="dev">
+            <div class="w-hero"><span class="orb"></span><div><i class="k"></i><b class="wfHero"></b><span class="cta"></span></div></div>
+            <div class="w-tiles"><div><i class="k"></i><b></b></div><div><i class="k"></i><b></b></div></div>
+            <div class="w-card"><i class="k"></i><i class="l"></i></div>
+          </div>
+        </div>
+        <div class="w-tabs"><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="s9s reveal" style="--d:.55s"><button class="rule" data-i="2"><span class="rw">Device user</span><span class="rt">No program: opens Devices with the latest reading</span></button><button class="rule" data-i="3"><span class="rw">Free user</span><span class="rt">No program, no device: opens Today to track steps, sleep and food</span></button></div>
+    </div>
+  </section>
+
+
+
+
+  <section class="slide s11">
+    <div class="s10c s11c">
+      <div class="reveal" style="--d:.25s"><div class="iph" style="--fit:1.06"><div class="iphone"><div class="glass ios">
+        <button class="app gf" type="button" aria-label="Open GoodFlip"><i><img src="a/gf-app-icon.png" alt=""></i><span>GoodFlip</span></button>
+        <div class="ios-open" id="iosOpen"></div>
+        <div class="status"></div></div><img class="bezel" src="../v7/frames/iphone-17-pro-cosmic-orange.webp" alt=""></div></div></div>
+      <p class="tapnote reveal" style="--d:.6s">Tap the GoodFlip icon</p>
+    </div>
+  </section>
+  <section class="slide s12">
+    <div class="s12l reveal" style="--d:.2s"><div class="eyebrow">The new Home</div><h2 class="h2">Meet the<br><em>new Home</em></h2></div>
+    <div class="s10c s11c">
+      <div><div class="iph" style="--fit:1.06"><div class="iphone"><div class="glass">
+        <iframe id="landIf" src="screen.html?prog=diabetes&plans=eat,move,mind&bw=0&tab=prog" title="New Home, Program tab" loading="lazy"></iframe>
+        <video id="splashV" src="a/splash.mp4" muted playsinline preload="auto" aria-label="GoodFlip splash"></video>
+        <div class="status"></div></div><img class="bezel" src="../v7/frames/iphone-17-pro-cosmic-orange.webp" alt=""></div></div></div>
+      <div class="s10b"><button class="full10" id="replay12" type="button">Replay <span>↻</span></button><a class="full10" href="index.html?prog=diabetes&plans=eat%2Cmove%2Cmind&bw=0&tab=prog" target="_blank" rel="noopener">Open full screen <span>↗</span></a></div>
+    </div>
+  </section>
+</div>
+<div class="nav"><button id="prev" aria-label="Previous slide">‹</button><span id="count"></span><button id="next" aria-label="Next slide">›</button></div>
+<script>
+  const stage = document.getElementById('stage'), slides = [...document.querySelectorAll('.slide')];
+  let i = Math.max(0, Math.min(slides.length - 1, (+location.hash.slice(1) || 1) - 1));
+  const fit = () => stage.style.transform = `translate(-50%,-50%) scale(${Math.min(innerWidth / 1920, innerHeight / 1080)})`;
+  const go = n => { i = Math.max(0, Math.min(slides.length - 1, n)); slides.forEach((s, k) => s.classList.toggle('on', k === i)); count.textContent = `${i + 1} / ${slides.length}`; history.replaceState(null, '', '#' + (i + 1)); };
+  addEventListener('resize', fit);
+  addEventListener('keydown', e => { if (['ArrowRight', ' ', 'PageDown'].includes(e.key)) go(i + 1); if (['ArrowLeft', 'PageUp'].includes(e.key)) go(i - 1); });
+  prev.onclick = () => go(i - 1); next.onclick = () => go(i + 1);
+  document.body.dataset.s3 = new URLSearchParams(location.search).get('s3') || 'a';
+
+  // slide 9: cycle the opening scenarios
+  const SC = [["Morning, plans assigned", "today", "Opens Today at Morning", "Breakfast, 8:30 AM", ["17 left", "Week 6", "1 synced"]], ["Waiting for consultation", "prog", "Opens Program", "Book your first consultation", ["3 to do", "Starts soon", "Add one"]], ["Device, no program", "dev", "Opens Devices", "Weight synced, 7:10 AM", ["Track", "Explore", "1 synced"]], ["Free user", "today", "Opens Today", "Track steps, sleep and food", ["Track", "Explore", "Add one"]]];
+  let si = 0, st9;
+  const s9 = document.querySelector('.s9');
+  const show9 = n => { si = n; const [, f, , hero, sts] = SC[n];
+    s9.querySelectorAll('.rule').forEach((r, k) => r.classList.toggle('on', k === n));
+    s9.querySelectorAll('.fd').forEach((d, k) => { d.classList.toggle('on', d.dataset.f === f); d.querySelector('small').textContent = sts[k]; });
+    s9.querySelectorAll('.pane').forEach(p => p.classList.toggle('on', p.dataset.p === f));
+    s9.querySelectorAll('.wfHero').forEach(b => b.textContent = hero); };
+  s9.querySelectorAll('.rule').forEach(r => r.onclick = () => { clearInterval(st9); show9(+r.dataset.i); });
+  show9(0);
+  new MutationObserver(() => { clearInterval(st9); if (s9.classList.contains('on') && !matchMedia('(prefers-reduced-motion: reduce)').matches) st9 = setInterval(() => show9((si + 1) % SC.length), 3000); }).observe(s9, { attributes: true, attributeFilter: ['class'] });
+  if (new URLSearchParams(location.search).has('still')) document.body.classList.add('still');
+  // same patch as the lab: the frame draws the status bar, so empty the screen's own
+  const PATCH = '.gf-status{height:' + (390 * 248 / 1608) + 'px !important} .gf-status>*{visibility:hidden !important} html{scrollbar-width:none !important} html::-webkit-scrollbar{display:none !important}';
+  document.querySelectorAll('.iphone iframe').forEach(f => f.addEventListener('load', () => { try { const st = f.contentDocument.createElement('style'); st.textContent = PATCH; f.contentDocument.head.append(st); } catch (e) {} }));
+
+  // slide 11: an iOS home with GoodFlip on it; tapping the icon opens the app (next slide)
+  document.querySelector('.s11 .gf').addEventListener('click', e => {
+    const g = e.currentTarget.querySelector('i'), sc = g.closest('.glass'), a = g.getBoundingClientRect(), b = sc.getBoundingClientRect(), k = b.width / 390;
+    const o = iosOpen; o.style.cssText = `left:${(a.left - b.left) / k}px;top:${(a.top - b.top) / k}px;width:${a.width / k}px;height:${a.height / k}px;opacity:1;transition:none`;
+    requestAnimationFrame(() => requestAnimationFrame(() => { o.style.cssText += ';transition:all .45s cubic-bezier(.33,1,.68,1);left:0;top:0;width:100%;height:100%;border-radius:0'; }));
+    setTimeout(() => { document.body.classList.add('cut'); go(i + 1); requestAnimationFrame(() => requestAnimationFrame(() => document.body.classList.remove('cut'))); setTimeout(() => o.style.cssText = '', 300); }, 480);
+  });
+  // slide 12: splash plays from its still logo frame, then fades to the live Home on the Program tab
+  const sv = splashV, s12 = document.querySelector('.s12'); let svT;
+  const park = () => { sv.pause(); clearTimeout(svT); sv.classList.remove('gone'); if (sv.readyState >= 1) sv.currentTime = 0.37; };
+  sv.addEventListener('loadedmetadata', () => { if (!s12.classList.contains('on')) sv.currentTime = 0.37; }, { once: true });
+  const runSplash = () => { park(); svT = setTimeout(() => sv.play().catch(() => {}), 350); };
+  sv.addEventListener('ended', () => { svT = setTimeout(() => sv.classList.add('gone'), 500); });
+  replay12.onclick = () => { landIf.src = landIf.src; runSplash(); };
+  new MutationObserver(() => { s12.classList.contains('on') ? runSplash() : park(); }).observe(s12, { attributes: true, attributeFilter: ['class'] });
+  fit(); go(i);
+</script>
+</body>
+</html>
